@@ -95,7 +95,7 @@ priv_validator_laddr = "tcp://127.0.0.1:26658"
 Let's assume that you have set up your validator account and called it `kmsval`. You can tell gaiad the key that we've got in the previous section.
 
 ```bash
-gaiad gentx --name kmsval --pubkey {.ValidatorKey} 
+pstaked gentx --name kmsval --pubkey {.ValidatorKey} 
 ```
 
 Now start `gaiad`. You should see that the KMS connects and receives a signature request.

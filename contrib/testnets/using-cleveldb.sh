@@ -1,6 +1,6 @@
 #!/bin/bash
 
-make install GAIA_BUILD_OPTIONS="cleveldb"
+make install PSTAKE_BUILD_OPTIONS="cleveldb"
 
 gaiad init "t6" --home ./t6 --chain-id t6
 

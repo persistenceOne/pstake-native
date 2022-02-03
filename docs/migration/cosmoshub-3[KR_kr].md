@@ -79,9 +79,9 @@ Gaia v2.0.15의 버전/커밋 해시값: `89cf7e6fc166eaabf47ad2755c443d455feda0
 1. 올바른 _gaiad_ 버전 (v2.0.15)를 운영하고 있는 것을 확인하세요:
 
    ```bash
-    $ gaiad version --long
+    $ pstaked version --long
     name: gaia
-    server_name: gaiad
+    server_name: pstaked
     client_name: gaiacli
     version: 2.0.15
     commit: 89cf7e6fc166eaabf47ad2755c443d455feda02e
@@ -116,7 +116,7 @@ Gaia v2.0.15의 버전/커밋 해시값: `89cf7e6fc166eaabf47ad2755c443d455feda0
    ```
 
    ```bash
-   $ gaiad export --for-zero-height --height=<height> > cosmoshub_3_genesis_export.json
+   $ pstaked export --for-zero-height --height=<height> > cosmoshub_3_genesis_export.json
    ```
    _이 과정은 상당한 시간이 (약 1시간) 소요될 수 있습니다_
 
@@ -141,9 +141,9 @@ Gaia v2.0.15의 버전/커밋 해시값: `89cf7e6fc166eaabf47ad2755c443d455feda0
 1. _Gaia_의 올바른 버전(v4.0.0)을 운영하고 있는 것을 확인하세요:
 
    ```bash
-    $ gaiad version --long
+    $ pstaked version --long
     name: gaia
-    server_name: gaiad
+    server_name: pstaked
     version: 4.0.0
     commit: 2bb04266266586468271c4ab322367acbf41188f
     build_tags: netgo,ledger
@@ -156,7 +156,7 @@ Gaia v2.0.15의 버전/커밋 해시값: `89cf7e6fc166eaabf47ad2755c443d455feda0
 1. 내보낸 상태를 기존 v2.0.15 버전에서 v4.0.0 버전으로 마이그레이션 하세요:
 
    ```bash
-   $ gaiad migrate cosmoshub_3_genesis_export.json --chain-id=cosmoshub-4 --initial-height [last_cosmoshub-3_block+1] > genesis.json
+   $ pstaked migrate cosmoshub_3_genesis_export.json --chain-id=cosmoshub-4 --initial-height [last_cosmoshub-3_block+1] > genesis.json
    ```
 
    이 과정은 이전 체인에서 내보낸 상태를 기반으로 `cosmoshub-4`로 시작하기 위한 `genesis.json` 파일을 생성합니다.
@@ -176,7 +176,7 @@ Gaia v2.0.15의 버전/커밋 해시값: `89cf7e6fc166eaabf47ad2755c443d455feda0
    **참고**: 이 과정을 진행하기 전에 꼭 노드의 상태를 백업하세요. 백업 과정은 [복구](#복구) 항복을 참고하세요
 
    ```bash
-   $ gaiad unsafe-reset-all
+   $ pstaked unsafe-reset-all
    ```
 
 1. 새로운 `genesis.json`을 `.gaia/config/` 디렉토리로 옮기세요:
@@ -188,7 +188,7 @@ Gaia v2.0.15의 버전/커밋 해시값: `89cf7e6fc166eaabf47ad2755c443d455feda0
 1. 블록체인을 가동하세요
 
     ```bash
-    gaiad start
+    pstaked start
     ```
 
     Crisis 모듈의 제네시스 상태 자동 검증은 30-120분 소요될 수 있습니다. 해당 기능은 `gaiad start --x-crisis-skip-assert-invariants`로 비활성화할 수 있습니다.

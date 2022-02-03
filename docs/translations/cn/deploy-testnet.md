@@ -37,24 +37,24 @@
 cd $HOME
 
 # Initialize the genesis.json file that will help you to bootstrap the network
-gaiad init --chain-id=testing testing
+pstaked init --chain-id=testing testing
 
 # Create a key to hold your validator account
-gaiad keys add validator
+pstaked keys add validator
 
 # Add that key into the genesis.app_state.accounts array in the genesis file
 # NOTE: this command lets you set the number of coins. Make sure this account has some coins
 # with the genesis.app_state.staking.params.bond_denom denom, the default is staking
-gaiad add-genesis-account $(gaiad keys show validator -a) 1000000000stake,1000000000validatortoken
+pstaked add-genesis-account $(pstaked keys show validator -a) 1000000000stake,1000000000validatortoken
 
 # Generate the transaction that creates your validator
-gaiad gentx --name validator
+pstaked gentx --name validator
 
 # Add the generated bonding transaction to the genesis file
-gaiad collect-gentxs
+pstaked collect-gentxs
 
-# Now its safe to start `gaiad`
-gaiad start
+# Now its safe to start `pstaked`
+pstaked start
 ```
 
 启动将会把`gaiad`相关的所有数据放在`~/.gaia`目录。你可以检查所创建的 genesis 文件——`~/.gaia/config/genesis.json`。同时`gaiad`也已经配置完成并且有了一个拥有 token 的账户(stake 和自定义的代币)。
@@ -117,40 +117,40 @@ make build-linux localnet-start
 ```bash
 $ tree -L 2 build/
 build/
-├── gaiad
-├── gaiad
+├── pstaked
+├── pstaked
 ├── gentxs
 │   ├── node0.json
 │   ├── node1.json
 │   ├── node2.json
 │   └── node3.json
 ├── node0
-│   ├── gaiad
+│   ├── pstaked
 │   │   ├── key_seed.json
 │   │   └── keys
-│   └── gaiad
-│       ├── ${LOG:-gaiad.log}
+│   └── pstaked
+│       ├── ${LOG:-pstaked.log}
 │       ├── config
 │       └── data
 ├── node1
-│   ├── gaiad
+│   ├── pstaked
 │   │   └── key_seed.json
-│   └── gaiad
-│       ├── ${LOG:-gaiad.log}
+│   └── pstaked
+│       ├── ${LOG:-pstaked.log}
 │       ├── config
 │       └── data
 ├── node2
-│   ├── gaiad
+│   ├── pstaked
 │   │   └── key_seed.json
-│   └── gaiad
-│       ├── ${LOG:-gaiad.log}
+│   └── pstaked
+│       ├── ${LOG:-pstaked.log}
 │       ├── config
 │       └── data
 └── node3
-    ├── gaiad
+    ├── pstaked
     │   └── key_seed.json
-    └── gaiad
-        ├── ${LOG:-gaiad.log}
+    └── pstaked
+        ├── ${LOG:-pstaked.log}
         ├── config
         └── data
 ```
@@ -170,7 +170,7 @@ docker logs -f gaiadnode0
 你需要使用指定节点的`gaiad`目录作为你的`home`来同`gaiad`交互，并执行查询或者创建交易:
 
 ```bash
-gaiad keys list --home ./build/node0/gaiad
+pstaked keys list --home ./build/node0/pstaked
 ```
 
 现在账户已经存在了，你可以创建新的账户并向其发送资金！

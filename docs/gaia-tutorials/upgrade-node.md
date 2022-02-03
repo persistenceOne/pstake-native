@@ -32,10 +32,10 @@ Create the appropriate directories
 ```bash
 mkdir -p ~/.gaia/cosmovisor/upgrades
 mkdir -p ~/.gaia/cosmovisor/genesis/bin/
-cp $(which gaiad) ~/.gaia/cosmovisor/genesis/bin/
+cp $(which pstaked) ~/.gaia/cosmovisor/genesis/bin/
 
 # verify the setup. 
-# It should return the same version as gaiad
+# It should return the same version as pstaked
 cosmovisor version
 ```
 
@@ -74,7 +74,7 @@ See the [testnet repo](https://github.com/cosmos/testnets) for details on which 
 Your full node has been cleanly upgraded! If there are no breaking changes then you can simply restart the node by running:
 
 ```bash
-gaiad start
+pstaked start
 ```
 
 ## Upgrade Genesis File
@@ -105,7 +105,7 @@ If you were running a node in the previous version of the network and want to bu
 
 ```bash
 cd $HOME/.gaia/config
-gaiad export --for-zero-height --height=<export-height> > new_genesis.json
+pstaked export --for-zero-height --height=<export-height> > new_genesis.json
 ```
 
 The command above take a state at a certain height `<export-height>` and turns it into a new genesis file that can be used to start a new network.
@@ -136,7 +136,7 @@ Make sure that every node has a unique `priv_validator.json`. Do not copy the `p
 First, remove the outdated files and reset the data. **If you are running a validator node, make sure you understand what you are doing before resetting**.
 
 ```bash
-gaiad unsafe-reset-all
+pstaked unsafe-reset-all
 ```
 
 Your node is now in a pristine state while keeping the original `priv_validator.json` and `config.toml`. If you had any sentry nodes or full nodes setup before, your node will still try to connect to them, but may fail if they haven't also been upgraded.

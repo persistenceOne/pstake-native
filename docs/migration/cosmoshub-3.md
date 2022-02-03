@@ -132,9 +132,9 @@ The version/commit hash of Gaia v2.0.15: `89cf7e6fc166eaabf47ad2755c443d455feda0
 1. Verify you are currently running the correct version (v2.0.15) of _gaiad_:
 
    ```bash
-    $ gaiad version --long
+    $ pstaked version --long
     name: gaia
-    server_name: gaiad
+    server_name: pstaked
     client_name: gaiacli
     version: 2.0.15
     commit: 89cf7e6fc166eaabf47ad2755c443d455feda02e
@@ -172,7 +172,7 @@ The version/commit hash of Gaia v2.0.15: `89cf7e6fc166eaabf47ad2755c443d455feda0
    ```
 
    ```bash
-   $ gaiad export --height=<height> > cosmoshub_3_genesis_export.json
+   $ pstaked export --height=<height> > cosmoshub_3_genesis_export.json
    ```
    _this might take a while, you can expect an hour for this step_
 
@@ -200,7 +200,7 @@ Cross check your genesis hash with other peers (other validators) in the chat ro
 
    ```bash
     name: gaia
-    server_name: gaiad
+    server_name: pstaked
     version: 4.0.2
     commit: 6d46572f3273423ad9562cf249a86ecc8206e207
     build_tags: netgo,ledger
@@ -211,7 +211,7 @@ Cross check your genesis hash with other peers (other validators) in the chat ro
 1. Migrate exported state from the current v2.0.15 version to the new v4.0.2 version:
 
    ```bash
-   $ gaiad migrate cosmoshub_3_genesis_export.json --chain-id=cosmoshub-4 --initial-height [last_cosmoshub-3_block+1] > genesis.json
+   $ pstaked migrate cosmoshub_3_genesis_export.json --chain-id=cosmoshub-4 --initial-height [last_cosmoshub-3_block+1] > genesis.json
    ```
 
    This will migrate our exported state into the required `genesis.json` file to start the cosmoshub-4.
@@ -232,7 +232,7 @@ Cross check your genesis hash with other peers (other validators) in the chat ro
    See [Recovery](#recovery) for details on how to proceed.
 
    ```bash
-   $ gaiad unsafe-reset-all
+   $ pstaked unsafe-reset-all
    ```
 
 1. Move the new `genesis.json` to your `.gaia/config/` directory
@@ -244,7 +244,7 @@ Cross check your genesis hash with other peers (other validators) in the chat ro
 1. Start your blockchain 
 
     ```bash
-    gaiad start
+    pstaked start
     ```
 
     Automated audits of the genesis state can take 30-120 min using the crisis module. This can be disabled by 
@@ -255,9 +255,9 @@ Cross check your genesis hash with other peers (other validators) in the chat ro
 1. Verify you are currently running the correct version (v2.0.15) of _gaiad_:
 
    ```bash
-    $ gaiad version --long
+    $ pstaked version --long
     name: gaia
-    server_name: gaiad
+    server_name: pstaked
     client_name: gaiacli
     version: 2.0.15
     commit: 89cf7e6fc166eaabf47ad2755c443d455feda02e
@@ -297,7 +297,7 @@ Cross check your genesis hash with other peers (other validators) in the chat ro
 
    ```bash
     name: gaia
-    server_name: gaiad
+    server_name: pstaked
     version: 4.0.2
     commit: 6d46572f3273423ad9562cf249a86ecc8206e207
     build_tags: netgo,ledger
@@ -312,7 +312,7 @@ Cross check your genesis hash with other peers (other validators) in the chat ro
    See [Recovery](#recovery) for details on how to proceed.
 
    ```bash
-   $ gaiad unsafe-reset-all
+   $ pstaked unsafe-reset-all
    ```
 
 1. Move the new `genesis.json` to your `.gaia/config/` directory
@@ -324,7 +324,7 @@ Cross check your genesis hash with other peers (other validators) in the chat ro
 1. Start your blockchain
 
     ```bash
-    gaiad start
+    pstaked start
     ```
 
    Automated audits of the genesis state can take 30-120 min using the crisis module. This can be disabled by

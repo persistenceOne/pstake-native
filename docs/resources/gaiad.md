@@ -13,7 +13,7 @@ order: 1
 The main command used to set up `gaiad` is the following:
 
 ```bash
-gaiad config <flag> <value>
+pstaked config <flag> <value>
 ```
 
 It allows you to set a default value for each given flag.
@@ -21,9 +21,9 @@ It allows you to set a default value for each given flag.
 First, set up the address of the full-node you want to connect to:
 
 ```bash
-gaiad config node <host>:<port>
+pstaked config node <host>:<port>
 
-# example: gaiad config node https://77.87.106.33:26657
+# example: pstaked config node https://77.87.106.33:26657
 ```
 
 If you run your own full-node, just use `tcp://localhost:26657` as the address.
@@ -31,7 +31,7 @@ If you run your own full-node, just use `tcp://localhost:26657` as the address.
 Then, let us set the default value of the `--trust-node` flag:
 
 ```bash
-gaiad config trust-node true
+pstaked config trust-node true
 
 # Set to true if you trust the full-node you are connecting to, false otherwise
 ```
@@ -39,7 +39,7 @@ gaiad config trust-node true
 Finally, let us set the `chain-id` of the blockchain we want to interact with:
 
 ```bash
-gaiad config chain-id cosmoshub-2
+pstaked config chain-id cosmoshub-2
 ```
 
 ### Keys
@@ -73,7 +73,7 @@ from an old version of `gaiad` you will need to migrate your old keys into your 
 credentials storage by running the following command:
 
 ```bash
-gaiad keys migrate
+pstaked keys migrate
 ```
 
 The command will prompt for every passphrase. If a passphrase is incorrect, it will skip the
@@ -86,7 +86,7 @@ You'll need an account private and public key pair \(a.k.a. `sk, pk` respectivel
 To generate a new _secp256k1_ key:
 
 ```bash
-gaiad keys add <account_name>
+pstaked keys add <account_name>
 ```
 
 The output of the above command will contain a _seed phrase_. It is recommended to save the _seed
@@ -95,31 +95,31 @@ credentials store, you could eventually regenerate the key from the seed phrase 
 following command:
 
 ```bash
-gaiad keys add --recover
+pstaked keys add --recover
 ```
 
 If you check your private keys, you'll now see `<account_name>`:
 
 ```bash
-gaiad keys show <account_name>
+pstaked keys show <account_name>
 ```
 
 View the validator operator's address via:
 
 ```bash
-gaiad keys show <account_name> --bech=val
+pstaked keys show <account_name> --bech=val
 ```
 
 You can see all your available keys by typing:
 
 ```bash
-gaiad keys list
+pstaked keys list
 ```
 
 View the validator pubkey for your node by typing:
 
 ```bash
-gaiad tendermint show-validator
+pstaked tendermint show-validator
 ```
 
 Note that this is the Tendermint signing key, _not_ the operator key you will use in delegation transactions.
@@ -133,7 +133,7 @@ We strongly recommend _NOT_ using the same passphrase for multiple keys. The Ten
 You can generate and print a multisig public key by typing:
 
 ```bash
-gaiad keys add --multisig=name1,name2,name3[...] --multisig-threshold=K new_key_name
+pstaked keys add --multisig=name1,name2,name3[...] --multisig-threshold=K new_key_name
 ```
 
 `K` is the minimum number of private keys that must have signed the
@@ -146,14 +146,14 @@ the flag `--nosort` is set, the order in which the keys are supplied on the comm
 does not matter, i.e. the following commands generate two identical keys:
 
 ```bash
-gaiad keys add --multisig=foo,bar,baz --multisig-threshold=2 multisig_address
-gaiad keys add --multisig=baz,foo,bar --multisig-threshold=2 multisig_address
+pstaked keys add --multisig=foo,bar,baz --multisig-threshold=2 multisig_address
+pstaked keys add --multisig=baz,foo,bar --multisig-threshold=2 multisig_address
 ```
 
 Multisig addresses can also be generated on-the-fly and printed through the which command:
 
 ```bash
-gaiad keys show --multisig-threshold K name1 name2 name3 [...]
+pstaked keys show --multisig-threshold K name1 name2 name3 [...]
 ```
 
 For more information regarding how to generate, sign and broadcast transactions with a
@@ -185,13 +185,13 @@ txs by `gasPrice` in the mempool, so providing higher fees or gas prices may yie
 e.g.
 
 ```bash
-gaiad tx bank send ... --fees=50000uatom
+pstaked tx bank send ... --fees=50000uatom
 ```
 
 or
 
 ```bash
-gaiad tx bank send ... --gas-prices=0.0025uatom
+pstaked tx bank send ... --gas-prices=0.0025uatom
 ```
 
 ### Account
@@ -205,7 +205,7 @@ On a testnet, getting tokens is usually done via a faucet.
 After receiving tokens to your address, you can view your account's balance by typing:
 
 ```bash
-gaiad query account <account_cosmos>
+pstaked query account <account_cosmos>
 ```
 
 ::: warning Note
@@ -218,7 +218,7 @@ When you query an account balance with zero tokens, you will get this error: `No
 The following command could be used to send coins from one account to another:
 
 ```bash
-gaiad tx bank send <sender_key_name_or_address> <recipient_address> 10faucetToken \
+pstaked tx bank send <sender_key_name_or_address> <recipient_address> 10faucetToken \
   --chain-id=<chain_id>
 ```
 
@@ -235,21 +235,21 @@ Gas estimate might be inaccurate as state changes could occur in between the end
 Now, view the updated balances of the origin and destination accounts:
 
 ```bash
-gaiad query account <account_cosmos>
-gaiad query account <destination_cosmos>
+pstaked query account <account_cosmos>
+pstaked query account <destination_cosmos>
 ```
 
 You can also check your balance at a given block by using the `--block` flag:
 
 ```bash
-gaiad query account <account_cosmos> --block=<block_height>
+pstaked query account <account_cosmos> --block=<block_height>
 ```
 
 You can simulate a transaction without actually broadcasting it by appending the
 `--dry-run` flag to the command line:
 
 ```bash
-gaiad tx bank send <sender_key_name_or_address> <destination_cosmosaccaddr> 10faucetToken \
+pstaked tx bank send <sender_key_name_or_address> <destination_cosmosaccaddr> 10faucetToken \
   --chain-id=<chain_id> \
   --dry-run
 ```
@@ -258,13 +258,13 @@ Furthermore, you can build a transaction and print its JSON format to STDOUT by
 appending `--generate-only` to the list of the command line arguments:
 
 ```bash
-gaiad tx bank send <sender_address> <recipient_address> 10faucetToken \
+pstaked tx bank send <sender_address> <recipient_address> 10faucetToken \
   --chain-id=<chain_id> \
   --generate-only > unsignedSendTx.json
 ```
 
 ```bash
-gaiad tx sign \
+pstaked tx sign \
   --chain-id=<chain_id> \
   --from=<key_name> \
   unsignedSendTx.json > signedSendTx.json
@@ -278,13 +278,13 @@ Thus when such flag is supplied `<sender_key_name_or_address>` must be an addres
 You can validate the transaction's signatures by typing the following:
 
 ```bash
-gaiad tx sign --validate-signatures signedSendTx.json
+pstaked tx sign --validate-signatures signedSendTx.json
 ```
 
 You can broadcast the signed transaction to a node by providing the JSON file to the following command:
 
 ```bash
-gaiad tx broadcast --node=<node> signedSendTx.json
+pstaked tx broadcast --node=<node> signedSendTx.json
 ```
 
 ### Query Transactions
@@ -300,19 +300,19 @@ Events can also be combined to query for a more specific result using the `&` sy
 You can query transactions by `events` as follows:
 
 ```bash
-gaiad query txs --events='message.sender=cosmos1...'
+pstaked query txs --events='message.sender=cosmos1...'
 ```
 
 And for using multiple `events`:
 
 ```bash
-gaiad query txs --events='message.sender=cosmos1...&message.action=withdraw_delegator_reward'
+pstaked query txs --events='message.sender=cosmos1...&message.action=withdraw_delegator_reward'
 ```
 
 The pagination is supported as well via `page` and `limit`:
 
 ```bash
-gaiad query txs --events='message.sender=cosmos1...' --page=1 --limit=20
+pstaked query txs --events='message.sender=cosmos1...' --page=1 --limit=20
 ```
 
 ::: tip Note
@@ -333,7 +333,7 @@ You can find a list of available `events` on each of the SDK modules:
 You can also query a single transaction by its hash using the following command:
 
 ```bash
-gaiad query tx [hash]
+pstaked query tx [hash]
 ```
 
 ### Slashing
@@ -343,7 +343,7 @@ gaiad query tx [hash]
 To unjail your jailed validator
 
 ```bash
-gaiad tx slashing unjail --from <validator-operator-addr>
+pstaked tx slashing unjail --from <validator-operator-addr>
 ```
 
 #### Signing Info
@@ -351,7 +351,7 @@ gaiad tx slashing unjail --from <validator-operator-addr>
 To retrieve a validator's signing info:
 
 ```bash
-gaiad query slashing signing-info <validator-pubkey>
+pstaked query slashing signing-info <validator-pubkey>
 ```
 
 #### Query Parameters
@@ -359,7 +359,7 @@ gaiad query slashing signing-info <validator-pubkey>
 You can get the current slashing parameters via:
 
 ```bash
-gaiad query slashing params
+pstaked query slashing params
 ```
 
 ### Minting
@@ -367,19 +367,19 @@ gaiad query slashing params
 You can query for the minting/inflation parameters via:
 
 ```bash
-gaiad query minting params
+pstaked query minting params
 ```
 
 To query for the current inflation value:
 
 ```bash
-gaiad query minting inflation
+pstaked query minting inflation
 ```
 
 To query for the current annual provisions value:
 
 ```bash
-gaiad query minting annual-provisions
+pstaked query minting annual-provisions
 ```
 
 ### Staking
@@ -397,13 +397,13 @@ On the upcoming mainnet, you can delegate `atom` to a validator. These [delegato
 You can query the list of all validators of a specific chain:
 
 ```bash
-gaiad query staking validators
+pstaked query staking validators
 ```
 
 If you want to get the information of a single validator you can check it with:
 
 ```bash
-gaiad query staking validator <account_cosmosval>
+pstaked query staking validator <account_cosmosval>
 ```
 
 #### Bond Tokens
@@ -411,7 +411,7 @@ gaiad query staking validator <account_cosmosval>
 On the Cosmos Hub mainnet, we delegate `uatom`, where `1atom = 1000000uatom`. Here's how you can bond tokens to a testnet validator (_i.e._ delegate):
 
 ```bash
-gaiad tx staking delegate \
+pstaked tx staking delegate \
   --amount=10000000uatom \
   --validator=<validator> \
   --from=<key_name> \
@@ -421,7 +421,7 @@ gaiad tx staking delegate \
 `<validator>` is the operator address of the validator to which you intend to delegate. If you are running a local testnet, you can find this with:
 
 ```bash
-gaiad keys show [name] --bech val
+pstaked keys show [name] --bech val
 ```
 
 where `[name]` is the name of the key you specified when you initialized `gaiad`.
@@ -433,13 +433,13 @@ While tokens are bonded, they are pooled with all the other bonded tokens in the
 Once submitted a delegation to a validator, you can see it's information by using the following command:
 
 ```bash
-gaiad query staking delegation <delegator_addr> <validator_addr>
+pstaked query staking delegation <delegator_addr> <validator_addr>
 ```
 
 Or if you want to check all your current delegations with disctinct validators:
 
 ```bash
-gaiad query staking delegations <delegator_addr>
+pstaked query staking delegations <delegator_addr>
 ```
 
 #### Unbond Tokens
@@ -448,7 +448,7 @@ If for any reason the validator misbehaves, or you just want to unbond a certain
 amount of tokens, use this following command.
 
 ```bash
-gaiad tx staking unbond \
+pstaked tx staking unbond \
   <validator_addr> \
   10atom \
   --from=<key_name> \
@@ -462,19 +462,19 @@ The unbonding will be automatically completed when the unbonding period has pass
 Once you begin an unbonding-delegation, you can see it's information by using the following command:
 
 ```bash
-gaiad query staking unbonding-delegation <delegator_addr> <validator_addr>
+pstaked query staking unbonding-delegation <delegator_addr> <validator_addr>
 ```
 
 Or if you want to check all your current unbonding-delegations with disctinct validators:
 
 ```bash
-gaiad query staking unbonding-delegations <account_cosmos>
+pstaked query staking unbonding-delegations <account_cosmos>
 ```
 
 Additionally, as you can get all the unbonding-delegations from a particular validator:
 
 ```bash
-gaiad query staking unbonding-delegations-from <account_cosmosval>
+pstaked query staking unbonding-delegations-from <account_cosmosval>
 ```
 
 #### Redelegate Tokens
@@ -482,7 +482,7 @@ gaiad query staking unbonding-delegations-from <account_cosmosval>
 A redelegation is a type delegation that allows you to bond illiquid tokens from one validator to another:
 
 ```bash
-gaiad tx staking redelegate \
+pstaked tx staking redelegate \
   <src-validator-operator-addr> \
   <dst-validator-operator-addr> \
   10atom \
@@ -499,19 +499,19 @@ The redelegation will be automatically completed when the unbonding period has p
 Once you begin an redelegation, you can see it's information by using the following command:
 
 ```bash
-gaiad query staking redelegation <delegator_addr> <src_val_addr> <dst_val_addr>
+pstaked query staking redelegation <delegator_addr> <src_val_addr> <dst_val_addr>
 ```
 
 Or if you want to check all your current unbonding-delegations with distinct validators:
 
 ```bash
-gaiad query staking redelegations <account_cosmos>
+pstaked query staking redelegations <account_cosmos>
 ```
 
 Additionally, as you can get all the outgoing redelegations from a particular validator:
 
 ```bash
-  gaiad query staking redelegations-from <account_cosmosval>
+  pstaked query staking redelegations-from <account_cosmosval>
 ```
 
 #### Query Parameters
@@ -519,7 +519,7 @@ Additionally, as you can get all the outgoing redelegations from a particular va
 Parameters define high level settings for staking. You can get the current values by using:
 
 ```bash
-gaiad query staking params
+pstaked query staking params
 ```
 
 With the above command you will get the values for:
@@ -535,7 +535,7 @@ All these values will be subject to updates though a `governance` process by `Pa
 A staking `Pool` defines the dynamic parameters of the current state. You can query them with the following command:
 
 ```bash
-gaiad query staking pool
+pstaked query staking pool
 ```
 
 With the `pool` command you will get the values for:
@@ -550,7 +550,7 @@ With the `pool` command you will get the values for:
 You can also query all of the delegations to a particular validator:
 
 ```bash
-  gaiad query delegations-to <account_cosmosval>
+  pstaked query delegations-to <account_cosmosval>
 ```
 
 ### Governance
@@ -587,7 +587,7 @@ outside of governance has it's command mounted on top of `submit-proposal`.
 To submit a `Text` proposal:
 
 ```bash
-gaiad tx gov submit-proposal \
+pstaked tx gov submit-proposal \
   --title=<title> \
   --description=<description> \
   --type="Text" \
@@ -603,7 +603,7 @@ To submit a parameter change proposal, you must provide a proposal file as its
 contents are less friendly to CLI input:
 
 ```bash
-gaiad tx gov submit-proposal param-change <path/to/proposal.json> \
+pstaked tx gov submit-proposal param-change <path/to/proposal.json> \
   --from=<name> \
   --chain-id=<chain_id>
 ```
@@ -654,13 +654,13 @@ currently does not differ from the semantics of a `Text` proposal.
 Once created, you can now query information of the proposal:
 
 ```bash
-gaiad query gov proposal <proposal_id>
+pstaked query gov proposal <proposal_id>
 ```
 
 Or query all available proposals:
 
 ```bash
-gaiad query gov proposals
+pstaked query gov proposals
 ```
 
 You can also query proposals filtered by `voter` or `depositor` by using the corresponding flags.
@@ -668,7 +668,7 @@ You can also query proposals filtered by `voter` or `depositor` by using the cor
 To query for the proposer of a given governance proposal:
 
 ```bash
-gaiad query gov proposer <proposal_id>
+pstaked query gov proposer <proposal_id>
 ```
 
 #### Increase Deposit
@@ -676,7 +676,7 @@ gaiad query gov proposer <proposal_id>
 In order for a proposal to be broadcasted to the network, the amount deposited must be above a `minDeposit` value (initial value: `512000000uatom`). If the proposal you previously created didn't meet this requirement, you can still increase the total amount deposited to activate it. Once the minimum deposit is reached, the proposal enters voting period:
 
 ```bash
-gaiad tx gov deposit <proposal_id> "10000000uatom" \
+pstaked tx gov deposit <proposal_id> "10000000uatom" \
   --from=<name> \
   --chain-id=<chain_id>
 ```
@@ -688,13 +688,13 @@ gaiad tx gov deposit <proposal_id> "10000000uatom" \
 Once a new proposal is created, you can query all the deposits submitted to it:
 
 ```bash
-gaiad query gov deposits <proposal_id>
+pstaked query gov deposits <proposal_id>
 ```
 
 You can also query a deposit submitted by a specific address:
 
 ```bash
-gaiad query gov deposit <proposal_id> <depositor_address>
+pstaked query gov deposit <proposal_id> <depositor_address>
 ```
 
 #### Vote on a Proposal
@@ -702,7 +702,7 @@ gaiad query gov deposit <proposal_id> <depositor_address>
 After a proposal's deposit reaches the `MinDeposit` value, the voting period opens. Bonded `Atom` holders can then cast vote on it:
 
 ```bash
-gaiad tx gov vote <proposal_id> <Yes/No/NoWithVeto/Abstain> \
+pstaked tx gov vote <proposal_id> <Yes/No/NoWithVeto/Abstain> \
   --from=<name> \
   --chain-id=<chain_id>
 ```
@@ -712,13 +712,13 @@ gaiad tx gov vote <proposal_id> <Yes/No/NoWithVeto/Abstain> \
 Check the vote with the option you just submitted:
 
 ```bash
-gaiad query gov vote <proposal_id> <voter_address>
+pstaked query gov vote <proposal_id> <voter_address>
 ```
 
 You can also get all the previous votes submitted to the proposal with:
 
 ```bash
-gaiad query gov votes <proposal_id>
+pstaked query gov votes <proposal_id>
 ```
 
 #### Query proposal tally results
@@ -726,7 +726,7 @@ gaiad query gov votes <proposal_id>
 To check the current tally of a given proposal you can use the `tally` command:
 
 ```bash
-gaiad query gov tally <proposal_id>
+pstaked query gov tally <proposal_id>
 ```
 
 #### Query Governance Parameters
@@ -734,15 +734,15 @@ gaiad query gov tally <proposal_id>
 To check the current governance parameters run:
 
 ```bash
-gaiad query gov params
+pstaked query gov params
 ```
 
 To query subsets of the governance parameters run:
 
 ```bash
-gaiad query gov param voting
-gaiad query gov param tallying
-gaiad query gov param deposit
+pstaked query gov param voting
+pstaked query gov param tallying
+pstaked query gov param deposit
 ```
 
 ### Fee Distribution
@@ -752,7 +752,7 @@ gaiad query gov param deposit
 To check the current distribution parameters, run:
 
 ```bash
-gaiad query distribution params
+pstaked query distribution params
 ```
 
 #### Query distribution Community Pool
@@ -760,7 +760,7 @@ gaiad query distribution params
 To query all coins in the community pool which is under Governance control:
 
 ```bash
-gaiad query distribution community-pool
+pstaked query distribution community-pool
 ```
 
 #### Query outstanding rewards
@@ -768,7 +768,7 @@ gaiad query distribution community-pool
 To check the current outstanding (un-withdrawn) rewards, run:
 
 ```bash
-gaiad query distribution outstanding-rewards
+pstaked query distribution outstanding-rewards
 ```
 
 #### Query Validator Commission
@@ -776,7 +776,7 @@ gaiad query distribution outstanding-rewards
 To check the current outstanding commission for a validator, run:
 
 ```bash
-gaiad query distribution commission <validator_address>
+pstaked query distribution commission <validator_address>
 ```
 
 #### Query Validator Slashes
@@ -784,7 +784,7 @@ gaiad query distribution commission <validator_address>
 To check historical slashes for a validator, run:
 
 ```bash
-gaiad query distribution slashes <validator_address> <start_height> <end_height>
+pstaked query distribution slashes <validator_address> <start_height> <end_height>
 ```
 
 #### Query Delegator Rewards
@@ -792,7 +792,7 @@ gaiad query distribution slashes <validator_address> <start_height> <end_height>
 To check current rewards for a delegation (were they to be withdrawn), run:
 
 ```bash
-gaiad query distribution rewards <delegator_address> <validator_address>
+pstaked query distribution rewards <delegator_address> <validator_address>
 ```
 
 #### Query All Delegator Rewards
@@ -800,7 +800,7 @@ gaiad query distribution rewards <delegator_address> <validator_address>
 To check all current rewards for a delegation (were they to be withdrawn), run:
 
 ```bash
-gaiad query distribution rewards <delegator_address>
+pstaked query distribution rewards <delegator_address>
 ```
 
 ### Multisig Transactions
@@ -816,15 +816,15 @@ by a distinct party, the user holding `p1` would require to import both `p2` and
 generate the multisig account public key:
 
 ```bash
-gaiad keys add \
+pstaked keys add \
   p2 \
   --pubkey=cosmospub1addwnpepqtd28uwa0yxtwal5223qqr5aqf5y57tc7kk7z8qd4zplrdlk5ez5kdnlrj4
 
-gaiad keys add \
+pstaked keys add \
   p3 \
   --pubkey=cosmospub1addwnpepqgj04jpm9wrdml5qnss9kjxkmxzywuklnkj0g3a3f8l5wx9z4ennz84ym5t
 
-gaiad keys add \
+pstaked keys add \
   p1p2p3 \
   --multisig-threshold=2 \
   --multisig=p1,p2,p3
@@ -834,23 +834,23 @@ A new multisig public key `p1p2p3` has been stored, and its address will be
 used as signer of multisig transactions:
 
 ```bash
-gaiad keys show --address p1p2p3
+pstaked keys show --address p1p2p3
 ```
 
 You may also view multisig threshold, pubkey constituents and respective weights
 by viewing the JSON output of the key or passing the `--show-multisig` flag:
 
 ```bash
-gaiad keys show p1p2p3 -o json
+pstaked keys show p1p2p3 -o json
 
-gaiad keys show p1p2p3 --show-multisig
+pstaked keys show p1p2p3 --show-multisig
 ```
 
 The first step to create a multisig transaction is to initiate it on behalf
 of the multisig address created above:
 
 ```bash
-gaiad tx bank send cosmos1570v2fq3twt0f0x02vhxpuzc9jc4yl30q2qned 1000000uatom \
+pstaked tx bank send cosmos1570v2fq3twt0f0x02vhxpuzc9jc4yl30q2qned 1000000uatom \
   --from=<multisig_address> \
   --generate-only > unsignedTx.json
 ```
@@ -859,7 +859,7 @@ The file `unsignedTx.json` contains the unsigned transaction encoded in JSON.
 `p1` can now sign the transaction with its own private key:
 
 ```bash
-gaiad tx sign \
+pstaked tx sign \
   unsignedTx.json \
   --multisig=<multisig_address> \
   --from=p1 \
@@ -871,7 +871,7 @@ Once the signature is generated, `p1` transmits both `unsignedTx.json` and
 respective signature:
 
 ```bash
-gaiad tx sign \
+pstaked tx sign \
   unsignedTx.json \
   --multisig=<multisig_address> \
   --from=p2 \
@@ -883,7 +883,7 @@ is sufficient. Any the key holders can now generate the multisig
 transaction by combining the required signature files:
 
 ```bash
-gaiad tx multisign \
+pstaked tx multisign \
   unsignedTx.json \
   p1p2p3 \
   p1signature.json p2signature.json > signedTx.json
@@ -892,7 +892,7 @@ gaiad tx multisign \
 The transaction can now be sent to the node:
 
 ```bash
-gaiad tx broadcast signedTx.json
+pstaked tx broadcast signedTx.json
 ```
 
 ## Shells Completion Scripts
@@ -904,15 +904,15 @@ can be generated through the `completion` command, which is available for both
 If you want to generate `Bash` completion scripts run the following command:
 
 ```bash
-gaiad completion > gaiad_completion
-gaiad completion > gaiacli_completion
+pstaked completion > gaiad_completion
+pstaked completion > gaiacli_completion
 ```
 
 If you want to generate `Zsh` completion scripts run the following command:
 
 ```bash
-gaiad completion --zsh > gaiad_completion
-gaiad completion --zsh > gaiacli_completion
+pstaked completion --zsh > gaiad_completion
+pstaked completion --zsh > gaiacli_completion
 ```
 
 ::: tip Note

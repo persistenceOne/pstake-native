@@ -46,16 +46,16 @@ LDFLAGS="" make install
 위 절차를 따라하시면 `gaiad`와 `gaiad` 바이너리가 설치될 것입니다. 설치가 잘 되어있는지 확인하십시오:
 
 ```bash
-$ gaiad version --long
-$ gaiad version --long
+$ pstaked version --long
+$ pstaked version --long
 ```
 
 `gaiad` 명령어는 다음과 비슷한 아웃풋을 내보냅니다:
 
 ```bash
 name: gaia
-server_name: gaiad
-client_name: gaiad
+server_name: pstaked
+client_name: pstaked
 version: 1.0.0
 commit: 89e6316a27343304d332aadfe2869847bf52331c
 build_tags: netgo,ledger

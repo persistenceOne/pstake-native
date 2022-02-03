@@ -1,4 +1,4 @@
-package gaia_test
+package app_test
 
 import (
 	"encoding/json"
@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	gaia "github.com/cosmos/gaia/v6/app"
+	gaia "github.com/persistenceOne/pstake-native/app"
 
-	"github.com/cosmos/gaia/v6/app/helpers"
+	"github.com/persistenceOne/pstake-native/app/helpers"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/libs/rand"

@@ -36,23 +36,23 @@
 cd $HOME
 
 # 네트워크를 시작할 genesis.json 파일을 초기화하기
-gaiad init --chain-id=testing testing
+pstaked init --chain-id=testing testing
 
 # 밸리데이터 키 생성하기
-gaiad keys add validator
+pstaked keys add validator
 
 # 해당 키를 제네시스 파일에 있는 genesis.app_state.accounts 어레이(array)에 추가하세요
 # 참고: 이 명령어는 코인 수량을 설정할 수 있게 합니다. 위 계정에 코인 잔고를 포함하세요
-# genesis.app_state.staking.params.bond_denom의 기본 설정은 is staking gaiad add-genesis-account $(gaiad keys show validator -a) 1000stake,1000validatortoken 입니다.
+# genesis.app_state.staking.params.bond_denom의 기본 설정은 is staking pstaked add-genesis-account $(pstaked keys show validator -a) 1000stake,1000validatortoken 입니다.
 
 # 밸리데이터 생성 트랜잭션 실행
-gaiad gentx --name validator
+pstaked gentx --name validator
 
 # 제네시스 파일에 초기 본딩 트랜잭션 추가하기
-gaiad collect-gentxs
+pstaked collect-gentxs
 
-# 이제 `gaiad`를 실행하실 수 있습니다.
-gaiad start
+# 이제 `pstaked`를 실행하실 수 있습니다.
+pstaked start
 ```
 
 이 셋업은 모든 `gaiad` 정보를 `~/.gaia`에 저장힙니다. 생성하신 제네시스 파일을 확인하고 싶으시다면 `~/.gaia/config/genesis.json`에서 확인이 가능합니다. 위의 세팅으로 `gaiad`가 이용이 가능하며, 토큰(스테이킹/커스텀)이 있는 계정 또한 함께 생성됩니다.
@@ -115,40 +115,40 @@ make build-linux localnet-start
 ```bash
 $ tree -L 2 build/
 build/
-├── gaiad
-├── gaiad
+├── pstaked
+├── pstaked
 ├── gentxs
 │   ├── node0.json
 │   ├── node1.json
 │   ├── node2.json
 │   └── node3.json
 ├── node0
-│   ├── gaiad
+│   ├── pstaked
 │   │   ├── key_seed.json
 │   │   └── keys
-│   └── gaiad
-│       ├── ${LOG:-gaiad.log}
+│   └── pstaked
+│       ├── ${LOG:-pstaked.log}
 │       ├── config
 │       └── data
 ├── node1
-│   ├── gaiad
+│   ├── pstaked
 │   │   └── key_seed.json
-│   └── gaiad
-│       ├── ${LOG:-gaiad.log}
+│   └── pstaked
+│       ├── ${LOG:-pstaked.log}
 │       ├── config
 │       └── data
 ├── node2
-│   ├── gaiad
+│   ├── pstaked
 │   │   └── key_seed.json
-│   └── gaiad
-│       ├── ${LOG:-gaiad.log}
+│   └── pstaked
+│       ├── ${LOG:-pstaked.log}
 │       ├── config
 │       └── data
 └── node3
-    ├── gaiad
+    ├── pstaked
     │   └── key_seed.json
-    └── gaiad
-        ├── ${LOG:-gaiad.log}
+    └── pstaked
+        ├── ${LOG:-pstaked.log}
         ├── config
         └── data
 ```
@@ -168,7 +168,7 @@ docker logs -f gaiadnode0
 `gaiad`를 이용해 tx를 생성하거나 상태를 쿼리 하시려면, 특정 노드의 `gaiad` 디렉토리를 `home`처럼 이용하시면 됩니다. 예를들어:
 
 ```bash
-gaiad keys list --home ./build/node0/gaiad
+pstaked keys list --home ./build/node0/pstaked
 ```
 
 이제 계정이 존재하니 추가로 새로운 계정을 만들고 계정들에게 토큰을 전송할 수 있습니다.

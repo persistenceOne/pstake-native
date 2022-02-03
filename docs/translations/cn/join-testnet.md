@@ -30,7 +30,7 @@
 
 ```bash
 rm $HOME/.gaia/config/addrbook.json $HOME/.gaia/config/genesis.json
-gaiad unsafe-reset-all
+pstaked unsafe-reset-all
 ```
 
 你的节点现在处于原始状态并保留了最初的`priv_validator.json`文件和`config.toml`文件。如果之前你还有其他的哨兵节点或者全节点，你的节点仍然会连接他们，但是会失败，因为他们还没有升级。

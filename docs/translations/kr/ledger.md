@@ -21,7 +21,7 @@
 다음 명령어를 입력하여 Gaiacli가 올바르게 설치된 것을 확인하세요:
 
 ```bash
-gaiad version --long
+pstaked version --long
 
 ➜ cosmos-sdk: 0.34.3
 git commit: 67ab0b1e1d1e5b898c8cbdede35ad5196dba01b2
@@ -42,7 +42,7 @@ _키 명칭(keyName)_ 파라미터에 의미있는 값을 입력하세요. `ledg
 :::
 
 ```bash
-gaiad keys add <keyName> --ledger
+pstaked keys add <keyName> --ledger
 
 ➜ NAME: TYPE: ADDRESS:     PUBKEY:
 <키_명칭(keyName)> ledger cosmos1... cosmospub1...
@@ -51,7 +51,7 @@ gaiad keys add <keyName> --ledger
 코스모스는 [HD Wallets](./hd-wallets.md) 표준을 사용합니다. HD Wallet은 하나의 렛저 시드로부터 다수의 계정을 생성할 수 있게 합니다. 같은 렛저 기기에서 추가 계정을 생성하기 위해서는 다음 명령어를 실행하세요:
 
 ```bash
-gaiad keys add <새로운_키_명칭(secondKeyName)> --ledger
+pstaked keys add <새로운_키_명칭(secondKeyName)> --ledger
 ```
 
 ### 주소 확인하기
@@ -59,7 +59,7 @@ gaiad keys add <새로운_키_명칭(secondKeyName)> --ledger
 다음 명령어를 실행하여 렛저 기기에서 주소를 확인하세요. 렛저 키 명칭을 `키_명칭` 값에 입력하여 해당 키의 주소를 확인하세요. `-d` 플래그는 렛저 `1.5.0` 버전 이상 기기에서만 지원됩니다.
 
 ```bash
-gaiad keys show <keyName> -d
+pstaked keys show <keyName> -d
 ```
 
 키를 새로 생성했을때 표기된 주소와 기기에서 표기된 주소가 일치하는지 확인하세요.
@@ -69,8 +69,8 @@ gaiad keys show <keyName> -d
 이제 gaiacli를 코스모스 풀노드의 주소와 `chain-id`값을 설정해야 합니다. 이 예시에서는 코러스원 검증인이 운영하는 공개 노드를 사용해 `cosmoshub-2`에 연결하는 방법을 알아보겠습니다. 단, `gaiad`는 다른 풀노드에 연결하실 수 있다는 점을 참고하세요. Gaiacli에서 설정하는 `chain-id`와 풀노드의 `chain-id`은 동일해야합니다.
 
 ```bash
-gaiad config node https://cosmos.chorus.one:26657
-gaiad config chain_id cosmoshub-2
+pstaked config node https://cosmos.chorus.one:26657
+pstaked config chain_id cosmoshub-2
 ```
 
 다음과 같은 명령어를 입력하여 연결 상태를 조회하세요:
@@ -98,7 +98,7 @@ gaiad tx send --help # to see all available options.
 렛저의 `키_명칭(keyName)`을 지정하여 Gaia와 코스모스 렛저 앱을 연결하고 트랜잭션을 서명하세요.
 
 ```bash
-gaiad tx send <키_명칭(keyName)> <수신자_주소(destinationAddress)> <수량(amount)><단위(denomination)>
+pstaked tx send <키_명칭(keyName)> <수신자_주소(destinationAddress)> <수량(amount)><단위(denomination)>
 ```
 
 만약 `confirm transaction before signing`이 표기되는 경우, `Y`를 입력하여 진행하세요.
@@ -112,7 +112,7 @@ gaiad tx send <키_명칭(keyName)> <수신자_주소(destinationAddress)> <수�
 렛저 기기의 코스모스 계정으로 자산을 받기 위해서는 다음 명령어를 입력하여 주소를 확인하세요 (`TYPE ledger`로 표기되는 주소):
 
 ```bash
-gaiad keys list
+pstaked keys list
 
 ➜ NAME: TYPE: ADDRESS:     PUBKEY:
 <키_명칭(keyName)> ledger cosmos1... cosmospub1...
@@ -128,13 +128,13 @@ gaiad keys list
 예를 들어 `query` 명령어에 대한 정보를 확인하기 위해서는:
 
 ```bash
-gaiad query --help
+pstaked query --help
 ```
 
 또는 `tx`(트랜잭션) 명령어를 확인하기 위해서는:
 
 ```bash
-gaiad tx --help
+pstaked tx --help
 ```
 
 를 입력하세요.
@@ -155,7 +155,7 @@ Lunie 웹 지갑은 렛저 나노 S 기기를 사용해 서명하는 것을 지�
 다음 명령어를 실행하여 렛저 기기에서 주소를 확인하세요. 렛저 키 명칭을 `키_명칭` 값에 입력하여 해당 키의 주소를 확인하세요. `-d` 플래그는 렛저 `1.5.0` 버전 이상 기기에서만 지원됩니다.
 
 ```bash
-gaiad keys show <keyName> -d
+pstaked keys show <keyName> -d
 ```
 
 렛저에 표기되는 주소와 Lunie.io에 표기되는 주소가 동일한지 먼저 확인하시고 다음 단계를 진행하세요. 확인이 된 경우, Lunie에서 렛저 키를 사용해 트랜잭션을 서명할 수 있습니다.

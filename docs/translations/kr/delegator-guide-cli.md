@@ -131,7 +131,7 @@ CLI를 사용하는 위임자는 매우 실험적인 블록체인 기술이 사�
 컴퓨터를 이용해 펀드레이저 시드키를 복구하시고 컴퓨터에 프라이빗 키를 저장사기 위해서는 다음 명령어를 실행하세요:
 
 ```bash
-gaiad keys add <키_명칭(YourKeyName)> --recover
+pstaked keys add <키_명칭(YourKeyName)> --recover
 ```
 
 명령어를 입력하셨다면 프로그램이 지금 생성(복구)하시는 계정의 프라이빗 키를 암호화할때 사용될 비밀번호를 입력할 것을 요청합니다. 해당 계정을 이용해 트랜잭션을 보낼때마다 이 비밀번호를 입력하셔야 합니다. 만약 비밀번호를 잃어버리셨다면 시드키를 사용해 계정을 다시 복구할 수 있습니다.
@@ -159,7 +159,7 @@ gaiad keys add <키_명칭(YourKeyName)> --recover
 계정을 생성하기 위해서는 다음 명령어를 실행하십시오:
 
 ```bash
-gaiad keys add <키_명칭(yourKeyName)> --ledger 
+pstaked keys add <키_명칭(yourKeyName)> --ledger 
 ```
 
 - `<yourKeyName>` 은 계정의 이름입니다. 이는 시드키로부터 키 페어를 파생할때 레퍼런스로 사용됩니다. 이 이름은 토큰을 전송할때 보내는 계정을 구분하기 위해서 사용됩니다.
@@ -174,7 +174,7 @@ gaiad keys add <키_명칭(yourKeyName)> --ledger
 계정을 생성하기 위해서는 다음 명령어를 입력하세요:
 
 ```bash
-gaiad keys add <키_명칭(yourKeyName)>
+pstaked keys add <키_명칭(yourKeyName)>
 ```
 
 위 명령어는 새로운 24단어로 구성된 시드키를 생성하고, 계정 `0`의 프라이빗 키와 퍼블릭 키를 저장합니다. 이후, 디스크에 저장될 계정 `0`의 프라이빗 키를 암호화할때 사용될 비밀번호를 입력할 것을 요청합니다. 해당 계정을 이용해 트랜잭션을 보낼때마다 이 비밀번호를 입력하셔야 합니다. 만약 비밀번호를 잃어버리셨다면 시드키를 사용해 계정을 다시 복구할 수 있습니다.
@@ -199,7 +199,7 @@ rm ~/.bash_history
 동일한 시드키로 추가적인 계정을 생성하기 원한다면, 다음 명령어를 사용하세요:
 
 ```bash
-gaiad keys add <키_명칭(yourKeyName)> --recover --account 1
+pstaked keys add <키_명칭(yourKeyName)> --recover --account 1
 ```
 
 해당 명령어는 비밀번호와 시드키를 입력할 것을 요청할 것입니다. 이 외에 추가적인 계정을 생성하시기 원한다면 account 플래그의 번호를 바꾸십시오.
@@ -236,16 +236,16 @@ gaiad keys add <키_명칭(yourKeyName)> --recover --account 1
 `gaiad`을 설정하기 위해서는 다음 명령어를 실행하세요:
 
 ```bash
-gaiad config <플래그(flag)> <값(value)>
+pstaked config <플래그(flag)> <값(value)>
 ```
 
 해당 명령어는 각 플래그에 대한 값을 설정할 수 있게 합니다. 우선 연결하고 싶은 풀노드의 주소를 입력하겠습니다:
 
 
 ```bash
-gaiad config node <호스트(host)>:<포트(port)>
+pstaked config node <호스트(host)>:<포트(port)>
 
-// 예시: gaiad config node https://77.87.106.33:26657
+// 예시: pstaked config node https://77.87.106.33:26657
 ```
 
 만약 풀노드를 직접 운영하시는 경우, `tcp://localhost:26657`을 주소 값으로 입력하세요.
@@ -253,7 +253,7 @@ gaiad config node <호스트(host)>:<포트(port)>
 이제 `--trust-node` 플래그의 값을 설정하겠습니다:
 
 ```bash
-gaiad config trust-node false
+pstaked config trust-node false
 
 // 만약 라이트 클라이언트 노드를 운영하고 싶으신 경우 `true` 값을 입력하세요. 그렇지 않은 경우 `false`를 입력하세요
 ```
@@ -261,7 +261,7 @@ gaiad config trust-node false
 마지막으로 소통하고 싶은 블록체인의 `chain-id`를 입력하겠습니다:
 
 ```bash
-gaiad config chain-id gos-3
+pstaked config chain-id gos-3
 ```
 
 ## 블록체인 상태 조회하기
@@ -270,37 +270,37 @@ gaiad config chain-id gos-3
 
 ```bash
 // 계정 잔고와 계정 관련 정보 조회
-gaiad query account
+pstaked query account
 
 // 검증인 목록 조회
-gaiad query validators
+pstaked query validators
 
 // 검증인 주소로 (예시: cosmos10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg) 검증인 정보 조회
-gaiad query validator <검증인_주소(validatorAddress)>
+pstaked query validator <검증인_주소(validatorAddress)>
 
 // 위임자 주소로 (예시: cosmos10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg) 계정의 모든 위임 기록 조회
-gaiad query delegations <위임자_주소(delegatorAddress)>
+pstaked query delegations <위임자_주소(delegatorAddress)>
 
 // 위임자가 특정 검증인에게 위임한 기록 조회
-gaiad query delegations <위임자_주소(delegatorAddress)> <검증인_주소(validatorAddress)>
+pstaked query delegations <위임자_주소(delegatorAddress)> <검증인_주소(validatorAddress)>
 
 // 위임자 주소로 (예시: cosmos10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg) 위임자 리워드 조회
-gaiad query distribution rewards <위임자_주소(delegatorAddress)> 
+pstaked query distribution rewards <위임자_주소(delegatorAddress)> 
 
 // 보증금(deposit)을 대기중인 모든 프로포절 조회
-gaiad query proposals --status deposit_period
+pstaked query proposals --status deposit_period
 
 // 투표가 가능한 모든 프로포절 조회
-gaiad query proposals --status voting_period
+pstaked query proposals --status voting_period
 
 // 특정 프로포절 ID로 프로포절 정보 조회
-gaiad query proposal <proposalID>
+pstaked query proposal <proposalID>
 ```
 
 더 많은 명령어를 확인하기 위해서는 다음 명령어를 실행하세요:
 
 ```bash
-gaiad query
+pstaked query
 ```
 
 각 명령어에는 `-h` 또는 `--help`를 추가하여 관련 정보를 확인하실 수 있습니다.
@@ -341,7 +341,7 @@ gaiad query
 //파라미터 값 예시(실제 토큰 전송시 사용하지 마세요!): <수신자_주소_예시>=cosmos16m93fezfiezhvnjajzrfyszml8qm92a0w67ntjhd3d0 <수량_예시>=1000000uatom
 //플래그 값 예시: <가스_가격(gasPrice)>=0.0025uatom
 
-gaiad tx send <수신자_주소> <보내는_수량> --from <키_이름> --gas auto --gas-adjustment 1.5 --gas-prices <가스_가격(gasPrice)>
+pstaked tx send <수신자_주소> <보내는_수량> --from <키_이름> --gas auto --gas-adjustment 1.5 --gas-prices <가스_가격(gasPrice)>
 ```
 
 ### 아톰 위임하기 / 리워드 수령하기
@@ -361,7 +361,7 @@ gaiad tx send <수신자_주소> <보내는_수량> --from <키_이름> --gas au
 // 특정 검증인에게 아톰 위임하기 
 // 플래그 값 예시: <검증인_주소(validatorAddress)>= cosmosvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <위임할_수량(amountToBound)>=10000000uatom, <가스_가격(gasPrice)>=0.0025uatom
 
-gaiad tx staking delegate <검증인_주소(validatorAddress> <위임할_수량(amountToBond)> --from <위임자_키_명칭(delegatorKeyName)> --gas auto --gas-adjustment 1.5 --gas-prices <가스_가격(gasPrice)>
+pstaked tx staking delegate <검증인_주소(validatorAddress> <위임할_수량(amountToBond)> --from <위임자_키_명칭(delegatorKeyName)> --gas auto --gas-adjustment 1.5 --gas-prices <가스_가격(gasPrice)>
 
 // 위임된 아톰을 다른 검증인에게 재위임 하기
 // 이미 검증인에게 위임이 된 상태에서만 사용하실 수 있습니다
@@ -369,18 +369,18 @@ gaiad tx staking delegate <검증인_주소(validatorAddress> <위임할_수량(
 // 재위임을 진행하신 후, 동일한 아톰에 대한 재위임은 3주 후 가능합니다.
 // 플래그 값 예시: <기존_검증인_주소(srcValidatorAddress)>=cosmosvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <재위임할_수량>=100000000uatom, <가스_가격(gasPrice)>=0.0025uatom
 
-gaiad tx staking redelegate <기존_검증인_주소(srcValidatorAddress)> <이동할_검증인_주소(destValidatorAddress)> <재위임할_수량(amountToRedelegate)> --from <위임자_키_명칭(delegatorKeyName)> --gas auto --gas-adjustment 1.5 --gas-prices <가스_가격(gasPrice)>
+pstaked tx staking redelegate <기존_검증인_주소(srcValidatorAddress)> <이동할_검증인_주소(destValidatorAddress)> <재위임할_수량(amountToRedelegate)> --from <위임자_키_명칭(delegatorKeyName)> --gas auto --gas-adjustment 1.5 --gas-prices <가스_가격(gasPrice)>
 
 // 모든 리워드 수령하기
 // 플래그 값 예시: <가스_가격(gasPrice)>=0.0025uatom
 
-gaiad tx distribution withdraw-all-rewards --from <위임자_키_명칭(delegatorKeyName)> --gas auto --gas-adjustment 1.5 --gas-prices <가스_가격(gasPrice)>
+pstaked tx distribution withdraw-all-rewards --from <위임자_키_명칭(delegatorKeyName)> --gas auto --gas-adjustment 1.5 --gas-prices <가스_가격(gasPrice)>
 
 // 특정 검증인으로 부터 위임 취소하기
 // 위임 취소가 완료되기 위해서는 3주의 기간이 걸리며, 위임 취소가 진행중인 기간에는 해당 아톰을 전송하실 수 없습니다.
 // 플래그 값 예시: <검증인_주소(validatorAddress)>=cosmosvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <위임_취소할_수량(amountToUnbond)>=10000000uatom, <가스_가격(gasPrice)>=0.0025uatom
 
-gaiad tx staking unbond <검증인_주소(validatorAddress)> <위임_취소할_수량(amountToUnbond)> --from <위임자_키_명칭(delegatorKeyName)> --gas auto --gas-adjustment 1.5 --gas-prices <가스_가격(gasPrice)>
+pstaked tx staking unbond <검증인_주소(validatorAddress)> <위임_취소할_수량(amountToUnbond)> --from <위임자_키_명칭(delegatorKeyName)> --gas auto --gas-adjustment 1.5 --gas-prices <가스_가격(gasPrice)>
 
 ::: tip
 렛저 기기를 사용해 트랜잭션을 발생하시는 경우, 렛저 기기에서 트랜잭션을 확인하는 과정이 추가적으로 발생됩니다. 컴퓨터에 연결되어 있는 기기에서 트랜잭션을 서명하셔야 네트워크로 전파됩니다.
@@ -390,14 +390,14 @@ gaiad tx staking unbond <검증인_주소(validatorAddress)> <위임_취소할_�
 
 ```bash
 // 아톰을 위임하거나 리워드를 수령하신 후 계정 잔고가 달라집니다 (계정 잔고 확인 명령어)
-gaiad query account
+pstaked query account
 
 // 위임을 진행하셨다면 스테이킹 잔고가 표시됩니다 (스테이킹 확인 명령어)
-gaiad query delegations <위임자_주소(delegatorAddress)>
+pstaked query delegations <위임자_주소(delegatorAddress)>
 
 // 트랜잭션이 블록체인에 포함되었으면 해당 tx 정보를 전달합니다
 // 트랜잭션을 생성하셨을때 표시되었던 tx hash를 입력하세요 (트랜잭션 확인 명령어)
-gaiad query tx <트랜잭션_해시(txHash)>
+pstaked query tx <트랜잭션_해시(txHash)>
 
 ```
 
@@ -430,19 +430,19 @@ gaiad query tx <트랜잭션_해시(txHash)>
 // <프로포절_종류(type)>=text/parameter_change/software_upgrade
 // 플래그 값 예시: <가스_가격(gasPrice)>=0.0025uatom
 
-gaiad tx gov submit-proposal --title "Test Proposal" --description "My awesome proposal" --type <프로포절_종류(type)> --deposit=10000000uatom --gas auto --gas-prices <가스_가격(gasPrice)> --from <위임자_키_명칭(delegatorKeyName)>
+pstaked tx gov submit-proposal --title "Test Proposal" --description "My awesome proposal" --type <프로포절_종류(type)> --deposit=10000000uatom --gas auto --gas-prices <가스_가격(gasPrice)> --from <위임자_키_명칭(delegatorKeyName)>
 
 // 프로포절의 보증금 추가하기
 // 프로포절의 proposalID 조회: $gaiad query gov proposals --status deposit_period
 // 파라미터 값 예시: <보증금(deposit)>=10000000uatom
 
-gaiad tx gov deposit <프로포절_ID(proposalID)> <추가할_보증금(deposit)> --gas auto --gas-prices <가스_가격(gasPrice)> --from <위임자_키_명칭(delegatorKeyName)>
+pstaked tx gov deposit <프로포절_ID(proposalID)> <추가할_보증금(deposit)> --gas auto --gas-prices <가스_가격(gasPrice)> --from <위임자_키_명칭(delegatorKeyName)>
 
 // 프로포절에 투표하기
 // 프로포절의 proposalID 조회: $gaiad query gov proposals --status voting_period 
 // <표_선택(option)>=yes/no/no_with_veto/abstain
 
-gaiad tx gov vote <프로포절_ID(proposalID)> <표_선택(option)> --gas auto --gas-prices <가스_가격(gasPrice)> --from <위임자_키_명칭(delegatorKeyName)>
+pstaked tx gov vote <프로포절_ID(proposalID)> <표_선택(option)> --gas auto --gas-prices <가스_가격(gasPrice)> --from <위임자_키_명칭(delegatorKeyName)>
 ```
 
 ## 오프라인 컴퓨터에서 트랜잭션 서명하기
@@ -453,7 +453,7 @@ gaiad tx gov vote <프로포절_ID(proposalID)> <표_선택(option)> --gas auto 
 // 아톰 본딩하기 
 // 플래그 값 예시: <본딩할 수량(amountToBond)>=10000000uatom, <위임할 검증인의 bech32 주소(bech32AddressOfValidator)>=cosmosvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <가스 가격(gasPrice)>=0.0025uatom
 
-gaiad tx staking delegate <검증인_주소(validatorAddress)> <위임할_수량(amountToBond)> --from <위임자_주소(delegatorAddress)> --gas auto --gas-adjustment 1.5 --gas-prices <가스_가격(gasPrice)> --generate-only > unsignedTX.json
+pstaked tx staking delegate <검증인_주소(validatorAddress)> <위임할_수량(amountToBond)> --from <위임자_주소(delegatorAddress)> --gas auto --gas-adjustment 1.5 --gas-prices <가스_가격(gasPrice)> --generate-only > unsignedTX.json
 ```
 
 서명을 진행하기 위해서는 `chain-id`, `account-number`, 그리고 `sequence` 값이 필요합니다. `chain-id`는 트랜잭션을 전송할 블록체인의 고유 식별 번호입니다. `account-number`는 계정이 처음 자산을 받을 때 생성되는 고유 번호입니다. `sequence`는 리플레이 공격을 방지하기 위해 전송한 트랜잭션의 수량을 기록하는데 사용됩니다.
@@ -461,7 +461,7 @@ gaiad tx staking delegate <검증인_주소(validatorAddress)> <위임할_수량
 체인 아이디(chain-id) 값은 해당 블록체인의 제네시스 파일에서 받으실 수 있습니다 (현재 기준 코스모스 허브는 `cosmoshub-2`). account-number와 sequence는 계정 조회 명령어를 사용해 확인하실 수 있습니다.
 
 ```bash
-gaiad query account <계정_주소(yourAddress)> --chain-id cosmoshub-2
+pstaked query account <계정_주소(yourAddress)> --chain-id cosmoshub-2
 ```
 
 이후 서명이 진행되지 않은 `unsignedTx.json` 파일을 복사하신 후 (USB 등을 이용하여) 오프라인 컴퓨터로 이동하십시오. 만약 오프라인 컴퓨터에 아직 계정을 생성하지 않으셨을 경우, [이 항목](#using-a-computer)을 참고하여 오프라인 컴퓨터에서 계정을 생성하세요. 안전을 위해서 서명하기 전에 다음 명령어를 실행해 트랜잭션의 파라미터를 한번 더 확인하십시오:
@@ -473,11 +473,11 @@ cat unsignedTx.json
 이제 다음 명령어를 실행해 트랜잭션을 서명합니다:
 
 ```bash
-gaiad tx sign unsignedTx.json --from <위임자_키_명칭(delegatorKeyName)> --offline --chain-id cosmoshub-2 --sequence <시퀀스(sequence)> --account-number <계정_번호(accountNumber)> > signedTx.json
+pstaked tx sign unsignedTx.json --from <위임자_키_명칭(delegatorKeyName)> --offline --chain-id cosmoshub-2 --sequence <시퀀스(sequence)> --account-number <계정_번호(accountNumber)> > signedTx.json
 ```
 
 서명된 `signedTx.json` 파일을 복사하시고 다시 온라인 컴퓨터로 이동하세요. 다음 명령어를 실행해 해당 트랜잭션을 네트워크에 전파하세요:
 
 ```bash
-gaiad tx broadcast signedTx.json
+pstaked tx broadcast signedTx.json
 ```

@@ -7,19 +7,19 @@ governance process.
 
    ```bash
    # start a gaia application full-node
-   $ gaiad start
+   $ pstaked start
 
    # set up the cli config
-   $ gaiad config trust-node true
-   $ gaiad config chain-id testing
+   $ pstaked config trust-node true
+   $ pstaked config chain-id testing
 
    # create an upgrade governance proposal
-   $ gaiad tx gov submit-proposal software-upgrade <plan-name> \
+   $ pstaked tx gov submit-proposal software-upgrade <plan-name> \
    --title <proposal-title> --description <proposal-description> \
    --from <name-or-key> --upgrade-height <desired-upgrade-height> --deposit 10000000stake
 
    # once the proposal passes you can query the pending plan
-   $ gaiad query upgrade plan
+   $ pstaked query upgrade plan
    ```
 
 2. Performing an upgrade
@@ -64,11 +64,11 @@ governance process.
    # Restart the chain using the new binary. You should see the chain resume from
    # the upgrade height:
    # `I[2019-11-05|12:48:15.184] applying upgrade <plan-name> at height: <desired-upgrade-height>      module=main`
-   $ gaiad start
+   $ pstaked start
 
    # verify there is no pending plan
-   $ gaiad query upgrade plan
+   $ pstaked query upgrade plan
 
    # verify you can query the block header of the completed upgrade
-   $ gaiad query upgrade applied <plan-name>
+   $ pstaked query upgrade applied <plan-name>
    ```

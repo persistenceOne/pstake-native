@@ -73,7 +73,7 @@ The tool used to generate addresses and transactions on the Cosmos Hub network i
 Verify that gaiad is installed correctly with the following command
 
 ```bash
-gaiad version --long
+pstaked version --long
 
 ➜ cosmos-sdk: 0.34.3
 git commit: 67ab0b1e1d1e5b898c8cbdede35ad5196dba01b2
@@ -93,7 +93,7 @@ Be sure to change the _keyName_ parameter to be a meaningful name. The `ledger` 
 :::
 
 ```bash
-gaiad keys add <keyName> --ledger
+pstaked keys add <keyName> --ledger
 
 ➜ NAME: TYPE: ADDRESS:     PUBKEY:
 <keyName> ledger cosmos1... cosmospub1...
@@ -102,7 +102,7 @@ gaiad keys add <keyName> --ledger
 Cosmos uses [HD Wallets](./hd-wallets.md). This means you can setup many accounts using the same Ledger seed. To create another account from your Ledger device, run (change the integer i to some value >= 0 to choose the account for HD derivation):
 
 ```bash
-gaiad keys add <secondKeyName> --ledger --account <i>
+pstaked keys add <secondKeyName> --ledger --account <i>
 ```
 
 ### Confirm your address
@@ -110,7 +110,7 @@ gaiad keys add <secondKeyName> --ledger --account <i>
 Run this command to display your address on the device. Use the `keyName` you gave your ledger key. The `-d` flag is supported in version `1.5.0` and higher.
 
 ```bash
-gaiad keys show <keyName> -d
+pstaked keys show <keyName> -d
 ```
 
 Confirm that the address displayed on the device matches that displayed when you added the key.
@@ -120,8 +120,8 @@ Confirm that the address displayed on the device matches that displayed when you
 Next, you need to configure gaiad with the URL of a Cosmos full node and the appropriate `chain_id`. In this example we connect to the public load balanced full node operated by Chorus One on the `cosmoshub-2` chain. But you can point your `gaiad` to any Cosmos full node. Be sure that the `chain-id` is set to the same chain as the full node.
 
 ```bash
-gaiad config node https://cosmos.chorus.one:26657
-gaiad config chain_id cosmoshub-2
+pstaked config node https://cosmos.chorus.one:26657
+pstaked config chain_id cosmoshub-2
 ```
 
 Test your connection with a query such as:
@@ -149,7 +149,7 @@ Be sure to unlock your device with the PIN and open the Cosmos app before trying
 Use the `keyName` you set for your Ledger key and gaia will connect with the Cosmos Ledger app to then sign your transaction.
 
 ```bash
-gaiad tx send <keyName> <destinationAddress> <amount><denomination>
+pstaked tx send <keyName> <destinationAddress> <amount><denomination>
 ```
 
 When prompted with `confirm transaction before signing`, Answer `Y`.
@@ -163,7 +163,7 @@ Now, you are all set to start [sending transactions on the network](../delegator
 To receive funds to the Cosmos account on your Ledger device, retrieve the address for your Ledger account (the ones with `TYPE ledger`) with this command:
 
 ```bash
-gaiad keys list
+pstaked keys list
 
 ➜ NAME: TYPE: ADDRESS:     PUBKEY:
 <keyName> ledger cosmos1... cosmospub1...
@@ -179,13 +179,13 @@ The `gaiad` help commands are nested. So `$ gaiad` will output docs for the top 
 For example, to print the `query` commands:
 
 ```bash
-gaiad query --help
+pstaked query --help
 ```
 
 Or to print the `tx` (transaction) commands:
 
 ```bash
-gaiad tx --help
+pstaked tx --help
 ```
 :::
 

@@ -21,7 +21,7 @@
 你的`cosmosvalconspub`可以用于通过抵押token来创建一个新的验证人。你可以通过运行下面的命令来查看你的验证人公钥：
 
 ```bash
-gaiad tendermint show-validator
+pstaked tendermint show-validator
 ```
 
 使用下面的命令创建你的验证人：
@@ -31,9 +31,9 @@ gaiad tendermint show-validator
 :::
 
 ```bash
-gaiad tx staking create-validator \
+pstaked tx staking create-validator \
   --amount=1000000uatom \
-  --pubkey=$(gaiad tendermint show-validator) \
+  --pubkey=$(pstaked tendermint show-validator) \
   --moniker="choose a moniker" \
   --chain-id=<chain_id> \
   --commission-rate="0.10" \
@@ -66,7 +66,7 @@ gaiad tx staking create-validator \
 你的`cosmosvalconspub`可以用于通过抵押token来创建一个新的验证人。运行如下命令来获取你的验证人节点公钥：
 
 ```bash
-gaiad tendermint show-validator
+pstaked tendermint show-validator
 ```
 
 然后执行`gaiad gentx`命令:
@@ -80,7 +80,7 @@ gaiad tendermint show-validator
 :::
 
 ```bash
-gaiad gentx \
+pstaked gentx \
   --amount <amount_of_delegation_uatom> \
   --commission-rate <commission_rate> \
   --commission-max-rate <commission_max_rate> \
@@ -104,7 +104,7 @@ gaiad gentx \
 `--identity`可用于验证和Keybase或UPort这样的系统一起验证身份。与Keybase一起使用时，`--identity`应使用由一个[keybase.io](https://keybase.io/)帐户生成的16位字符串。它是一种加密安全的方法，可以跨多个在线网络验证您的身份。 Keybase API允许我们检索你的Keybase头像。这是你可以在验证人配置文件中添加徽标的方法。
 
 ```bash
-gaiad tx staking edit-validator
+pstaked tx staking edit-validator
   --moniker="choose a moniker" \
   --website="https://cosmos.network" \
   --identity=6A0D65E29A4CBC8E \
@@ -127,7 +127,7 @@ gaiad tx staking edit-validator
 通过该命令查看验证人的描述信息:
 
 ```bash
-gaiad query staking validator <account_cosmos>
+pstaked query staking validator <account_cosmos>
 ```
 
 ## 跟踪验证人的签名信息
@@ -135,7 +135,7 @@ gaiad query staking validator <account_cosmos>
 你可以通过`signing-info`命令跟踪过往的验证人签名：
 
 ```bash
-gaiad query slashing signing-info <validator-pubkey>\
+pstaked query slashing signing-info <validator-pubkey>\
   --chain-id=<chain_id>
 ```
 
@@ -144,7 +144,7 @@ gaiad query slashing signing-info <validator-pubkey>\
 当验证人因停机而"jailed"(入狱)时，你必须用节点操作人帐户提交一笔`Unjail`交易，使其再次能够获得区块提交的奖励（奖励多少取决于分区的fee分配）。
 
 ```bash
-gaiad tx slashing unjail \
+pstaked tx slashing unjail \
 	--from=<key_name> \
 	--chain-id=<chain_id>
 ```
@@ -154,7 +154,7 @@ gaiad tx slashing unjail \
 如果下面的命令返回有内容就证明你的验证人正处于活跃状态:
 
 ```bash
-gaiad query tendermint-validator-set | grep "$(gaiad tendermint show-validator)"
+pstaked query tendermint-validator-set | grep "$(pstaked tendermint show-validator)"
 ```
 
 你必须要在[区块浏览器](https://explorecosmos.network/validators)中看见你的验证人节点信息。你可以在`~/.gaia/config/priv_validator.json`文件中找到`bech32`编码格式的`address`。
@@ -172,7 +172,7 @@ gaiad query tendermint-validator-set | grep "$(gaiad tendermint show-validator)"
 如果被因为掉线而遭到jail，你可以重获你的投票股权以重回验证人队伍。首先，如果`gaiad`没有运行，请再次启动：
 
 ```bash
-gaiad start
+pstaked start
 ```
 
 等待你的全节点追赶上最新的区块高度。然后，运行如下命令。接着，你可以[unjail你的验证人]()。
@@ -180,7 +180,7 @@ gaiad start
 最后，检查你的验证人看看投票股权是否恢复：
 
 ```bash
-gaiad status
+pstaked status
 ```
 
 你可能会注意到你的投票权比之前要少。这是由于你的下线受到的削减处罚！
@@ -191,7 +191,7 @@ gaiad status
 Linux可以打开的默认文件数（每个进程）是1024。已知`gaiad`可以打开超过1024个文件。这会导致进程崩溃。快速修复运行`ulimit -n 4096`（增加允许的打开文件数）来快速修复，然后使用`gaiad start`重新启动进程。如果你使用`systemd`或其他进程管理器来启动`gaiad`，则可能需要在该级别进行一些配置。解决此问题的示例`systemd`文件如下：
 
 ```toml
-# /etc/systemd/system/gaiad.service
+# /etc/systemd/system/pstaked.service
 [Unit]
 Description=Cosmos Gaia Node
 After=network.target

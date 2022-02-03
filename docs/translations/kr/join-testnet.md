@@ -17,7 +17,7 @@
 우선 노드를 실행하고 필요한 config 파일을 생성합니다:
 
 ```bash
-gaiad init --moniker <your_custom_moniker>
+pstaked init --moniker <your_custom_moniker>
 ```
 
 ::: warning 참고
@@ -55,7 +55,7 @@ minimum_fees = ""
 
 ```bash
 rm $HOME/.gaia/config/addrbook.json $HOME/.gaia/config/genesis.json
-gaiad unsafe-reset-all
+pstaked unsafe-reset-all
 ```
 
 이제 `priv_validator.json`과 `config.toml`을 제외하고 노드가 초기화 되었습니다. 만약 해당 노드에 연결된적이 있는 센트리노드나 풀노드가 같이 업그레이드 되지 않았다면 연결이 실패할 수 있습니다.
@@ -99,7 +99,7 @@ curl https://raw.githubusercontent.com/cosmos/testnets/master/latest/genesis.jso
 설정이 올바르게 작동하는지 확인하기 위해서는 다음을 실행하세요:
 
 ```bash
-gaiad start
+pstaked start
 ```
 
 ### 시드 노드 추가하기
@@ -117,13 +117,13 @@ gaiad start
 다음 커맨드로 풀노드를 시작하세요:
 
 ```bash
-gaiad start
+pstaked start
 ```
 
 모든 것이 잘 작동하고 있는지 확인하기 위해서는:
 
 ```bash
-gaiad status
+pstaked status
 ```
 
 네트워크 상태를 [코스모스 익스플로러](https://explorecosmos.network)를 통해 확인하세요. 현재 풀 노드가 현재 블록높이로 싱크되었을 경우, 익스플로러의 [풀 노드 리스트](https://explorecosmos.network/validators)에 표시가 될 것입니다. 익스플로러가 모든 노드에 연결하지는 않아 표시가 되지 않을 수 있다는 점 참고해주십시오.
@@ -135,19 +135,19 @@ Gaia는 현재 애플리케이션의 상태를 JSON파일 형태로 내보낼 �
 현재 상태를 내보내기 위해서는:
 
 ```bash
-gaiad export > [filename].json
+pstaked export > [filename].json
 ```
 
 특정 블록 높이의 상태를 내보낼 수 있습니다(해당 블록 처리 후 상태):
 
 ```bash
-gaiad export --height [height] > [filename].json
+pstaked export --height [height] > [filename].json
 ```
 
 만약 해당 상태를 기반으로 새로운 네트워크를 시작하시려 한다면, `--for-zero-height` 플래그를 이용하셔서 내보내기를 실행해주세요:
 
 ```bash
-gaiad export --height [height] --for-zero-height > [filename].json
+pstaked export --height [height] --for-zero-height > [filename].json
 ```
 
 ## 밸리데이터 노드로 업그레이드 하기

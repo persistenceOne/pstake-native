@@ -1,7 +1,7 @@
-package gaia
+package app
 
 import (
-	"github.com/cosmos/gaia/v6/app/params"
+	"github.com/persistenceOne/pstake-native/app/params"
 
 	"github.com/cosmos/cosmos-sdk/std"
 )

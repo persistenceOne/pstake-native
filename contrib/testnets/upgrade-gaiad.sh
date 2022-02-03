@@ -1,5 +1,5 @@
 #!/bin/sh
-# upgrade-gaiad - example make call to upgrade gaiad on a set of nodes in AWS
+# upgrade-pstaked - example make call to upgrade pstaked on a set of nodes in AWS
 # WARNING: Run it from the current directory - it uses relative paths to ship the binary and the genesis.json,config.toml files
 
 if [ $# -ne 1 ]; then
@@ -10,5 +10,5 @@ set -eux
 
 export CLUSTER_NAME=$1
 
-make upgrade-gaiad
+make upgrade-pstaked
 

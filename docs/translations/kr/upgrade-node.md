@@ -47,7 +47,7 @@ mv new_genesis.json genesis.json
 
 ```bash
 cd $HOME/.gaia/config
-gaiad export --for-zero-height --height=<내보내는_블록_높이(export-height)> > new_genesis.json
+pstaked export --for-zero-height --height=<내보내는_블록_높이(export-height)> > new_genesis.json
 ```
 
 위 명령어는 특정 블록 높이(`<내보내는_블록_높이(export-height)>`)의 상태를 기반으로 새로운 제네시스 파일을 생성합니다. 이 제네시스 파일은 새로운 네트워크를 시작하는데 사용됩니다.
@@ -79,7 +79,7 @@ mv new_genesis.json genesis.json
 **만약 검증인 노드를 운영하시는 경우, 이 단계를 진행하기 전 따르는 위험을 충분히 숙지하고 진행하세요**.
 
 ```bash
-gaiad unsafe-reset-all
+pstaked unsafe-reset-all
 ```
 
 이제 노드는 `priv_validator.json`과 `config.toml`외의 모들 파일이 리셋되었습니다. 업그레이드된 노드는 기존의 연결되었던 센트리 노드와 풀 노드가 존재하는 경우 연결을 시도할 수 있으나, 함께 업그레이드가 진행되지 않으면 연결이 실패할 수 있습니다.
@@ -89,5 +89,5 @@ gaiad unsafe-reset-all
 노드를 다시 시작하기 위해서는 다음 명령어를 실행하세요:
 
 ```bash
-gaiad start
+pstaked start
 ```

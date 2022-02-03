@@ -3,9 +3,9 @@
 ##
 ## Input parameters
 ##
-BINARY=/gaiad/${BINARY:-gaiad}
+BINARY=/pstaked/${BINARY:-pstaked}
 ID=${ID:-0}
-LOG=${LOG:-gaiad.log}
+LOG=${LOG:-pstaked.log}
 
 ##
 ## Assert linux binary

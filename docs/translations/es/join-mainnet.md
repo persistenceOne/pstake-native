@@ -19,7 +19,7 @@ Estas instrucciones son para establecer un nuevo nodo completo desde cero.
 Primero, inicie el nodo y cree los archivos de configuración necesarios:
 
 ```bash
-gaiad init <your_custom_moniker>
+pstaked init <your_custom_moniker>
 ```
 
 :::Warning
@@ -69,7 +69,7 @@ Si en cambio quiere conectarse a la red de pruebas pública, haga clic [aquí](.
 Para verificar la validez de la configuración:
 
 ```bash
-gaiad start
+pstaked start
 ```
 
 ### Añada los nodos semilla
@@ -127,13 +127,13 @@ Por defecto cada nodo está en modo `PruneSyncable`. Si desea cambiar su estrate
 Inicie el nodo completo con este comando:
 
 ```bash
-gaiad start
+pstaked start
 ```
 
 Comprueba que todo funciona bien:
 
 ```bash
-gaiad status
+pstaked status
 ```
 
 Vea el estado de la red con el [Explorador de Cosmos](https://cosmos.network/launch)
@@ -145,19 +145,19 @@ Gaia puede volcar todo el estado de la aplicación a un archivo JSON, que podrí
 Exporte el estado con:
 
 ```bash
-gaiad export > [filename].json
+pstaked export > [filename].json
 ```
 
 También puede exportar el estado desde una altura en especial (al final del procesamiento del bloque en esa altura):
 
 ```bash
-gaiad export --height [height] > [filename].json
+pstaked export --height [height] > [filename].json
 ```
 
 Si desea empezar una nueva red desde el estado exportado, expórtelo con la opción `--for-zero-height`:
 
 ```bash
-gaiad export --height [height] --for-zero-height > [filename].json
+pstaked export --height [height] --for-zero-height > [filename].json
 ```
 
 ## Verifica la red principal
@@ -165,7 +165,7 @@ gaiad export --height [height] --for-zero-height > [filename].json
 Ayude a prevenir problemas críticos ejecutando invariantes en cada bloque de su nodo. En esencia, al ejecutar invariantes se asegura que el estado de la red principal es el estado esperado correcto. Una comprobación de la invariante vital es que ningún átomo está siendo creado o destruido fuera del protocolo esperado, sin embargo hay muchas otras invariantes, comprueben cada una de ellas de forma única para su respectivo módulo. Porque la invariante es costosa desde el punto de vista computacional, no están habilitados por defecto. Para ejecutar un nodo con  estas comprobaciones inicie su nodo con la opción assert-invariants-blockly:
 
 ```bash
-gaiad start --assert-invariants-blockly
+pstaked start --assert-invariants-blockly
 ```
 
 Si se rompe una invariante en su nodo, su nodo entrará en pánico (`panic` de Golang) y le pedirá que envíe una transacción que detenga la red principal. Por ejemplo, el mensaje proporcionado puede parecerse a:
@@ -176,7 +176,7 @@ invariant broken:
         pool.NotBondedTokens: 100
         sum of account tokens: 101
     CRITICAL please submit the following transaction:
-        gaiad tx crisis invariant-broken staking supply
+        pstaked tx crisis invariant-broken staking supply
 
 ```
 

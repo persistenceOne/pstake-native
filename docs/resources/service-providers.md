@@ -56,7 +56,7 @@ To use the CLI, you must install the latest version of `gaia` on your machine.
 Compare your version with the [latest release version](https://github.com/cosmos/gaia/releases)
 
 ```bash
-gaiad version --long
+pstaked version --long
 ```
 
 ### Available Commands
@@ -64,14 +64,14 @@ gaiad version --long
 All available CLI commands are shown when you run the `gaiad` command:
 
 ```bash
-gaiad 
+pstaked 
 ```
 
 ```bash
 Stargate Cosmos Hub App
 
 Usage:
-  gaiad [command]
+  pstaked [command]
 
 Available Commands:
 
@@ -96,22 +96,22 @@ Available Commands:
   version             Print the application binary version information
 
 Flags:
-  -h, --help                help for gaiad
+  -h, --help                help for pstaked
       --home string         directory for config and data (default "/Users/tobias/.gaia")
       --log_format string   The logging format (json|plain) (default "plain")
       --log_level string    The logging level (trace|debug|info|warn|error|fatal|panic) (default "info")
       --trace               print out full stack trace on errors
 
-Use "gaiad [command] --help" for more information about a command.
+Use "pstaked [command] --help" for more information about a command.
 ```
 
 For each displayed command, you can use the `--help` flag to get further information. 
 
 ```bash
-gaiad query --help
+pstaked query --help
 Usage:
-  gaiad query [flags]
-  gaiad query [command]
+  pstaked query [flags]
+  pstaked query [command]
 
 Aliases:
   query, q
@@ -157,15 +157,15 @@ When choosing to remote access a Full Node and gaiad, you need a Full Node runni
 To set up `gaiad` on a local machine and connect to an existing full node, use the following command:
 
 ```bash
-gaiad config <flag> <value>
+pstaked config <flag> <value>
 ```
 
 First, set up the address of the full node you want to connect to:
 
 ```bash
-gaiad config node <host>:<port
+pstaked config node <host>:<port
 
-// example: gaiad config node https://77.87.106.33:26657
+// example: pstaked config node https://77.87.106.33:26657
 ```
 
 If you run your own full node locally, use `tcp://localhost:26657` as the address. 
@@ -173,7 +173,7 @@ If you run your own full node locally, use `tcp://localhost:26657` as the addres
 Set the default value of the `--trust-node` flag:
 
 ```bash
-gaiad config trust-node false
+pstaked config trust-node false
 
 // Set to true if you run a light client node
 ```
@@ -181,7 +181,7 @@ gaiad config trust-node false
 Finally, set the `chain-id` of the blockchain you want to interact with:
 
 ```bash
-gaiad config chain-id cosmoshub-4
+pstaked config chain-id cosmoshub-4
 ```
 
 Next, learn to use CLI commands to interact with the full node.
@@ -194,7 +194,7 @@ The default key is `secp256k1 elliptic curve`. Use the `gaiad keys` command to l
 
 
 ```bash
-gaiad keys add <your_key_name>
+pstaked keys add <your_key_name>
 ```
 
 You will be asked to create a password (at least 8 characters) for this key-pair. This will return the information listed below:
@@ -208,13 +208,13 @@ You will be asked to create a password (at least 8 characters) for this key-pair
 You can see all available keys by typing:
 
 ```bash
-gaiad keys list
+pstaked keys list
 ```
 
 Use the `--recover` flag to add a key that imports a mnemonic to your keyring.
 
 ```bash
-gaiad keys add <your_key_name> --recover
+pstaked keys add <your_key_name> --recover
 ```
 
 #### Check your Account
@@ -222,7 +222,7 @@ gaiad keys add <your_key_name> --recover
 You can view your account by using the `query account` command.
 
 ```bash
-gaiad query account <YOUR_ADDRESS>
+pstaked query account <YOUR_ADDRESS>
 ```
 
 It will display your account type, account number, public key and current account sequence.
@@ -242,7 +242,7 @@ sequence: "x"
 Query the account balance with the command:
 
 ```bash
-gaiad query bank balances <YOUR_ADDRESS>
+pstaked query bank balances <YOUR_ADDRESS>
 ```
 
 The response contains keys `balances` and `pagination`.
@@ -272,7 +272,7 @@ pagination:
 To send coins using the CLI:
 
 ```bash
-gaiad tx send <from_key_or_address> <to_address> <amount> \
+pstaked tx send <from_key_or_address> <to_address> <amount> \
     --chain-id=<your_chain_id> 
 ```
 

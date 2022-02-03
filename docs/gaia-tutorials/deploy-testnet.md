@@ -41,24 +41,24 @@ This guide helps you create a single validator node that runs a network locally 
 cd $HOME
 
 # Initialize the genesis.json file that will help you to bootstrap the network
-gaiad init my-node --chain-id my-chain
+pstaked init my-node --chain-id my-chain
 
 # Create a key to hold your validator account
-gaiad keys add my-account
+pstaked keys add my-account
 
 # Add that key into the genesis.app_state.accounts array in the genesis file
 # NOTE: this command lets you set the number of coins. Make sure this account has some coins
 # with the genesis.app_state.staking.params.bond_denom denom, the default is staking
-gaiad add-genesis-account $(gaiad keys show my-account -a) 1000000000stake,1000000000validatortoken
+pstaked add-genesis-account $(pstaked keys show my-account -a) 1000000000stake,1000000000validatortoken
 
 # Generate the transaction that creates your validator
-gaiad gentx my-account 1000000000stake --chain-id my-chain
+pstaked gentx my-account 1000000000stake --chain-id my-chain
 
 # Add the generated bonding transaction to the genesis file
-gaiad collect-gentxs
+pstaked collect-gentxs
 
-# Now its safe to start `gaiad`
-gaiad start
+# Now its safe to start `pstaked`
+pstaked start
 ```
 
 This setup puts all the data for `gaiad` in `~/.gaia`. You can examine the genesis file you created at `~/.gaia/config/genesis.json`. With this configuration `gaiad` is also ready to use and has an account with tokens (both staking and custom).
@@ -124,32 +124,32 @@ calling the `gaiad testnet` command. This outputs a handful of files in the
 ```bash
 $ tree -L 2 build/
 build/
-├── gaiad
+├── pstaked
 ├── gentxs
 │   ├── node0.json
 │   ├── node1.json
 │   ├── node2.json
 │   └── node3.json
 ├── node0
-│   └── gaiad
+│   └── pstaked
 │       ├── key_seed.json
 │       ├── keys
-│       ├── ${LOG:-gaiad.log}
+│       ├── ${LOG:-pstaked.log}
 │       ├── config
 │       └── data
 ├── node1
 │       ├── key_seed.json
-│       ├── ${LOG:-gaiad.log}
+│       ├── ${LOG:-pstaked.log}
 │       ├── config
 │       └── data
 ├── node2
 │       ├── key_seed.json
-│       ├── ${LOG:-gaiad.log}
+│       ├── ${LOG:-pstaked.log}
 │       ├── config
 │       └── data
 └── node3
          ├── key_seed.json
-         ├── ${LOG:-gaiad.log}
+         ├── ${LOG:-pstaked.log}
          ├── config
          └── data
 ```
@@ -171,7 +171,7 @@ To interact with `gaiad` and start querying state or creating txs, you use the
 `gaiad` directory of any given node as your `home`, for example:
 
 ```bash
-gaiad keys list --home ./build/node0/gaiad
+pstaked keys list --home ./build/node0/pstaked
 ```
 
 Now that accounts exists, you may create new accounts and send those accounts

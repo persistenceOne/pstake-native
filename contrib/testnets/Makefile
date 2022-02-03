@@ -15,7 +15,7 @@ SERVERS?=1
 # Number of regions to use in AWS. One region usually contains 2-3 availability zones.
 REGION_LIMIT?=1
 
-# Path to gaiad for deployment. Must be a Linux binary.
+# Path to pstaked for deployment. Must be a Linux binary.
 BINARY?=$(CURDIR)/../build/gaiad
 GAIACLI_BINARY?=$(CURDIR)/../build/gaiacli
 

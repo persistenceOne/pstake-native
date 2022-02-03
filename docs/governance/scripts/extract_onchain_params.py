@@ -85,7 +85,7 @@ params = {
 
 for subspace, keys in params.items():
     for key, value in keys.items(): 
-        query_result = subprocess.check_output(['gaiad query params subspace' + ' ' + str(subspace) + ' ' + str(key) + ' ' + '--node ' + node + ' --chain-id ' + chain_id], shell=True)
+        query_result = subprocess.check_output(['pstaked query params subspace' + ' ' + str(subspace) + ' ' + str(key) + ' ' + '--node ' + node + ' --chain-id ' + chain_id], shell=True)
         yaml_result = yaml.safe_load(query_result)['value']
         print(yaml_result)
         params[subspace][key] = json.loads(yaml_result)

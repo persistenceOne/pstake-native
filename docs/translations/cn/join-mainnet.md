@@ -15,7 +15,7 @@
 首先，初始化节点并创建必要的配置文件：
 
 ```bash
-gaiad init <your_custom_moniker>
+pstaked init <your_custom_moniker>
 ```
 
 ::: 注意
@@ -66,7 +66,7 @@ curl https://raw.githubusercontent.com/cosmos/launch/master/genesis.json > $HOME
 运行命令验证配置的正确性:
 
 ```bash
-gaiad start
+pstaked start
 ```
 
 ### 添加种子节点
@@ -111,13 +111,13 @@ fees = gas * gasPrices
 通过这条命令开始运行全节点：
 
 ```bash
-gaiad start
+pstaked start
 ```
 
 检查一切是否平稳运行中:
 
 ```bash
-gaiad status
+pstaked status
 ```
 
 使用[Cosmos Explorer](https://cosmos.network/launch)查看网络状态。
@@ -129,19 +129,19 @@ Gaia能够将整个应用程序的状态转存到一个JSON文件中，该文件
 导出状态:
 
 ```bash
-gaiad export > [filename].json
+pstaked export > [filename].json
 ```
 
 你还可以导出指定高度的状态(处理完指定高度后的状态):
 
 ```bash
-gaiad export --height [height] > [filename].json
+pstaked export --height [height] > [filename].json
 ```
 
 如果你计划使用导出的状态文件启动一个新网络，导出时要加上`--for-zero-height`标识:
 
 ```bash
-gaiad export --height [height] --for-zero-height > [filename].json
+pstaked export --height [height] --for-zero-height > [filename].json
 ```
 
 ## 升级成为验证人节点

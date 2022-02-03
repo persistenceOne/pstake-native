@@ -66,14 +66,14 @@ LDFLAGS="" make install
 That will install the `gaiad` binary. Verify that everything is OK:
 
 ```bash
-gaiad version --long
+pstaked version --long
 ```
 
 `gaiad` for instance should output something similar to:
 
 ```bash
 name: gaia
-server_name: gaiad
+server_name: pstaked
 version: v4.2.1
 commit: dbd8a6fb522c571debf958837f9113c56d418f6b
 build_tags: netgo,ledger

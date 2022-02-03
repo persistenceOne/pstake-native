@@ -5,8 +5,8 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	app "github.com/cosmos/gaia/v6/app"
-	"github.com/cosmos/gaia/v6/cmd/gaiad/cmd"
+	app "github.com/persistenceOne/pstake-native/app"
+	"github.com/persistenceOne/pstake-native/cmd/pstaked/cmd"
 	"github.com/stretchr/testify/require"
 )
 

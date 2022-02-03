@@ -25,7 +25,7 @@ __Note__: 이 문서는 **퍼블릭 테스트넷** 검증인들을 위해서만 
 
 
 ```bash
-gaiad tendermint show-validator
+pstaked tendermint show-validator
 ```
 
 다음은 `gaiad gentx` 명령을 입력하세요:
@@ -35,9 +35,9 @@ gaiad tendermint show-validator
 :::
 
 ```bash
-gaiad tx staking create-validator \
+pstaked tx staking create-validator \
   --amount=5000000uatom \
-  --pubkey=$(gaiad tendermint show-validator) \
+  --pubkey=$(pstaked tendermint show-validator) \
   --moniker="choose a moniker" \
   --chain-id=<chain_id> \
   --from=<key_name> \
@@ -60,7 +60,7 @@ __참고__: 이 문항은 제네시스 파일에 참가하려는 밸리데이터
 이런 경우에는 `gentx`를 생성하셔야 합니다:
 
 ```bash
-gaiad gentx \
+pstaked gentx \
   --amount <amount_of_delegation> \
   --commission-rate <commission_rate> \
   --commission-max-rate <commission_max_rate> \
@@ -95,7 +95,7 @@ __참고:__ 이 항목에서는 최신 테스트넷 관련 정보가 있는 [테
 모든 제네시스 트랜잭션을 받으시고 `~/.gaia/config/gentx`에 저장하셨다면 다음 명령어를 실행하십시오:
 
 ```bash
-gaiad collect-gentxs
+pstaked collect-gentxs
 ```
 
 __참고:__ `gentx`에서 위임을 하는 계정에 스테이크(stake) 토큰이 있는 것을 확인하세요. 만약 해당 계정에 토큰이 없다면 `collect-gentx`가 실패하게 됩니다.
@@ -103,7 +103,7 @@ __참고:__ `gentx`에서 위임을 하는 계정에 스테이크(stake) 토큰�
 이전에 실행하신 명령어는 모든 제네시스 트랜잭션을 모으고 `genesis.json`을 파이널라이즈(finalize)합니다. 설정이 올바르게 되었는지 확인하기 위해서는 노드를 시작하십시오: 
 
 ```bash
-gaiad start
+pstaked start
 ```
 
 ## 검증인 설명 수정하기
@@ -113,7 +113,7 @@ gaiad start
 `--identity` 값은 Keybase 또는 UPort 같은 시스템을 이용해서 신분(identity)를 검증하는데 이용될 수 있습니다. Keybase를 사용하시는 경우 `--identity`는 [keybase.io](https://keybase.io) 계정으로 생성하신 16자리 string 값이 입력되어야 합니다. 이런 절차는 다수의 온라인 네트워크에서 본인의 신분을 증명하는데 이용될 수 있습니다. 또한 Keybase API를 이용해서 Keybase 아바타를 가져와 밸리데이터 프로파일에 이용하실 수 있습니다.
 
 ```bash
-gaiad tx staking edit-validator
+pstaked tx staking edit-validator
   --moniker="choose a moniker" \
   --website="https://cosmos.network" \
   --identity=6A0D65E29A4CBC8E \
@@ -133,7 +133,7 @@ __참고__: `commission-rate` 값은 다음의 규칙을 따라야 합니다:
 검증인의 정보는 다음 명령어로 확인이 가능합니다:
 
 ```bash
-gaiad query staking validator <account_cosmos>
+pstaked query staking validator <account_cosmos>
 ```
 
 ## 밸리데이터 서명 정보 추적하기
@@ -141,7 +141,7 @@ gaiad query staking validator <account_cosmos>
 특정 검증인의 과거 서명 정보를 확인하기 위해서는 `signing-info` 명령어를 이용하실 수 있습니다:
 
 ```bash
-gaiad query slashing signing-info <validator-pubkey>\
+pstaked query slashing signing-info <validator-pubkey>\
   --chain-id=<chain_id>
 ```
 
@@ -150,7 +150,7 @@ gaiad query slashing signing-info <validator-pubkey>\
 특정 검증인이 과도한 다운타임으로 '구속(jailed)' 상태로 전환되면 운영자의 계정에서 '석방(unjail)' 요청 트랜잭션을 전송해야만 다시 블록 생성 리워드를 받을 수 있습니다(각 존의 리워드 분배 정책에 따라 다를 수 있음).
 
 ```bash
-gaiad tx slashing unjail \
+pstaked tx slashing unjail \
 	--from=<key_name> \
 	--chain-id=<chain_id>
 ```
@@ -160,7 +160,7 @@ gaiad tx slashing unjail \
 다음 명령어가 반응을 준다면 당신의 밸리데이터는 작동하고 있습니다:
 
 ```bash
-gaiad query tendermint-validator-set | grep "$(gaiad tendermint show-validator)"
+pstaked query tendermint-validator-set | grep "$(pstaked tendermint show-validator)"
 ```
 
 코스모스 테스트넷의 경우 코스모스 [익스플로러](https://explorecosmos.network/validators)를 통해서 밸리데이터가 운영되고 있는지 확인하실 수 있습니다. `~/.gaia/config/priv_validator.json` 파일의 `bech32` 인코딩이된 `address` 항목을 참고하세요.
@@ -178,13 +178,13 @@ gaiad query tendermint-validator-set | grep "$(gaiad tendermint show-validator)"
 보팅 파워를 다시 밸리데이터에게 되돌리기 위해서, 우선 `gaiad`가 실행되고 있는지 확인하십시오. 만약 실행되고 있지 않은 경우 다음 명령어를 실행하십시오:
 
 ```bash
-gaiad start
+pstaked start
 ```
 
 당신의 풀노드가 최신 블록높이에 싱크될때까지 기다리십시오. 이후, 다음 명령어를 실행하십시오. 참고로 `<cosmos>` 항목은 밸리데이터 계정의 주소이며, `<name>`은 밸리데이터 계정의 이름입니다. 해당 정보는 `gaiad keys list` 명령어를 통해 확인하실 수 있습니다.
 
 ```bash
-gaiad tx slashing unjail <cosmos> --chain-id=<chain_id> --from=<from>
+pstaked tx slashing unjail <cosmos> --chain-id=<chain_id> --from=<from>
 ```
 
 ::: danger 경고
@@ -194,7 +194,7 @@ gaiad tx slashing unjail <cosmos> --chain-id=<chain_id> --from=<from>
 마지막으로 밸리데이터의 보팅파워가 복구 되었는지 확인하십시오.
 
 ```bash
-gaiad status
+pstaked status
 ```
 
 만약 보팅 파워가 예전보다 감소되었다면 다운타임에 대한 슬래싱이 이유일 수 있습니다.
@@ -204,7 +204,7 @@ gaiad status
 리눅스가 각 프로세스당 열 수 있는는 파일 수는 최대 `1024`개입니다. `gaiad`는 1024개 이상의 열게될 수 있음으로 프로세스가 중단될 수 있습니다. 가장 간편한 해결책은 `ulimit -n 4096` (열 수 있는 최대 파일 수)명령어를 입력하고 프로세스를 `gaiad start`로 재시작하는 것입니다. 만약 `systemd` 또는 다른 프로세스 매니저로 `gaiad`를 실행하신다면 해당 레벨에서 몇가지 설정을 해야합니다. 문제 해결 샘플 `systemd` 파일은 다음과 같습니다:
 
 ```toml
-# /etc/systemd/system/gaiad.service
+# /etc/systemd/system/pstaked.service
 [Unit]
 Description=Cosmos Gaia Node
 After=network.target

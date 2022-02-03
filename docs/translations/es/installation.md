@@ -51,16 +51,16 @@ LDFLAGS="" make install
 Esto debería instalar los binarios de `gaiad`y `gaiad`. Verifique que todo esta OK:
 
 ```bash
-$ gaiad version --long
-$ gaiad version --long
+$ pstaked version --long
+$ pstaked version --long
 ```
 
 `gaiad` por su parte, debería dar como resultado algo similar a:
 
 ```shell
 name: gaia
-server_name: gaiad
-client_name: gaiad
+server_name: pstaked
+client_name: pstaked
 version: 2.0.3
 commit: 2f6783e298f25ff4e12cb84549777053ab88749a
 build_tags: netgo,ledger

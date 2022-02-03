@@ -1,4 +1,4 @@
-package gaia
+package app
 
 import (
 	"fmt"
@@ -98,7 +98,7 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
-	gaiaappparams "github.com/cosmos/gaia/v6/app/params"
+	gaiaappparams "github.com/persistenceOne/pstake-native/app/params"
 	"github.com/strangelove-ventures/packet-forward-middleware/router"
 	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/router/keeper"
 	routertypes "github.com/strangelove-ventures/packet-forward-middleware/router/types"
@@ -168,7 +168,7 @@ var (
 // GaiaApp extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
-type GaiaApp struct { // nolint: golint
+type GaiaApp struct {
 	*baseapp.BaseApp
 	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec

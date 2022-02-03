@@ -5,7 +5,7 @@
 请注意，您可以通过运行以下命令为您自己的 testnet 生成默认的 genesis 文件：
 
 ```bash
-gaiad init <moniker> --chain-id <chain-id>
+pstaked init <moniker> --chain-id <chain-id>
 ```
 
 genesis 文件存储在 `~/.gaia/config/genesis.toml`.
@@ -68,9 +68,9 @@ genesis 文件中定义的状态包含所有必要的信息，如初始令牌分
 在本节中，定义了初始分配的 Token。 可以通过直接编辑 genesis 文件手动添加帐户，但也可以使用以下命令：
 
 ```bash
-// Example: gaiad add-genesis-account cosmos1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z37gh3h 10000000uatom
+// Example: pstaked add-genesis-account cosmos1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z37gh3h 10000000uatom
 
-gaiad add-genesis-account <account-address> <amount><denom>
+pstaked add-genesis-account <account-address> <amount><denom>
 ```
 
 这个命令在 `app_state.accounts` 下创建一个条目。
@@ -328,7 +328,7 @@ The `slashing` module handles the logic to slash delegators if their validator m
 可以手动将`gentx`添加到genesis文件，或通过以下命令：
 
 ```bash
-gaiad collect-gentxs
+pstaked collect-gentxs
 ```
 
 此命令将存储在`~/.gaia/config/gentx`中的所有`gentxs`添加到genesis文件中。 要创建创世纪交易，请单击[此处](./validators/validator-setup.md#participation-in-genesis-as-a-validator)。

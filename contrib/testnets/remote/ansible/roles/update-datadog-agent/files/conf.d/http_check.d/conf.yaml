@@ -1,7 +1,7 @@
 init_config:
 
 instances:
-  - name: gaiad
+  - name: pstaked
     url: http://localhost:26657/status
     timeout: 1
     content_match: '"latest_block_height": "0",'

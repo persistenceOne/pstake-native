@@ -17,7 +17,7 @@
 
 
 ```bash
-gaiad init <your_custom_moniker>
+pstaked init <your_custom_moniker>
 ```
 
 ::: warning 참고
@@ -68,7 +68,7 @@ curl https://raw.githubusercontent.com/cosmos/launch/master/genesis.json > $HOME
 설정이 올바르게 작동하는지 확인하기 위해서는 다음을 실행하세요:
 
 ```bash
-gaiad start
+pstaked start
 ```
 ### 시드 노드 추가하기
 
@@ -114,13 +114,13 @@ gaiad start
 다음 커맨드로 풀노드를 시작하세요:
 
 ```bash
-gaiad start
+pstaked start
 ```
 
 모든 것이 잘 작동하고 있는지 확인하기 위해서는:
 
 ```bash
-gaiad status
+pstaked status
 ```
 
 네트워크 상태를 [코스모스 익스플로러](https://cosmos.network/launch)에서 확인하세요.
@@ -132,19 +132,19 @@ Gaia는 현재 애플리케이션의 상태를 JSON파일 형태로 내보낼 �
 현재 상태를 내보내기 위해서는:
 
 ```bash
-gaiad export > [filename].json
+pstaked export > [filename].json
 ```
 
 특정 블록 높이의 상태를 내보낼 수 있습니다(해당 블록 처리 후 상태):
 
 ```bash
-gaiad export --height [height] > [filename].json
+pstaked export --height [height] > [filename].json
 ```
 
 만약 해당 상태를 기반으로 새로운 네트워크를 시작하시려 한다면, `--for-zero-height` 플래그를 이용하셔서 내보내기를 실행해주세요:
 
 ```bash
-gaiad export --height [height] --for-zero-height > [filename].json
+pstaked export --height [height] --for-zero-height > [filename].json
 ```
 
 ## 메인넷 검증하기
@@ -154,7 +154,7 @@ gaiad export --height [height] --for-zero-height > [filename].json
 Invariant check는 블록체인 연산력을 상당하게 소모하기 때문에, 기본적으로 비활성화 되어있습니다. Invariant check를 실행한 상태로 노드를 시작하기 원하시는 경우 `assert-invariants-blockly` 플래그를 추가하세요:
 
 ```bash
-gaiad start --assert-invariants-blockly
+pstaked start --assert-invariants-blockly
 ```
 
 만약 노드 내 invariant가 문제를 감지하는 경우, 노드는 패닉하여 메인넷을 중지하는 트랜잭션을 전송합니다. 예시 메시지는 다음과 같습니다:
@@ -165,7 +165,7 @@ invariant broken:
         pool.NotBondedTokens: 100
         sum of account tokens: 101
     CRITICAL please submit the following transaction:
-        gaiad tx crisis invariant-broken staking supply
+        pstaked tx crisis invariant-broken staking supply
 
 ```
 

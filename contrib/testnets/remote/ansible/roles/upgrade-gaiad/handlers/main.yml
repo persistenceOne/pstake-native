@@ -1,5 +1,5 @@
 ---
 
-- name: restart gaiad
-  service: name=gaiad state=restarted
+- name: restart pstaked
+  service: name=pstaked state=restarted
 

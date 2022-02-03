@@ -151,7 +151,7 @@ Next, click [here](#using-a-ledger-device) to learn how to generate an account.
 To restore an account using a fundraiser mnemonic and store the associated encrypted private key on a computer, use the following command:
 
 ```bash
-gaiad keys add <yourKeyName> --recover
+pstaked keys add <yourKeyName> --recover
 ```
 
 - `<yourKeyName>` is the name of the account. It is a reference to the account number used to derive the key pair from the mnemonic. You will use this name to identify your account when you want to send a transaction.
@@ -188,7 +188,7 @@ When you initialize your ledger, a 24-word mnemonic is generated and stored in t
 Then, to create an account, use the following command:
 
 ```bash
-gaiad keys add <yourAccountName> --ledger 
+pstaked keys add <yourAccountName> --ledger 
 ```
 
 ::: warning
@@ -207,7 +207,7 @@ gaiad keys add <yourAccountName> --ledger
 To generate an account, just use the following command:
 
 ```bash
-gaiad keys add <yourKeyName>
+pstaked keys add <yourKeyName>
 ```
 
 The command will generate a 24-words mnemonic and save the private and public keys for account `0`
@@ -242,7 +242,7 @@ rm ~/.bash_history
 You can generate more accounts from the same mnemonic using the following command:
 
 ```bash
-gaiad keys add <yourKeyName> --recover --account 1
+pstaked keys add <yourKeyName> --recover --account 1
 ```
 
 This command will prompt you to input a passphrase as well as your mnemonic. Change the account number to generate a different account. 
@@ -283,7 +283,7 @@ In order to connect to the full-node, you will need an address of the following 
 In order to set up `gaiad`, use the following command:
 
 ```bash
-gaiad config <flag> <value>
+pstaked config <flag> <value>
 ```
 
 It allows you to set a default value for each given flag. 
@@ -291,9 +291,9 @@ It allows you to set a default value for each given flag.
 First, set up the address of the full-node you want to connect to:
 
 ```bash
-gaiad config node <host>:<port
+pstaked config node <host>:<port
 
-// example: gaiad config node https://77.87.106.33:26657
+// example: pstaked config node https://77.87.106.33:26657
 ```
 
 If you run your own full-node, just use `tcp://localhost:26657` as the address. 
@@ -301,7 +301,7 @@ If you run your own full-node, just use `tcp://localhost:26657` as the address.
 Then, let us set the default value of the `--trust-node` flag:
 
 ```bash
-gaiad config trust-node false
+pstaked config trust-node false
 
 // Set to true if you run a light-client node, false otherwise
 ```
@@ -309,7 +309,7 @@ gaiad config trust-node false
 Finally, let us set the `chain-id` of the blockchain we want to interact with:
 
 ```bash
-gaiad config chain-id cosmoshub-2
+pstaked config chain-id cosmoshub-2
 ```
 
 ## Querying the State
@@ -322,37 +322,37 @@ gaiad config chain-id cosmoshub-2
 
 ```bash
 // query account balances and other account-related information
-gaiad query account <yourAddress>
+pstaked query account <yourAddress>
 
 // query the list of validators
-gaiad query staking validators
+pstaked query staking validators
 
 // query the information of a validator given their address (e.g. cosmosvaloper1n5pepvmgsfd3p2tqqgvt505jvymmstf6s9gw27)
-gaiad query staking validator <validatorAddress>
+pstaked query staking validator <validatorAddress>
 
 // query all delegations made from a delegator given their address (e.g. cosmos10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg)
-gaiad query staking delegations <delegatorAddress>
+pstaked query staking delegations <delegatorAddress>
 
 // query a specific delegation made from a delegator (e.g. cosmos10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg) to a validator (e.g. cosmosvaloper1n5pepvmgsfd3p2tqqgvt505jvymmstf6s9gw27) given their addresses
-gaiad query staking delegation <delegatorAddress> <validatorAddress>
+pstaked query staking delegation <delegatorAddress> <validatorAddress>
 
 // query the rewards of a delegator given a delegator address (e.g. cosmos10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg)
-gaiad query distribution rewards <delegatorAddress> 
+pstaked query distribution rewards <delegatorAddress> 
 
 // query all proposals currently open for depositing
-gaiad query gov proposals --status deposit_period
+pstaked query gov proposals --status deposit_period
 
 // query all proposals currently open for voting
-gaiad query gov proposals --status voting_period
+pstaked query gov proposals --status voting_period
 
 // query a proposal given its proposalID
-gaiad query gov proposal <proposalID>
+pstaked query gov proposal <proposalID>
 ```
 
 For more commands, just type:
 
 ```bash
-gaiad query
+pstaked query
 ```
 
 For each command, you can use the `-h` or `--help` flag to get more information.
@@ -396,7 +396,7 @@ For mainnet, the recommended `gas-prices` is `0.0025uatom`.
 // Ex value for parameters (do not actually use these values in your tx!!): <to_address>=cosmos16m93fezfiezhvnjajzrfyszml8qm92a0w67ntjhd3d0 <amount>=1000000uatom 
 // Ex value for flags: <gasPrice>=0.0025uatom
 
-gaiad tx send <to_address> <amount> --from <yourKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
+pstaked tx send <to_address> <amount> --from <yourKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
 ```
 
 ### Bonding Atoms and Withdrawing Rewards
@@ -417,7 +417,7 @@ gaiad tx send <to_address> <amount> --from <yourKeyName> --gas auto --gas-adjust
 // Bond a certain amount of Atoms to a given validator
 // ex value for flags: <validatorAddress>=cosmosvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <amountToBound>=10000000uatom, <gasPrice>=0.0025uatom
 
-gaiad tx staking delegate <validatorAddress> <amountToBond> --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
+pstaked tx staking delegate <validatorAddress> <amountToBond> --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
 
 
 // Redelegate a certain amount of Atoms from a validator to another
@@ -426,19 +426,19 @@ gaiad tx staking delegate <validatorAddress> <amountToBond> --from <delegatorKey
 // After a redelegation, no other redelegation can be made from the account for the next 3 weeks
 // ex value for flags: <stcValidatorAddress>=cosmosvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <amountToRedelegate>=100000000uatom, <gasPrice>=0.0025uatom
 
-gaiad tx staking redelegate <srcValidatorAddress> <destValidatorAddress> <amountToRedelegate> --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
+pstaked tx staking redelegate <srcValidatorAddress> <destValidatorAddress> <amountToRedelegate> --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
 
 // Withdraw all rewards
 // ex value for flag: <gasPrice>=0.0025uatom
 
-gaiad tx distribution withdraw-all-rewards --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
+pstaked tx distribution withdraw-all-rewards --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
 
 
 // Unbond a certain amount of Atoms from a given validator 
 // You will have to wait 3 weeks before your Atoms are fully unbonded and transferrable 
 // ex value for flags: <validatorAddress>=cosmosvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <amountToUnbound>=10000000uatom, <gasPrice>=0.0025uatom
 
-gaiad tx staking unbond <validatorAddress> <amountToUnbond> --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
+pstaked tx staking unbond <validatorAddress> <amountToUnbond> --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
 ```
 
 ::: warning
@@ -449,14 +449,14 @@ To confirm that your transaction went through, you can use the following queries
 
 ```bash
 // your balance should change after you bond Atoms or withdraw rewards
-gaiad query account
+pstaked query account
 
 // you should have delegations after you bond Atom
-gaiad query staking delegations <delegatorAddress>
+pstaked query staking delegations <delegatorAddress>
 
 // this returns your tx if it has been included
 // use the tx hash that was displayed when you created the tx
-gaiad query tx <txHash>
+pstaked query tx <txHash>
 
 ```
 
@@ -493,19 +493,19 @@ At the end of the voting period, the proposal is accepted if there are more than
 // <type>=text/parameter_change/software_upgrade
 // ex value for flag: <gasPrice>=0.0025uatom
 
-gaiad tx gov submit-proposal --title "Test Proposal" --description "My awesome proposal" --type <type> --deposit=10000000uatom --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice> --from <delegatorKeyName>
+pstaked tx gov submit-proposal --title "Test Proposal" --description "My awesome proposal" --type <type> --deposit=10000000uatom --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice> --from <delegatorKeyName>
 
 // Increase deposit of a proposal
 // Retrieve proposalID from $gaiad query gov proposals --status deposit_period
 // ex value for parameter: <deposit>=10000000uatom
 
-gaiad tx gov deposit <proposalID> <deposit> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice> --from <delegatorKeyName>
+pstaked tx gov deposit <proposalID> <deposit> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice> --from <delegatorKeyName>
 
 // Vote on a proposal
 // Retrieve proposalID from $gaiad query gov proposals --status voting_period 
 // <option>=yes/no/no_with_veto/abstain
 
-gaiad tx gov vote <proposalID> <option> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice> --from <delegatorKeyName>
+pstaked tx gov vote <proposalID> <option> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice> --from <delegatorKeyName>
 ```
 
 ### Signing Transactions From an Offline Computer
@@ -516,7 +516,7 @@ If you do not have a ledger device and want to interact with your private key on
 // Bond Atoms 
 // ex value for flags: <amountToBound>=10000000uatom, <bech32AddressOfValidator>=cosmosvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <gasPrice>=0.0025uatom, <delegatorAddress>=cosmos10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg
 
-gaiad tx staking delegate <validatorAddress> <amountToBond> --from <delegatorAddress> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice> --generate-only > unsignedTX.json
+pstaked tx staking delegate <validatorAddress> <amountToBond> --from <delegatorAddress> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice> --generate-only > unsignedTX.json
 ```
 
 In order to sign, you will also need the `chain-id`, `account-number` and `sequence`. The `chain-id` is a unique identifier for the blockchain on which you are submitting the transaction. The `account-number` is an identifier generated when your account first receives funds. The `sequence` number is used to keep track of the number of transactions you have sent and prevent replay attacks.
@@ -524,7 +524,7 @@ In order to sign, you will also need the `chain-id`, `account-number` and `seque
 Get the chain-id from the genesis file (`cosmoshub-2`), and the two other fields using the account query:
 
 ```bash
-gaiad query account <yourAddress> --chain-id cosmoshub-2
+pstaked query account <yourAddress> --chain-id cosmoshub-2
 ```
 
 Then, copy `unsignedTx.json` and transfer it (e.g. via USB) to the offline computer. If it is not done already, [create an account on the offline computer](#using-a-computer). For additional security, you can double check the parameters of your transaction before signing it using the following command:
@@ -536,11 +536,11 @@ cat unsignedTx.json
 Now, sign the transaction using the following command. You will need the `chain-id`, `sequence` and `account-number` obtained earlier:
 
 ```bash
-gaiad tx sign unsignedTx.json --from <delegatorKeyName> --offline --chain-id cosmoshub-2 --sequence <sequence> --account-number <account-number> > signedTx.json
+pstaked tx sign unsignedTx.json --from <delegatorKeyName> --offline --chain-id cosmoshub-2 --sequence <sequence> --account-number <account-number> > signedTx.json
 ```
 
 Copy `signedTx.json` and transfer it back to the online computer. Finally, use the following command to broadcast the transaction:
 
 ```bash
-gaiad tx broadcast signedTx.json
+pstaked tx broadcast signedTx.json
 ```

@@ -1,4 +1,4 @@
-module github.com/cosmos/gaia/v6
+module github.com/persistenceOne/pstake-native
 
 go 1.17
 

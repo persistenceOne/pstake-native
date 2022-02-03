@@ -29,8 +29,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	gaia "github.com/cosmos/gaia/v6/app"
-	"github.com/cosmos/gaia/v6/app/params"
+	gaia "github.com/persistenceOne/pstake-native/app"
+	"github.com/persistenceOne/pstake-native/app/params"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the
@@ -48,7 +48,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithViper("")
 
 	rootCmd := &cobra.Command{
-		Use:   "gaiad",
+		Use:   "pstaked",
 		Short: "Stargate Cosmos Hub App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			initClientCtx = client.ReadHomeFlag(initClientCtx, cmd)
