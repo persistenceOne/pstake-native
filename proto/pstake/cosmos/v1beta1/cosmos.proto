@@ -1,0 +1,46 @@
+syntax = "proto3";
+package pstake.cosmos.v1beta1;
+
+option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
+
+import "gogoproto/gogo.proto";
+
+message WeightedAddress {
+  string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+  string weight = 2 [
+    (gogoproto.moretags) = "yaml:\"weight\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message DistributionProportions {
+  string validator_rewards = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags) = "yaml:\"validator_rewards\"",
+    (gogoproto.nullable) = false
+  ];
+  string developer_rewards = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags) = "yaml:\"developer_rewards\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
+//Params hold the parameters for cosmos module
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+
+  string mint_denom = 1 [(gogoproto.moretags) = "yaml:\"mintDenom\""];
+  uint64 min_minting_amount = 2 [(gogoproto.moretags) = "yaml:\"minMintingAmount\""];
+  uint64 max_minting_amount = 3 [(gogoproto.moretags) = "yaml:\"maxMintingAmount\""];
+  uint64 min_burning_amount = 4 [(gogoproto.moretags) = "yaml:\"minBurningAmount\""];
+  uint64 max_burning_amount = 5 [(gogoproto.moretags) = "yaml:\"maxBurningAmount\""];
+  uint64 max_validator_to_delegate = 6 [(gogoproto.moretags) = "yaml:\"maxValidatorToDelegate\""];
+  repeated WeightedAddress validator_set_cosmos_chain = 7 [(gogoproto.moretags) = "yaml:\"validatorSetCosmosChain\"", (gogoproto.nullable) = false];
+  repeated WeightedAddress validator_set_native_chain = 8 [(gogoproto.moretags) = "yaml:\"validatorSetNativeChain\"", (gogoproto.nullable) = false];
+  repeated WeightedAddress weighted_developer_rewards_receivers = 9 [(gogoproto.moretags) = "yaml:\"weightedDeveloperRewardsReceivers\"", (gogoproto.nullable) = false];
+  DistributionProportions distribution_proportion = 10 [(gogoproto.moretags) = "yaml:\"weightedDeveloperRewardsReceivers\"", (gogoproto.nullable) = false];
+  int64 epochs = 11 [(gogoproto.moretags) = "yaml:\"epochs\""];
+  int64 max_incoming_and_outgoing_txns = 12 [(gogoproto.moretags) = "yaml:\"maxIncomingAndOutgoingTxns\""];
+}

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package pstake.comsos.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "pstake/cosmos/v1beta1/cosmos.proto";
+
+option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
+
+message GenesisState {
+
+}
