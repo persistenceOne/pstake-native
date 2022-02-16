@@ -3,10 +3,32 @@ package pstake.comsos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
 import "pstake/cosmos/v1beta1/cosmos.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
-message GenesisState {
+message StakeAmount {
+  string denom = 1;
+  string amount = 2 [(gogoproto.moretags) = "yaml:\"amount\"", (gogoproto.nullable) = false, (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+}
 
+message DelegationCosmos {
+  string address = 1;
+  StakeAmount stake = 2 [(gogoproto.moretags) = "yaml:\"stake\"", (gogoproto.nullable) = false];
+}
+
+message IncomingTx {
+  repeated google.protobuf.Any messages = 1 [(gogoproto.moretags) = "yaml:\"messages\"", (gogoproto.nullable) = false];
+}
+
+message OutgoingTx {
+  repeated google.protobuf.Any messages = 1 [(gogoproto.moretags) = "yaml:\"messages\"", (gogoproto.nullable) = false];
+}
+
+message GenesisState {
+  pstake.cosmos.v1beta1.Params params = 1 [(gogoproto.moretags) = "yaml:\"params\"", (gogoproto.nullable) = false];
+  repeated DelegationCosmos cosmos_delegations = 2 [(gogoproto.moretags) = "yaml:\"cosmos_delegations\"", (gogoproto.nullable) = false];
+  IncomingTx incoming_txn = 3 [(gogoproto.moretags) = "yaml:\"incoming_txn\"", (gogoproto.nullable) = false];
+  OutgoingTx outgoing_txn = 4 [(gogoproto.moretags) = "yaml:\"outgoing_txn\"", (gogoproto.nullable) = false];
 }

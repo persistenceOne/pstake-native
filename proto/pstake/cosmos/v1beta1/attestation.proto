@@ -1,0 +1,15 @@
+syntax = "proto3";
+package pstake.comsos.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
+
+
+//TODO ClaimType
+enum ClaimType {
+  UNSPECIFIED = 0;
+  CLAIM_TYPE_SEND_TO_COSMOS = 1;
+}

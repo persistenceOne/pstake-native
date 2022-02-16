@@ -20,7 +20,7 @@ message DistributionProportions {
     (gogoproto.moretags) = "yaml:\"validator_rewards\"",
     (gogoproto.nullable) = false
   ];
-  string developer_rewards = 3 [
+  string developer_rewards = 2 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.moretags) = "yaml:\"developer_rewards\"",
     (gogoproto.nullable) = false
