@@ -1,0 +1,21 @@
+syntax = "proto3";
+package pstake.comsos.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
+
+message OutgoingTxBatch {
+  uint64                      batch_nonce    = 1;
+  uint64                      batch_timeout  = 2;
+  repeated OutgoingTransferTx transactions   = 3 [(gogoproto.nullable) = false];
+  uint64                      block          = 5;
+}
+
+message OutgoingTransferTx {
+  uint64     id = 1;
+  google.protobuf.Any message = 2 [(gogoproto.moretags) = "yaml:\"public_key\""];
+  string fees = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+}

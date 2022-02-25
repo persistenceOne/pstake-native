@@ -1,0 +1,51 @@
+syntax = "proto3";
+package pstake.comsos.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "pstake/cosmos/v1beta1/msgs.proto";
+
+option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
+
+service Msg {
+  rpc SetOrchestrator(MsgSetOrchestrator) returns (MsgSetOrchestratorResponse) {
+    option (google.api.http).post = "";
+  }
+  rpc Send(MsgSendWithFees) returns (MsgSendWithFeesResponse) {
+    option (google.api.http).post = "";
+  }
+  rpc Vote(MsgVoteWithFees) returns (MsgVoteWithFeesResponse) {
+    option (google.api.http).post = "";
+  }
+  rpc Delegate(MsgDelegateWithFees) returns (MsgDelegateWithFeesResponse) {
+    option (google.api.http).post = "";
+  }
+  rpc Undelegate(MsgUndelegateWithFees) returns (MsgUndelegateWithFeesResponse) {
+    option (google.api.http).post = "";
+  }
+}
+
+message MsgSendWithFees {
+  MsgSend message_send = 1 [(gogoproto.moretags) = "yaml:\"message_send\""];
+  string fees = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+}
+message MsgSendWithFeesResponse {}
+
+message MsgVoteWithFees {
+  MsgVote message_vote = 1 [(gogoproto.moretags) = "yaml:\"message_send\""];
+  string fees = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+}
+message MsgVoteWithFeesResponse {}
+
+message MsgDelegateWithFees {
+  MsgDelegate message_delegate = 1 [(gogoproto.moretags) = "yaml:\"msg_delegate\""];
+  string fees = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+}
+message MsgDelegateWithFeesResponse {}
+
+message MsgUndelegateWithFees {
+  MsgUndelegate message_undelegate = 1 [(gogoproto.moretags) = "yaml:\"msg_undelegate\""];
+  string fees = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+}
+message MsgUndelegateWithFeesResponse {}

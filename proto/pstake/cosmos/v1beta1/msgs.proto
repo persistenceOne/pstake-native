@@ -8,60 +8,23 @@ import "pstake/cosmos/v1beta1/cosmos.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
-service Msg {
-  rpc SetOrchestrator(MsgSetOrchestrator) returns (MsgSetOrchestratorResponse) {
-    option (google.api.http).post = "";
-  }
-  rpc IncomingTxn(MsgIncomingTxn) returns (MsgIncomingTxnResponse) {
-    option (google.api.http).post = "";
-  }
-  rpc Acknowledge(MsgAcknowledge) returns (MsgAcknowledgeResponse) {
-    option (google.api.http).post = "";
-  }
-  rpc OutgoingTxn(MsgOutgoingTxn) returns (MsgOutgoingTxnResponse) {
-    option (google.api.http).post = "";
-  }
-  rpc Vote(MsgVote) returns (MsgVoteResposne) {
-    option (google.api.http).post = "";
-  }
-  rpc SlashingEvent(MsgSlashingEventOnCosmosChain) returns (MsgSlashingEventOnCosmosChainResponse) {
-    option (google.api.http).post = "";
-  }
-  rpc UnbondingEvent(MsgUnbondingEventOnCosmosChain) returns (MsgUnbondingEventOnCosmosChainResponse) {
-    option (google.api.http).post = "";
-  }
-}
-
 message MsgSetOrchestrator {
   string validator = 1;
   string orchestrator = 2;
 }
 message MsgSetOrchestratorResponse {}
 
-message CosmosTxDetails {
-  string hash = 1;
+message MsgSend {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string   from_address = 1 [(gogoproto.moretags) = "yaml:\"from_address\""];
+  string   to_address = 2 [(gogoproto.moretags) = "yaml:\"to_address\""];
+  repeated string amount = 3
+  [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }
 
-message MsgIncomingTxn {
-  repeated google.protobuf.Any messages = 1;
-  string from = 2;
-  repeated CosmosTxDetails cosmos_txn_details = 3;
-}
-message MsgIncomingTxnResponse {}
-
-message MsgOutgoingTxn {
-  repeated google.protobuf.Any messages = 1;
-  string sender = 2;
-  string mpc_signature = 3;
-}
-message MsgOutgoingTxnResponse {}
-
-message MsgAcknowledge {
-  string from = 1;
-  bool status = 2;
-  repeated CosmosTxDetails cosmos_txn_details = 3;
-}
-message MsgAcknowledgeResponse {}
 
 enum VoteOption {
   option (gogoproto.goproto_enum_prefix) = false;
@@ -79,30 +42,30 @@ enum VoteOption {
 }
 
 message MsgVote {
-  option (gogoproto.equal)            = false;
-  option (gogoproto.goproto_stringer) = false;
-  option (gogoproto.stringer)         = false;
-  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.equal) = false;
+  //  option (gogoproto.goproto_stringer) = false;
+  //  option (gogoproto.stringer)         = false;
+  option (gogoproto.goproto_getters) = false;
 
-  uint64     proposal_id = 1 [(gogoproto.jsontag) = "proposal_id", (gogoproto.moretags) = "yaml:\"proposal_id\""];
-  string     voter       = 2;
-  VoteOption option      = 3;
+  uint64 proposal_id = 1 [(gogoproto.jsontag) = "proposal_id", (gogoproto.moretags) = "yaml:\"proposal_id\""];
+  string voter = 2;
+  VoteOption option = 3;
 }
-message MsgVoteResposne {}
 
-message MsgSlashingEventOnCosmosChain {
-  string from = 1;
-  string value = 2 [(gogoproto.nullable) = false, (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin"];
-  string val_cons_pub_address = 3;
-}
-message MsgSlashingEventOnCosmosChainResponse {}
-
-message MsgUnbondingEventOnCosmosChain {
-  option (gogoproto.equal)           = false;
+message MsgDelegate {
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   string delegator_address = 1 [(gogoproto.moretags) = "yaml:\"delegator_address\""];
   string validator_address = 2 [(gogoproto.moretags) = "yaml:\"validator_address\""];
-  string amount            = 3 [(gogoproto.nullable) = false, (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin"];
+  string amount = 3 [(gogoproto.nullable) = false, (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin"];
 }
-message MsgUnbondingEventOnCosmosChainResponse {}
+
+message MsgUndelegate {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string                   delegator_address = 1 [(gogoproto.moretags) = "yaml:\"delegator_address\""];
+  string                   validator_address = 2 [(gogoproto.moretags) = "yaml:\"validator_address\""];
+  string amount = 3 [(gogoproto.nullable) = false, (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin"];
+}
