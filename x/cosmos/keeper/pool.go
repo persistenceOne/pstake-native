@@ -3,11 +3,12 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	"strconv"
 )
 
 func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, msg *types.Any) (uint64, error) {
@@ -40,7 +41,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, msg *t
 // assigned a unique ID.
 func (k Keeper) autoIncrementID(ctx sdk.Context, idKey []byte) uint64 {
 	id := k.getID(ctx, idKey)
-	id += 1
+	id++
 	k.setID(ctx, id, idKey)
 	return id
 }

@@ -1,13 +1,14 @@
 package cli
 
 import (
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"github.com/spf13/cobra"
-	"strconv"
 )
 
 func NewTxCmd() *cobra.Command {
@@ -54,7 +55,7 @@ func NewIncomingTxnCmd() *cobra.Command {
 				return err
 			}
 
-			chainId := args[3]
+			chainID := args[3]
 
 			txHash := args[4]
 
@@ -63,7 +64,7 @@ func NewIncomingTxnCmd() *cobra.Command {
 				return err
 			}
 
-			msg := cosmosTypes.NewMsgMintTokensForAccount(toAddr, orchAddress, coins, chainId, txHash, blockHeight)
+			msg := cosmosTypes.NewMsgMintTokensForAccount(toAddr, orchAddress, coins, chainID, txHash, blockHeight)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

@@ -3,9 +3,9 @@ package types
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
 //TODO : Impl functions related to batch
-func NewIncomingMintTx(orchAddress sdk.AccAddress, counter uint64) IncomingMintTx {
+func NewIncomingMintTx(orchestratorAddress sdk.AccAddress, counter uint64) IncomingMintTx {
 	return IncomingMintTx{
-		OrchAddresses: []string{orchAddress.String()},
+		OrchAddresses: []string{orchestratorAddress.String()},
 		Counter:       counter,
 	}
 }

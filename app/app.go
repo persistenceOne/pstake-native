@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	cosmos "github.com/persistenceOne/pstake-native/x/cosmos"
 	"io"
 	stdlog "log"
 	"net/http"
@@ -91,6 +90,7 @@ import (
 	"github.com/gravity-devs/liquidity/x/liquidity"
 	liquiditykeeper "github.com/gravity-devs/liquidity/x/liquidity/keeper"
 	liquiditytypes "github.com/gravity-devs/liquidity/x/liquidity/types"
+	"github.com/persistenceOne/pstake-native/x/cosmos"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"

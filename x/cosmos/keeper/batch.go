@@ -10,7 +10,7 @@ import (
 
 const OutgoingTxBatchSize = 100
 
-func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, batch_size int) (tx.TxBody, error) {
+func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, batchSize int) (tx.TxBody, error) {
 	//TODO
 	return tx.TxBody{}, nil
 }
@@ -41,6 +41,9 @@ func (k Keeper) addToMintingPoolTx(ctx sdk.Context, destinationAddress sdk.AccAd
 		var txnDetails cosmosTypes.IncomingMintTx
 		bz := mintingPoolStore.Get(key)
 		err := txnDetails.Unmarshal(bz)
+		if err != nil {
+			return err
+		}
 
 		found := txnDetails.Find(orchestratorAddress.String())
 		if !found {
@@ -64,7 +67,7 @@ func (k Keeper) FetchFromMintPoolTx(ctx sdk.Context, keyAndValueForMinting []Key
 	store := ctx.KVStore(k.storeKey)
 	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
 	totalCount := float64(k.getTotalValidatorOrchestratorCount(ctx))
-	for i, _ := range keyAndValueForMinting {
+	for i := range keyAndValueForMinting {
 		destinationAddress, err := sdk.AccAddressFromBech32(keyAndValueForMinting[i].Value.DestinationAddress)
 		if err != nil {
 			panic("Error in parsing destination address")

@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -139,11 +140,11 @@ func (k msgServer) Delegate(c context.Context, msg *cosmosTypes.MsgDelegateWithF
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
 	// TODO
-	delegator_address, err := sdkTypes.AccAddressFromBech32(msg.MessageDelegate.DelegatorAddress)
+	delegatorAddress, err := sdkTypes.AccAddressFromBech32(msg.MessageDelegate.DelegatorAddress)
 	if err != nil {
 		return nil, err
 	}
-	validator_address, err := sdkTypes.AccAddressFromBech32(msg.MessageDelegate.ValidatorAddress)
+	validatorAddress, err := sdkTypes.AccAddressFromBech32(msg.MessageDelegate.ValidatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -154,13 +155,13 @@ func (k msgServer) Delegate(c context.Context, msg *cosmosTypes.MsgDelegateWithF
 	}
 
 	//TODO checks
-	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(delegator_address) != nil || sdkTypes.VerifyAddressFormat(validator_address) != nil ||
+	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(delegatorAddress) != nil || sdkTypes.VerifyAddressFormat(validatorAddress) != nil ||
 		!msg.MessageDelegate.Amount.IsValid() || !msg.Fees.IsValid() {
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
 	}
 	//TODO what to do with amount till txn is confirmed?
 
-	txID, err := k.AddToOutgoingPool(ctx, delegator_address, msgAny)
+	txID, err := k.AddToOutgoingPool(ctx, delegatorAddress, msgAny)
 	if err != nil {
 		return nil, err
 	}
@@ -179,11 +180,11 @@ func (k msgServer) Undelegate(c context.Context, msg *cosmosTypes.MsgUndelegateW
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
 	//TODO
-	delegator_address, err := sdkTypes.AccAddressFromBech32(msg.MessageUndelegate.DelegatorAddress)
+	delegatorAddress, err := sdkTypes.AccAddressFromBech32(msg.MessageUndelegate.DelegatorAddress)
 	if err != nil {
 		return nil, err
 	}
-	validator_address, err := sdkTypes.AccAddressFromBech32(msg.MessageUndelegate.ValidatorAddress)
+	validatorAddress, err := sdkTypes.AccAddressFromBech32(msg.MessageUndelegate.ValidatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -194,13 +195,13 @@ func (k msgServer) Undelegate(c context.Context, msg *cosmosTypes.MsgUndelegateW
 	}
 
 	//TODO checks
-	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(delegator_address) != nil || sdkTypes.VerifyAddressFormat(validator_address) != nil ||
+	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(delegatorAddress) != nil || sdkTypes.VerifyAddressFormat(validatorAddress) != nil ||
 		!msg.MessageUndelegate.Amount.IsValid() || !msg.Fees.IsValid() {
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
 	}
 	//TODO what to do with amount till txn is confirmed?
 
-	txID, err := k.AddToOutgoingPool(ctx, delegator_address, msgAny)
+	txID, err := k.AddToOutgoingPool(ctx, delegatorAddress, msgAny)
 	if err != nil {
 		return nil, err
 	}

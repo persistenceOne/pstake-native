@@ -9,6 +9,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -17,11 +19,9 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/persistenceOne/pstake-native/x/cosmos/client/cli"
 	cosmosCli "github.com/persistenceOne/pstake-native/x/cosmos/client/cli"
 	"github.com/persistenceOne/pstake-native/x/cosmos/client/rest"
 	"github.com/persistenceOne/pstake-native/x/cosmos/keeper"
-	"math/rand"
 	//"github.com/persistenceOne/pstake-native/x/cosmos/simulation"
 	"github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"github.com/spf13/cobra"
@@ -87,7 +87,7 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command { return cosmosCli.NewTxCmd() }
 
 // GetQueryCmd returns the root query command for the cosmos module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
+	return cosmosCli.GetQueryCmd()
 }
 
 //____________________________________________________________________________

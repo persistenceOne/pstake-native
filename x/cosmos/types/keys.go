@@ -6,10 +6,11 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"strconv"
 	"strings"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const (
@@ -66,7 +67,7 @@ func ConvertByteArrToString(value []byte) string {
 
 func GetOrchestratorAddressKey(orc sdk.AccAddress) string {
 	if err := sdk.VerifyAddressFormat(orc); err != nil {
-		panic(sdkerrors.Wrap(err, "invalid orchestrator address"))
+		panic(sdkErrors.Wrap(err, "invalid orchestrator address"))
 	}
 	return KeyOrchestratorAddress + string(orc.Bytes())
 }

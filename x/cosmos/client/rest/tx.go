@@ -1,13 +1,14 @@
 package rest
 
 import (
+	"net/http"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	"net/http"
 )
 
 // SendReq defines the properties of a send request's body.

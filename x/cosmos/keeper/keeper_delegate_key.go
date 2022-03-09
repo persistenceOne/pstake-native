@@ -1,13 +1,14 @@
 package keeper
 
 import (
+	"time"
+
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	"time"
 )
 
 // SetOrchestratorValidator sets the Orchestrator key for a given validator
@@ -109,10 +110,9 @@ func (k Keeper) getTotalValidatorOrchestratorCount(ctx sdkTypes.Context) int64 {
 	orchestratorValidatorStore := prefix.NewStore(store, []byte(cosmosTypes.OrchestratorValidatorStoreKey))
 	iterator := orchestratorValidatorStore.Iterator(nil, nil)
 	defer iterator.Close()
-	var counter int64
-	counter = 0
+	counter := 0
 	for ; iterator.Valid(); iterator.Next() {
 		counter++
 	}
-	return counter
+	return int64(counter)
 }
