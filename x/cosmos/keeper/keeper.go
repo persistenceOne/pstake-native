@@ -8,7 +8,7 @@ import (
 	mintKeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	mintTypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingKeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -18,12 +18,12 @@ type Keeper struct {
 	paramSpace    paramsTypes.Subspace
 	bankKeeper    *bankKeeper.BaseKeeper
 	mintKeeper    *mintKeeper.Keeper
-	stakingKeeper *stakingkeeper.Keeper
+	stakingKeeper *stakingKeeper.Keeper
 }
 
 func NewKeeper(
 	key sdk.StoreKey, paramSpace paramsTypes.Subspace,
-	bankKeeper *bankKeeper.BaseKeeper, mintKeeper *mintKeeper.Keeper, stakingKeeper *stakingkeeper.Keeper,
+	bankKeeper *bankKeeper.BaseKeeper, mintKeeper *mintKeeper.Keeper, stakingKeeper *stakingKeeper.Keeper,
 ) Keeper {
 
 	return Keeper{
@@ -128,4 +128,24 @@ func prefixRange(prefix []byte) ([]byte, []byte) {
 		end = nil
 	}
 	return prefix, end
+}
+
+func (k Keeper) MintTokensOnMajority(ctx sdk.Context, key types.ChainIDHeightAndTxHash, value types.AddressAndAmount) error {
+	//TODO incorporate minting_ratio
+
+	destinationAddress, err := sdk.AccAddressFromBech32(value.DestinationAddress)
+	if err != nil {
+		return err
+	}
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, value.Amount)
+	if err != nil {
+		return err
+	}
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, destinationAddress, value.Amount)
+	if err != nil {
+		return err
+	}
+	k.deleteMintedAddressAndAmountKeys(ctx, key)
+	k.deleteFromMintPoolTx(ctx, destinationAddress, value.Amount)
+	return nil
 }

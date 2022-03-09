@@ -13,6 +13,7 @@ const (
 
 	AttributeKeySetOperatorAddr = "set_operator_address"
 	AttributeKeyOutgoingTXID    = "outgoing_tx_id"
+	AttributeKeyIncomingTXID    = "incoming_tx_id"
 	AttributeKeyNonce           = "nonce"
 	AttributeSender             = "sender"
 )

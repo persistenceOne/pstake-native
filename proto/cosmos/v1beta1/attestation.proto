@@ -1,5 +1,5 @@
 syntax = "proto3";
-package pstake.comsos.v1beta1;
+package comsos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";

@@ -8,6 +8,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"strconv"
 	"strings"
 )
 
@@ -29,10 +30,13 @@ const (
 
 	// QueryParameters Query endpoints supported by the cosmos querier
 	QueryParameters = "parameters"
+
+	MintDenom = "pstake"
 )
 
 var (
 	KeyOrchestratorAddress = "KeyOrchestratorAddress"
+	KeyAccAddress          = "KeyAccAddress"
 	OutgoingTxPrefix       = []byte{0x01}
 	IncomingTxPrefix       = []byte{0x02}
 
@@ -44,6 +48,12 @@ var (
 
 	// OutgoingTXPoolKey indexes the last nonce for the outgoing tx pool
 	OutgoingTXPoolKey = "OutgoingTXPoolKey"
+
+	AddressAndAmountKey = "AddressAndAmountKey"
+
+	MintingPoolStoreKey = "MintingPoolStoreKey"
+
+	OrchestratorValidatorStoreKey = "OrchestratorValidatorStoreKey"
 )
 
 func ConvertByteArrToString(value []byte) string {
@@ -61,6 +71,10 @@ func GetOrchestratorAddressKey(orc sdk.AccAddress) string {
 	return KeyOrchestratorAddress + string(orc.Bytes())
 }
 
+func GetChainIDTxHashBlockHeightKey(chainID string, blockHeight int64, txHash string) string {
+	return chainID + strconv.FormatInt(blockHeight, 10) + txHash
+}
+
 func GetOutgoingTxPoolKey(fee sdk.Coin, id uint64) string {
 	// sdkInts have a size limit of 255 bits or 32 bytes
 	// therefore this will never panic and is always safe
@@ -70,6 +84,14 @@ func GetOutgoingTxPoolKey(fee sdk.Coin, id uint64) string {
 	a := append(amount, UInt64Bytes(id)...)
 	b := append([]byte(OutgoingTXPoolKey), a...)
 	return ConvertByteArrToString(b)
+}
+
+func GetDestinationAddressAndAmountKey(destinationAddress sdk.AccAddress, coins sdk.Coins) string {
+	amount := make([]byte, 32)
+	amount = []byte(coins[0].Amount.String())
+
+	a := append(destinationAddress.Bytes(), amount...)
+	return ConvertByteArrToString(a)
 }
 
 func ValidVoteOption(option VoteOption) bool {

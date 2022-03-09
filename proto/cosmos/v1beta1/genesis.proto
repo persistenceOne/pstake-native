@@ -1,10 +1,10 @@
 syntax = "proto3";
-package pstake.comsos.v1beta1;
+package comsos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
-import "pstake/cosmos/v1beta1/cosmos.proto";
+import "cosmos/v1beta1/cosmos.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -26,7 +26,7 @@ message OutgoingTx {
 }
 
 message GenesisState {
-  pstake.cosmos.v1beta1.Params params = 1 [(gogoproto.moretags) = "yaml:\"params\"", (gogoproto.nullable) = false];
+  Params params = 1 [(gogoproto.moretags) = "yaml:\"params\"", (gogoproto.nullable) = false];
   repeated DelegationCosmos cosmos_delegations = 2 [(gogoproto.moretags) = "yaml:\"cosmos_delegations\"", (gogoproto.nullable) = false];
   repeated IncomingTx incoming_txn = 3 [(gogoproto.moretags) = "yaml:\"incoming_txn\"", (gogoproto.nullable) = false];
   OutgoingTx outgoing_txn = 4 [(gogoproto.moretags) = "yaml:\"outgoing_txn\"", (gogoproto.nullable) = false];

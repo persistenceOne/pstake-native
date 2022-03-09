@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -23,26 +23,26 @@ func NewMsgServerImpl(keeper Keeper) cosmosTypes.MsgServer {
 func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrchestrator) (*cosmosTypes.MsgSetOrchestratorResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "Key not valid")
+		return nil, sdkErrors.Wrap(err, "Key not valid")
 	}
 	ctx := sdkTypes.UnwrapSDKContext(c)
 	validator, e1 := sdkTypes.ValAddressFromBech32(msg.Validator)
 	orchestrator, e2 := sdkTypes.AccAddressFromBech32(msg.Orchestrator)
 	if e1 != nil || e2 != nil {
-		return nil, sdkerrors.Wrap(err, "Key not valid")
+		return nil, sdkErrors.Wrap(err, "Key not valid")
 	}
 	_, foundExistingOrchestratorKey := k.GetOrchestratorValidator(ctx, orchestrator)
 
 	if k.Keeper.stakingKeeper.Validator(ctx, validator) == nil {
-		return nil, sdkerrors.Wrap(stakingtypes.ErrNoValidatorFound, validator.String())
+		return nil, sdkErrors.Wrap(stakingTypes.ErrNoValidatorFound, validator.String())
 	} else if foundExistingOrchestratorKey {
-		return nil, sdkerrors.Wrap(cosmosTypes.ErrResetDelegateKeys, validator.String())
+		return nil, sdkErrors.Wrap(cosmosTypes.ErrResetDelegateKeys, validator.String())
 	}
 
 	delegateKeys := k.GetDelegateKeys(ctx)
 	for i := range delegateKeys {
 		if delegateKeys[i].Orchestrator == orchestrator.String() {
-			return nil, sdkerrors.Wrap(err, "Duplicate Orchestrator Key")
+			return nil, sdkErrors.Wrap(err, "Duplicate Orchestrator Key")
 		}
 	}
 	// set the orchestrator address
@@ -79,7 +79,7 @@ func (k msgServer) Send(c context.Context, msg *cosmosTypes.MsgSendWithFees) (*c
 	//TODO denom check
 	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(from) != nil || sdkTypes.VerifyAddressFormat(to) != nil ||
 		!msg.MessageSend.Amount.IsValid() || !msg.Fees.IsValid() {
-		return nil, sdkerrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
+		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
 	}
 	//TODO what to do with amount till txn is confirmed? : sample below
 	//totalAmount := msg.MessageSend.Amount.Add(msg.Fees)
@@ -116,7 +116,7 @@ func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVoteWithFees) (*c
 
 	//TODO checks
 	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(voter) != nil || !msg.Fees.IsValid() {
-		return nil, sdkerrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
+		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
 	}
 	//TODO what to do with amount till txn is confirmed?
 
@@ -137,6 +137,8 @@ func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVoteWithFees) (*c
 
 func (k msgServer) Delegate(c context.Context, msg *cosmosTypes.MsgDelegateWithFees) (*cosmosTypes.MsgDelegateWithFeesResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	// TODO
 	delegator_address, err := sdkTypes.AccAddressFromBech32(msg.MessageDelegate.DelegatorAddress)
 	if err != nil {
 		return nil, err
@@ -154,7 +156,7 @@ func (k msgServer) Delegate(c context.Context, msg *cosmosTypes.MsgDelegateWithF
 	//TODO checks
 	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(delegator_address) != nil || sdkTypes.VerifyAddressFormat(validator_address) != nil ||
 		!msg.MessageDelegate.Amount.IsValid() || !msg.Fees.IsValid() {
-		return nil, sdkerrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
+		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
 	}
 	//TODO what to do with amount till txn is confirmed?
 
@@ -175,6 +177,8 @@ func (k msgServer) Delegate(c context.Context, msg *cosmosTypes.MsgDelegateWithF
 
 func (k msgServer) Undelegate(c context.Context, msg *cosmosTypes.MsgUndelegateWithFees) (*cosmosTypes.MsgUndelegateWithFeesResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	//TODO
 	delegator_address, err := sdkTypes.AccAddressFromBech32(msg.MessageUndelegate.DelegatorAddress)
 	if err != nil {
 		return nil, err
@@ -192,7 +196,7 @@ func (k msgServer) Undelegate(c context.Context, msg *cosmosTypes.MsgUndelegateW
 	//TODO checks
 	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(delegator_address) != nil || sdkTypes.VerifyAddressFormat(validator_address) != nil ||
 		!msg.MessageUndelegate.Amount.IsValid() || !msg.Fees.IsValid() {
-		return nil, sdkerrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
+		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
 	}
 	//TODO what to do with amount till txn is confirmed?
 
@@ -209,4 +213,49 @@ func (k msgServer) Undelegate(c context.Context, msg *cosmosTypes.MsgUndelegateW
 		),
 	)
 	return &cosmosTypes.MsgUndelegateWithFeesResponse{}, nil
+}
+
+func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgMintTokensForAccount) (*cosmosTypes.MsgMintTokensForAccountResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	destinationAddress, err := sdkTypes.AccAddressFromBech32(msg.AddressFromMemo)
+	if err != nil {
+		return nil, err
+	}
+
+	orchestratorAddress, err := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(destinationAddress) != nil || sdkTypes.VerifyAddressFormat(orchestratorAddress) != nil ||
+		!msg.Amount.IsValid() {
+		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
+	}
+
+	coinsAmount := msg.Amount.AmountOf("uatom")
+	coinString := coinsAmount.String() + cosmosTypes.MintDenom
+	newAmount, err := sdkTypes.ParseCoinsNormalized(coinString)
+	if err != nil {
+		return nil, err
+	}
+
+	k.setMintAddressAndAmount(ctx, msg.ChainID, msg.BlockHeight, msg.TxHash, destinationAddress, newAmount)
+
+	_, found := k.GetOrchestratorValidator(ctx, orchestratorAddress)
+	if found {
+		err = k.addToMintingPoolTx(ctx, destinationAddress, orchestratorAddress, msg.Amount)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdkTypes.NewEvent(
+			sdkTypes.EventTypeMessage,
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
+			sdkTypes.NewAttribute("set_minting_txn", orchestratorAddress.String()),
+		),
+	)
+	return &cosmosTypes.MsgMintTokensForAccountResponse{}, nil
 }

@@ -1,16 +1,16 @@
 syntax = "proto3";
-package pstake.comsos.v1beta1;
+package comsos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
-import "pstake/cosmos/v1beta1/msgs.proto";
+import "cosmos/v1beta1/msgs.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
 service Msg {
   rpc SetOrchestrator(MsgSetOrchestrator) returns (MsgSetOrchestratorResponse) {
-    option (google.api.http).post = "";
+    option (google.api.http).post = "/pstake/cosmos/v1beta1/SetOrchestrator";
   }
   rpc Send(MsgSendWithFees) returns (MsgSendWithFeesResponse) {
     option (google.api.http).post = "";
@@ -23,6 +23,9 @@ service Msg {
   }
   rpc Undelegate(MsgUndelegateWithFees) returns (MsgUndelegateWithFeesResponse) {
     option (google.api.http).post = "";
+  }
+  rpc MintTokensForAccount(MsgMintTokensForAccount) returns (MsgMintTokensForAccountResponse) {
+    option (google.api.http).post = "/pstake/cosmos/v1beta1/MintTokensForAccount";
   }
 }
 

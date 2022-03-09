@@ -12,6 +12,7 @@ var (
 	_ sdk.Msg = &MsgVoteWithFees{}
 	_ sdk.Msg = &MsgDelegateWithFees{}
 	_ sdk.Msg = &MsgUndelegateWithFees{}
+	_ sdk.Msg = &MsgMintTokensForAccount{}
 )
 
 // NewMsgSetOrchestrator returns a new MsgSetOrchestrator
@@ -261,4 +262,71 @@ func (m *MsgUndelegateWithFees) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{delAddr}
+}
+
+// NewMsgMintTokensForAccount returns a new MsgMintTokensForAccount
+func NewMsgMintTokensForAccount(address sdk.AccAddress, orchAddress sdk.AccAddress, amount sdk.Coins, txHash string, chainID string, blockHeight int64) *MsgMintTokensForAccount {
+	return &MsgMintTokensForAccount{
+		AddressFromMemo:     address.String(),
+		OrchestratorAddress: orchAddress.String(),
+		Amount:              amount,
+		TxHash:              txHash,
+		ChainID:             chainID,
+		BlockHeight:         blockHeight,
+	}
+}
+
+// Route should return the name of the module
+func (m *MsgMintTokensForAccount) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgMintTokensForAccount) Type() string { return "msg_mint_coins" }
+
+// ValidateBasic performs stateless checks
+func (m *MsgMintTokensForAccount) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.AddressFromMemo); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.AddressFromMemo)
+	}
+	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
+	}
+	if !m.Amount.IsValid() {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
+	}
+
+	if !m.Amount.IsAllPositive() {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
+	}
+
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgMintTokensForAccount) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgMintTokensForAccount) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+var _ MintTokensForAccountInterface = &IncomingMintTx{}
+
+func (m *IncomingMintTx) Find(orchAddress string) bool {
+	for _, address := range m.OrchAddresses {
+		if address == orchAddress {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *IncomingMintTx) AddAndIncrement(orchAddress string) {
+	m.OrchAddresses = append(m.OrchAddresses, orchAddress)
+	m.Counter++
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"strconv"
@@ -57,4 +58,72 @@ func (k Keeper) setID(ctx sdk.Context, id uint64, idKey []byte) {
 	store := ctx.KVStore(k.storeKey)
 	bz := sdk.Uint64ToBigEndian(id)
 	store.Set(idKey, bz)
+}
+
+func (k Keeper) setMintAddressAndAmount(ctx sdk.Context, chainID string, blockHeight int64, txHash string, destinationAddress sdk.AccAddress, amount sdk.Coins) {
+	store := ctx.KVStore(k.storeKey)
+	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountKey))
+
+	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(chainID, blockHeight, txHash)
+	key, err := chainIDHeightAndTxHash.Marshal()
+	if err != nil {
+		panic("error in marshaling chainID, height and txHash")
+	}
+
+	addressAndAmount := cosmosTypes.NewAddressAndAmount(destinationAddress, amount)
+	bz, err := addressAndAmount.Marshal()
+	if err != nil {
+		panic("error in marshaling address and amount")
+	}
+	mintAddressAndAmountStore.Set(key, bz)
+}
+
+type KeyAndValueForMinting struct {
+	Key   cosmosTypes.ChainIDHeightAndTxHash
+	Value cosmosTypes.AddressAndAmount
+	Ratio float64
+}
+
+func (k Keeper) GetAllMintAddressAndAmount(ctx sdk.Context, list []KeyAndValueForMinting) ([]KeyAndValueForMinting, error) {
+	store := ctx.KVStore(k.storeKey)
+	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountKey))
+
+	iterator := mintAddressAndAmountStore.Iterator(nil, nil)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var chainIDHeightAndTxHash cosmosTypes.ChainIDHeightAndTxHash
+
+		err := chainIDHeightAndTxHash.Unmarshal(iterator.Key())
+		if err != nil {
+			return nil, err
+		}
+
+		var addressAndAmount cosmosTypes.AddressAndAmount
+
+		err = addressAndAmount.Unmarshal(iterator.Value())
+		if err != nil {
+			return nil, err
+		}
+
+		a := KeyAndValueForMinting{
+			Key:   chainIDHeightAndTxHash,
+			Value: addressAndAmount,
+		}
+
+		list = append(list, a)
+	}
+	return list, nil
+}
+
+func (k Keeper) deleteMintedAddressAndAmountKeys(ctx sdk.Context, keyHash cosmosTypes.ChainIDHeightAndTxHash) {
+	store := ctx.KVStore(k.storeKey)
+	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountKey))
+
+	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(keyHash.ChainID, keyHash.BlockHeight, keyHash.TxHash)
+	key, err := chainIDHeightAndTxHash.Marshal()
+	if err != nil {
+		panic("error in marshaling chainID, height and txHash")
+	}
+
+	mintAddressAndAmountStore.Delete(key)
 }

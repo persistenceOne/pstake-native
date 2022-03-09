@@ -18,3 +18,8 @@ type MintKeeper interface {
 	GetParams(ctx sdk.Context) (params mintTypes.Params)
 	SetParams(ctx sdk.Context, params mintTypes.Params)
 }
+
+type MintTokensForAccountInterface interface {
+	Find(address string) bool
+	AddAndIncrement(address string)
+}

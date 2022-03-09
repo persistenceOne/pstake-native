@@ -2,6 +2,7 @@ package keeper
 
 import (
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -18,7 +19,8 @@ func (k Keeper) SetOrchestratorValidator(ctx sdkTypes.Context, val sdkTypes.ValA
 		panic(sdkErrors.Wrap(err, "invalid orch address"))
 	}
 	store := ctx.KVStore(k.storeKey)
-	store.Set([]byte(cosmosTypes.GetOrchestratorAddressKey(orch)), val.Bytes())
+	orchestratorValidatorStore := prefix.NewStore(store, []byte(cosmosTypes.OrchestratorValidatorStoreKey))
+	orchestratorValidatorStore.Set([]byte(cosmosTypes.GetOrchestratorAddressKey(orch)), val.Bytes())
 }
 
 func (k Keeper) GetOrchestratorValidator(ctx sdkTypes.Context, orch sdkTypes.AccAddress) (validator stakingTypes.Validator, found bool) {
@@ -27,7 +29,8 @@ func (k Keeper) GetOrchestratorValidator(ctx sdkTypes.Context, orch sdkTypes.Acc
 		return validator, false
 	}
 	store := ctx.KVStore(k.storeKey)
-	valAddr := store.Get([]byte(cosmosTypes.GetOrchestratorAddressKey(orch)))
+	orchestratorValidatorStore := prefix.NewStore(store, []byte(cosmosTypes.OrchestratorValidatorStoreKey))
+	valAddr := orchestratorValidatorStore.Get([]byte(cosmosTypes.GetOrchestratorAddressKey(orch)))
 	if valAddr == nil {
 		return stakingTypes.Validator{
 			OperatorAddress: "",
@@ -99,4 +102,17 @@ func (k Keeper) GetOrchestratorValidator(ctx sdkTypes.Context, orch sdkTypes.Acc
 	}
 
 	return validator, true
+}
+
+func (k Keeper) getTotalValidatorOrchestratorCount(ctx sdkTypes.Context) int64 {
+	store := ctx.KVStore(k.storeKey)
+	orchestratorValidatorStore := prefix.NewStore(store, []byte(cosmosTypes.OrchestratorValidatorStoreKey))
+	iterator := orchestratorValidatorStore.Iterator(nil, nil)
+	defer iterator.Close()
+	var counter int64
+	counter = 0
+	for ; iterator.Valid(); iterator.Next() {
+		counter++
+	}
+	return counter
 }

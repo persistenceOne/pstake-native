@@ -1,9 +1,9 @@
 syntax = "proto3";
-package pstake.comsos.v1beta1;
+package comsos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "pstake/cosmos/v1beta1/cosmos.proto";
+import "cosmos/v1beta1/cosmos.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -21,5 +21,5 @@ message QueryParamsRequest {}
 // QueryParamsResponse is the response type for the Query/Params RPC method.
 message QueryParamsResponse {
   // params defines the parameters of the module.
-  pstake.cosmos.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
+  Params params = 1 [ (gogoproto.nullable) = false ];
 }

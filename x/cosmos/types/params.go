@@ -38,9 +38,9 @@ func NewParams(minMintingAmount uint64, maxMintingAmount uint64, minBurningAmoun
 		ValidatorSetCosmosChain:           validatorSetCosmosChain,
 		ValidatorSetNativeChain:           validatorSetNativeChain,
 		WeightedDeveloperRewardsReceivers: weightedDeveloperRewardsReceivers,
-		DistributionProportion:            distributionProportion,
-		Epochs:                            epochs,
-		MaxIncomingAndOutgoingTxns:        maxIncomingAndOutgoingTxns,
+		//DistributionProportion:            distributionProportion,
+		Epochs:                     epochs,
+		MaxIncomingAndOutgoingTxns: maxIncomingAndOutgoingTxns,
 	}
 }
 
@@ -54,10 +54,10 @@ func DefaultParams() Params {
 		ValidatorSetCosmosChain:           []WeightedAddress{},
 		ValidatorSetNativeChain:           []WeightedAddress{},
 		WeightedDeveloperRewardsReceivers: []WeightedAddress{},
-		DistributionProportion: DistributionProportions{
-			ValidatorRewards: sdk.NewDecWithPrec(7, 2),
-			DeveloperRewards: sdk.NewDecWithPrec(3, 2),
-		},
+		//DistributionProportion: DistributionProportions{
+		//	ValidatorRewards: sdk.NewDecWithPrec(7, 2),
+		//	DeveloperRewards: sdk.NewDecWithPrec(3, 2),
+		//},
 		Epochs:                     5000,
 		MaxIncomingAndOutgoingTxns: 10000,
 	}
@@ -88,9 +88,9 @@ func (p Params) Validate() error {
 	if err := validateWeightedDeveloperRewardsReceivers(p.WeightedDeveloperRewardsReceivers); err != nil {
 		return err
 	}
-	if err := validateDistributionProportion(p.DistributionProportion); err != nil {
-		return err
-	}
+	//if err := validateDistributionProportion(p.DistributionProportion); err != nil {
+	//	return err
+	//}
 	if err := validateEpochs(p.Epochs); err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyValidatorSetCosmosChain, &p.ValidatorSetCosmosChain, validateValidatorSetCosmosChain),
 		paramsTypes.NewParamSetPair(KeyValidatorSetNativeChain, &p.ValidatorSetNativeChain, validateValidatorSetNativeChain),
 		paramsTypes.NewParamSetPair(KeyWeightedDeveloperRewardsReceivers, &p.WeightedDeveloperRewardsReceivers, validateWeightedDeveloperRewardsReceivers),
-		paramsTypes.NewParamSetPair(KeyDistributionProportion, &p.DistributionProportion, validateDistributionProportion),
+		//paramsTypes.NewParamSetPair(KeyDistributionProportion, &p.DistributionProportion, validateDistributionProportion),
 		paramsTypes.NewParamSetPair(KeyEpochs, &p.Epochs, validateEpochs),
 		paramsTypes.NewParamSetPair(KeyMaxIncomingAndOutgoingTxns, &p.MaxIncomingAndOutgoingTxns, validateMaxIncomingAndOutgoingTxns),
 	}

@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	cosmos "github.com/persistenceOne/pstake-native/x/cosmos"
 	"io"
 	stdlog "log"
 	"net/http"
@@ -145,6 +146,7 @@ var (
 		vesting.AppModuleBasic{},
 		liquidity.AppModuleBasic{},
 		router.AppModuleBasic{},
+		cosmos.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -157,6 +159,7 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 		liquiditytypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		cosmos.ModuleName:              {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -183,7 +186,7 @@ type PstakeApp struct {
 
 	// keepers
 	AccountKeeper    authkeeper.AccountKeeper
-	BankKeeper       bankkeeper.Keeper
+	BankKeeper       bankkeeper.BaseKeeper
 	CapabilityKeeper *capabilitykeeper.Keeper
 	StakingKeeper    stakingkeeper.Keeper
 	SlashingKeeper   slashingkeeper.Keeper
@@ -200,6 +203,7 @@ type PstakeApp struct {
 	AuthzKeeper      authzkeeper.Keeper
 	LiquidityKeeper  liquiditykeeper.Keeper
 	RouterKeeper     routerkeeper.Keeper
+	CosmosKeeper     cosmos.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -219,7 +223,7 @@ func init() {
 		stdlog.Println("Failed to get home dir %2", err)
 	}
 
-	DefaultNodeHome = filepath.Join(userHomeDir, ".gaia")
+	DefaultNodeHome = filepath.Join(userHomeDir, ".pstaked")
 }
 
 // NewGaiaApp returns a reference to an initialized Gaia.
@@ -250,6 +254,7 @@ func NewGaiaApp(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, liquiditytypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey,
+		cosmos.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -345,6 +350,13 @@ func NewGaiaApp(
 		invCheckPeriod,
 		app.BankKeeper,
 		authtypes.FeeCollectorName,
+	)
+	app.CosmosKeeper = cosmos.NewKeeper(
+		keys[cosmos.StoreKey],
+		app.ParamsKeeper.Subspace(cosmos.DefaultParamspace),
+		&app.BankKeeper,
+		&app.MintKeeper,
+		&app.StakingKeeper,
 	)
 	app.UpgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,
@@ -454,6 +466,7 @@ func NewGaiaApp(
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
+		cosmos.NewAppModule(appCodec, app.CosmosKeeper),
 		transferModule,
 		routerModule,
 	)
@@ -481,6 +494,7 @@ func NewGaiaApp(
 		liquiditytypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
+		cosmos.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -506,6 +520,7 @@ func NewGaiaApp(
 		feegrant.ModuleName,
 		authz.ModuleName,
 		routertypes.ModuleName,
+		cosmos.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -533,6 +548,7 @@ func NewGaiaApp(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
+		cosmos.NewAppModule(appCodec, app.CosmosKeeper),
 		transferModule,
 	)
 

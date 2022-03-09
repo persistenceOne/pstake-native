@@ -1,5 +1,5 @@
 syntax = "proto3";
-package pstake.comsos.v1beta1;
+package comsos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -18,4 +18,23 @@ message OutgoingTransferTx {
   uint64     id = 1;
   google.protobuf.Any message = 2 [(gogoproto.moretags) = "yaml:\"public_key\""];
   string fees = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+}
+
+message IncomingMintTx {
+  repeated string orch_addresses = 1;
+  uint64 counter = 2;
+}
+
+message AddressAndAmount {
+  //TODO add ack and minted flag
+  string destination_address = 1;
+  repeated string amount = 2
+  [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+}
+
+message ChainIDHeightAndTxHash {
+  string chain_i_d = 1;
+  int64 block_height = 2;
+  string tx_hash = 3;
 }

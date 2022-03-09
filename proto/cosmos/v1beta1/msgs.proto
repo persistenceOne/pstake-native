@@ -1,10 +1,10 @@
 syntax = "proto3";
-package pstake.comsos.v1beta1;
+package comsos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
-import "pstake/cosmos/v1beta1/cosmos.proto";
+import "cosmos/v1beta1/cosmos.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -69,3 +69,17 @@ message MsgUndelegate {
   string                   validator_address = 2 [(gogoproto.moretags) = "yaml:\"validator_address\""];
   string amount = 3 [(gogoproto.nullable) = false, (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin"];
 }
+
+message MsgMintTokensForAccount {
+  string address_from_memo = 1 [(gogoproto.moretags) = "yaml:\"address_from_memo\""];
+  string orchestrator_address = 2 [(gogoproto.moretags) = "yaml:\"orchestrator_address\""];
+  repeated string amount = 3
+  [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  string tx_hash = 4 [(gogoproto.moretags) = "yaml:\"tx_hash\""];
+  string chain_i_d = 5 [(gogoproto.moretags) = "yaml:\"chain_id\""];
+  int64 block_height = 6 [(gogoproto.moretags) = "yaml:\"block_height\""];
+
+}
+
+message MsgMintTokensForAccountResponse {}
