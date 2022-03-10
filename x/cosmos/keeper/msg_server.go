@@ -245,7 +245,7 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 
 	_, found := k.GetOrchestratorValidator(ctx, orchestratorAddress)
 	if found {
-		err = k.addToMintingPoolTx(ctx, destinationAddress, orchestratorAddress, msg.Amount)
+		err = k.addToMintingPoolTx(ctx, msg.TxHash, destinationAddress, orchestratorAddress, msg.Amount)
 		if err != nil {
 			return nil, err
 		}

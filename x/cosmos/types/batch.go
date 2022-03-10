@@ -10,15 +10,18 @@ func NewIncomingMintTx(orchestratorAddress sdk.AccAddress, counter uint64) Incom
 	}
 }
 
-func NewAddressAndAmount(destinationAddress sdk.AccAddress, amount sdk.Coins) AddressAndAmount {
-	return AddressAndAmount{
+func NewAddressAndAmount(destinationAddress sdk.AccAddress, amount sdk.Coins, nativeBlockHeight int64) AddressAndAmountKey {
+	return AddressAndAmountKey{
 		DestinationAddress: destinationAddress.String(),
 		Amount:             amount,
+		Acknowledgment:     false,
+		Minted:             false,
+		NativeBlockHeight:  nativeBlockHeight,
 	}
 }
 
-func NewChainIDHeightAndTxHash(chainID string, blockHeight int64, txHash string) ChainIDHeightAndTxHash {
-	return ChainIDHeightAndTxHash{
+func NewChainIDHeightAndTxHash(chainID string, blockHeight int64, txHash string) ChainIDHeightAndTxHashKey {
+	return ChainIDHeightAndTxHashKey{
 		ChainID:     chainID,
 		BlockHeight: blockHeight,
 		TxHash:      txHash,

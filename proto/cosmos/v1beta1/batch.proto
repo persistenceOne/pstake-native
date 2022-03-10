@@ -8,10 +8,10 @@ import "google/protobuf/any.proto";
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
 message OutgoingTxBatch {
-  uint64                      batch_nonce    = 1;
-  uint64                      batch_timeout  = 2;
-  repeated OutgoingTransferTx transactions   = 3 [(gogoproto.nullable) = false];
-  uint64                      block          = 5;
+  uint64                      batch_nonce = 1;
+  uint64                      batch_timeout = 2;
+  repeated OutgoingTransferTx transactions = 3 [(gogoproto.nullable) = false];
+  uint64                      block = 5;
 }
 
 message OutgoingTransferTx {
@@ -25,16 +25,24 @@ message IncomingMintTx {
   uint64 counter = 2;
 }
 
-message AddressAndAmount {
-  //TODO add ack and minted flag
+message AddressAndAmountKey {
   string destination_address = 1;
   repeated string amount = 2
   [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  bool acknowledgment = 3;
+  bool minted = 4;
+  int64 native_block_height = 5;
 }
 
-message ChainIDHeightAndTxHash {
+message ChainIDHeightAndTxHashKey {
   string chain_i_d = 1;
   int64 block_height = 2;
   string tx_hash = 3;
+}
+
+message KeyAndValueForMinting {
+  ChainIDHeightAndTxHashKey key = 1 [(gogoproto.nullable) = false];
+  AddressAndAmountKey value = 2 [(gogoproto.nullable) = false];
+  float ratio = 3;
 }

@@ -130,9 +130,8 @@ func prefixRange(prefix []byte) ([]byte, []byte) {
 	return prefix, end
 }
 
-func (k Keeper) MintTokensOnMajority(ctx sdk.Context, key types.ChainIDHeightAndTxHash, value types.AddressAndAmount) error {
+func (k Keeper) MintTokensOnMajority(ctx sdk.Context, key types.ChainIDHeightAndTxHashKey, value types.AddressAndAmountKey) error {
 	//TODO incorporate minting_ratio
-
 	destinationAddress, err := sdk.AccAddressFromBech32(value.DestinationAddress)
 	if err != nil {
 		return err
@@ -145,7 +144,8 @@ func (k Keeper) MintTokensOnMajority(ctx sdk.Context, key types.ChainIDHeightAnd
 	if err != nil {
 		return err
 	}
-	k.deleteMintedAddressAndAmountKeys(ctx, key)
-	k.deleteFromMintPoolTx(ctx, destinationAddress, value.Amount)
+
+	k.setMintedFlagTrue(ctx, key)
+	//k.deleteFromMintPoolTx(ctx, destinationAddress, value.Amount)
 	return nil
 }

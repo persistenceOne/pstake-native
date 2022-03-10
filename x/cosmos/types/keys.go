@@ -33,6 +33,10 @@ const (
 	QueryParameters = "parameters"
 
 	MintDenom = "pstake"
+
+	MinimumRatioForMajority = 0.66
+
+	StorageWindow = 100
 )
 
 var (
@@ -50,7 +54,7 @@ var (
 	// OutgoingTXPoolKey indexes the last nonce for the outgoing tx pool
 	OutgoingTXPoolKey = "OutgoingTXPoolKey"
 
-	AddressAndAmountKey = "AddressAndAmountKey"
+	AddressAndAmountStoreKey = "AddressAndAmountKey"
 
 	MintingPoolStoreKey = "MintingPoolStoreKey"
 
@@ -87,12 +91,13 @@ func GetOutgoingTxPoolKey(fee sdk.Coin, id uint64) string {
 	return ConvertByteArrToString(b)
 }
 
-func GetDestinationAddressAndAmountKey(destinationAddress sdk.AccAddress, coins sdk.Coins) string {
+func GetDestinationAddressAmountAndTxHashKey(destinationAddress sdk.AccAddress, coins sdk.Coins, txHash string) string {
 	amount := make([]byte, 32)
 	amount = []byte(coins[0].Amount.String())
 
 	a := append(destinationAddress.Bytes(), amount...)
-	return ConvertByteArrToString(a)
+	b := append([]byte(txHash), a...)
+	return ConvertByteArrToString(b)
 }
 
 func ValidVoteOption(option VoteOption) bool {

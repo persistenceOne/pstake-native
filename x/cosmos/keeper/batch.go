@@ -33,10 +33,10 @@ func (k Keeper) addUnbatchedTX(ctx sdk.Context, val *cosmosTypes.OutgoingTransfe
 	return err
 }
 
-func (k Keeper) addToMintingPoolTx(ctx sdk.Context, destinationAddress sdk.AccAddress, orchestratorAddress sdk.AccAddress, amount sdk.Coins) error {
+func (k Keeper) addToMintingPoolTx(ctx sdk.Context, txHash string, destinationAddress sdk.AccAddress, orchestratorAddress sdk.AccAddress, amount sdk.Coins) error {
 	store := ctx.KVStore(k.storeKey)
 	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
-	key := []byte(cosmosTypes.GetDestinationAddressAndAmountKey(destinationAddress, amount))
+	key := []byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, amount, txHash))
 	if mintingPoolStore.Has(key) {
 		var txnDetails cosmosTypes.IncomingMintTx
 		bz := mintingPoolStore.Get(key)
@@ -63,17 +63,17 @@ func (k Keeper) addToMintingPoolTx(ctx sdk.Context, destinationAddress sdk.AccAd
 	return nil
 }
 
-func (k Keeper) FetchFromMintPoolTx(ctx sdk.Context, keyAndValueForMinting []KeyAndValueForMinting) []KeyAndValueForMinting {
+func (k Keeper) FetchFromMintPoolTx(ctx sdk.Context, keyAndValueForMinting []cosmosTypes.KeyAndValueForMinting) []cosmosTypes.KeyAndValueForMinting {
 	store := ctx.KVStore(k.storeKey)
 	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
-	totalCount := float64(k.getTotalValidatorOrchestratorCount(ctx))
+	totalCount := float32(k.getTotalValidatorOrchestratorCount(ctx))
 	for i := range keyAndValueForMinting {
 		destinationAddress, err := sdk.AccAddressFromBech32(keyAndValueForMinting[i].Value.DestinationAddress)
 		if err != nil {
 			panic("Error in parsing destination address")
 		}
 
-		key := []byte(cosmosTypes.GetDestinationAddressAndAmountKey(destinationAddress, keyAndValueForMinting[i].Value.Amount))
+		key := []byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, keyAndValueForMinting[i].Value.Amount, keyAndValueForMinting[i].Key.TxHash))
 		bz := mintingPoolStore.Get(key)
 
 		var txnDetails cosmosTypes.IncomingMintTx
@@ -82,18 +82,14 @@ func (k Keeper) FetchFromMintPoolTx(ctx sdk.Context, keyAndValueForMinting []Key
 			panic("Error in unmarshalling txn Details")
 		}
 
-		sizeOfOrchAddress := float64(len(txnDetails.OrchAddresses))
-		ratio := sizeOfOrchAddress / totalCount
+		keyAndValueForMinting[i].Ratio = float32(len(txnDetails.OrchAddresses)) / totalCount
 
-		if ratio > 0.66 {
-			keyAndValueForMinting[i].Ratio = ratio
-		}
 	}
 	return keyAndValueForMinting
 }
 
-func (k Keeper) deleteFromMintPoolTx(ctx sdk.Context, destinationAddress sdk.AccAddress, amount sdk.Coins) {
+func (k Keeper) DeleteFromMintPoolTx(ctx sdk.Context, destinationAddress sdk.AccAddress, amount sdk.Coins, txHash string) {
 	store := ctx.KVStore(k.storeKey)
 	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
-	mintingPoolStore.Delete([]byte(cosmosTypes.GetDestinationAddressAndAmountKey(destinationAddress, amount)))
+	mintingPoolStore.Delete([]byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, amount, txHash)))
 }

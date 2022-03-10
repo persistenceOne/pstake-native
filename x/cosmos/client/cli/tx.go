@@ -64,7 +64,7 @@ func NewIncomingTxnCmd() *cobra.Command {
 				return err
 			}
 
-			msg := cosmosTypes.NewMsgMintTokensForAccount(toAddr, orchAddress, coins, chainID, txHash, blockHeight)
+			msg := cosmosTypes.NewMsgMintTokensForAccount(toAddr, orchAddress, coins, txHash, chainID, blockHeight)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
