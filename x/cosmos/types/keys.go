@@ -32,7 +32,7 @@ const (
 	// QueryParameters Query endpoints supported by the cosmos querier
 	QueryParameters = "parameters"
 
-	MintDenom = "pstake"
+	MintDenom = "stkstake"
 
 	MinimumRatioForMajority = 0.66
 
