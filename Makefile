@@ -1,5 +1,9 @@
 #!/usr/bin/make -f
 
+GOBIN = $(shell go env GOPATH)/bin
+GOARCH = $(shell go env GOARCH)
+GOOS = $(shell go env GOOS)
+
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
 
