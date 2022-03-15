@@ -234,7 +234,7 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
 	}
 
-	coinsAmount := msg.Amount.AmountOf("uatom")
+	coinsAmount := msg.Amount.AmountOf("stake")
 	coinString := coinsAmount.String() + cosmosTypes.MintDenom
 	newAmount, err := sdkTypes.ParseCoinsNormalized(coinString)
 	if err != nil {
