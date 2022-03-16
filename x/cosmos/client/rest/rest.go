@@ -13,5 +13,5 @@ import (
 
 func RegisterHandlers(clientCtx client.Context, rtr *mux.Router) {
 	r := rest.WithHTTPDeprecationHeaders(rtr)
-	r.HandleFunc("/cosmos/incoming/{address}/minting", NewMintRequestHandlerFn(clientCtx)).Methods("POST")
+	r.HandleFunc("/cosmos/incoming/minting", NewMintRequestHandlerFn(clientCtx)).Methods("POST")
 }

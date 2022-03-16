@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"github.com/ghodss/yaml"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -14,6 +15,9 @@ var (
 	_ sdk.Msg = &MsgDelegateWithFees{}
 	_ sdk.Msg = &MsgUndelegateWithFees{}
 	_ sdk.Msg = &MsgMintTokensForAccount{}
+	_ sdk.Msg = &MsgMakeProposal{}
+	_ sdk.Msg = &MsgVote{}
+	_ sdk.Msg = &MsgVoteWeighted{}
 )
 
 // NewMsgSetOrchestrator returns a new MsgSetOrchestrator
@@ -316,7 +320,154 @@ func (m *MsgMintTokensForAccount) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
-var _ MintTokensForAccountInterface = &IncomingMintTx{}
+// NewMsgMakeProposal returns a new MsgMakeProposal
+func NewMsgMakeProposal(title string, description string, orchestratorAddress sdk.AccAddress, chainID string, blockHeight int64, proposalID int64) *MsgMakeProposal {
+	return &MsgMakeProposal{
+		Title:               title,
+		Description:         description,
+		OrchestratorAddress: orchestratorAddress.String(),
+		ChainID:             chainID,
+		BlockHeight:         blockHeight,
+		ProposalID:          proposalID,
+	}
+}
+
+// Route should return the name of the module
+func (m *MsgMakeProposal) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgMakeProposal) Type() string { return "msg_make_proposal" }
+
+// ValidateBasic performs stateless checks
+func (m *MsgMakeProposal) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
+	}
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgMakeProposal) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgMakeProposal) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+//nolint:interfacer
+func NewMsgVote(voter sdk.AccAddress, proposalID uint64, option VoteOption) *MsgVote {
+	return &MsgVote{proposalID, voter.String(), option}
+}
+
+// Route implements Msg
+func (m *MsgVote) Route() string { return RouterKey }
+
+// Type implements Msg
+func (m *MsgVote) Type() string { return "vote" }
+
+// ValidateBasic implements Msg
+func (m *MsgVote) ValidateBasic() error {
+	if m.Voter == "" {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.Voter)
+	}
+
+	if !ValidVoteOption(m.Option) {
+		return sdkErrors.Wrap(ErrInvalidVote, m.Option.String())
+	}
+
+	return nil
+}
+
+// String implements the Stringer interface
+func (m *MsgVote) String() string {
+	out, _ := yaml.Marshal(m)
+	return string(out)
+}
+
+// GetSignBytes implements Msg
+func (m *MsgVote) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners implements Msg
+func (m *MsgVote) GetSigners() []sdk.AccAddress {
+	voter, _ := sdk.AccAddressFromBech32(m.Voter)
+	return []sdk.AccAddress{voter}
+}
+
+// NewMsgVoteWeighted creates a message to cast a vote on an active proposal
+//nolint:interfacer
+func NewMsgVoteWeighted(voter sdk.AccAddress, proposalID uint64, options WeightedVoteOptions) *MsgVoteWeighted {
+	return &MsgVoteWeighted{proposalID, voter.String(), options}
+}
+
+// Route implements Msg
+func (m *MsgVoteWeighted) Route() string { return RouterKey }
+
+// Type implements Msg
+func (m *MsgVoteWeighted) Type() string { return "weighted_vote" }
+
+// ValidateBasic implements Msg
+func (m *MsgVoteWeighted) ValidateBasic() error {
+	if m.Voter == "" {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.Voter)
+	}
+
+	if len(m.Options) == 0 {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidRequest, WeightedVoteOptions(m.Options).String())
+	}
+
+	totalWeight := sdk.NewDec(0)
+	usedOptions := make(map[VoteOption]bool)
+	for _, option := range m.Options {
+		if !ValidWeightedVoteOption(option) {
+			return sdkErrors.Wrap(ErrInvalidVote, option.String())
+		}
+		totalWeight = totalWeight.Add(option.Weight)
+		if usedOptions[option.Option] {
+			return sdkErrors.Wrap(ErrInvalidVote, "Duplicated vote option")
+		}
+		usedOptions[option.Option] = true
+	}
+
+	if totalWeight.GT(sdk.NewDec(1)) {
+		return sdkErrors.Wrap(ErrInvalidVote, "Total weight overflow 1.00")
+	}
+
+	if totalWeight.LT(sdk.NewDec(1)) {
+		return sdkErrors.Wrap(ErrInvalidVote, "Total weight lower than 1.00")
+	}
+
+	return nil
+}
+
+// String implements the Stringer interface
+func (m *MsgVoteWeighted) String() string {
+	out, _ := yaml.Marshal(m)
+	return string(out)
+}
+
+// GetSignBytes implements Msg
+func (m *MsgVoteWeighted) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners implements Msg
+func (m *MsgVoteWeighted) GetSigners() []sdk.AccAddress {
+	voter, _ := sdk.AccAddressFromBech32(m.Voter)
+	return []sdk.AccAddress{voter}
+}
+
+var _ DBHelper = &IncomingMintTx{}
+var _ DBHelper = &ProposalValue{}
 
 func (m *IncomingMintTx) Find(orchAddress string) bool {
 	for _, address := range m.OrchAddresses {
@@ -329,5 +480,29 @@ func (m *IncomingMintTx) Find(orchAddress string) bool {
 
 func (m *IncomingMintTx) AddAndIncrement(orchAddress string) {
 	m.OrchAddresses = append(m.OrchAddresses, orchAddress)
+	m.Counter++
+}
+
+func NewProposalValue(title string, description string, orchAddress string, ratio float32) ProposalValue {
+	return ProposalValue{
+		Title:                 title,
+		Description:           description,
+		OrchestratorAddresses: []string{orchAddress},
+		Ratio:                 ratio,
+		Counter:               1,
+		ProposalPosted:        false,
+	}
+}
+func (m *ProposalValue) Find(orchAddress string) bool {
+	for _, address := range m.OrchestratorAddresses {
+		if address == orchAddress {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *ProposalValue) AddAndIncrement(orchAddress string) {
+	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
 	m.Counter++
 }

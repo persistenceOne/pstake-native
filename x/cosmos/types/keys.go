@@ -6,8 +6,11 @@
 package types
 
 import (
+	"encoding/binary"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	"strconv"
 	"strings"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -32,7 +35,7 @@ const (
 	// QueryParameters Query endpoints supported by the cosmos querier
 	QueryParameters = "parameters"
 
-	MintDenom = "pstake"
+	MintDenom = "pstake" //TODO shift to params
 
 	MinimumRatioForMajority = 0.66
 
@@ -59,6 +62,18 @@ var (
 	MintingPoolStoreKey = "MintingPoolStoreKey"
 
 	OrchestratorValidatorStoreKey = "OrchestratorValidatorStoreKey"
+
+	ProposalStoreKey = "ProposalStoreKey"
+
+	ProposalIDKey = []byte("ProposalIDKey")
+
+	VotingParams = []byte("VotingParams")
+
+	ProposalsKeyPrefix = []byte("ProposalsKeyPrefix")
+
+	ActiveProposalQueuePrefix = []byte("ActiveProposalQueuePrefix")
+
+	VotesKeyPrefix = []byte("VotesKeyPrefix")
 )
 
 func ConvertByteArrToString(value []byte) string {
@@ -100,12 +115,39 @@ func GetDestinationAddressAmountAndTxHashKey(destinationAddress sdk.AccAddress, 
 	return ConvertByteArrToString(b)
 }
 
-func ValidVoteOption(option VoteOption) bool {
-	if option == OptionYes ||
-		option == OptionAbstain ||
-		option == OptionNo ||
-		option == OptionNoWithVeto {
-		return true
-	}
-	return false
+// GetProposalIDFromBytes returns proposalID in uint64 format from a byte array
+func GetProposalIDFromBytes(bz []byte) (proposalID uint64) {
+	return binary.BigEndian.Uint64(bz)
+}
+
+// ProposalKey1 gets a specific proposal from the store
+func ProposalKey1(proposalID uint64) []byte {
+	return append(ProposalsKeyPrefix, GetProposalIDBytes(proposalID)...)
+}
+
+// GetProposalIDBytes returns the byte representation of the proposalID
+func GetProposalIDBytes(proposalID uint64) (proposalIDBz []byte) {
+	proposalIDBz = make([]byte, 8)
+	binary.BigEndian.PutUint64(proposalIDBz, proposalID)
+	return
+}
+
+// ActiveProposalQueueKey returns the key for a proposalID in the activeProposalQueue
+func ActiveProposalQueueKey(proposalID uint64, endTime time.Time) []byte {
+	return append(ActiveProposalByTimeKey(endTime), GetProposalIDBytes(proposalID)...)
+}
+
+// ActiveProposalByTimeKey gets the active proposal queue key by endTime
+func ActiveProposalByTimeKey(endTime time.Time) []byte {
+	return append(ActiveProposalQueuePrefix, sdk.FormatTimeBytes(endTime)...)
+}
+
+// VoteKey key of a specific vote from the store
+func VoteKey(proposalID uint64, voterAddr sdk.AccAddress) []byte {
+	return append(VotesKey(proposalID), address.MustLengthPrefix(voterAddr.Bytes())...)
+}
+
+// VotesKey gets the first part of the votes key based on the proposalID
+func VotesKey(proposalID uint64) []byte {
+	return append(VotesKeyPrefix, GetProposalIDBytes(proposalID)...)
 }

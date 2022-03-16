@@ -3,12 +3,14 @@ package keeper
 import (
 	"context"
 	"fmt"
-
+	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
+	"strconv"
 )
 
 type msgServer struct {
@@ -103,7 +105,7 @@ func (k msgServer) Send(c context.Context, msg *cosmosTypes.MsgSendWithFees) (*c
 	return &cosmosTypes.MsgSendWithFeesResponse{}, nil
 }
 
-func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVoteWithFees) (*cosmosTypes.MsgVoteWithFeesResponse, error) {
+func (k msgServer) VoteOnCosmosChain(c context.Context, msg *cosmosTypes.MsgVoteWithFees) (*cosmosTypes.MsgVoteWithFeesResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
 	voter, err := sdkTypes.AccAddressFromBech32(msg.MessageVote.Voter)
@@ -234,6 +236,7 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
 	}
 
+	//TODO remove this
 	coinsAmount := msg.Amount.AmountOf("uatom")
 	coinString := coinsAmount.String() + cosmosTypes.MintDenom
 	newAmount, err := sdkTypes.ParseCoinsNormalized(coinString)
@@ -255,8 +258,90 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
 			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
-			sdkTypes.NewAttribute("set_minting_txn", orchestratorAddress.String()),
+			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchestratorAddress.String()),
 		),
 	)
 	return &cosmosTypes.MsgMintTokensForAccountResponse{}, nil
+}
+
+func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakeProposal) (*cosmosTypes.MsgMakeProposalResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	orchestratorAddress, err := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	_, found := k.GetOrchestratorValidator(ctx, orchestratorAddress)
+	if found {
+		k.setProposalDetails(ctx, msg.ChainID, msg.BlockHeight, msg.ProposalID, msg.Title, msg.Description, orchestratorAddress)
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdkTypes.NewEvent(
+			sdkTypes.EventTypeMessage,
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
+			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchestratorAddress.String()),
+		),
+	)
+	return &cosmosTypes.MsgMakeProposalResponse{}, nil
+}
+
+func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTypes.MsgVoteResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+	accAddr, accErr := sdkTypes.AccAddressFromBech32(msg.Voter)
+	if accErr != nil {
+		return nil, accErr
+	}
+	err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, cosmosTypes.NewNonSplitVoteOption(msg.Option))
+	if err != nil {
+		return nil, err
+	}
+
+	defer telemetry.IncrCounterWithLabels(
+		[]string{cosmosTypes.ModuleName, "vote"},
+		1,
+		[]metrics.Label{
+			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
+		},
+	)
+
+	ctx.EventManager().EmitEvent(
+		sdkTypes.NewEvent(
+			sdkTypes.EventTypeMessage,
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeySender, msg.Voter),
+		),
+	)
+	return &cosmosTypes.MsgVoteResponse{}, nil
+}
+
+func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeighted) (*cosmosTypes.MsgVoteWeightedResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+	accAddr, accErr := sdkTypes.AccAddressFromBech32(msg.Voter)
+	if accErr != nil {
+		return nil, accErr
+	}
+	err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, msg.Options)
+	if err != nil {
+		return nil, err
+	}
+
+	defer telemetry.IncrCounterWithLabels(
+		[]string{cosmosTypes.ModuleName, "vote"},
+		1,
+		[]metrics.Label{
+			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
+		},
+	)
+
+	ctx.EventManager().EmitEvent(
+		sdkTypes.NewEvent(
+			sdkTypes.EventTypeMessage,
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeySender, msg.Voter),
+		),
+	)
+
+	return &cosmosTypes.MsgVoteWeightedResponse{}, nil
 }

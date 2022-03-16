@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "cosmos/v1beta1/msgs.proto";
+import "cosmos/v1beta1/proposal.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -15,7 +16,7 @@ service Msg {
   rpc Send(MsgSendWithFees) returns (MsgSendWithFeesResponse) {
     option (google.api.http).post = "";
   }
-  rpc Vote(MsgVoteWithFees) returns (MsgVoteWithFeesResponse) {
+  rpc VoteOnCosmosChain(MsgVoteWithFees) returns (MsgVoteWithFeesResponse) {
     option (google.api.http).post = "";
   }
   rpc Delegate(MsgDelegateWithFees) returns (MsgDelegateWithFeesResponse) {
@@ -27,6 +28,11 @@ service Msg {
   rpc MintTokensForAccount(MsgMintTokensForAccount) returns (MsgMintTokensForAccountResponse) {
     option (google.api.http).post = "/pstake/cosmos/v1beta1/MintTokensForAccount";
   }
+  rpc MakeProposal(MsgMakeProposal) returns (MsgMakeProposalResponse) {
+    option (google.api.http).post = "/pstake/cosmos/v1beta1/MakeProposal";
+  }
+  rpc Vote(MsgVote) returns (MsgVoteResponse) {};
+  rpc VoteWeighted(MsgVoteWeighted) returns (MsgVoteWeightedResponse) {};
 }
 
 message MsgSendWithFees {

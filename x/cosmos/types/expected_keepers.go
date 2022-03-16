@@ -19,7 +19,14 @@ type MintKeeper interface {
 	SetParams(ctx sdk.Context, params mintTypes.Params)
 }
 
-type MintTokensForAccountInterface interface {
+type DBHelper interface {
 	Find(address string) bool
 	AddAndIncrement(address string)
+}
+
+// GovHooks event hooks for governance proposal object (noalias)
+type GovHooks interface {
+	AfterProposalSubmission(ctx sdk.Context, proposalID uint64)                     // Must be called after proposal is submitted
+	AfterProposalVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress) // Must be called after a vote on a proposal is cast
+	AfterProposalVotingPeriodEnded(ctx sdk.Context, proposalID uint64)              // Must be called when proposal's finishes it's voting period
 }

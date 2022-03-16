@@ -1,12 +1,16 @@
 package cli
 
 import (
+	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/persistenceOne/pstake-native/x/cosmos/client/utils"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"github.com/spf13/cobra"
 )
@@ -23,6 +27,9 @@ func NewTxCmd() *cobra.Command {
 	txCmd.AddCommand(
 		NewIncomingTxnCmd(),
 		CmdSetOrchestratorAddress(),
+		CmdSendNewProposal(),
+		NewCmdVote(),
+		NewCmdWeightedVote(),
 	)
 
 	return txCmd
@@ -65,7 +72,7 @@ func NewIncomingTxnCmd() *cobra.Command {
 			}
 
 			msg := cosmosTypes.NewMsgMintTokensForAccount(toAddr, orchAddress, coins, txHash, chainID, blockHeight)
-
+			//TODO ValidateBasic() for msg
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -98,5 +105,148 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 		},
 	}
 	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdSendNewProposal() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "send-proposal [title] [description] [orchestrator-address] [proposal-id] [chain-id] [block-height]",
+		Short: "Allows orchestrator to send any proposal created on cosmos chain.",
+		Args:  cobra.ExactArgs(6),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			title := args[0]
+
+			description := args[1]
+
+			orchAddress, err := sdk.AccAddressFromBech32(args[2])
+			if err != nil {
+				return err
+			}
+
+			proposalID, err := strconv.ParseInt(args[3], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			chainID := args[4]
+
+			blockHeight, err := strconv.ParseInt(args[5], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			msg := cosmosTypes.NewMsgMakeProposal(title, description, orchAddress, chainID, blockHeight, proposalID)
+			//TODO ValidateBasic() for msg
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+// NewCmdVote implements creating a new vote command.
+func NewCmdVote() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "vote [proposal-id] [option]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Vote for an active proposal, options: yes/no/no_with_veto/abstain",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a vote for an active proposal. You can
+find the proposal-id by running "%s query gov proposals".
+
+Example:
+$ %s tx gov vote 1 yes --from mykey
+`,
+				version.AppName, version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			// Get voting address
+			from := clientCtx.GetFromAddress()
+
+			// validate that the proposal id is a uint
+			proposalID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("proposal-id %s not a valid int, please input a valid proposal-id", args[0])
+			}
+
+			// Find out which vote option user chose
+			byteVoteOption, err := cosmosTypes.VoteOptionFromString(utils.NormalizeVoteOption(args[1]))
+			if err != nil {
+				return err
+			}
+
+			// Build vote message and run basic validation
+			msg := cosmosTypes.NewMsgVote(from, proposalID, byteVoteOption)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// NewCmdWeightedVote implements creating a new weighted vote command.
+func NewCmdWeightedVote() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "weighted-vote [proposal-id] [weighted-options]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Vote for an active proposal, options: yes/no/no_with_veto/abstain",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a vote for an active proposal. You can
+find the proposal-id by running "%s query gov proposals".
+
+Example:
+$ %s tx gov weighted-vote 1 yes=0.6,no=0.3,abstain=0.05,no_with_veto=0.05 --from mykey
+`,
+				version.AppName, version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			// Get voter address
+			from := clientCtx.GetFromAddress()
+
+			// validate that the proposal id is a uint
+			proposalID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("proposal-id %s not a valid int, please input a valid proposal-id", args[0])
+			}
+
+			// Figure out which vote options user chose
+			options, err := cosmosTypes.WeightedVoteOptionsFromString(utils.NormalizeWeightedVoteOptions(args[1]))
+			if err != nil {
+				return err
+			}
+
+			// Build vote message and run basic validation
+			msg := cosmosTypes.NewMsgVoteWeighted(from, proposalID, options)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
 	return cmd
 }

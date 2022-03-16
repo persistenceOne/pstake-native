@@ -46,3 +46,24 @@ message KeyAndValueForMinting {
   AddressAndAmountKey value = 2 [(gogoproto.nullable) = false];
   float ratio = 3;
 }
+
+message ProposalKey {
+  string chain_i_d = 1;
+  int64 block_height = 2;
+  int64 proposal_i_d = 3;
+}
+
+message ProposalValue {
+  string title = 1;
+  string description = 2;
+  repeated string orchestrator_addresses = 3;
+  float ratio = 4;
+  int64 counter = 5;
+  bool proposal_posted = 6;
+  int64 block_height = 7;
+}
+
+message KeyAndValueForProposal {
+  ProposalKey key = 1 [(gogoproto.nullable) = false];
+  ProposalValue value = 2 [(gogoproto.nullable) = false];
+}

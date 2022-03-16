@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "cosmos/v1beta1/cosmos.proto";
+import "cosmos/v1beta1/proposal.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -25,32 +26,29 @@ message MsgSend {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }
 
-
-enum VoteOption {
-  option (gogoproto.goproto_enum_prefix) = false;
-
-  // VOTE_OPTION_UNSPECIFIED defines a no-op vote option.
-  VOTE_OPTION_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "OptionEmpty"];
-  // VOTE_OPTION_YES defines a yes vote option.
-  VOTE_OPTION_YES = 1 [(gogoproto.enumvalue_customname) = "OptionYes"];
-  // VOTE_OPTION_ABSTAIN defines an abstain vote option.
-  VOTE_OPTION_ABSTAIN = 2 [(gogoproto.enumvalue_customname) = "OptionAbstain"];
-  // VOTE_OPTION_NO defines a no vote option.
-  VOTE_OPTION_NO = 3 [(gogoproto.enumvalue_customname) = "OptionNo"];
-  // VOTE_OPTION_NO_WITH_VETO defines a no with veto vote option.
-  VOTE_OPTION_NO_WITH_VETO = 4 [(gogoproto.enumvalue_customname) = "OptionNoWithVeto"];
-}
-
 message MsgVote {
   option (gogoproto.equal) = false;
-  //  option (gogoproto.goproto_stringer) = false;
-  //  option (gogoproto.stringer)         = false;
+    option (gogoproto.goproto_stringer) = false;
+    option (gogoproto.stringer)         = false;
   option (gogoproto.goproto_getters) = false;
 
   uint64 proposal_id = 1 [(gogoproto.jsontag) = "proposal_id", (gogoproto.moretags) = "yaml:\"proposal_id\""];
   string voter = 2;
   VoteOption option = 3;
 }
+message MsgVoteResponse{}
+
+message MsgVoteWeighted {
+  option (gogoproto.equal)            = false;
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.stringer)         = false;
+  option (gogoproto.goproto_getters)  = false;
+
+  uint64                      proposal_id = 1 [(gogoproto.moretags) = "yaml:\"proposal_id\""];
+  string                      voter       = 2;
+  repeated WeightedVoteOption options     = 3 [(gogoproto.nullable) = false];
+}
+message MsgVoteWeightedResponse {}
 
 message MsgDelegate {
   option (gogoproto.equal) = false;
@@ -62,7 +60,7 @@ message MsgDelegate {
 }
 
 message MsgUndelegate {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   string                   delegator_address = 1 [(gogoproto.moretags) = "yaml:\"delegator_address\""];
@@ -83,3 +81,14 @@ message MsgMintTokensForAccount {
 }
 
 message MsgMintTokensForAccountResponse {}
+
+message MsgMakeProposal {
+  string title = 1 [(gogoproto.moretags) = "yaml:\"title\""];
+  string description = 2 [(gogoproto.moretags) = "yaml:\"description\""];
+  string orchestrator_address = 3 [(gogoproto.moretags) = "yaml:\"orchestrator_address\""];
+  int64 proposal_i_d = 4 [(gogoproto.moretags) = "yaml:\"proposal_id\""];
+  string chain_i_d = 5 [(gogoproto.moretags) = "yaml:\"chain_id\""];
+  int64 block_height = 6 [(gogoproto.moretags) = "yaml:\"block_height\""];
+}
+
+message MsgMakeProposalResponse {}

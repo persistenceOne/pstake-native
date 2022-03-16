@@ -27,3 +27,11 @@ func NewChainIDHeightAndTxHash(chainID string, blockHeight int64, txHash string)
 		TxHash:      txHash,
 	}
 }
+
+func NewProposalKey(chainID string, blockHeight int64, proposalID int64) ProposalKey {
+	return ProposalKey{
+		ChainID:     chainID,
+		BlockHeight: blockHeight,
+		ProposalID:  proposalID,
+	}
+}

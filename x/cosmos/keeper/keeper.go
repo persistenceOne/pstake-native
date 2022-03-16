@@ -10,6 +10,7 @@ import (
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingKeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/persistenceOne/pstake-native/x/cosmos/types"
+	"time"
 )
 
 type Keeper struct {
@@ -19,6 +20,7 @@ type Keeper struct {
 	bankKeeper    *bankKeeper.BaseKeeper
 	mintKeeper    *mintKeeper.Keeper
 	stakingKeeper *stakingKeeper.Keeper
+	hooks         types.GovHooks
 }
 
 func NewKeeper(
@@ -33,6 +35,17 @@ func NewKeeper(
 		mintKeeper:    mintKeeper,
 		stakingKeeper: stakingKeeper,
 	}
+}
+
+// SetHooks sets the hooks for governance
+func (k *Keeper) SetHooks(gh types.GovHooks) *Keeper {
+	if k.hooks != nil {
+		panic("cannot set governance hooks twice")
+	}
+
+	k.hooks = gh
+
+	return k
 }
 
 //______________________________________________________________________
@@ -148,4 +161,17 @@ func (k Keeper) MintTokensOnMajority(ctx sdk.Context, key types.ChainIDHeightAnd
 	k.setMintedFlagTrue(ctx, key)
 	//k.deleteFromMintPoolTx(ctx, destinationAddress, value.Amount)
 	return nil
+}
+
+// InsertActiveProposalQueue inserts a ProposalID into the active proposal queue at endTime
+func (keeper Keeper) InsertActiveProposalQueue(ctx sdk.Context, proposalID uint64, endTime time.Time) {
+	store := ctx.KVStore(keeper.storeKey)
+	bz := types.GetProposalIDBytes(proposalID)
+	store.Set(types.ActiveProposalQueueKey(proposalID, endTime), bz)
+}
+
+// RemoveFromActiveProposalQueue removes a proposalID from the Active Proposal Queue
+func (keeper Keeper) RemoveFromActiveProposalQueue(ctx sdk.Context, proposalID uint64, endTime time.Time) {
+	store := ctx.KVStore(keeper.storeKey)
+	store.Delete(types.ActiveProposalQueueKey(proposalID, endTime))
 }

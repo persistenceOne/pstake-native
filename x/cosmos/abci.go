@@ -10,6 +10,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 	// TODO implement EndBlocker
 	// TODO : Add MintTokens on Majority
 	minting(ctx, k)
+	proposal(ctx, k)
 }
 
 func minting(ctx sdk.Context, k Keeper) {
@@ -19,7 +20,6 @@ func minting(ctx sdk.Context, k Keeper) {
 		panic("error in fetching address and amount list")
 	}
 	listWithRatio := k.FetchFromMintPoolTx(ctx, listNew)
-	fmt.Println("-----------", listWithRatio, "-----------")
 
 	for _, addressToMintTokens := range listWithRatio {
 		if addressToMintTokens.Ratio > types.MinimumRatioForMajority && !addressToMintTokens.Value.Minted {
@@ -38,6 +38,21 @@ func minting(ctx sdk.Context, k Keeper) {
 			k.DeleteFromMintPoolTx(ctx, destinationAddress, addressToMintTokens.Value.Amount, addressToMintTokens.Key.TxHash)
 		}
 
-		//TODO Delete txn once Acknowledgment is received that the amount is delegated successfully
+		//TODO Delete txn once Acknowledgment is received if the amount is delegated successfully
+	}
+}
+
+func proposal(ctx sdk.Context, k Keeper) {
+	list := k.GetAllKeyAndValueForProposal(ctx)
+	fmt.Println("------------", list, "------------")
+
+	for _, element := range list {
+		if element.Value.Ratio > 0.66 && !element.Value.ProposalPosted {
+			err := k.CreateProposal(ctx, element)
+			fmt.Println("Created Proposal")
+			if err != nil {
+				panic("Error in generating proposal" + err.Error())
+			}
+		}
 	}
 }

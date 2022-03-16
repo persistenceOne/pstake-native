@@ -2,10 +2,15 @@ package types
 
 import (
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ghodss/yaml"
+)
+
+const (
+	DefaultPeriod time.Duration = time.Hour * 24 * 2 // 2 days
 )
 
 var (
@@ -20,6 +25,7 @@ var (
 	KeyDistributionProportion            = []byte("DistributionProportion")
 	KeyEpochs                            = []byte("Epochs")
 	KeyMaxIncomingAndOutgoingTxns        = []byte("MaxIncomingAndOutgoingTxns")
+	KeyCosmosProposalParams              = []byte("CosmosProposalParams")
 )
 
 func ParamKeyTable() paramsTypes.KeyTable {
@@ -29,7 +35,7 @@ func ParamKeyTable() paramsTypes.KeyTable {
 func NewParams(minMintingAmount uint64, maxMintingAmount uint64, minBurningAmount uint64, maxBurningAmount uint64,
 	maxValidatorToDelegate uint64, validatorSetCosmosChain []WeightedAddress, validatorSetNativeChain []WeightedAddress,
 	weightedDeveloperRewardsReceivers []WeightedAddress, distributionProportion DistributionProportions, epochs int64,
-	maxIncomingAndOutgoingTxns int64) Params {
+	maxIncomingAndOutgoingTxns int64, cosmosProposalParams CosmosChainProposalParams) Params {
 	return Params{
 		MinMintingAmount:                  minMintingAmount,
 		MaxMintingAmount:                  maxMintingAmount,
@@ -42,6 +48,7 @@ func NewParams(minMintingAmount uint64, maxMintingAmount uint64, minBurningAmoun
 		//DistributionProportion:            distributionProportion,
 		Epochs:                     epochs,
 		MaxIncomingAndOutgoingTxns: maxIncomingAndOutgoingTxns,
+		CosmosProposalParams:       cosmosProposalParams,
 	}
 }
 
@@ -61,6 +68,10 @@ func DefaultParams() Params {
 		//},
 		Epochs:                     5000,
 		MaxIncomingAndOutgoingTxns: 10000,
+		CosmosProposalParams: CosmosChainProposalParams{
+			ChainID:      "cosmoshub-4",
+			VotingPeriod: DefaultPeriod,
+		},
 	}
 }
 
@@ -98,6 +109,9 @@ func (p Params) Validate() error {
 	if err := validateMaxIncomingAndOutgoingTxns(p.MaxIncomingAndOutgoingTxns); err != nil {
 		return err
 	}
+	if err := validateCosmosProposalParams(p.CosmosProposalParams); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -119,6 +133,7 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		//paramsTypes.NewParamSetPair(KeyDistributionProportion, &p.DistributionProportion, validateDistributionProportion),
 		paramsTypes.NewParamSetPair(KeyEpochs, &p.Epochs, validateEpochs),
 		paramsTypes.NewParamSetPair(KeyMaxIncomingAndOutgoingTxns, &p.MaxIncomingAndOutgoingTxns, validateMaxIncomingAndOutgoingTxns),
+		paramsTypes.NewParamSetPair(KeyCosmosProposalParams, &p.CosmosProposalParams, validateCosmosProposalParams),
 	}
 }
 
@@ -161,6 +176,7 @@ func validateMaxValidatorToDelegate(i interface{}) error {
 	}
 	return nil
 }
+
 func validateValidatorSetCosmosChain(i interface{}) error {
 	v, ok := i.([]WeightedAddress)
 	if !ok {
@@ -326,6 +342,23 @@ func validateMaxIncomingAndOutgoingTxns(i interface{}) error {
 
 	if v < 0 {
 		return fmt.Errorf("total incoming or outgoing transaction must be non-negative")
+	}
+
+	return nil
+}
+
+func validateCosmosProposalParams(i interface{}) error {
+	v, ok := i.(CosmosChainProposalParams)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.ChainID != "cosmoshub-4" {
+		return fmt.Errorf("invalid chain-id for cosmos %T", i)
+	}
+
+	if v.VotingPeriod <= 0 {
+		return fmt.Errorf("incorrect voting Period %T", i)
 	}
 
 	return nil

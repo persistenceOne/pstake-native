@@ -2,7 +2,6 @@ package cosmos
 
 import (
 	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/persistenceOne/pstake-native/x/cosmos/keeper"
@@ -22,6 +21,16 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *cosmosTypes.MsgSetOrchestrator:
 			res, err := msgServer.SetOrchestrator(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+		case *cosmosTypes.MsgMakeProposal:
+			res, err := msgServer.MakeProposal(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *cosmosTypes.MsgVote:
+			res, err := msgServer.Vote(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *cosmosTypes.MsgVoteWeighted:
+			res, err := msgServer.VoteWeighted(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized Cosmos Module Msg type: %v", sdk.MsgTypeURL(msg)))
 		}
