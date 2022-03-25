@@ -1,9 +1,9 @@
 package constants
 
 var (
-	NativeChainID       = "test1"
+	NativeChainID       = "pstake-chain"
 	NativeDenom         = "stake"
-	NativeRPCAddr       = ""
+	NativeRPCAddr       = "tcp://127.0.0.1:26657"
 	NativeGRPCAddr      = ""
 	NativeAccountPrefix = "cosmos"
 	NativeGasAdjustment = 1.0

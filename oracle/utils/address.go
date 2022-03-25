@@ -99,3 +99,64 @@ func GetSDKPivKeyAndAddress() (sdkcryptotypes.PrivKey, sdk.AccAddress) {
 	}
 	return privKey, address
 }
+
+func TssSignMintTx(clientCtx client.Context, msg sdk.Msg, signature []byte) ([]byte, error) {
+	// Build the factory CLI
+	// Create a new TxBuilder.
+
+	txBuilder := clientCtx.TxConfig.NewTxBuilder()
+
+	txBuilder.SetGasLimit(400000)
+
+	privKey, _ := GetSDKPivKeyAndAddress()
+	accSeqs := []uint64{0}
+
+	err := txBuilder.SetMsgs(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	sig := signing.SignatureV2{PubKey: privKey.PubKey(),
+		Data: &signing.SingleSignatureData{
+			SignMode:  clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+			Signature: signature,
+		},
+	}
+
+	err = txBuilder.SetSignatures(sig)
+	if err != nil {
+		return nil, err
+	}
+
+	ac, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, msg.GetSigners()[0])
+	fmt.Println(ac, seq, err)
+	signerData := xauthsigning.SignerData{
+		ChainID:       constants.NativeChainID,
+		AccountNumber: ac,
+		Sequence:      seq,
+	}
+	sigv2, err := tx.SignWithPrivKey(
+		clientCtx.TxConfig.SignModeHandler().DefaultMode(), signerData, txBuilder, privKey, clientCtx.TxConfig, accSeqs[0])
+	if err != nil {
+		return nil, err
+	}
+
+	err = txBuilder.SetSignatures(sigv2)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(txBuilder.GetTx(), "HELLO WORLD")
+	txBytes, err := clientCtx.TxConfig.TxEncoder()(txBuilder.GetTx())
+	if err != nil {
+		return nil, err
+	}
+
+	//txJSONBytes, err := encCfg.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
+	//if err != nil {
+	//	return "",err
+	//}
+	//txJSON := string(txJSONBytes)
+
+	return txBytes, nil
+}

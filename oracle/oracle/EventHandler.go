@@ -1,11 +1,7 @@
 package oracle
 
 import (
-	"context"
-	"fmt"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
-	"github.com/tendermint/tendermint/types"
-	"time"
 )
 
 func (c *CosmosChain) DepositTxEventForBlock(BlockHeight int64) error {
@@ -18,20 +14,20 @@ func (c *CosmosChain) DepositTxEventForBlock(BlockHeight int64) error {
 		return err
 	}
 	defer client.Stop()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
+	//ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	//defer cancel()
 
-	query := "tm.event = 'Tx' AND transfer.recipient = '" + string(c.CustodialAddress) + "' AND tx.height = '" + string(BlockHeight) + "'"
-	txs, err := client.Subscribe(ctx, "orchestrator", query)
-	if err != nil {
-		return err
-	}
-
-	go func() {
-		for e := range txs {
-			//relay to native chain
-			fmt.Println("got ", e.Data.(types.EventDataTx))
-		}
-	}()
+	//query := "tm.event = 'Tx' AND transfer.recipient = '" + string(c.CustodialAddress) + "' AND tx.height = '" + string(BlockHeight) + "'"
+	////txs, err := client.Subscribe(ctx, "orchestrator", query)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//go func() {
+	//	for e := range txs {
+	//		//relay to native chain
+	//		fmt.Println("got ", e.Data.(types.EventDataTx))
+	//	}
+	//}()
 	return nil
 }

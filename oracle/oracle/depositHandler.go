@@ -103,7 +103,20 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, depositHe
 
 						fmt.Println(msg.String(), "<--nativeMsg")
 
-						txBytes, err := utils.SignMintTx(nativeCLiCtx, msg)
+						//sig := sign.SignatureV2{
+						//	Data: &sign.SingleSignatureData{
+						//		SignMode:  clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+						//		Signature: b.R,
+						//	},
+						//}
+						//
+						//err = tx.SetSignatures(sig)
+						txBuilder := clientCtx.TxConfig.NewTxBuilder()
+
+						txBuilder.SetGasLimit(400000)
+						txBytes, _ := clientCtx.TxConfig.TxEncoder()(txBuilder.GetTx())
+
+						//txBytes, err := utils.SignMintTx(nativeCLiCtx, msg)
 						fmt.Println(txBytes, "<--signedMsg")
 						if err != nil {
 							return err
