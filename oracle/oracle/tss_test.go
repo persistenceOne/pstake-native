@@ -2,7 +2,6 @@ package oracle
 
 import (
 	"crypto/ecdsa"
-	"crypto/elliptic"
 	"fmt"
 	"github.com/binance-chain/tss-lib/common"
 	"github.com/binance-chain/tss-lib/ecdsa/keygen"
@@ -45,40 +44,13 @@ const (
 	Bech32PrefixConsPub  = Bech32MainPrefix + sdk.PrefixValidator + sdk.PrefixConsensus + sdk.PrefixPublic
 )
 
-// hashToInt converts a hash value to an integer. There is some disagreement
-// about how this is done. [NSA] suggests that this is done in the obvious
-// manner, but [SECG] truncates the hash to the bit-length of the curve order
-// first. We follow [SECG] because that's what OpenSSL does. Additionally,
-// OpenSSL right shifts excess bits from the number if the hash is too large
-// and we mirror that too.
-// This is borrowed from crypto/ecdsa.
-func hashToInt(hash []byte, c elliptic.Curve) *big.Int {
-	orderBits := c.Params().N.BitLen()
-	orderBytes := (orderBits + 7) / 8
-	fmt.Println(orderBits, orderBytes, "orderbytes")
-	if len(hash) > orderBytes {
-		hash = hash[:orderBytes]
-	}
 
-	ret := new(big.Int).SetBytes(hash)
-	excess := len(hash)*8 - orderBits
-	if excess > 0 {
-		ret.Rsh(ret, uint(excess))
-	}
-	return ret
-}
-
-// Serialize signature to R || S.
-// R, S are padded to 32 bytes respectively.
-func serializeSig(R, S []byte) []byte {
-	rBytes := R
-	sBytes := S
-	sigBytes := make([]byte, 64)
-	// 0 pad the byte arrays from the left if they aren't big enough.
-	copy(sigBytes[32-len(rBytes):32], rBytes)
-	copy(sigBytes[64-len(sBytes):64], sBytes)
-	return sigBytes
-}
+//func SignTss(clientCtx client.Context, msg sdk.Msg){
+//	txBuilder := clientCtx.TxConfig.NewTxBuilder()
+//
+//	txBuilder.SetGasLimit(400000)
+//
+//}
 
 func TestTss(t *testing.T) {
 	testParticipants := test.TestParticipants
@@ -94,6 +66,7 @@ func TestTss(t *testing.T) {
 	pubkeyObject := (*btcec.PublicKey)(&pubKey)
 	pk := pubkeyObject.SerializeCompressed()
 	publicKey := &secp256k1.PubKey{Key: pk}
+
 
 	//privKey := secp256k1.GenPrivKeyFromSecret([]byte("Hello"))
 	//publicKey := privKey.PubKey()
@@ -188,7 +161,11 @@ func TestTss(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-
+	preparams,err := keygen.GeneratePreParams(time.Minute)
+	if (err!=nil){
+		panic(err)
+	}
+	fmt.Println("preparams!!!!!!!!!!!!!!!!!!!!!!", preparams)
 	//sigR, _ := privKey.Sign(bz)
 	p2pCtx := tss.NewPeerContext(signPIDs)
 	parties := make([]*tssSign.LocalParty, 0, len(signPIDs))
