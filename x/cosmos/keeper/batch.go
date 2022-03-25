@@ -1,95 +1,245 @@
 package keeper
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/types/tx"
+	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-const OutgoingTxBatchSize = 100
-
-func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, batchSize int) (tx.TxBody, error) {
-	//TODO
-	return tx.TxBody{}, nil
+type TxHashAndDetails struct {
+	TxHash  string
+	Details cosmosTypes.TxHashValue
 }
 
-// addUnbatchedTx creates a new transaction in the pool
-// WARNING: Do not make this function public
-func (k Keeper) addUnbatchedTX(ctx sdk.Context, val *cosmosTypes.OutgoingTransferTx) error {
+//______________________________________________________________________________________________
+/*
+TODO : Add Key and value structure as comment
+*/
+func (k Keeper) setNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosTypes.CosmosTx) {
 	store := ctx.KVStore(k.storeKey)
-	idxKey := []byte(cosmosTypes.GetOutgoingTxPoolKey(val.Fees, val.Id))
-	if store.Has(idxKey) {
-		return sdkerrors.Wrap(cosmosTypes.ErrDuplicate, "transaction already in pool")
-	}
-
-	bz, err := k.cdc.Marshal(val)
+	outgoingStore := prefix.NewStore(store, []byte(cosmosTypes.OutgoingTXPoolKey))
+	key := cosmosTypes.UInt64Bytes(txID)
+	bz, err := tx.Marshal()
 	if err != nil {
-		return err
+		panic(err)
 	}
-
-	store.Set(idxKey, bz)
-	return err
+	outgoingStore.Set(key, bz)
 }
 
-func (k Keeper) addToMintingPoolTx(ctx sdk.Context, txHash string, destinationAddress sdk.AccAddress, orchestratorAddress sdk.AccAddress, amount sdk.Coins) error {
+//gets txn details by ID
+func (k Keeper) getTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmosTypes.QueryOutgoingTxByIDResponse, error) {
 	store := ctx.KVStore(k.storeKey)
-	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
-	key := []byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, amount, txHash))
-	if mintingPoolStore.Has(key) {
-		var txnDetails cosmosTypes.IncomingMintTx
-		bz := mintingPoolStore.Get(key)
-		err := txnDetails.Unmarshal(bz)
+	outgoingStore := prefix.NewStore(store, []byte(cosmosTypes.OutgoingTXPoolKey))
+	key := cosmosTypes.UInt64Bytes(txID)
+	bz := outgoingStore.Get(key)
+	if bz == nil {
+		return cosmosTypes.QueryOutgoingTxByIDResponse{}, cosmosTypes.ErrTxnNotPresentInOutgoingPool
+	}
+	var cosmosTx cosmosTypes.CosmosTx
+	err := cosmosTx.Unmarshal(bz)
+	if err != nil {
+		return cosmosTypes.QueryOutgoingTxByIDResponse{}, err
+	}
+	return cosmosTypes.QueryOutgoingTxByIDResponse{
+		CosmosTxDetails: cosmosTx,
+	}, nil
+}
+
+// Deletes txn Details by ID
+func (k Keeper) removeTxnDetailsByID(ctx sdk.Context, txID uint64) {
+	store := ctx.KVStore(k.storeKey)
+	outgoingStore := prefix.NewStore(store, []byte(cosmosTypes.OutgoingTXPoolKey))
+	key := cosmosTypes.UInt64Bytes(txID)
+	outgoingStore.Delete(key)
+}
+
+//Sets txBytes once received from Orchestrator after signing.
+func (k Keeper) setTxDetailsSignedByOrchestrator(ctx sdk.Context, txID uint64, txHash string, tx sdkTx.Tx) error {
+	store := ctx.KVStore(k.storeKey)
+	outgoingStore := prefix.NewStore(store, []byte(cosmosTypes.OutgoingTXPoolKey))
+	key := cosmosTypes.UInt64Bytes(txID)
+	var cosmosTx cosmosTypes.CosmosTx
+	if outgoingStore.Has(key) {
+		err := cosmosTx.Unmarshal(outgoingStore.Get(key))
 		if err != nil {
 			return err
 		}
 
-		found := txnDetails.Find(orchestratorAddress.String())
-		if !found {
-			txnDetails.AddAndIncrement(orchestratorAddress.String())
-		}
+		cosmosTx.TxHash = txHash
+		cosmosTx.Tx = tx
 
-		bz, err = txnDetails.Marshal()
+		bz, err := cosmosTx.Marshal()
 		if err != nil {
 			return err
 		}
-		mintingPoolStore.Set(key, bz)
-	} else {
-		txnDetails := cosmosTypes.NewIncomingMintTx(orchestratorAddress, 1)
-		bz, _ := txnDetails.Marshal()
-		mintingPoolStore.Set(key, bz)
+
+		outgoingStore.Set(key, bz)
 	}
 	return nil
 }
 
-func (k Keeper) FetchFromMintPoolTx(ctx sdk.Context, keyAndValueForMinting []cosmosTypes.KeyAndValueForMinting) []cosmosTypes.KeyAndValueForMinting {
+//______________________________________________________________________________________________
+/*
+TODO : Add key and value structure
+*/
+// Set details corresponding to a particular txHash and update details if already present
+func (k Keeper) setTxHashAndDetails(ctx sdk.Context, orchAddress sdk.AccAddress, txID uint64, txHash string, status string) {
 	store := ctx.KVStore(k.storeKey)
-	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
-	totalCount := float32(k.getTotalValidatorOrchestratorCount(ctx))
-	for i := range keyAndValueForMinting {
-		destinationAddress, err := sdk.AccAddressFromBech32(keyAndValueForMinting[i].Value.DestinationAddress)
+	txHashAndTxIDStore := prefix.NewStore(store, cosmosTypes.HashAndIDStore)
+	key := []byte(txHash)
+	if txHashAndTxIDStore.Has(key) {
+		var txHashValue cosmosTypes.TxHashValue
+		err := txHashValue.Unmarshal(txHashAndTxIDStore.Get(key))
 		if err != nil {
-			panic("Error in parsing destination address")
+			panic("error in unmarshalling txHashValue")
 		}
-
-		key := []byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, keyAndValueForMinting[i].Value.Amount, keyAndValueForMinting[i].Key.TxHash))
-		bz := mintingPoolStore.Get(key)
-
-		var txnDetails cosmosTypes.IncomingMintTx
-		err = txnDetails.Unmarshal(bz)
+		if !txHashValue.Find(orchAddress.String()) {
+			txHashValue.OrchestratorAddresses = append(txHashValue.OrchestratorAddresses, orchAddress.String())
+			txHashValue.Status = append(txHashValue.Status, status)
+			txHashValue.Counter++
+			txHashValue.Ratio = float32(txHashValue.Counter) / float32(k.getTotalValidatorOrchestratorCount(ctx))
+			bz, err := txHashValue.Marshal()
+			if err != nil {
+				panic("error in marshaling txHashValue")
+			}
+			txHashAndTxIDStore.Set(key, bz)
+		}
+	} else {
+		ratio := float32(1) / float32(k.getTotalValidatorOrchestratorCount(ctx))
+		newTxHashValue := cosmosTypes.NewTxHashValue(txID, orchAddress, ratio, status, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		bz, err := newTxHashValue.Marshal()
 		if err != nil {
-			panic("Error in unmarshalling txn Details")
+			panic("error in marshaling txHashValue")
 		}
-
-		keyAndValueForMinting[i].Ratio = float32(len(txnDetails.OrchAddresses)) / totalCount
-
+		txHashAndTxIDStore.Set(key, bz)
 	}
-	return keyAndValueForMinting
 }
 
-func (k Keeper) DeleteFromMintPoolTx(ctx sdk.Context, destinationAddress sdk.AccAddress, amount sdk.Coins, txHash string) {
+//Fetch details mapped to particular hash
+func (k Keeper) getTxHashAndDetails(ctx sdk.Context, txHash string) (cosmosTypes.TxHashValue, error) {
 	store := ctx.KVStore(k.storeKey)
-	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
-	mintingPoolStore.Delete([]byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, amount, txHash)))
+	hashAndIDStore := prefix.NewStore(store, cosmosTypes.HashAndIDStore)
+	key := []byte(txHash)
+	if hashAndIDStore.Has(key) {
+		var txHashAndValue cosmosTypes.TxHashValue
+		err := txHashAndValue.Unmarshal(hashAndIDStore.Get(key))
+		if err != nil {
+			return cosmosTypes.TxHashValue{}, err
+		}
+		return txHashAndValue, nil
+	}
+	return cosmosTypes.TxHashValue{}, nil
+}
+
+// Removes all the details mapped to txHash
+func (k Keeper) removeTxHashAndDetails(ctx sdk.Context, txHash string) {
+	store := ctx.KVStore(k.storeKey)
+	hashAndIDStore := prefix.NewStore(store, cosmosTypes.HashAndIDStore)
+	key := []byte(txHash)
+	hashAndIDStore.Delete(key)
+}
+
+// Fetches the list of all details mapped to txHash
+func (k Keeper) getAllTxHashAndDetails(ctx sdk.Context) (list []TxHashAndDetails, returnErr error) {
+	store := ctx.KVStore(k.storeKey)
+	hashAndIDStore := prefix.NewStore(store, cosmosTypes.HashAndIDStore)
+	iterator := hashAndIDStore.Iterator(nil, nil)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var value cosmosTypes.TxHashValue
+		returnErr = value.Unmarshal(iterator.Value())
+		if returnErr != nil {
+			return nil, returnErr
+		}
+		list = append(list, TxHashAndDetails{string(iterator.Key()), value})
+	}
+	return list, nil
+}
+
+// RetryTransactionWithDoubleGas : retry txn with double gas
+func (k Keeper) retryTransactionWithDoubleGas(ctx sdk.Context, txDetails cosmosTypes.QueryOutgoingTxByIDResponse, txID uint64, txHash string) {
+	// doubles gas fees and emit a new event
+	cosmosTxDetails := txDetails.CosmosTxDetails
+	cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit = cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit * 2
+	cosmosTxDetails.Tx.AuthInfo.SignerInfos = nil
+	cosmosTxDetails.Tx.Signatures = nil
+	cosmosTxDetails.TxHash = ""
+
+	//create new ID for next txn and set it in kv store
+	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
+
+	//emit new event
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			cosmosTypes.EventTypeOutgoing,
+			sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
+		),
+	)
+
+	//set new outgoing txn
+	k.setNewTxnInOutgoingPool(ctx, nextID, cosmosTxDetails)
+
+	//remove old txn from db
+	k.removeTxnDetailsByID(ctx, txID)
+
+	//remove txHash and mapping
+	k.removeTxHashAndDetails(ctx, txHash)
+}
+
+// ProcessAllTxAndDetails Process all the transaction details that are pending and retry if failed by less gas or delete them once they are past the avtive block limit
+func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
+	list, err := k.getAllTxHashAndDetails(ctx)
+	if err != nil {
+		panic(err.Error())
+	}
+	for _, element := range list {
+		majorityStatus := FindMajority(element.Details.Status)
+		txDetails, err := k.getTxnFromOutgoingPoolByID(ctx, element.Details.TxID)
+		//if err != nil {
+		//k.removeTxHashAndDetails(ctx, element.TxHash)
+		//TODO : Check if Signed tx is sent later than Status of the same.
+		//return err
+		//}
+		//err check to see if details have been found or not
+		if err == nil {
+			if element.Details.Ratio > 0.80 {
+				if majorityStatus == "failure" {
+					k.retryTransactionWithDoubleGas(ctx, txDetails, element.Details.TxID, element.TxHash)
+				}
+			}
+			if txDetails.CosmosTxDetails.ActiveBlockHeight >= ctx.BlockHeight() {
+				k.removeTxnDetailsByID(ctx, element.Details.TxID)
+				k.removeTxHashAndDetails(ctx, element.TxHash)
+			}
+		}
+
+	}
+	return nil
+}
+
+//______________________________________________________________________________________________
+
+// FindMajority Find the majority element in any string slice
+func FindMajority(inputArr []string) string {
+	var m string //store majority element if exists
+	i := 0       //counter
+	for _, element := range inputArr {
+		// If counter `i` becomes 0, set the current candidate
+		// to `nums[j]` and reset the counter to 1
+		if i == 0 {
+			m = element
+			i = 1
+		} else {
+			// If the counter is non-zero, increment or decrement it
+			// according to whether `nums[j]` is a current candidate
+			if m == element {
+				i++
+			} else {
+				i--
+			}
+		}
+	}
+	return m //return majority element
 }

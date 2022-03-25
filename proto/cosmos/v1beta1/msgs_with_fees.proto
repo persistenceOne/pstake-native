@@ -16,15 +16,6 @@ service Msg {
   rpc Send(MsgSendWithFees) returns (MsgSendWithFeesResponse) {
     option (google.api.http).post = "";
   }
-  rpc VoteOnCosmosChain(MsgVoteWithFees) returns (MsgVoteWithFeesResponse) {
-    option (google.api.http).post = "";
-  }
-  rpc Delegate(MsgDelegateWithFees) returns (MsgDelegateWithFeesResponse) {
-    option (google.api.http).post = "";
-  }
-  rpc Undelegate(MsgUndelegateWithFees) returns (MsgUndelegateWithFeesResponse) {
-    option (google.api.http).post = "";
-  }
   rpc MintTokensForAccount(MsgMintTokensForAccount) returns (MsgMintTokensForAccountResponse) {
     option (google.api.http).post = "/pstake/cosmos/v1beta1/MintTokensForAccount";
   }
@@ -33,6 +24,8 @@ service Msg {
   }
   rpc Vote(MsgVote) returns (MsgVoteResponse) {};
   rpc VoteWeighted(MsgVoteWeighted) returns (MsgVoteWeightedResponse) {};
+  rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
+  rpc TxStatus(MsgTxStatus) returns (MsgTxStatusResponse) {};
 }
 
 message MsgSendWithFees {

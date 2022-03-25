@@ -2,9 +2,7 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 	"github.com/armon/go-metrics"
-	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -42,6 +40,7 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrResetDelegateKeys, validator.String())
 	}
 
+	//TODO reverse key value (Important for unique orch addresses for each validator)
 	delegateKeys := k.GetDelegateKeys(ctx)
 	for i := range delegateKeys {
 		if delegateKeys[i].Orchestrator == orchestrator.String() {
@@ -62,6 +61,7 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	return &cosmosTypes.MsgSetOrchestratorResponse{}, nil
 }
 
+// Send TODO Modify outgoing pool
 func (k msgServer) Send(c context.Context, msg *cosmosTypes.MsgSendWithFees) (*cosmosTypes.MsgSendWithFeesResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
@@ -74,7 +74,7 @@ func (k msgServer) Send(c context.Context, msg *cosmosTypes.MsgSendWithFees) (*c
 		return nil, err
 	}
 
-	msgAny, err := types.NewAnyWithValue(msg)
+	//msgAny, err := types.NewAnyWithValue(msg)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func (k msgServer) Send(c context.Context, msg *cosmosTypes.MsgSendWithFees) (*c
 	//	return nil, err
 	//}
 
-	txID, err := k.AddToOutgoingPool(ctx, from, msgAny)
+	//txID, err := k.AddToOutgoingPool(ctx, from, msgAny)
 	if err != nil {
 		return nil, err
 	}
@@ -99,123 +99,10 @@ func (k msgServer) Send(c context.Context, msg *cosmosTypes.MsgSendWithFees) (*c
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
 			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
-			sdkTypes.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(txID)),
+			//sdkTypes.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(txID)),
 		),
 	)
 	return &cosmosTypes.MsgSendWithFeesResponse{}, nil
-}
-
-func (k msgServer) VoteOnCosmosChain(c context.Context, msg *cosmosTypes.MsgVoteWithFees) (*cosmosTypes.MsgVoteWithFeesResponse, error) {
-	ctx := sdkTypes.UnwrapSDKContext(c)
-
-	voter, err := sdkTypes.AccAddressFromBech32(msg.MessageVote.Voter)
-	if err != nil {
-		return nil, err
-	}
-	msgAny, err := types.NewAnyWithValue(msg)
-	if err != nil {
-		return nil, err
-	}
-
-	//TODO checks
-	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(voter) != nil || !msg.Fees.IsValid() {
-		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
-	}
-	//TODO what to do with amount till txn is confirmed?
-
-	txID, err := k.AddToOutgoingPool(ctx, voter, msgAny)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdkTypes.NewEvent(
-			sdkTypes.EventTypeMessage,
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
-			sdkTypes.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(txID)),
-		),
-	)
-	return &cosmosTypes.MsgVoteWithFeesResponse{}, nil
-}
-
-func (k msgServer) Delegate(c context.Context, msg *cosmosTypes.MsgDelegateWithFees) (*cosmosTypes.MsgDelegateWithFeesResponse, error) {
-	ctx := sdkTypes.UnwrapSDKContext(c)
-
-	// TODO
-	delegatorAddress, err := sdkTypes.AccAddressFromBech32(msg.MessageDelegate.DelegatorAddress)
-	if err != nil {
-		return nil, err
-	}
-	validatorAddress, err := sdkTypes.AccAddressFromBech32(msg.MessageDelegate.ValidatorAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	msgAny, err := types.NewAnyWithValue(msg)
-	if err != nil {
-		return nil, err
-	}
-
-	//TODO checks
-	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(delegatorAddress) != nil || sdkTypes.VerifyAddressFormat(validatorAddress) != nil ||
-		!msg.MessageDelegate.Amount.IsValid() || !msg.Fees.IsValid() {
-		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
-	}
-	//TODO what to do with amount till txn is confirmed?
-
-	txID, err := k.AddToOutgoingPool(ctx, delegatorAddress, msgAny)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdkTypes.NewEvent(
-			sdkTypes.EventTypeMessage,
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
-			sdkTypes.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(txID)),
-		),
-	)
-	return &cosmosTypes.MsgDelegateWithFeesResponse{}, nil
-}
-
-func (k msgServer) Undelegate(c context.Context, msg *cosmosTypes.MsgUndelegateWithFees) (*cosmosTypes.MsgUndelegateWithFeesResponse, error) {
-	ctx := sdkTypes.UnwrapSDKContext(c)
-
-	//TODO
-	delegatorAddress, err := sdkTypes.AccAddressFromBech32(msg.MessageUndelegate.DelegatorAddress)
-	if err != nil {
-		return nil, err
-	}
-	validatorAddress, err := sdkTypes.AccAddressFromBech32(msg.MessageUndelegate.ValidatorAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	msgAny, err := types.NewAnyWithValue(msg)
-	if err != nil {
-		return nil, err
-	}
-
-	//TODO checks
-	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(delegatorAddress) != nil || sdkTypes.VerifyAddressFormat(validatorAddress) != nil ||
-		!msg.MessageUndelegate.Amount.IsValid() || !msg.Fees.IsValid() {
-		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
-	}
-	//TODO what to do with amount till txn is confirmed?
-
-	txID, err := k.AddToOutgoingPool(ctx, delegatorAddress, msgAny)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdkTypes.NewEvent(
-			sdkTypes.EventTypeMessage,
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
-			sdkTypes.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(txID)),
-		),
-	)
-	return &cosmosTypes.MsgUndelegateWithFeesResponse{}, nil
 }
 
 func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgMintTokensForAccount) (*cosmosTypes.MsgMintTokensForAccountResponse, error) {
@@ -274,7 +161,7 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 
 	_, found := k.GetOrchestratorValidator(ctx, orchestratorAddress)
 	if found {
-		k.setProposalDetails(ctx, msg.ChainID, msg.BlockHeight, msg.ProposalID, msg.Title, msg.Description, orchestratorAddress)
+		k.setProposalDetails(ctx, msg.ChainID, msg.BlockHeight, msg.ProposalID, msg.Title, msg.Description, orchestratorAddress, msg.VotingStartTime, msg.VotingEndTime)
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -344,4 +231,70 @@ func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeigh
 	)
 
 	return &cosmosTypes.MsgVoteWeightedResponse{}, nil
+}
+
+// SignedTxFromOrchestrator Receives a signed txn from orchestrator and updates the details
+func (k msgServer) SignedTxFromOrchestrator(c context.Context, msg *cosmosTypes.MsgSignedTx) (*cosmosTypes.MsgSignedTxResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+	orchAddr, orchErr := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
+	if orchErr != nil {
+		return nil, orchErr
+	}
+
+	txBytes, err := msg.Tx.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	txHash := cosmosTypes.BytesToHexUpper(txBytes)
+
+	txn, err := k.getTxnFromOutgoingPoolByID(ctx, msg.TxID)
+	if err != nil {
+		return nil, err
+	}
+	if txn.CosmosTxDetails.TxHash == "" {
+		err = k.setTxDetailsSignedByOrchestrator(ctx, msg.TxID, txHash, msg.Tx)
+		if err != nil {
+			return nil, err
+		}
+
+		k.setTxHashAndDetails(ctx, orchAddr, msg.TxID, txHash, "pending")
+	} else {
+		return nil, cosmosTypes.ErrTxnDetailsAlreadySent
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdkTypes.NewEvent(
+			sdkTypes.EventTypeMessage,
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeySender, msg.OrchestratorAddress),
+		),
+	)
+	return &cosmosTypes.MsgSignedTxResponse{}, nil
+}
+
+// TxStatus Accepts status as : "success" or "failure"
+// Failure only to be sent when transaction fails due to insufficient fees
+func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*cosmosTypes.MsgTxStatusResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+	orchAddr, orchErr := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
+	if orchErr != nil {
+		return nil, orchErr
+	}
+	_, found := k.GetOrchestratorValidator(ctx, orchAddr)
+	if found {
+		if msg.Status == "success" || msg.Status == "failure" {
+			k.setTxHashAndDetails(ctx, orchAddr, 0, msg.TxHash, msg.Status)
+		} else {
+			return nil, cosmosTypes.ErrInvalidStatus
+		}
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdkTypes.NewEvent(
+			sdkTypes.EventTypeMessage,
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
+			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchAddr.String()),
+		),
+	)
+	return &cosmosTypes.MsgTxStatusResponse{}, nil
 }

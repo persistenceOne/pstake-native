@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	DefaultPeriod time.Duration = time.Hour * 24 * 2 // 2 days
+	DefaultPeriod time.Duration = time.Hour * 6 // 26 hours
 )
 
 var (
@@ -54,12 +54,17 @@ func NewParams(minMintingAmount uint64, maxMintingAmount uint64, minBurningAmoun
 
 func DefaultParams() Params {
 	return Params{
-		MinMintingAmount:                  5000000,
-		MaxMintingAmount:                  100000000000,
-		MinBurningAmount:                  5000000,
-		MaxBurningAmount:                  100000000000,
-		MaxValidatorToDelegate:            3,
-		ValidatorSetCosmosChain:           []WeightedAddress{},
+		MinMintingAmount:       5000000,
+		MaxMintingAmount:       100000000000,
+		MinBurningAmount:       5000000,
+		MaxBurningAmount:       100000000000,
+		MaxValidatorToDelegate: 3,
+		ValidatorSetCosmosChain: []WeightedAddress{
+			{Address: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", Weight: sdk.NewDecWithPrec(5, 1)},
+			{Address: "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2", Weight: sdk.NewDecWithPrec(2, 1)},
+			{Address: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Weight: sdk.NewDecWithPrec(1, 1)},
+			{Address: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Weight: sdk.NewDecWithPrec(2, 1)},
+		},
 		ValidatorSetNativeChain:           []WeightedAddress{},
 		WeightedDeveloperRewardsReceivers: []WeightedAddress{},
 		//DistributionProportion: DistributionProportions{
@@ -69,8 +74,8 @@ func DefaultParams() Params {
 		Epochs:                     5000,
 		MaxIncomingAndOutgoingTxns: 10000,
 		CosmosProposalParams: CosmosChainProposalParams{
-			ChainID:      "cosmoshub-4",
-			VotingPeriod: DefaultPeriod,
+			ChainID:              "cosmoshub-4", //TODO use these as conditions for proposals
+			ReduceVotingPeriodBy: DefaultPeriod,
 		},
 	}
 }
@@ -192,7 +197,7 @@ func validateValidatorSetCosmosChain(i interface{}) error {
 	for i, w := range v {
 		// we allow address to be "" to go to community pool
 		if w.Address != "" {
-			_, err := sdk.AccAddressFromBech32(w.Address)
+			_, err := sdk.ValAddressFromBech32(w.Address)
 			if err != nil {
 				return fmt.Errorf("invalid address at %dth", i)
 			}
@@ -357,7 +362,7 @@ func validateCosmosProposalParams(i interface{}) error {
 		return fmt.Errorf("invalid chain-id for cosmos %T", i)
 	}
 
-	if v.VotingPeriod <= 0 {
+	if v.ReduceVotingPeriodBy <= 0 {
 		return fmt.Errorf("incorrect voting Period %T", i)
 	}
 

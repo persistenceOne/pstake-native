@@ -4,14 +4,18 @@ package comsos.v1beta1;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/v1beta1/cosmos.proto";
+import "cosmos/v1beta1/batch.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
 // Query provides defines the gRPC querier service.
 service Query {
   // Params returns the total set of minting parameters.
-  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+  rpc QueryParams(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/pstake/cosmos/v1beta1/params";
+  }
+  rpc QueryTxByID(QueryOutgoingTxByIDRequest) returns (QueryOutgoingTxByIDResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/txByID";
   }
 }
 
@@ -22,4 +26,11 @@ message QueryParamsRequest {}
 message QueryParamsResponse {
   // params defines the parameters of the module.
   Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryOutgoingTxByIDRequest {
+  uint64 txID = 1;
+}
+message QueryOutgoingTxByIDResponse {
+  CosmosTx cosmos_tx_details = 1 [(gogoproto.nullable) = false];
 }

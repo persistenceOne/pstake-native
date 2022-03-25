@@ -4,6 +4,7 @@ package comsos.v1beta1;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -61,9 +62,42 @@ message ProposalValue {
   int64 counter = 5;
   bool proposal_posted = 6;
   int64 block_height = 7;
+  google.protobuf.Timestamp voting_start_time = 8 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true,
+    (gogoproto.jsontag) = "voting_start_time,omitempty",
+    (gogoproto.moretags) = "yaml:\"voting_start_time\""
+  ];
+  google.protobuf.Timestamp voting_end_time = 9 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true,
+    (gogoproto.jsontag) = "voting_end_time,omitempty",
+    (gogoproto.moretags) = "yaml:\"voting_end_time\""
+  ];
+
 }
 
 message KeyAndValueForProposal {
   ProposalKey key = 1 [(gogoproto.nullable) = false];
   ProposalValue value = 2 [(gogoproto.nullable) = false];
+}
+
+message CosmosTx {
+  string tx = 1 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types/tx.Tx", (gogoproto.nullable) = false];
+  bool event_emitted = 2;
+  string status = 3;
+  string txHash = 4;
+  int64 native_block_height = 5;
+  int64 active_block_height = 6;
+}
+
+message TxHashValue {
+  uint64 txID = 1;
+  repeated string orchestrator_addresses = 2;
+  repeated string status = 3;
+  float ratio = 4;
+  bool tx_cleared = 5;
+  int64 counter = 6;
+  int64 native_block_height = 7;
+  int64 active_block_height = 8;
 }

@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -10,7 +12,7 @@ import (
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingKeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/persistenceOne/pstake-native/x/cosmos/types"
-	"time"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 type Keeper struct {
@@ -143,7 +145,7 @@ func prefixRange(prefix []byte) ([]byte, []byte) {
 	return prefix, end
 }
 
-func (k Keeper) MintTokensOnMajority(ctx sdk.Context, key types.ChainIDHeightAndTxHashKey, value types.AddressAndAmountKey) error {
+func (k Keeper) mintTokensOnMajority(ctx sdk.Context, key types.ChainIDHeightAndTxHashKey, value types.AddressAndAmountKey) error {
 	//TODO incorporate minting_ratio
 	destinationAddress, err := sdk.AccAddressFromBech32(value.DestinationAddress)
 	if err != nil {
@@ -159,7 +161,6 @@ func (k Keeper) MintTokensOnMajority(ctx sdk.Context, key types.ChainIDHeightAnd
 	}
 
 	k.setMintedFlagTrue(ctx, key)
-	//k.deleteFromMintPoolTx(ctx, destinationAddress, value.Amount)
 	return nil
 }
 
@@ -174,4 +175,9 @@ func (keeper Keeper) InsertActiveProposalQueue(ctx sdk.Context, proposalID uint6
 func (keeper Keeper) RemoveFromActiveProposalQueue(ctx sdk.Context, proposalID uint64, endTime time.Time) {
 	store := ctx.KVStore(keeper.storeKey)
 	store.Delete(types.ActiveProposalQueueKey(proposalID, endTime))
+}
+
+// Logger returns a module-specific logger.
+func (keeper Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }

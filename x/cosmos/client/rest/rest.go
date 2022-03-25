@@ -6,6 +6,7 @@
 package rest
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rest"
 	"github.com/gorilla/mux"
@@ -13,5 +14,6 @@ import (
 
 func RegisterHandlers(clientCtx client.Context, rtr *mux.Router) {
 	r := rest.WithHTTPDeprecationHeaders(rtr)
-	r.HandleFunc("/cosmos/incoming/minting", NewMintRequestHandlerFn(clientCtx)).Methods("POST")
+	registerQueryRoutes(clientCtx, r)
+	r.HandleFunc(fmt.Sprintf("/cosmos/incoming/minting"), NewMintRequestHandlerFn(clientCtx)).Methods("POST")
 }

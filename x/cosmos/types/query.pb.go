@@ -112,34 +112,131 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
+type QueryOutgoingTxByIDRequest struct {
+	TxID uint64 `protobuf:"varint,1,opt,name=txID,proto3" json:"txID,omitempty"`
+}
+
+func (m *QueryOutgoingTxByIDRequest) Reset()         { *m = QueryOutgoingTxByIDRequest{} }
+func (m *QueryOutgoingTxByIDRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryOutgoingTxByIDRequest) ProtoMessage()    {}
+func (*QueryOutgoingTxByIDRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_30f44154155313ab, []int{2}
+}
+func (m *QueryOutgoingTxByIDRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryOutgoingTxByIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryOutgoingTxByIDRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryOutgoingTxByIDRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryOutgoingTxByIDRequest.Merge(m, src)
+}
+func (m *QueryOutgoingTxByIDRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryOutgoingTxByIDRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryOutgoingTxByIDRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryOutgoingTxByIDRequest proto.InternalMessageInfo
+
+func (m *QueryOutgoingTxByIDRequest) GetTxID() uint64 {
+	if m != nil {
+		return m.TxID
+	}
+	return 0
+}
+
+type QueryOutgoingTxByIDResponse struct {
+	CosmosTxDetails CosmosTx `protobuf:"bytes,1,opt,name=cosmos_tx_details,json=cosmosTxDetails,proto3" json:"cosmos_tx_details"`
+}
+
+func (m *QueryOutgoingTxByIDResponse) Reset()         { *m = QueryOutgoingTxByIDResponse{} }
+func (m *QueryOutgoingTxByIDResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryOutgoingTxByIDResponse) ProtoMessage()    {}
+func (*QueryOutgoingTxByIDResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_30f44154155313ab, []int{3}
+}
+func (m *QueryOutgoingTxByIDResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryOutgoingTxByIDResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryOutgoingTxByIDResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryOutgoingTxByIDResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryOutgoingTxByIDResponse.Merge(m, src)
+}
+func (m *QueryOutgoingTxByIDResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryOutgoingTxByIDResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryOutgoingTxByIDResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryOutgoingTxByIDResponse proto.InternalMessageInfo
+
+func (m *QueryOutgoingTxByIDResponse) GetCosmosTxDetails() CosmosTx {
+	if m != nil {
+		return m.CosmosTxDetails
+	}
+	return CosmosTx{}
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "comsos.v1beta1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "comsos.v1beta1.QueryParamsResponse")
+	proto.RegisterType((*QueryOutgoingTxByIDRequest)(nil), "comsos.v1beta1.QueryOutgoingTxByIDRequest")
+	proto.RegisterType((*QueryOutgoingTxByIDResponse)(nil), "comsos.v1beta1.QueryOutgoingTxByIDResponse")
 }
 
 func init() { proto.RegisterFile("cosmos/v1beta1/query.proto", fileDescriptor_30f44154155313ab) }
 
 var fileDescriptor_30f44154155313ab = []byte{
-	// 296 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x90, 0xc1, 0x4a, 0x03, 0x31,
-	0x10, 0x86, 0x37, 0xa2, 0x3d, 0x44, 0xf0, 0x10, 0x8b, 0xc8, 0xaa, 0xa9, 0xac, 0x08, 0x5e, 0xdc,
-	0xd0, 0x2a, 0x3e, 0x40, 0xaf, 0x1e, 0xac, 0xf5, 0xe6, 0x2d, 0x2d, 0xc3, 0xba, 0x68, 0x33, 0xe9,
-	0x4e, 0x5a, 0xda, 0xa3, 0x3e, 0x81, 0xe0, 0x4b, 0xf5, 0x58, 0xf0, 0xe2, 0x49, 0xa4, 0xeb, 0x83,
-	0xc8, 0x6e, 0xd6, 0x43, 0x57, 0xf0, 0x96, 0xcc, 0xff, 0xe5, 0xff, 0xff, 0x0c, 0x0f, 0x87, 0x48,
-	0x23, 0x24, 0x35, 0x6d, 0x0f, 0xc0, 0xe9, 0xb6, 0x1a, 0x4f, 0x20, 0x9b, 0xc7, 0x36, 0x43, 0x87,
-	0x62, 0x67, 0x88, 0x23, 0x42, 0x8a, 0x2b, 0x2d, 0x6c, 0x26, 0x98, 0x60, 0x29, 0xa9, 0xe2, 0xe4,
-	0xa9, 0xf0, 0x30, 0x41, 0x4c, 0x9e, 0x40, 0x69, 0x9b, 0x2a, 0x6d, 0x0c, 0x3a, 0xed, 0x52, 0x34,
-	0x54, 0xa9, 0x07, 0x35, 0x7f, 0x7f, 0xf5, 0x62, 0xd4, 0xe4, 0xe2, 0xb6, 0xc8, 0xeb, 0xe9, 0x4c,
-	0x8f, 0xa8, 0x0f, 0xe3, 0x09, 0x90, 0x8b, 0xae, 0xf9, 0xee, 0xda, 0x94, 0x2c, 0x1a, 0x02, 0x71,
-	0xc9, 0x1b, 0xb6, 0x9c, 0xec, 0xb3, 0x63, 0x76, 0xb6, 0xdd, 0xd9, 0x8b, 0xd7, 0xeb, 0xc5, 0x9e,
-	0xef, 0x6e, 0x2e, 0x3e, 0x5b, 0x41, 0xbf, 0x62, 0x3b, 0xcf, 0x8c, 0x6f, 0x95, 0x6e, 0x62, 0xc6,
-	0x1b, 0x9e, 0x10, 0x51, 0xfd, 0xe5, 0xdf, 0x12, 0xe1, 0xc9, 0xbf, 0x8c, 0xaf, 0x14, 0x9d, 0xbe,
-	0xbc, 0x7f, 0xbf, 0x6d, 0xb4, 0xc4, 0x91, 0xb2, 0xe4, 0xf4, 0x23, 0xa8, 0xda, 0x67, 0x7d, 0x87,
-	0x6e, 0x6f, 0xb1, 0x92, 0x6c, 0xb9, 0x92, 0xec, 0x6b, 0x25, 0xd9, 0x6b, 0x2e, 0x83, 0x65, 0x2e,
-	0x83, 0x8f, 0x5c, 0x06, 0xf7, 0x57, 0x49, 0xea, 0x1e, 0x26, 0x83, 0x22, 0x4b, 0x59, 0xc8, 0x28,
-	0x25, 0x07, 0x66, 0x08, 0x37, 0x06, 0x94, 0xbd, 0x2b, 0x1c, 0xcf, 0x8d, 0x76, 0xe9, 0x14, 0xd4,
-	0xec, 0xd7, 0xda, 0xcd, 0x2d, 0xd0, 0xa0, 0x51, 0xee, 0xef, 0xe2, 0x27, 0x00, 0x00, 0xff, 0xff,
-	0xe4, 0x7b, 0x1b, 0x2c, 0xbe, 0x01, 0x00, 0x00,
+	// 404 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x52, 0xc1, 0xaa, 0xd3, 0x40,
+	0x14, 0x4d, 0x1e, 0xf5, 0x2d, 0xe6, 0x81, 0xe2, 0xf8, 0x90, 0x47, 0xaa, 0xa9, 0x44, 0x04, 0x51,
+	0xcc, 0xd8, 0x2a, 0x7e, 0x40, 0xed, 0xa6, 0xba, 0x68, 0xad, 0x5d, 0xb9, 0x29, 0x93, 0x38, 0xa4,
+	0x83, 0xed, 0xcc, 0x34, 0x73, 0x53, 0xd2, 0x85, 0x1b, 0xf7, 0x82, 0x20, 0xf8, 0x4d, 0x5d, 0x16,
+	0xdc, 0xb8, 0x12, 0x69, 0xfd, 0x10, 0xc9, 0xcc, 0x14, 0x6c, 0x2c, 0xd2, 0xdd, 0xdc, 0x7b, 0xce,
+	0x3d, 0xe7, 0xdc, 0x9b, 0xa0, 0x20, 0x95, 0x7a, 0x2e, 0x35, 0x59, 0xb6, 0x13, 0x06, 0xb4, 0x4d,
+	0x16, 0x05, 0xcb, 0x57, 0xb1, 0xca, 0x25, 0x48, 0x7c, 0x3d, 0x95, 0x73, 0x2d, 0x75, 0xec, 0xb0,
+	0xe0, 0x32, 0x93, 0x99, 0x34, 0x10, 0xa9, 0x5e, 0x96, 0x15, 0xdc, 0xc9, 0xa4, 0xcc, 0x66, 0x8c,
+	0x50, 0xc5, 0x09, 0x15, 0x42, 0x02, 0x05, 0x2e, 0x85, 0x76, 0x68, 0xb3, 0xa6, 0x6f, 0x4b, 0x07,
+	0xd6, 0xcd, 0x13, 0x0a, 0xe9, 0xd4, 0x62, 0xd1, 0x25, 0xc2, 0x6f, 0xaa, 0x2c, 0x43, 0x9a, 0xd3,
+	0xb9, 0x1e, 0xb1, 0x45, 0xc1, 0x34, 0x44, 0xaf, 0xd1, 0xad, 0x83, 0xae, 0x56, 0x52, 0x68, 0x86,
+	0x9f, 0xa3, 0x73, 0x65, 0x3a, 0x57, 0xfe, 0x3d, 0xff, 0xe1, 0x45, 0xe7, 0x76, 0x7c, 0x18, 0x3d,
+	0xb6, 0xfc, 0x6e, 0x63, 0xfd, 0xb3, 0xe5, 0x8d, 0x1c, 0x37, 0x7a, 0x8a, 0x02, 0x23, 0x36, 0x28,
+	0x20, 0x93, 0x5c, 0x64, 0xe3, 0xb2, 0xbb, 0xea, 0xf7, 0x9c, 0x15, 0xc6, 0xa8, 0x01, 0x65, 0xbf,
+	0x67, 0x14, 0x1b, 0x23, 0xf3, 0x8e, 0x38, 0x6a, 0x1e, 0x9d, 0x70, 0x31, 0x5e, 0xa1, 0x9b, 0x76,
+	0xa3, 0x09, 0x94, 0x93, 0xf7, 0x0c, 0x28, 0x9f, 0xed, 0x13, 0x5d, 0xd5, 0x13, 0xbd, 0x34, 0xc4,
+	0x71, 0xe9, 0x32, 0xdd, 0x48, 0x5d, 0xdd, 0xb3, 0x63, 0x9d, 0x6f, 0x67, 0xe8, 0x9a, 0xf1, 0xc2,
+	0x1f, 0xd1, 0xc5, 0x5f, 0x3b, 0xe3, 0xa8, 0xae, 0xf4, 0xef, 0x99, 0x82, 0xfb, 0xff, 0xe5, 0xd8,
+	0xb4, 0xd1, 0x83, 0x4f, 0xdf, 0x7f, 0x7f, 0x3d, 0x6b, 0xe1, 0xbb, 0x44, 0x69, 0xa0, 0x1f, 0x18,
+	0xa9, 0x7d, 0x0d, 0x7b, 0x25, 0xfc, 0xd9, 0x77, 0xfe, 0x76, 0x59, 0xfc, 0xe8, 0xa8, 0xf6, 0xd1,
+	0x1b, 0x06, 0x8f, 0x4f, 0xe2, 0x9e, 0x98, 0x07, 0x0c, 0xbd, 0x3b, 0x5c, 0x6f, 0x43, 0x7f, 0xb3,
+	0x0d, 0xfd, 0x5f, 0xdb, 0xd0, 0xff, 0xb2, 0x0b, 0xbd, 0xcd, 0x2e, 0xf4, 0x7e, 0xec, 0x42, 0xef,
+	0xdd, 0x8b, 0x8c, 0xc3, 0xb4, 0x48, 0x2a, 0x4f, 0xa2, 0x58, 0xae, 0xb9, 0x06, 0x26, 0x52, 0x36,
+	0x10, 0x8c, 0xa8, 0xb7, 0x95, 0xe2, 0x13, 0x41, 0x81, 0x2f, 0x19, 0x29, 0xf7, 0xd2, 0xb0, 0x52,
+	0x4c, 0x27, 0xe7, 0xe6, 0x8f, 0x7b, 0xf6, 0x27, 0x00, 0x00, 0xff, 0xff, 0xbc, 0x81, 0x98, 0xbd,
+	0x0c, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -155,7 +252,8 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
 	// Params returns the total set of minting parameters.
-	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	QueryParams(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	QueryTxByID(ctx context.Context, in *QueryOutgoingTxByIDRequest, opts ...grpc.CallOption) (*QueryOutgoingTxByIDResponse, error)
 }
 
 type queryClient struct {
@@ -166,9 +264,18 @@ func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 	return &queryClient{cc}
 }
 
-func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
+func (c *queryClient) QueryParams(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
 	out := new(QueryParamsResponse)
-	err := c.cc.Invoke(ctx, "/comsos.v1beta1.Query/Params", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/comsos.v1beta1.Query/QueryParams", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) QueryTxByID(ctx context.Context, in *QueryOutgoingTxByIDRequest, opts ...grpc.CallOption) (*QueryOutgoingTxByIDResponse, error) {
+	out := new(QueryOutgoingTxByIDResponse)
+	err := c.cc.Invoke(ctx, "/comsos.v1beta1.Query/QueryTxByID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -178,35 +285,57 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Params returns the total set of minting parameters.
-	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	QueryParams(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	QueryTxByID(context.Context, *QueryOutgoingTxByIDRequest) (*QueryOutgoingTxByIDResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
 type UnimplementedQueryServer struct {
 }
 
-func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
+func (*UnimplementedQueryServer) QueryParams(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QueryParams not implemented")
+}
+func (*UnimplementedQueryServer) QueryTxByID(ctx context.Context, req *QueryOutgoingTxByIDRequest) (*QueryOutgoingTxByIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QueryTxByID not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
 	s.RegisterService(&_Query_serviceDesc, srv)
 }
 
-func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Query_QueryParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryParamsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).Params(ctx, in)
+		return srv.(QueryServer).QueryParams(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/comsos.v1beta1.Query/Params",
+		FullMethod: "/comsos.v1beta1.Query/QueryParams",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Params(ctx, req.(*QueryParamsRequest))
+		return srv.(QueryServer).QueryParams(ctx, req.(*QueryParamsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_QueryTxByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryOutgoingTxByIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).QueryTxByID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/comsos.v1beta1.Query/QueryTxByID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).QueryTxByID(ctx, req.(*QueryOutgoingTxByIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -216,8 +345,12 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Params",
-			Handler:    _Query_Params_Handler,
+			MethodName: "QueryParams",
+			Handler:    _Query_QueryParams_Handler,
+		},
+		{
+			MethodName: "QueryTxByID",
+			Handler:    _Query_QueryTxByID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -280,6 +413,67 @@ func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryOutgoingTxByIDRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryOutgoingTxByIDRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryOutgoingTxByIDRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.TxID != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.TxID))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryOutgoingTxByIDResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryOutgoingTxByIDResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryOutgoingTxByIDResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.CosmosTxDetails.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -307,6 +501,29 @@ func (m *QueryParamsResponse) Size() (n int) {
 	var l int
 	_ = l
 	l = m.Params.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryOutgoingTxByIDRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.TxID != 0 {
+		n += 1 + sovQuery(uint64(m.TxID))
+	}
+	return n
+}
+
+func (m *QueryOutgoingTxByIDResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.CosmosTxDetails.Size()
 	n += 1 + l + sovQuery(uint64(l))
 	return n
 }
@@ -426,6 +643,158 @@ func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryOutgoingTxByIDRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryOutgoingTxByIDRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryOutgoingTxByIDRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TxID", wireType)
+			}
+			m.TxID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TxID |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryOutgoingTxByIDResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryOutgoingTxByIDResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryOutgoingTxByIDResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CosmosTxDetails", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.CosmosTxDetails.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

@@ -2,38 +2,8 @@ package keeper
 
 import (
 	"encoding/binary"
-	"fmt"
-	"strconv"
-
-	"github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
-
-func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, msg *types.Any) (uint64, error) {
-	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
-	outgoing := &cosmosTypes.OutgoingTransferTx{
-		Id:      nextID,
-		Message: msg,
-	}
-
-	err := k.addUnbatchedTX(ctx, outgoing)
-	if err != nil {
-		panic(err)
-	}
-
-	poolEvent := sdk.NewEvent(
-		cosmosTypes.EventTypeAddToOutgoingPool,
-		sdk.NewAttribute(sdk.AttributeKeyModule, cosmosTypes.ModuleName),
-		sdk.NewAttribute(cosmosTypes.AttributeSender, sender.String()),
-		sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, strconv.Itoa(int(nextID))),
-		sdk.NewAttribute(cosmosTypes.AttributeKeyNonce, fmt.Sprint(nextID)),
-	)
-	ctx.EventManager().EmitEvent(poolEvent)
-
-	return nextID, nil
-}
 
 // a specialized function used for iterating store counters, handling
 // returning, initializing and incrementing all at once. This is particularly
@@ -59,95 +29,4 @@ func (k Keeper) setID(ctx sdk.Context, id uint64, idKey []byte) {
 	store := ctx.KVStore(k.storeKey)
 	bz := sdk.Uint64ToBigEndian(id)
 	store.Set(idKey, bz)
-}
-
-func (k Keeper) setMintAddressAndAmount(ctx sdk.Context, chainID string, blockHeight int64, txHash string, destinationAddress sdk.AccAddress, amount sdk.Coins) {
-	store := ctx.KVStore(k.storeKey)
-	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
-
-	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(chainID, blockHeight, txHash)
-	key, err := chainIDHeightAndTxHash.Marshal()
-	if err != nil {
-		panic("error in marshaling chainID, height and txHash")
-	}
-
-	if !mintAddressAndAmountStore.Has(key) {
-		addressAndAmount := cosmosTypes.NewAddressAndAmount(destinationAddress, amount, ctx.BlockHeight())
-		bz, err := addressAndAmount.Marshal()
-		if err != nil {
-			panic("error in marshaling address and amount")
-		}
-		mintAddressAndAmountStore.Set(key, bz)
-	}
-
-}
-
-func (k Keeper) GetAllMintAddressAndAmount(ctx sdk.Context, list []cosmosTypes.KeyAndValueForMinting) ([]cosmosTypes.KeyAndValueForMinting, error) {
-	store := ctx.KVStore(k.storeKey)
-	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
-
-	iterator := mintAddressAndAmountStore.Iterator(nil, nil)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var chainIDHeightAndTxHash cosmosTypes.ChainIDHeightAndTxHashKey
-
-		err := chainIDHeightAndTxHash.Unmarshal(iterator.Key())
-		if err != nil {
-			return nil, err
-		}
-
-		var addressAndAmount cosmosTypes.AddressAndAmountKey
-
-		err = addressAndAmount.Unmarshal(iterator.Value())
-		if err != nil {
-			return nil, err
-		}
-
-		a := cosmosTypes.KeyAndValueForMinting{
-			Key:   chainIDHeightAndTxHash,
-			Value: addressAndAmount,
-		}
-
-		list = append(list, a)
-	}
-	return list, nil
-}
-
-func (k Keeper) DeleteMintedAddressAndAmountKeys(ctx sdk.Context, keyHash cosmosTypes.ChainIDHeightAndTxHashKey) {
-	store := ctx.KVStore(k.storeKey)
-	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
-
-	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(keyHash.ChainID, keyHash.BlockHeight, keyHash.TxHash)
-	key, err := chainIDHeightAndTxHash.Marshal()
-	if err != nil {
-		panic("error in marshaling chainID, height and txHash")
-	}
-
-	mintAddressAndAmountStore.Delete(key)
-}
-
-func (k Keeper) setMintedFlagTrue(ctx sdk.Context, keyHash cosmosTypes.ChainIDHeightAndTxHashKey) {
-	store := ctx.KVStore(k.storeKey)
-	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
-
-	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(keyHash.ChainID, keyHash.BlockHeight, keyHash.TxHash)
-	key, err := chainIDHeightAndTxHash.Marshal()
-	if err != nil {
-		panic("error in marshaling chainID, height and txHash")
-	}
-
-	bz := mintAddressAndAmountStore.Get(key)
-	var a cosmosTypes.AddressAndAmountKey
-	err = a.Unmarshal(bz)
-	if err != nil {
-		panic("error in unmarshalling address and amount")
-	}
-	a.Minted = true
-
-	bz, err = a.Marshal()
-	if err != nil {
-		panic("error in marshaling address and amount")
-	}
-
-	mintAddressAndAmountStore.Set(key, bz)
 }

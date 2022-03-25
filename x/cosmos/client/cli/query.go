@@ -7,6 +7,7 @@ package cli
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -26,6 +27,7 @@ func GetQueryCmd() *cobra.Command {
 
 	cosmosQueryCmd.AddCommand(
 		GetCmdQueryParams(),
+		GetOutgoingTxByID(),
 	)
 
 	return cosmosQueryCmd
@@ -45,7 +47,7 @@ func GetCmdQueryParams() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			params := &types.QueryParamsRequest{}
-			res, err := queryClient.Params(context.Background(), params)
+			res, err := queryClient.QueryParams(context.Background(), params)
 
 			if err != nil {
 				return err
@@ -57,5 +59,38 @@ func GetCmdQueryParams() *cobra.Command {
 
 	flags.AddQueryFlagsToCmd(cmd)
 
+	return cmd
+}
+
+func GetOutgoingTxByID() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "txByID [tx-id]",
+		Short: "Query the outgoing tx by ID",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			txID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			txByID := &types.QueryOutgoingTxByIDRequest{
+				TxID: txID,
+			}
+
+			res, err := queryClient.QueryTxByID(context.Background(), txByID)
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(&res.CosmosTxDetails)
+		},
+	}
 	return cmd
 }

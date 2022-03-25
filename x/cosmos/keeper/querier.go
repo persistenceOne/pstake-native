@@ -13,6 +13,8 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 		switch path[0] {
 		case cosmosTypes.QueryParameters:
 			return queryParams(ctx, k, legacyQuerierCdc)
+		case cosmosTypes.QueryTxByID:
+			return queryTxByID(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", cosmosTypes.ModuleName)
 		}
@@ -23,6 +25,27 @@ func queryParams(ctx sdk.Context, k Keeper, legacyQuerierCdc *codec.LegacyAmino)
 	params := k.GetParams(ctx)
 
 	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return res, nil
+}
+
+func queryTxByID(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	var txByIDRequest cosmosTypes.QueryOutgoingTxByIDRequest
+
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &txByIDRequest)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	tx, err := k.getTxnFromOutgoingPoolByID(ctx, txByIDRequest.TxID)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, tx)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

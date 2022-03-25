@@ -25,6 +25,7 @@ func (k Keeper) SetOrchestratorValidator(ctx sdkTypes.Context, val sdkTypes.ValA
 }
 
 func (k Keeper) GetOrchestratorValidator(ctx sdkTypes.Context, orch sdkTypes.AccAddress) (validator stakingTypes.Validator, found bool) {
+	//TODO keep necessary information
 	if err := sdkTypes.VerifyAddressFormat(orch); err != nil {
 		ctx.Logger().Error("invalid orch address")
 		return validator, false
@@ -105,6 +106,7 @@ func (k Keeper) GetOrchestratorValidator(ctx sdkTypes.Context, orch sdkTypes.Acc
 	return validator, true
 }
 
+// gets the count of total validator and orchestrator mappings for ratio calculation
 func (k Keeper) getTotalValidatorOrchestratorCount(ctx sdkTypes.Context) int64 {
 	store := ctx.KVStore(k.storeKey)
 	orchestratorValidatorStore := prefix.NewStore(store, []byte(cosmosTypes.OrchestratorValidatorStoreKey))

@@ -7,7 +7,9 @@ package types
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"github.com/cosmos/cosmos-sdk/types/address"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 	"strconv"
 	"strings"
 	"time"
@@ -34,12 +36,14 @@ const (
 
 	// QueryParameters Query endpoints supported by the cosmos querier
 	QueryParameters = "parameters"
+	QueryTxByID     = "byTxID"
 
-	MintDenom = "pstake" //TODO shift to params
+	MintDenom  = "pstake" //TODO shift to params
+	StakeDenom = "uatom"  //TODO shift to params
 
 	MinimumRatioForMajority = 0.66
 
-	StorageWindow = 100
+	StorageWindow = 50
 )
 
 var (
@@ -74,6 +78,8 @@ var (
 	ActiveProposalQueuePrefix = []byte("ActiveProposalQueuePrefix")
 
 	VotesKeyPrefix = []byte("VotesKeyPrefix")
+
+	HashAndIDStore = []byte("HashAndIDStore")
 )
 
 func ConvertByteArrToString(value []byte) string {
@@ -150,4 +156,8 @@ func VoteKey(proposalID uint64, voterAddr sdk.AccAddress) []byte {
 // VotesKey gets the first part of the votes key based on the proposalID
 func VotesKey(proposalID uint64) []byte {
 	return append(VotesKeyPrefix, GetProposalIDBytes(proposalID)...)
+}
+
+func BytesToHexUpper(bz []byte) string {
+	return hex.EncodeToString(tmhash.Sum(bz))
 }

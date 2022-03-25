@@ -3,9 +3,11 @@ package types
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 )
 
 var (
@@ -18,6 +20,8 @@ var (
 	_ sdk.Msg = &MsgMakeProposal{}
 	_ sdk.Msg = &MsgVote{}
 	_ sdk.Msg = &MsgVoteWeighted{}
+	_ sdk.Msg = &MsgSignedTx{}
+	_ sdk.Msg = &MsgTxStatus{}
 )
 
 // NewMsgSetOrchestrator returns a new MsgSetOrchestrator
@@ -321,7 +325,8 @@ func (m *MsgMintTokensForAccount) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgMakeProposal returns a new MsgMakeProposal
-func NewMsgMakeProposal(title string, description string, orchestratorAddress sdk.AccAddress, chainID string, blockHeight int64, proposalID int64) *MsgMakeProposal {
+func NewMsgMakeProposal(title string, description string, orchestratorAddress sdk.AccAddress, chainID string,
+	blockHeight int64, proposalID int64, votingStartTime time.Time, votingEndTime time.Time) *MsgMakeProposal {
 	return &MsgMakeProposal{
 		Title:               title,
 		Description:         description,
@@ -329,6 +334,8 @@ func NewMsgMakeProposal(title string, description string, orchestratorAddress sd
 		ChainID:             chainID,
 		BlockHeight:         blockHeight,
 		ProposalID:          proposalID,
+		VotingStartTime:     votingStartTime,
+		VotingEndTime:       votingEndTime,
 	}
 }
 
@@ -466,8 +473,83 @@ func (m *MsgVoteWeighted) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{voter}
 }
 
+// NewMsgSignedTx returns a new MsgSignedTx
+func NewMsgSignedTx(txID uint64, tx sdkTx.Tx, orchAddress sdk.AccAddress) *MsgSignedTx {
+	return &MsgSignedTx{
+		TxID:                txID,
+		Tx:                  tx,
+		OrchestratorAddress: orchAddress.String(),
+	}
+}
+
+// Route should return the name of the module
+func (m *MsgSignedTx) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgSignedTx) Type() string { return "signed_tx" }
+
+// ValidateBasic performs stateless checks
+func (m *MsgSignedTx) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
+	}
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgSignedTx) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgSignedTx) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// NewMsgTxStatus returns a new MsgTxStatus
+func NewMsgTxStatus(orchAddress sdk.AccAddress, status string, txHash string) *MsgTxStatus {
+	return &MsgTxStatus{
+		OrchestratorAddress: orchAddress.String(),
+		TxHash:              txHash,
+		Status:              status,
+	}
+}
+
+// Route should return the name of the module
+func (m *MsgTxStatus) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgTxStatus) Type() string { return "msg_tx_status" }
+
+// ValidateBasic performs stateless checks
+func (m *MsgTxStatus) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
+	}
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgTxStatus) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgTxStatus) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
 var _ DBHelper = &IncomingMintTx{}
 var _ DBHelper = &ProposalValue{}
+var _ DBHelper = &TxHashValue{}
 
 func (m *IncomingMintTx) Find(orchAddress string) bool {
 	for _, address := range m.OrchAddresses {
@@ -483,16 +565,6 @@ func (m *IncomingMintTx) AddAndIncrement(orchAddress string) {
 	m.Counter++
 }
 
-func NewProposalValue(title string, description string, orchAddress string, ratio float32) ProposalValue {
-	return ProposalValue{
-		Title:                 title,
-		Description:           description,
-		OrchestratorAddresses: []string{orchAddress},
-		Ratio:                 ratio,
-		Counter:               1,
-		ProposalPosted:        false,
-	}
-}
 func (m *ProposalValue) Find(orchAddress string) bool {
 	for _, address := range m.OrchestratorAddresses {
 		if address == orchAddress {
@@ -503,6 +575,20 @@ func (m *ProposalValue) Find(orchAddress string) bool {
 }
 
 func (m *ProposalValue) AddAndIncrement(orchAddress string) {
+	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
+	m.Counter++
+}
+
+func (m *TxHashValue) Find(orchAddress string) bool {
+	for _, address := range m.OrchestratorAddresses {
+		if address == orchAddress {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *TxHashValue) AddAndIncrement(orchAddress string) {
 	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
 	m.Counter++
 }
