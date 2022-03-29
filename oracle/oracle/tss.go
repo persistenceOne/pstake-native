@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/binance-chain/tss-lib/common"
 	_"github.com/binance-chain/tss-lib/crypto"
+	"github.com/binance-chain/tss-lib/ecdsa/resharing"
 	tcrypto "github.com/tendermint/tendermint/crypto"
 	"github.com/binance-chain/tss-lib/crypto/vss"
 	"github.com/binance-chain/tss-lib/ecdsa/keygen"
@@ -118,7 +119,7 @@ keygen:
 				for range parties {
 					pShares := make(vss.Shares, 0)
 					for _, P := range parties {
-						share := keygen.KGRound2Message1.GetShare()
+						share := keygen.KGRound2Message1.GetShare() //Todo
 						shareStruct := &vss.Share{
 							Threshold: constants.Threshold,
 							ID:        P.PartyID().KeyInt(),
@@ -207,6 +208,160 @@ signing:
 	}
 
 	return sig
+}
+
+
+func Resharing(threshold, newThreshold, firstPartyIdx, extraParties int, oldKeys []keygen.LocalPartySaveData, oldPIDs tss.SortedPartyIDs, errCh chan *tss.Error, outCh chan tss.Message, endCh chan keygen.LocalPartySaveData ){
+	oldP2PCtx := tss.NewPeerContext(oldPIDs)
+	fixtures, _, _ := keygen.LoadKeygenTestFixtures(newThreshold)
+
+	newPIDs := tss.GenerateTestPartyIDs(newThreshold)
+	newP2PCtx := tss.NewPeerContext(newPIDs)
+	newPCount := len(newPIDs)
+
+	oldCommittee := make([]*resharing.LocalParty, 0, len(oldPIDs))
+	newCommittee := make([]*resharing.LocalParty, 0, newPCount)
+
+	updater := test.SharedPartyUpdater
+
+
+	// init the old parties first
+	for j, pID := range oldPIDs {
+		params := tss.NewReSharingParameters(tss.S256(), oldP2PCtx, newP2PCtx, pID, newThreshold, threshold, newPCount, newThreshold)
+		P := resharing.NewLocalParty(params, oldKeys[j], outCh, endCh).(*resharing.LocalParty) // discard old key data
+		oldCommittee = append(oldCommittee, P)
+	}
+	// init the new parties
+	for j, pID := range newPIDs {
+		params := tss.NewReSharingParameters(tss.S256(), oldP2PCtx, newP2PCtx, pID, newThreshold, threshold, newPCount, newThreshold)
+		save := keygen.NewLocalPartySaveData(newPCount)
+		if j < len(fixtures) && len(newPIDs) <= len(fixtures) {
+			save.LocalPreParams = fixtures[j].LocalPreParams
+		}
+		P := resharing.NewLocalParty(params, save, outCh, endCh).(*resharing.LocalParty)
+		newCommittee = append(newCommittee, P)
+	}
+
+	// start the new parties; they will wait for messages
+	for _, P := range newCommittee {
+		go func(P *resharing.LocalParty) {
+			if err := P.Start(); err != nil {
+				errCh <- err
+			}
+		}(P)
+	}
+	// start the old parties; they will send messages
+	for _, P := range oldCommittee {
+		go func(P *resharing.LocalParty) {
+			if err := P.Start(); err != nil {
+				errCh <- err
+			}
+		}(P)
+	}
+
+	newKeys := make([]keygen.LocalPartySaveData, len(newCommittee))
+	endedOldCommittee := 0
+	var reSharingEnded int32
+	for {
+		fmt.Printf("ACTIVE GOROUTINES: %d\n", runtime.NumGoroutine())
+		select {
+		case err := <-errCh:
+			common.Logger.Errorf("Error: %s", err)
+			return
+
+		case msg := <-outCh:
+			dest := msg.GetTo()
+			if dest == nil {
+				return
+			}
+			if msg.IsToOldCommittee() || msg.IsToOldAndNewCommittees() {
+				for _, destP := range dest[:len(oldCommittee)] {
+					go updater(oldCommittee[destP.Index], msg, errCh)
+				}
+			}
+			if !msg.IsToOldCommittee() || msg.IsToOldAndNewCommittees() {
+				for _, destP := range dest {
+					go updater(newCommittee[destP.Index], msg, errCh)
+				}
+			}
+
+		case save := <-endCh:
+			// old committee members that aren't receiving a share have their Xi zeroed
+			if save.Xi != nil {
+				index, _ := save.OriginalIndex()
+				newKeys[index] = save
+			} else {
+				endedOldCommittee++
+			}
+			atomic.AddInt32(&reSharingEnded, 1)
+			if atomic.LoadInt32(&reSharingEnded) == int32(len(oldCommittee)+len(newCommittee)) {
+				goto signing
+			}
+		}
+	}
+
+signing:
+	// PHASE: signing
+	signKeys, signPIDs := newKeys, newPIDs
+	signP2pCtx := tss.NewPeerContext(signPIDs)
+	signParties := make([]*tssSign.LocalParty, 0, len(signPIDs))
+
+	signErrCh := make(chan *tss.Error, len(signPIDs))
+	signOutCh := make(chan tss.Message, len(signPIDs))
+	signEndCh := make(chan common.SignatureData, len(signPIDs))
+
+	for j, signPID := range signPIDs {
+		params := tss.NewParameters(tss.S256(), signP2pCtx, signPID, len(signPIDs), newThreshold)
+		P := tssSign.NewLocalParty(big.NewInt(42), params, signKeys[j], signOutCh, signEndCh).(*tssSign.LocalParty)
+		signParties = append(signParties, P)
+		go func(P *tssSign.LocalParty) {
+			if err := P.Start(); err != nil {
+				signErrCh <- err
+			}
+		}(P)
+	}
+
+	var signEnded int32
+	for {
+		select {
+		case err := <-signErrCh:
+			common.Logger.Errorf("Error: %s", err)
+			return
+
+		case msg := <-signOutCh:
+			dest := msg.GetTo()
+			if dest == nil {
+				for _, P := range signParties {
+					if P.PartyID().Index == msg.GetFrom().Index {
+						continue
+					}
+					go updater(P, msg, signErrCh)
+				}
+			} else {
+				if dest[0].Index == msg.GetFrom().Index {
+				}
+				go updater(signParties[dest[0].Index], msg, signErrCh)
+			}
+
+		case signData := <-signEndCh:
+			atomic.AddInt32(&signEnded, 1)
+			if atomic.LoadInt32(&signEnded) == int32(len(signPIDs)) {
+
+				// BEGIN ECDSA verify
+				pkX, pkY := signKeys[0].ECDSAPub.X(), signKeys[0].ECDSAPub.Y()
+				pk := ecdsa.PublicKey{
+					Curve: tss.S256(),
+					X:     pkX,
+					Y:     pkY,
+				}
+				ecdsa.Verify(&pk, big.NewInt(42).Bytes(),
+					new(big.Int).SetBytes(signData.R),
+					new(big.Int).SetBytes(signData.S))
+				return
+			}
+		}
+	}
+
 }
 
 
