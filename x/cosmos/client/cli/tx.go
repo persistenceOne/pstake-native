@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -13,6 +14,11 @@ import (
 	"github.com/persistenceOne/pstake-native/x/cosmos/client/utils"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"github.com/spf13/cobra"
+)
+
+// Proposal flags
+const (
+	flagStatus = "status"
 )
 
 func NewTxCmd() *cobra.Command {
@@ -27,7 +33,7 @@ func NewTxCmd() *cobra.Command {
 	txCmd.AddCommand(
 		NewIncomingTxnCmd(),
 		CmdSetOrchestratorAddress(),
-		//CmdSendNewProposal(),
+		CmdSendNewProposal(),
 		NewCmdVote(),
 		NewCmdWeightedVote(),
 		NewCmdTxStatusCmd(),
@@ -109,47 +115,50 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 	return cmd
 }
 
-//func CmdSendNewProposal() *cobra.Command {
-//	cmd := &cobra.Command{
-//		Use:   "send-proposal [title] [description] [orchestrator-address] [proposal-id] [chain-id] [block-height]",
-//		Short: "Allows orchestrator to send any proposal created on cosmos chain.",
-//		Args:  cobra.ExactArgs(6),
-//		RunE: func(cmd *cobra.Command, args []string) error {
-//
-//			clientCtx, err := client.GetClientTxContext(cmd)
-//			if err != nil {
-//				return err
-//			}
-//
-//			title := args[0]
-//
-//			description := args[1]
-//
-//			orchAddress, err := sdk.AccAddressFromBech32(args[2])
-//			if err != nil {
-//				return err
-//			}
-//
-//			proposalID, err := strconv.ParseInt(args[3], 10, 64)
-//			if err != nil {
-//				return err
-//			}
-//
-//			chainID := args[4]
-//
-//			blockHeight, err := strconv.ParseInt(args[5], 10, 64)
-//			if err != nil {
-//				return err
-//			}
-//
-//			msg := cosmosTypes.NewMsgMakeProposal(title, description, orchAddress, chainID)
-//			//TODO ValidateBasic() for msg
-//			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-//		},
-//	}
-//	flags.AddTxFlagsToCmd(cmd)
-//	return cmd
-//}
+func CmdSendNewProposal() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "send-proposal [title] [description] [orchestrator-address] [proposal-id] [chain-id] [block-height]",
+		Short: "Allows orchestrator to send any proposal created on cosmos chain.",
+		Args:  cobra.ExactArgs(6),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			title := args[0]
+
+			description := args[1]
+
+			orchAddress, err := sdk.AccAddressFromBech32(args[2])
+			if err != nil {
+				return err
+			}
+
+			proposalID, err := strconv.ParseUint(args[3], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			chainID := args[4]
+
+			blockHeight, err := strconv.ParseInt(args[5], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			votingStartTime := time.Now()
+			votingEndTime := votingStartTime.Add(time.Minute * 2)
+
+			msg := cosmosTypes.NewMsgMakeProposal(title, description, orchAddress, chainID, blockHeight, proposalID, votingStartTime, votingEndTime)
+			//TODO ValidateBasic() for msg
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
 
 // NewCmdVote implements creating a new vote command.
 func NewCmdVote() *cobra.Command {

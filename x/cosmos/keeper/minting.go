@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -10,7 +10,7 @@ import (
 //TODO : add mint pool structure as comment
 */
 // add a transaction to minting pool for tallying how many orchs have sent a request for minting
-func (k Keeper) addToMintingPoolTx(ctx sdk.Context, txHash string, destinationAddress sdk.AccAddress, orchestratorAddress sdk.AccAddress, amount sdk.Coins) error {
+func (k Keeper) addToMintingPoolTx(ctx sdkTypes.Context, txHash string, destinationAddress sdkTypes.AccAddress, orchestratorAddress sdkTypes.AccAddress, amount sdkTypes.Coins) error {
 	store := ctx.KVStore(k.storeKey)
 	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
 	key := []byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, amount, txHash))
@@ -41,12 +41,12 @@ func (k Keeper) addToMintingPoolTx(ctx sdk.Context, txHash string, destinationAd
 }
 
 // Fetches the list of items in minting pool
-func (k Keeper) fetchFromMintPoolTx(ctx sdk.Context, keyAndValueForMinting []cosmosTypes.KeyAndValueForMinting) []cosmosTypes.KeyAndValueForMinting {
+func (k Keeper) fetchFromMintPoolTx(ctx sdkTypes.Context, keyAndValueForMinting []cosmosTypes.KeyAndValueForMinting) []cosmosTypes.KeyAndValueForMinting {
 	store := ctx.KVStore(k.storeKey)
 	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
 	totalCount := float32(k.getTotalValidatorOrchestratorCount(ctx))
 	for i := range keyAndValueForMinting {
-		destinationAddress, err := sdk.AccAddressFromBech32(keyAndValueForMinting[i].Value.DestinationAddress)
+		destinationAddress, err := sdkTypes.AccAddressFromBech32(keyAndValueForMinting[i].Value.DestinationAddress)
 		if err != nil {
 			panic("Error in parsing destination address")
 		}
@@ -67,7 +67,7 @@ func (k Keeper) fetchFromMintPoolTx(ctx sdk.Context, keyAndValueForMinting []cos
 }
 
 // deletes an item from mint pool
-func (k Keeper) deleteFromMintPoolTx(ctx sdk.Context, destinationAddress sdk.AccAddress, amount sdk.Coins, txHash string) {
+func (k Keeper) deleteFromMintPoolTx(ctx sdkTypes.Context, destinationAddress sdkTypes.AccAddress, amount sdkTypes.Coins, txHash string) {
 	store := ctx.KVStore(k.storeKey)
 	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
 	mintingPoolStore.Delete([]byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, amount, txHash)))
@@ -77,7 +77,7 @@ func (k Keeper) deleteFromMintPoolTx(ctx sdk.Context, destinationAddress sdk.Acc
 /*
 TODO : Add structure
 */
-func (k Keeper) setMintAddressAndAmount(ctx sdk.Context, chainID string, blockHeight int64, txHash string, destinationAddress sdk.AccAddress, amount sdk.Coins) {
+func (k Keeper) setMintAddressAndAmount(ctx sdkTypes.Context, chainID string, blockHeight int64, txHash string, destinationAddress sdkTypes.AccAddress, amount sdkTypes.Coins) {
 	store := ctx.KVStore(k.storeKey)
 	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
 
@@ -98,7 +98,7 @@ func (k Keeper) setMintAddressAndAmount(ctx sdk.Context, chainID string, blockHe
 
 }
 
-func (k Keeper) getAllMintAddressAndAmount(ctx sdk.Context) (list []cosmosTypes.KeyAndValueForMinting, err error) {
+func (k Keeper) getAllMintAddressAndAmount(ctx sdkTypes.Context) (list []cosmosTypes.KeyAndValueForMinting, err error) {
 	store := ctx.KVStore(k.storeKey)
 	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
 
@@ -129,7 +129,7 @@ func (k Keeper) getAllMintAddressAndAmount(ctx sdk.Context) (list []cosmosTypes.
 	return list, nil
 }
 
-func (k Keeper) deleteMintedAddressAndAmountKeys(ctx sdk.Context, keyHash cosmosTypes.ChainIDHeightAndTxHashKey) {
+func (k Keeper) deleteMintedAddressAndAmountKeys(ctx sdkTypes.Context, keyHash cosmosTypes.ChainIDHeightAndTxHashKey) {
 	store := ctx.KVStore(k.storeKey)
 	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
 
@@ -142,7 +142,7 @@ func (k Keeper) deleteMintedAddressAndAmountKeys(ctx sdk.Context, keyHash cosmos
 	mintAddressAndAmountStore.Delete(key)
 }
 
-func (k Keeper) setMintedFlagTrue(ctx sdk.Context, keyHash cosmosTypes.ChainIDHeightAndTxHashKey) {
+func (k Keeper) setMintedFlagTrue(ctx sdkTypes.Context, keyHash cosmosTypes.ChainIDHeightAndTxHashKey) {
 	store := ctx.KVStore(k.storeKey)
 	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
 
@@ -168,7 +168,7 @@ func (k Keeper) setMintedFlagTrue(ctx sdk.Context, keyHash cosmosTypes.ChainIDHe
 	mintAddressAndAmountStore.Set(key, bz)
 }
 
-func (k Keeper) setAcknowledgmentFlagTrue(ctx sdk.Context, keyHash cosmosTypes.ChainIDHeightAndTxHashKey) {
+func (k Keeper) setAcknowledgmentFlagTrue(ctx sdkTypes.Context, keyHash cosmosTypes.ChainIDHeightAndTxHashKey) {
 	store := ctx.KVStore(k.storeKey)
 	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
 
@@ -197,7 +197,7 @@ func (k Keeper) setAcknowledgmentFlagTrue(ctx sdk.Context, keyHash cosmosTypes.C
 //______________________________________________________________________________________________
 
 // ProcessAllMintingTransactions Process all minting transactions
-func (k Keeper) ProcessAllMintingTransactions(ctx sdk.Context) error {
+func (k Keeper) ProcessAllMintingTransactions(ctx sdkTypes.Context) error {
 	listNew, err := k.getAllMintAddressAndAmount(ctx)
 	if err != nil {
 		return err
@@ -221,7 +221,7 @@ func (k Keeper) ProcessAllMintingTransactions(ctx sdk.Context) error {
 
 		if addressToMintTokens.Value.NativeBlockHeight+cosmosTypes.StorageWindow < ctx.BlockHeight() {
 			k.deleteMintedAddressAndAmountKeys(ctx, addressToMintTokens.Key)
-			destinationAddress, err := sdk.AccAddressFromBech32(addressToMintTokens.Value.DestinationAddress)
+			destinationAddress, err := sdkTypes.AccAddressFromBech32(addressToMintTokens.Value.DestinationAddress)
 			if err != nil {
 				return err
 			}

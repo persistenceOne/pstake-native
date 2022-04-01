@@ -38,3 +38,17 @@ func NormalizeWeightedVoteOptions(options string) string {
 	}
 	return strings.Join(newOptions, ",")
 }
+
+// NormalizeProposalStatus - normalize user specified proposal status.
+func NormalizeProposalStatus(status string) string {
+	switch status {
+	case "VotingPeriod", "voting_period":
+		return cosmosTypes.StatusVotingPeriod.String()
+	case "Passed", "passed":
+		return cosmosTypes.StatusPassed.String()
+	case "Rejected", "rejected":
+		return cosmosTypes.StatusRejected.String()
+	default:
+		return status
+	}
+}

@@ -51,7 +51,7 @@ message KeyAndValueForMinting {
 message ProposalKey {
   string chain_i_d = 1;
   int64 block_height = 2;
-  int64 proposal_i_d = 3;
+  uint64 proposal_i_d = 3;
 }
 
 message ProposalValue {
@@ -62,13 +62,14 @@ message ProposalValue {
   int64 counter = 5;
   bool proposal_posted = 6;
   int64 block_height = 7;
-  google.protobuf.Timestamp voting_start_time = 8 [
+  uint64 cosmos_proposal_i_d = 8;
+  google.protobuf.Timestamp voting_start_time = 9 [
     (gogoproto.nullable) = false,
     (gogoproto.stdtime) = true,
     (gogoproto.jsontag) = "voting_start_time,omitempty",
     (gogoproto.moretags) = "yaml:\"voting_start_time\""
   ];
-  google.protobuf.Timestamp voting_end_time = 9 [
+  google.protobuf.Timestamp voting_end_time = 10 [
     (gogoproto.nullable) = false,
     (gogoproto.stdtime) = true,
     (gogoproto.jsontag) = "voting_end_time,omitempty",

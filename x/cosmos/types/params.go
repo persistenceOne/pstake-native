@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	DefaultPeriod time.Duration = time.Hour * 6 // 26 hours
+	DefaultPeriod time.Duration = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
 )
 
 var (
@@ -45,10 +45,10 @@ func NewParams(minMintingAmount uint64, maxMintingAmount uint64, minBurningAmoun
 		ValidatorSetCosmosChain:           validatorSetCosmosChain,
 		ValidatorSetNativeChain:           validatorSetNativeChain,
 		WeightedDeveloperRewardsReceivers: weightedDeveloperRewardsReceivers,
-		//DistributionProportion:            distributionProportion,
-		Epochs:                     epochs,
-		MaxIncomingAndOutgoingTxns: maxIncomingAndOutgoingTxns,
-		CosmosProposalParams:       cosmosProposalParams,
+		DistributionProportion:            distributionProportion,
+		Epochs:                            epochs,
+		MaxIncomingAndOutgoingTxns:        maxIncomingAndOutgoingTxns,
+		CosmosProposalParams:              cosmosProposalParams,
 	}
 }
 
@@ -67,10 +67,10 @@ func DefaultParams() Params {
 		},
 		ValidatorSetNativeChain:           []WeightedAddress{},
 		WeightedDeveloperRewardsReceivers: []WeightedAddress{},
-		//DistributionProportion: DistributionProportions{
-		//	ValidatorRewards: sdk.NewDecWithPrec(7, 2),
-		//	DeveloperRewards: sdk.NewDecWithPrec(3, 2),
-		//},
+		DistributionProportion: DistributionProportions{
+			ValidatorRewards: sdk.NewDecWithPrec(7, 2),
+			DeveloperRewards: sdk.NewDecWithPrec(3, 2),
+		},
 		Epochs:                     5000,
 		MaxIncomingAndOutgoingTxns: 10000,
 		CosmosProposalParams: CosmosChainProposalParams{

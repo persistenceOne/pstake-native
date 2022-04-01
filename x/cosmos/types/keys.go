@@ -8,14 +8,14 @@ package types
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"github.com/cosmos/cosmos-sdk/types/address"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 	"strconv"
 	"strings"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
 const (
@@ -37,6 +37,9 @@ const (
 	// QueryParameters Query endpoints supported by the cosmos querier
 	QueryParameters = "parameters"
 	QueryTxByID     = "byTxID"
+	QueryProposal   = "proposal"
+	QueryVote       = "vote"
+	QueryVotes      = "votes"
 
 	MintDenom  = "pstake" //TODO shift to params
 	StakeDenom = "uatom"  //TODO shift to params
@@ -90,8 +93,8 @@ func ConvertByteArrToString(value []byte) string {
 	return ret.String()
 }
 
-func GetOrchestratorAddressKey(orc sdk.AccAddress) string {
-	if err := sdk.VerifyAddressFormat(orc); err != nil {
+func GetOrchestratorAddressKey(orc sdkTypes.AccAddress) string {
+	if err := sdkTypes.VerifyAddressFormat(orc); err != nil {
 		panic(sdkErrors.Wrap(err, "invalid orchestrator address"))
 	}
 	return KeyOrchestratorAddress + string(orc.Bytes())
@@ -101,7 +104,7 @@ func GetChainIDTxHashBlockHeightKey(chainID string, blockHeight int64, txHash st
 	return chainID + strconv.FormatInt(blockHeight, 10) + txHash
 }
 
-func GetOutgoingTxPoolKey(fee sdk.Coin, id uint64) string {
+func GetOutgoingTxPoolKey(fee sdkTypes.Coin, id uint64) string {
 	// sdkInts have a size limit of 255 bits or 32 bytes
 	// therefore this will never panic and is always safe
 	amount := make([]byte, 32)
@@ -112,7 +115,7 @@ func GetOutgoingTxPoolKey(fee sdk.Coin, id uint64) string {
 	return ConvertByteArrToString(b)
 }
 
-func GetDestinationAddressAmountAndTxHashKey(destinationAddress sdk.AccAddress, coins sdk.Coins, txHash string) string {
+func GetDestinationAddressAmountAndTxHashKey(destinationAddress sdkTypes.AccAddress, coins sdkTypes.Coins, txHash string) string {
 	amount := make([]byte, 32)
 	amount = []byte(coins[0].Amount.String())
 
@@ -145,11 +148,11 @@ func ActiveProposalQueueKey(proposalID uint64, endTime time.Time) []byte {
 
 // ActiveProposalByTimeKey gets the active proposal queue key by endTime
 func ActiveProposalByTimeKey(endTime time.Time) []byte {
-	return append(ActiveProposalQueuePrefix, sdk.FormatTimeBytes(endTime)...)
+	return append(ActiveProposalQueuePrefix, sdkTypes.FormatTimeBytes(endTime)...)
 }
 
 // VoteKey key of a specific vote from the store
-func VoteKey(proposalID uint64, voterAddr sdk.AccAddress) []byte {
+func VoteKey(proposalID uint64, voterAddr sdkTypes.AccAddress) []byte {
 	return append(VotesKey(proposalID), address.MustLengthPrefix(voterAddr.Bytes())...)
 }
 

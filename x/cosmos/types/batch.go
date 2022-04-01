@@ -1,19 +1,19 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"time"
+
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 )
 
-//TODO : Impl functions related to batch
-func NewIncomingMintTx(orchestratorAddress sdk.AccAddress, counter uint64) IncomingMintTx {
+func NewIncomingMintTx(orchestratorAddress sdkTypes.AccAddress, counter uint64) IncomingMintTx {
 	return IncomingMintTx{
 		OrchAddresses: []string{orchestratorAddress.String()},
 		Counter:       counter,
 	}
 }
 
-func NewAddressAndAmount(destinationAddress sdk.AccAddress, amount sdk.Coins, nativeBlockHeight int64) AddressAndAmountKey {
+func NewAddressAndAmount(destinationAddress sdkTypes.AccAddress, amount sdkTypes.Coins, nativeBlockHeight int64) AddressAndAmountKey {
 	return AddressAndAmountKey{
 		DestinationAddress: destinationAddress.String(),
 		Amount:             amount,
@@ -31,7 +31,7 @@ func NewChainIDHeightAndTxHash(chainID string, blockHeight int64, txHash string)
 	}
 }
 
-func NewProposalKey(chainID string, blockHeight int64, proposalID int64) ProposalKey {
+func NewProposalKey(chainID string, blockHeight int64, proposalID uint64) ProposalKey {
 	return ProposalKey{
 		ChainID:     chainID,
 		BlockHeight: blockHeight,
@@ -39,7 +39,7 @@ func NewProposalKey(chainID string, blockHeight int64, proposalID int64) Proposa
 	}
 }
 
-func NewProposalValue(title string, description string, orchAddress string, ratio float32, votingStartTime time.Time, votingEndTime time.Time) ProposalValue {
+func NewProposalValue(title string, description string, orchAddress string, ratio float32, votingStartTime time.Time, votingEndTime time.Time, cosmosProposalID uint64) ProposalValue {
 	return ProposalValue{
 		Title:                 title,
 		Description:           description,
@@ -49,10 +49,11 @@ func NewProposalValue(title string, description string, orchAddress string, rati
 		ProposalPosted:        false,
 		VotingStartTime:       votingStartTime,
 		VotingEndTime:         votingEndTime,
+		CosmosProposalID:      cosmosProposalID,
 	}
 }
 
-func NewTxHashValue(txId uint64, orchestratorAddress sdk.AccAddress, ratio float32, status string, nativeBlockHeight int64, activeBlockHeight int64) TxHashValue {
+func NewTxHashValue(txId uint64, orchestratorAddress sdkTypes.AccAddress, ratio float32, status string, nativeBlockHeight int64, activeBlockHeight int64) TxHashValue {
 	return TxHashValue{
 		TxID:                  txId,
 		OrchestratorAddresses: []string{orchestratorAddress.String()},

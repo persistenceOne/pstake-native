@@ -2,13 +2,14 @@ package keeper
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/armon/go-metrics"
-	"github.com/cosmos/cosmos-sdk/telemetry"
+	sdkTelemetry "github.com/cosmos/cosmos-sdk/telemetry"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	"strconv"
 )
 
 type msgServer struct {
@@ -180,16 +181,22 @@ func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTyp
 	if accErr != nil {
 		return nil, accErr
 	}
-	err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, cosmosTypes.NewNonSplitVoteOption(msg.Option))
-	if err != nil {
-		return nil, err
+
+	_, found := k.GetOrchestratorValidator(ctx, accAddr)
+	if found {
+		err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, cosmosTypes.NewNonSplitVoteOption(msg.Option))
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, cosmosTypes.ErrInvalidVote
 	}
 
-	defer telemetry.IncrCounterWithLabels(
+	defer sdkTelemetry.IncrCounterWithLabels(
 		[]string{cosmosTypes.ModuleName, "vote"},
 		1,
 		[]metrics.Label{
-			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
+			sdkTelemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
 		},
 	)
 
@@ -209,16 +216,21 @@ func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeigh
 	if accErr != nil {
 		return nil, accErr
 	}
-	err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, msg.Options)
-	if err != nil {
-		return nil, err
+
+	if _, found := k.GetOrchestratorValidator(ctx, accAddr); found {
+		err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, msg.Options)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, cosmosTypes.ErrInvalidVote
 	}
 
-	defer telemetry.IncrCounterWithLabels(
+	defer sdkTelemetry.IncrCounterWithLabels(
 		[]string{cosmosTypes.ModuleName, "vote"},
 		1,
 		[]metrics.Label{
-			telemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
+			sdkTelemetry.NewLabel("proposal_id", strconv.Itoa(int(msg.ProposalId))),
 		},
 	)
 

@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/v1beta1/cosmos.proto";
 import "cosmos/v1beta1/batch.proto";
+import "cosmos/v1beta1/proposal.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -14,18 +15,32 @@ service Query {
   rpc QueryParams(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/pstake/cosmos/v1beta1/params";
   }
+
+  //Outgoing tx query
   rpc QueryTxByID(QueryOutgoingTxByIDRequest) returns (QueryOutgoingTxByIDResponse) {
     option (google.api.http).get = "/pstake/cosmos/v1beta1/txByID";
   }
+
+  //Gov queries
+  rpc Proposal(QueryProposalRequest) returns (QueryProposalResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/proposals/{proposal_id}";
+  }
+  rpc Proposals(QueryProposalsRequest) returns (QueryProposalsResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/proposals";
+  }
+  rpc Vote(QueryVoteRequest) returns (QueryVoteResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/proposals/{proposal_id}/votes/{voter}";
+  }
+  rpc Votes(QueryVotesRequest) returns (QueryVotesResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/proposals/{proposal_id}/votes";
+  }
+
 }
 
-// QueryParamsRequest is the request type for the Query/Params RPC method.
 message QueryParamsRequest {}
 
-// QueryParamsResponse is the response type for the Query/Params RPC method.
 message QueryParamsResponse {
-  // params defines the parameters of the module.
-  Params params = 1 [ (gogoproto.nullable) = false ];
+  Params params = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryOutgoingTxByIDRequest {
@@ -33,4 +48,46 @@ message QueryOutgoingTxByIDRequest {
 }
 message QueryOutgoingTxByIDResponse {
   CosmosTx cosmos_tx_details = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryProposalRequest {
+  uint64 proposal_id = 1;
+}
+
+message QueryProposalResponse {
+  Proposal proposal = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryProposalsRequest {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  ProposalStatus proposal_status = 1;
+  string pagination = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types/query.PageRequest"];
+}
+
+message QueryProposalsResponse {
+  repeated Proposal proposals = 1 [(gogoproto.nullable) = false];
+  string pagination = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types/query.PageResponse"];
+}
+
+message QueryVoteRequest {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 proposal_id = 1;
+  string voter = 2;
+}
+
+message QueryVoteResponse {
+  Vote vote = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryVotesRequest {
+  uint64 proposal_id = 1;
+  string pagination = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types/query.PageRequest"];
+}
+
+message QueryVotesResponse {
+  repeated Vote votes = 1 [(gogoproto.nullable) = false];
+  string pagination = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types/query.PageResponse"];
 }

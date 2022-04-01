@@ -326,7 +326,7 @@ func (m *MsgMintTokensForAccount) GetSigners() []sdk.AccAddress {
 
 // NewMsgMakeProposal returns a new MsgMakeProposal
 func NewMsgMakeProposal(title string, description string, orchestratorAddress sdk.AccAddress, chainID string,
-	blockHeight int64, proposalID int64, votingStartTime time.Time, votingEndTime time.Time) *MsgMakeProposal {
+	blockHeight int64, proposalID uint64, votingStartTime time.Time, votingEndTime time.Time) *MsgMakeProposal {
 	return &MsgMakeProposal{
 		Title:               title,
 		Description:         description,

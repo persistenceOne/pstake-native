@@ -1,13 +1,9 @@
 package keeper
 
 import (
-	"time"
-
-	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -24,8 +20,7 @@ func (k Keeper) SetOrchestratorValidator(ctx sdkTypes.Context, val sdkTypes.ValA
 	orchestratorValidatorStore.Set([]byte(cosmosTypes.GetOrchestratorAddressKey(orch)), val.Bytes())
 }
 
-func (k Keeper) GetOrchestratorValidator(ctx sdkTypes.Context, orch sdkTypes.AccAddress) (validator stakingTypes.Validator, found bool) {
-	//TODO keep necessary information
+func (k Keeper) GetOrchestratorValidator(ctx sdkTypes.Context, orch sdkTypes.AccAddress) (validator sdkTypes.ValAddress, found bool) {
 	if err := sdkTypes.VerifyAddressFormat(orch); err != nil {
 		ctx.Logger().Error("invalid orch address")
 		return validator, false
@@ -33,77 +28,10 @@ func (k Keeper) GetOrchestratorValidator(ctx sdkTypes.Context, orch sdkTypes.Acc
 	store := ctx.KVStore(k.storeKey)
 	orchestratorValidatorStore := prefix.NewStore(store, []byte(cosmosTypes.OrchestratorValidatorStoreKey))
 	valAddr := orchestratorValidatorStore.Get([]byte(cosmosTypes.GetOrchestratorAddressKey(orch)))
-	if valAddr == nil {
-		return stakingTypes.Validator{
-			OperatorAddress: "",
-			ConsensusPubkey: &codecTypes.Any{
-				TypeUrl:              "",
-				Value:                []byte{},
-				XXX_NoUnkeyedLiteral: struct{}{},
-				XXX_unrecognized:     []byte{},
-				XXX_sizecache:        0,
-			},
-			Jailed:          false,
-			Status:          0,
-			Tokens:          sdkTypes.Int{},
-			DelegatorShares: sdkTypes.Dec{},
-			Description: stakingTypes.Description{
-				Moniker:         "",
-				Identity:        "",
-				Website:         "",
-				SecurityContact: "",
-				Details:         "",
-			},
-			UnbondingHeight: 0,
-			UnbondingTime:   time.Time{},
-			Commission: stakingTypes.Commission{
-				CommissionRates: stakingTypes.CommissionRates{
-					Rate:          sdkTypes.Dec{},
-					MaxRate:       sdkTypes.Dec{},
-					MaxChangeRate: sdkTypes.Dec{},
-				},
-				UpdateTime: time.Time{},
-			},
-			MinSelfDelegation: sdkTypes.Int{},
-		}, false
-	}
-	validator, found = k.stakingKeeper.GetValidator(ctx, valAddr)
-	if !found {
-		return stakingTypes.Validator{
-			OperatorAddress: "",
-			ConsensusPubkey: &codecTypes.Any{
-				TypeUrl:              "",
-				Value:                []byte{},
-				XXX_NoUnkeyedLiteral: struct{}{},
-				XXX_unrecognized:     []byte{},
-				XXX_sizecache:        0,
-			},
-			Jailed:          false,
-			Status:          0,
-			Tokens:          sdkTypes.Int{},
-			DelegatorShares: sdkTypes.Dec{},
-			Description: stakingTypes.Description{
-				Moniker:         "",
-				Identity:        "",
-				Website:         "",
-				SecurityContact: "",
-				Details:         "",
-			},
-			UnbondingHeight: 0,
-			UnbondingTime:   time.Time{},
-			Commission: stakingTypes.Commission{
-				CommissionRates: stakingTypes.CommissionRates{
-					Rate:          sdkTypes.Dec{},
-					MaxRate:       sdkTypes.Dec{},
-					MaxChangeRate: sdkTypes.Dec{},
-				},
-				UpdateTime: time.Time{},
-			},
-			MinSelfDelegation: sdkTypes.Int{},
-		}, false
-	}
+	validatorDetails, found := k.stakingKeeper.GetValidator(ctx, valAddr)
+	validator = sdkTypes.ValAddress(validatorDetails.OperatorAddress)
 
-	return validator, true
+	return validator, found
 }
 
 // gets the count of total validator and orchestrator mappings for ratio calculation
