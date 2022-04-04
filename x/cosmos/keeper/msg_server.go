@@ -28,6 +28,12 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 		return nil, sdkErrors.Wrap(err, "Key not valid")
 	}
 	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	//Accept transaction if module is enabled
+	if !k.GetParams(ctx).ModuleEnabled {
+		return nil, cosmosTypes.ErrModuleNotEnabled
+	}
+
 	validator, e1 := sdkTypes.ValAddressFromBech32(msg.Validator)
 	orchestrator, e2 := sdkTypes.AccAddressFromBech32(msg.Orchestrator)
 	if e1 != nil || e2 != nil {
@@ -65,6 +71,11 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 // Send TODO Modify outgoing pool
 func (k msgServer) Send(c context.Context, msg *cosmosTypes.MsgSendWithFees) (*cosmosTypes.MsgSendWithFeesResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	//Accept transaction if module is enabled
+	if !k.GetParams(ctx).ModuleEnabled {
+		return nil, cosmosTypes.ErrModuleNotEnabled
+	}
 
 	from, err := sdkTypes.AccAddressFromBech32(msg.MessageSend.FromAddress)
 	if err != nil {
@@ -108,6 +119,11 @@ func (k msgServer) Send(c context.Context, msg *cosmosTypes.MsgSendWithFees) (*c
 
 func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgMintTokensForAccount) (*cosmosTypes.MsgMintTokensForAccountResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	//Accept transaction if module is enabled
+	if !k.GetParams(ctx).ModuleEnabled {
+		return nil, cosmosTypes.ErrModuleNotEnabled
+	}
 
 	destinationAddress, err := sdkTypes.AccAddressFromBech32(msg.AddressFromMemo)
 	if err != nil {
@@ -155,6 +171,11 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakeProposal) (*cosmosTypes.MsgMakeProposalResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
+	//Accept transaction if module is enabled
+	if !k.GetParams(ctx).ModuleEnabled {
+		return nil, cosmosTypes.ErrModuleNotEnabled
+	}
+
 	orchestratorAddress, err := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
 	if err != nil {
 		return nil, err
@@ -177,6 +198,12 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 
 func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTypes.MsgVoteResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	//Accept transaction if module is enabled
+	if !k.GetParams(ctx).ModuleEnabled {
+		return nil, cosmosTypes.ErrModuleNotEnabled
+	}
+
 	accAddr, accErr := sdkTypes.AccAddressFromBech32(msg.Voter)
 	if accErr != nil {
 		return nil, accErr
@@ -212,6 +239,12 @@ func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTyp
 
 func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeighted) (*cosmosTypes.MsgVoteWeightedResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	//Accept transaction if module is enabled
+	if !k.GetParams(ctx).ModuleEnabled {
+		return nil, cosmosTypes.ErrModuleNotEnabled
+	}
+
 	accAddr, accErr := sdkTypes.AccAddressFromBech32(msg.Voter)
 	if accErr != nil {
 		return nil, accErr
@@ -248,6 +281,12 @@ func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeigh
 // SignedTxFromOrchestrator Receives a signed txn from orchestrator and updates the details
 func (k msgServer) SignedTxFromOrchestrator(c context.Context, msg *cosmosTypes.MsgSignedTx) (*cosmosTypes.MsgSignedTxResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	//Accept transaction if module is enabled
+	if !k.GetParams(ctx).ModuleEnabled {
+		return nil, cosmosTypes.ErrModuleNotEnabled
+	}
+
 	orchAddr, orchErr := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
 	if orchErr != nil {
 		return nil, orchErr
@@ -288,6 +327,12 @@ func (k msgServer) SignedTxFromOrchestrator(c context.Context, msg *cosmosTypes.
 // Failure only to be sent when transaction fails due to insufficient fees
 func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*cosmosTypes.MsgTxStatusResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	//Accept transaction if module is enabled
+	if !k.GetParams(ctx).ModuleEnabled {
+		return nil, cosmosTypes.ErrModuleNotEnabled
+	}
+
 	orchAddr, orchErr := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
 	if orchErr != nil {
 		return nil, orchErr

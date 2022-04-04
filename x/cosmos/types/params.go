@@ -27,6 +27,8 @@ var (
 	KeyEpochs                            = []byte("Epochs")
 	KeyMaxIncomingAndOutgoingTxns        = []byte("MaxIncomingAndOutgoingTxns")
 	KeyCosmosProposalParams              = []byte("CosmosProposalParams")
+	KeyDelegationThreshold               = []byte("DelegationThreshold")
+	KeyModuleEnabled                     = []byte("ModuleEnabled")
 )
 
 func ParamKeyTable() paramsTypes.KeyTable {
@@ -99,6 +101,7 @@ func DefaultParams() Params {
 			ReduceVotingPeriodBy: DefaultPeriod,
 		},
 		DelegationThreshold: sdk.NewInt64Coin(StakeDenom, 2000000000),
+		ModuleEnabled:       false,
 	}
 }
 
@@ -139,6 +142,12 @@ func (p Params) Validate() error {
 	if err := validateCosmosProposalParams(p.CosmosProposalParams); err != nil {
 		return err
 	}
+	if err := validateDelegationThreshold(p.DelegationThreshold); err != nil {
+		return err
+	}
+	if err := validateModuleEnabled(p.ModuleEnabled); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -161,6 +170,8 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyEpochs, &p.Epochs, validateEpochs),
 		paramsTypes.NewParamSetPair(KeyMaxIncomingAndOutgoingTxns, &p.MaxIncomingAndOutgoingTxns, validateMaxIncomingAndOutgoingTxns),
 		paramsTypes.NewParamSetPair(KeyCosmosProposalParams, &p.CosmosProposalParams, validateCosmosProposalParams),
+		paramsTypes.NewParamSetPair(KeyDelegationThreshold, &p.DelegationThreshold, validateDelegationThreshold),
+		paramsTypes.NewParamSetPair(KeyModuleEnabled, &p.ModuleEnabled, validateModuleEnabled),
 	}
 }
 
@@ -247,6 +258,12 @@ func validateValidatorSetCosmosChain(i interface{}) error {
 			return fmt.Errorf("more than 1 weight at %dth", i)
 		}
 		weightSum = weightSum.Add(w.Weight)
+		if w.CurrentDelegatedAmount.IsNegative() {
+			return fmt.Errorf("non-positive current delegation amount at %dth", i)
+		}
+		if w.IdealDelegatedAmount.IsNegative() {
+			return fmt.Errorf("non-positive ideal delegated amount at %dth", i)
+		}
 	}
 
 	if !weightSum.Equal(sdk.NewDec(1)) {
@@ -391,5 +408,27 @@ func validateCosmosProposalParams(i interface{}) error {
 		return fmt.Errorf("incorrect voting Period %T", i)
 	}
 
+	return nil
+}
+
+func validateDelegationThreshold(i interface{}) error {
+	v, ok := i.(sdk.Coin)
+
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.IsNegative() {
+		return fmt.Errorf("delegation threshold cannot be negative")
+	}
+	return nil
+}
+
+func validateModuleEnabled(i interface{}) error {
+	_, ok := i.(bool)
+
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
 	return nil
 }

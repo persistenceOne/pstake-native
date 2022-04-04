@@ -98,8 +98,9 @@ message Params {
   CosmosChainProposalParams cosmos_proposal_params = 13 [(gogoproto.moretags) = "yaml:\"cosmos_proposal_params\"", (gogoproto.nullable) = false];
   string custodial_address = 14[(gogoproto.moretags) = "yaml:\"custodial_address\""];
   string delegation_threshold = 15 [
-    (gogoproto.moretags) = "yaml:\"min_minting_amount\"",
+    (gogoproto.moretags) = "yaml:\"delegation_threshold\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
     (gogoproto.nullable) = false
   ];
+  bool module_enabled = 16;
 }

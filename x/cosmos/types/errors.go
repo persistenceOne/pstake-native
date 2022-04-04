@@ -17,4 +17,5 @@ var (
 	ErrTxnNotPresentInOutgoingPool = sdkErrors.Register(ModuleName, 52, "txn not present in outgoing pool")
 	ErrInvalidStatus               = sdkErrors.Register(ModuleName, 54, "invalid status type")
 	ErrTxnDetailsAlreadySent       = sdkErrors.Register(ModuleName, 55, "txn signed details already present")
+	ErrModuleNotEnabled            = sdkErrors.Register(ModuleName, 56, "module not enabled")
 )
