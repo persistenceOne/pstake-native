@@ -6,8 +6,32 @@ option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 
-message WeightedAddress {
+message WeightedAddressCosmos {
   string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+  string weight = 2 [
+    (gogoproto.moretags) = "yaml:\"weight\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string current_delegated_amount = 3 [
+    (gogoproto.moretags) = "yaml:\"current_delegated_amount\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false
+  ];
+  string ideal_delegated_amount = 4 [
+    (gogoproto.moretags) = "yaml:\"ideal_delegated_amount\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false
+  ];
+  string difference = 5 [
+    (gogoproto.moretags) = "yaml:\"difference\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message WeightedAddress {
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
   string weight = 2 [
     (gogoproto.moretags) = "yaml:\"weight\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
@@ -44,16 +68,38 @@ message Params {
   option (gogoproto.goproto_stringer) = false;
 
   string mint_denom = 1 [(gogoproto.moretags) = "yaml:\"mintDenom\""];
-  uint64 min_minting_amount = 2 [(gogoproto.moretags) = "yaml:\"minMintingAmount\""];
-  uint64 max_minting_amount = 3 [(gogoproto.moretags) = "yaml:\"maxMintingAmount\""];
-  uint64 min_burning_amount = 4 [(gogoproto.moretags) = "yaml:\"minBurningAmount\""];
-  uint64 max_burning_amount = 5 [(gogoproto.moretags) = "yaml:\"maxBurningAmount\""];
+  string min_minting_amount = 2 [
+    (gogoproto.moretags) = "yaml:\"min_minting_amount\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false
+  ];
+  string max_minting_amount = 3 [
+    (gogoproto.moretags) = "yaml:\"min_minting_amount\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false
+  ];
+  string min_burning_amount = 4 [
+    (gogoproto.moretags) = "yaml:\"min_minting_amount\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false
+  ];
+  string max_burning_amount = 5 [
+    (gogoproto.moretags) = "yaml:\"min_minting_amount\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false
+  ];
   uint64 max_validator_to_delegate = 6 [(gogoproto.moretags) = "yaml:\"maxValidatorToDelegate\""];
-  repeated WeightedAddress validator_set_cosmos_chain = 7 [(gogoproto.moretags) = "yaml:\"validatorSetCosmosChain\"", (gogoproto.nullable) = false];
+  repeated WeightedAddressCosmos validator_set_cosmos_chain = 7 [(gogoproto.moretags) = "yaml:\"validatorSetCosmosChain\"", (gogoproto.nullable) = false];
   repeated WeightedAddress validator_set_native_chain = 8 [(gogoproto.moretags) = "yaml:\"validatorSetNativeChain\"", (gogoproto.nullable) = false];
   repeated WeightedAddress weighted_developer_rewards_receivers = 9 [(gogoproto.moretags) = "yaml:\"weightedDeveloperRewardsReceivers\"", (gogoproto.nullable) = false];
   DistributionProportions distribution_proportion = 10 [(gogoproto.moretags) = "yaml:\"weightedDeveloperRewardsReceivers\"", (gogoproto.nullable) = false];
   int64 epochs = 11 [(gogoproto.moretags) = "yaml:\"epochs\""];
   int64 max_incoming_and_outgoing_txns = 12 [(gogoproto.moretags) = "yaml:\"maxIncomingAndOutgoingTxns\""];
   CosmosChainProposalParams cosmos_proposal_params = 13 [(gogoproto.moretags) = "yaml:\"cosmos_proposal_params\"", (gogoproto.nullable) = false];
+  string custodial_address = 14[(gogoproto.moretags) = "yaml:\"custodial_address\""];
+  string delegation_threshold = 15 [
+    (gogoproto.moretags) = "yaml:\"min_minting_amount\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false
+  ];
 }

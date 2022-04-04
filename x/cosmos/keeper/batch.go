@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -192,7 +193,7 @@ func (k Keeper) retryTransactionWithDoubleGas(ctx sdk.Context, txDetails cosmosT
 func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 	list, err := k.getAllTxHashAndDetails(ctx)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	for _, element := range list {
 		majorityStatus := FindMajority(element.Details.Status)
@@ -208,6 +209,14 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 				if majorityStatus == "failure" {
 					k.retryTransactionWithDoubleGas(ctx, txDetails, element.Details.TxID, element.TxHash)
 				}
+				if majorityStatus == "success" {
+					msgs := txDetails.CosmosTxDetails.Tx.GetMsgs()
+					switch msgs[0].(type) {
+					case *types.MsgDelegate:
+						k.updateCosmosValidatorStakingParams(ctx, msgs)
+					}
+				}
+
 			}
 			if txDetails.CosmosTxDetails.ActiveBlockHeight >= ctx.BlockHeight() {
 				k.removeTxnDetailsByID(ctx, element.Details.TxID)

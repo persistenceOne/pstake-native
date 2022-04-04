@@ -148,19 +148,20 @@ func prefixRange(prefix []byte) ([]byte, []byte) {
 
 func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, key cosmosTypes.ChainIDHeightAndTxHashKey, value cosmosTypes.AddressAndAmountKey) error {
 	//TODO incorporate minting_ratio
-	destinationAddress, err := sdkTypes.AccAddressFromBech32(value.DestinationAddress)
-	if err != nil {
-		return err
+	if value.Amount.AmountOf("uatom").LT(k.GetParams(ctx).MinMintingAmount.Amount) && value.Amount.AmountOf("uatom").GT(k.GetParams(ctx).MaxMintingAmount.Amount) {
+		destinationAddress, err := sdkTypes.AccAddressFromBech32(value.DestinationAddress)
+		if err != nil {
+			return err
+		}
+		err = k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, value.Amount)
+		if err != nil {
+			return err
+		}
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, cosmosTypes.ModuleName, destinationAddress, value.Amount)
+		if err != nil {
+			return err
+		}
 	}
-	err = k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, value.Amount)
-	if err != nil {
-		return err
-	}
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, cosmosTypes.ModuleName, destinationAddress, value.Amount)
-	if err != nil {
-		return err
-	}
-
 	k.setMintedFlagTrue(ctx, key)
 	return nil
 }

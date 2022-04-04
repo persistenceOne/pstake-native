@@ -61,6 +61,11 @@ var (
 	// KeyLastTXPoolID indexes the lastTxPoolID
 	KeyLastTXPoolID = SequenceKeyPrefix + "lastTxPoolId"
 
+	//indexes the cosmos validator details
+	KeyCosmosValidatorSet = "cosmosValidatorSet"
+
+	KeyTotalDelegationTillDate = "totalDelegationTillDate"
+
 	// OutgoingTXPoolKey indexes the last nonce for the outgoing tx pool
 	OutgoingTXPoolKey = "OutgoingTXPoolKey"
 

@@ -14,16 +14,16 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, keyAndValue cosmo
 	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 
 	//fetches validator set for delegation on cosmos chain
-	validatorSet := k.GetParams(ctx).ValidatorSetCosmosChain
+	validatorSet := k.fetchValidatorsToDelegate(ctx, keyAndValue.Value.Amount)
 
 	//create messages for delegation on cosmos chain
 	var delegateMsgs []*codecTypes.Any
 	for _, validator := range validatorSet {
-		amount := sdk.NewCoin(cosmosTypes.StakeDenom, keyAndValue.Value.Amount.AmountOf(cosmosTypes.MintDenom).ToDec().Mul(validator.Weight).TruncateInt())
+		//amount := sdk.NewCoin(cosmosTypes.StakeDenom, keyAndValue.Value.Amount.AmountOf(cosmosTypes.MintDenom).ToDec().Mul(validator.Weight).TruncateInt())
 		msg := stakingTypes.MsgDelegate{
 			DelegatorAddress: "cosmos15vm0p2x990762txvsrpr26ya54p5qlz9xqlw5z",
-			ValidatorAddress: validator.Address,
-			Amount:           amount,
+			ValidatorAddress: validator.validator.String(),
+			Amount:           validator.amount,
 		}
 		msgAny, err := codecTypes.NewAnyWithValue(&msg)
 		if err != nil {
@@ -66,4 +66,24 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, keyAndValue cosmo
 	)
 	//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
 	k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+}
+
+func (k Keeper) setTotalDelegatedAmountTillDate(ctx sdk.Context, addToTotal sdk.Coin) {
+	store := ctx.KVStore(k.storeKey)
+	bz, err := addToTotal.Marshal()
+	if err != nil {
+		panic(err)
+	}
+	store.Set([]byte(cosmosTypes.KeyTotalDelegationTillDate), bz)
+}
+
+func (k Keeper) getTotalDelegatedAmountTillDate(ctx sdk.Context) sdk.Coin {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get([]byte(cosmosTypes.KeyTotalDelegationTillDate))
+	var amount sdk.Coin
+	err := amount.Unmarshal(bz)
+	if err != nil {
+		panic(err)
+	}
+	return amount
 }

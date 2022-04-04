@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -32,8 +33,8 @@ func ParamKeyTable() paramsTypes.KeyTable {
 	return paramsTypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-func NewParams(minMintingAmount uint64, maxMintingAmount uint64, minBurningAmount uint64, maxBurningAmount uint64,
-	maxValidatorToDelegate uint64, validatorSetCosmosChain []WeightedAddress, validatorSetNativeChain []WeightedAddress,
+func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningAmount sdk.Coin, maxBurningAmount sdk.Coin,
+	maxValidatorToDelegate uint64, validatorSetCosmosChain []WeightedAddressCosmos, validatorSetNativeChain []WeightedAddress,
 	weightedDeveloperRewardsReceivers []WeightedAddress, distributionProportion DistributionProportions, epochs int64,
 	maxIncomingAndOutgoingTxns int64, cosmosProposalParams CosmosChainProposalParams) Params {
 	return Params{
@@ -54,22 +55,42 @@ func NewParams(minMintingAmount uint64, maxMintingAmount uint64, minBurningAmoun
 
 func DefaultParams() Params {
 	return Params{
-		MinMintingAmount:       5000000,
-		MaxMintingAmount:       100000000000,
-		MinBurningAmount:       5000000,
-		MaxBurningAmount:       100000000000,
+		MinMintingAmount:       sdk.NewInt64Coin("uatom", 5000000),
+		MaxMintingAmount:       sdk.NewInt64Coin("uatom", 100000000000),
+		MinBurningAmount:       sdk.NewInt64Coin("uatom", 5000000),
+		MaxBurningAmount:       sdk.NewInt64Coin("uatom", 100000000000),
 		MaxValidatorToDelegate: 3,
-		ValidatorSetCosmosChain: []WeightedAddress{
-			{Address: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", Weight: sdk.NewDecWithPrec(5, 1)},
-			{Address: "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2", Weight: sdk.NewDecWithPrec(2, 1)},
-			{Address: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Weight: sdk.NewDecWithPrec(1, 1)},
-			{Address: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Weight: sdk.NewDecWithPrec(2, 1)},
+		ValidatorSetCosmosChain: []WeightedAddressCosmos{
+			{Address: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
+				Weight:                 sdk.NewDecWithPrec(5, 1),
+				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
+				IdealDelegatedAmount:   sdk.NewInt64Coin("uatom", 0),
+				Difference:             sdk.NewInt64Coin("uatom", 0),
+			},
+			{Address: "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2",
+				Weight:                 sdk.NewDecWithPrec(2, 1),
+				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
+				IdealDelegatedAmount:   sdk.NewInt64Coin("uatom", 0),
+				Difference:             sdk.NewInt64Coin("uatom", 0),
+			},
+			{Address: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
+				Weight:                 sdk.NewDecWithPrec(1, 1),
+				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
+				IdealDelegatedAmount:   sdk.NewInt64Coin("uatom", 0),
+				Difference:             sdk.NewInt64Coin("uatom", 0),
+			},
+			{Address: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2",
+				Weight:                 sdk.NewDecWithPrec(2, 1),
+				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
+				IdealDelegatedAmount:   sdk.NewInt64Coin("uatom", 0),
+				Difference:             sdk.NewInt64Coin("uatom", 0),
+			},
 		},
 		ValidatorSetNativeChain:           []WeightedAddress{},
 		WeightedDeveloperRewardsReceivers: []WeightedAddress{},
 		DistributionProportion: DistributionProportions{
-			ValidatorRewards: sdk.NewDecWithPrec(7, 2),
-			DeveloperRewards: sdk.NewDecWithPrec(3, 2),
+			ValidatorRewards: sdk.NewDecWithPrec(5, 2),
+			DeveloperRewards: sdk.NewDecWithPrec(5, 2),
 		},
 		Epochs:                     5000,
 		MaxIncomingAndOutgoingTxns: 10000,
@@ -77,6 +98,7 @@ func DefaultParams() Params {
 			ChainID:              "cosmoshub-4", //TODO use these as conditions for proposals
 			ReduceVotingPeriodBy: DefaultPeriod,
 		},
+		DelegationThreshold: sdk.NewInt64Coin(StakeDenom, 2000000000),
 	}
 }
 
@@ -105,9 +127,9 @@ func (p Params) Validate() error {
 	if err := validateWeightedDeveloperRewardsReceivers(p.WeightedDeveloperRewardsReceivers); err != nil {
 		return err
 	}
-	//if err := validateDistributionProportion(p.DistributionProportion); err != nil {
-	//	return err
-	//}
+	if err := validateDistributionProportion(p.DistributionProportion); err != nil {
+		return err
+	}
 	if err := validateEpochs(p.Epochs); err != nil {
 		return err
 	}
@@ -135,7 +157,7 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyValidatorSetCosmosChain, &p.ValidatorSetCosmosChain, validateValidatorSetCosmosChain),
 		paramsTypes.NewParamSetPair(KeyValidatorSetNativeChain, &p.ValidatorSetNativeChain, validateValidatorSetNativeChain),
 		paramsTypes.NewParamSetPair(KeyWeightedDeveloperRewardsReceivers, &p.WeightedDeveloperRewardsReceivers, validateWeightedDeveloperRewardsReceivers),
-		//paramsTypes.NewParamSetPair(KeyDistributionProportion, &p.DistributionProportion, validateDistributionProportion),
+		paramsTypes.NewParamSetPair(KeyDistributionProportion, &p.DistributionProportion, validateDistributionProportion),
 		paramsTypes.NewParamSetPair(KeyEpochs, &p.Epochs, validateEpochs),
 		paramsTypes.NewParamSetPair(KeyMaxIncomingAndOutgoingTxns, &p.MaxIncomingAndOutgoingTxns, validateMaxIncomingAndOutgoingTxns),
 		paramsTypes.NewParamSetPair(KeyCosmosProposalParams, &p.CosmosProposalParams, validateCosmosProposalParams),
@@ -143,33 +165,49 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 }
 
 func validateMinMintingAmount(i interface{}) error {
-	_, ok := i.(uint64)
+	coin, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if coin.IsNegative() {
+		return errors.New("min minting amount cannot be negative")
 	}
 	return nil
 }
 
 func validateMaxMintingAmount(i interface{}) error {
-	_, ok := i.(uint64)
+	coin, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if coin.IsNegative() {
+		return errors.New("max minting amount cannot be negative")
 	}
 	return nil
 }
 
 func validateMinBurningAmount(i interface{}) error {
-	_, ok := i.(uint64)
+	coin, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if coin.IsNegative() {
+		return errors.New("min burning amount cannot be negative")
 	}
 	return nil
 }
 
 func validateMaxBurningAmount(i interface{}) error {
-	_, ok := i.(uint64)
+	coin, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if coin.IsNegative() {
+		return errors.New("max burning amount cannot be negative")
 	}
 	return nil
 }
@@ -183,7 +221,7 @@ func validateMaxValidatorToDelegate(i interface{}) error {
 }
 
 func validateValidatorSetCosmosChain(i interface{}) error {
-	v, ok := i.([]WeightedAddress)
+	v, ok := i.([]WeightedAddressCosmos)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -291,36 +329,23 @@ func validateWeightedDeveloperRewardsReceivers(i interface{}) error {
 }
 
 func validateDistributionProportion(i interface{}) error {
-	v, ok := i.([]WeightedAddress)
+	v, ok := i.(DistributionProportions)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	// fund community pool when rewards address is empty
-	if len(v) == 0 {
-		return nil
+	if v.ValidatorRewards.IsNegative() {
+		return errors.New("validator rewards distribution ratio should not be negative")
 	}
 
-	weightSum := sdk.NewDec(0)
-	for i, w := range v {
-		// we allow address to be "" to go to community pool
-		if w.Address != "" {
-			_, err := sdk.AccAddressFromBech32(w.Address)
-			if err != nil {
-				return fmt.Errorf("invalid address at %dth", i)
-			}
-		}
-		if !w.Weight.IsPositive() {
-			return fmt.Errorf("non-positive weight at %dth", i)
-		}
-		if w.Weight.GT(sdk.NewDec(1)) {
-			return fmt.Errorf("more than 1 weight at %dth", i)
-		}
-		weightSum = weightSum.Add(w.Weight)
+	if v.DeveloperRewards.IsNegative() {
+		return errors.New("developer rewards distribution ratio should not be negative")
 	}
 
-	if !weightSum.Equal(sdk.NewDec(1)) {
-		return fmt.Errorf("invalid weight sum: %s", weightSum.String())
+	totalProportions := v.ValidatorRewards.Add(v.DeveloperRewards)
+
+	if !totalProportions.Equal(sdk.NewDecWithPrec(1, 1)) {
+		return errors.New("total distributions ratio should be 0.1")
 	}
 
 	return nil
