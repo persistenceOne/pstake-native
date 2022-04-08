@@ -82,11 +82,11 @@ func (k Keeper) getCosmosValidatorParams(ctx sdk.Context) (internalWeightedAddre
 }
 
 func (k Keeper) updateCosmosValidatorStakingParams(ctx sdk.Context, msgs []sdk.Msg) {
-	var totalAmountInDelegateMsgs sdk.Coin
+	totalAmountInDelegateMsgs := sdk.NewInt64Coin(k.GetParams(ctx).BondDenom, 0)
 	msgsMap := make(map[string]stakingTypes.MsgDelegate, len(msgs))
 	for _, msg := range msgs {
 		delegateMsg := msg.(*stakingTypes.MsgDelegate)
-		totalAmountInDelegateMsgs.Add(delegateMsg.Amount)
+		totalAmountInDelegateMsgs = totalAmountInDelegateMsgs.Add(delegateMsg.Amount)
 		msgsMap[delegateMsg.ValidatorAddress] = *delegateMsg
 	}
 
@@ -103,20 +103,27 @@ func (k Keeper) updateCosmosValidatorStakingParams(ctx sdk.Context, msgs []sdk.M
 		}
 	}
 	k.setCosmosValidatorParams(ctx, internalWeightedAddressCosmos)
+
+	//TODO : Update c token ratio
 }
 
-type ValAddressAndAmountForStaking struct {
+type ValAddressAndAmountForStakingAndUnstaking struct {
 	validator sdk.ValAddress
 	amount    sdk.Coin
 }
 
-func (k Keeper) fetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coins) []ValAddressAndAmountForStaking {
-	internalWeightedAddressCosmos := k.getCosmosValidatorParams(ctx)
-	uatomAmount := amount.AmountOf(cosmosTypes.StakeDenom)
-	for _, element := range internalWeightedAddressCosmos {
-		delegationThreshold := k.GetParams(ctx).DelegationThreshold
-		//process element
-		//TODO : Add pseudo code for filtering out validators to delegate
-	}
+func (k Keeper) fetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) []ValAddressAndAmountForStakingAndUnstaking {
+	//internalWeightedAddressCosmos := k.getCosmosValidatorParams(ctx)
+	//uatomAmount := amount.AmountOf(cosmosTypes.StakeDenom)
+	//for _, element := range internalWeightedAddressCosmos {
+	//	delegationThreshold := k.GetParams(ctx).DelegationThreshold
+	//	//process element
+	//	//TODO : Add pseudo code for filtering out validators to delegate
+	//}
+	return nil
+}
+
+func (k Keeper) fetchValidatorsToUndelegate(ctx sdk.Context, amount sdk.Coin) []ValAddressAndAmountForStakingAndUnstaking {
+	//TODO : Implement opposite of fetchValidatorsToDelegate
 	return nil
 }

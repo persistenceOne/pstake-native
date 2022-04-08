@@ -5,7 +5,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/cosmos-sdk/x/distribution/types"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -18,9 +19,14 @@ type TxHashAndDetails struct {
 /*
 TODO : Add Key and value structure as comment
 */
+
+type txIDAndDetailsInOutgoingPool struct {
+	txID      uint64
+	txDetails cosmosTypes.CosmosTx
+}
+
 func (k Keeper) setNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosTypes.CosmosTx) {
-	store := ctx.KVStore(k.storeKey)
-	outgoingStore := prefix.NewStore(store, []byte(cosmosTypes.OutgoingTXPoolKey))
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
 	key := cosmosTypes.UInt64Bytes(txID)
 	bz, err := tx.Marshal()
 	if err != nil {
@@ -31,8 +37,7 @@ func (k Keeper) setNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosT
 
 //gets txn details by ID
 func (k Keeper) getTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmosTypes.QueryOutgoingTxByIDResponse, error) {
-	store := ctx.KVStore(k.storeKey)
-	outgoingStore := prefix.NewStore(store, []byte(cosmosTypes.OutgoingTXPoolKey))
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
 	key := cosmosTypes.UInt64Bytes(txID)
 	bz := outgoingStore.Get(key)
 	if bz == nil {
@@ -50,16 +55,14 @@ func (k Keeper) getTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmos
 
 // Deletes txn Details by ID
 func (k Keeper) removeTxnDetailsByID(ctx sdk.Context, txID uint64) {
-	store := ctx.KVStore(k.storeKey)
-	outgoingStore := prefix.NewStore(store, []byte(cosmosTypes.OutgoingTXPoolKey))
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
 	key := cosmosTypes.UInt64Bytes(txID)
 	outgoingStore.Delete(key)
 }
 
 //Sets txBytes once received from Orchestrator after signing.
 func (k Keeper) setTxDetailsSignedByOrchestrator(ctx sdk.Context, txID uint64, txHash string, tx sdkTx.Tx) error {
-	store := ctx.KVStore(k.storeKey)
-	outgoingStore := prefix.NewStore(store, []byte(cosmosTypes.OutgoingTXPoolKey))
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
 	key := cosmosTypes.UInt64Bytes(txID)
 	var cosmosTx cosmosTypes.CosmosTx
 	if outgoingStore.Has(key) {
@@ -81,14 +84,32 @@ func (k Keeper) setTxDetailsSignedByOrchestrator(ctx sdk.Context, txID uint64, t
 	return nil
 }
 
+func (k Keeper) getAllTxInOutgoingPool(ctx sdk.Context) (details []txIDAndDetailsInOutgoingPool, err error) {
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
+	iterator := outgoingStore.Iterator(nil, nil)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		key := cosmosTypes.UInt64FromBytes(iterator.Key())
+		var tx cosmosTypes.CosmosTx
+		err := tx.Unmarshal(iterator.Value())
+		if err != nil {
+			return nil, err
+		}
+		details = append(details, txIDAndDetailsInOutgoingPool{
+			txID:      key,
+			txDetails: tx,
+		})
+	}
+	return details, nil
+}
+
 //______________________________________________________________________________________________
 /*
 TODO : Add key and value structure
 */
 // Set details corresponding to a particular txHash and update details if already present
 func (k Keeper) setTxHashAndDetails(ctx sdk.Context, orchAddress sdk.AccAddress, txID uint64, txHash string, status string) {
-	store := ctx.KVStore(k.storeKey)
-	txHashAndTxIDStore := prefix.NewStore(store, cosmosTypes.HashAndIDStore)
+	txHashAndTxIDStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
 	key := []byte(txHash)
 	if txHashAndTxIDStore.Has(key) {
 		var txHashValue cosmosTypes.TxHashValue
@@ -120,8 +141,7 @@ func (k Keeper) setTxHashAndDetails(ctx sdk.Context, orchAddress sdk.AccAddress,
 
 //Fetch details mapped to particular hash
 func (k Keeper) getTxHashAndDetails(ctx sdk.Context, txHash string) (cosmosTypes.TxHashValue, error) {
-	store := ctx.KVStore(k.storeKey)
-	hashAndIDStore := prefix.NewStore(store, cosmosTypes.HashAndIDStore)
+	hashAndIDStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
 	key := []byte(txHash)
 	if hashAndIDStore.Has(key) {
 		var txHashAndValue cosmosTypes.TxHashValue
@@ -136,16 +156,14 @@ func (k Keeper) getTxHashAndDetails(ctx sdk.Context, txHash string) (cosmosTypes
 
 // Removes all the details mapped to txHash
 func (k Keeper) removeTxHashAndDetails(ctx sdk.Context, txHash string) {
-	store := ctx.KVStore(k.storeKey)
-	hashAndIDStore := prefix.NewStore(store, cosmosTypes.HashAndIDStore)
+	hashAndIDStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
 	key := []byte(txHash)
 	hashAndIDStore.Delete(key)
 }
 
 // Fetches the list of all details mapped to txHash
 func (k Keeper) getAllTxHashAndDetails(ctx sdk.Context) (list []TxHashAndDetails, returnErr error) {
-	store := ctx.KVStore(k.storeKey)
-	hashAndIDStore := prefix.NewStore(store, cosmosTypes.HashAndIDStore)
+	hashAndIDStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
 	iterator := hashAndIDStore.Iterator(nil, nil)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -211,19 +229,38 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 				}
 				if majorityStatus == "success" {
 					msgs := txDetails.CosmosTxDetails.Tx.GetMsgs()
+					//Only first element is checked as event transactions will always be grouped as one type of message
 					switch msgs[0].(type) {
-					case *types.MsgDelegate:
+					//TODO : Add cases for rewards claim, unbonding
+					case *stakingTypes.MsgDelegate:
 						k.updateCosmosValidatorStakingParams(ctx, msgs)
+					case *types.MsgWithdrawDelegatorReward:
+						k.emitStakingTxnForClaimedRewards(ctx, msgs)
+					case *stakingTypes.MsgUndelegate:
+						// TODO
 					}
 				}
-
 			}
 			if txDetails.CosmosTxDetails.ActiveBlockHeight >= ctx.BlockHeight() {
+				//TODO : check for rewards claim txns
 				k.removeTxnDetailsByID(ctx, element.Details.TxID)
 				k.removeTxHashAndDetails(ctx, element.TxHash)
 			}
 		}
 
+	}
+	txDetailsList, err := k.getAllTxInOutgoingPool(ctx) //TODO Implement Rest
+	if err != nil {
+		panic(err)
+	}
+	for _, element := range txDetailsList {
+		if element.txDetails.ActiveBlockHeight <= ctx.BlockHeight() {
+			k.removeTxnDetailsByID(ctx, element.txID)
+			element.txDetails.NativeBlockHeight = ctx.BlockHeight()
+			element.txDetails.ActiveBlockHeight = ctx.BlockHeight() + cosmosTypes.StorageWindow
+			nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
+			k.setNewTxnInOutgoingPool(ctx, nextID, element.txDetails)
+		}
 	}
 	return nil
 }

@@ -11,10 +11,7 @@ import (
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	//cdc.RegisterConcrete(&MsgSend{}, "cosmos-sdk/MsgSend", nil)
 	cdc.RegisterConcrete(&MsgSetOrchestrator{}, "cosmos/MsgSetOrchestrator", nil)
-	cdc.RegisterConcrete(&MsgSendWithFees{}, "cosmos/MsgSendWithFees", nil)
-	cdc.RegisterConcrete(&MsgVoteWithFees{}, "cosmos/MsgVoteWithFees", nil)
-	cdc.RegisterConcrete(&MsgDelegateWithFees{}, "cosmos/MsgDelegateWithFees", nil)
-	cdc.RegisterConcrete(&MsgUndelegateWithFees{}, "cosmos/MsgUndelegateWithFees", nil)
+	cdc.RegisterConcrete(&MsgWithdrawStkAsset{}, "cosmos/MsgWithdrawStkAsset", nil)
 	cdc.RegisterConcrete(&MsgMintTokensForAccount{}, "cosmos/MsgMintTokensForAccount", nil)
 	cdc.RegisterConcrete(&MsgMakeProposal{}, "cosmos/MsgMakeProposal", nil)
 	cdc.RegisterConcrete(&MsgVote{}, "cosmos/MsgVote", nil)
@@ -26,10 +23,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func RegisterInterfaces(registry codecTypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgSetOrchestrator{},
-		&MsgSendWithFees{},
-		&MsgVoteWithFees{},
-		&MsgDelegateWithFees{},
-		&MsgUndelegateWithFees{},
+		&MsgWithdrawStkAsset{},
 		&MsgMintTokensForAccount{},
 		&MsgMakeProposal{},
 		&MsgVote{},

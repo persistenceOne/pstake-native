@@ -14,3 +14,11 @@ func UInt64FromBytes(s []byte) uint64 {
 func UInt64Bytes(n uint64) []byte {
 	return sdk.Uint64ToBigEndian(n)
 }
+
+func Int64FromBytes(s []byte) int64 {
+	return int64(binary.BigEndian.Uint64(s))
+}
+
+func Int64Bytes(n int64) []byte {
+	return sdk.Uint64ToBigEndian(uint64(n))
+}

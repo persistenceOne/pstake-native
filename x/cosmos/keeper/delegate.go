@@ -13,8 +13,10 @@ import (
 func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, keyAndValue cosmosTypes.KeyAndValueForMinting) {
 	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 
+	params := k.GetParams(ctx)
 	//fetches validator set for delegation on cosmos chain
-	validatorSet := k.fetchValidatorsToDelegate(ctx, keyAndValue.Value.Amount)
+	amount := sdk.NewCoin(params.BondDenom, keyAndValue.Value.Amount.AmountOf(params.BondDenom))
+	validatorSet := k.fetchValidatorsToDelegate(ctx, amount)
 
 	//create messages for delegation on cosmos chain
 	var delegateMsgs []*codecTypes.Any
@@ -86,4 +88,9 @@ func (k Keeper) getTotalDelegatedAmountTillDate(ctx sdk.Context) sdk.Coin {
 		panic(err)
 	}
 	return amount
+}
+
+func (k Keeper) emitStakingTxnForClaimedRewards(ctx sdk.Context, msgs []sdk.Msg) {
+	//totalAmountInClaimMsgs := sdk.NewInt64Coin(k.GetParams(ctx).BondDenom, 0)
+	//TODO : Ask which impl to go forwards with txn response for claimRewards and minting reards for devs and validators
 }

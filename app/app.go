@@ -91,6 +91,9 @@ import (
 	liquiditykeeper "github.com/gravity-devs/liquidity/x/liquidity/keeper"
 	liquiditytypes "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"github.com/persistenceOne/pstake-native/x/cosmos"
+	epochs "github.com/persistenceOne/pstake-native/x/epochs"
+	epochsKeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
+	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -108,7 +111,7 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
 )
 
-const appName = "PstakeApp"
+const appName = "PStakeApp"
 const upgradeName = "Vega"
 
 var (
@@ -147,6 +150,7 @@ var (
 		liquidity.AppModuleBasic{},
 		router.AppModuleBasic{},
 		cosmos.AppModuleBasic{},
+		epochs.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -204,6 +208,7 @@ type PstakeApp struct {
 	LiquidityKeeper  liquiditykeeper.Keeper
 	RouterKeeper     routerkeeper.Keeper
 	CosmosKeeper     cosmos.Keeper
+	EpochsKeeper     epochsKeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -254,7 +259,7 @@ func NewGaiaApp(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, liquiditytypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey,
-		cosmos.StoreKey,
+		cosmos.StoreKey, epochsTypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -351,12 +356,17 @@ func NewGaiaApp(
 		app.BankKeeper,
 		authtypes.FeeCollectorName,
 	)
+	app.EpochsKeeper = epochsKeeper.NewKeeper(
+		appCodec,
+		keys[epochsTypes.StoreKey],
+	)
 	app.CosmosKeeper = cosmos.NewKeeper(
 		keys[cosmos.StoreKey],
 		app.ParamsKeeper.Subspace(cosmos.DefaultParamspace),
 		&app.BankKeeper,
 		&app.MintKeeper,
 		&app.StakingKeeper,
+		app.EpochsKeeper,
 	)
 	app.UpgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,
@@ -438,6 +448,12 @@ func NewGaiaApp(
 
 	app.EvidenceKeeper = *evidenceKeeper
 
+	app.EpochsKeeper.SetHooks(
+		epochsTypes.NewMultiEpochHooks(
+			app.CosmosKeeper.Hooks(),
+		),
+	)
+
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
 	// NOTE: Any module instantiated in the module manager that is later modified
@@ -467,6 +483,7 @@ func NewGaiaApp(
 		params.NewAppModule(app.ParamsKeeper),
 		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
 		cosmos.NewAppModule(appCodec, app.CosmosKeeper),
+		epochs.NewAppModule(appCodec, app.EpochsKeeper),
 		transferModule,
 		routerModule,
 	)
@@ -486,6 +503,8 @@ func NewGaiaApp(
 		liquiditytypes.ModuleName,
 		ibchost.ModuleName,
 		routertypes.ModuleName,
+		cosmos.ModuleName,
+		epochsTypes.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
@@ -495,6 +514,7 @@ func NewGaiaApp(
 		feegrant.ModuleName,
 		authz.ModuleName,
 		cosmos.ModuleName,
+		epochsTypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -521,6 +541,7 @@ func NewGaiaApp(
 		authz.ModuleName,
 		routertypes.ModuleName,
 		cosmos.ModuleName,
+		epochsTypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)

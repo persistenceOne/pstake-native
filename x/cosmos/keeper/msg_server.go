@@ -69,7 +69,7 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 }
 
 // Send TODO Modify outgoing pool
-func (k msgServer) Send(c context.Context, msg *cosmosTypes.MsgSendWithFees) (*cosmosTypes.MsgSendWithFeesResponse, error) {
+func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAsset) (*cosmosTypes.MsgWithdrawStkAssetResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
 	//Accept transaction if module is enabled
@@ -77,32 +77,29 @@ func (k msgServer) Send(c context.Context, msg *cosmosTypes.MsgSendWithFees) (*c
 		return nil, cosmosTypes.ErrModuleNotEnabled
 	}
 
-	from, err := sdkTypes.AccAddressFromBech32(msg.MessageSend.FromAddress)
+	from, err := sdkTypes.AccAddressFromBech32(msg.FromAddress)
 	if err != nil {
 		return nil, err
 	}
-	to, err := sdkTypes.AccAddressFromBech32(msg.MessageSend.ToAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	//msgAny, err := types.NewAnyWithValue(msg)
+	to, err := sdkTypes.AccAddressFromBech32(msg.ToAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	//TODO denom check
 	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(from) != nil || sdkTypes.VerifyAddressFormat(to) != nil ||
-		!msg.MessageSend.Amount.IsValid() || !msg.Fees.IsValid() {
+		!msg.Amount.IsValid() {
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
 	}
-	//TODO what to do with amount till txn is confirmed? : sample below
-	//totalAmount := msg.MessageSend.Amount.Add(msg.Fees)
-	//if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, cosmosTypes.ModuleName, totalAmount); err != nil {
-	//	return nil, err
-	//}
 
-	//txID, err := k.AddToOutgoingPool(ctx, from, msgAny)
+	if msg.Amount.GetDenom() != k.GetParams(ctx).MintDenom {
+		return nil, cosmosTypes.ErrInvalidWithdrawDenom
+	}
+
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, cosmosTypes.ModuleName, sdkTypes.NewCoins(msg.Amount)); err != nil {
+		return nil, err
+	}
+
+	err = k.addToWithdrawPool(ctx, *msg)
 	if err != nil {
 		return nil, err
 	}
@@ -111,10 +108,9 @@ func (k msgServer) Send(c context.Context, msg *cosmosTypes.MsgSendWithFees) (*c
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
 			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
-			//sdkTypes.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(txID)),
 		),
 	)
-	return &cosmosTypes.MsgSendWithFeesResponse{}, nil
+	return &cosmosTypes.MsgWithdrawStkAssetResponse{}, nil
 }
 
 func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgMintTokensForAccount) (*cosmosTypes.MsgMintTokensForAccountResponse, error) {
@@ -140,10 +136,10 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
 	}
 
-	//TODO remove this
-	coinsAmount := msg.Amount.AmountOf("uatom")
-	coinString := coinsAmount.String() + cosmosTypes.MintDenom
-	newAmount, err := sdkTypes.ParseCoinsNormalized(coinString)
+	params := k.GetParams(ctx)
+	uatomAmount := msg.Amount.AmountOf(params.BondDenom)
+	uStkXprtCoin := sdkTypes.NewCoin(params.MintDenom, uatomAmount)
+	newAmount := sdkTypes.NewCoins(uStkXprtCoin)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -29,6 +30,7 @@ type Keeper struct {
 func NewKeeper(
 	key sdkTypes.StoreKey, paramSpace paramsTypes.Subspace,
 	bankKeeper *bankKeeper.BaseKeeper, mintKeeper *mintKeeper.Keeper, stakingKeeper *stakingKeeper.Keeper,
+	epochKeeper cosmosTypes.EpochKeeper,
 ) Keeper {
 
 	return Keeper{
@@ -37,11 +39,15 @@ func NewKeeper(
 		bankKeeper:    bankKeeper,
 		mintKeeper:    mintKeeper,
 		stakingKeeper: stakingKeeper,
+		epochsKeeper:  epochKeeper,
 	}
 }
 
+//TODO : Add hooks in app.go
+//TODO : Add epoch hooks
+
 // SetHooks sets the hooks for governance
-func (k *Keeper) SetHooks(gh cosmosTypes.GovHooks) *Keeper {
+func (k *Keeper) SetHooks(gh cosmosTypes.GovHooks, eh epochsTypes.EpochHooks) *Keeper {
 	if k.hooks != nil {
 		panic("cannot set governance hooks twice")
 	}
@@ -148,7 +154,8 @@ func prefixRange(prefix []byte) ([]byte, []byte) {
 
 func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, key cosmosTypes.ChainIDHeightAndTxHashKey, value cosmosTypes.AddressAndAmountKey) error {
 	//TODO incorporate minting_ratio
-	if value.Amount.AmountOf("uatom").LT(k.GetParams(ctx).MinMintingAmount.Amount) && value.Amount.AmountOf("uatom").GT(k.GetParams(ctx).MaxMintingAmount.Amount) {
+	params := k.GetParams(ctx)
+	if value.Amount.AmountOf(params.MintDenom).GT(k.GetParams(ctx).MinMintingAmount.Amount) && value.Amount.AmountOf(params.MintDenom).LT(k.GetParams(ctx).MaxMintingAmount.Amount) {
 		destinationAddress, err := sdkTypes.AccAddressFromBech32(value.DestinationAddress)
 		if err != nil {
 			return err

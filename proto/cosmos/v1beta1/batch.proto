@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
+import "cosmos/v1beta1/msgs.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -101,4 +102,14 @@ message TxHashValue {
   int64 counter = 6;
   int64 native_block_height = 7;
   int64 active_block_height = 8;
+}
+
+message WithdrawStoreValue {
+  repeated MsgWithdrawStkAsset withdraw_details = 1 [(gogoproto.nullable) = false];
+  repeated bool unbond_emit_flag = 2;
+}
+
+message ValuOutgoingUnbondStore {
+  int64 epoch_number = 1;
+  repeated string undelegate_messages = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/x/staking/types.MsgUndelegate", (gogoproto.nullable) = false];
 }

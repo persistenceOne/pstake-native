@@ -20,7 +20,6 @@ func minting(ctx sdk.Context, k Keeper) {
 }
 
 func proposal(ctx sdk.Context, k Keeper) {
-	//TODO Add missing actions
 	err := k.ProcessProposals(ctx)
 	logger := k.Logger(ctx)
 	if err != nil {

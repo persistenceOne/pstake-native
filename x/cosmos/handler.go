@@ -30,7 +30,9 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *cosmosTypes.MsgVoteWeighted:
 			res, err := msgServer.VoteWeighted(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-
+		case *cosmosTypes.MsgWithdrawStkAsset:
+			res, err := msgServer.Withdraw(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized Cosmos Module Msg type: %v", sdk.MsgTypeURL(msg)))
 		}

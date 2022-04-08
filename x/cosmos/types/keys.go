@@ -36,7 +36,7 @@ const (
 
 	// QueryParameters Query endpoints supported by the cosmos querier
 	QueryParameters = "parameters"
-	QueryTxByID     = "byTxID"
+	QueryTxByID     = "txByID"
 	QueryProposal   = "proposal"
 	QueryVote       = "vote"
 	QueryVotes      = "votes"
@@ -46,14 +46,14 @@ const (
 
 	MinimumRatioForMajority = 0.66
 
-	StorageWindow = 50
+	StorageWindow = 100 //TODO : Revert Back to 100
 )
 
 var (
 	KeyOrchestratorAddress = "KeyOrchestratorAddress"
-	KeyAccAddress          = "KeyAccAddress"
-	OutgoingTxPrefix       = []byte{0x01}
-	IncomingTxPrefix       = []byte{0x02}
+	//KeyAccAddress          = "KeyAccAddress"
+	//OutgoingTxPrefix       = []byte{0x01}
+	//IncomingTxPrefix       = []byte{0x02}
 
 	// SequenceKeyPrefix indexes different txids
 	SequenceKeyPrefix = "SequenceKeyPrefix"
@@ -62,32 +62,36 @@ var (
 	KeyLastTXPoolID = SequenceKeyPrefix + "lastTxPoolId"
 
 	//indexes the cosmos validator details
-	KeyCosmosValidatorSet = "cosmosValidatorSet"
+	KeyCosmosValidatorSet = []byte{0x01}
 
-	KeyTotalDelegationTillDate = "totalDelegationTillDate"
+	KeyTotalDelegationTillDate = []byte{0x02}
 
 	// OutgoingTXPoolKey indexes the last nonce for the outgoing tx pool
-	OutgoingTXPoolKey = "OutgoingTXPoolKey"
+	OutgoingTXPoolKey = []byte{0x03}
 
-	AddressAndAmountStoreKey = "AddressAndAmountKey"
+	AddressAndAmountStoreKey = []byte{0x04}
 
-	MintingPoolStoreKey = "MintingPoolStoreKey"
+	MintingPoolStoreKey = []byte{0x05}
 
-	OrchestratorValidatorStoreKey = "OrchestratorValidatorStoreKey"
+	OrchestratorValidatorStoreKey = []byte{0x06}
 
-	ProposalStoreKey = "ProposalStoreKey"
+	ProposalStoreKey = []byte{0x07}
 
-	ProposalIDKey = []byte("ProposalIDKey")
+	ProposalIDKey = []byte{0x08}
 
-	VotingParams = []byte("VotingParams")
+	VotingParams = []byte{0x09}
 
-	ProposalsKeyPrefix = []byte("ProposalsKeyPrefix")
+	ProposalsKeyPrefix = []byte{0xA}
 
-	ActiveProposalQueuePrefix = []byte("ActiveProposalQueuePrefix")
+	ActiveProposalQueuePrefix = []byte{0xB}
 
-	VotesKeyPrefix = []byte("VotesKeyPrefix")
+	VotesKeyPrefix = []byte{0xC}
 
-	HashAndIDStore = []byte("HashAndIDStore")
+	HashAndIDStore = []byte{0xD}
+
+	KeyWithdrawStore = []byte{0xE}
+
+	KeyOutgoingUnbondStore = []byte{0xF}
 )
 
 func ConvertByteArrToString(value []byte) string {

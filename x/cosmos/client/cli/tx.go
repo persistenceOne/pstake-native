@@ -37,6 +37,7 @@ func NewTxCmd() *cobra.Command {
 		NewCmdVote(),
 		NewCmdWeightedVote(),
 		NewCmdTxStatusCmd(),
+		NewWithdrawCmd(),
 	)
 
 	return txCmd
@@ -287,6 +288,49 @@ Only "success" or "failure" accepted as status.`,
 			status := args[2]
 
 			msg := cosmosTypes.NewMsgTxStatus(orchAddress, status, txHash)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewWithdrawCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "withdraw [from-address] [to-address] [amount]",
+		Args:  cobra.ExactArgs(3),
+		Short: "Withdraw transaction",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit destination address on cosmos chain for uatom withdrawal`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			fromAddress, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			toAddress, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoinNormalized(args[2])
+			if err != nil {
+				return err
+			}
+
+			msg := cosmosTypes.NewMsgWithdrawStkAsset(fromAddress, toAddress, amount)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

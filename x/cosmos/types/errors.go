@@ -18,4 +18,5 @@ var (
 	ErrInvalidStatus               = sdkErrors.Register(ModuleName, 54, "invalid status type")
 	ErrTxnDetailsAlreadySent       = sdkErrors.Register(ModuleName, 55, "txn signed details already present")
 	ErrModuleNotEnabled            = sdkErrors.Register(ModuleName, 56, "module not enabled")
+	ErrInvalidWithdrawDenom        = sdkErrors.Register(MintDenom, 57, "invalid withdraw denom")
 )

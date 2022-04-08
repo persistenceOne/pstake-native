@@ -18,6 +18,7 @@ message WeightedAddressCosmos {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
     (gogoproto.nullable) = false
   ];
+  //TODO : Remove 4 and 5
   string ideal_delegated_amount = 4 [
     (gogoproto.moretags) = "yaml:\"ideal_delegated_amount\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
@@ -103,4 +104,8 @@ message Params {
     (gogoproto.nullable) = false
   ];
   bool module_enabled = 16;
+  string rewards_epoch_identifier = 17;
+  int64 chunk_size = 19;
+  string unbonding_epoch_identifier = 20;
+  string bond_denom = 21;
 }

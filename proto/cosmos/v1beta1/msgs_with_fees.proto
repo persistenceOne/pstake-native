@@ -13,8 +13,8 @@ service Msg {
   rpc SetOrchestrator(MsgSetOrchestrator) returns (MsgSetOrchestratorResponse) {
     option (google.api.http).post = "/pstake/cosmos/v1beta1/SetOrchestrator";
   }
-  rpc Send(MsgSendWithFees) returns (MsgSendWithFeesResponse) {
-    option (google.api.http).post = "";
+  rpc Withdraw(MsgWithdrawStkAsset) returns (MsgWithdrawStkAssetResponse) {
+    option (google.api.http).post = "/pstake/cosmos/v1beta1/WithdrawStkAssets";
   }
   rpc MintTokensForAccount(MsgMintTokensForAccount) returns (MsgMintTokensForAccountResponse) {
     option (google.api.http).post = "/pstake/cosmos/v1beta1/MintTokensForAccount";
@@ -27,27 +27,3 @@ service Msg {
   rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
   rpc TxStatus(MsgTxStatus) returns (MsgTxStatusResponse) {};
 }
-
-message MsgSendWithFees {
-  MsgSend message_send = 1 [(gogoproto.moretags) = "yaml:\"message_send\""];
-  string fees = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
-}
-message MsgSendWithFeesResponse {}
-
-message MsgVoteWithFees {
-  MsgVote message_vote = 1 [(gogoproto.moretags) = "yaml:\"message_send\""];
-  string fees = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
-}
-message MsgVoteWithFeesResponse {}
-
-message MsgDelegateWithFees {
-  MsgDelegate message_delegate = 1 [(gogoproto.moretags) = "yaml:\"msg_delegate\""];
-  string fees = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
-}
-message MsgDelegateWithFeesResponse {}
-
-message MsgUndelegateWithFees {
-  MsgUndelegate message_undelegate = 1 [(gogoproto.moretags) = "yaml:\"msg_undelegate\""];
-  string fees = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
-}
-message MsgUndelegateWithFeesResponse {}

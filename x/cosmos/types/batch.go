@@ -1,6 +1,7 @@
 package types
 
 import (
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"time"
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
@@ -63,5 +64,19 @@ func NewTxHashValue(txId uint64, orchestratorAddress sdkTypes.AccAddress, ratio 
 		Counter:               1,
 		NativeBlockHeight:     nativeBlockHeight,
 		ActiveBlockHeight:     activeBlockHeight,
+	}
+}
+
+func NewWithdrawStoreValue(msg MsgWithdrawStkAsset) WithdrawStoreValue {
+	return WithdrawStoreValue{
+		WithdrawDetails: []MsgWithdrawStkAsset{msg},
+		UnbondEmitFlag:  []bool{false},
+	}
+}
+
+func NewValuOutgoingUnbondStore(undelegateMessage []stakingTypes.MsgUndelegate, epochNumber int64) ValuOutgoingUnbondStore {
+	return ValuOutgoingUnbondStore{
+		EpochNumber:        epochNumber,
+		UndelegateMessages: undelegateMessage,
 	}
 }
