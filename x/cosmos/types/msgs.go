@@ -144,6 +144,9 @@ func (m *MsgMintTokensForAccount) ValidateBasic() error {
 	if !m.Amount.IsAllPositive() {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
 	}
+	if m.BlockHeight <= 0 {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidHeight, "BlockHeight should be greater than zero")
+	}
 
 	return nil
 }
@@ -188,6 +191,7 @@ func (m *MsgMakeProposal) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
 	}
+	// TODO add more checks
 	return nil
 }
 
@@ -218,10 +222,10 @@ func (m *MsgVote) Type() string { return "vote" }
 
 // ValidateBasic implements Msg
 func (m *MsgVote) ValidateBasic() error {
-	if m.Voter == "" {
+
+	if _, err := sdk.AccAddressFromBech32(m.Voter); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.Voter)
 	}
-
 	if !ValidVoteOption(m.Option) {
 		return sdkErrors.Wrap(ErrInvalidVote, m.Option.String())
 	}
@@ -261,10 +265,9 @@ func (m *MsgVoteWeighted) Type() string { return "weighted_vote" }
 
 // ValidateBasic implements Msg
 func (m *MsgVoteWeighted) ValidateBasic() error {
-	if m.Voter == "" {
+	if _, err := sdk.AccAddressFromBech32(m.Voter); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.Voter)
 	}
-
 	if len(m.Options) == 0 {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidRequest, WeightedVoteOptions(m.Options).String())
 	}
@@ -385,6 +388,7 @@ func (m *MsgTxStatus) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
+// TODO find a better place for this.
 var _ DBHelper = &IncomingMintTx{}
 var _ DBHelper = &ProposalValue{}
 var _ DBHelper = &TxHashValue{}
