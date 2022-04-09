@@ -83,6 +83,7 @@ func (k Keeper) setIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64, und
 		return err
 	}
 	unbondingEpochStore.Set(key, bz)
+	return nil
 }
 
 func ChunkUndelegationSlice(slice []ValAddressAndAmountForStakingAndUnstaking, chunkSize int64) (chunks [][]ValAddressAndAmountForStakingAndUnstaking) {

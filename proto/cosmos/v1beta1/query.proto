@@ -6,6 +6,7 @@ import "google/api/annotations.proto";
 import "cosmos/v1beta1/cosmos.proto";
 import "cosmos/v1beta1/batch.proto";
 import "cosmos/v1beta1/proposal.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -62,12 +63,12 @@ message QueryProposalsRequest {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
   ProposalStatus proposal_status = 1;
-  string pagination = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types/query.PageRequest"];
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 message QueryProposalsResponse {
   repeated Proposal proposals = 1 [(gogoproto.nullable) = false];
-  string pagination = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types/query.PageResponse"];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryVoteRequest {
@@ -84,10 +85,10 @@ message QueryVoteResponse {
 
 message QueryVotesRequest {
   uint64 proposal_id = 1;
-  string pagination = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types/query.PageRequest"];
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 message QueryVotesResponse {
   repeated Vote votes = 1 [(gogoproto.nullable) = false];
-  string pagination = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types/query.PageResponse"];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

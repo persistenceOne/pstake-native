@@ -83,26 +83,18 @@ func DefaultParams() Params {
 			{Address: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
 				Weight:                 sdk.NewDecWithPrec(5, 1),
 				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-				IdealDelegatedAmount:   sdk.NewInt64Coin("uatom", 0),
-				Difference:             sdk.NewInt64Coin("uatom", 0),
 			},
 			{Address: "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2",
 				Weight:                 sdk.NewDecWithPrec(2, 1),
 				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-				IdealDelegatedAmount:   sdk.NewInt64Coin("uatom", 0),
-				Difference:             sdk.NewInt64Coin("uatom", 0),
 			},
 			{Address: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
 				Weight:                 sdk.NewDecWithPrec(1, 1),
 				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-				IdealDelegatedAmount:   sdk.NewInt64Coin("uatom", 0),
-				Difference:             sdk.NewInt64Coin("uatom", 0),
 			},
 			{Address: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2",
 				Weight:                 sdk.NewDecWithPrec(2, 1),
 				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-				IdealDelegatedAmount:   sdk.NewInt64Coin("uatom", 0),
-				Difference:             sdk.NewInt64Coin("uatom", 0),
 			},
 		},
 		ValidatorSetNativeChain:           []WeightedAddress{},
@@ -307,9 +299,6 @@ func validateValidatorSetCosmosChain(i interface{}) error {
 		weightSum = weightSum.Add(w.Weight)
 		if w.CurrentDelegatedAmount.IsNegative() {
 			return fmt.Errorf("non-positive current delegation amount at %dth", i)
-		}
-		if w.IdealDelegatedAmount.IsNegative() {
-			return fmt.Errorf("non-positive ideal delegated amount at %dth", i)
 		}
 	}
 
