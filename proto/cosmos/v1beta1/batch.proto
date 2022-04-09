@@ -6,6 +6,10 @@ import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/v1beta1/msgs.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/tx/v1beta1/tx.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/staking/v1beta1/tx.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -19,7 +23,7 @@ message OutgoingTxBatch {
 message OutgoingTransferTx {
   uint64     id = 1;
   google.protobuf.Any message = 2 [(gogoproto.moretags) = "yaml:\"public_key\""];
-  string fees = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin fees = 3 [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }
 
 message IncomingMintTx {
@@ -29,8 +33,8 @@ message IncomingMintTx {
 
 message AddressAndAmountKey {
   string destination_address = 1;
-  repeated string amount = 2
-  [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false,
+  repeated cosmos.base.v1beta1.Coin amount = 2
+  [(gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
   bool acknowledgment = 3;
   bool minted = 4;
@@ -85,7 +89,7 @@ message KeyAndValueForProposal {
 }
 
 message CosmosTx {
-  string tx = 1 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types/tx.Tx", (gogoproto.nullable) = false];
+  cosmos.tx.v1beta1.Tx tx = 1 [(gogoproto.nullable) = false];
   bool event_emitted = 2;
   string status = 3;
   string txHash = 4;
@@ -111,5 +115,5 @@ message WithdrawStoreValue {
 
 message ValuOutgoingUnbondStore {
   int64 epoch_number = 1;
-  repeated string undelegate_messages = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/x/staking/types.MsgUndelegate", (gogoproto.nullable) = false];
+  repeated cosmos.staking.v1beta1.MsgUndelegate undelegate_messages = 2 [(gogoproto.nullable) = false];
 }
