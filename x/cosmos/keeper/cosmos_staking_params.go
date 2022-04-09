@@ -25,7 +25,9 @@ func (w InternalWeightedAddressCosmos) Len() int {
 }
 
 func (w InternalWeightedAddressCosmos) Less(i, j int) bool {
-	return w[i].Difference.Amount.Uint64() < w[j].Difference.Amount.Uint64()
+	// TODO refactor
+	//return w[i].Difference.Amount.Uint64() < w[j].Difference.Amount.Uint64()
+	return false
 }
 
 func (w InternalWeightedAddressCosmos) Swap(i, j int) {
@@ -96,10 +98,11 @@ func (k Keeper) updateCosmosValidatorStakingParams(ctx sdk.Context, msgs []sdk.M
 	for _, element := range internalWeightedAddressCosmos {
 		if val, ok := msgsMap[element.Address]; ok {
 			element.CurrentDelegatedAmount.Add(val.Amount)
-			element.IdealDelegatedAmount = sdk.NewCoin(element.IdealDelegatedAmount.Denom,
-				k.getTotalDelegatedAmountTillDate(ctx).Amount.ToDec().Mul(element.Weight).TruncateInt(),
-			)
-			element.Difference = element.IdealDelegatedAmount.Sub(element.CurrentDelegatedAmount)
+			// TODO refactor this, difference and ideal delegated amount was deleted.
+			//element.IdealDelegatedAmount = sdk.NewCoin(element.IdealDelegatedAmount.Denom,
+			//	k.getTotalDelegatedAmountTillDate(ctx).Amount.ToDec().Mul(element.Weight).TruncateInt(),
+			//)
+			//element.Difference = element.IdealDelegatedAmount.Sub(element.CurrentDelegatedAmount)
 		}
 	}
 	k.setCosmosValidatorParams(ctx, internalWeightedAddressCosmos)
