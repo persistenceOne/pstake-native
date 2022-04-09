@@ -80,7 +80,7 @@ func NewIncomingTxnCmd() *cobra.Command {
 			}
 
 			msg := cosmosTypes.NewMsgMintTokensForAccount(toAddr, orchAddress, coins, txHash, chainID, blockHeight)
-			//TODO ValidateBasic() for msg
+
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -105,10 +105,7 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 				Validator:    args[0],
 				Orchestrator: args[1],
 			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-			// Send it
+
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
 	}
@@ -153,7 +150,7 @@ func CmdSendNewProposal() *cobra.Command {
 			votingEndTime := votingStartTime.Add(time.Minute * 2)
 
 			msg := cosmosTypes.NewMsgMakeProposal(title, description, orchAddress, chainID, blockHeight, proposalID, votingStartTime, votingEndTime)
-			//TODO ValidateBasic() for msg
+
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -248,10 +245,6 @@ $ %s tx gov weighted-vote 1 yes=0.6,no=0.3,abstain=0.05,no_with_veto=0.05 --from
 
 			// Build vote message and run basic validation
 			msg := cosmosTypes.NewMsgVoteWeighted(from, proposalID, options)
-			err = msg.ValidateBasic()
-			if err != nil {
-				return err
-			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -288,10 +281,6 @@ Only "success" or "failure" accepted as status.`,
 			status := args[2]
 
 			msg := cosmosTypes.NewMsgTxStatus(orchAddress, status, txHash)
-			err = msg.ValidateBasic()
-			if err != nil {
-				return err
-			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -331,10 +320,6 @@ func NewWithdrawCmd() *cobra.Command {
 			}
 
 			msg := cosmosTypes.NewMsgWithdrawStkAsset(fromAddress, toAddress, amount)
-			err = msg.ValidateBasic()
-			if err != nil {
-				return err
-			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
