@@ -60,7 +60,7 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
 			sdkTypes.NewAttribute(cosmosTypes.AttributeKeySetOperatorAddr, orchestrator.String()),
 		),
 	)
@@ -107,7 +107,7 @@ func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAs
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
 		),
 	)
 	return &cosmosTypes.MsgWithdrawStkAssetResponse{}, nil
@@ -189,7 +189,7 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
 			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchestratorAddress.String()),
 		),
 	)
@@ -349,7 +349,7 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
 			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchAddr.String()),
 		),
 	)

@@ -20,5 +20,5 @@ const (
 	AttributeSender             = "sender"
 	AttributeKeyProposalID      = "proposal_id"
 	AttributeKeyOption          = "option"
-	AttributeValueCategory      = "governance"
+	AttributeValueCategory      = ModuleName
 )
