@@ -7,6 +7,8 @@ import "google/protobuf/any.proto";
 import "cosmos/v1beta1/cosmos.proto";
 import "cosmos/v1beta1/proposal.proto";
 import "google/protobuf/timestamp.proto";
+import "cosmos/tx/v1beta1/tx.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -22,7 +24,7 @@ message MsgWithdrawStkAsset {
 
   string   from_address = 1 [(gogoproto.moretags) = "yaml:\"from_address\""];
   string   to_address = 2 [(gogoproto.moretags) = "yaml:\"to_address\""];
-  string amount = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
 message MsgWithdrawStkAssetResponse {}
 
@@ -54,8 +56,8 @@ message MsgVoteWeightedResponse {}
 message MsgMintTokensForAccount {
   string address_from_memo = 1 [(gogoproto.moretags) = "yaml:\"address_from_memo\""];
   string orchestrator_address = 2 [(gogoproto.moretags) = "yaml:\"orchestrator_address\""];
-  repeated string amount = 3
-  [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin", (gogoproto.nullable) = false,
+  repeated cosmos.base.v1beta1.Coin amount = 3
+  [(gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
   string tx_hash = 4 [(gogoproto.moretags) = "yaml:\"tx_hash\""];
   string chain_i_d = 5 [(gogoproto.moretags) = "yaml:\"chain_id\""];
@@ -89,7 +91,7 @@ message MsgMakeProposalResponse {}
 
 message MsgSignedTx {
   uint64 tx_i_d = 1;
-  string tx = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types/tx.Tx", (gogoproto.nullable) = false];
+  cosmos.tx.v1beta1.Tx tx = 2 [(gogoproto.nullable) = false];
   string orchestrator_address = 3;
 }
 message MsgSignedTxResponse {}
