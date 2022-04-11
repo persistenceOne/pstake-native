@@ -12,9 +12,12 @@ import (
 )
 
 const (
-	DefaultPeriod    time.Duration = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
-	DefaultMintDenom string        = "ustkxprt"
-	DefaultBondDenom string        = "uatom"
+	DefaultPeriod time.Duration = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
+)
+
+var (
+	DefaultMintDenom = []string{"ustkxprt"}
+	DefaultBondDenom = []string{"uatom"}
 )
 
 var (
@@ -48,7 +51,7 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 	maxValidatorToDelegate uint64, validatorSetCosmosChain []WeightedAddressCosmos, validatorSetNativeChain []WeightedAddress,
 	weightedDeveloperRewardsReceivers []WeightedAddress, distributionProportion DistributionProportions, epochs int64,
 	maxIncomingAndOutgoingTxns int64, cosmosProposalParams CosmosChainProposalParams, epochIdentifier string,
-	custodialAddress string, unbondingEpochIdentifier string, ChunkSize int64, bondDenom string, mintDenom string) Params {
+	custodialAddress string, unbondingEpochIdentifier string, ChunkSize int64, bondDenom []string, mintDenom []string) Params {
 	return Params{
 		MinMintingAmount:                  minMintingAmount,
 		MaxMintingAmount:                  maxMintingAmount,
@@ -109,7 +112,7 @@ func DefaultParams() Params {
 			ChainID:              "cosmoshub-4", //TODO use these as conditions for proposals
 			ReduceVotingPeriodBy: DefaultPeriod,
 		},
-		DelegationThreshold:      sdk.NewInt64Coin(DefaultBondDenom, 2000000000),
+		DelegationThreshold:      2000000000,
 		ModuleEnabled:            true, //TODO : Make false before launch
 		RewardsEpochIdentifier:   "3hour",
 		CustodialAddress:         "cosmos15vm0p2x990762txvsrpr26ya54p5qlz9xqlw5z",
@@ -448,13 +451,13 @@ func validateCosmosProposalParams(i interface{}) error {
 }
 
 func validateDelegationThreshold(i interface{}) error {
-	v, ok := i.(sdk.Coin)
+	v, ok := i.(int64)
 
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v.IsNegative() {
+	if v < 0 {
 		return fmt.Errorf("delegation threshold cannot be negative")
 	}
 	return nil
@@ -495,24 +498,24 @@ func validateWithdrawRewardsChunkSize(i interface{}) error {
 }
 
 func validateBondDenom(i interface{}) error {
-	v, ok := i.(string)
+	v, ok := i.([]string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v == "" {
+	if len(v) <= 0 {
 		return fmt.Errorf("bond denom cannot be empty")
 	}
 	return nil
 }
 
 func validateMintDenom(i interface{}) error {
-	v, ok := i.(string)
+	v, ok := i.([]string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v == "" {
+	if len(v) <= 0 {
 		return fmt.Errorf("mint denom cannot be empty")
 	}
 	return nil

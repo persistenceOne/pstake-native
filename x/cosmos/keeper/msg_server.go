@@ -91,7 +91,7 @@ func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAs
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
 	}
 
-	if msg.Amount.GetDenom() != k.GetParams(ctx).MintDenom {
+	if msg.Amount.GetDenom() != k.GetParams(ctx).MintDenom[0] {
 		return nil, cosmosTypes.ErrInvalidWithdrawDenom
 	}
 
@@ -137,8 +137,8 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 	}
 
 	params := k.GetParams(ctx)
-	uatomAmount := msg.Amount.AmountOf(params.BondDenom)
-	uStkXprtCoin := sdkTypes.NewCoin(params.MintDenom, uatomAmount)
+	uatomAmount := msg.Amount.AmountOf(params.BondDenom[0])
+	uStkXprtCoin := sdkTypes.NewCoin(params.MintDenom[0], uatomAmount)
 	newAmount := sdkTypes.NewCoins(uStkXprtCoin)
 	if err != nil {
 		return nil, err

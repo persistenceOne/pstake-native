@@ -15,7 +15,7 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, keyAndValue cosmo
 
 	params := k.GetParams(ctx)
 	//fetches validator set for delegation on cosmos chain
-	amount := sdk.NewCoin(params.BondDenom, keyAndValue.Value.Amount.AmountOf(params.BondDenom))
+	amount := sdk.NewCoin(params.BondDenom[0], keyAndValue.Value.Amount.AmountOf(params.BondDenom[0]))
 	validatorSet := k.fetchValidatorsToDelegate(ctx, amount)
 
 	//create messages for delegation on cosmos chain

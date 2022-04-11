@@ -84,7 +84,7 @@ func (k Keeper) getCosmosValidatorParams(ctx sdk.Context) (internalWeightedAddre
 }
 
 func (k Keeper) updateCosmosValidatorStakingParams(ctx sdk.Context, msgs []sdk.Msg) {
-	totalAmountInDelegateMsgs := sdk.NewInt64Coin(k.GetParams(ctx).BondDenom, 0)
+	totalAmountInDelegateMsgs := sdk.NewInt64Coin(k.GetParams(ctx).BondDenom[0], 0)
 	msgsMap := make(map[string]stakingTypes.MsgDelegate, len(msgs))
 	for _, msg := range msgs {
 		delegateMsg := msg.(*stakingTypes.MsgDelegate)
