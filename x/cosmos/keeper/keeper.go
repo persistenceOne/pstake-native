@@ -155,7 +155,7 @@ func prefixRange(prefix []byte) ([]byte, []byte) {
 func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, key cosmosTypes.ChainIDHeightAndTxHashKey, value cosmosTypes.AddressAndAmountKey) error {
 	//TODO incorporate minting_ratio
 	params := k.GetParams(ctx)
-	if value.Amount.AmountOf(params.MintDenom[0]).GT(k.GetParams(ctx).MinMintingAmount.Amount) && value.Amount.AmountOf(params.MintDenom[0]).LT(k.GetParams(ctx).MaxMintingAmount.Amount) {
+	if value.Amount.AmountOf(params.MintDenom).GT(k.GetParams(ctx).MinMintingAmount.Amount) && value.Amount.AmountOf(params.MintDenom).LT(k.GetParams(ctx).MaxMintingAmount.Amount) {
 		destinationAddress, err := sdkTypes.AccAddressFromBech32(value.DestinationAddress)
 		if err != nil {
 			return err

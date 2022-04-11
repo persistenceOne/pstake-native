@@ -58,7 +58,7 @@ message CosmosChainProposalParams {
 message Params {
   option (gogoproto.goproto_stringer) = false;
 
-  repeated string mint_denom = 1 [(gogoproto.moretags) = "yaml:\"mint_denom\""];
+  string mint_denom = 1 [(gogoproto.moretags) = "yaml:\"mint_denom\""];
   cosmos.base.v1beta1.Coin min_minting_amount = 2 [
     (gogoproto.moretags) = "yaml:\"min_minting_amount\"",
     (gogoproto.nullable) = false
@@ -96,5 +96,5 @@ message Params {
   string rewards_epoch_identifier = 17;
   int64 chunk_size = 19;
   string unbonding_epoch_identifier = 20;
-  repeated string bond_denom = 21;
+  repeated string bond_denoms = 21;
 }

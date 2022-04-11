@@ -233,7 +233,10 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 					switch msgs[0].(type) {
 					//TODO : Add cases for rewards claim, unbonding
 					case *stakingTypes.MsgDelegate:
-						k.updateCosmosValidatorStakingParams(ctx, msgs)
+						err := k.updateCosmosValidatorStakingParams(ctx, msgs)
+						if err != nil {
+							return err
+						}
 					case *types.MsgWithdrawDelegatorReward:
 						k.emitStakingTxnForClaimedRewards(ctx, msgs)
 					case *stakingTypes.MsgUndelegate:

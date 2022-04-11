@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	DefaultPeriod time.Duration = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
+	DefaultPeriod    time.Duration = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
+	DefaultMintDenom string        = "ustkxprt"
 )
 
 var (
-	DefaultMintDenom = []string{"ustkxprt"}
 	DefaultBondDenom = []string{"uatom"}
 )
 
@@ -51,7 +51,7 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 	maxValidatorToDelegate uint64, validatorSetCosmosChain []WeightedAddressCosmos, validatorSetNativeChain []WeightedAddress,
 	weightedDeveloperRewardsReceivers []WeightedAddress, distributionProportion DistributionProportions, epochs int64,
 	maxIncomingAndOutgoingTxns int64, cosmosProposalParams CosmosChainProposalParams, epochIdentifier string,
-	custodialAddress string, unbondingEpochIdentifier string, ChunkSize int64, bondDenom []string, mintDenom []string) Params {
+	custodialAddress string, unbondingEpochIdentifier string, ChunkSize int64, bondDenom []string, mintDenom string) Params {
 	return Params{
 		MinMintingAmount:                  minMintingAmount,
 		MaxMintingAmount:                  maxMintingAmount,
@@ -70,7 +70,7 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 		CustodialAddress:                  custodialAddress,
 		UnbondingEpochIdentifier:          unbondingEpochIdentifier,
 		ChunkSize:                         ChunkSize,
-		BondDenom:                         bondDenom,
+		BondDenoms:                        bondDenom,
 		MintDenom:                         mintDenom,
 	}
 }
@@ -118,7 +118,7 @@ func DefaultParams() Params {
 		CustodialAddress:         "cosmos15vm0p2x990762txvsrpr26ya54p5qlz9xqlw5z",
 		UnbondingEpochIdentifier: "3.5day",
 		ChunkSize:                5,
-		BondDenom:                DefaultBondDenom,
+		BondDenoms:               DefaultBondDenom,
 		MintDenom:                DefaultMintDenom,
 	}
 }
@@ -178,7 +178,7 @@ func (p Params) Validate() error {
 	if err := validateWithdrawRewardsChunkSize(p.ChunkSize); err != nil {
 		return err
 	}
-	if err := validateBondDenom(p.BondDenom); err != nil {
+	if err := validateBondDenom(p.BondDenoms); err != nil {
 		return err
 	}
 	if err := validateMintDenom(p.MintDenom); err != nil {
@@ -212,9 +212,18 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyCustodialAddress, &p.CustodialAddress, validateCustodialAddress),
 		paramsTypes.NewParamSetPair(KeyUnbondingEpochIdentifier, &p.UnbondingEpochIdentifier, epochsTypes.ValidateEpochIdentifierInterface),
 		paramsTypes.NewParamSetPair(KeyChunkSize, &p.ChunkSize, validateWithdrawRewardsChunkSize),
-		paramsTypes.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
+		paramsTypes.NewParamSetPair(KeyBondDenom, &p.BondDenoms, validateBondDenom),
 		paramsTypes.NewParamSetPair(KeyMintDenom, &p.MintDenom, validateMintDenom),
 	}
+}
+
+func (p Params) GetBondDenomOf(s string) (string, error) {
+	for _, element := range p.BondDenoms {
+		if element == s {
+			return element, nil
+		}
+	}
+	return "", ErrInvalidBondDenom
 }
 
 func validateMinMintingAmount(i interface{}) error {
@@ -510,12 +519,12 @@ func validateBondDenom(i interface{}) error {
 }
 
 func validateMintDenom(i interface{}) error {
-	v, ok := i.([]string)
+	v, ok := i.(string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if len(v) <= 0 {
+	if v == "" {
 		return fmt.Errorf("mint denom cannot be empty")
 	}
 	return nil

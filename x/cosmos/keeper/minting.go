@@ -214,7 +214,10 @@ func (k Keeper) ProcessAllMintingTransactions(ctx sdkTypes.Context) error {
 			addressToMintTokens.Value.Minted = true
 
 			if addressToMintTokens.Value.Minted && !addressToMintTokens.Value.Acknowledgment {
-				k.generateDelegateOutgoingEvent(ctx, addressToMintTokens)
+				err = k.generateDelegateOutgoingEvent(ctx, addressToMintTokens)
+				if err != nil {
+					panic(err)
+				}
 				addressToMintTokens.Value.Acknowledgment = true
 			}
 		}

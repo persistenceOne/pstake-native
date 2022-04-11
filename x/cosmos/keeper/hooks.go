@@ -64,7 +64,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		if err != nil {
 			panic(err)
 		}
-		amount := k.totalAmountToBeUnbonded(withdrawTxns, params.MintDenom[0])
+		amount := k.totalAmountToBeUnbonded(withdrawTxns, params.MintDenom)
 		//check if amount is zero then do not emit event
 		if !amount.IsZero() {
 			listOfValidatorsAndUnbondingAmount := k.fetchValidatorsToUndelegate(ctx, amount)
