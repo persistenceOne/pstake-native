@@ -235,7 +235,7 @@ type Params struct {
 	MaxIncomingAndOutgoingTxns        int64                     `protobuf:"varint,12,opt,name=max_incoming_and_outgoing_txns,json=maxIncomingAndOutgoingTxns,proto3" json:"max_incoming_and_outgoing_txns,omitempty" yaml:"maxIncomingAndOutgoingTxns"`
 	CosmosProposalParams              CosmosChainProposalParams `protobuf:"bytes,13,opt,name=cosmos_proposal_params,json=cosmosProposalParams,proto3" json:"cosmos_proposal_params" yaml:"cosmos_proposal_params"`
 	CustodialAddress                  string                    `protobuf:"bytes,14,opt,name=custodial_address,json=custodialAddress,proto3" json:"custodial_address,omitempty" yaml:"custodial_address"`
-	DelegationThreshold               int64                     `protobuf:"varint,15,opt,name=delegation_threshold,json=delegationThreshold,proto3" json:"delegation_threshold,omitempty"`
+	DelegationThreshold               types.Coin                `protobuf:"bytes,15,opt,name=delegation_threshold,json=delegationThreshold,proto3" json:"delegation_threshold" yaml:"delegation_threshold"`
 	ModuleEnabled                     bool                      `protobuf:"varint,16,opt,name=module_enabled,json=moduleEnabled,proto3" json:"module_enabled,omitempty"`
 	RewardsEpochIdentifier            string                    `protobuf:"bytes,17,opt,name=rewards_epoch_identifier,json=rewardsEpochIdentifier,proto3" json:"rewards_epoch_identifier,omitempty"`
 	ChunkSize                         int64                     `protobuf:"varint,19,opt,name=chunk_size,json=chunkSize,proto3" json:"chunk_size,omitempty"`
@@ -373,11 +373,11 @@ func (m *Params) GetCustodialAddress() string {
 	return ""
 }
 
-func (m *Params) GetDelegationThreshold() int64 {
+func (m *Params) GetDelegationThreshold() types.Coin {
 	if m != nil {
 		return m.DelegationThreshold
 	}
-	return 0
+	return types.Coin{}
 }
 
 func (m *Params) GetModuleEnabled() bool {
@@ -741,11 +741,16 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x80
 	}
-	if m.DelegationThreshold != 0 {
-		i = encodeVarintCosmos(dAtA, i, uint64(m.DelegationThreshold))
-		i--
-		dAtA[i] = 0x78
+	{
+		size, err := m.DelegationThreshold.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintCosmos(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0x7a
 	if len(m.CustodialAddress) > 0 {
 		i -= len(m.CustodialAddress)
 		copy(dAtA[i:], m.CustodialAddress)
@@ -1004,9 +1009,8 @@ func (m *Params) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCosmos(uint64(l))
 	}
-	if m.DelegationThreshold != 0 {
-		n += 1 + sovCosmos(uint64(m.DelegationThreshold))
-	}
+	l = m.DelegationThreshold.Size()
+	n += 1 + l + sovCosmos(uint64(l))
 	if m.ModuleEnabled {
 		n += 3
 	}
@@ -1985,10 +1989,10 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			m.CustodialAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 15:
-			if wireType != 0 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DelegationThreshold", wireType)
 			}
-			m.DelegationThreshold = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowCosmos
@@ -1998,11 +2002,25 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.DelegationThreshold |= int64(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthCosmos
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCosmos
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.DelegationThreshold.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 16:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ModuleEnabled", wireType)
