@@ -83,8 +83,12 @@ func (k Keeper) getCosmosValidatorParams(ctx sdk.Context) (internalWeightedAddre
 	return internalWeightedAddressCosmos
 }
 
-func (k Keeper) updateCosmosValidatorStakingParams(ctx sdk.Context, msgs []sdk.Msg) {
-	totalAmountInDelegateMsgs := sdk.NewInt64Coin(k.GetParams(ctx).BondDenom, 0)
+func (k Keeper) updateCosmosValidatorStakingParams(ctx sdk.Context, msgs []sdk.Msg) error {
+	uatomDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
+	if err != nil {
+		return err
+	}
+	totalAmountInDelegateMsgs := sdk.NewInt64Coin(uatomDenom, 0)
 	msgsMap := make(map[string]stakingTypes.MsgDelegate, len(msgs))
 	for _, msg := range msgs {
 		delegateMsg := msg.(*stakingTypes.MsgDelegate)
@@ -106,7 +110,7 @@ func (k Keeper) updateCosmosValidatorStakingParams(ctx sdk.Context, msgs []sdk.M
 		}
 	}
 	k.setCosmosValidatorParams(ctx, internalWeightedAddressCosmos)
-
+	return nil
 	//TODO : Update c token ratio
 }
 

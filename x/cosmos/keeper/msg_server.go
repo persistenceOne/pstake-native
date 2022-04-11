@@ -137,7 +137,13 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 	}
 
 	params := k.GetParams(ctx)
-	uatomAmount := msg.Amount.AmountOf(params.BondDenom) // panics if bondDenom not found.
+
+	uatomDenom, err := params.GetBondDenomOf("uatom")
+	if err != nil {
+		return nil, err
+	}
+	uatomAmount := msg.Amount.AmountOf(uatomDenom)
+
 	uStkXprtCoin := sdkTypes.NewCoin(params.MintDenom, uatomAmount)
 	newAmount := sdkTypes.NewCoins(uStkXprtCoin)
 

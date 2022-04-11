@@ -10,12 +10,16 @@ import (
 )
 
 // Generate an event for delegating on cosmos chain once tokens are minted on native side
-func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, keyAndValue cosmosTypes.KeyAndValueForMinting) {
+func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, keyAndValue cosmosTypes.KeyAndValueForMinting) error {
 	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 
 	params := k.GetParams(ctx)
 	//fetches validator set for delegation on cosmos chain
-	amount := sdk.NewCoin(params.BondDenom, keyAndValue.Value.Amount.AmountOf(params.BondDenom))
+	uatomDenom, err := params.GetBondDenomOf("uatom")
+	if err != nil {
+		return err
+	}
+	amount := sdk.NewCoin(uatomDenom, keyAndValue.Value.Amount.AmountOf(uatomDenom))
 	validatorSet := k.fetchValidatorsToDelegate(ctx, amount)
 
 	//create messages for delegation on cosmos chain
@@ -68,6 +72,7 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, keyAndValue cosmo
 	)
 	//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
 	k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+	return nil
 }
 
 func (k Keeper) setTotalDelegatedAmountTillDate(ctx sdk.Context, addToTotal sdk.Coin) {
