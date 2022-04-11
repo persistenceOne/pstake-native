@@ -91,7 +91,10 @@ message Params {
   CosmosChainProposalParams cosmos_proposal_params = 13 [(gogoproto.moretags) = "yaml:\"cosmos_proposal_params\"",
     (gogoproto.nullable) = false];
   string custodial_address = 14[(gogoproto.moretags) = "yaml:\"custodial_address\""];
-  int64 delegation_threshold = 15;
+  cosmos.base.v1beta1.Coin delegation_threshold = 15 [
+    (gogoproto.moretags) = "yaml:\"delegation_threshold\"",
+    (gogoproto.nullable) = false
+  ];
   bool module_enabled = 16;
   string rewards_epoch_identifier = 17;
   int64 chunk_size = 19;
