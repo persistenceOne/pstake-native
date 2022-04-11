@@ -12,6 +12,25 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
+service Msg {
+  rpc SetOrchestrator(MsgSetOrchestrator) returns (MsgSetOrchestratorResponse) {
+    option (google.api.http).post = "/pstake/cosmos/v1beta1/SetOrchestrator";
+  }
+  rpc Withdraw(MsgWithdrawStkAsset) returns (MsgWithdrawStkAssetResponse) {
+    option (google.api.http).post = "/pstake/cosmos/v1beta1/WithdrawStkAssets";
+  }
+  rpc MintTokensForAccount(MsgMintTokensForAccount) returns (MsgMintTokensForAccountResponse) {
+    option (google.api.http).post = "/pstake/cosmos/v1beta1/MintTokensForAccount";
+  }
+  rpc MakeProposal(MsgMakeProposal) returns (MsgMakeProposalResponse) {
+    option (google.api.http).post = "/pstake/cosmos/v1beta1/MakeProposal";
+  }
+  rpc Vote(MsgVote) returns (MsgVoteResponse) {};
+  rpc VoteWeighted(MsgVoteWeighted) returns (MsgVoteWeightedResponse) {};
+  rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
+  rpc TxStatus(MsgTxStatus) returns (MsgTxStatusResponse) {};
+}
+
 message MsgSetOrchestrator {
   string validator = 1;
   string orchestrator = 2;
