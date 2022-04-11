@@ -137,31 +137,31 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 	}
 
 	params := k.GetParams(ctx)
+
 	uatomDenom, err := params.GetBondDenomOf("uatom")
 	if err != nil {
 		return nil, err
 	}
 	uatomAmount := msg.Amount.AmountOf(uatomDenom)
+
 	uStkXprtCoin := sdkTypes.NewCoin(params.MintDenom, uatomAmount)
 	newAmount := sdkTypes.NewCoins(uStkXprtCoin)
-	if err != nil {
-		return nil, err
-	}
 
 	k.setMintAddressAndAmount(ctx, msg.ChainID, msg.BlockHeight, msg.TxHash, destinationAddress, newAmount)
 
 	_, found := k.GetOrchestratorValidator(ctx, orchestratorAddress)
-	if found {
-		err = k.addToMintingPoolTx(ctx, msg.TxHash, destinationAddress, orchestratorAddress, msg.Amount)
-		if err != nil {
-			return nil, err
-		}
+	if !found {
+		return nil, sdkErrors.Wrap(cosmosTypes.ErrOrchAddressNotFound, "No orchestrator validator mapping found")
+	}
+	err = k.addToMintingPoolTx(ctx, msg.TxHash, destinationAddress, orchestratorAddress, msg.Amount)
+	if err != nil {
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
 			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchestratorAddress.String()),
 		),
 	)
