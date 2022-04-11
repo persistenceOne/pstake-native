@@ -460,13 +460,13 @@ func validateCosmosProposalParams(i interface{}) error {
 }
 
 func validateDelegationThreshold(i interface{}) error {
-	v, ok := i.(sdk.Coin)
+	v, ok := i.(int64)
 
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v.IsNegative() {
+	if v < 0 {
 		return fmt.Errorf("delegation threshold cannot be negative")
 	}
 	return nil
