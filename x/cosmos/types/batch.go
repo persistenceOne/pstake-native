@@ -74,10 +74,22 @@ func NewWithdrawStoreValue(msg MsgWithdrawStkAsset) WithdrawStoreValue {
 	}
 }
 
-func NewValuOutgoingUnbondStore(undelegateMessage []stakingTypes.MsgUndelegate, epochNumber int64) ValuOutgoingUnbondStore {
-	return ValuOutgoingUnbondStore{
+func NewValueOutgoingUnbondStore(undelegateMessage []stakingTypes.MsgUndelegate, epochNumber int64) ValueOutgoingUnbondStore {
+	return ValueOutgoingUnbondStore{
 		EpochNumber:        epochNumber,
 		UndelegateMessages: undelegateMessage,
+	}
+}
+
+func NewValueUndelegateSuccessStore(valAddress sdkTypes.ValAddress, orchestratorAddress sdkTypes.AccAddress, ratio float32, amount sdkTypes.Coin, nativeBlockHeight int64, activeBlockHeight int64) ValueUndelegateSuccessStore {
+	return ValueUndelegateSuccessStore{
+		ValidatorAddress:      valAddress.String(),
+		OrchestratorAddresses: []string{orchestratorAddress.String()},
+		Ratio:                 ratio,
+		Amount:                amount,
+		Counter:               1,
+		NativeBlockHeight:     nativeBlockHeight,
+		ActiveBlockHeight:     activeBlockHeight,
 	}
 }
 
