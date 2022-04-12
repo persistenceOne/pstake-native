@@ -10,11 +10,6 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-type TxHashAndDetails struct {
-	TxHash  string
-	Details cosmosTypes.TxHashValue
-}
-
 //______________________________________________________________________________________________
 /*
 TODO : Add Key and value structure as comment
@@ -107,6 +102,12 @@ func (k Keeper) getAllTxInOutgoingPool(ctx sdk.Context) (details []txIDAndDetail
 /*
 TODO : Add key and value structure
 */
+
+type TxHashAndDetails struct {
+	TxHash  string
+	Details cosmosTypes.TxHashValue
+}
+
 // Set details corresponding to a particular txHash and update details if already present
 func (k Keeper) setTxHashAndDetails(ctx sdk.Context, orchAddress sdk.AccAddress, txID uint64, txHash string, status string) {
 	txHashAndTxIDStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
@@ -233,14 +234,17 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 					switch msgs[0].(type) {
 					//TODO : Add cases for rewards claim, unbonding
 					case *stakingTypes.MsgDelegate:
-						err := k.updateCosmosValidatorStakingParams(ctx, msgs)
+						err = k.updateCosmosValidatorStakingParams(ctx, msgs)
 						if err != nil {
 							return err
 						}
 					case *types.MsgWithdrawDelegatorReward:
 						k.emitStakingTxnForClaimedRewards(ctx, msgs)
 					case *stakingTypes.MsgUndelegate:
-						// TODO
+						err = k.setEpochAndValidatorDetailsForAllUndelegations(ctx, element.Details.TxID)
+						if err != nil {
+							return err
+						}
 					}
 				}
 			}

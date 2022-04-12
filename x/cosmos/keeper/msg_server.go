@@ -70,6 +70,10 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 
 // Send TODO Modify outgoing pool
 func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAsset) (*cosmosTypes.MsgWithdrawStkAssetResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, sdkErrors.Wrap(err, "Key not valid")
+	}
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
 	//Accept transaction if module is enabled
@@ -114,6 +118,10 @@ func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAs
 }
 
 func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgMintTokensForAccount) (*cosmosTypes.MsgMintTokensForAccountResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, sdkErrors.Wrap(err, "Key not valid")
+	}
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
 	//Accept transaction if module is enabled
@@ -169,6 +177,10 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 }
 
 func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakeProposal) (*cosmosTypes.MsgMakeProposalResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, sdkErrors.Wrap(err, "Key not valid")
+	}
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
 	//Accept transaction if module is enabled
@@ -197,6 +209,10 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 }
 
 func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTypes.MsgVoteResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, sdkErrors.Wrap(err, "Key not valid")
+	}
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
 	//Accept transaction if module is enabled
@@ -238,6 +254,10 @@ func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTyp
 }
 
 func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeighted) (*cosmosTypes.MsgVoteWeightedResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, sdkErrors.Wrap(err, "Key not valid")
+	}
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
 	//Accept transaction if module is enabled
@@ -280,6 +300,10 @@ func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeigh
 
 // SignedTxFromOrchestrator Receives a signed txn from orchestrator and updates the details
 func (k msgServer) SignedTxFromOrchestrator(c context.Context, msg *cosmosTypes.MsgSignedTx) (*cosmosTypes.MsgSignedTxResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, sdkErrors.Wrap(err, "Key not valid")
+	}
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
 	//Accept transaction if module is enabled
@@ -326,6 +350,10 @@ func (k msgServer) SignedTxFromOrchestrator(c context.Context, msg *cosmosTypes.
 // TxStatus Accepts status as : "success" or "failure"
 // Failure only to be sent when transaction fails due to insufficient fees
 func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*cosmosTypes.MsgTxStatusResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, sdkErrors.Wrap(err, "Key not valid")
+	}
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
 	//Accept transaction if module is enabled
@@ -354,4 +382,57 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 		),
 	)
 	return &cosmosTypes.MsgTxStatusResponse{}, nil
+}
+
+func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUndelegateSuccess) (*cosmosTypes.MsgUndelegateSuccessResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, sdkErrors.Wrap(err, "Key not valid")
+	}
+	if err != nil {
+		return nil, err
+	}
+	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	//Accept transaction if module is enabled
+	params := k.GetParams(ctx)
+	if !params.ModuleEnabled {
+		return nil, cosmosTypes.ErrModuleNotEnabled
+	}
+
+	orchestratorAddress, err := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
+	if err != nil {
+		return nil, err
+	}
+	validatorAddress, err := sdkTypes.ValAddressFromBech32(msg.ValidatorAddress)
+	if err != nil {
+		return nil, err
+	}
+	custodialAddress, err := sdkTypes.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	if custodialAddress.String() != params.CustodialAddress {
+		return nil, cosmosTypes.ErrInvalidCustodialAddress
+	}
+
+	_, found := k.GetOrchestratorValidator(ctx, orchestratorAddress)
+	if found {
+		err = k.setUndelegateSuccessDetails(ctx, validatorAddress, orchestratorAddress, msg.Amount, msg.TxHash, msg.ChainID, msg.BlockHeight)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, cosmosTypes.ErrInvalid
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdkTypes.NewEvent(
+			sdkTypes.EventTypeMessage,
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
+			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchestratorAddress.String()),
+		),
+	)
+	return &cosmosTypes.MsgUndelegateSuccessResponse{}, nil
 }
