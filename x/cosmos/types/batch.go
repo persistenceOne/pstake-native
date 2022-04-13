@@ -80,3 +80,9 @@ func NewValuOutgoingUnbondStore(undelegateMessage []stakingTypes.MsgUndelegate, 
 		UndelegateMessages: undelegateMessage,
 	}
 }
+
+func NewValidatorStoreValue(orchestratorAddress sdkTypes.AccAddress) ValidatorStoreValue {
+	return ValidatorStoreValue{
+		OrchestratorAddresses: []string{orchestratorAddress.String()},
+	}
+}
