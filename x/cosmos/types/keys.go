@@ -50,7 +50,7 @@ const (
 )
 
 var (
-	KeyOrchestratorAddress = "KeyOrchestratorAddress"
+	KeyValidatorAddress = "KeyValidatorAddress"
 	//KeyAccAddress          = "KeyAccAddress"
 	//OutgoingTxPrefix       = []byte{0x01}
 	//IncomingTxPrefix       = []byte{0x02}
@@ -75,23 +75,25 @@ var (
 
 	OrchestratorValidatorStoreKey = []byte{0x06}
 
-	ProposalStoreKey = []byte{0x07}
+	ValidatorOrchestratorStoreKey = []byte{0x07}
 
-	ProposalIDKey = []byte{0x08}
+	ProposalStoreKey = []byte{0x08}
 
-	VotingParams = []byte{0x09}
+	ProposalIDKey = []byte{0x09}
 
-	ProposalsKeyPrefix = []byte{0xA}
+	VotingParams = []byte{0xA}
 
-	ActiveProposalQueuePrefix = []byte{0xB}
+	ProposalsKeyPrefix = []byte{0xB}
 
-	VotesKeyPrefix = []byte{0xC}
+	ActiveProposalQueuePrefix = []byte{0xC}
 
-	HashAndIDStore = []byte{0xD}
+	VotesKeyPrefix = []byte{0xD}
 
-	KeyWithdrawStore = []byte{0xE}
+	HashAndIDStore = []byte{0xE}
 
-	KeyOutgoingUnbondStore = []byte{0xF}
+	KeyWithdrawStore = []byte{0xF}
+
+	KeyOutgoingUnbondStore = []byte{0x10}
 )
 
 func ConvertByteArrToString(value []byte) string {
@@ -102,11 +104,18 @@ func ConvertByteArrToString(value []byte) string {
 	return ret.String()
 }
 
-func GetOrchestratorAddressKey(orc sdkTypes.AccAddress) string {
-	if err := sdkTypes.VerifyAddressFormat(orc); err != nil {
+//func GetOrchestratorAddressKey(orc sdkTypes.AccAddress) string {
+//	if err := sdkTypes.VerifyAddressFormat(orc); err != nil {
+//		panic(sdkErrors.Wrap(err, "invalid orchestrator address"))
+//	}
+//	return KeyOrchestratorAddress + string(orc.Bytes())
+//}
+
+func GetValidatorAddressKey(val sdkTypes.ValAddress) string {
+	if err := sdkTypes.VerifyAddressFormat(val); err != nil {
 		panic(sdkErrors.Wrap(err, "invalid orchestrator address"))
 	}
-	return KeyOrchestratorAddress + string(orc.Bytes())
+	return KeyValidatorAddress + string(val.Bytes())
 }
 
 func GetChainIDTxHashBlockHeightKey(chainID string, blockHeight int64, txHash string) string {
