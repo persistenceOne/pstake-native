@@ -10,10 +10,10 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidatorsAndUnbondingAmount []ValAddressAndAmountForStakingAndUnstaking, epochNumber int64) {
+func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidatorsAndUnbondingAmount []ValAddressAndAmountForStakingAndUndelegating, epochNumber int64) {
 	params := k.GetParams(ctx)
 
-	chunkMsgs := ChunkUndelegationSlice(listOfValidatorsAndUnbondingAmount, params.ChunkSize)
+	chunkMsgs := ChunkStakeAndUnStakeSlice(listOfValidatorsAndUnbondingAmount, params.ChunkSize)
 
 	for _, chunk := range chunkMsgs {
 		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
@@ -86,7 +86,7 @@ func (k Keeper) setIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64, und
 	return nil
 }
 
-func ChunkUndelegationSlice(slice []ValAddressAndAmountForStakingAndUnstaking, chunkSize int64) (chunks [][]ValAddressAndAmountForStakingAndUnstaking) {
+func ChunkStakeAndUnStakeSlice(slice []ValAddressAndAmountForStakingAndUndelegating, chunkSize int64) (chunks [][]ValAddressAndAmountForStakingAndUndelegating) {
 	for {
 		if len(slice) == 0 {
 			break

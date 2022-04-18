@@ -96,8 +96,8 @@ message Params {
     (gogoproto.nullable) = false
   ];
   bool module_enabled = 16;
-  string rewards_epoch_identifier = 17;
+  string staking_epoch_identifier = 17;
   int64 chunk_size = 19;
-  string unbonding_epoch_identifier = 20;
+  string undelegate_epoch_identifier = 20;
   repeated string bond_denoms = 21;
 }

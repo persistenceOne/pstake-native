@@ -8,6 +8,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 	// TODO implement EndBlocker
 	minting(ctx, k)
 	proposal(ctx, k)
+	rewards(ctx, k)
 	checkTransactions(ctx, k)
 }
 
@@ -21,6 +22,14 @@ func minting(ctx sdk.Context, k Keeper) {
 
 func proposal(ctx sdk.Context, k Keeper) {
 	err := k.ProcessProposals(ctx)
+	logger := k.Logger(ctx)
+	if err != nil {
+		logger.Info(err.Error())
+	}
+}
+
+func rewards(ctx sdk.Context, k Keeper) {
+	err := k.ProcessRewards(ctx)
 	logger := k.Logger(ctx)
 	if err != nil {
 		logger.Info(err.Error())

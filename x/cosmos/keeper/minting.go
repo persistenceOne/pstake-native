@@ -51,7 +51,7 @@ func (k Keeper) fetchFromMintPoolTx(ctx sdkTypes.Context, keyAndValueForMinting 
 			panic("Error in parsing destination address")
 		}
 
-		key := []byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, keyAndValueForMinting[i].Value.Amount, keyAndValueForMinting[i].Key.TxHash))
+		key := []byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, sdkTypes.NewCoins(keyAndValueForMinting[i].Value.Amount), keyAndValueForMinting[i].Key.TxHash))
 		bz := mintingPoolStore.Get(key)
 
 		var txnDetails cosmosTypes.IncomingMintTx
@@ -67,17 +67,17 @@ func (k Keeper) fetchFromMintPoolTx(ctx sdkTypes.Context, keyAndValueForMinting 
 }
 
 // deletes an item from mint pool
-func (k Keeper) deleteFromMintPoolTx(ctx sdkTypes.Context, destinationAddress sdkTypes.AccAddress, amount sdkTypes.Coins, txHash string) {
+func (k Keeper) deleteFromMintPoolTx(ctx sdkTypes.Context, destinationAddress sdkTypes.AccAddress, amount sdkTypes.Coin, txHash string) {
 	store := ctx.KVStore(k.storeKey)
 	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
-	mintingPoolStore.Delete([]byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, amount, txHash)))
+	mintingPoolStore.Delete([]byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, sdkTypes.NewCoins(amount), txHash)))
 }
 
 //______________________________________________________________________________________________
 /*
 TODO : Add structure
 */
-func (k Keeper) setMintAddressAndAmount(ctx sdkTypes.Context, chainID string, blockHeight int64, txHash string, destinationAddress sdkTypes.AccAddress, amount sdkTypes.Coins) {
+func (k Keeper) setMintAddressAndAmount(ctx sdkTypes.Context, chainID string, blockHeight int64, txHash string, destinationAddress sdkTypes.AccAddress, amount sdkTypes.Coin) {
 	store := ctx.KVStore(k.storeKey)
 	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
 
@@ -205,21 +205,10 @@ func (k Keeper) ProcessAllMintingTransactions(ctx sdkTypes.Context) error {
 	listWithRatio := k.fetchFromMintPoolTx(ctx, listNew)
 
 	for _, addressToMintTokens := range listWithRatio {
-		if addressToMintTokens.Ratio > cosmosTypes.MinimumRatioForMajority && !addressToMintTokens.Value.Minted {
-			err = k.mintTokensOnMajority(ctx, addressToMintTokens.Key, addressToMintTokens.Value)
-			if err != nil {
-				return err
-			}
-
-			addressToMintTokens.Value.Minted = true
-
-			if addressToMintTokens.Value.Minted && !addressToMintTokens.Value.Acknowledgment {
-				err = k.generateDelegateOutgoingEvent(ctx, addressToMintTokens)
-				if err != nil {
-					panic(err)
-				}
-				addressToMintTokens.Value.Acknowledgment = true
-			}
+		if addressToMintTokens.Ratio > cosmosTypes.MinimumRatioForMajority && !addressToMintTokens.Value.Acknowledgment {
+			addressToMintTokens.Value.Acknowledgment = true
+			k.addToStakingEpoch(ctx, addressToMintTokens)
+			k.setAcknowledgmentFlagTrue(ctx, addressToMintTokens.Key)
 		}
 
 		if addressToMintTokens.Value.NativeBlockHeight+cosmosTypes.StorageWindow < ctx.BlockHeight() {
@@ -230,6 +219,42 @@ func (k Keeper) ProcessAllMintingTransactions(ctx sdkTypes.Context) error {
 			}
 			k.deleteFromMintPoolTx(ctx, destinationAddress, addressToMintTokens.Value.Amount, addressToMintTokens.Key.TxHash)
 		}
+	}
+
+	epochNumberAndTxIDStatusList, err := k.fetchAllInEpochPoolForMinting(ctx)
+	for _, en := range epochNumberAndTxIDStatusList {
+		count := 0
+		for _, txIDStatus := range en.mintingEpochValue.TxIDAndStatus {
+			if txIDStatus.Status == true {
+				count++
+			}
+		}
+		if count == len(en.mintingEpochValue.TxIDAndStatus) {
+			// distribute to be minted tokens from the all deposits in the given epoch
+			stakingEpochValue, err := k.getFromStakingEpoch(ctx, en.epochNumber)
+			if err != nil {
+				return err
+			}
+			for _, e := range stakingEpochValue.EpochMintingTxns {
+				err = k.mintTokensOnMajority(ctx, e.Key, e.Value)
+				if err != nil {
+					return err
+				}
+			}
+
+			// process all rewards distribution
+			rewardAmnt, err := k.getFromRewardsInCurrentEpochAmount(ctx, en.epochNumber)
+			if err != nil {
+				return err
+			}
+			err = k.processAllRewardsClaimed(ctx, rewardAmnt)
+			if err != nil {
+				return err
+			}
+		}
+		k.deleteFromRewardsInCurrentEpoch(ctx, en.epochNumber)
+		k.deleteFromStakingEpoch(ctx, en.epochNumber)
+		k.deleteInEpochPoolForMinting(ctx, en.epochNumber)
 	}
 	return nil
 }

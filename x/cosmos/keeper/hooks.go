@@ -3,7 +3,6 @@ package keeper
 import (
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	distrTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 )
@@ -38,33 +37,59 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) {
 	params := k.GetParams(ctx)
 
-	if epochIdentifier == params.RewardsEpochIdentifier {
-		cosmosValidators := params.ValidatorSetCosmosChain
-		//TODO : Check if some amount has been delegated on cosmos chain or not. If there is then claim event is generated.
-		var withdrawMessages []*codecTypes.Any
-		for _, validator := range cosmosValidators {
-			msg := distrTypes.MsgWithdrawDelegatorReward{
-				DelegatorAddress: params.CustodialAddress,
-				ValidatorAddress: validator.Address,
-			}
-			anyMsg, err := codecTypes.NewAnyWithValue(&msg)
+	if epochIdentifier == params.StakingEpochIdentifier {
+		listOfMintTxns, err := k.getFromStakingEpoch(ctx, epochNumber)
+		stakingDenom, err := params.GetBondDenomOf("uatom")
+		if err != nil {
+			panic(err)
+		}
+
+		rewardsToBeClaimed, err := k.getFromRewardsInCurrentEpochAmount(ctx, epochNumber)
+		if err != nil {
+			panic(err)
+		}
+
+		amt := getTotalStakingAmount(listOfMintTxns, stakingDenom)
+		amt.Add(rewardsToBeClaimed)
+
+		if !amt.IsZero() {
+			listOfValidatorsToStake := k.fetchValidatorsToDelegate(ctx, amt)
+			err = k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake, epochNumber)
 			if err != nil {
 				panic(err)
 			}
-			withdrawMessages = append(withdrawMessages, anyMsg)
 		}
-		chuckMsgs := ChunkSlice(withdrawMessages, params.ChunkSize)
-		for _, chunk := range chuckMsgs {
-			k.generateWithdrawRewardsEvent(ctx, chunk)
-		}
+
+		//cosmosValidators := params.ValidatorSetCosmosChain
+		////TODO : Check if some amount has been delegated on cosmos chain or not. If there is then claim event is generated.
+		//var withdrawMessages []*codecTypes.Any
+		//for _, validator := range cosmosValidators {
+		//	msg := distrTypes.MsgWithdrawDelegatorReward{
+		//		DelegatorAddress: params.CustodialAddress,
+		//		ValidatorAddress: validator.Address,
+		//	}
+		//	anyMsg, err := codecTypes.NewAnyWithValue(&msg)
+		//	if err != nil {
+		//		panic(err)
+		//	}
+		//	withdrawMessages = append(withdrawMessages, anyMsg)
+		//}
+		//chuckMsgs := ChunkSlice(withdrawMessages, params.ChunkSize)
+		//for _, chunk := range chuckMsgs {
+		//	k.generateWithdrawRewardsEvent(ctx, chunk)
+		//}
 	}
 
-	if epochIdentifier == params.UnbondingEpochIdentifier {
+	if epochIdentifier == params.UndelegateEpochIdentifier {
 		withdrawTxns, err := k.fetchWithdrawTxnsWithCurrentEpochInfo(ctx, epochNumber)
 		if err != nil {
 			panic(err)
 		}
-		amount := k.totalAmountToBeUnbonded(withdrawTxns, params.MintDenom)
+		unbondDenom, err := params.GetBondDenomOf("uatom")
+		if err != nil {
+			panic(err)
+		}
+		amount := k.totalAmountToBeUnbonded(withdrawTxns, unbondDenom)
 		//check if amount is zero then do not emit event
 		if !amount.IsZero() {
 			listOfValidatorsAndUnbondingAmount := k.fetchValidatorsToUndelegate(ctx, amount)

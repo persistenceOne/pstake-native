@@ -29,6 +29,7 @@ service Msg {
   rpc VoteWeighted(MsgVoteWeighted) returns (MsgVoteWeightedResponse) {};
   rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
   rpc TxStatus(MsgTxStatus) returns (MsgTxStatusResponse) {};
+  rpc RewardsClaimed(MsgRewardsClaimedOnCosmosChain) returns (MsgRewardsClaimedOnCosmosChainResponse) {}
 }
 
 message MsgSetOrchestrator {
@@ -73,14 +74,13 @@ message MsgVoteWeightedResponse {}
 
 
 message MsgMintTokensForAccount {
-  string address_from_memo = 1 [(gogoproto.moretags) = "yaml:\"address_from_memo\""];
-  string orchestrator_address = 2 [(gogoproto.moretags) = "yaml:\"orchestrator_address\""];
+  string address_from_memo = 1;
+  string orchestrator_address = 2;
   repeated cosmos.base.v1beta1.Coin amount = 3
-  [(gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
-  string tx_hash = 4 [(gogoproto.moretags) = "yaml:\"tx_hash\""];
-  string chain_i_d = 5 [(gogoproto.moretags) = "yaml:\"chain_id\""];
-  int64 block_height = 6 [(gogoproto.moretags) = "yaml:\"block_height\""];
+    [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  string tx_hash = 4;
+  string chain_i_d = 5;
+  int64 block_height = 6;
 }
 
 message MsgMintTokensForAccountResponse {}
@@ -122,3 +122,12 @@ message MsgTxStatus {
   string status = 3;
 }
 message MsgTxStatusResponse {}
+
+message MsgRewardsClaimedOnCosmosChain {
+  string orchestrator_address = 1;
+  cosmos.base.v1beta1.Coin amount_claimed = 2 [(gogoproto.nullable) = false];
+  string chain_i_d = 3;
+  int64 block_height = 4;
+}
+
+message MsgRewardsClaimedOnCosmosChainResponse {}

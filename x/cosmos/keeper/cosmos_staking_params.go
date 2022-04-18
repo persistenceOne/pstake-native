@@ -114,12 +114,13 @@ func (k Keeper) updateCosmosValidatorStakingParams(ctx sdk.Context, msgs []sdk.M
 	//TODO : Update c token ratio
 }
 
-type ValAddressAndAmountForStakingAndUnstaking struct {
+type ValAddressAndAmountForStakingAndUndelegating struct {
 	validator sdk.ValAddress
 	amount    sdk.Coin
 }
 
-func (k Keeper) fetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) []ValAddressAndAmountForStakingAndUnstaking {
+// gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
+func (k Keeper) fetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) []ValAddressAndAmountForStakingAndUndelegating {
 	//internalWeightedAddressCosmos := k.getCosmosValidatorParams(ctx)
 	//uatomAmount := amount.AmountOf(cosmosTypes.StakeDenom)
 	//for _, element := range internalWeightedAddressCosmos {
@@ -130,7 +131,8 @@ func (k Keeper) fetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) []Va
 	return nil
 }
 
-func (k Keeper) fetchValidatorsToUndelegate(ctx sdk.Context, amount sdk.Coin) []ValAddressAndAmountForStakingAndUnstaking {
+// gives a list of validators having weighted amount for few validators
+func (k Keeper) fetchValidatorsToUndelegate(ctx sdk.Context, amount sdk.Coin) []ValAddressAndAmountForStakingAndUndelegating {
 	//TODO : Implement opposite of fetchValidatorsToDelegate
 	return nil
 }

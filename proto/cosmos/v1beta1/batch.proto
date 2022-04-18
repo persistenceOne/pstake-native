@@ -33,9 +33,7 @@ message IncomingMintTx {
 
 message AddressAndAmountKey {
   string destination_address = 1;
-  repeated cosmos.base.v1beta1.Coin amount = 2
-  [(gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
   bool acknowledgment = 3;
   bool minted = 4;
   int64 native_block_height = 5;
@@ -120,4 +118,27 @@ message ValuOutgoingUnbondStore {
 
 message ValidatorStoreValue {
   repeated string orchestrator_addresses = 1;
+}
+
+message StakingEpochValue {
+  repeated KeyAndValueForMinting epochMintingTxns = 1 [(gogoproto.nullable) = false];
+}
+
+message MintingEpochValueMember {
+  uint64 txID = 1;
+  bool status = 2;
+}
+
+message MintingEpochValue {
+  repeated MintingEpochValueMember tx_i_d_and_status = 1 [(gogoproto.nullable) = false];
+}
+
+message RewardsClaimedValue {
+  repeated string orchestrator_addresses = 1;
+  repeated cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  float ratio = 3;
+  int64 counter = 4;
+  bool added_to_current_epoch = 5;
+  int64 native_block_height = 6;
+  int64 active_block_height = 7;
 }

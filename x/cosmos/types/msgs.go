@@ -18,6 +18,7 @@ var (
 	_ sdk.Msg = &MsgVoteWeighted{}
 	_ sdk.Msg = &MsgSignedTx{}
 	_ sdk.Msg = &MsgTxStatus{}
+	_ sdk.Msg = &MsgRewardsClaimedOnCosmosChain{}
 )
 
 // NewMsgSetOrchestrator returns a new MsgSetOrchestrator
@@ -388,10 +389,60 @@ func (m *MsgTxStatus) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
+// NewMsgSetOrchestrator returns a new MsgSetOrchestrator
+func NewMsgRewardsClaimedOnCosmosChain(operator sdk.AccAddress, amount sdk.Coin, chainID string, blockHeight int64) *MsgRewardsClaimedOnCosmosChain {
+	return &MsgRewardsClaimedOnCosmosChain{
+		OrchestratorAddress: operator.String(),
+		AmountClaimed:       amount,
+		ChainID:             chainID,
+		BlockHeight:         blockHeight,
+	}
+}
+
+// Route should return the name of the module
+func (m *MsgRewardsClaimedOnCosmosChain) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgRewardsClaimedOnCosmosChain) Type() string { return "msg_rewards_claimed" }
+
+// ValidateBasic performs stateless checks
+func (m *MsgRewardsClaimedOnCosmosChain) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
+	}
+	if !m.AmountClaimed.IsValid() {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.AmountClaimed.String())
+	}
+
+	if !m.AmountClaimed.IsPositive() {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.AmountClaimed.String())
+	}
+	if m.BlockHeight <= 0 {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidHeight, "BlockHeight should be greater than zero")
+	}
+
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgRewardsClaimedOnCosmosChain) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgRewardsClaimedOnCosmosChain) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sdk.AccAddress(acc)}
+}
+
 // TODO find a better place for this.
 var _ DBHelper = &IncomingMintTx{}
 var _ DBHelper = &ProposalValue{}
 var _ DBHelper = &TxHashValue{}
+var _ DBHelper = &RewardsClaimedValue{}
 
 func (m *IncomingMintTx) Find(orchAddress string) bool {
 	for _, address := range m.OrchAddresses {
@@ -431,6 +482,20 @@ func (m *TxHashValue) Find(orchAddress string) bool {
 }
 
 func (m *TxHashValue) AddAndIncrement(orchAddress string) {
+	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
+	m.Counter++
+}
+
+func (m *RewardsClaimedValue) Find(orchAddress string) bool {
+	for _, address := range m.OrchestratorAddresses {
+		if address == orchAddress {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *RewardsClaimedValue) AddAndIncrement(orchAddress string) {
 	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
 	m.Counter++
 }
