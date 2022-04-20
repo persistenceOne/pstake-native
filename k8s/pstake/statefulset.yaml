@@ -1,0 +1,220 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pstake
+  namespace: dev-native
+spec:
+  serviceName: pstake-validator-headless
+  replicas: 3
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pstake
+  template:
+    metadata:
+      annotations:
+        quality: release
+        role: api-gateway
+        sla: high
+        tier: gateway
+      labels:
+        app.kubernetes.io/instance: pstake
+        app.kubernetes.io/name: pstake
+        app.kubernetes.io/version: '0.1'
+    spec:
+      imagePullSecrets:
+        - name: test-docker-creds
+      initContainers:
+      - name: init-genesis
+        image: anmol1696/pstake
+        imagePullPolicy: Always
+        env:
+        - name: COINS
+          value: "100000000000000000stake"
+        - name: CHAIN_ID
+          valueFrom:
+            configMapKeyRef:
+              key: chain.id
+              name: pstake
+        - name: PSTAKE_DIR
+          value: /pstaked
+        command:
+        - bash
+        - "-c"
+        - |
+            VAL_INDEX=${HOSTNAME##*-}
+            echo "Validator Index: $VAL_INDEX"
+            if [[ $VAL_INDEX != "0" ]]; then
+              echo "Not running Genesis file creation for non 0 index pod"
+              exit 0
+            fi
+
+            jq -r ".validators[0].mnemonic" /configs/validators.json | pstaked init pstake --chain-id $CHAIN_ID --home $PSTAKE_DIR --recover
+            jq -r ".validators[0].mnemonic" /configs/validators.json | pstaked keys add $(jq -r ".validators[0].name" /configs/validators.json) --recover --keyring-backend='test' --home $PSTAKE_DIR
+
+            for ((i=0; i<$(jq -r '.validators | length' /configs/validators.json); i++))
+            do
+              pstaked add-genesis-account $(jq -r .validators[$i].address /configs/validators.json) $COINS --keyring-backend='test' --home $PSTAKE_DIR
+            done
+
+            for ((i=0; i<$(jq -r '.keys | length' /configs/keys.json); i++))
+            do
+              pstaked add-genesis-account $(jq -r .keys[$i].address /configs/keys.json) $COINS --keyring-backend='test' --home $PSTAKE_DIR
+            done
+
+            pstaked gentx $(jq -r ".validators[0].name" /configs/validators.json) 5000000000stake --keyring-backend="test" --chain-id $CHAIN_ID --home $PSTAKE_DIR
+            echo "Output of gentx"
+            cat $PSTAKE_DIR/config/gentx/*.json | jq
+
+            echo "Running collect-gentxs"
+            pstaked collect-gentxs --home $PSTAKE_DIR
+
+            sed -i 's#"tcp://127.0.0.1:26657"#"tcp://0.0.0.0:26657"#g' $PSTAKE_DIR/config/config.toml
+            sed -i 's/timeout_commit = "5s"/timeout_commit = "1s"/g' $PSTAKE_DIR/config/config.toml
+            sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' $PSTAKE_DIR/config/config.toml
+            sed -i 's/index_all_keys = false/index_all_keys = true/g' $PSTAKE_DIR/config/config.toml
+        
+            pstaked tendermint show-node-id --home $PSTAKE_DIR > /pstaked/genesis-node-id.txt
+        resources:
+          limits:
+            cpu: "0.2"
+            memory: "0.2Gi"
+          requests:
+            cpu: "0.1"
+            memory: "0.1Gi"
+        volumeMounts:
+        - mountPath: /genesis
+          name: genesis
+        - mountPath: /pstaked
+          name: pstaked
+        - mountPath: /configs
+          name: addresses
+      - name: init-validator
+        image: anmol1696/pstake
+        imagePullPolicy: Always
+        env:
+        - name: CHAIN_ID
+          valueFrom:
+            configMapKeyRef:
+              key: chain.id
+              name: pstake
+        - name: PSTAKE_DIR
+          value: /pstaked
+        command:
+        - bash
+        - "-c"
+        - |
+            VAL_INDEX=${HOSTNAME##*-}
+            echo "Validator Index: $VAL_INDEX"
+            if [[ $VAL_INDEX == "0" ]]; then
+              echo "Not running init validator for genesis validator"
+              exit 0
+            fi
+
+            if [ ! -s $GENESIS_FILE ]; then
+              echo "Genesis not found. Something went wrong"
+              cat $GENESIS_FILE
+              ls -lrth $GENESIS_FILE
+              exit 1
+            fi
+
+            VAL_NAME=$(jq -r ".validators[$VAL_INDEX].name" /configs/validators.json)
+            echo "Validator Index: $VAL_INDEX, Key name: $KEY_NAME"
+
+            jq -r ".validators[$VAL_INDEX].mnemonic" /configs/validators.json | pstaked init pstake --chain-id $CHAIN_ID --home $PSTAKE_DIR --recover
+            jq -r ".validators[$VAL_INDEX].mnemonic" /configs/validators.json | pstaked keys add $VAL_NAME --recover --keyring-backend='test' --home $PSTAKE_DIR
+
+            echo "All exports"
+            export
+
+            echo "Fetching genesis file"
+
+            GENESIS_NODE_P2P=$(cat /pstaked/genesis-node-id.txt)@pstake-validator-headless.dev-native.svc.cluster.local:26657
+            echo "Node P2P: $GENESIS_NODE_P2P"
+            sed -i "s/persistent_peers = \"\"/persistent_peers = \"$GENESIS_NODE_P2P\"/g" $PSTAKE_DIR/config/config.toml
+            sed -i 's#"tcp://127.0.0.1:26657"#"tcp://0.0.0.0:26657"#g' $PSTAKE_DIR/config/config.toml
+            sed -i 's/timeout_commit = "5s"/timeout_commit = "1s"/g' $PSTAKE_DIR/config/config.toml
+            sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' $PSTAKE_DIR/config/config.toml
+            sed -i 's/index_all_keys = false/index_all_keys = true/g' $PSTAKE_DIR/config/config.toml
+
+            echo "Printing the whole config.toml file"
+            cat $PSTAKE_DIR/config/config.toml
+
+            pstaked tx staking create-validator --home $PSTAKE_DIR \
+              --moniker $VAL_NAME \
+              --amount 5000000000stake \
+              --keyring-backend="test" \
+              --chain-id $CHAIN_ID \
+              --from $VAL_NAME
+        resources:
+          limits:
+            cpu: "0.2"
+            memory: "0.2Gi"
+          requests:
+            cpu: "0.1"
+            memory: "0.1Gi"
+        volumeMounts:
+        - mountPath: /genesis
+          name: genesis
+        - mountPath: /pstaked
+          name: pstaked
+        - mountPath: /configs
+          name: addresses
+      containers:
+      - name: validator
+        image: anmol1696/pstake
+        imagePullPolicy: Always
+        env:
+        - name: CHAIN_ID
+          valueFrom:
+            configMapKeyRef:
+              key: chain.id
+              name: pstake
+        - name: PSTAKE_DIR
+          value: /pstaked
+        command:
+        - bash
+        - "-c"
+        - |
+            pstaked start --home $PSTAKE_DIR
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: "0.5"
+            memory: 0.5Gi
+        volumeMounts:
+        - mountPath: /pstaked
+          name: pstaked
+        - mountPath: /configs
+          name: addresses
+      - name: exposer-app
+        image: anmol1696/exposer
+        imagePullPolicy: Always
+        env:
+        - name: HOME_DIR
+          value: /pstaked
+        - name: GENESIS_FILE
+          value: /pstaked/config/genesis.json
+        - name: VALIDATOR_PRIV_FILE
+          value: /pstaked/config/priv_validator_key.json
+        - name: PORT
+          value: "8080"
+        command: ["exposer"]
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: "0.1Gi"
+          requests:
+            cpu: "0.1"
+            memory: "0.1Gi"
+        volumeMounts:
+        - mountPath: /pstaked
+          name: pstaked
+      volumes:
+      - name: pstaked
+        emptyDir: {}
+      - name: addresses
+        configMap:
+          name: test-addresses

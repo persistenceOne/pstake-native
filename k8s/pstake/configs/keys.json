@@ -1,0 +1,54 @@
+{
+  "keys": [
+    {
+      "name": "test1",
+      "type": "local",
+      "address": "cosmos152nvc6f096v6n6tr5lg50xq22ak0chsrp06dgu",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "AoC0SFBrAyiHrtJ+uGFuxP9CyTK8zSppylBhB+KBONNq"
+      },
+      "mnemonic": "obtain door word season wealth inspire tobacco shallow thumb tip walk forum someone verb pistol bright mutual nest fog valley tiny section sauce typical"
+    },
+    {
+      "name": "test2",
+      "type": "local",
+      "address": "cosmos12m6ll675k83skhd2qkkp2fdv77erd7xws7f0r9",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "Ap9sXO3v1RkIrkUauL8V4aGScZ4bbeCMcZLKBHAp9C2c"
+      },
+      "mnemonic": "hungry foil sort arrest lizard sing acquire traffic veteran entire empty humble coach melody avoid gospel pair above chuckle hip list cage vessel zebra"
+    },
+    {
+      "name": "test3",
+      "type": "local",
+      "address": "cosmos1xh096pfn6hyf9vp6aplammfdx24kj8ztjpgh6u",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "Am0491WPc8uCuzMwgJPMRwGv2nmuFmDJW+M+ELWIIZKU"
+      },
+      "mnemonic": "trip deliver device army resource toe stem unhappy employ vendor talent vapor little pole pottery side domain wealth bleak top diary card rose agree"
+    },
+    {
+      "name": "test4",
+      "type": "local",
+      "address": "cosmos1lhr66nenzpzs6t9tv7l52njpc5gl9deprcy3r3",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "Ah4C0zoez6M6ex2zSxLguO9bRgII0BZw6IIBjUUJ1Iep"
+      },
+      "mnemonic": "today stumble easy ordinary ball pelican priority anchor sort bind island scout soap angle recipe release brown bamboo glove drink drill manage monkey spice"
+    },
+    {
+      "name": "test5",
+      "type": "local",
+      "address": "cosmos1t5ahj0q7j5vatrkenffev390ggth8knudqkdxv",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "AkpRghwKAStaB1KozioOKOJdoaNXo7fWP8A30rG+9mND"
+      },
+      "mnemonic": "delay final sketch giant spy hand hip improve grape fat ethics arrange federal flee poet inmate humble tornado tower access core never pull father"
+    }
+  ]
+}

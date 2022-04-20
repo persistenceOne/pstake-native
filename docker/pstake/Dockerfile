@@ -1,7 +1,3 @@
-# Simple usage with a mounted data directory:
-# > docker build -t gaia .
-# > docker run -it -p 46657:46657 -p 46656:46656 -v ~/.gaia:/root/.gaia gaia pstaked init
-# > docker run -it -p 46657:46657 -p 46656:46656 -v ~/.gaia:/root/.gaia gaia pstaked start
 FROM golang:1.17-alpine AS build-env
 
 # Set up dependencies
@@ -21,15 +17,10 @@ RUN apk add --no-cache $PACKAGES && \
 FROM alpine:edge
 
 # Install ca-certificates
-RUN apk add --update ca-certificates
+RUN apk add --update ca-certificates jq bash
 WORKDIR /root
 
 # Copy over binaries from the build-env
 COPY --from=build-env /go/bin/pstaked /usr/bin/pstaked
 
-COPY ./contrib/single-node.sh .
-
 EXPOSE 26657
-
-ENTRYPOINT [ "./single-node.sh" ]
-# NOTE: to run this image, docker run -d -p 26657:26657 ./single-node.sh {{chain_id}} {{genesis_account}}

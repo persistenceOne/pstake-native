@@ -1,0 +1,34 @@
+{
+  "validators": [
+    {
+      "name": "val1",
+      "type": "local",
+      "address": "cosmos1fk57xyyxz89krc3nn5law2xekan84gufv3wrv2",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "A3n4L7G8aFv7g3UfBZFVZA5oByH8H6E6oxBiKDpxrTPx"
+      },
+      "mnemonic": "flash tuna music boat sign image judge engage pistol reason love reform defy game ceiling basket roof clay keen hint flash buyer fancy buyer"
+    },
+    {
+      "name": "val2",
+      "type": "local",
+      "address": "cosmos1mcc78qln7dlfjy0ssy7cdtqeapnntnsa4ttuzt",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "A2dU48gSo7PrMFQKhxxf49v8aTwZhBxMZA0aZnaBcn0c"
+      },
+      "mnemonic": "gravity bus kingdom auto limit gate humble abstract reopen resemble awkward cannon maximum bread balance insane banana maple screen mimic cluster pigeon badge walnut"
+    },
+    {
+      "name": "val3",
+      "type": "local",
+      "address": "cosmos1xl7tdmvqwwlds20tsxjvkx4wul9lcd60e93uj3",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "AjlLiT+y2kL+HBgR/TRO7wprZONxYDHb71+9vDA7rz1g"
+      },
+      "mnemonic": "horse end velvet train canoe walnut lottery security sure right rigid busy either sand bar palace choice extend august mystery action surround coconut online"
+    }
+  ]
+}
