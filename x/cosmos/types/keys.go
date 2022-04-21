@@ -46,6 +46,8 @@ const (
 	MinimumRatioForMajority = 0.66
 
 	StorageWindow = 100 //TODO : Revert Back to 100
+
+	Bech32Prefix = "cosmos"
 )
 
 var (
@@ -98,6 +100,8 @@ var (
 	KeyUndelegateSuccessStore = []byte{0x11}
 
 	KeyWithdrawStore = []byte{0x12}
+
+	KeyOutgoingTxSignature = []byte{0x11}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {
@@ -164,6 +168,11 @@ func VoteKey(proposalID uint64, voterAddr sdkTypes.AccAddress) []byte {
 // VotesKey gets the first part of the votes key based on the proposalID
 func VotesKey(proposalID uint64) []byte {
 	return append(VotesKeyPrefix, GetProposalIDBytes(proposalID)...)
+}
+
+// OutgoingTxSignatureKey forms a key from txID to the substore
+func OutgoingTxSignatureKey(txID uint64) []byte {
+	return append(KeyOutgoingTxSignature, GetProposalIDBytes(txID)...)
 }
 
 func BytesToHexUpper(bz []byte) string {

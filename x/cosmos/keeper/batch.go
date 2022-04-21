@@ -181,6 +181,7 @@ func (k Keeper) getAllTxHashAndDetails(ctx sdk.Context) (list []TxHashAndDetails
 func (k Keeper) retryTransactionWithDoubleGas(ctx sdk.Context, txDetails cosmosTypes.QueryOutgoingTxByIDResponse, txID uint64, txHash string) {
 	// doubles gas fees and emit a new event
 	cosmosTxDetails := txDetails.CosmosTxDetails
+	//TODO check if gas limit doesnt increase by more than max.
 	cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit = cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit * 2
 	cosmosTxDetails.Tx.AuthInfo.SignerInfos = nil
 	cosmosTxDetails.Tx.Signatures = nil
@@ -263,6 +264,10 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 		}
 	}
 	return nil
+}
+
+func (k Keeper) setOutgoingTxnSignatures(txID uint64, orcastratorAddress sdk.AccAddress, signatures []byte) {
+
 }
 
 //______________________________________________________________________________________________

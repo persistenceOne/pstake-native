@@ -31,6 +31,7 @@ service Msg {
   rpc TxStatus(MsgTxStatus) returns (MsgTxStatusResponse) {};
   rpc RewardsClaimed(MsgRewardsClaimedOnCosmosChain) returns (MsgRewardsClaimedOnCosmosChainResponse) {}
   rpc UndelegateSuccess(MsgUndelegateSuccess) returns (MsgUndelegateSuccessResponse) {};
+  rpc SetSignature(MsgSetSignature) returns (MsgSetSignatureResponse) {};
 }
 
 message MsgSetOrchestrator {
@@ -143,3 +144,10 @@ message MsgUndelegateSuccess {
   int64 block_height = 7 [(gogoproto.moretags) = "yaml:\"block_height\""];
 }
 message MsgUndelegateSuccessResponse {}
+
+message MsgSetSignature{
+  string orchestrator_address = 1;
+  uint64 outgoing_tx_i_d = 2;
+  bytes signature = 3;
+}
+message MsgSetSignatureResponse{}

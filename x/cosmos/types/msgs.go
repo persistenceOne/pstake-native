@@ -20,6 +20,7 @@ var (
 	_ sdk.Msg = &MsgTxStatus{}
 	_ sdk.Msg = &MsgRewardsClaimedOnCosmosChain{}
 	_ sdk.Msg = &MsgUndelegateSuccess{}
+	_ sdk.Msg = &MsgSetSignature{}
 )
 
 // NewMsgSetOrchestrator returns a new MsgSetOrchestrator
@@ -488,6 +489,43 @@ func (m *MsgRewardsClaimedOnCosmosChain) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{acc}
+}
+
+func NewMsgSetSignature(orchAddress sdk.AccAddress, outgoingTxID uint64, signatures []byte) *MsgSetSignature {
+	return &MsgSetSignature{
+		OrchestratorAddress: orchAddress.String(),
+		OutgoingTxID:        outgoingTxID,
+		Signature:           signatures,
+	}
+}
+
+// Route should return the name of the module
+func (m *MsgSetSignature) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgSetSignature) Type() string { return "msg_set_signature" }
+
+// ValidateBasic performs stateless checks
+func (m *MsgSetSignature) ValidateBasic() error {
+	if _, err := sdk.ValAddressFromBech32(m.OrchestratorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
+	}
+	//TODO see how to add signature verification.
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgSetSignature) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgSetSignature) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.ValAddressFromBech32(m.OrchestratorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sdk.AccAddress(acc)}
 }
 
 // TODO find a better place for this.

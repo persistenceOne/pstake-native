@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 	"fmt"
+	signing2 "github.com/cosmos/cosmos-sdk/types/tx/signing"
+	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"strconv"
 
 	"github.com/armon/go-metrics"
@@ -543,4 +545,52 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 	)
 
 	return &cosmosTypes.MsgUndelegateSuccessResponse{}, nil
+}
+
+func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignature) (*cosmosTypes.MsgSetSignatureResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+	orchestratorAddr, err := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	outgoingTx, err := k.getTxnFromOutgoingPoolByID(ctx, msg.OutgoingTxID)
+	if err != nil {
+		return nil, err
+	}
+	if len(outgoingTx.CosmosTxDetails.Tx.AuthInfo.SignerInfos) != 1 {
+		return nil, sdkErrors.Wrap(sdkErrors.ErrorInvalidSigner, "there should be exactly one signer info.")
+	}
+	//verify orchestator
+	//TODO verify orchestratorAddress
+
+	//verify signature
+	custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
+
+	multisigAccount := k.authKeeper.GetAccount(ctx, custodialAddress)
+	account := k.authKeeper.GetAccount(ctx, orchestratorAddr)
+	signerData := signing.SignerData{
+		ChainID:       k.GetParams(ctx).CosmosProposalParams.ChainID,
+		AccountNumber: multisigAccount.GetAccountNumber(),
+		Sequence:      outgoingTx.CosmosTxDetails.Tx.AuthInfo.SignerInfos[0].GetSequence(),
+	}
+	signatureData := signing2.SingleSignatureData{
+		SignMode:  signing2.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
+		Signature: msg.Signature,
+	}
+	err = cosmosTypes.VerifySignature(account.GetPubKey(), signerData, signatureData, outgoingTx.CosmosTxDetails.Tx)
+	if err != nil {
+		return nil, err
+	}
+
+	//TODO add signatures to DB
+
+	ctx.EventManager().EmitEvent(
+		sdkTypes.NewEvent(
+			sdkTypes.EventTypeMessage,
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeySender, msg.OrchestratorAddress),
+		),
+	)
+	return &cosmosTypes.MsgSetSignatureResponse{}, nil
 }

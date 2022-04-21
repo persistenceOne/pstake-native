@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 	"time"
 
@@ -19,6 +20,7 @@ type Keeper struct {
 	cdc           codec.BinaryCodec
 	storeKey      sdkTypes.StoreKey
 	paramSpace    paramsTypes.Subspace
+	authKeeper    *authkeeper.AccountKeeper
 	bankKeeper    *bankKeeper.BaseKeeper
 	mintKeeper    *mintKeeper.Keeper
 	stakingKeeper *stakingKeeper.Keeper
