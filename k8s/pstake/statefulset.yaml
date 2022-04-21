@@ -73,7 +73,7 @@ spec:
             sed -i 's/timeout_commit = "5s"/timeout_commit = "1s"/g' $PSTAKE_DIR/config/config.toml
             sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' $PSTAKE_DIR/config/config.toml
             sed -i 's/index_all_keys = false/index_all_keys = true/g' $PSTAKE_DIR/config/config.toml
-        
+
             pstaked tendermint show-node-id --home $PSTAKE_DIR > /pstaked/genesis-node-id.txt
         resources:
           limits:
@@ -83,8 +83,6 @@ spec:
             cpu: "0.1"
             memory: "0.1Gi"
         volumeMounts:
-        - mountPath: /genesis
-          name: genesis
         - mountPath: /pstaked
           name: pstaked
         - mountPath: /configs
@@ -111,25 +109,28 @@ spec:
               exit 0
             fi
 
-            if [ ! -s $GENESIS_FILE ]; then
-              echo "Genesis not found. Something went wrong"
-              cat $GENESIS_FILE
-              ls -lrth $GENESIS_FILE
-              exit 1
-            fi
+            rm -rf $PSTAKE_DIR
 
             VAL_NAME=$(jq -r ".validators[$VAL_INDEX].name" /configs/validators.json)
-            echo "Validator Index: $VAL_INDEX, Key name: $KEY_NAME"
+            echo "Validator Index: $VAL_INDEX, Key name: $VAL_NAME"
+
+            echo "Printing genesis file before init"
+            ls -lrht $PSTAKE_DIR/config
 
             jq -r ".validators[$VAL_INDEX].mnemonic" /configs/validators.json | pstaked init pstake --chain-id $CHAIN_ID --home $PSTAKE_DIR --recover
             jq -r ".validators[$VAL_INDEX].mnemonic" /configs/validators.json | pstaked keys add $VAL_NAME --recover --keyring-backend='test' --home $PSTAKE_DIR
+
+            curl http://pstake-validator-headless.dev-native.svc.cluster.local:8080/genesis -o $PSTAKE_DIR/config/genesis.json
+            echo "Genesis file that we got....."
+            cat $PSTAKE_DIR/config/genesis.json
 
             echo "All exports"
             export
 
             echo "Fetching genesis file"
 
-            GENESIS_NODE_P2P=$(cat /pstaked/genesis-node-id.txt)@pstake-validator-headless.dev-native.svc.cluster.local:26657
+            #GENESIS_NODE_P2P=$(cat /pstaked/genesis-node-id.txt)@pstake-validator-headless.dev-native.svc.cluster.local:26656
+            GENESIS_NODE_P2P=$(curl -s http://pstake-validator-headless.dev-native.svc.cluster.local:8080/node_id)@pstake-validator-headless.dev-native.svc.cluster.local:26656
             echo "Node P2P: $GENESIS_NODE_P2P"
             sed -i "s/persistent_peers = \"\"/persistent_peers = \"$GENESIS_NODE_P2P\"/g" $PSTAKE_DIR/config/config.toml
             sed -i 's#"tcp://127.0.0.1:26657"#"tcp://0.0.0.0:26657"#g' $PSTAKE_DIR/config/config.toml
@@ -140,12 +141,20 @@ spec:
             echo "Printing the whole config.toml file"
             cat $PSTAKE_DIR/config/config.toml
 
-            pstaked tx staking create-validator --home $PSTAKE_DIR \
-              --moniker $VAL_NAME \
-              --amount 5000000000stake \
-              --keyring-backend="test" \
-              --chain-id $CHAIN_ID \
-              --from $VAL_NAME
+            curl -s http://pstake-validator-headless.dev-native.svc.cluster.local:8080/pub_key
+
+            #pstaked tx staking create-validator --home $PSTAKE_DIR \
+            #  --pubkey=$(curl -s http://pstake-validator-headless.dev-native.svc.cluster.local:8080/pub_key) \
+            #  --moniker $VAL_NAME \
+            #  --amount 5000000000stake \
+            #  --keyring-backend="test" \
+            #  --chain-id $CHAIN_ID \
+            #  --from $VAL_NAME \
+            #  --commission-rate="0.10" \
+            #  --commission-max-rate="0.20" \
+            #  --commission-max-change-rate="0.01" \
+            #  --min-self-delegation="1000000" \
+            #  --gas="auto"
         resources:
           limits:
             cpu: "0.2"
@@ -154,8 +163,6 @@ spec:
             cpu: "0.1"
             memory: "0.1Gi"
         volumeMounts:
-        - mountPath: /genesis
-          name: genesis
         - mountPath: /pstaked
           name: pstaked
         - mountPath: /configs
@@ -197,8 +204,6 @@ spec:
           value: /pstaked
         - name: GENESIS_FILE
           value: /pstaked/config/genesis.json
-        - name: VALIDATOR_PRIV_FILE
-          value: /pstaked/config/priv_validator_key.json
         - name: PORT
           value: "8080"
         command: ["exposer"]
