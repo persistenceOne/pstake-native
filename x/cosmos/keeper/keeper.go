@@ -6,7 +6,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
-	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	mintKeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	mintTypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -80,48 +79,6 @@ func (k Keeper) GetMintingParams(ctx sdkTypes.Context) (params mintTypes.Params)
 // SetMintingParams sets the total set of cosmos parameters.
 func (k Keeper) SetMintingParams(ctx sdkTypes.Context, params mintTypes.Params) {
 	k.mintKeeper.SetParams(ctx, params)
-}
-
-func (k Keeper) GetDelegateKeys(ctx sdkTypes.Context) []cosmosTypes.MsgSetOrchestrator {
-	store := ctx.KVStore(k.storeKey)
-	prefix := []byte(cosmosTypes.KeyOrchestratorAddress)
-	iter := store.Iterator(prefixRange(prefix))
-	defer iter.Close()
-
-	orchAddresses := make(map[string]string)
-
-	for ; iter.Valid(); iter.Next() {
-		key := iter.Key()[len(cosmosTypes.KeyOrchestratorAddress):]
-		value := iter.Value()
-		orchAddress := sdkTypes.AccAddress(key)
-		if err := sdkTypes.VerifyAddressFormat(orchAddress); err != nil {
-			panic(sdkErrors.Wrapf(err, "invalid orchAddress in key %v", orchAddresses))
-		}
-		valAddress := sdkTypes.ValAddress(value)
-		if err := sdkTypes.VerifyAddressFormat(valAddress); err != nil {
-			panic(sdkErrors.Wrapf(err, "invalid val address stored for orchestrator %s", valAddress.String()))
-		}
-
-		orchAddresses[valAddress.String()] = orchAddress.String()
-	}
-
-	var result []cosmosTypes.MsgSetOrchestrator
-
-	for valAddr := range orchAddresses {
-		orch, ok := orchAddresses[valAddr]
-		if !ok {
-			// this should never happen unless the store
-			// is somehow inconsistent
-			panic("Can't find address")
-		}
-		result = append(result, cosmosTypes.MsgSetOrchestrator{
-			Orchestrator: orch,
-			Validator:    valAddr,
-		})
-
-	}
-
-	return result
 }
 
 func prefixRange(prefix []byte) ([]byte, []byte) {

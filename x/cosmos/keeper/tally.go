@@ -34,7 +34,17 @@ func (k Keeper) Tally(ctx sdkTypes.Context, proposal cosmosTypes.Proposal) (pass
 		if err != nil {
 			panic(err)
 		}
-		valAddress, found := k.GetOrchestratorValidator(ctx, voter)
+
+		_, val, _, err := k.getAllValidartorOrchestratorMappingAndFindIfExist(ctx, voter)
+		if err != nil {
+			panic(err)
+		}
+
+		valAddress, found := k.GetValidatorOrchestrator(ctx, val)
+		if valAddress == nil {
+			panic("unauthorized vote present in db")
+		}
+
 		valAddressString := string(valAddress.Bytes())
 		if found {
 			votingPower := currValidators[valAddressString].DelegatorShares.

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/armon/go-metrics"
@@ -39,7 +40,7 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	if e1 != nil || e2 != nil {
 		return nil, sdkErrors.Wrap(err, "Key not valid")
 	}
-	_, foundExistingOrchestratorKey := k.GetOrchestratorValidator(ctx, orchestrator)
+	_, foundExistingOrchestratorKey := k.GetValidatorOrchestrator(ctx, validator)
 
 	if k.Keeper.stakingKeeper.Validator(ctx, validator) == nil {
 		return nil, sdkErrors.Wrap(stakingTypes.ErrNoValidatorFound, validator.String())
@@ -47,15 +48,11 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrResetDelegateKeys, validator.String())
 	}
 
-	//TODO reverse key value (Important for unique orch addresses for each validator)
-	delegateKeys := k.GetDelegateKeys(ctx)
-	for i := range delegateKeys {
-		if delegateKeys[i].Orchestrator == orchestrator.String() {
-			return nil, sdkErrors.Wrap(err, "Duplicate Orchestrator Key")
-		}
-	}
 	// set the orchestrator address
-	k.SetOrchestratorValidator(ctx, validator, orchestrator)
+	err = k.SetValidatorOrchestrator(ctx, validator, orchestrator)
+	if err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
@@ -157,7 +154,15 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 
 	k.setMintAddressAndAmount(ctx, msg.ChainID, msg.BlockHeight, msg.TxHash, destinationAddress, newAmount)
 
-	_, found := k.GetOrchestratorValidator(ctx, orchestratorAddress)
+	_, val, _, err := k.getAllValidartorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	if err != nil {
+		return nil, err
+	}
+	if val == nil {
+		return nil, fmt.Errorf("validator address not found")
+	}
+
+	_, found := k.GetValidatorOrchestrator(ctx, val)
 	if !found {
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrOrchAddressNotFound, "No orchestrator validator mapping found")
 	}
@@ -193,7 +198,18 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 		return nil, err
 	}
 
-	_, found := k.GetOrchestratorValidator(ctx, orchestratorAddress)
+	_, val, _, err := k.getAllValidartorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	if err != nil {
+		return nil, err
+	}
+	if val == nil {
+		return nil, fmt.Errorf("validator address not found")
+	}
+
+	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to make proposal")
+	}
 	if found {
 		k.setProposalDetails(ctx, msg.ChainID, msg.BlockHeight, msg.ProposalID, msg.Title, msg.Description, orchestratorAddress, msg.VotingStartTime, msg.VotingEndTime)
 	}
@@ -225,7 +241,17 @@ func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTyp
 		return nil, accErr
 	}
 
-	_, found := k.GetOrchestratorValidator(ctx, accAddr)
+	_, val, _, err := k.getAllValidartorOrchestratorMappingAndFindIfExist(ctx, accAddr)
+	if err != nil {
+		return nil, err
+	}
+	if val == nil {
+		return nil, fmt.Errorf("validator address not found")
+	}
+	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to vote")
+	}
 	if found {
 		err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, cosmosTypes.NewNonSplitVoteOption(msg.Option))
 		if err != nil {
@@ -270,7 +296,19 @@ func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeigh
 		return nil, accErr
 	}
 
-	if _, found := k.GetOrchestratorValidator(ctx, accAddr); found {
+	_, val, _, err := k.getAllValidartorOrchestratorMappingAndFindIfExist(ctx, accAddr)
+	if err != nil {
+		return nil, err
+	}
+	if val == nil {
+		return nil, fmt.Errorf("validator address not found")
+	}
+
+	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to vote")
+	}
+	if found {
 		err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, msg.Options)
 		if err != nil {
 			return nil, err
@@ -365,7 +403,19 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 	if orchErr != nil {
 		return nil, orchErr
 	}
-	_, found := k.GetOrchestratorValidator(ctx, orchAddr)
+
+	_, val, _, err := k.getAllValidartorOrchestratorMappingAndFindIfExist(ctx, orchAddr)
+	if err != nil {
+		return nil, err
+	}
+	if val == nil {
+		return nil, fmt.Errorf("validator address not found")
+	}
+
+	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to send tx status")
+	}
 	if found {
 		if msg.Status == "success" || msg.Status == "failure" {
 			k.setTxHashAndDetails(ctx, orchAddr, 0, msg.TxHash, msg.Status)

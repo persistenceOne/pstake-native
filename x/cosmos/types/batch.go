@@ -90,5 +90,4 @@ func NewValueUndelegateSuccessStore(valAddress sdkTypes.ValAddress, orchestrator
 		Counter:               1,
 		NativeBlockHeight:     nativeBlockHeight,
 		ActiveBlockHeight:     activeBlockHeight,
-	}
 }
