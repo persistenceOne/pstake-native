@@ -19,14 +19,13 @@ func (k Keeper) SetValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.ValA
 	orchestratorValidatorStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ValidatorOrchestratorStoreKey)
 
 	//checks if validator already exist in staking
-	validatorDetails, found := k.stakingKeeper.GetValidator(ctx, val)
+	_, found := k.stakingKeeper.GetValidator(ctx, val)
 	if !found {
 		return fmt.Errorf("validator address does not exist")
 	}
-	validator := sdkTypes.ValAddress(validatorDetails.OperatorAddress)
 
 	//make key out of it
-	key := validator.Bytes()
+	key := val.Bytes()
 
 	//check if validator key already exists or not
 	if orchestratorValidatorStore.Has(key) {
@@ -58,12 +57,12 @@ func (k Keeper) GetValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.ValA
 		return validator, false
 	}
 
-	orchestratorValidatorStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ValidatorOrchestratorStoreKey)
-	valAddr := orchestratorValidatorStore.Get(val.Bytes())
-	validatorDetails, found := k.stakingKeeper.GetValidator(ctx, valAddr)
-	validator = sdkTypes.ValAddress(validatorDetails.OperatorAddress)
+	_, found = k.stakingKeeper.GetValidator(ctx, val)
+	if found {
+		return val, found
+	}
 
-	return validator, found
+	return nil, found
 }
 
 // gets the count of total validator and orchestrator mappings for ratio calculation
@@ -91,10 +90,7 @@ func (k Keeper) getAllValidartorOrchestratorMappingAndFindIfExist(ctx sdkTypes.C
 		}
 		for _, address := range validatorStoreValue.OrchestratorAddresses {
 			if address == orch.String() {
-				val, err := sdkTypes.ValAddressFromBech32(string(iterator.Key()))
-				if err != nil {
-					return orchAddresses, nil, found, err
-				}
+				val := sdkTypes.ValAddress(iterator.Key())
 				valAddress = val
 				found = true
 			}

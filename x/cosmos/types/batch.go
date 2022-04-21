@@ -14,7 +14,7 @@ func NewIncomingMintTx(orchestratorAddress sdkTypes.AccAddress, counter uint64) 
 	}
 }
 
-func NewAddressAndAmount(destinationAddress sdkTypes.AccAddress, amount sdkTypes.Coins, nativeBlockHeight int64) AddressAndAmountKey {
+func NewAddressAndAmount(destinationAddress sdkTypes.AccAddress, amount sdkTypes.Coin, nativeBlockHeight int64) AddressAndAmountKey {
 	return AddressAndAmountKey{
 		DestinationAddress: destinationAddress.String(),
 		Amount:             amount,
@@ -90,4 +90,28 @@ func NewValueUndelegateSuccessStore(valAddress sdkTypes.ValAddress, orchestrator
 		Counter:               1,
 		NativeBlockHeight:     nativeBlockHeight,
 		ActiveBlockHeight:     activeBlockHeight,
+}
+
+func NewStakingEpochValue(keyAndValue KeyAndValueForMinting) StakingEpochValue {
+	return StakingEpochValue{
+		EpochMintingTxns: []KeyAndValueForMinting{keyAndValue},
+	}
+}
+
+func NewMintingEpochValue(txIDAndStatus MintingEpochValueMember) MintingEpochValue {
+	return MintingEpochValue{
+		TxIDAndStatus: []MintingEpochValueMember{txIDAndStatus},
+	}
+}
+
+func NewRewardsClaimedValue(orchestratorAddress sdkTypes.AccAddress, amount sdkTypes.Coin, ratio float32, nativeBlockHeight int64, activeBlockHeight int64) RewardsClaimedValue {
+	return RewardsClaimedValue{
+		OrchestratorAddresses: []string{orchestratorAddress.String()},
+		Amount:                []sdkTypes.Coin{amount},
+		Ratio:                 ratio,
+		Counter:               1,
+		AddedToCurrentEpoch:   false,
+		NativeBlockHeight:     nativeBlockHeight,
+		ActiveBlockHeight:     activeBlockHeight,
+	}
 }

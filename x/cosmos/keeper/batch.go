@@ -5,7 +5,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
-	"github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
@@ -212,7 +211,7 @@ func (k Keeper) retryTransactionWithDoubleGas(ctx sdk.Context, txDetails cosmosT
 func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 	list, err := k.getAllTxHashAndDetails(ctx)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	for _, element := range list {
 		majorityStatus := FindMajority(element.Details.Status)
@@ -234,6 +233,9 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 					switch msgs[0].(type) {
 					//TODO : Add cases for rewards claim, unbonding
 					case *stakingTypes.MsgDelegate:
+						err = k.processStakingSuccessTxns(ctx, element.Details.TxID)
+					case *stakingTypes.MsgUndelegate:
+						// TODO : Burn and other actions
 						err = k.updateCosmosValidatorStakingParams(ctx, msgs)
 						if err != nil {
 							return err
@@ -254,8 +256,8 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 				k.removeTxHashAndDetails(ctx, element.TxHash)
 			}
 		}
-
 	}
+
 	txDetailsList, err := k.getAllTxInOutgoingPool(ctx) //TODO Implement Rest
 	if err != nil {
 		panic(err)

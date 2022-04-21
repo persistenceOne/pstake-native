@@ -40,12 +40,10 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	if e1 != nil || e2 != nil {
 		return nil, sdkErrors.Wrap(err, "Key not valid")
 	}
-	_, foundExistingOrchestratorKey := k.GetValidatorOrchestrator(ctx, validator)
 
+	//check if the validator is present and return error if not present
 	if k.Keeper.stakingKeeper.Validator(ctx, validator) == nil {
 		return nil, sdkErrors.Wrap(stakingTypes.ErrNoValidatorFound, validator.String())
-	} else if foundExistingOrchestratorKey {
-		return nil, sdkErrors.Wrap(cosmosTypes.ErrResetDelegateKeys, validator.String())
 	}
 
 	// set the orchestrator address
@@ -148,11 +146,9 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 		return nil, err
 	}
 	uatomAmount := msg.Amount.AmountOf(uatomDenom)
-
 	uStkXprtCoin := sdkTypes.NewCoin(params.MintDenom, uatomAmount)
-	newAmount := sdkTypes.NewCoins(uStkXprtCoin)
 
-	k.setMintAddressAndAmount(ctx, msg.ChainID, msg.BlockHeight, msg.TxHash, destinationAddress, newAmount)
+	k.setMintAddressAndAmount(ctx, msg.ChainID, msg.BlockHeight, msg.TxHash, destinationAddress, uStkXprtCoin)
 
 	_, val, _, err := k.getAllValidartorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
@@ -210,9 +206,11 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 	if validatorAddress == nil {
 		return nil, fmt.Errorf("unauthorized to make proposal")
 	}
-	if found {
-		k.setProposalDetails(ctx, msg.ChainID, msg.BlockHeight, msg.ProposalID, msg.Title, msg.Description, orchestratorAddress, msg.VotingStartTime, msg.VotingEndTime)
+	if !found {
+		return nil, cosmosTypes.ErrInvalidProposal
 	}
+
+	k.setProposalDetails(ctx, msg.ChainID, msg.BlockHeight, msg.ProposalID, msg.Title, msg.Description, orchestratorAddress, msg.VotingStartTime, msg.VotingEndTime)
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
@@ -252,13 +250,13 @@ func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTyp
 	if validatorAddress == nil {
 		return nil, fmt.Errorf("unauthorized to vote")
 	}
-	if found {
-		err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, cosmosTypes.NewNonSplitVoteOption(msg.Option))
-		if err != nil {
-			return nil, err
-		}
-	} else {
+	if !found {
 		return nil, cosmosTypes.ErrInvalidVote
+	}
+
+	err = k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, cosmosTypes.NewNonSplitVoteOption(msg.Option))
+	if err != nil {
+		return nil, err
 	}
 
 	defer sdkTelemetry.IncrCounterWithLabels(
@@ -308,13 +306,13 @@ func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeigh
 	if validatorAddress == nil {
 		return nil, fmt.Errorf("unauthorized to vote")
 	}
-	if found {
-		err := k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, msg.Options)
-		if err != nil {
-			return nil, err
-		}
-	} else {
+	if !found {
 		return nil, cosmosTypes.ErrInvalidVote
+	}
+
+	err = k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, msg.Options)
+	if err != nil {
+		return nil, err
 	}
 
 	defer sdkTelemetry.IncrCounterWithLabels(
@@ -364,16 +362,16 @@ func (k msgServer) SignedTxFromOrchestrator(c context.Context, msg *cosmosTypes.
 	if err != nil {
 		return nil, err
 	}
-	if txn.CosmosTxDetails.TxHash == "" {
-		err = k.setTxDetailsSignedByOrchestrator(ctx, msg.TxID, txHash, msg.Tx)
-		if err != nil {
-			return nil, err
-		}
-
-		k.setTxHashAndDetails(ctx, orchAddr, msg.TxID, txHash, "pending")
-	} else {
+	if !(txn.CosmosTxDetails.TxHash == "") {
 		return nil, cosmosTypes.ErrTxnDetailsAlreadySent
 	}
+
+	err = k.setTxDetailsSignedByOrchestrator(ctx, msg.TxID, txHash, msg.Tx)
+	if err != nil {
+		return nil, err
+	}
+
+	k.setTxHashAndDetails(ctx, orchAddr, msg.TxID, txHash, "pending")
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
@@ -416,12 +414,14 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 	if validatorAddress == nil {
 		return nil, fmt.Errorf("unauthorized to send tx status")
 	}
-	if found {
-		if msg.Status == "success" || msg.Status == "failure" {
-			k.setTxHashAndDetails(ctx, orchAddr, 0, msg.TxHash, msg.Status)
-		} else {
-			return nil, cosmosTypes.ErrInvalidStatus
-		}
+	if !found {
+		return nil, fmt.Errorf("validator address does not exit")
+	}
+
+	if msg.Status == "success" || msg.Status == "failure" {
+		k.setTxHashAndDetails(ctx, orchAddr, 0, msg.TxHash, msg.Status)
+	} else {
+		return nil, cosmosTypes.ErrInvalidStatus
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -432,6 +432,44 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 		),
 	)
 	return &cosmosTypes.MsgTxStatusResponse{}, nil
+}
+
+func (k msgServer) RewardsClaimed(c context.Context, msg *cosmosTypes.MsgRewardsClaimedOnCosmosChain) (*cosmosTypes.MsgRewardsClaimedOnCosmosChainResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	//Accept transaction if module is enabled
+	if !k.GetParams(ctx).ModuleEnabled {
+		return nil, cosmosTypes.ErrModuleNotEnabled
+	}
+
+	orchAddr, orchErr := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
+	if orchErr != nil {
+		return nil, orchErr
+	}
+
+	//check if orchestrator address is present in a validator orchestrator mapping
+	_, val, _, err := k.getAllValidartorOrchestratorMappingAndFindIfExist(ctx, orchAddr)
+	if err != nil {
+		return nil, err
+	}
+	if val == nil {
+		return nil, fmt.Errorf("validator address not found")
+	}
+
+	//check if validator exists on the network
+	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to send tx status")
+	}
+
+	if !found {
+		return nil, fmt.Errorf("validator address does not exit")
+	}
+
+	err = k.addToRewardsClaimedPool(ctx, orchAddr, msg.AmountClaimed, msg.ChainID, msg.BlockHeight)
+	if err != nil {
+		return nil, err
+  }
 }
 
 func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUndelegateSuccess) (*cosmosTypes.MsgUndelegateSuccessResponse, error) {
@@ -481,8 +519,9 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
 			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
-			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchestratorAddress.String()),
+			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchAddr.String()),
 		),
 	)
-	return &cosmosTypes.MsgUndelegateSuccessResponse{}, nil
+
+	return &cosmosTypes.MsgRewardsClaimedOnCosmosChainResponse{}, nil
 }

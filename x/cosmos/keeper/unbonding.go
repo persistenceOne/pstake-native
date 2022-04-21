@@ -11,10 +11,10 @@ import (
 	"math"
 )
 
-func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidatorsAndUnbondingAmount []ValAddressAndAmountForStakingAndUnstaking, epochNumber int64) {
+func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidatorsAndUnbondingAmount []ValAddressAndAmountForStakingAndUndelegating, epochNumber int64) {
 	params := k.GetParams(ctx)
 
-	chunkMsgs := ChunkUndelegationSlice(listOfValidatorsAndUnbondingAmount, params.ChunkSize)
+	chunkMsgs := ChunkStakeAndUnStakeSlice(listOfValidatorsAndUnbondingAmount, params.ChunkSize)
 
 	for _, chunk := range chunkMsgs {
 		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))

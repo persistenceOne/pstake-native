@@ -3,78 +3,163 @@ package keeper
 import (
 	"fmt"
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-// Generate an event for delegating on cosmos chain once tokens are minted on native side
-func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, keyAndValue cosmosTypes.KeyAndValueForMinting) error {
-	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
-
+// Generate an event for delegating on cosmos chain once staking epoch is called
+func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []ValAddressAndAmountForStakingAndUndelegating, epochNumber int64) error {
 	params := k.GetParams(ctx)
-	//fetches validator set for delegation on cosmos chain
-	uatomDenom, err := params.GetBondDenomOf("uatom")
-	if err != nil {
-		return err
-	}
-	amount := sdk.NewCoin(uatomDenom, keyAndValue.Value.Amount.AmountOf(uatomDenom))
-	validatorSet := k.fetchValidatorsToDelegate(ctx, amount)
 
-	//create messages for delegation on cosmos chain
-	var delegateMsgs []*codecTypes.Any
-	for _, validator := range validatorSet {
-		//amount := sdk.NewCoin(cosmosTypes.StakeDenom, keyAndValue.Value.Amount.AmountOf(cosmosTypes.MintDenom).ToDec().Mul(validator.Weight).TruncateInt())
-		msg := stakingTypes.MsgDelegate{
-			DelegatorAddress: "cosmos15vm0p2x990762txvsrpr26ya54p5qlz9xqlw5z",
-			ValidatorAddress: validator.validator.String(),
-			Amount:           validator.amount,
-		}
-		msgAny, err := codecTypes.NewAnyWithValue(&msg)
-		if err != nil {
-			panic(err)
-		}
-		delegateMsgs = append(delegateMsgs, msgAny)
-	}
+	//create chunks for delegation on cosmos chain
+	chunkSlice := ChunkStakeAndUnStakeSlice(validatorSet, params.ChunkSize)
 
-	tx := cosmosTypes.CosmosTx{
-		Tx: sdkTx.Tx{
-			Body: &sdkTx.TxBody{
-				Messages:      delegateMsgs,
-				Memo:          "",
-				TimeoutHeight: 0,
-			},
-			AuthInfo: &sdkTx.AuthInfo{
-				SignerInfos: nil,
-				Fee: &sdkTx.Fee{
-					Amount:   nil,
-					GasLimit: 200000,
-					Payer:    "",
+	for _, chunk := range chunkSlice {
+		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
+
+		var delegateMsgsAny []*codecTypes.Any
+		var delegategMsgs []stakingTypes.MsgDelegate
+		for _, element := range chunk {
+			msg := stakingTypes.MsgDelegate{
+				DelegatorAddress: params.CustodialAddress,
+				ValidatorAddress: element.validator.String(),
+				Amount:           element.amount,
+			}
+			anyMsg, err := codecTypes.NewAnyWithValue(&msg)
+			if err != nil {
+				return err
+			}
+			delegateMsgsAny = append(delegateMsgsAny, anyMsg)
+			delegategMsgs = append(delegategMsgs, msg)
+		}
+
+		tx := cosmosTypes.CosmosTx{
+			Tx: sdkTx.Tx{
+				Body: &sdkTx.TxBody{
+					Messages:      delegateMsgsAny,
+					Memo:          "",
+					TimeoutHeight: 0,
 				},
+				AuthInfo: &sdkTx.AuthInfo{
+					SignerInfos: nil,
+					Fee: &sdkTx.Fee{
+						Amount:   nil,
+						GasLimit: 200000,
+						Payer:    "",
+					},
+				},
+				Signatures: nil,
 			},
-			Signatures: nil,
-		},
-		EventEmitted:      true,
-		Status:            "",
-		TxHash:            "",
-		NativeBlockHeight: ctx.BlockHeight(),
-		ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
+			EventEmitted:      true,
+			Status:            "",
+			TxHash:            "",
+			NativeBlockHeight: ctx.BlockHeight(),
+			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
+		}
+
+		// set acknowledgment flag true for future reference (not any yet)
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				cosmosTypes.EventTypeOutgoing,
+				sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
+			),
+		)
+
+		err := k.setInEpochPoolForMinting(ctx, epochNumber, nextID, false)
+		if err != nil {
+			return err
+		}
+		//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
+		k.setNewTxnInOutgoingPool(ctx, nextID, tx)
 	}
 
-	// set acknowledgment flag true for future reference (not any yet)
-	k.setAcknowledgmentFlagTrue(ctx, keyAndValue.Key)
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			cosmosTypes.EventTypeOutgoing,
-			sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
-		),
-	)
-	//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
-	k.setNewTxnInOutgoingPool(ctx, nextID, tx)
 	return nil
 }
 
+//______________________________________________________________________________________________________________________
+
+type EpochNumberAndDetailsForMinting struct {
+	epochNumber       int64
+	mintingEpochValue cosmosTypes.MintingEpochValue
+}
+
+func (k Keeper) setInEpochPoolForMinting(ctx sdk.Context, epochNumber int64, nextID uint64, status bool) error {
+	mintingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintingEpochStore)
+	key := cosmosTypes.Int64Bytes(epochNumber)
+	if mintingEpochStore.Has(key) {
+		var mintingEpochStoreValue cosmosTypes.MintingEpochValue
+		err := mintingEpochStoreValue.Unmarshal(mintingEpochStore.Get(key))
+		if err != nil {
+			return err
+		}
+		mintingEpochStoreValue.TxIDAndStatus = append(mintingEpochStoreValue.TxIDAndStatus, cosmosTypes.MintingEpochValueMember{TxID: nextID, Status: status})
+		bz, err := mintingEpochStoreValue.Marshal()
+		if err != nil {
+			return err
+		}
+		mintingEpochStore.Set(key, bz)
+		return nil
+	}
+	mintingEpochStoreValue := cosmosTypes.NewMintingEpochValue(cosmosTypes.MintingEpochValueMember{TxID: nextID, Status: status})
+	bz, err := mintingEpochStoreValue.Marshal()
+	if err != nil {
+		return err
+	}
+	mintingEpochStore.Set(key, bz)
+	return nil
+}
+
+func (k Keeper) setListInEpochPoolForMinting(ctx sdk.Context, epochNumber int64, mintingEpochStoreValue cosmosTypes.MintingEpochValue) error {
+	mintingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintingEpochStore)
+	key := cosmosTypes.Int64Bytes(epochNumber)
+	bz, err := mintingEpochStoreValue.Marshal()
+	if err != nil {
+		return err
+	}
+	mintingEpochStore.Set(key, bz)
+	return nil
+}
+
+func (k Keeper) fetchInEpochPoolForMinting(ctx sdk.Context, epochNumber int64) (cosmosTypes.MintingEpochValue, error) {
+	mintingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintingEpochStore)
+	key := cosmosTypes.Int64Bytes(epochNumber)
+	if mintingEpochStore.Has(key) {
+		var mintingEpochStoreValue cosmosTypes.MintingEpochValue
+		err := mintingEpochStoreValue.Unmarshal(mintingEpochStore.Get(key))
+		if err != nil {
+			return cosmosTypes.MintingEpochValue{}, err
+		}
+		return mintingEpochStoreValue, nil
+	}
+	return cosmosTypes.MintingEpochValue{}, fmt.Errorf("could not locate %d in pool", epochNumber)
+}
+
+func (k Keeper) fetchAllInEpochPoolForMinting(ctx sdk.Context) (list []EpochNumberAndDetailsForMinting, err error) {
+	mintingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintingEpochStore)
+	iterator := mintingEpochStore.Iterator(nil, nil)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		epochNumber := cosmosTypes.Int64FromBytes(iterator.Key())
+		var mintingEpochStoreValue cosmosTypes.MintingEpochValue
+		if err = mintingEpochStoreValue.Unmarshal(iterator.Value()); err != nil {
+			return list, err
+		}
+		list = append(list, EpochNumberAndDetailsForMinting{epochNumber: epochNumber, mintingEpochValue: mintingEpochStoreValue})
+	}
+	return list, nil
+}
+
+func (k Keeper) deleteInEpochPoolForMinting(ctx sdk.Context, epochNumber int64) {
+	mintingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintingEpochStore)
+	key := cosmosTypes.Int64Bytes(epochNumber)
+	mintingEpochStore.Delete(key)
+}
+
+//______________________________________________________________________________________________________________________
 func (k Keeper) setTotalDelegatedAmountTillDate(ctx sdk.Context, addToTotal sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
 	bz, err := addToTotal.Marshal()
@@ -93,6 +178,26 @@ func (k Keeper) getTotalDelegatedAmountTillDate(ctx sdk.Context) sdk.Coin {
 		panic(err)
 	}
 	return amount
+}
+
+//______________________________________________________________________________________________________________________
+func (k Keeper) processStakingSuccessTxns(ctx sdk.Context, txID uint64) error {
+	epochNumberAndTxIDStatusList, err := k.fetchAllInEpochPoolForMinting(ctx)
+	if err != nil {
+		return err
+	}
+	for _, en := range epochNumberAndTxIDStatusList {
+		for i := range en.mintingEpochValue.TxIDAndStatus {
+			if en.mintingEpochValue.TxIDAndStatus[i].TxID == txID {
+				en.mintingEpochValue.TxIDAndStatus[i].Status = true
+				err = k.setListInEpochPoolForMinting(ctx, en.epochNumber, en.mintingEpochValue)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (k Keeper) emitStakingTxnForClaimedRewards(ctx sdk.Context, msgs []sdk.Msg) {

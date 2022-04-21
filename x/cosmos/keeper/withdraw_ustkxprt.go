@@ -13,7 +13,7 @@ import (
 // adds details to withdraw pool for ubonding epoch
 func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdrawStkAsset) error {
 	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
-	currentEpoch := k.epochsKeeper.GetEpochInfo(ctx, k.GetParams(ctx).UnbondingEpochIdentifier).CurrentEpoch
+	currentEpoch := k.epochsKeeper.GetEpochInfo(ctx, k.GetParams(ctx).UndelegateEpochIdentifier).CurrentEpoch
 	key := cosmosTypes.Int64Bytes(currentEpoch)
 	if withdrawStore.Has(key) {
 		bz := withdrawStore.Get(key)
@@ -57,7 +57,7 @@ func (k Keeper) fetchWithdrawTxnsWithCurrentEpochInfo(ctx sdk.Context, currentEp
 func (k Keeper) totalAmountToBeUnbonded(value cosmosTypes.WithdrawStoreValue, denom string) sdk.Coin {
 	amount := sdk.NewInt64Coin(denom, 0)
 	for _, element := range value.WithdrawDetails {
-		amount = amount.Add(element.Amount)
+		amount = amount.Add(sdk.NewCoin(denom, element.Amount.Amount))
 	}
 	return amount
 }

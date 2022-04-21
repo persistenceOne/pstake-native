@@ -93,6 +93,16 @@ var (
 
 	KeyOutgoingUnbondStore = []byte{0xF}
 
+	KeyStakingEpochStore = []byte{0x10}
+
+	KeyOutgoingUnbondStore = []byte{0x11}
+
+	KeyMintingEpochStore = []byte{0x12}
+
+	KeyRewardsStore = []byte{0x13}
+
+	KeyCurrentEpochRewardsStore = []byte{0x14}
+
 	KeyEpochStoreForUndelegation = "EpochStoreForUndelegation"
 
 	KeyEpochStoreForWithdrawSuccess = []byte{0x10}
@@ -128,6 +138,10 @@ func GetValidatorAddressKey(val sdkTypes.ValAddress) string {
 
 func GetChainIDTxHashBlockHeightKey(chainID string, blockHeight int64, txHash string) string {
 	return chainID + strconv.FormatInt(blockHeight, 10) + txHash
+}
+
+func GetChainIDAndBlockHeightKey(chainID string, blockHeight int64) string {
+	return chainID + strconv.FormatInt(blockHeight, 10)
 }
 
 func GetOutgoingTxPoolKey(fee sdkTypes.Coin, id uint64) string {
