@@ -1,20 +1,24 @@
+PROCESS=pstake
 IMAGE_NAME=anmol1696/$(PROCESS)
 TAG_NAME=latest
 CONTAINER_NAME=container-$(PROCESS)
 FILE=Dockerfile
-PROCESS=pstake
 
-DOCKER_ENV=\
+_DOCKER_ENV=\
 	-e CHAIN_ID=pstake \
 	-e PSTAKE_DIR=/pstaked \
-	-e COINS="100000000000000000stake"
-DOCKER_VOLUME=\
+	-e COINS="100000000000000000stake" \
+	$(DOCKER_ENV)
+_DOCKER_VOLUME=\
     -v $(PWD):/pstake \
 	-v $(PWD)/k8s/pstake/configs:/configs \
-	-v /tmp:/tmp
-DOCKER_ARGS=\
+	-v /tmp:/tmp \
+	$(DOCKER_VOLUME)
+_DOCKER_ARGS=\
+	-p 26656:26656 \
 	-p 26657:26657 \
-	--network=host
+	--network=host \
+	$(DOCKER_ARGS)
 
 # Command for dockerization
 docker-build:
@@ -22,7 +26,7 @@ docker-build:
 
 docker-run:
 	docker run --rm -it --name=$(CONTAINER_NAME) \
-		$(DOCKER_VOLUME) $(DOCKER_ARGS) $(DOCKER_ENV) \
+		$(_DOCKER_VOLUME) $(_DOCKER_ARGS) $(_DOCKER_ENV) \
 		$(IMAGE_NAME):$(TAG_NAME) /bin/bash
 
 docker-push:

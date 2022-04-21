@@ -13,7 +13,6 @@ import (
 const (
 	homeDirKey = "HOME_DIR"
 	genesisFileKey = "GENESIS_FILE"
-	validatorFileKey = "VALIDATOR_PRIV_FILE"
 	portKey = "PORT"
 )
 
@@ -41,8 +40,8 @@ func getNodeIDHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getPubKeyHandler(w http.ResponseWriter, r *http.Request) {
-	validatorFile := os.Getenv(validatorFileKey)
-	io.WriteString(w, executeCommand("bash", "-c", fmt.Sprintf("cat %s | jq '.pub_key'", validatorFile)))
+	homeDir := os.Getenv(homeDirKey)
+	io.WriteString(w, executeCommand("pstaked", "tendermint", "show-validator", "--home", homeDir))
 }
 
 func getGenesisHandler(w http.ResponseWriter, r *http.Request) {

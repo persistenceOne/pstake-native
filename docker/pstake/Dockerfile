@@ -17,7 +17,7 @@ RUN apk add --no-cache $PACKAGES && \
 FROM alpine:edge
 
 # Install ca-certificates
-RUN apk add --update ca-certificates jq bash
+RUN apk add --update ca-certificates jq bash curl
 WORKDIR /root
 
 # Copy over binaries from the build-env

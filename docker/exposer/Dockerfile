@@ -1,3 +1,4 @@
+ARG BASE_DOCKER_IMAGE=anmol1696/pstake:latest
 FROM golang:1.17-alpine AS build-env
 
 # Set up dependencies
@@ -7,17 +8,19 @@ ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3
 WORKDIR /usr/local/share/app
 
 # Add source files
-COPY docker/exposes .
+COPY docker/exposer .
 
 # Install minimum necessary dependencies, build Cosmos SDK, remove packages
-RUN apk add --no-cache $PACKAGES && go build -o exposer ./...
+RUN apk add --no-cache $PACKAGES && GO111MODULE=off go build -o exposer ./...
 
 # Final image
-FROM alpine:edge
+FROM $BASE_DOCKER_IMAGE
 
 # Install ca-certificates
-RUN apk add --update ca-certificates jq bash
+RUN apk add --update ca-certificates jq bash curl
 WORKDIR /usr/local/share/app
+
+RUN ls /usr/bin
 
 # Copy over binaries from the build-env
 COPY --from=build-env /usr/local/share/app/exposer /usr/bin/exposer
