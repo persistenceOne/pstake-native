@@ -113,11 +113,17 @@ message WithdrawStoreValue {
   repeated bool unbond_emit_flag = 2;
 }
 
-message ValuOutgoingUnbondStore {
+message ValueOutgoingUnbondStore {
   int64 epoch_number = 1;
   repeated cosmos.staking.v1beta1.MsgUndelegate undelegate_messages = 2 [(gogoproto.nullable) = false];
 }
 
-message ValidatorStoreValue {
-  repeated string orchestrator_addresses = 1;
+message ValueUndelegateSuccessStore {
+  string validator_address = 1;
+  repeated string orchestrator_addresses = 2;
+  float ratio = 3;
+  cosmos.base.v1beta1.Coin amount = 4 [(gogoproto.nullable) = false];
+  int64 counter = 5;
+  int64 native_block_height = 7;
+  int64 active_block_height = 8;
 }

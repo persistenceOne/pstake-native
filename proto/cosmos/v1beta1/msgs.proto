@@ -29,6 +29,7 @@ service Msg {
   rpc VoteWeighted(MsgVoteWeighted) returns (MsgVoteWeightedResponse) {};
   rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
   rpc TxStatus(MsgTxStatus) returns (MsgTxStatusResponse) {};
+  rpc UndelegateSuccess(MsgUndelegateSuccess) returns (MsgUndelegateSuccessResponse) {};
 }
 
 message MsgSetOrchestrator {
@@ -122,3 +123,14 @@ message MsgTxStatus {
   string status = 3;
 }
 message MsgTxStatusResponse {}
+
+message MsgUndelegateSuccess {
+  string delegator_address = 1;
+  string validator_address = 2;
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+  string orchestrator_address = 4;
+  string tx_hash = 5 [(gogoproto.moretags) = "yaml:\"tx_hash\""];
+  string chain_i_d = 6 [(gogoproto.moretags) = "yaml:\"chain_id\""];
+  int64 block_height = 7 [(gogoproto.moretags) = "yaml:\"block_height\""];
+}
+message MsgUndelegateSuccessResponse {}
