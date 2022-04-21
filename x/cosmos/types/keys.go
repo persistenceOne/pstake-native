@@ -14,7 +14,6 @@ import (
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
-	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
@@ -51,29 +50,20 @@ const (
 
 var (
 	KeyValidatorAddress = "KeyValidatorAddress"
-	//KeyAccAddress          = "KeyAccAddress"
-	//OutgoingTxPrefix       = []byte{0x01}
-	//IncomingTxPrefix       = []byte{0x02}
 
-	// SequenceKeyPrefix indexes different txids
 	SequenceKeyPrefix = "SequenceKeyPrefix"
 
-	// KeyLastTXPoolID indexes the lastTxPoolID
 	KeyLastTXPoolID = SequenceKeyPrefix + "lastTxPoolId"
 
-	//indexes the cosmos validator details
 	KeyCosmosValidatorSet = []byte{0x01}
 
 	KeyTotalDelegationTillDate = []byte{0x02}
 
-	// OutgoingTXPoolKey indexes the last nonce for the outgoing tx pool
 	OutgoingTXPoolKey = []byte{0x03}
 
 	AddressAndAmountStoreKey = []byte{0x04}
 
 	MintingPoolStoreKey = []byte{0x05}
-
-	OrchestratorValidatorStoreKey = []byte{0x06}
 
 	ValidatorOrchestratorStoreKey = []byte{0x07}
 
@@ -95,8 +85,6 @@ var (
 
 	KeyStakingEpochStore = []byte{0x10}
 
-	KeyOutgoingUnbondStore = []byte{0x11}
-
 	KeyMintingEpochStore = []byte{0x12}
 
 	KeyRewardsStore = []byte{0x13}
@@ -108,6 +96,8 @@ var (
 	KeyEpochStoreForWithdrawSuccess = []byte{0x10}
 
 	KeyUndelegateSuccessStore = []byte{0x11}
+
+	KeyWithdrawStore = []byte{0x12}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {
@@ -122,37 +112,12 @@ func ConvertByteArrToString(value []byte) string {
 	return ret.String()
 }
 
-//func GetOrchestratorAddressKey(orc sdkTypes.AccAddress) string {
-//	if err := sdkTypes.VerifyAddressFormat(orc); err != nil {
-//		panic(sdkErrors.Wrap(err, "invalid orchestrator address"))
-//	}
-//	return KeyOrchestratorAddress + string(orc.Bytes())
-//}
-
-func GetValidatorAddressKey(val sdkTypes.ValAddress) string {
-	if err := sdkTypes.VerifyAddressFormat(val); err != nil {
-		panic(sdkErrors.Wrap(err, "invalid orchestrator address"))
-	}
-	return KeyValidatorAddress + string(val.Bytes())
-}
-
 func GetChainIDTxHashBlockHeightKey(chainID string, blockHeight int64, txHash string) string {
 	return chainID + strconv.FormatInt(blockHeight, 10) + txHash
 }
 
 func GetChainIDAndBlockHeightKey(chainID string, blockHeight int64) string {
 	return chainID + strconv.FormatInt(blockHeight, 10)
-}
-
-func GetOutgoingTxPoolKey(fee sdkTypes.Coin, id uint64) string {
-	// sdkInts have a size limit of 255 bits or 32 bytes
-	// therefore this will never panic and is always safe
-	amount := make([]byte, 32)
-	amount = []byte(fee.Amount.String())
-
-	a := append(amount, UInt64Bytes(id)...)
-	b := append([]byte(OutgoingTXPoolKey), a...)
-	return ConvertByteArrToString(b)
 }
 
 func GetDestinationAddressAmountAndTxHashKey(destinationAddress sdkTypes.AccAddress, coins sdkTypes.Coins, txHash string) string {

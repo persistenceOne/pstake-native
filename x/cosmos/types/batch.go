@@ -90,6 +90,7 @@ func NewValueUndelegateSuccessStore(valAddress sdkTypes.ValAddress, orchestrator
 		Counter:               1,
 		NativeBlockHeight:     nativeBlockHeight,
 		ActiveBlockHeight:     activeBlockHeight,
+	}
 }
 
 func NewStakingEpochValue(keyAndValue KeyAndValueForMinting) StakingEpochValue {
@@ -113,5 +114,11 @@ func NewRewardsClaimedValue(orchestratorAddress sdkTypes.AccAddress, amount sdkT
 		AddedToCurrentEpoch:   false,
 		NativeBlockHeight:     nativeBlockHeight,
 		ActiveBlockHeight:     activeBlockHeight,
+	}
+}
+
+func NewValidatorStoreValue(orchAddress sdkTypes.AccAddress) ValidatorStoreValue {
+	return ValidatorStoreValue{
+		OrchestratorAddresses: []string{orchAddress.String()},
 	}
 }

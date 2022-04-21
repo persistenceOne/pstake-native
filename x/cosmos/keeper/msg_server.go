@@ -469,7 +469,17 @@ func (k msgServer) RewardsClaimed(c context.Context, msg *cosmosTypes.MsgRewards
 	err = k.addToRewardsClaimedPool(ctx, orchAddr, msg.AmountClaimed, msg.ChainID, msg.BlockHeight)
 	if err != nil {
 		return nil, err
-  }
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdkTypes.NewEvent(
+			sdkTypes.EventTypeMessage,
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
+			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchAddr.String()),
+		),
+	)
+
+	return &cosmosTypes.MsgRewardsClaimedOnCosmosChainResponse{}, nil
 }
 
 func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUndelegateSuccess) (*cosmosTypes.MsgUndelegateSuccessResponse, error) {
@@ -505,7 +515,16 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 		return nil, cosmosTypes.ErrInvalidCustodialAddress
 	}
 
-	_, found := k.GetOrchestratorValidator(ctx, orchestratorAddress)
+	//check if orchestrator address is present in a validator orchestrator mapping
+	_, val, _, err := k.getAllValidartorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	if err != nil {
+		return nil, err
+	}
+	if val == nil {
+		return nil, fmt.Errorf("validator address not found")
+	}
+
+	_, found := k.GetValidatorOrchestrator(ctx, val)
 	if found {
 		err = k.setUndelegateSuccessDetails(ctx, validatorAddress, orchestratorAddress, msg.Amount, msg.TxHash, msg.ChainID, msg.BlockHeight)
 		if err != nil {
@@ -519,9 +538,9 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
 			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
-			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchAddr.String()),
+			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchestratorAddress.String()),
 		),
 	)
 
-	return &cosmosTypes.MsgRewardsClaimedOnCosmosChainResponse{}, nil
+	return &cosmosTypes.MsgUndelegateSuccessResponse{}, nil
 }

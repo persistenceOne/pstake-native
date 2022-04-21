@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
@@ -59,25 +58,6 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 				panic(err)
 			}
 		}
-
-		//cosmosValidators := params.ValidatorSetCosmosChain
-		////TODO : Check if some amount has been delegated on cosmos chain or not. If there is then claim event is generated.
-		//var withdrawMessages []*codecTypes.Any
-		//for _, validator := range cosmosValidators {
-		//	msg := distrTypes.MsgWithdrawDelegatorReward{
-		//		DelegatorAddress: params.CustodialAddress,
-		//		ValidatorAddress: validator.Address,
-		//	}
-		//	anyMsg, err := codecTypes.NewAnyWithValue(&msg)
-		//	if err != nil {
-		//		panic(err)
-		//	}
-		//	withdrawMessages = append(withdrawMessages, anyMsg)
-		//}
-		//chuckMsgs := ChunkSlice(withdrawMessages, params.ChunkSize)
-		//for _, chunk := range chuckMsgs {
-		//	k.generateWithdrawRewardsEvent(ctx, chunk)
-		//}
 	}
 
 	if epochIdentifier == params.UndelegateEpochIdentifier {
@@ -119,23 +99,4 @@ func (h RewardsHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, 
 
 func (h RewardsHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) {
 	h.k.AfterEpochEnd(ctx, epochIdentifier, epochNumber)
-}
-
-func ChunkSlice(slice []*codecTypes.Any, chunkSize int64) (chunks [][]*codecTypes.Any) {
-	for {
-		if len(slice) == 0 {
-			break
-		}
-
-		// necessary check to avoid slicing beyond
-		// slice capacity
-		if int64(len(slice)) < chunkSize {
-			chunkSize = int64(len(slice))
-		}
-
-		chunks = append(chunks, slice[0:chunkSize])
-		slice = slice[chunkSize:]
-	}
-
-	return chunks
 }

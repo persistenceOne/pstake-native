@@ -231,17 +231,8 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 					msgs := txDetails.CosmosTxDetails.Tx.GetMsgs()
 					//Only first element is checked as event transactions will always be grouped as one type of message
 					switch msgs[0].(type) {
-					//TODO : Add cases for rewards claim, unbonding
 					case *stakingTypes.MsgDelegate:
 						err = k.processStakingSuccessTxns(ctx, element.Details.TxID)
-					case *stakingTypes.MsgUndelegate:
-						// TODO : Burn and other actions
-						err = k.updateCosmosValidatorStakingParams(ctx, msgs)
-						if err != nil {
-							return err
-						}
-					case *types.MsgWithdrawDelegatorReward:
-						k.emitStakingTxnForClaimedRewards(ctx, msgs)
 					case *stakingTypes.MsgUndelegate:
 						err = k.setEpochAndValidatorDetailsForAllUndelegations(ctx, element.Details.TxID)
 						if err != nil {

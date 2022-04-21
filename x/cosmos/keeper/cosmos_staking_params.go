@@ -121,13 +121,7 @@ type ValAddressAndAmountForStakingAndUndelegating struct {
 
 // gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
 func (k Keeper) fetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) []ValAddressAndAmountForStakingAndUndelegating {
-	//internalWeightedAddressCosmos := k.getCosmosValidatorParams(ctx)
-	//uatomAmount := amount.AmountOf(cosmosTypes.StakeDenom)
-	//for _, element := range internalWeightedAddressCosmos {
-	//	delegationThreshold := k.GetParams(ctx).DelegationThreshold
-	//	//process element
-	//	//TODO : Add pseudo code for filtering out validators to delegate
-	//}
+	//TODO : Add pseudo code for filtering out validators to delegate
 	return nil
 }
 

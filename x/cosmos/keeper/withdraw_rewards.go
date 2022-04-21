@@ -91,10 +91,14 @@ func (k Keeper) addToRewardsInCurrentEpoch(ctx sdk.Context, value cosmosTypes.Re
 func (k Keeper) getFromRewardsInCurrentEpochAmount(ctx sdk.Context, epochNumber int64) (sdk.Coin, error) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 	bz := rewardsInCurrentEpochStore.Get(cosmosTypes.Int64Bytes(epochNumber))
+	if bz == nil {
+		return sdk.NewInt64Coin("uatom", 0), nil
+	}
+
 	var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
 	err := rewardsClaimedValue.Unmarshal(bz)
 	if err != nil {
-		return sdk.Coin{}, err
+		return sdk.NewInt64Coin("uatom", 0), err
 	}
 
 	//Take the first element as all of them are same

@@ -106,23 +106,24 @@ func DefaultParams() Params {
 		},
 		ValidatorSetNativeChain: []WeightedAddress{
 			{
-				Address: "A",
-				Weight:  sdk.NewDecWithPrec(25, 2),
+				Address: "cosmos12fsu5rfdw6qlx3qsrnnrgskmrqzx473gtmet7m",
+				Weight:  sdk.NewDecWithPrec(5, 1),
 			},
 			{
-				Address: "B",
-				Weight:  sdk.NewDecWithPrec(5, 2),
-			},
-			{
-				Address: "C",
-				Weight:  sdk.NewDecWithPrec(5, 2),
-			},
-			{
-				Address: "D",
-				Weight:  sdk.NewDecWithPrec(5, 2),
+				Address: "cosmos1ajzc05ajmepsyx4tyl3z2p6cvu33kwk5nmrv3z",
+				Weight:  sdk.NewDecWithPrec(5, 1),
 			},
 		},
-		WeightedDeveloperRewardsReceivers: []WeightedAddress{},
+		WeightedDeveloperRewardsReceivers: []WeightedAddress{
+			{
+				Address: "cosmos12fsu5rfdw6qlx3qsrnnrgskmrqzx473gtmet7m",
+				Weight:  sdk.NewDecWithPrec(5, 1),
+			},
+			{
+				Address: "cosmos1ajzc05ajmepsyx4tyl3z2p6cvu33kwk5nmrv3z",
+				Weight:  sdk.NewDecWithPrec(5, 1),
+			},
+		},
 		DistributionProportion: DistributionProportions{
 			ValidatorRewards: sdk.NewDecWithPrec(5, 2),
 			DeveloperRewards: sdk.NewDecWithPrec(5, 2),

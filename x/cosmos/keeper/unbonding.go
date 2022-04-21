@@ -184,7 +184,7 @@ func (k Keeper) setEpochAndValidatorDetailsForAllUndelegations(ctx sdk.Context, 
 	return nil
 }
 
-func ChunkUndelegationSlice(slice []ValAddressAndAmountForStakingAndUnstaking, chunkSize int64) (chunks [][]ValAddressAndAmountForStakingAndUnstaking) {
+func ChunkStakeAndUnStakeSlice(slice []ValAddressAndAmountForStakingAndUndelegating, chunkSize int64) (chunks [][]ValAddressAndAmountForStakingAndUndelegating) {
 	for {
 		if len(slice) == 0 {
 			break
