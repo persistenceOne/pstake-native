@@ -19,6 +19,7 @@ var (
 	_ sdk.Msg = &MsgSignedTx{}
 	_ sdk.Msg = &MsgTxStatus{}
 	_ sdk.Msg = &MsgRewardsClaimedOnCosmosChain{}
+	_ sdk.Msg = &MsgUndelegateSuccess{}
 )
 
 // NewMsgSetOrchestrator returns a new MsgSetOrchestrator
@@ -396,6 +397,15 @@ func NewMsgRewardsClaimedOnCosmosChain(operator sdk.AccAddress, amount sdk.Coin,
 		AmountClaimed:       amount,
 		ChainID:             chainID,
 		BlockHeight:         blockHeight,
+  }
+}
+// NewMsgUndelegateSuccess returns a new MsgUndelegateSuccess
+func NewMsgUndelegateSuccess(val sdk.ValAddress, delegatorAddress sdk.AccAddress, amount sdk.Coin, orchAddress sdk.AccAddress) *MsgUndelegateSuccess {
+	return &MsgUndelegateSuccess{
+		ValidatorAddress:    val.String(),
+		DelegatorAddress:    delegatorAddress.String(),
+		Amount:              amount,
+		OrchestratorAddress: orchAddress.String(),
 	}
 }
 
@@ -420,18 +430,47 @@ func (m *MsgRewardsClaimedOnCosmosChain) ValidateBasic() error {
 	if m.BlockHeight <= 0 {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidHeight, "BlockHeight should be greater than zero")
 	}
+}
 
+func (m *MsgUndelegateSuccess) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgUndelegateSuccess) Type() string { return "msg_undelegation_success" }
+
+// ValidateBasic performs stateless checks
+func (m *MsgUndelegateSuccess) ValidateBasic() error {
+	if _, err := sdk.ValAddressFromBech32(m.ValidatorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.ValidatorAddress)
+	}
+	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
+	}
+	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
+	}
+	if !m.Amount.IsValid() || !m.Amount.Amount.IsPositive() {
+		return sdkErrors.Wrap(
+			sdkErrors.ErrInvalidRequest,
+			"invalid delegation amount",
+		)
+	}
 	return nil
 }
 
 // GetSignBytes encodes the message for signing
-func (m *MsgRewardsClaimedOnCosmosChain) GetSignBytes() []byte {
+func (m *MsgRewardsClaimedOnCosmosChain) GetSignBytes() []byte {}
+
+func (m *MsgUndelegateSuccess) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
 func (m *MsgRewardsClaimedOnCosmosChain) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
+}
+
+func (m *MsgUndelegateSuccess) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.ValAddressFromBech32(m.OrchestratorAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -443,6 +482,7 @@ var _ DBHelper = &IncomingMintTx{}
 var _ DBHelper = &ProposalValue{}
 var _ DBHelper = &TxHashValue{}
 var _ DBHelper = &RewardsClaimedValue{}
+var _ DBHelper = &ValueUndelegateSuccessStore{}
 
 func (m *IncomingMintTx) Find(orchAddress string) bool {
 	for _, address := range m.OrchAddresses {
@@ -486,7 +526,9 @@ func (m *TxHashValue) AddAndIncrement(orchAddress string) {
 	m.Counter++
 }
 
-func (m *RewardsClaimedValue) Find(orchAddress string) bool {
+func (m *RewardsClaimedValue) Find(orchAddress string) bool {}
+
+func (m *ValueUndelegateSuccessStore) Find(orchAddress string) bool {
 	for _, address := range m.OrchestratorAddresses {
 		if address == orchAddress {
 			return true
@@ -495,7 +537,9 @@ func (m *RewardsClaimedValue) Find(orchAddress string) bool {
 	return false
 }
 
-func (m *RewardsClaimedValue) AddAndIncrement(orchAddress string) {
+func (m *RewardsClaimedValue) AddAndIncrement(orchAddress string) {}
+
+func (m *ValueUndelegateSuccessStore) AddAndIncrement(orchAddress string) {
 	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
 	m.Counter++
 }

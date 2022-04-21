@@ -199,3 +199,8 @@ func (k Keeper) processStakingSuccessTxns(ctx sdk.Context, txID uint64) error {
 	}
 	return nil
 }
+
+func (k Keeper) emitStakingTxnForClaimedRewards(ctx sdk.Context, msgs []sdk.Msg) {
+	//totalAmountInClaimMsgs := sdk.NewInt64Coin(k.GetParams(ctx).BondDenom, 0)
+	//TODO : Ask which impl to go forwards with txn response for claimRewards and minting rewards for devs and validators
+}

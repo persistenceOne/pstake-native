@@ -16,4 +16,6 @@ var (
 	ErrModuleNotEnabled            = sdkErrors.Register(ModuleName, 56, "module not enabled")
 	ErrInvalidWithdrawDenom        = sdkErrors.Register(ModuleName, 57, "invalid withdraw denom")
 	ErrInvalidBondDenom            = sdkErrors.Register(ModuleName, 58, "invalid bond denom")
+	ErrInvalidCustodialAddress     = sdkErrors.Register(ModuleName, 59, "invalid custodial address")
+	ErrInvalidEpochNumber          = sdkErrors.Register(ModuleName, 60, "invalid minimum epoch number")
 )
