@@ -9,6 +9,7 @@ import (
 )
 
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	//cdc.RegisterConcrete(&MsgSend{}, "cosmos-sdk/MsgSend", nil)
 	cdc.RegisterConcrete(&MsgSetOrchestrator{}, "cosmos/MsgSetOrchestrator", nil)
 	cdc.RegisterConcrete(&MsgWithdrawStkAsset{}, "cosmos/MsgWithdrawStkAsset", nil)
 	cdc.RegisterConcrete(&MsgMintTokensForAccount{}, "cosmos/MsgMintTokensForAccount", nil)
@@ -17,7 +18,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgVoteWeighted{}, "cosmos/MsgVoteWeighted", nil)
 	cdc.RegisterConcrete(&MsgSignedTx{}, "cosmos/MsgSignedTx", nil)
 	cdc.RegisterConcrete(&MsgTxStatus{}, "cosmos/MsgTxStatus", nil)
-	cdc.RegisterConcrete(&MsgUndelegateSuccess{}, "cosmos/MsgUndelegateSuccess", nil)
 }
 
 func RegisterInterfaces(registry codecTypes.InterfaceRegistry) {
@@ -30,7 +30,6 @@ func RegisterInterfaces(registry codecTypes.InterfaceRegistry) {
 		&MsgVoteWeighted{},
 		&MsgSignedTx{},
 		&MsgTxStatus{},
-		&MsgUndelegateSuccess{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

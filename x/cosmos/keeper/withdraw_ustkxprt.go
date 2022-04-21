@@ -2,11 +2,8 @@ package keeper
 
 import (
 	"fmt"
-	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
-	"github.com/cosmos/cosmos-sdk/x/bank/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -60,87 +57,4 @@ func (k Keeper) totalAmountToBeUnbonded(value cosmosTypes.WithdrawStoreValue, de
 		amount = amount.Add(element.Amount)
 	}
 	return amount
-}
-
-func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumber int64) error {
-	withdrawStoreValue, err := k.fetchWithdrawTxnsWithCurrentEpochInfo(ctx, epochNumber)
-	if err != nil {
-		return err
-	}
-	params := k.GetParams(ctx)
-	chunkSlice := ChunkWithdrawSlice(withdrawStoreValue.WithdrawDetails, params.ChunkSize)
-	for _, chunk := range chunkSlice {
-		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
-		var sendMsgsAny []*codecTypes.Any
-		var sendMsgs []types.MsgSend
-		for _, element := range chunk {
-			msg := types.MsgSend{
-				FromAddress: params.CustodialAddress,
-				ToAddress:   element.ToAddress,
-				Amount:      sdk.NewCoins(element.Amount), // TODO Multiply by Ratio
-			}
-			anyMsg, err := codecTypes.NewAnyWithValue(&msg)
-			if err != nil {
-				panic(err)
-			}
-			sendMsgsAny = append(sendMsgsAny, anyMsg)
-			sendMsgs = append(sendMsgs, msg)
-		}
-
-		tx := cosmosTypes.CosmosTx{
-			Tx: sdkTx.Tx{
-				Body: &sdkTx.TxBody{
-					Messages:      sendMsgsAny,
-					Memo:          "",
-					TimeoutHeight: 0,
-				},
-				AuthInfo: &sdkTx.AuthInfo{
-					SignerInfos: nil,
-					Fee: &sdkTx.Fee{
-						Amount:   nil,
-						GasLimit: 200000,
-						Payer:    "",
-					},
-				},
-				Signatures: nil,
-			},
-			EventEmitted:      true,
-			Status:            "",
-			TxHash:            "",
-			NativeBlockHeight: ctx.BlockHeight(),
-			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
-		}
-
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				cosmosTypes.EventTypeOutgoing,
-				sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
-			),
-		)
-
-		//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
-		k.setNewTxnInOutgoingPool(ctx, nextID, tx)
-
-	}
-	k.deleteEpochWithdrawSuccessStore(ctx, epochNumber)
-	return nil
-}
-
-func ChunkWithdrawSlice(slice []cosmosTypes.MsgWithdrawStkAsset, chunkSize int64) (chunks [][]cosmosTypes.MsgWithdrawStkAsset) {
-	for {
-		if len(slice) == 0 {
-			break
-		}
-
-		// necessary check to avoid slicing beyond
-		// slice capacity
-		if int64(len(slice)) < chunkSize {
-			chunkSize = int64(len(slice))
-		}
-
-		chunks = append(chunks, slice[0:chunkSize])
-		slice = slice[chunkSize:]
-	}
-
-	return chunks
 }

@@ -91,18 +91,10 @@ var (
 
 	HashAndIDStore = []byte{0xE}
 
-	KeyOutgoingUnbondStore = []byte{0xF}
+	KeyWithdrawStore = []byte{0xF}
 
-	KeyEpochStoreForUndelegation = "EpochStoreForUndelegation"
-
-	KeyEpochStoreForWithdrawSuccess = []byte{0x10}
-
-	KeyUndelegateSuccessStore = []byte{0x11}
+	KeyOutgoingUnbondStore = []byte{0x10}
 )
-
-func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {
-	return append([]byte(KeyEpochStoreForUndelegation), Int64Bytes(epochNumber)...)
-}
 
 func ConvertByteArrToString(value []byte) string {
 	var ret strings.Builder

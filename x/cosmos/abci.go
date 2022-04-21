@@ -9,7 +9,6 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 	minting(ctx, k)
 	proposal(ctx, k)
 	checkTransactions(ctx, k)
-	checkUndelegateSuccess(ctx, k)
 }
 
 func minting(ctx sdk.Context, k Keeper) {
@@ -32,14 +31,6 @@ func proposal(ctx sdk.Context, k Keeper) {
 // If failure then the next steps regarding that
 func checkTransactions(ctx sdk.Context, k Keeper) {
 	err := k.ProcessAllTxAndDetails(ctx)
-	logger := k.Logger(ctx)
-	if err != nil {
-		logger.Info(err.Error())
-	}
-}
-
-func checkUndelegateSuccess(ctx sdk.Context, k Keeper) {
-	err := k.ProcessAllUndelegateSuccess(ctx)
 	logger := k.Logger(ctx)
 	if err != nil {
 		logger.Info(err.Error())

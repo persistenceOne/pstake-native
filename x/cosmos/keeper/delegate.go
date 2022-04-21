@@ -97,5 +97,5 @@ func (k Keeper) getTotalDelegatedAmountTillDate(ctx sdk.Context) sdk.Coin {
 
 func (k Keeper) emitStakingTxnForClaimedRewards(ctx sdk.Context, msgs []sdk.Msg) {
 	//totalAmountInClaimMsgs := sdk.NewInt64Coin(k.GetParams(ctx).BondDenom, 0)
-	//TODO : Ask which impl to go forwards with txn response for claimRewards and minting rewards for devs and validators
+	//TODO : Ask which impl to go forwards with txn response for claimRewards and minting reards for devs and validators
 }
