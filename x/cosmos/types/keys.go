@@ -102,6 +102,8 @@ var (
 	KeyWithdrawStore = []byte{0x12}
 
 	KeyOutgoingTxSignature = []byte{0x11}
+
+	KeyOutgoingSignaturePoolKey = []byte{0x12}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {

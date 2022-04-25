@@ -29,7 +29,7 @@ type Keeper struct {
 }
 
 func NewKeeper(
-	key sdkTypes.StoreKey, paramSpace paramsTypes.Subspace,
+	key sdkTypes.StoreKey, paramSpace paramsTypes.Subspace, authKeeper *authkeeper.AccountKeeper,
 	bankKeeper *bankKeeper.BaseKeeper, mintKeeper *mintKeeper.Keeper, stakingKeeper *stakingKeeper.Keeper,
 	epochKeeper cosmosTypes.EpochKeeper,
 ) Keeper {
@@ -37,6 +37,7 @@ func NewKeeper(
 	return Keeper{
 		storeKey:      key,
 		paramSpace:    paramSpace.WithKeyTable(cosmosTypes.ParamKeyTable()),
+		authKeeper:    authKeeper,
 		bankKeeper:    bankKeeper,
 		mintKeeper:    mintKeeper,
 		stakingKeeper: stakingKeeper,
@@ -132,7 +133,7 @@ func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, key cosmosTypes.Chain
 	return nil
 }
 
-func (k Keeper) mintTokensForAccount(ctx sdkTypes.Context, address string, amount sdkTypes.Coins) error {
+func (k Keeper) mintTokensForRewardReceivers(ctx sdkTypes.Context, address string, amount sdkTypes.Coins) error {
 	//TODO : incorporate minting_ratio
 
 	accAddress, err := sdkTypes.AccAddressFromBech32(address)

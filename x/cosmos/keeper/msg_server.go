@@ -43,6 +43,12 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 		return nil, sdkErrors.Wrap(err, "Key not valid")
 	}
 
+	//check if orchestrator public key exist or not
+	orchAccI := k.authKeeper.GetAccount(ctx, orchestrator)
+	if orchAccI.GetPubKey() == nil {
+		return nil, sdkErrors.Wrap(cosmosTypes.ErrPubKeyNotFound, orchestrator.String())
+	}
+
 	//check if the validator is present and return error if not present
 	if k.Keeper.stakingKeeper.Validator(ctx, validator) == nil {
 		return nil, sdkErrors.Wrap(stakingTypes.ErrNoValidatorFound, validator.String())
@@ -561,18 +567,31 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	if len(outgoingTx.CosmosTxDetails.Tx.AuthInfo.SignerInfos) != 1 {
 		return nil, sdkErrors.Wrap(sdkErrors.ErrorInvalidSigner, "there should be exactly one signer info.")
 	}
-	//verify orchestator
-	//TODO verify orchestratorAddress
+
+	//check if orchestrator address is present in a validator orchestrator mapping
+	_, val, _, err := k.getAllValidartorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddr)
+	if err != nil {
+		return nil, err
+	}
+	if val == nil {
+		return nil, fmt.Errorf("validator address not found")
+	}
+
+	_, found := k.GetValidatorOrchestrator(ctx, val)
+	if !found {
+		return nil, cosmosTypes.ErrInvalid
+	}
 
 	//verify signature
 	custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
-
+	//TODO : remove bug
 	multisigAccount := k.authKeeper.GetAccount(ctx, custodialAddress)
+
 	account := k.authKeeper.GetAccount(ctx, orchestratorAddr)
 	signerData := signing.SignerData{
 		ChainID:       k.GetParams(ctx).CosmosProposalParams.ChainID,
 		AccountNumber: multisigAccount.GetAccountNumber(),
-		Sequence:      outgoingTx.CosmosTxDetails.Tx.AuthInfo.SignerInfos[0].GetSequence(),
+		Sequence:      multisigAccount.GetSequence(),
 	}
 	signatureData := signing2.SingleSignatureData{
 		SignMode:  signing2.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
@@ -584,7 +603,11 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	}
 
 	//TODO add signatures to DB
-
+	singleSignatureDataForOutgoingPool := cosmosTypes.ConvertSingleSignatureDataToSingleSignatureDataForOutgoingPool(signatureData)
+	err = k.addToOutgoingSignaturePool(ctx, singleSignatureDataForOutgoingPool, msg.OutgoingTxID, orchestratorAddr)
+	if err != nil {
+		return nil, err
+	}
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,

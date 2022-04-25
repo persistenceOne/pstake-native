@@ -363,6 +363,7 @@ func NewGaiaApp(
 	app.CosmosKeeper = cosmos.NewKeeper(
 		keys[cosmos.StoreKey],
 		app.ParamsKeeper.Subspace(cosmos.DefaultParamspace),
+		&app.AccountKeeper,
 		&app.BankKeeper,
 		&app.MintKeeper,
 		&app.StakingKeeper,

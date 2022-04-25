@@ -54,6 +54,35 @@ func (k Keeper) removeTxnDetailsByID(ctx sdk.Context, txID uint64) {
 	outgoingStore.Delete(key)
 }
 
+func (k Keeper) setOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosTypes.CosmosTx, txID uint64) error {
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
+	key := cosmosTypes.UInt64Bytes(txID)
+
+	//calculate and set txHash
+	txBytes, err := tx.Tx.Marshal()
+	if err != nil {
+		return err
+	}
+	txHash := cosmosTypes.BytesToHexUpper(txBytes)
+	tx.TxHash = txHash
+
+	bz, err := tx.Marshal()
+	if err != nil {
+		return err
+	}
+	outgoingStore.Set(key, bz)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			cosmosTypes.EventTypeSignedOutgoing,
+			sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(txID)),
+		),
+	)
+
+	k.removeFromOutgoingSignaturePool(ctx, txID)
+	return nil
+}
+
 //Sets txBytes once received from Orchestrator after signing.
 func (k Keeper) setTxDetailsSignedByOrchestrator(ctx sdk.Context, txID uint64, txHash string, tx sdkTx.Tx) error {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
@@ -242,10 +271,12 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 					}
 				}
 			}
+
 			if txDetails.CosmosTxDetails.ActiveBlockHeight >= ctx.BlockHeight() {
 				//TODO : check for rewards claim txns
 				k.removeTxnDetailsByID(ctx, element.Details.TxID)
 				k.removeTxHashAndDetails(ctx, element.TxHash)
+				//k.removeFromOutgoingSignaturePool(ctx, element.Details.TxID)
 			}
 		}
 	}
@@ -264,10 +295,6 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 		}
 	}
 	return nil
-}
-
-func (k Keeper) setOutgoingTxnSignatures(txID uint64, orcastratorAddress sdk.AccAddress, signatures []byte) {
-
 }
 
 //______________________________________________________________________________________________

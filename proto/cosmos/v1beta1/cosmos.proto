@@ -100,4 +100,5 @@ message Params {
   int64 chunk_size = 19;
   string undelegate_epoch_identifier = 20;
   repeated string bond_denoms = 21;
+  uint64 multisig_threshold = 22;
 }

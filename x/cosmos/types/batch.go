@@ -1,6 +1,10 @@
 package types
 
 import (
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"time"
 
@@ -121,4 +125,59 @@ func NewValidatorStoreValue(orchAddress sdkTypes.AccAddress) ValidatorStoreValue
 	return ValidatorStoreValue{
 		OrchestratorAddresses: []string{orchAddress.String()},
 	}
+}
+
+func NewOutgoingSignaturePoolValue(singleSignature SingleSignatureDataForOutgoingPool, orchestratorAddress sdkTypes.AccAddress) OutgoingSignaturePoolValue {
+	return OutgoingSignaturePoolValue{
+		SingleSignatures:      []SingleSignatureDataForOutgoingPool{singleSignature},
+		OrchestratorAddresses: []string{orchestratorAddress.String()},
+		Counter:               1,
+	}
+}
+
+func ConvertSingleSignatureDataToSingleSignatureDataForOutgoingPool(data signing.SingleSignatureData) SingleSignatureDataForOutgoingPool {
+	return SingleSignatureDataForOutgoingPool{
+		SignMode:  data.SignMode,
+		Signature: data.Signature,
+	}
+}
+
+func ConvertSingleSignatureDataForOutgoingPoolToSingleSignatureData(data SingleSignatureDataForOutgoingPool) signing.SingleSignatureData {
+	return signing.SingleSignatureData{
+		SignMode:  data.SignMode,
+		Signature: data.Signature,
+	}
+}
+
+func (c *CosmosTx) SetSignatures(signatures ...signing.SignatureV2) error {
+	n := len(signatures)
+	signerInfos := make([]*tx.SignerInfo, n)
+	rawSigs := make([][]byte, n)
+
+	for i, sig := range signatures {
+		var modeInfo *tx.ModeInfo
+		modeInfo, rawSigs[i] = authtx.SignatureDataToModeInfoAndSig(sig.Data)
+		any, err := codectypes.NewAnyWithValue(sig.PubKey)
+		if err != nil {
+			return err
+		}
+		signerInfos[i] = &tx.SignerInfo{
+			PublicKey: any,
+			ModeInfo:  modeInfo,
+			Sequence:  sig.Sequence,
+		}
+	}
+
+	c.setSignerInfos(signerInfos)
+	c.setSignatures(rawSigs)
+
+	return nil
+}
+
+func (c *CosmosTx) setSignerInfos(infos []*tx.SignerInfo) {
+	c.Tx.AuthInfo.SignerInfos = infos
+}
+
+func (c *CosmosTx) setSignatures(sigs [][]byte) {
+	c.Tx.Signatures = sigs
 }

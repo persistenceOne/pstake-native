@@ -18,7 +18,7 @@ func (k Keeper) processAllRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin
 
 	for _, wallet := range params.ValidatorSetNativeChain {
 		amount := sdk.NewCoins(k.GetProportions(ctx, validatorRewards, wallet.Weight))
-		err := k.mintTokensForAccount(ctx, wallet.Address, amount)
+		err := k.mintTokensForRewardReceivers(ctx, wallet.Address, amount)
 		if err != nil {
 			return err
 		}
@@ -26,11 +26,12 @@ func (k Keeper) processAllRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin
 
 	for _, wallet := range params.WeightedDeveloperRewardsReceivers {
 		amount := sdk.NewCoins(k.GetProportions(ctx, developerRewards, wallet.Weight))
-		err := k.mintTokensForAccount(ctx, wallet.Address, amount)
+		err := k.mintTokensForRewardReceivers(ctx, wallet.Address, amount)
 		if err != nil {
 			return err
 		}
 	}
 
+	//TODO : update c ratio
 	return nil
 }

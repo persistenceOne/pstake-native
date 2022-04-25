@@ -534,6 +534,7 @@ var _ DBHelper = &ProposalValue{}
 var _ DBHelper = &TxHashValue{}
 var _ DBHelper = &RewardsClaimedValue{}
 var _ DBHelper = &ValueUndelegateSuccessStore{}
+var _ DBHelper = &OutgoingSignaturePoolValue{}
 
 func (m *IncomingMintTx) Find(orchAddress string) bool {
 	for _, address := range m.OrchAddresses {
@@ -601,6 +602,20 @@ func (m *ValueUndelegateSuccessStore) Find(orchAddress string) bool {
 }
 
 func (m *ValueUndelegateSuccessStore) AddAndIncrement(orchAddress string) {
+	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
+	m.Counter++
+}
+
+func (m *OutgoingSignaturePoolValue) Find(orchAddress string) bool {
+	for _, address := range m.OrchestratorAddresses {
+		if address == orchAddress {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *OutgoingSignaturePoolValue) AddAndIncrement(orchAddress string) {
 	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
 	m.Counter++
 }

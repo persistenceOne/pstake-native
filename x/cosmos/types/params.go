@@ -41,6 +41,7 @@ var (
 	KeyChunkSize                         = []byte("ChunkSize")
 	KeyBondDenom                         = []byte("BondDenom")
 	KeyMintDenom                         = []byte("MintDenom")
+	KeyMultisigThreshold                 = []byte("MultisigThreshold")
 )
 
 func ParamKeyTable() paramsTypes.KeyTable {
@@ -51,7 +52,8 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 	maxValidatorToDelegate uint64, validatorSetCosmosChain []WeightedAddressCosmos, validatorSetNativeChain []WeightedAddress,
 	weightedDeveloperRewardsReceivers []WeightedAddress, distributionProportion DistributionProportions, epochs int64,
 	maxIncomingAndOutgoingTxns int64, cosmosProposalParams CosmosChainProposalParams, stakingEpochIdentifier string,
-	custodialAddress string, undelegateEpochIdentifier string, ChunkSize int64, bondDenom []string, mintDenom string) Params {
+	custodialAddress string, undelegateEpochIdentifier string, ChunkSize int64, bondDenom []string, mintDenom string,
+	multiSigThreshold uint64) Params {
 	return Params{
 		MinMintingAmount:                  minMintingAmount,
 		MaxMintingAmount:                  maxMintingAmount,
@@ -72,6 +74,7 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 		ChunkSize:                         ChunkSize,
 		BondDenoms:                        bondDenom,
 		MintDenom:                         mintDenom,
+		MultisigThreshold:                 multiSigThreshold,
 	}
 }
 
@@ -142,6 +145,7 @@ func DefaultParams() Params {
 		ChunkSize:                 5,
 		BondDenoms:                DefaultBondDenom,
 		MintDenom:                 DefaultMintDenom,
+		MultisigThreshold:         3,
 	}
 }
 
@@ -206,6 +210,9 @@ func (p Params) Validate() error {
 	if err := validateMintDenom(p.MintDenom); err != nil {
 		return err
 	}
+	if err := validateMultisigThreshold(p.MultisigThreshold); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -236,6 +243,7 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyChunkSize, &p.ChunkSize, validateWithdrawRewardsChunkSize),
 		paramsTypes.NewParamSetPair(KeyBondDenom, &p.BondDenoms, validateBondDenom),
 		paramsTypes.NewParamSetPair(KeyMintDenom, &p.MintDenom, validateMintDenom),
+		paramsTypes.NewParamSetPair(KeyMultisigThreshold, &p.MultisigThreshold, validateMultisigThreshold),
 	}
 }
 
@@ -548,6 +556,18 @@ func validateMintDenom(i interface{}) error {
 
 	if v == "" {
 		return fmt.Errorf("mint denom cannot be empty")
+	}
+	return nil
+}
+
+func validateMultisigThreshold(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v <= 0 {
+		return fmt.Errorf("multisig threshold must be non negative")
 	}
 	return nil
 }
