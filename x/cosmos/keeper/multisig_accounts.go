@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
 //TODO : Use this once module is enabled to set multisig account
@@ -15,12 +16,12 @@ func (k Keeper) setAccountState(ctx sdk.Context, acc authTypes.AccountI) {
 		panic(err)
 	}
 
-	store.Set(authTypes.AddressStoreKey(addr), bz)
+	store.Set(cosmosTypes.MultisigAccountStoreKey(addr), bz)
 }
 
 func (k Keeper) getAccountState(ctx sdk.Context, accAddress sdk.AccAddress) authTypes.AccountI {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(authTypes.AddressStoreKey(accAddress))
+	bz := store.Get(cosmosTypes.MultisigAccountStoreKey(accAddress))
 	if bz == nil {
 		return nil
 	}
@@ -31,4 +32,15 @@ func (k Keeper) getAccountState(ctx sdk.Context, accAddress sdk.AccAddress) auth
 	}
 
 	return acc
+}
+
+func (k Keeper) getCurrentAddress(ctx sdk.Context) sdk.AccAddress {
+	store := ctx.KVStore(k.storeKey)
+	return store.Get(cosmosTypes.CurrentMultisigAddressKey())
+
+}
+
+func (k Keeper) setCurrentAddress(ctx sdk.Context, accAddress sdk.AccAddress) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(cosmosTypes.CurrentMultisigAddressKey(), accAddress)
 }

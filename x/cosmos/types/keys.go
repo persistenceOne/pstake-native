@@ -111,6 +111,9 @@ var (
 	KeyOutgoingTxSignature = []byte{0x11}
 
 	KeyOutgoingSignaturePoolKey = []byte{0x12}
+
+	KeyMultisigAccountStore   = []byte{0x13}
+	KeyCurrentMultisigAddress = []byte{0x14}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {
@@ -182,6 +185,16 @@ func VotesKey(proposalID uint64) []byte {
 // OutgoingTxSignatureKey forms a key from txID to the substore
 func OutgoingTxSignatureKey(txID uint64) []byte {
 	return append(KeyOutgoingTxSignature, GetProposalIDBytes(txID)...)
+}
+
+// MultisigAccountStoreKey turn an address to key used to get it from the account store
+func MultisigAccountStoreKey(addr sdkTypes.AccAddress) []byte {
+	return append(KeyMultisigAccountStore, addr.Bytes()...)
+}
+
+// CurrentMultisigAddressKey turn an address to that is expected to send current txns
+func CurrentMultisigAddressKey() []byte {
+	return KeyCurrentMultisigAddress
 }
 
 func BytesToHexUpper(bz []byte) string {
