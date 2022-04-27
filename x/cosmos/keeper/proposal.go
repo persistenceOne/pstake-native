@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	"time"
 
 	sdkClient "github.com/cosmos/cosmos-sdk/client"
@@ -45,8 +46,9 @@ func (k Keeper) createProposal(c sdk.Context, proposal cosmosTypes.KeyAndValueFo
 
 func (k Keeper) generateOutgoingWeightedVoteEvent(ctx sdk.Context, result map[cosmosTypes.VoteOption]sdk.Dec, cosmosProposalID uint64) {
 	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
+	params := k.GetParams(ctx)
 
-	var voteMsg []*codecTypes.Any
+	var voteMsgAny []*codecTypes.Any
 	msg := govTypes.MsgVoteWeighted{
 		ProposalId: cosmosProposalID,
 		Voter:      "cosmos15vm0p2x990762txvsrpr26ya54p5qlz9xqlw5z",
@@ -78,12 +80,21 @@ func (k Keeper) generateOutgoingWeightedVoteEvent(ctx sdk.Context, result map[co
 		panic(err)
 	}
 
-	voteMsg = append(voteMsg, msgAny)
+	voteMsgAny = append(voteMsgAny, msgAny)
+	execMsg := authz.MsgExec{
+		Grantee: params.CustodialAddress,
+		Msgs:    voteMsgAny,
+	}
+
+	execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
+	if err != nil {
+		panic(err)
+	}
 
 	tx := cosmosTypes.CosmosTx{
 		Tx: sdkTx.Tx{
 			Body: &sdkTx.TxBody{
-				Messages:      voteMsg,
+				Messages:      []*codecTypes.Any{execMsgAny},
 				Memo:          "",
 				TimeoutHeight: 0,
 			},

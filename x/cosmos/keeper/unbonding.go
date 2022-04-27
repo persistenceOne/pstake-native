@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"math"
@@ -35,10 +36,20 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 			undelegategMsgs = append(undelegategMsgs, msg)
 		}
 
+		execMsg := authz.MsgExec{
+			Grantee: params.CustodialAddress,
+			Msgs:    undelegateMsgsAny,
+		}
+
+		execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
+		if err != nil {
+			panic(err)
+		}
+
 		tx := cosmosTypes.CosmosTx{
 			Tx: sdkTx.Tx{
 				Body: &sdkTx.TxBody{
-					Messages:      undelegateMsgsAny,
+					Messages:      []*codecTypes.Any{execMsgAny},
 					Memo:          "",
 					TimeoutHeight: 0,
 				},
@@ -66,7 +77,7 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 			),
 		)
 
-		err := k.setIDInEpochPoolForWithdrawals(ctx, nextID, undelegategMsgs, params.CustodialAddress, epochNumber)
+		err = k.setIDInEpochPoolForWithdrawals(ctx, nextID, undelegategMsgs, params.CustodialAddress, epochNumber)
 		if err != nil {
 			panic(err)
 		}

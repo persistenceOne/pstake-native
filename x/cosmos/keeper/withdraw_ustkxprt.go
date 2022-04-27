@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
@@ -87,10 +88,20 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 			sendMsgs = append(sendMsgs, msg)
 		}
 
+		execMsg := authz.MsgExec{
+			Grantee: params.CustodialAddress,
+			Msgs:    sendMsgsAny,
+		}
+
+		execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
+		if err != nil {
+			panic(err)
+		}
+
 		tx := cosmosTypes.CosmosTx{
 			Tx: sdkTx.Tx{
 				Body: &sdkTx.TxBody{
-					Messages:      sendMsgsAny,
+					Messages:      []*codecTypes.Any{execMsgAny},
 					Memo:          "",
 					TimeoutHeight: 0,
 				},

@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
@@ -259,14 +260,20 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 				}
 				if majorityStatus == "success" {
 					msgs := txDetails.CosmosTxDetails.Tx.GetMsgs()
-					//Only first element is checked as event transactions will always be grouped as one type of message
-					switch msgs[0].(type) {
-					case *stakingTypes.MsgDelegate:
-						err = k.processStakingSuccessTxns(ctx, element.Details.TxID)
-					case *stakingTypes.MsgUndelegate:
-						err = k.setEpochAndValidatorDetailsForAllUndelegations(ctx, element.Details.TxID)
-						if err != nil {
-							return err
+					for _, msg := range msgs {
+						execMsgs := msg.(*authz.MsgExec).Msgs
+						for _, im := range execMsgs {
+							//Only first element is checked as event transactions will always be grouped as one type of message
+							switch im.GetCachedValue().(type) {
+							case *stakingTypes.MsgDelegate:
+								err = k.processStakingSuccessTxns(ctx, element.Details.TxID)
+							case *stakingTypes.MsgUndelegate:
+								err = k.setEpochAndValidatorDetailsForAllUndelegations(ctx, element.Details.TxID)
+								if err != nil {
+									return err
+								}
+							}
+							break
 						}
 					}
 				}

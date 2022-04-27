@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
@@ -21,7 +22,6 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 
 		var delegateMsgsAny []*codecTypes.Any
-		var delegategMsgs []stakingTypes.MsgDelegate
 		for _, element := range chunk {
 			msg := stakingTypes.MsgDelegate{
 				DelegatorAddress: params.CustodialAddress,
@@ -33,13 +33,22 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 				return err
 			}
 			delegateMsgsAny = append(delegateMsgsAny, anyMsg)
-			delegategMsgs = append(delegategMsgs, msg)
+		}
+
+		execMsg := authz.MsgExec{
+			Grantee: params.CustodialAddress,
+			Msgs:    delegateMsgsAny,
+		}
+
+		execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
+		if err != nil {
+			return err
 		}
 
 		tx := cosmosTypes.CosmosTx{
 			Tx: sdkTx.Tx{
 				Body: &sdkTx.TxBody{
-					Messages:      delegateMsgsAny,
+					Messages:      []*codecTypes.Any{execMsgAny},
 					Memo:          "",
 					TimeoutHeight: 0,
 				},
@@ -69,7 +78,7 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 			),
 		)
 
-		err := k.setInEpochPoolForMinting(ctx, epochNumber, nextID, false)
+		err = k.setInEpochPoolForMinting(ctx, epochNumber, nextID, false)
 		if err != nil {
 			return err
 		}
