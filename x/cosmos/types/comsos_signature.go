@@ -36,3 +36,21 @@ func AccAddressFromBech32(address, prefix string) (addr sdkTypes.AccAddress, err
 
 	return sdkTypes.AccAddress(bz), nil
 }
+
+func ValAddressFromBech32(address, prefix string) (valAddr sdkTypes.ValAddress, err error) {
+	if len(strings.TrimSpace(address)) == 0 {
+		return sdkTypes.ValAddress{}, errors.New("empty address string is not allowed")
+	}
+
+	bz, err := sdkTypes.GetFromBech32(address, prefix)
+	if err != nil {
+		return nil, err
+	}
+
+	err = sdkTypes.VerifyAddressFormat(bz)
+	if err != nil {
+		return nil, err
+	}
+
+	return sdkTypes.ValAddress(bz), nil
+}

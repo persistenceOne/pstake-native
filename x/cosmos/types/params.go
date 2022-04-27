@@ -109,21 +109,21 @@ func DefaultParams() Params {
 		},
 		ValidatorSetNativeChain: []WeightedAddress{
 			{
-				Address: "cosmos12fsu5rfdw6qlx3qsrnnrgskmrqzx473gtmet7m",
+				Address: "persistence183g695ap32wnds5k9xwd3yq997dqxudfts2gqg",
 				Weight:  sdk.NewDecWithPrec(5, 1),
 			},
 			{
-				Address: "cosmos1ajzc05ajmepsyx4tyl3z2p6cvu33kwk5nmrv3z",
+				Address: "persistence12v9prjx8m5fdalryqd0t4mgwe20637ltek5m0h",
 				Weight:  sdk.NewDecWithPrec(5, 1),
 			},
 		},
 		WeightedDeveloperRewardsReceivers: []WeightedAddress{
 			{
-				Address: "cosmos12fsu5rfdw6qlx3qsrnnrgskmrqzx473gtmet7m",
+				Address: "persistence1g5lz0gq98y8tav477dltxgpdft0wr9rmqt7mvu",
 				Weight:  sdk.NewDecWithPrec(5, 1),
 			},
 			{
-				Address: "cosmos1ajzc05ajmepsyx4tyl3z2p6cvu33kwk5nmrv3z",
+				Address: "persistence1n4v2su7weec6sqqkhet7gegu4635vc7l34y6ca",
 				Weight:  sdk.NewDecWithPrec(5, 1),
 			},
 		},
@@ -327,7 +327,7 @@ func validateValidatorSetCosmosChain(i interface{}) error {
 	for i, w := range v {
 		// we allow address to be "" to go to community pool
 		if w.Address != "" {
-			_, err := sdk.ValAddressFromBech32(w.Address)
+			_, err := ValAddressFromBech32(w.Address, Bech32PrefixValAddr)
 			if err != nil {
 				return fmt.Errorf("invalid address at %dth", i)
 			}
@@ -517,7 +517,7 @@ func validateCustodialAddress(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if v != "" {
-		_, err := sdk.AccAddressFromBech32(v)
+		_, err := AccAddressFromBech32(v, Bech32Prefix)
 		if err != nil {
 			return fmt.Errorf("invalid custodial address")
 		}

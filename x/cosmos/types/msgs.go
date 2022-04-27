@@ -84,7 +84,7 @@ func (m *MsgWithdrawStkAsset) ValidateBasic() error {
 		return sdkErrors.Wrapf(sdkErrors.ErrInvalidAddress, "Invalid sender address (%s)", err)
 	}
 
-	_, err = sdk.AccAddressFromBech32(m.ToAddress)
+	_, err = AccAddressFromBech32(m.ToAddress, Bech32Prefix)
 	if err != nil {
 		return sdkErrors.Wrapf(sdkErrors.ErrInvalidAddress, "Invalid recipient address (%s)", err)
 	}
@@ -409,13 +409,13 @@ func (m *MsgUndelegateSuccess) Type() string { return "msg_undelegation_success"
 
 // ValidateBasic performs stateless checks
 func (m *MsgUndelegateSuccess) ValidateBasic() error {
-	if _, err := sdk.ValAddressFromBech32(m.ValidatorAddress); err != nil {
+	if _, err := ValAddressFromBech32(m.ValidatorAddress, Bech32PrefixValAddr); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.ValidatorAddress)
 	}
 	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
 	}
-	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
+	if _, err := AccAddressFromBech32(m.DelegatorAddress, Bech32Prefix); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
 	}
 	if !m.Amount.IsValid() || !m.Amount.Amount.IsPositive() {

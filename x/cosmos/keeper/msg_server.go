@@ -88,7 +88,7 @@ func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAs
 	if err != nil {
 		return nil, err
 	}
-	to, err := sdkTypes.AccAddressFromBech32(msg.ToAddress)
+	to, err := cosmosTypes.AccAddressFromBech32(msg.ToAddress, cosmosTypes.Bech32Prefix)
 	if err != nil {
 		return nil, err
 	}
@@ -510,11 +510,11 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 	if err != nil {
 		return nil, err
 	}
-	validatorAddress, err := sdkTypes.ValAddressFromBech32(msg.ValidatorAddress)
+	validatorAddress, err := cosmosTypes.ValAddressFromBech32(msg.ValidatorAddress, cosmosTypes.Bech32PrefixValAddr)
 	if err != nil {
 		return nil, err
 	}
-	custodialAddress, err := sdkTypes.AccAddressFromBech32(msg.DelegatorAddress)
+	custodialAddress, err := cosmosTypes.AccAddressFromBech32(msg.DelegatorAddress, cosmosTypes.Bech32Prefix)
 	if err != nil {
 		return nil, err
 	}
