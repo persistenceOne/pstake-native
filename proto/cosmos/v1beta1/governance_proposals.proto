@@ -1,0 +1,31 @@
+syntax = "proto3";
+package comsos.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+
+
+option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
+
+option (gogoproto.equal_all) = true;
+option (gogoproto.goproto_stringer_all) = false;
+option (gogoproto.stringer_all) = false;
+option (gogoproto.goproto_getters_all) = false;
+
+// Proposal defines the core field members of a governance proposal.
+//message ChangeCosmosValidatorWeightsProposal {
+//
+//}
+//message ChangeOracleValidatorWeightsProposal{
+//
+//}
+message ChangeMultisigProposal{
+  string title = 1;
+  string description = 2;
+  uint32 threshold = 3;
+  repeated string orcastrator_addresses = 4;
+  uint64 account_number = 5;
+}
+

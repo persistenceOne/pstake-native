@@ -4,6 +4,7 @@ import (
 	"errors"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	signing2 "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
@@ -35,4 +36,17 @@ func AccAddressFromBech32(address, prefix string) (addr sdkTypes.AccAddress, err
 	}
 
 	return sdkTypes.AccAddress(bz), nil
+}
+
+func Bech32ifyAddressBytes(prefix string, address sdkTypes.AccAddress) (string, error) {
+	if address.Empty() {
+		return "", nil
+	}
+	if len(address.Bytes()) == 0 {
+		return "", nil
+	}
+	if len(prefix) == 0 {
+		return "", errors.New("prefix cannot be empty")
+	}
+	return bech32.ConvertAndEncode(prefix, address.Bytes())
 }
