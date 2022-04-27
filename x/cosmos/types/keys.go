@@ -48,6 +48,13 @@ const (
 	StorageWindow = 100 //TODO : Revert Back to 100
 
 	Bech32Prefix = "cosmos"
+
+	Bech32PrefixAccAddr  = Bech32Prefix
+	Bech32PrefixAccPub   = Bech32Prefix + sdkTypes.PrefixPublic
+	Bech32PrefixValAddr  = Bech32Prefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator
+	Bech32PrefixValPub   = Bech32Prefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator + sdkTypes.PrefixPublic
+	Bech32PrefixConsAddr = Bech32Prefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus
+	Bech32PrefixConsPub  = Bech32Prefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus + sdkTypes.PrefixPublic
 )
 
 var (

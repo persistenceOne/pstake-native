@@ -310,7 +310,7 @@ func NewWithdrawCmd() *cobra.Command {
 				return err
 			}
 
-			toAddress, err := sdk.AccAddressFromBech32(args[1])
+			toAddress, err := cosmosTypes.AccAddressFromBech32(args[1], cosmosTypes.Bech32Prefix)
 			if err != nil {
 				return err
 			}
