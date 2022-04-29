@@ -90,7 +90,7 @@ func (k Keeper) setIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64, und
 	unbondingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingUnbondStore)
 	key := cosmosTypes.UInt64Bytes(txID)
 	value := cosmosTypes.NewValueOutgoingUnbondStore(undelegateMsgs, epochNumber)
-	bz, err := value.Marshal()
+	bz, err := k.cdc.Marshal(&value)
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func (k Keeper) setIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64, und
 func (k Keeper) getIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64) (value cosmosTypes.ValueOutgoingUnbondStore, err error) {
 	unbondingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingUnbondStore)
 	key := cosmosTypes.UInt64Bytes(txID)
-	err = value.Unmarshal(unbondingEpochStore.Get(key))
+	err = k.cdc.Unmarshal(unbondingEpochStore.Get(key), &value)
 	if err != nil {
 		return cosmosTypes.ValueOutgoingUnbondStore{}, err
 	}

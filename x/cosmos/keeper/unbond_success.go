@@ -15,13 +15,13 @@ type UndelegateSuccessKeyAndValue struct {
 func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, validatorAddress sdk.ValAddress, orchestratorAddress sdk.AccAddress, amount sdk.Coin, txHash string, chainID string, blockHeight int64) error {
 	undelegateSuccessStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyUndelegateSuccessStore)
 	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(chainID, blockHeight, txHash)
-	key, err := chainIDHeightAndTxHash.Marshal()
+	key, err := k.cdc.Marshal(&chainIDHeightAndTxHash)
 	if err != nil {
 		return err
 	}
 	if undelegateSuccessStore.Has(key) {
 		var valueUndelegateSuccessStore cosmosTypes.ValueUndelegateSuccessStore
-		err = valueUndelegateSuccessStore.Unmarshal(undelegateSuccessStore.Get(key))
+		err = k.cdc.Unmarshal(undelegateSuccessStore.Get(key), &valueUndelegateSuccessStore)
 		if err != nil {
 			panic("error in unmarshalling valueUndelegateSuccessStore")
 		}
@@ -29,7 +29,7 @@ func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, validatorAddress sd
 			valueUndelegateSuccessStore.OrchestratorAddresses = append(valueUndelegateSuccessStore.OrchestratorAddresses, orchestratorAddress.String())
 			valueUndelegateSuccessStore.Counter++
 			valueUndelegateSuccessStore.Ratio = float32(valueUndelegateSuccessStore.Counter) / float32(k.getTotalValidatorOrchestratorCount(ctx))
-			bz, err := valueUndelegateSuccessStore.Marshal()
+			bz, err := k.cdc.Marshal(&valueUndelegateSuccessStore)
 			if err != nil {
 				panic("error in marshaling txHashValue")
 			}
@@ -38,7 +38,7 @@ func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, validatorAddress sd
 	} else {
 		ratio := float32(1) / float32(k.getTotalValidatorOrchestratorCount(ctx))
 		newValue := cosmosTypes.NewValueUndelegateSuccessStore(validatorAddress, orchestratorAddress, ratio, amount, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
-		bz, err := newValue.Marshal()
+		bz, err := k.cdc.Marshal(&newValue)
 		if err != nil {
 			panic("error in marshaling valueUndelegateSuccessStore")
 		}
@@ -52,13 +52,13 @@ func (k Keeper) getAllUndelegateSuccessDetails(ctx sdk.Context) (list []Undelega
 	iterator := undelegateSuccessStore.Iterator(nil, nil)
 	for ; iterator.Valid(); iterator.Next() {
 		var chainIDHeightAndTxHashKey cosmosTypes.ChainIDHeightAndTxHashKey
-		err = chainIDHeightAndTxHashKey.Unmarshal(iterator.Key())
+		err = k.cdc.Unmarshal(iterator.Key(), &chainIDHeightAndTxHashKey)
 		if err != nil {
 			return nil, err
 		}
 
 		var valueUndelegateSuccessStore cosmosTypes.ValueUndelegateSuccessStore
-		err = valueUndelegateSuccessStore.Unmarshal(iterator.Value())
+		err = k.cdc.Unmarshal(iterator.Value(), &valueUndelegateSuccessStore)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +68,9 @@ func (k Keeper) getAllUndelegateSuccessDetails(ctx sdk.Context) (list []Undelega
 }
 
 func (k Keeper) deleteUndelegateSuccessDetails(ctx sdk.Context, key cosmosTypes.ChainIDHeightAndTxHashKey) {
-
+	undelegateSuccessStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyUndelegateSuccessStore)
+	storeKey := k.cdc.MustMarshal(&key)
+	undelegateSuccessStore.Delete(storeKey)
 }
 
 func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) error {

@@ -132,8 +132,8 @@ func (k Keeper) SetProposalID(ctx sdk.Context, proposalID uint64) {
 }
 
 // GetProposal get proposal from store by ProposalID
-func (keeper Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (cosmosTypes.Proposal, bool) {
-	store := ctx.KVStore(keeper.storeKey)
+func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (cosmosTypes.Proposal, bool) {
+	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(cosmosTypes.ProposalKey1(proposalID))
 	if bz == nil {
@@ -141,7 +141,7 @@ func (keeper Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (cosmosType
 	}
 
 	var proposal cosmosTypes.Proposal
-	err := proposal.Unmarshal(bz)
+	err := k.cdc.Unmarshal(bz, &proposal)
 	if err != nil {
 		return cosmosTypes.Proposal{}, false
 	}
@@ -150,10 +150,10 @@ func (keeper Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (cosmosType
 }
 
 // SetProposal set a proposal to store
-func (keeper Keeper) SetProposal(ctx sdk.Context, proposal cosmosTypes.Proposal) {
-	store := ctx.KVStore(keeper.storeKey)
+func (k Keeper) SetProposal(ctx sdk.Context, proposal cosmosTypes.Proposal) {
+	store := ctx.KVStore(k.storeKey)
 
-	bz, err := proposal.Marshal()
+	bz, err := k.cdc.Marshal(&proposal)
 	if err != nil {
 		panic("error in marshaling proposal" + err.Error())
 	}
@@ -166,7 +166,7 @@ func (k Keeper) SetProposalPassed(ctx sdk.Context, proposalID uint64, result map
 
 	bz := store.Get(cosmosTypes.ProposalKey1(proposalID))
 	var proposal cosmosTypes.Proposal
-	err := proposal.Unmarshal(bz)
+	err := k.cdc.Unmarshal(bz, &proposal)
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func (k Keeper) SetProposalPassed(ctx sdk.Context, proposalID uint64, result map
 	proposal.FinalTallyResult.Yes = result[cosmosTypes.OptionYes].RoundInt()
 	proposal.FinalTallyResult.No = result[cosmosTypes.OptionNo].RoundInt()
 	proposal.FinalTallyResult.NoWithVeto = result[cosmosTypes.OptionNoWithVeto].RoundInt()
-	bz, err = proposal.Marshal()
+	bz, err = k.cdc.Marshal(&proposal)
 	store.Set(cosmosTypes.ProposalKey1(proposalID), bz)
 	return nil
 }
@@ -191,23 +191,23 @@ func (k Keeper) GetProposalID(ctx sdk.Context) (proposalID uint64, err error) {
 	return proposalID, nil
 }
 
-func (keeper Keeper) GetProposals(ctx sdk.Context) (proposals cosmosTypes.Proposals) {
-	keeper.IterateProposals(ctx, func(proposal cosmosTypes.Proposal) bool {
+func (k Keeper) GetProposals(ctx sdk.Context) (proposals cosmosTypes.Proposals) {
+	k.IterateProposals(ctx, func(proposal cosmosTypes.Proposal) bool {
 		proposals = append(proposals, proposal)
 		return false
 	})
 	return
 }
 
-func (keeper Keeper) IterateProposals(ctx sdk.Context, cb func(proposal cosmosTypes.Proposal) (stop bool)) {
-	store := ctx.KVStore(keeper.storeKey)
+func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal cosmosTypes.Proposal) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
 
 	iterator := sdk.KVStorePrefixIterator(store, cosmosTypes.ProposalsKeyPrefix)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
 		var proposal cosmosTypes.Proposal
-		err := proposal.Unmarshal(iterator.Value())
+		err := k.cdc.Unmarshal(iterator.Value(), &proposal)
 		if err != nil {
 			panic(err)
 		}
@@ -250,13 +250,13 @@ func (k Keeper) setProposalDetails(ctx sdk.Context, chainID string, blockHeight 
 	store := ctx.KVStore(k.storeKey)
 	proposalStore := prefix.NewStore(store, []byte(cosmosTypes.ProposalStoreKey))
 	proposalKey := cosmosTypes.NewProposalKey(chainID, blockHeight, proposalID)
-	key, err := proposalKey.Marshal()
+	key, err := k.cdc.Marshal(&proposalKey)
 	if err != nil {
 		panic("error in marshaling proposalKey")
 	}
 	if proposalStore.Has(key) {
 		var proposalValue cosmosTypes.ProposalValue
-		err := proposalValue.Unmarshal(proposalStore.Get(key))
+		err := k.cdc.Unmarshal(proposalStore.Get(key), &proposalValue)
 		if err != nil {
 			panic("error in unmarshalling proposalValue")
 		}
@@ -264,7 +264,7 @@ func (k Keeper) setProposalDetails(ctx sdk.Context, chainID string, blockHeight 
 			proposalValue.OrchestratorAddresses = append(proposalValue.OrchestratorAddresses, orchestratorAddress.String())
 			proposalValue.Counter++
 			proposalValue.Ratio = float32(proposalValue.Counter) / float32(k.getTotalValidatorOrchestratorCount(ctx))
-			bz, err := proposalValue.Marshal()
+			bz, err := k.cdc.Marshal(&proposalValue)
 			if err != nil {
 				panic("error in marshaling proposalValue")
 			}
@@ -273,7 +273,7 @@ func (k Keeper) setProposalDetails(ctx sdk.Context, chainID string, blockHeight 
 	} else {
 		ratio := float32(1) / float32(k.getTotalValidatorOrchestratorCount(ctx))
 		newProposalValue := cosmosTypes.NewProposalValue(title, description, orchestratorAddress.String(), ratio, votingStartTime, votingEndTime, proposalID)
-		bz, err := newProposalValue.Marshal()
+		bz, err := k.cdc.Marshal(&newProposalValue)
 		if err != nil {
 			panic("error in marshaling proposalValue")
 		}
@@ -285,18 +285,18 @@ func (k Keeper) setProposalPosted(ctx sdk.Context, proposal cosmosTypes.KeyAndVa
 	store := ctx.KVStore(k.storeKey)
 	proposalStore := prefix.NewStore(store, []byte(cosmosTypes.ProposalStoreKey))
 	proposalKey := cosmosTypes.NewProposalKey(proposal.Key.ChainID, proposal.Key.BlockHeight, proposal.Key.ProposalID)
-	key, err := proposalKey.Marshal()
+	key, err := k.cdc.Marshal(&proposalKey)
 	if err != nil {
 		panic("error in marshaling proposalKey")
 	}
 	if proposalStore.Has(key) {
 		var proposalValue cosmosTypes.ProposalValue
-		err := proposalValue.Unmarshal(proposalStore.Get(key))
+		err := k.cdc.Unmarshal(proposalStore.Get(key), &proposalValue)
 		if err != nil {
 			panic("error in unmarshalling proposalValue")
 		}
 		proposalValue.ProposalPosted = true
-		bz, err := proposalValue.Marshal()
+		bz, err := k.cdc.Marshal(&proposalValue)
 		if err != nil {
 			panic("error in marshaling proposalValue")
 		}
@@ -312,12 +312,12 @@ func (k Keeper) getAllKeyAndValueForProposal(ctx sdk.Context) []cosmosTypes.KeyA
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var key cosmosTypes.ProposalKey
-		err := key.Unmarshal(iterator.Key())
+		err := k.cdc.Unmarshal(iterator.Key(), &key)
 		if err != nil {
 			panic("error in unmarshalling proposal key")
 		}
 		var value cosmosTypes.ProposalValue
-		err = value.Unmarshal(iterator.Value())
+		err = k.cdc.Unmarshal(iterator.Value(), &value)
 		if err != nil {
 			panic("error in unmarshalling proposal value")
 		}

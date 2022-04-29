@@ -12,12 +12,12 @@ func (k Keeper) addToStakingEpoch(ctx sdk.Context, keyAndValueForMinting cosmosT
 	storeKey := cosmosTypes.Int64Bytes(currentEpoch)
 	if stakingEpochStore.Has(storeKey) {
 		var stakingEpochValue cosmosTypes.StakingEpochValue
-		err := stakingEpochValue.Unmarshal(stakingEpochStore.Get(storeKey))
+		err := k.cdc.Unmarshal(stakingEpochStore.Get(storeKey), &stakingEpochValue)
 		if err != nil {
 			panic(err)
 		}
 		stakingEpochValue.EpochMintingTxns = append(stakingEpochValue.EpochMintingTxns, keyAndValueForMinting)
-		bz, err := stakingEpochValue.Marshal()
+		bz, err := k.cdc.Marshal(&stakingEpochValue)
 		if err != nil {
 			panic(err)
 		}
@@ -25,7 +25,7 @@ func (k Keeper) addToStakingEpoch(ctx sdk.Context, keyAndValueForMinting cosmosT
 		return
 	}
 	stakingEpochValue := cosmosTypes.NewStakingEpochValue(keyAndValueForMinting)
-	bz, err := stakingEpochValue.Marshal()
+	bz, err := k.cdc.Marshal(&stakingEpochValue)
 	if err != nil {
 		panic(err)
 	}
@@ -35,7 +35,7 @@ func (k Keeper) addToStakingEpoch(ctx sdk.Context, keyAndValueForMinting cosmosT
 func (k Keeper) getFromStakingEpoch(ctx sdk.Context, epochNumber int64) (stakingEpochValue cosmosTypes.StakingEpochValue, err error) {
 	stakingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyStakingEpochStore)
 	key := cosmosTypes.Int64Bytes(epochNumber)
-	err = stakingEpochValue.Unmarshal(stakingEpochStore.Get(key))
+	err = k.cdc.Unmarshal(stakingEpochStore.Get(key), &stakingEpochValue)
 	if err != nil {
 		return stakingEpochValue, err
 	}

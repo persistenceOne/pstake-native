@@ -23,11 +23,15 @@ type txIDAndDetailsInOutgoingPool struct {
 func (k Keeper) setNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosTypes.CosmosTx) {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
 	key := cosmosTypes.UInt64Bytes(txID)
-	bz, err := tx.Marshal()
+	bz, err := k.cdc.Marshal(&tx)
 	if err != nil {
 		panic(err)
 	}
 	outgoingStore.Set(key, bz)
+}
+
+func (k Keeper) updateStatusOnceProcessed(cts sdk.Context, txID uint64, tx cosmosTypes.CosmosTx) {
+	//TODO
 }
 
 //gets txn details by ID
@@ -39,7 +43,7 @@ func (k Keeper) getTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmos
 		return cosmosTypes.QueryOutgoingTxByIDResponse{}, cosmosTypes.ErrTxnNotPresentInOutgoingPool
 	}
 	var cosmosTx cosmosTypes.CosmosTx
-	err := cosmosTx.Unmarshal(bz)
+	err := k.cdc.Unmarshal(bz, &cosmosTx)
 	if err != nil {
 		return cosmosTypes.QueryOutgoingTxByIDResponse{}, err
 	}
@@ -60,14 +64,14 @@ func (k Keeper) setOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosT
 	key := cosmosTypes.UInt64Bytes(txID)
 
 	//calculate and set txHash
-	txBytes, err := tx.Tx.Marshal()
+	txBytes, err := k.cdc.Marshal(&tx.Tx)
 	if err != nil {
 		return err
 	}
 	txHash := cosmosTypes.BytesToHexUpper(txBytes)
 	tx.TxHash = txHash
 
-	bz, err := tx.Marshal()
+	bz, err := k.cdc.Marshal(&tx)
 	if err != nil {
 		return err
 	}
@@ -90,7 +94,7 @@ func (k Keeper) setTxDetailsSignedByOrchestrator(ctx sdk.Context, txID uint64, t
 	key := cosmosTypes.UInt64Bytes(txID)
 	var cosmosTx cosmosTypes.CosmosTx
 	if outgoingStore.Has(key) {
-		err := cosmosTx.Unmarshal(outgoingStore.Get(key))
+		err := k.cdc.Unmarshal(outgoingStore.Get(key), &cosmosTx)
 		if err != nil {
 			return err
 		}
@@ -115,7 +119,7 @@ func (k Keeper) getAllTxInOutgoingPool(ctx sdk.Context) (details []txIDAndDetail
 	for ; iterator.Valid(); iterator.Next() {
 		key := cosmosTypes.UInt64FromBytes(iterator.Key())
 		var tx cosmosTypes.CosmosTx
-		err := tx.Unmarshal(iterator.Value())
+		err := k.cdc.Unmarshal(iterator.Value(), &tx)
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +147,7 @@ func (k Keeper) setTxHashAndDetails(ctx sdk.Context, orchAddress sdk.AccAddress,
 	key := []byte(txHash)
 	if txHashAndTxIDStore.Has(key) {
 		var txHashValue cosmosTypes.TxHashValue
-		err := txHashValue.Unmarshal(txHashAndTxIDStore.Get(key))
+		err := k.cdc.Unmarshal(txHashAndTxIDStore.Get(key), &txHashValue)
 		if err != nil {
 			panic("error in unmarshalling txHashValue")
 		}
@@ -152,7 +156,7 @@ func (k Keeper) setTxHashAndDetails(ctx sdk.Context, orchAddress sdk.AccAddress,
 			txHashValue.Status = append(txHashValue.Status, status)
 			txHashValue.Counter++
 			txHashValue.Ratio = float32(txHashValue.Counter) / float32(k.getTotalValidatorOrchestratorCount(ctx))
-			bz, err := txHashValue.Marshal()
+			bz, err := k.cdc.Marshal(&txHashValue)
 			if err != nil {
 				panic("error in marshaling txHashValue")
 			}
@@ -161,7 +165,7 @@ func (k Keeper) setTxHashAndDetails(ctx sdk.Context, orchAddress sdk.AccAddress,
 	} else {
 		ratio := float32(1) / float32(k.getTotalValidatorOrchestratorCount(ctx))
 		newTxHashValue := cosmosTypes.NewTxHashValue(txID, orchAddress, ratio, status, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
-		bz, err := newTxHashValue.Marshal()
+		bz, err := k.cdc.Marshal(&newTxHashValue)
 		if err != nil {
 			panic("error in marshaling txHashValue")
 		}
@@ -175,7 +179,7 @@ func (k Keeper) getTxHashAndDetails(ctx sdk.Context, txHash string) (cosmosTypes
 	key := []byte(txHash)
 	if hashAndIDStore.Has(key) {
 		var txHashAndValue cosmosTypes.TxHashValue
-		err := txHashAndValue.Unmarshal(hashAndIDStore.Get(key))
+		err := k.cdc.Unmarshal(hashAndIDStore.Get(key), &txHashAndValue)
 		if err != nil {
 			return cosmosTypes.TxHashValue{}, err
 		}
@@ -198,7 +202,7 @@ func (k Keeper) getAllTxHashAndDetails(ctx sdk.Context) (list []TxHashAndDetails
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var value cosmosTypes.TxHashValue
-		returnErr = value.Unmarshal(iterator.Value())
+		returnErr = k.cdc.Unmarshal(iterator.Value(), &value)
 		if returnErr != nil {
 			return nil, returnErr
 		}
@@ -255,7 +259,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 		//err check to see if details have been found or not
 		if err == nil {
 			if element.Details.Ratio > 0.80 {
-				if majorityStatus == "failure" {
+				if majorityStatus == "gas failure" {
 					k.retryTransactionWithDoubleGas(ctx, txDetails, element.Details.TxID, element.TxHash)
 				}
 				if majorityStatus == "success" {
@@ -267,8 +271,12 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 							switch im.GetCachedValue().(type) {
 							case *stakingTypes.MsgDelegate:
 								err = k.processStakingSuccessTxns(ctx, element.Details.TxID)
+								txDetails.CosmosTxDetails.Status = "success"
+								k.updateStatusOnceProcessed(ctx, element.Details.TxID, txDetails.CosmosTxDetails)
 							case *stakingTypes.MsgUndelegate:
 								err = k.setEpochAndValidatorDetailsForAllUndelegations(ctx, element.Details.TxID)
+								txDetails.CosmosTxDetails.Status = "success"
+								k.updateStatusOnceProcessed(ctx, element.Details.TxID, txDetails.CosmosTxDetails)
 								if err != nil {
 									return err
 								}
@@ -277,28 +285,33 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 						}
 					}
 				}
-			}
-
-			if txDetails.CosmosTxDetails.ActiveBlockHeight >= ctx.BlockHeight() {
-				//TODO : check for rewards claim txns
-				k.removeTxnDetailsByID(ctx, element.Details.TxID)
-				k.removeTxHashAndDetails(ctx, element.TxHash)
-				//k.removeFromOutgoingSignaturePool(ctx, element.Details.TxID)
+				if majorityStatus == "sequence mismatch" {
+					//TODO : discuss a course of action
+				}
 			}
 		}
 	}
 
-	txDetailsList, err := k.getAllTxInOutgoingPool(ctx) //TODO Implement Rest
+	txDetailsList, err := k.getAllTxInOutgoingPool(ctx)
 	if err != nil {
 		panic(err)
 	}
 	for _, element := range txDetailsList {
-		if element.txDetails.ActiveBlockHeight <= ctx.BlockHeight() {
+		//retry transaction if active block limit is reached and status is still not set to success
+		if element.txDetails.ActiveBlockHeight <= ctx.BlockHeight() && element.txDetails.Status == "" {
 			k.removeTxnDetailsByID(ctx, element.txID)
+			k.removeFromOutgoingSignaturePool(ctx, element.txID)
 			element.txDetails.NativeBlockHeight = ctx.BlockHeight()
 			element.txDetails.ActiveBlockHeight = ctx.BlockHeight() + cosmosTypes.StorageWindow
 			nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 			k.setNewTxnInOutgoingPool(ctx, nextID, element.txDetails)
+		}
+
+		//remove transaction if active block limit is reached and status is set to success
+		if element.txDetails.ActiveBlockHeight <= ctx.BlockHeight() && element.txDetails.Status == "success" {
+			k.removeTxnDetailsByID(ctx, element.txID)
+			k.removeFromOutgoingSignaturePool(ctx, element.txID)
+			k.removeTxHashAndDetails(ctx, element.txDetails.TxHash)
 		}
 	}
 	return nil

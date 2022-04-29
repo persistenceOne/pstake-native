@@ -101,12 +101,12 @@ func (k Keeper) setInEpochPoolForMinting(ctx sdk.Context, epochNumber int64, nex
 	key := cosmosTypes.Int64Bytes(epochNumber)
 	if mintingEpochStore.Has(key) {
 		var mintingEpochStoreValue cosmosTypes.MintingEpochValue
-		err := mintingEpochStoreValue.Unmarshal(mintingEpochStore.Get(key))
+		err := k.cdc.Unmarshal(mintingEpochStore.Get(key), &mintingEpochStoreValue)
 		if err != nil {
 			return err
 		}
 		mintingEpochStoreValue.TxIDAndStatus = append(mintingEpochStoreValue.TxIDAndStatus, cosmosTypes.MintingEpochValueMember{TxID: nextID, Status: status})
-		bz, err := mintingEpochStoreValue.Marshal()
+		bz, err := k.cdc.Marshal(&mintingEpochStoreValue)
 		if err != nil {
 			return err
 		}
@@ -114,7 +114,7 @@ func (k Keeper) setInEpochPoolForMinting(ctx sdk.Context, epochNumber int64, nex
 		return nil
 	}
 	mintingEpochStoreValue := cosmosTypes.NewMintingEpochValue(cosmosTypes.MintingEpochValueMember{TxID: nextID, Status: status})
-	bz, err := mintingEpochStoreValue.Marshal()
+	bz, err := k.cdc.Marshal(&mintingEpochStoreValue)
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (k Keeper) setInEpochPoolForMinting(ctx sdk.Context, epochNumber int64, nex
 func (k Keeper) setListInEpochPoolForMinting(ctx sdk.Context, epochNumber int64, mintingEpochStoreValue cosmosTypes.MintingEpochValue) error {
 	mintingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintingEpochStore)
 	key := cosmosTypes.Int64Bytes(epochNumber)
-	bz, err := mintingEpochStoreValue.Marshal()
+	bz, err := k.cdc.Marshal(&mintingEpochStoreValue)
 	if err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func (k Keeper) fetchInEpochPoolForMinting(ctx sdk.Context, epochNumber int64) (
 	key := cosmosTypes.Int64Bytes(epochNumber)
 	if mintingEpochStore.Has(key) {
 		var mintingEpochStoreValue cosmosTypes.MintingEpochValue
-		err := mintingEpochStoreValue.Unmarshal(mintingEpochStore.Get(key))
+		err := k.cdc.Unmarshal(mintingEpochStore.Get(key), &mintingEpochStoreValue)
 		if err != nil {
 			return cosmosTypes.MintingEpochValue{}, err
 		}
@@ -154,7 +154,7 @@ func (k Keeper) fetchAllInEpochPoolForMinting(ctx sdk.Context) (list []EpochNumb
 	for ; iterator.Valid(); iterator.Next() {
 		epochNumber := cosmosTypes.Int64FromBytes(iterator.Key())
 		var mintingEpochStoreValue cosmosTypes.MintingEpochValue
-		if err = mintingEpochStoreValue.Unmarshal(iterator.Value()); err != nil {
+		if err = k.cdc.Unmarshal(iterator.Value(), &mintingEpochStoreValue); err != nil {
 			return list, err
 		}
 		list = append(list, EpochNumberAndDetailsForMinting{epochNumber: epochNumber, mintingEpochValue: mintingEpochStoreValue})
@@ -171,7 +171,7 @@ func (k Keeper) deleteInEpochPoolForMinting(ctx sdk.Context, epochNumber int64) 
 //______________________________________________________________________________________________________________________
 func (k Keeper) setTotalDelegatedAmountTillDate(ctx sdk.Context, addToTotal sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	bz, err := addToTotal.Marshal()
+	bz, err := k.cdc.Marshal(&addToTotal)
 	if err != nil {
 		panic(err)
 	}
@@ -182,7 +182,7 @@ func (k Keeper) getTotalDelegatedAmountTillDate(ctx sdk.Context) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(cosmosTypes.KeyTotalDelegationTillDate))
 	var amount sdk.Coin
-	err := amount.Unmarshal(bz)
+	err := k.cdc.Unmarshal(bz, &amount)
 	if err != nil {
 		panic(err)
 	}

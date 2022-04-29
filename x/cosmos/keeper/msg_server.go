@@ -360,7 +360,7 @@ func (k msgServer) SignedTxFromOrchestrator(c context.Context, msg *cosmosTypes.
 		return nil, orchErr
 	}
 
-	txBytes, err := msg.Tx.Marshal()
+	txBytes, err := k.cdc.Marshal(&msg.Tx)
 	if err != nil {
 		return nil, err
 	}
@@ -391,7 +391,7 @@ func (k msgServer) SignedTxFromOrchestrator(c context.Context, msg *cosmosTypes.
 	return &cosmosTypes.MsgSignedTxResponse{}, nil
 }
 
-// TxStatus Accepts status as : "success" or "failure"
+// TxStatus Accepts status as : "success" or "gas failure" or "sequence mismatch"
 // Failure only to be sent when transaction fails due to insufficient fees
 func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*cosmosTypes.MsgTxStatusResponse, error) {
 	err := msg.ValidateBasic()
@@ -426,7 +426,7 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 		return nil, fmt.Errorf("validator address does not exit")
 	}
 
-	if msg.Status == "success" || msg.Status == "failure" {
+	if msg.Status == "success" || msg.Status == "gas failure" || msg.Status == "sequence mismatch" {
 		k.setTxHashAndDetails(ctx, orchAddr, 0, msg.TxHash, msg.Status)
 	} else {
 		return nil, cosmosTypes.ErrInvalidStatus

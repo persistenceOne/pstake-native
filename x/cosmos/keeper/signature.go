@@ -20,7 +20,7 @@ func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context, singleSignature cosm
 	key := cosmosTypes.UInt64Bytes(txID)
 	if outgoingSignaturePoolStore.Has(key) {
 		var outgoingSignaturePoolValue cosmosTypes.OutgoingSignaturePoolValue
-		err := outgoingSignaturePoolValue.Unmarshal(outgoingSignaturePoolStore.Get(key))
+		err := k.cdc.Unmarshal(outgoingSignaturePoolStore.Get(key), &outgoingSignaturePoolValue)
 		if err != nil {
 			return err
 		}
@@ -30,14 +30,14 @@ func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context, singleSignature cosm
 		outgoingSignaturePoolValue.SingleSignatures = append(outgoingSignaturePoolValue.SingleSignatures, singleSignature)
 		outgoingSignaturePoolValue.AddAndIncrement(orchestratorAddress.String())
 
-		bz, err := outgoingSignaturePoolValue.Marshal()
+		bz, err := k.cdc.Marshal(&outgoingSignaturePoolValue)
 		if err != nil {
 			return err
 		}
 		outgoingSignaturePoolStore.Set(key, bz)
 	}
 	outgoingSignaturePoolValue := cosmosTypes.NewOutgoingSignaturePoolValue(singleSignature, orchestratorAddress)
-	bz, err := outgoingSignaturePoolValue.Marshal()
+	bz, err := k.cdc.Marshal(&outgoingSignaturePoolValue)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (k Keeper) getAllFromOutgoingSignaturePool(ctx sdk.Context) (list []Outgoin
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var outgoingSignaturePoolValue cosmosTypes.OutgoingSignaturePoolValue
-		err = outgoingSignaturePoolValue.Unmarshal(iterator.Value())
+		err = k.cdc.Unmarshal(iterator.Value(), &outgoingSignaturePoolValue)
 		if err != nil {
 			return list, err
 		}

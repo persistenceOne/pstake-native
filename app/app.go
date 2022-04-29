@@ -361,6 +361,7 @@ func NewGaiaApp(
 		keys[epochsTypes.StoreKey],
 	)
 	app.CosmosKeeper = cosmos.NewKeeper(
+		appCodec,
 		keys[cosmos.StoreKey],
 		app.ParamsKeeper.Subspace(cosmos.DefaultParamspace),
 		&app.AccountKeeper,
