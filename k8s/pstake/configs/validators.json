@@ -1,5 +1,5 @@
 {
-  "validators": [
+  "genesis": [
     {
       "name": "val1",
       "type": "local",
@@ -9,7 +9,9 @@
         "key": "A3n4L7G8aFv7g3UfBZFVZA5oByH8H6E6oxBiKDpxrTPx"
       },
       "mnemonic": "flash tuna music boat sign image judge engage pistol reason love reform defy game ceiling basket roof clay keen hint flash buyer fancy buyer"
-    },
+    }
+  ],
+  "validators": [
     {
       "name": "val2",
       "type": "local",

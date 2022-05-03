@@ -1,7 +1,8 @@
 resources:
 - service.yaml
 - configmap.yaml
-- statefulset.yaml
+- genesis.yaml
+- validator.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
