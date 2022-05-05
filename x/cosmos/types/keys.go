@@ -44,8 +44,6 @@ const (
 
 	StorageWindow = 20000
 
-	MaxRetryCounter = 20
-
 	Bech32Prefix = "cosmos"
 
 	Bech32PrefixAccAddr  = Bech32Prefix

@@ -253,7 +253,7 @@ func (k Keeper) incrementRetryCounterInTransactionQueue(ctx sdk.Context, txID ui
 		k.cdc.MustUnmarshal(transactionQueueStore.Get(key), &value)
 
 		// disable module if the retry counter has reached the max count
-		if value.RetryCounter >= cosmosTypes.MaxRetryCounter {
+		if value.RetryCounter >= k.GetParams(ctx).RetryLimit {
 			k.disableModule(ctx)
 		}
 
