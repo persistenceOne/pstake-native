@@ -152,6 +152,13 @@ func ConvertSingleSignatureDataForOutgoingPoolToSingleSignatureData(data SingleS
 	}
 }
 
+func NewOutgoingQueueValue(active bool, retryCounter uint64) OutgoingQueueValue {
+	return OutgoingQueueValue{
+		Active:       active,
+		RetryCounter: retryCounter,
+	}
+}
+
 func (c *CosmosTx) SetSignatures(signatures ...signing.SignatureV2) error {
 	n := len(signatures)
 	signerInfos := make([]*tx.SignerInfo, n)

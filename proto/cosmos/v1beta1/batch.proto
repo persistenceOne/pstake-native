@@ -166,3 +166,8 @@ message OutgoingSignaturePoolValue {
   repeated string orchestratorAddresses = 2;
   uint64 counter = 3;
 }
+
+message OutgoingQueueValue {
+  bool active = 1;
+  uint64 retry_counter = 2;
+}

@@ -219,9 +219,10 @@ func (k Keeper) setNewInTransactionQueue(ctx sdk.Context, txID uint64) {
 		panic(fmt.Errorf("transaction present in queue"))
 	}
 
-	// 0 means pending and 1 means active transaction
-	value := cosmosTypes.UInt64Bytes(0)
-	transactionQueueStore.Set(key, value)
+	// true : active transaction, false : inactive transaction
+	value := cosmosTypes.NewOutgoingQueueValue(false, 0)
+	bz := k.cdc.MustMarshal(&value)
+	transactionQueueStore.Set(key, bz)
 }
 
 // Get active transaction from the tx queue : returns 0 if no active transaction in queue
@@ -232,13 +233,37 @@ func (k Keeper) getActiveFromTransactionQueue(ctx sdk.Context) uint64 {
 	iterator := transactionQueueStore.Iterator(nil, nil)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		if cosmosTypes.UInt64FromBytes(iterator.Value()) == 1 {
+		var value cosmosTypes.OutgoingQueueValue
+		k.cdc.MustUnmarshal(iterator.Value(), &value)
+		if value.Active == true {
 			return cosmosTypes.UInt64FromBytes(iterator.Key())
 		}
 	}
 
 	// if txID returned is 0 : there is no active transaction
 	return 0
+}
+
+func (k Keeper) incrementRetryCounterInTransactionQueue(ctx sdk.Context, txID uint64) {
+	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
+	key := cosmosTypes.UInt64Bytes(txID)
+
+	if transactionQueueStore.Has(key) {
+		var value cosmosTypes.OutgoingQueueValue
+		k.cdc.MustUnmarshal(transactionQueueStore.Get(key), &value)
+
+		// disable module if the retry counter has reached the max count
+		if value.RetryCounter >= cosmosTypes.MaxRetryCounter {
+			k.disableModule(ctx)
+		}
+
+		//increment retry counter
+		value.RetryCounter++
+
+		bz := k.cdc.MustMarshal(&value)
+
+		transactionQueueStore.Set(key, bz)
+	}
 }
 
 // Fetches the next transaction to be sent out and mark it active
@@ -252,7 +277,9 @@ func (k Keeper) getNextFromTransactionQueue(ctx sdk.Context) uint64 {
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		key := cosmosTypes.UInt64FromBytes(iterator.Key())
-		transactionQueueStore.Set(iterator.Key(), cosmosTypes.UInt64Bytes(1))
+		value := cosmosTypes.NewOutgoingQueueValue(false, 0)
+		bz := k.cdc.MustMarshal(&value)
+		transactionQueueStore.Set(iterator.Key(), bz)
 		return key
 	}
 
@@ -268,7 +295,7 @@ func (k Keeper) removeFromTransactionQueue(ctx sdk.Context, txID uint64) {
 }
 
 // Gets the list of all transaction in the outgoing queue which are being sent out or yet to be sent out
-func (k Keeper) getAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatusMap map[uint64]uint64) {
+func (k Keeper) getAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatusMap map[uint64]cosmosTypes.OutgoingQueueValue) {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 
 	//iterate through all the transactions present in queue and add to map
@@ -277,15 +304,18 @@ func (k Keeper) getAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatusMap ma
 	for ; iterator.Valid(); iterator.Next() {
 		key := cosmosTypes.UInt64FromBytes(iterator.Key())
 
-		status := cosmosTypes.UInt64FromBytes(iterator.Value())
+		var value cosmosTypes.OutgoingQueueValue
+		k.cdc.MustUnmarshal(iterator.Value(), &value)
 
-		txIDAndStatusMap[key] = status
+		txIDAndStatusMap[key] = value
 	}
 	return txIDAndStatusMap
 }
 
 // Emits event for transaction to be picked up by oracles to be signed
 func (k Keeper) emitEventForActiveTransaction(ctx sdk.Context, txID uint64) {
+	//TODO : increment counter
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			cosmosTypes.EventTypeOutgoing,
