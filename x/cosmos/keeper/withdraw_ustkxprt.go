@@ -14,7 +14,24 @@ import (
 // adds details to withdraw pool for ubonding epoch
 func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdrawStkAsset) error {
 	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
-	currentEpoch := k.epochsKeeper.GetEpochInfo(ctx, k.GetParams(ctx).UndelegateEpochIdentifier).CurrentEpoch
+
+	//get module params
+	moduleParams := k.GetParams(ctx)
+
+	//get both epochs info
+	undelegateEpochInfo := k.epochsKeeper.GetEpochInfo(ctx, moduleParams.UndelegateEpochIdentifier)
+	stakingEpochInfo := k.epochsKeeper.GetEpochInfo(ctx, moduleParams.StakingEpochIdentifier)
+
+	//calculate time just 2*stakingEpochDuration before current epoch ends
+	diffTime := undelegateEpochInfo.CurrentEpochStartTime.Add(undelegateEpochInfo.Duration - 2*stakingEpochInfo.Duration)
+
+	//move withdraw transaction to next undelegating epoch if current block time is after the diffTime
+	currentEpoch := undelegateEpochInfo.CurrentEpoch
+	if ctx.BlockTime().Before(diffTime) {
+		currentEpoch = currentEpoch + 1
+	}
+
+	//if store has the key then append new withdrawals to the existing array, else make a new key value pair
 	key := cosmosTypes.Int64Bytes(currentEpoch)
 	if withdrawStore.Has(key) {
 		bz := withdrawStore.Get(key)
@@ -121,13 +138,6 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 			NativeBlockHeight: ctx.BlockHeight(),
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 		}
-
-		//ctx.EventManager().EmitEvent(
-		//	sdk.NewEvent(
-		//		cosmosTypes.EventTypeOutgoing,
-		//		sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
-		//	),
-		//)
 
 		//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
 		k.setNewTxnInOutgoingPool(ctx, nextID, tx)
