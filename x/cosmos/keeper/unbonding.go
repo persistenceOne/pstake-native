@@ -69,13 +69,6 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 		}
 
-		//ctx.EventManager().EmitEvent(
-		//	sdk.NewEvent(
-		//		cosmosTypes.EventTypeOutgoing,
-		//		sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
-		//	),
-		//)
-
 		err = k.setIDInEpochPoolForWithdrawals(ctx, nextID, undelegategMsgs, params.CustodialAddress, epochNumber)
 		if err != nil {
 			panic(err)

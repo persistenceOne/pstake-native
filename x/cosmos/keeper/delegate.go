@@ -71,13 +71,6 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 
 		// set acknowledgment flag true for future reference (not any yet)
 
-		//ctx.EventManager().EmitEvent(
-		//	sdk.NewEvent(
-		//		cosmosTypes.EventTypeOutgoing,
-		//		sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
-		//	),
-		//)
-
 		err = k.setInEpochPoolForMinting(ctx, epochNumber, nextID, false)
 		if err != nil {
 			return err
