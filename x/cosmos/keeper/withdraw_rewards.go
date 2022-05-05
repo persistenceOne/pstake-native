@@ -13,7 +13,7 @@ func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, orchAddress sdk.AccAddr
 	if rewardsClaimedStore.Has(key) {
 		bz := rewardsClaimedStore.Get(key)
 		var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
-		err := rewardsClaimedValue.Unmarshal(bz)
+		err := k.cdc.Unmarshal(bz, &rewardsClaimedValue)
 		if err != nil {
 			return err
 		}
@@ -25,7 +25,7 @@ func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, orchAddress sdk.AccAddr
 		rewardsClaimedValue.Amount = append(rewardsClaimedValue.Amount, amount)
 		rewardsClaimedValue.Ratio = float32(rewardsClaimedValue.Counter) / float32(k.getTotalValidatorOrchestratorCount(ctx))
 
-		bz1, err := rewardsClaimedValue.Marshal()
+		bz1, err := k.cdc.Marshal(&rewardsClaimedValue)
 		if err != nil {
 			return err
 		}
@@ -35,7 +35,7 @@ func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, orchAddress sdk.AccAddr
 	}
 	ratio := float32(1) / float32(k.getTotalValidatorOrchestratorCount(ctx))
 	newRewardsClaimedValue := cosmosTypes.NewRewardsClaimedValue(orchAddress, amount, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
-	bz, err := newRewardsClaimedValue.Marshal()
+	bz, err := k.cdc.Marshal(&newRewardsClaimedValue)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (k Keeper) getAllFromRewardsClaimedPool(ctx sdk.Context) (list []cosmosType
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
-		err = rewardsClaimedValue.Unmarshal(iterator.Value())
+		err = k.cdc.Unmarshal(iterator.Value(), &rewardsClaimedValue)
 		if err != nil {
 			return list, keys, err
 		}
@@ -61,7 +61,7 @@ func (k Keeper) getAllFromRewardsClaimedPool(ctx sdk.Context) (list []cosmosType
 
 func (k Keeper) setAddedToCurrentEpochTrue(ctx sdk.Context, key []byte, val cosmosTypes.RewardsClaimedValue) error {
 	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
-	bz, err := val.Marshal()
+	bz, err := k.cdc.Marshal(&val)
 	if err != nil {
 		return err
 	}
@@ -80,7 +80,7 @@ func (k Keeper) addToRewardsInCurrentEpoch(ctx sdk.Context, value cosmosTypes.Re
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 	currentEpoch := k.epochsKeeper.GetEpochInfo(ctx, k.GetParams(ctx).StakingEpochIdentifier).CurrentEpoch
 	key := cosmosTypes.Int64Bytes(currentEpoch)
-	bz, err := value.Marshal()
+	bz, err := k.cdc.Marshal(&value)
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (k Keeper) getFromRewardsInCurrentEpochAmount(ctx sdk.Context, epochNumber 
 	}
 
 	var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
-	err := rewardsClaimedValue.Unmarshal(bz)
+	err := k.cdc.Unmarshal(bz, &rewardsClaimedValue)
 	if err != nil {
 		return sdk.NewInt64Coin("uatom", 0), err
 	}

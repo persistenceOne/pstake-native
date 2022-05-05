@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
@@ -21,7 +22,6 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 
 		var delegateMsgsAny []*codecTypes.Any
-		var delegategMsgs []stakingTypes.MsgDelegate
 		for _, element := range chunk {
 			msg := stakingTypes.MsgDelegate{
 				DelegatorAddress: params.CustodialAddress,
@@ -33,13 +33,22 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 				return err
 			}
 			delegateMsgsAny = append(delegateMsgsAny, anyMsg)
-			delegategMsgs = append(delegategMsgs, msg)
+		}
+
+		execMsg := authz.MsgExec{
+			Grantee: params.CustodialAddress,
+			Msgs:    delegateMsgsAny,
+		}
+
+		execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
+		if err != nil {
+			return err
 		}
 
 		tx := cosmosTypes.CosmosTx{
 			Tx: sdkTx.Tx{
 				Body: &sdkTx.TxBody{
-					Messages:      delegateMsgsAny,
+					Messages:      []*codecTypes.Any{execMsgAny},
 					Memo:          "",
 					TimeoutHeight: 0,
 				},
@@ -62,19 +71,21 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 
 		// set acknowledgment flag true for future reference (not any yet)
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				cosmosTypes.EventTypeOutgoing,
-				sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
-			),
-		)
+		//ctx.EventManager().EmitEvent(
+		//	sdk.NewEvent(
+		//		cosmosTypes.EventTypeOutgoing,
+		//		sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
+		//	),
+		//)
 
-		err := k.setInEpochPoolForMinting(ctx, epochNumber, nextID, false)
+		err = k.setInEpochPoolForMinting(ctx, epochNumber, nextID, false)
 		if err != nil {
 			return err
 		}
 		//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
 		k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+
+		k.setNewInTransactionQueue(ctx, nextID)
 	}
 
 	return nil
@@ -92,12 +103,12 @@ func (k Keeper) setInEpochPoolForMinting(ctx sdk.Context, epochNumber int64, nex
 	key := cosmosTypes.Int64Bytes(epochNumber)
 	if mintingEpochStore.Has(key) {
 		var mintingEpochStoreValue cosmosTypes.MintingEpochValue
-		err := mintingEpochStoreValue.Unmarshal(mintingEpochStore.Get(key))
+		err := k.cdc.Unmarshal(mintingEpochStore.Get(key), &mintingEpochStoreValue)
 		if err != nil {
 			return err
 		}
 		mintingEpochStoreValue.TxIDAndStatus = append(mintingEpochStoreValue.TxIDAndStatus, cosmosTypes.MintingEpochValueMember{TxID: nextID, Status: status})
-		bz, err := mintingEpochStoreValue.Marshal()
+		bz, err := k.cdc.Marshal(&mintingEpochStoreValue)
 		if err != nil {
 			return err
 		}
@@ -105,7 +116,7 @@ func (k Keeper) setInEpochPoolForMinting(ctx sdk.Context, epochNumber int64, nex
 		return nil
 	}
 	mintingEpochStoreValue := cosmosTypes.NewMintingEpochValue(cosmosTypes.MintingEpochValueMember{TxID: nextID, Status: status})
-	bz, err := mintingEpochStoreValue.Marshal()
+	bz, err := k.cdc.Marshal(&mintingEpochStoreValue)
 	if err != nil {
 		return err
 	}
@@ -116,7 +127,7 @@ func (k Keeper) setInEpochPoolForMinting(ctx sdk.Context, epochNumber int64, nex
 func (k Keeper) setListInEpochPoolForMinting(ctx sdk.Context, epochNumber int64, mintingEpochStoreValue cosmosTypes.MintingEpochValue) error {
 	mintingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintingEpochStore)
 	key := cosmosTypes.Int64Bytes(epochNumber)
-	bz, err := mintingEpochStoreValue.Marshal()
+	bz, err := k.cdc.Marshal(&mintingEpochStoreValue)
 	if err != nil {
 		return err
 	}
@@ -129,7 +140,7 @@ func (k Keeper) fetchInEpochPoolForMinting(ctx sdk.Context, epochNumber int64) (
 	key := cosmosTypes.Int64Bytes(epochNumber)
 	if mintingEpochStore.Has(key) {
 		var mintingEpochStoreValue cosmosTypes.MintingEpochValue
-		err := mintingEpochStoreValue.Unmarshal(mintingEpochStore.Get(key))
+		err := k.cdc.Unmarshal(mintingEpochStore.Get(key), &mintingEpochStoreValue)
 		if err != nil {
 			return cosmosTypes.MintingEpochValue{}, err
 		}
@@ -145,7 +156,7 @@ func (k Keeper) fetchAllInEpochPoolForMinting(ctx sdk.Context) (list []EpochNumb
 	for ; iterator.Valid(); iterator.Next() {
 		epochNumber := cosmosTypes.Int64FromBytes(iterator.Key())
 		var mintingEpochStoreValue cosmosTypes.MintingEpochValue
-		if err = mintingEpochStoreValue.Unmarshal(iterator.Value()); err != nil {
+		if err = k.cdc.Unmarshal(iterator.Value(), &mintingEpochStoreValue); err != nil {
 			return list, err
 		}
 		list = append(list, EpochNumberAndDetailsForMinting{epochNumber: epochNumber, mintingEpochValue: mintingEpochStoreValue})
@@ -162,7 +173,7 @@ func (k Keeper) deleteInEpochPoolForMinting(ctx sdk.Context, epochNumber int64) 
 //______________________________________________________________________________________________________________________
 func (k Keeper) setTotalDelegatedAmountTillDate(ctx sdk.Context, addToTotal sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	bz, err := addToTotal.Marshal()
+	bz, err := k.cdc.Marshal(&addToTotal)
 	if err != nil {
 		panic(err)
 	}
@@ -173,7 +184,7 @@ func (k Keeper) getTotalDelegatedAmountTillDate(ctx sdk.Context) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(cosmosTypes.KeyTotalDelegationTillDate))
 	var amount sdk.Coin
-	err := amount.Unmarshal(bz)
+	err := k.cdc.Unmarshal(bz, &amount)
 	if err != nil {
 		panic(err)
 	}

@@ -20,6 +20,7 @@ var (
 	_ sdk.Msg = &MsgTxStatus{}
 	_ sdk.Msg = &MsgRewardsClaimedOnCosmosChain{}
 	_ sdk.Msg = &MsgUndelegateSuccess{}
+	_ sdk.Msg = &MsgSetSignature{}
 )
 
 // NewMsgSetOrchestrator returns a new MsgSetOrchestrator
@@ -83,7 +84,7 @@ func (m *MsgWithdrawStkAsset) ValidateBasic() error {
 		return sdkErrors.Wrapf(sdkErrors.ErrInvalidAddress, "Invalid sender address (%s)", err)
 	}
 
-	_, err = sdk.AccAddressFromBech32(m.ToAddress)
+	_, err = AccAddressFromBech32(m.ToAddress, Bech32Prefix)
 	if err != nil {
 		return sdkErrors.Wrapf(sdkErrors.ErrInvalidAddress, "Invalid recipient address (%s)", err)
 	}
@@ -408,13 +409,13 @@ func (m *MsgUndelegateSuccess) Type() string { return "msg_undelegation_success"
 
 // ValidateBasic performs stateless checks
 func (m *MsgUndelegateSuccess) ValidateBasic() error {
-	if _, err := sdk.ValAddressFromBech32(m.ValidatorAddress); err != nil {
+	if _, err := ValAddressFromBech32(m.ValidatorAddress, Bech32PrefixValAddr); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.ValidatorAddress)
 	}
 	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
 	}
-	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
+	if _, err := AccAddressFromBech32(m.DelegatorAddress, Bech32Prefix); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
 	}
 	if !m.Amount.IsValid() || !m.Amount.Amount.IsPositive() {
@@ -490,12 +491,50 @@ func (m *MsgRewardsClaimedOnCosmosChain) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
+func NewMsgSetSignature(orchAddress sdk.AccAddress, outgoingTxID uint64, signatures []byte) *MsgSetSignature {
+	return &MsgSetSignature{
+		OrchestratorAddress: orchAddress.String(),
+		OutgoingTxID:        outgoingTxID,
+		Signature:           signatures,
+	}
+}
+
+// Route should return the name of the module
+func (m *MsgSetSignature) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgSetSignature) Type() string { return "msg_set_signature" }
+
+// ValidateBasic performs stateless checks
+func (m *MsgSetSignature) ValidateBasic() error {
+	if _, err := sdk.ValAddressFromBech32(m.OrchestratorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
+	}
+	//TODO see how to add signature verification.
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgSetSignature) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgSetSignature) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.ValAddressFromBech32(m.OrchestratorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sdk.AccAddress(acc)}
+}
+
 // TODO find a better place for this.
 var _ DBHelper = &IncomingMintTx{}
 var _ DBHelper = &ProposalValue{}
 var _ DBHelper = &TxHashValue{}
 var _ DBHelper = &RewardsClaimedValue{}
 var _ DBHelper = &ValueUndelegateSuccessStore{}
+var _ DBHelper = &OutgoingSignaturePoolValue{}
 
 func (m *IncomingMintTx) Find(orchAddress string) bool {
 	for _, address := range m.OrchAddresses {
@@ -563,6 +602,20 @@ func (m *ValueUndelegateSuccessStore) Find(orchAddress string) bool {
 }
 
 func (m *ValueUndelegateSuccessStore) AddAndIncrement(orchAddress string) {
+	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
+	m.Counter++
+}
+
+func (m *OutgoingSignaturePoolValue) Find(orchAddress string) bool {
+	for _, address := range m.OrchestratorAddresses {
+		if address == orchAddress {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *OutgoingSignaturePoolValue) AddAndIncrement(orchAddress string) {
 	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
 	m.Counter++
 }

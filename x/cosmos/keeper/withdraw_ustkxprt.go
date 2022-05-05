@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
@@ -21,21 +22,21 @@ func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdraw
 			return fmt.Errorf("withdraw store has key but nothing assigned to it")
 		}
 		var withdrawStoreValue cosmosTypes.WithdrawStoreValue
-		err := withdrawStoreValue.Unmarshal(bz)
+		err := k.cdc.Unmarshal(bz, &withdrawStoreValue)
 		if err != nil {
 			return err
 		}
 		withdrawStoreValue.WithdrawDetails = append(withdrawStoreValue.WithdrawDetails, asset)
 		withdrawStoreValue.UnbondEmitFlag = append(withdrawStoreValue.UnbondEmitFlag, false)
 
-		bz1, err := withdrawStoreValue.Marshal()
+		bz1, err := k.cdc.Marshal(&withdrawStoreValue)
 		if err != nil {
 			return err
 		}
 		withdrawStore.Set(key, bz1)
 	} else {
 		withdrawDetails := cosmosTypes.NewWithdrawStoreValue(asset)
-		bz, err := withdrawDetails.Marshal()
+		bz, err := k.cdc.Marshal(&withdrawDetails)
 		if err != nil {
 			return err
 		}
@@ -47,7 +48,7 @@ func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdraw
 func (k Keeper) fetchWithdrawTxnsWithCurrentEpochInfo(ctx sdk.Context, currentEpoch int64) (withdrawStoreValue cosmosTypes.WithdrawStoreValue, err error) {
 	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
 	bz := withdrawStore.Get(cosmosTypes.Int64Bytes(currentEpoch))
-	err = withdrawStoreValue.Unmarshal(bz)
+	err = k.cdc.Unmarshal(bz, &withdrawStoreValue)
 	if err != nil {
 		return cosmosTypes.WithdrawStoreValue{}, err
 	}
@@ -87,10 +88,20 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 			sendMsgs = append(sendMsgs, msg)
 		}
 
+		execMsg := authz.MsgExec{
+			Grantee: params.CustodialAddress,
+			Msgs:    sendMsgsAny,
+		}
+
+		execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
+		if err != nil {
+			panic(err)
+		}
+
 		tx := cosmosTypes.CosmosTx{
 			Tx: sdkTx.Tx{
 				Body: &sdkTx.TxBody{
-					Messages:      sendMsgsAny,
+					Messages:      []*codecTypes.Any{execMsgAny},
 					Memo:          "",
 					TimeoutHeight: 0,
 				},
@@ -111,16 +122,17 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 		}
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				cosmosTypes.EventTypeOutgoing,
-				sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
-			),
-		)
+		//ctx.EventManager().EmitEvent(
+		//	sdk.NewEvent(
+		//		cosmosTypes.EventTypeOutgoing,
+		//		sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
+		//	),
+		//)
 
 		//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
 		k.setNewTxnInOutgoingPool(ctx, nextID, tx)
 
+		k.setNewInTransactionQueue(ctx, nextID)
 	}
 	k.deleteEpochWithdrawSuccessStore(ctx, epochNumber)
 	return nil

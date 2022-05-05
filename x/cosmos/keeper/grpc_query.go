@@ -59,7 +59,7 @@ func (q Keeper) Proposals(c context.Context, req *cosmosTypes.QueryProposalsRequ
 
 	pageRes, err := query.FilteredPaginate(proposalStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		var p cosmosTypes.Proposal
-		if err := p.Unmarshal(value); err != nil {
+		if err := q.cdc.Unmarshal(value, &p); err != nil {
 			return false, status.Error(codes.Internal, err.Error())
 		}
 
@@ -135,7 +135,7 @@ func (q Keeper) Votes(c context.Context, req *cosmosTypes.QueryVotesRequest) (*c
 
 	pageRes, err := query.Paginate(votesStore, req.Pagination, func(key []byte, value []byte) error {
 		var vote cosmosTypes.Vote
-		if err := vote.Unmarshal(value); err != nil {
+		if err := q.cdc.Unmarshal(value, &vote); err != nil {
 			return err
 		}
 		populateLegacyOption(&vote)

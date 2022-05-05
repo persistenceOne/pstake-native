@@ -11,6 +11,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 	rewards(ctx, k)
 	checkTransactions(ctx, k)
 	checkUndelegateSuccess(ctx, k)
+	checkSignatures(ctx, k)
 }
 
 func minting(ctx sdk.Context, k Keeper) {
@@ -49,6 +50,14 @@ func checkTransactions(ctx sdk.Context, k Keeper) {
 
 func checkUndelegateSuccess(ctx sdk.Context, k Keeper) {
 	err := k.ProcessAllUndelegateSuccess(ctx)
+	logger := k.Logger(ctx)
+	if err != nil {
+		logger.Info(err.Error())
+	}
+}
+
+func checkSignatures(ctx sdk.Context, k Keeper) {
+	err := k.ProcessAllSignature(ctx)
 	logger := k.Logger(ctx)
 	if err != nil {
 		logger.Info(err.Error())

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package comsos.v1beta1;
+package cosmos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -27,10 +27,11 @@ service Msg {
   }
   rpc Vote(MsgVote) returns (MsgVoteResponse) {};
   rpc VoteWeighted(MsgVoteWeighted) returns (MsgVoteWeightedResponse) {};
-  rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
+//  rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
   rpc TxStatus(MsgTxStatus) returns (MsgTxStatusResponse) {};
   rpc RewardsClaimed(MsgRewardsClaimedOnCosmosChain) returns (MsgRewardsClaimedOnCosmosChainResponse) {}
   rpc UndelegateSuccess(MsgUndelegateSuccess) returns (MsgUndelegateSuccessResponse) {};
+  rpc SetSignature(MsgSetSignature) returns (MsgSetSignatureResponse) {};
 }
 
 message MsgSetOrchestrator {
@@ -121,6 +122,8 @@ message MsgTxStatus {
   string txHash = 2;
   //TODO : Handle other errors
   string status = 3;
+  uint64 account_number = 4;
+  uint64 sequence_number = 5;
 }
 message MsgTxStatusResponse {}
 
@@ -143,3 +146,10 @@ message MsgUndelegateSuccess {
   int64 block_height = 7 [(gogoproto.moretags) = "yaml:\"block_height\""];
 }
 message MsgUndelegateSuccessResponse {}
+
+message MsgSetSignature{
+  string orchestrator_address = 1;
+  uint64 outgoing_tx_i_d = 2;
+  bytes signature = 3;
+}
+message MsgSetSignatureResponse{}

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package comsos.v1beta1;
+package cosmos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -10,6 +10,7 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/tx/v1beta1/tx.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/staking/v1beta1/tx.proto";
+import "cosmos/tx/signing/v1beta1/signing.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -104,6 +105,8 @@ message TxHashValue {
   int64 counter = 6;
   int64 native_block_height = 7;
   int64 active_block_height = 8;
+  uint64 account_number = 9;
+  uint64 sequence_number = 10;
 }
 
 message WithdrawStoreValue {
@@ -151,4 +154,20 @@ message ValueUndelegateSuccessStore {
   int64 counter = 5;
   int64 native_block_height = 7;
   int64 active_block_height = 8;
+}
+
+message SingleSignatureDataForOutgoingPool {
+  cosmos.tx.signing.v1beta1.SignMode sign_mode = 1;
+  bytes signature = 2;
+}
+
+message OutgoingSignaturePoolValue {
+  repeated SingleSignatureDataForOutgoingPool single_signatures = 1 [(gogoproto.nullable) = false];
+  repeated string orchestratorAddresses = 2;
+  uint64 counter = 3;
+}
+
+message OutgoingQueueValue {
+  bool active = 1;
+  uint64 retry_counter = 2;
 }

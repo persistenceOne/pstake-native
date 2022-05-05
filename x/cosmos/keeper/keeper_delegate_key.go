@@ -43,7 +43,7 @@ func (k Keeper) SetValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.ValA
 
 	//set in store
 	a := cosmosTypes.NewValidatorStoreValue(orch)
-	bz, err := a.Marshal()
+	bz, err := k.cdc.Marshal(&a)
 	if err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func (k Keeper) getAllValidartorOrchestratorMappingAndFindIfExist(ctx sdkTypes.C
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var validatorStoreValue cosmosTypes.ValidatorStoreValue
-		err = validatorStoreValue.Unmarshal(iterator.Value())
+		err = k.cdc.Unmarshal(iterator.Value(), &validatorStoreValue)
 		if err != nil {
 			return orchAddresses, nil, found, err
 		}

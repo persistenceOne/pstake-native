@@ -40,12 +40,18 @@ const (
 	QueryVote       = "vote"
 	QueryVotes      = "votes"
 
-	MintDenom  = "pstake" //TODO shift to params
-	StakeDenom = "uatom"  //TODO shift to params
-
 	MinimumRatioForMajority = 0.66
 
-	StorageWindow = 100 //TODO : Revert Back to 100
+	StorageWindow = 20000
+
+	Bech32Prefix = "cosmos"
+
+	Bech32PrefixAccAddr  = Bech32Prefix
+	Bech32PrefixAccPub   = Bech32Prefix + sdkTypes.PrefixPublic
+	Bech32PrefixValAddr  = Bech32Prefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator
+	Bech32PrefixValPub   = Bech32Prefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator + sdkTypes.PrefixPublic
+	Bech32PrefixConsAddr = Bech32Prefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus
+	Bech32PrefixConsPub  = Bech32Prefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus + sdkTypes.PrefixPublic
 )
 
 var (
@@ -98,6 +104,16 @@ var (
 	KeyUndelegateSuccessStore = []byte{0x11}
 
 	KeyWithdrawStore = []byte{0x12}
+
+	KeyOutgoingTxSignature = []byte{0x11}
+
+	KeyOutgoingSignaturePoolKey = []byte{0x12}
+
+	KeyMultisigAccountStore = []byte{0x13}
+
+	KeyCurrentMultisigAddress = []byte{0x14}
+
+	KeyTransactionQueue = []byte{0x15}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {
@@ -164,6 +180,21 @@ func VoteKey(proposalID uint64, voterAddr sdkTypes.AccAddress) []byte {
 // VotesKey gets the first part of the votes key based on the proposalID
 func VotesKey(proposalID uint64) []byte {
 	return append(VotesKeyPrefix, GetProposalIDBytes(proposalID)...)
+}
+
+// OutgoingTxSignatureKey forms a key from txID to the substore
+func OutgoingTxSignatureKey(txID uint64) []byte {
+	return append(KeyOutgoingTxSignature, GetProposalIDBytes(txID)...)
+}
+
+// MultisigAccountStoreKey turn an address to key used to get it from the account store
+func MultisigAccountStoreKey(addr sdkTypes.AccAddress) []byte {
+	return append(KeyMultisigAccountStore, addr.Bytes()...)
+}
+
+// CurrentMultisigAddressKey turn an address to that is expected to send current txns
+func CurrentMultisigAddressKey() []byte {
+	return KeyCurrentMultisigAddress
 }
 
 func BytesToHexUpper(bz []byte) string {

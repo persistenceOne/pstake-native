@@ -41,6 +41,8 @@ var (
 	KeyChunkSize                         = []byte("ChunkSize")
 	KeyBondDenom                         = []byte("BondDenom")
 	KeyMintDenom                         = []byte("MintDenom")
+	KeyMultisigThreshold                 = []byte("MultisigThreshold")
+	KeyRetryLimit                        = []byte("RetryLimit")
 )
 
 func ParamKeyTable() paramsTypes.KeyTable {
@@ -51,7 +53,8 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 	maxValidatorToDelegate uint64, validatorSetCosmosChain []WeightedAddressCosmos, validatorSetNativeChain []WeightedAddress,
 	weightedDeveloperRewardsReceivers []WeightedAddress, distributionProportion DistributionProportions, epochs int64,
 	maxIncomingAndOutgoingTxns int64, cosmosProposalParams CosmosChainProposalParams, stakingEpochIdentifier string,
-	custodialAddress string, undelegateEpochIdentifier string, ChunkSize int64, bondDenom []string, mintDenom string) Params {
+	custodialAddress string, undelegateEpochIdentifier string, ChunkSize int64, bondDenom []string, mintDenom string,
+	multiSigThreshold uint64, retryLimit uint64) Params {
 	return Params{
 		MinMintingAmount:                  minMintingAmount,
 		MaxMintingAmount:                  maxMintingAmount,
@@ -72,6 +75,8 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 		ChunkSize:                         ChunkSize,
 		BondDenoms:                        bondDenom,
 		MintDenom:                         mintDenom,
+		MultisigThreshold:                 multiSigThreshold,
+		RetryLimit:                        retryLimit,
 	}
 }
 
@@ -106,21 +111,21 @@ func DefaultParams() Params {
 		},
 		ValidatorSetNativeChain: []WeightedAddress{
 			{
-				Address: "cosmos12fsu5rfdw6qlx3qsrnnrgskmrqzx473gtmet7m",
+				Address: "persistence183g695ap32wnds5k9xwd3yq997dqxudfts2gqg",
 				Weight:  sdk.NewDecWithPrec(5, 1),
 			},
 			{
-				Address: "cosmos1ajzc05ajmepsyx4tyl3z2p6cvu33kwk5nmrv3z",
+				Address: "persistence12v9prjx8m5fdalryqd0t4mgwe20637ltek5m0h",
 				Weight:  sdk.NewDecWithPrec(5, 1),
 			},
 		},
 		WeightedDeveloperRewardsReceivers: []WeightedAddress{
 			{
-				Address: "cosmos12fsu5rfdw6qlx3qsrnnrgskmrqzx473gtmet7m",
+				Address: "persistence1g5lz0gq98y8tav477dltxgpdft0wr9rmqt7mvu",
 				Weight:  sdk.NewDecWithPrec(5, 1),
 			},
 			{
-				Address: "cosmos1ajzc05ajmepsyx4tyl3z2p6cvu33kwk5nmrv3z",
+				Address: "persistence1n4v2su7weec6sqqkhet7gegu4635vc7l34y6ca",
 				Weight:  sdk.NewDecWithPrec(5, 1),
 			},
 		},
@@ -142,6 +147,8 @@ func DefaultParams() Params {
 		ChunkSize:                 5,
 		BondDenoms:                DefaultBondDenom,
 		MintDenom:                 DefaultMintDenom,
+		MultisigThreshold:         3,
+		RetryLimit:                10,
 	}
 }
 
@@ -206,6 +213,12 @@ func (p Params) Validate() error {
 	if err := validateMintDenom(p.MintDenom); err != nil {
 		return err
 	}
+	if err := validateMultisigThreshold(p.MultisigThreshold); err != nil {
+		return err
+	}
+	if err := validateRetryLimit(p.RetryLimit); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -236,6 +249,8 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyChunkSize, &p.ChunkSize, validateWithdrawRewardsChunkSize),
 		paramsTypes.NewParamSetPair(KeyBondDenom, &p.BondDenoms, validateBondDenom),
 		paramsTypes.NewParamSetPair(KeyMintDenom, &p.MintDenom, validateMintDenom),
+		paramsTypes.NewParamSetPair(KeyMultisigThreshold, &p.MultisigThreshold, validateMultisigThreshold),
+		paramsTypes.NewParamSetPair(KeyRetryLimit, &p.RetryLimit, validateRetryLimit),
 	}
 }
 
@@ -319,7 +334,7 @@ func validateValidatorSetCosmosChain(i interface{}) error {
 	for i, w := range v {
 		// we allow address to be "" to go to community pool
 		if w.Address != "" {
-			_, err := sdk.ValAddressFromBech32(w.Address)
+			_, err := ValAddressFromBech32(w.Address, Bech32PrefixValAddr)
 			if err != nil {
 				return fmt.Errorf("invalid address at %dth", i)
 			}
@@ -509,7 +524,7 @@ func validateCustodialAddress(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if v != "" {
-		_, err := sdk.AccAddressFromBech32(v)
+		_, err := AccAddressFromBech32(v, Bech32Prefix)
 		if err != nil {
 			return fmt.Errorf("invalid custodial address")
 		}
@@ -548,6 +563,30 @@ func validateMintDenom(i interface{}) error {
 
 	if v == "" {
 		return fmt.Errorf("mint denom cannot be empty")
+	}
+	return nil
+}
+
+func validateMultisigThreshold(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v <= 0 {
+		return fmt.Errorf("multisig threshold must be non negative")
+	}
+	return nil
+}
+
+func validateRetryLimit(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v <= 0 {
+		return fmt.Errorf("retry limit must be non negative")
 	}
 	return nil
 }

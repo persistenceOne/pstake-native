@@ -1,11 +1,11 @@
 package keeper
 
 import (
-	"fmt"
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"math"
@@ -35,10 +35,20 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 			undelegategMsgs = append(undelegategMsgs, msg)
 		}
 
+		execMsg := authz.MsgExec{
+			Grantee: params.CustodialAddress,
+			Msgs:    undelegateMsgsAny,
+		}
+
+		execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
+		if err != nil {
+			panic(err)
+		}
+
 		tx := cosmosTypes.CosmosTx{
 			Tx: sdkTx.Tx{
 				Body: &sdkTx.TxBody{
-					Messages:      undelegateMsgsAny,
+					Messages:      []*codecTypes.Any{execMsgAny},
 					Memo:          "",
 					TimeoutHeight: 0,
 				},
@@ -59,19 +69,21 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 		}
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				cosmosTypes.EventTypeOutgoing,
-				sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
-			),
-		)
+		//ctx.EventManager().EmitEvent(
+		//	sdk.NewEvent(
+		//		cosmosTypes.EventTypeOutgoing,
+		//		sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
+		//	),
+		//)
 
-		err := k.setIDInEpochPoolForWithdrawals(ctx, nextID, undelegategMsgs, params.CustodialAddress, epochNumber)
+		err = k.setIDInEpochPoolForWithdrawals(ctx, nextID, undelegategMsgs, params.CustodialAddress, epochNumber)
 		if err != nil {
 			panic(err)
 		}
 		//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
 		k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+
+		k.setNewInTransactionQueue(ctx, nextID)
 	}
 }
 
@@ -79,7 +91,7 @@ func (k Keeper) setIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64, und
 	unbondingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingUnbondStore)
 	key := cosmosTypes.UInt64Bytes(txID)
 	value := cosmosTypes.NewValueOutgoingUnbondStore(undelegateMsgs, epochNumber)
-	bz, err := value.Marshal()
+	bz, err := k.cdc.Marshal(&value)
 	if err != nil {
 		return err
 	}
@@ -90,7 +102,7 @@ func (k Keeper) setIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64, und
 func (k Keeper) getIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64) (value cosmosTypes.ValueOutgoingUnbondStore, err error) {
 	unbondingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingUnbondStore)
 	key := cosmosTypes.UInt64Bytes(txID)
-	err = value.Unmarshal(unbondingEpochStore.Get(key))
+	err = k.cdc.Unmarshal(unbondingEpochStore.Get(key), &value)
 	if err != nil {
 		return cosmosTypes.ValueOutgoingUnbondStore{}, err
 	}

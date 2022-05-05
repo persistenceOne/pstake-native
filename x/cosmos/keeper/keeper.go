@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 	"time"
 
@@ -19,6 +20,7 @@ type Keeper struct {
 	cdc           codec.BinaryCodec
 	storeKey      sdkTypes.StoreKey
 	paramSpace    paramsTypes.Subspace
+	authKeeper    *authkeeper.AccountKeeper
 	bankKeeper    *bankKeeper.BaseKeeper
 	mintKeeper    *mintKeeper.Keeper
 	stakingKeeper *stakingKeeper.Keeper
@@ -27,14 +29,16 @@ type Keeper struct {
 }
 
 func NewKeeper(
-	key sdkTypes.StoreKey, paramSpace paramsTypes.Subspace,
+	cdc codec.BinaryCodec, key sdkTypes.StoreKey, paramSpace paramsTypes.Subspace, authKeeper *authkeeper.AccountKeeper,
 	bankKeeper *bankKeeper.BaseKeeper, mintKeeper *mintKeeper.Keeper, stakingKeeper *stakingKeeper.Keeper,
 	epochKeeper cosmosTypes.EpochKeeper,
 ) Keeper {
 
 	return Keeper{
+		cdc:           cdc,
 		storeKey:      key,
 		paramSpace:    paramSpace.WithKeyTable(cosmosTypes.ParamKeyTable()),
+		authKeeper:    authKeeper,
 		bankKeeper:    bankKeeper,
 		mintKeeper:    mintKeeper,
 		stakingKeeper: stakingKeeper,
@@ -130,7 +134,7 @@ func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, key cosmosTypes.Chain
 	return nil
 }
 
-func (k Keeper) mintTokensForAccount(ctx sdkTypes.Context, address string, amount sdkTypes.Coins) error {
+func (k Keeper) mintTokensForRewardReceivers(ctx sdkTypes.Context, address string, amount sdkTypes.Coins) error {
 	//TODO : incorporate minting_ratio
 
 	accAddress, err := sdkTypes.AccAddressFromBech32(address)

@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 	"fmt"
+	signing2 "github.com/cosmos/cosmos-sdk/types/tx/signing"
+	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"strconv"
 
 	"github.com/armon/go-metrics"
@@ -39,6 +41,12 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	orchestrator, e2 := sdkTypes.AccAddressFromBech32(msg.Orchestrator)
 	if e1 != nil || e2 != nil {
 		return nil, sdkErrors.Wrap(err, "Key not valid")
+	}
+
+	//check if orchestrator public key exist or not
+	orchAccI := k.authKeeper.GetAccount(ctx, orchestrator)
+	if orchAccI.GetPubKey() == nil {
+		return nil, sdkErrors.Wrap(cosmosTypes.ErrPubKeyNotFound, orchestrator.String())
 	}
 
 	//check if the validator is present and return error if not present
@@ -80,7 +88,7 @@ func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAs
 	if err != nil {
 		return nil, err
 	}
-	to, err := sdkTypes.AccAddressFromBech32(msg.ToAddress)
+	to, err := cosmosTypes.AccAddressFromBech32(msg.ToAddress, cosmosTypes.Bech32Prefix)
 	if err != nil {
 		return nil, err
 	}
@@ -334,56 +342,7 @@ func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeigh
 	return &cosmosTypes.MsgVoteWeightedResponse{}, nil
 }
 
-// SignedTxFromOrchestrator Receives a signed txn from orchestrator and updates the details
-func (k msgServer) SignedTxFromOrchestrator(c context.Context, msg *cosmosTypes.MsgSignedTx) (*cosmosTypes.MsgSignedTxResponse, error) {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return nil, sdkErrors.Wrap(err, "Key not valid")
-	}
-	ctx := sdkTypes.UnwrapSDKContext(c)
-
-	//Accept transaction if module is enabled
-	if !k.GetParams(ctx).ModuleEnabled {
-		return nil, cosmosTypes.ErrModuleNotEnabled
-	}
-
-	orchAddr, orchErr := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
-	if orchErr != nil {
-		return nil, orchErr
-	}
-
-	txBytes, err := msg.Tx.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	txHash := cosmosTypes.BytesToHexUpper(txBytes)
-
-	txn, err := k.getTxnFromOutgoingPoolByID(ctx, msg.TxID)
-	if err != nil {
-		return nil, err
-	}
-	if !(txn.CosmosTxDetails.TxHash == "") {
-		return nil, cosmosTypes.ErrTxnDetailsAlreadySent
-	}
-
-	err = k.setTxDetailsSignedByOrchestrator(ctx, msg.TxID, txHash, msg.Tx)
-	if err != nil {
-		return nil, err
-	}
-
-	k.setTxHashAndDetails(ctx, orchAddr, msg.TxID, txHash, "pending")
-
-	ctx.EventManager().EmitEvent(
-		sdkTypes.NewEvent(
-			sdkTypes.EventTypeMessage,
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, msg.Type()),
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeySender, msg.OrchestratorAddress),
-		),
-	)
-	return &cosmosTypes.MsgSignedTxResponse{}, nil
-}
-
-// TxStatus Accepts status as : "success" or "failure"
+// TxStatus Accepts status as : "success" or "gas failure" or "sequence mismatch"
 // Failure only to be sent when transaction fails due to insufficient fees
 func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*cosmosTypes.MsgTxStatusResponse, error) {
 	err := msg.ValidateBasic()
@@ -418,8 +377,8 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 		return nil, fmt.Errorf("validator address does not exit")
 	}
 
-	if msg.Status == "success" || msg.Status == "failure" {
-		k.setTxHashAndDetails(ctx, orchAddr, 0, msg.TxHash, msg.Status)
+	if msg.Status == "success" || msg.Status == "gas failure" || msg.Status == "sequence mismatch" {
+		k.setTxHashAndDetails(ctx, orchAddr, 0, msg.TxHash, msg.Status, msg.SequenceNumber, msg.AccountNumber)
 	} else {
 		return nil, cosmosTypes.ErrInvalidStatus
 	}
@@ -502,11 +461,11 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 	if err != nil {
 		return nil, err
 	}
-	validatorAddress, err := sdkTypes.ValAddressFromBech32(msg.ValidatorAddress)
+	validatorAddress, err := cosmosTypes.ValAddressFromBech32(msg.ValidatorAddress, cosmosTypes.Bech32PrefixValAddr)
 	if err != nil {
 		return nil, err
 	}
-	custodialAddress, err := sdkTypes.AccAddressFromBech32(msg.DelegatorAddress)
+	custodialAddress, err := cosmosTypes.AccAddressFromBech32(msg.DelegatorAddress, cosmosTypes.Bech32Prefix)
 	if err != nil {
 		return nil, err
 	}
@@ -543,4 +502,80 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 	)
 
 	return &cosmosTypes.MsgUndelegateSuccessResponse{}, nil
+}
+
+func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignature) (*cosmosTypes.MsgSetSignatureResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+	orchestratorAddr, err := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	outgoingTx, err := k.getTxnFromOutgoingPoolByID(ctx, msg.OutgoingTxID)
+	if err != nil {
+		return nil, err
+	}
+	if len(outgoingTx.CosmosTxDetails.Tx.AuthInfo.SignerInfos) != 1 {
+		return nil, sdkErrors.Wrap(sdkErrors.ErrorInvalidSigner, "there should be exactly one signer info.")
+	}
+
+	//check if orchestrator address is present in a validator orchestrator mapping
+	_, val, _, err := k.getAllValidartorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddr)
+	if err != nil {
+		return nil, err
+	}
+	if val == nil {
+		return nil, fmt.Errorf("validator address not found")
+	}
+
+	_, found := k.GetValidatorOrchestrator(ctx, val)
+	if !found {
+		return nil, cosmosTypes.ErrInvalid
+	}
+
+	//verify signature
+	custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
+	if err != nil {
+		return nil, err
+	}
+	//TODO : remove bug
+	multisigAccount := k.authKeeper.GetAccount(ctx, custodialAddress)
+	if multisigAccount == nil {
+		return nil, cosmosTypes.ErrMultiSigAddressNotFound
+	}
+
+	signerData := signing.SignerData{
+		ChainID:       k.GetParams(ctx).CosmosProposalParams.ChainID,
+		AccountNumber: multisigAccount.GetAccountNumber(),
+		Sequence:      multisigAccount.GetSequence(),
+	}
+	signatureData := signing2.SingleSignatureData{
+		SignMode:  signing2.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
+		Signature: msg.Signature,
+	}
+
+	account := k.authKeeper.GetAccount(ctx, orchestratorAddr)
+	if account == nil {
+		return nil, cosmosTypes.ErrOrchAddressNotFound
+	}
+
+	err = cosmosTypes.VerifySignature(account.GetPubKey(), signerData, signatureData, outgoingTx.CosmosTxDetails.Tx)
+	if err != nil {
+		return nil, err
+	}
+
+	//TODO add signatures to DB
+	singleSignatureDataForOutgoingPool := cosmosTypes.ConvertSingleSignatureDataToSingleSignatureDataForOutgoingPool(signatureData)
+	err = k.addToOutgoingSignaturePool(ctx, singleSignatureDataForOutgoingPool, msg.OutgoingTxID, orchestratorAddr)
+	if err != nil {
+		return nil, err
+	}
+	ctx.EventManager().EmitEvent(
+		sdkTypes.NewEvent(
+			sdkTypes.EventTypeMessage,
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeySender, msg.OrchestratorAddress),
+		),
+	)
+	return &cosmosTypes.MsgSetSignatureResponse{}, nil
 }
