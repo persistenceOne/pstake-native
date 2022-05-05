@@ -71,12 +71,12 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 
 		// set acknowledgment flag true for future reference (not any yet)
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				cosmosTypes.EventTypeOutgoing,
-				sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
-			),
-		)
+		//ctx.EventManager().EmitEvent(
+		//	sdk.NewEvent(
+		//		cosmosTypes.EventTypeOutgoing,
+		//		sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
+		//	),
+		//)
 
 		err = k.setInEpochPoolForMinting(ctx, epochNumber, nextID, false)
 		if err != nil {
@@ -84,6 +84,8 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 		}
 		//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
 		k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+
+		k.setNewInTransactionQueue(ctx, nextID)
 	}
 
 	return nil

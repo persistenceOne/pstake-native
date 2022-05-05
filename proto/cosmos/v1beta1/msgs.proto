@@ -27,7 +27,7 @@ service Msg {
   }
   rpc Vote(MsgVote) returns (MsgVoteResponse) {};
   rpc VoteWeighted(MsgVoteWeighted) returns (MsgVoteWeightedResponse) {};
-  rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
+//  rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
   rpc TxStatus(MsgTxStatus) returns (MsgTxStatusResponse) {};
   rpc RewardsClaimed(MsgRewardsClaimedOnCosmosChain) returns (MsgRewardsClaimedOnCosmosChainResponse) {}
   rpc UndelegateSuccess(MsgUndelegateSuccess) returns (MsgUndelegateSuccessResponse) {};
@@ -122,6 +122,8 @@ message MsgTxStatus {
   string txHash = 2;
   //TODO : Handle other errors
   string status = 3;
+  uint64 account_number = 4;
+  uint64 sequence_number = 5;
 }
 message MsgTxStatusResponse {}
 

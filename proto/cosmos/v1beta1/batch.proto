@@ -105,6 +105,8 @@ message TxHashValue {
   int64 counter = 6;
   int64 native_block_height = 7;
   int64 active_block_height = 8;
+  uint64 account_number = 9;
+  uint64 sequence_number = 10;
 }
 
 message WithdrawStoreValue {
@@ -163,4 +165,9 @@ message OutgoingSignaturePoolValue {
   repeated SingleSignatureDataForOutgoingPool single_signatures = 1 [(gogoproto.nullable) = false];
   repeated string orchestratorAddresses = 2;
   uint64 counter = 3;
+}
+
+message OutgoingQueueValue {
+  bool active = 1;
+  uint64 retry_counter = 2;
 }

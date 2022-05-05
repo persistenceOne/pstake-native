@@ -42,6 +42,7 @@ var (
 	KeyBondDenom                         = []byte("BondDenom")
 	KeyMintDenom                         = []byte("MintDenom")
 	KeyMultisigThreshold                 = []byte("MultisigThreshold")
+	KeyRetryLimit                        = []byte("RetryLimit")
 )
 
 func ParamKeyTable() paramsTypes.KeyTable {
@@ -53,7 +54,7 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 	weightedDeveloperRewardsReceivers []WeightedAddress, distributionProportion DistributionProportions, epochs int64,
 	maxIncomingAndOutgoingTxns int64, cosmosProposalParams CosmosChainProposalParams, stakingEpochIdentifier string,
 	custodialAddress string, undelegateEpochIdentifier string, ChunkSize int64, bondDenom []string, mintDenom string,
-	multiSigThreshold uint64) Params {
+	multiSigThreshold uint64, retryLimit uint64) Params {
 	return Params{
 		MinMintingAmount:                  minMintingAmount,
 		MaxMintingAmount:                  maxMintingAmount,
@@ -75,6 +76,7 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 		BondDenoms:                        bondDenom,
 		MintDenom:                         mintDenom,
 		MultisigThreshold:                 multiSigThreshold,
+		RetryLimit:                        retryLimit,
 	}
 }
 
@@ -146,6 +148,7 @@ func DefaultParams() Params {
 		BondDenoms:                DefaultBondDenom,
 		MintDenom:                 DefaultMintDenom,
 		MultisigThreshold:         3,
+		RetryLimit:                10,
 	}
 }
 
@@ -213,6 +216,9 @@ func (p Params) Validate() error {
 	if err := validateMultisigThreshold(p.MultisigThreshold); err != nil {
 		return err
 	}
+	if err := validateRetryLimit(p.RetryLimit); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -244,6 +250,7 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyBondDenom, &p.BondDenoms, validateBondDenom),
 		paramsTypes.NewParamSetPair(KeyMintDenom, &p.MintDenom, validateMintDenom),
 		paramsTypes.NewParamSetPair(KeyMultisigThreshold, &p.MultisigThreshold, validateMultisigThreshold),
+		paramsTypes.NewParamSetPair(KeyRetryLimit, &p.RetryLimit, validateRetryLimit),
 	}
 }
 
@@ -568,6 +575,18 @@ func validateMultisigThreshold(i interface{}) error {
 
 	if v <= 0 {
 		return fmt.Errorf("multisig threshold must be non negative")
+	}
+	return nil
+}
+
+func validateRetryLimit(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v <= 0 {
+		return fmt.Errorf("retry limit must be non negative")
 	}
 	return nil
 }

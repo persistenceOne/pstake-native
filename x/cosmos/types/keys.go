@@ -40,12 +40,9 @@ const (
 	QueryVote       = "vote"
 	QueryVotes      = "votes"
 
-	MintDenom  = "pstake" //TODO shift to params
-	StakeDenom = "uatom"  //TODO shift to params
-
 	MinimumRatioForMajority = 0.66
 
-	StorageWindow = 100 //TODO : Revert Back to 100
+	StorageWindow = 20000
 
 	Bech32Prefix = "cosmos"
 
@@ -112,8 +109,11 @@ var (
 
 	KeyOutgoingSignaturePoolKey = []byte{0x12}
 
-	KeyMultisigAccountStore   = []byte{0x13}
+	KeyMultisigAccountStore = []byte{0x13}
+
 	KeyCurrentMultisigAddress = []byte{0x14}
+
+	KeyTransactionQueue = []byte{0x15}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {

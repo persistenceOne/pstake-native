@@ -75,7 +75,6 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) error {
 	params := k.GetParams(ctx)
 	for _, os := range outgoingSignaturePool {
 		if os.OutgoingSignaturePoolValue.Counter >= params.MultisigThreshold {
-			//TODO ***IMPORTANT*** : discuss and implement how to maintain multisig sequence number.
 			custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
 			if err != nil {
 				return err
