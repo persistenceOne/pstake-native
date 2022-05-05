@@ -23,4 +23,5 @@ var (
 	ErrOrcastratorPubkeyIsMultisig              = sdkErrors.Register(ModuleName, 63, "orcastrator pubkey is a multisig key")
 	ErrInvalidMultisigPubkey                    = sdkErrors.Register(ModuleName, 64, "multisig pubkey invalid")
 	ErrMoreMultisigAccountsBelongToOneValidator = sdkErrors.Register(ModuleName, 65, "More than 1 Multisig subkeys cannot be held by singular validator")
+	ErrMultiSigAddressNotFound                  = sdkErrors.Register(ModuleName, 66, "multi sig address not found")
 )

@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -70,12 +69,12 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 		}
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				cosmosTypes.EventTypeOutgoing,
-				sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
-			),
-		)
+		//ctx.EventManager().EmitEvent(
+		//	sdk.NewEvent(
+		//		cosmosTypes.EventTypeOutgoing,
+		//		sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
+		//	),
+		//)
 
 		err = k.setIDInEpochPoolForWithdrawals(ctx, nextID, undelegategMsgs, params.CustodialAddress, epochNumber)
 		if err != nil {
@@ -83,6 +82,8 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 		}
 		//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
 		k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+
+		k.setNewInTransactionQueue(ctx, nextID)
 	}
 }
 

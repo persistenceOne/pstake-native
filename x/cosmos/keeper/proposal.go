@@ -115,14 +115,16 @@ func (k Keeper) generateOutgoingWeightedVoteEvent(ctx sdk.Context, result map[co
 		ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			cosmosTypes.EventTypeOutgoing,
-			sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
-		),
-	)
+	//ctx.EventManager().EmitEvent(
+	//	sdk.NewEvent(
+	//		cosmosTypes.EventTypeOutgoing,
+	//		sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
+	//	),
+	//)
 	//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
 	k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+
+	k.setNewInTransactionQueue(ctx, nextID)
 }
 
 // SetProposalID sets the new proposal ID to the store

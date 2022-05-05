@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
@@ -43,10 +44,7 @@ func (k Keeper) getTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmos
 		return cosmosTypes.QueryOutgoingTxByIDResponse{}, cosmosTypes.ErrTxnNotPresentInOutgoingPool
 	}
 	var cosmosTx cosmosTypes.CosmosTx
-	err := k.cdc.Unmarshal(bz, &cosmosTx)
-	if err != nil {
-		return cosmosTypes.QueryOutgoingTxByIDResponse{}, err
-	}
+	k.cdc.MustUnmarshal(bz, &cosmosTx)
 	return cosmosTypes.QueryOutgoingTxByIDResponse{
 		CosmosTxDetails: cosmosTx,
 	}, nil
@@ -142,7 +140,7 @@ type TxHashAndDetails struct {
 }
 
 // Set details corresponding to a particular txHash and update details if already present
-func (k Keeper) setTxHashAndDetails(ctx sdk.Context, orchAddress sdk.AccAddress, txID uint64, txHash string, status string) {
+func (k Keeper) setTxHashAndDetails(ctx sdk.Context, orchAddress sdk.AccAddress, txID uint64, txHash string, status string, accountNumber uint64, sequenceNumber uint64) {
 	txHashAndTxIDStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
 	key := []byte(txHash)
 	if txHashAndTxIDStore.Has(key) {
@@ -164,7 +162,7 @@ func (k Keeper) setTxHashAndDetails(ctx sdk.Context, orchAddress sdk.AccAddress,
 		}
 	} else {
 		ratio := float32(1) / float32(k.getTotalValidatorOrchestratorCount(ctx))
-		newTxHashValue := cosmosTypes.NewTxHashValue(txID, orchAddress, ratio, status, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newTxHashValue := cosmosTypes.NewTxHashValue(txID, orchAddress, ratio, status, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow, accountNumber, sequenceNumber)
 		bz, err := k.cdc.Marshal(&newTxHashValue)
 		if err != nil {
 			panic("error in marshaling txHashValue")
@@ -211,84 +209,220 @@ func (k Keeper) getAllTxHashAndDetails(ctx sdk.Context) (list []TxHashAndDetails
 	return list, nil
 }
 
+//______________________________________________________________________________________________
+
+// Set new transaction in transaction queue with value 0 (pending)
+func (k Keeper) setNewInTransactionQueue(ctx sdk.Context, txID uint64) {
+	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
+	key := cosmosTypes.UInt64Bytes(txID)
+	if transactionQueueStore.Has(key) {
+		panic(fmt.Errorf("transaction present in queue"))
+	}
+
+	// 0 means pending and 1 means active transaction
+	value := cosmosTypes.UInt64Bytes(0)
+	transactionQueueStore.Set(key, value)
+}
+
+// Get active transaction from the tx queue : returns 0 if no active transaction in queue
+func (k Keeper) getActiveFromTransactionQueue(ctx sdk.Context) uint64 {
+	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
+
+	// returns the first transaction which is active : supposed to be the first transaction in the list
+	iterator := transactionQueueStore.Iterator(nil, nil)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		if cosmosTypes.UInt64FromBytes(iterator.Value()) == 1 {
+			return cosmosTypes.UInt64FromBytes(iterator.Key())
+		}
+	}
+
+	// if txID returned is 0 : there is no active transaction
+	return 0
+}
+
+// Fetches the next transaction to be sent out and mark it active
+// called after deleting the active transaction which has been successful
+func (k Keeper) getNextFromTransactionQueue(ctx sdk.Context) uint64 {
+	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
+
+	//start iteration through the store and return the first key found in the store
+	//as the keys stored are in ascending order
+	iterator := transactionQueueStore.Iterator(nil, nil)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		key := cosmosTypes.UInt64FromBytes(iterator.Key())
+		transactionQueueStore.Set(iterator.Key(), cosmosTypes.UInt64Bytes(1))
+		return key
+	}
+
+	// if txID returned is zero : there are 0 pending transactions
+	return 0
+}
+
+// Removes the transaction corresponding to the given txID
+// called once the transaction is successful and all action required after its success are complete
+func (k Keeper) removeFromTransactionQueue(ctx sdk.Context, txID uint64) {
+	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
+	transactionQueueStore.Delete(cosmosTypes.UInt64Bytes(txID))
+}
+
+// Gets the list of all transaction in the outgoing queue which are being sent out or yet to be sent out
+func (k Keeper) getAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatusMap map[uint64]uint64) {
+	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
+
+	//iterate through all the transactions present in queue and add to map
+	iterator := transactionQueueStore.Iterator(nil, nil)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		key := cosmosTypes.UInt64FromBytes(iterator.Key())
+
+		status := cosmosTypes.UInt64FromBytes(iterator.Value())
+
+		txIDAndStatusMap[key] = status
+	}
+	return txIDAndStatusMap
+}
+
+// Emits event for transaction to be picked up by oracles to be signed
+func (k Keeper) emitEventForActiveTransaction(ctx sdk.Context, txID uint64) {
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			cosmosTypes.EventTypeOutgoing,
+			sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(txID)),
+		),
+	)
+}
+
+//______________________________________________________________________________________________
+
 // RetryTransactionWithDoubleGas : retry txn with double gas
-func (k Keeper) retryTransactionWithDoubleGas(ctx sdk.Context, txDetails cosmosTypes.QueryOutgoingTxByIDResponse, txID uint64, txHash string) {
+func (k Keeper) retryTransactionWithFailure(ctx sdk.Context, txDetails cosmosTypes.QueryOutgoingTxByIDResponse, txID uint64, txHash string, failure string) {
+
 	// doubles gas fees and emit a new event
 	cosmosTxDetails := txDetails.CosmosTxDetails
-	//TODO check if gas limit doesnt increase by more than max.
-	cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit = cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit * 2
+
 	cosmosTxDetails.Tx.AuthInfo.SignerInfos = nil
 	cosmosTxDetails.Tx.Signatures = nil
 	cosmosTxDetails.TxHash = ""
 
-	//create new ID for next txn and set it in kv store
-	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
+	// double gas in case of gas failure
+	if failure == "gas failure" {
+		//cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit == cosmosTypes.GasLimit &&
+		//2*cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit < cosmosTypes.GasLimit // TODO
+		// TODO : test case when transaction fails even after reaching max_gas limit
+		cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit = cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit * 2
+	}
 
-	//emit new event
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			cosmosTypes.EventTypeOutgoing,
-			sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
-		),
-	)
-
-	//set new outgoing txn
-	k.setNewTxnInOutgoingPool(ctx, nextID, cosmosTxDetails)
-
-	//remove old txn from db
-	k.removeTxnDetailsByID(ctx, txID)
+	//set it back again in outgoing txn
+	k.setNewTxnInOutgoingPool(ctx, txID, cosmosTxDetails)
 
 	//remove txHash and mapping
 	k.removeTxHashAndDetails(ctx, txHash)
 }
 
-// ProcessAllTxAndDetails Process all the transaction details that are pending and retry if failed by less gas or delete them once they are past the avtive block limit
 func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
-	list, err := k.getAllTxHashAndDetails(ctx)
+	// fetch active transaction in the queue
+	txID := k.getActiveFromTransactionQueue(ctx)
+
+	//if txID returned is 0, then emit a new transaction
+	if txID == 0 {
+		nextID := k.getNextFromTransactionQueue(ctx)
+		k.emitEventForActiveTransaction(ctx, nextID)
+		return nil
+	}
+
+	// get all txHash and details aggregated
+	txDetails, err := k.getAllTxHashAndDetails(ctx)
 	if err != nil {
 		return err
 	}
-	for _, element := range list {
-		majorityStatus := FindMajority(element.Details.Status)
-		txDetails, err := k.getTxnFromOutgoingPoolByID(ctx, element.Details.TxID)
-		//if err != nil {
-		//k.removeTxHashAndDetails(ctx, element.TxHash)
-		//TODO : Check if Signed tx is sent later than Status of the same.
-		//return err
-		//}
-		//err check to see if details have been found or not
-		if err == nil {
-			if element.Details.Ratio > 0.80 {
-				if majorityStatus == "gas failure" {
-					k.retryTransactionWithDoubleGas(ctx, txDetails, element.Details.TxID, element.TxHash)
-				}
-				if majorityStatus == "success" {
-					msgs := txDetails.CosmosTxDetails.Tx.GetMsgs()
-					for _, msg := range msgs {
-						execMsgs := msg.(*authz.MsgExec).Msgs
-						for _, im := range execMsgs {
-							//Only first element is checked as event transactions will always be grouped as one type of message
-							switch im.GetCachedValue().(type) {
-							case *stakingTypes.MsgDelegate:
-								err = k.processStakingSuccessTxns(ctx, element.Details.TxID)
-								txDetails.CosmosTxDetails.Status = "success"
-								k.updateStatusOnceProcessed(ctx, element.Details.TxID, txDetails.CosmosTxDetails)
-							case *stakingTypes.MsgUndelegate:
-								err = k.setEpochAndValidatorDetailsForAllUndelegations(ctx, element.Details.TxID)
-								txDetails.CosmosTxDetails.Status = "success"
-								k.updateStatusOnceProcessed(ctx, element.Details.TxID, txDetails.CosmosTxDetails)
-								if err != nil {
-									return err
-								}
-							}
-							break
+
+	for _, tx := range txDetails {
+		// avoid processing inactive transaction
+		if tx.Details.TxID != txID {
+			continue
+		}
+
+		// find majority status string : as spam might be possible
+		majorityStatus := FindMajority(tx.Details.Status)
+
+		// get tx from outgoing pool
+		cosmosTx, err := k.getTxnFromOutgoingPoolByID(ctx, tx.Details.TxID)
+		if err != nil {
+			return err
+		}
+
+		custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
+		if err != nil {
+			return err
+		}
+		//TODO : remove bug
+		multisigAccount := k.authKeeper.GetAccount(ctx, custodialAddress)
+		if multisigAccount == nil {
+			return cosmosTypes.ErrMultiSigAddressNotFound
+		}
+
+		txHashValue, err := k.getTxHashAndDetails(ctx, tx.TxHash)
+		if err != nil {
+			return err
+		}
+
+		// process tx if majority status is present
+		if tx.Details.Ratio < cosmosTypes.MinimumRatioForMajority {
+			return nil
+		}
+
+		if majorityStatus == "gas failure" {
+			// retry txn with given failure
+			k.retryTransactionWithFailure(ctx, cosmosTx, tx.Details.TxID, tx.TxHash, majorityStatus)
+			k.emitEventForActiveTransaction(ctx, txID)
+		} else if majorityStatus == "success" {
+			// process txn success and perform success actions
+			msgs := cosmosTx.CosmosTxDetails.Tx.GetMsgs()
+			for _, msg := range msgs {
+				execMsgs := msg.(*authz.MsgExec).Msgs
+				for _, im := range execMsgs {
+					//Only first element is checked as event transactions will always be grouped as one type of message
+					switch im.GetCachedValue().(type) {
+					case *stakingTypes.MsgDelegate:
+						//TODO : update C value
+						err = k.processStakingSuccessTxns(ctx, tx.Details.TxID)
+						cosmosTx.CosmosTxDetails.Status = "success"
+						k.updateStatusOnceProcessed(ctx, tx.Details.TxID, cosmosTx.CosmosTxDetails)
+					case *stakingTypes.MsgUndelegate:
+						//TODO : update C value
+						err = k.setEpochAndValidatorDetailsForAllUndelegations(ctx, tx.Details.TxID)
+						cosmosTx.CosmosTxDetails.Status = "success"
+						k.updateStatusOnceProcessed(ctx, tx.Details.TxID, cosmosTx.CosmosTxDetails)
+						if err != nil {
+							return err
 						}
+					case *types.MsgSend:
+						// TODO : update C value
 					}
+					break
 				}
-				if majorityStatus == "sequence mismatch" {
-					//TODO : discuss a course of action
-				}
+				k.removeFromTransactionQueue(ctx, txID)
+				nextID := k.getNextFromTransactionQueue(ctx)
+				k.emitEventForActiveTransaction(ctx, nextID)
 			}
+		} else if majorityStatus == "sequence mismatch" {
+			// retry txn with the given failure
+			k.retryTransactionWithFailure(ctx, cosmosTx, txID, tx.TxHash, majorityStatus)
+			k.emitEventForActiveTransaction(ctx, txID)
+		}
+
+		// set sequence number in any case of status, so it stays up to date
+		err = multisigAccount.SetSequence(txHashValue.SequenceNumber)
+		if err != nil {
+			return err
+		}
+
+		//set account number in any case of status, so it stays up to date
+		err = multisigAccount.SetAccountNumber(txHashValue.AccountNumber)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -296,22 +430,13 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 	if err != nil {
 		panic(err)
 	}
-	for _, element := range txDetailsList {
-		//retry transaction if active block limit is reached and status is still not set to success
-		if element.txDetails.ActiveBlockHeight <= ctx.BlockHeight() && element.txDetails.Status == "" {
-			k.removeTxnDetailsByID(ctx, element.txID)
-			k.removeFromOutgoingSignaturePool(ctx, element.txID)
-			element.txDetails.NativeBlockHeight = ctx.BlockHeight()
-			element.txDetails.ActiveBlockHeight = ctx.BlockHeight() + cosmosTypes.StorageWindow
-			nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
-			k.setNewTxnInOutgoingPool(ctx, nextID, element.txDetails)
-		}
-
+	for _, tx := range txDetailsList {
 		//remove transaction if active block limit is reached and status is set to success
-		if element.txDetails.ActiveBlockHeight <= ctx.BlockHeight() && element.txDetails.Status == "success" {
-			k.removeTxnDetailsByID(ctx, element.txID)
-			k.removeFromOutgoingSignaturePool(ctx, element.txID)
-			k.removeTxHashAndDetails(ctx, element.txDetails.TxHash)
+		if tx.txDetails.ActiveBlockHeight <= ctx.BlockHeight() && tx.txDetails.Status == "success" {
+			k.removeTxnDetailsByID(ctx, tx.txID)
+			k.removeFromOutgoingSignaturePool(ctx, tx.txID)
+			k.removeTxHashAndDetails(ctx, tx.txDetails.TxHash)
+			k.removeFromTransactionQueue(ctx, tx.txID)
 		}
 	}
 	return nil
