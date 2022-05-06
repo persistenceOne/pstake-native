@@ -377,6 +377,7 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 		return nil, fmt.Errorf("validator address does not exit")
 	}
 
+	//TODO : add failure type for proposal transactions. (in case of chain upgrade on cosmos chain)
 	if msg.Status == "success" || msg.Status == "gas failure" || msg.Status == "sequence mismatch" {
 		k.setTxHashAndDetails(ctx, orchAddr, 0, msg.TxHash, msg.Status, msg.SequenceNumber, msg.AccountNumber)
 	} else {

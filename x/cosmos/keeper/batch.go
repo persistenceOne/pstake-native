@@ -261,7 +261,6 @@ func (k Keeper) incrementRetryCounterInTransactionQueue(ctx sdk.Context, txID ui
 		value.RetryCounter++
 
 		bz := k.cdc.MustMarshal(&value)
-
 		transactionQueueStore.Set(key, bz)
 	}
 }
@@ -314,8 +313,7 @@ func (k Keeper) getAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatusMap ma
 
 // Emits event for transaction to be picked up by oracles to be signed
 func (k Keeper) emitEventForActiveTransaction(ctx sdk.Context, txID uint64) {
-	//TODO : increment counter
-
+	k.incrementRetryCounterInTransactionQueue(ctx, txID)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			cosmosTypes.EventTypeOutgoing,
@@ -358,6 +356,9 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 	//if txID returned is 0, then emit a new transaction
 	if txID == 0 {
 		nextID := k.getNextFromTransactionQueue(ctx)
+		if nextID == 0 {
+			return nil
+		}
 		k.emitEventForActiveTransaction(ctx, nextID)
 		return nil
 	}
@@ -434,8 +435,6 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 					break
 				}
 				k.removeFromTransactionQueue(ctx, txID)
-				nextID := k.getNextFromTransactionQueue(ctx)
-				k.emitEventForActiveTransaction(ctx, nextID)
 			}
 		} else if majorityStatus == "sequence mismatch" {
 			// retry txn with the given failure
