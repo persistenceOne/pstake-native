@@ -7,15 +7,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/persistenceOne/pstake-native/x/cosmos/types"
+	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"sort"
 )
 
-func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *types.ChangeMultisigProposal) error {
-	//oldAccountAddress := k.getCurrentAddress(ctx)
-	//oldAccount := k.getAccountState(ctx, oldAccountAddress)
-	//oldPubKey, ok := oldAccount.GetPubKey().(*multisig2.LegacyAminoPubKey)
-	//if !ok{return types.ErrInvalidMultisigPubkey}
+func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeMultisigProposal) error {
+	oldAccountAddress := k.getCurrentAddress(ctx)
+	oldAccount := k.getAccountState(ctx, oldAccountAddress)
+	_, ok := oldAccount.GetPubKey().(*multisig2.LegacyAminoPubKey)
+	if !ok {
+		return cosmosTypes.ErrInvalidMultisigPubkey
+	}
 
 	var multisigPubkeys []cryptotypes.PubKey
 
@@ -33,21 +35,21 @@ func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *types.ChangeMult
 			return err
 		}
 		if !found {
-			return types.ErrOrchAddressNotFound
+			return cosmosTypes.ErrOrchAddressNotFound
 		}
 
 		// checks for singular orchestrator for a validator.
 		if _, ok := valAddrMap[valAddr.String()]; ok {
-			return types.ErrMoreMultisigAccountsBelongToOneValidator
+			return cosmosTypes.ErrMoreMultisigAccountsBelongToOneValidator
 		}
 		valAddrMap[valAddr.String()] = orcastratorAddress
 
 		account := k.authKeeper.GetAccount(ctx, orchestratorAccAddress)
 		if account == nil {
-			return types.ErrOrchAddressNotFound
+			return cosmosTypes.ErrOrchAddressNotFound
 		}
 		if _, ok := account.GetPubKey().(multisig.PubKey); ok {
-			return types.ErrOrcastratorPubkeyIsMultisig
+			return cosmosTypes.ErrOrcastratorPubkeyIsMultisig
 		}
 		multisigPubkeys = append(multisigPubkeys, account.GetPubKey())
 	}
@@ -61,12 +63,12 @@ func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *types.ChangeMult
 	multisigAcc := k.getAccountState(ctx, multisigAccAddress)
 	if multisigAcc == nil {
 		//TODO add caching for this address string.
-		cosmosAddr, err := types.Bech32ifyAddressBytes(types.Bech32Prefix, multisigAccAddress)
+		cosmosAddr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32Prefix, multisigAccAddress)
 		if err != nil {
 			return err
 		}
 		if cosmosAddr == "" {
-			return types.ErrInvalidCustodialAddress
+			return cosmosTypes.ErrInvalidCustodialAddress
 		}
 		multisigAcc := &authTypes.BaseAccount{
 			Address:       cosmosAddr,
@@ -83,6 +85,28 @@ func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *types.ChangeMult
 
 	k.setCurrentAddress(ctx, multisigAccAddress)
 
-	//TODO add txns to outgoingTx, authzGrant(multipletxns), authzRevoke with old address.
+	k.handleTransactionQueue(ctx, oldAccount)
 	return nil
+}
+
+func (k Keeper) handleTransactionQueue(ctx sdk.Context, oldAccount authTypes.AccountI) {
+	var list []TransactionQueue
+	//step 1 : move all pending and active transactions to an array
+	list = k.getAllFromTransactionQueue(ctx) //gets a map of all transactions
+
+	//step 2 : add grant and revoke transactions in an order to queue
+
+	// grant from old account
+	grantTransactionID := k.addGrantTransactions(ctx, oldAccount)
+	// feegrant transaction from old account
+	feegrantTransactionID := k.addFeegrantTransaction(ctx, oldAccount)
+	// revoke transaction from new account
+	revokeTransactionID := k.addRevokeTransactions(ctx, oldAccount)
+	k.setNewInTransactionQueue(ctx, grantTransactionID)
+	k.setNewInTransactionQueue(ctx, feegrantTransactionID)
+	k.setNewInTransactionQueue(ctx, revokeTransactionID)
+
+	//step 3 : append all the remaining transactions to the queue with modified txIDs and remove old from the transaction queue
+	k.shiftListOfTransactionsToNewIDs(ctx, list)
+	//step 4 : do transaction processing as normal transactions
 }

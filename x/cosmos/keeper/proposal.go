@@ -51,7 +51,7 @@ func (k Keeper) generateOutgoingWeightedVoteEvent(ctx sdk.Context, result map[co
 	var voteMsgAny []*codecTypes.Any
 	msg := govTypes.MsgVoteWeighted{
 		ProposalId: cosmosProposalID,
-		Voter:      "cosmos15vm0p2x990762txvsrpr26ya54p5qlz9xqlw5z",
+		Voter:      params.CustodialAddress,
 		Options: []govTypes.WeightedVoteOption{
 			{
 				Option: govTypes.OptionEmpty,
@@ -82,7 +82,7 @@ func (k Keeper) generateOutgoingWeightedVoteEvent(ctx sdk.Context, result map[co
 
 	voteMsgAny = append(voteMsgAny, msgAny)
 	execMsg := authz.MsgExec{
-		Grantee: params.CustodialAddress,
+		Grantee: k.getCurrentAddress(ctx).String(),
 		Msgs:    voteMsgAny,
 	}
 
@@ -108,11 +108,12 @@ func (k Keeper) generateOutgoingWeightedVoteEvent(ctx sdk.Context, result map[co
 			},
 			Signatures: nil,
 		},
-		EventEmitted:      true,
+		EventEmitted:      false,
 		Status:            "",
 		TxHash:            "",
 		NativeBlockHeight: ctx.BlockHeight(),
 		ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
+		SignerAddress:     k.getCurrentAddress(ctx).String(),
 	}
 
 	//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them

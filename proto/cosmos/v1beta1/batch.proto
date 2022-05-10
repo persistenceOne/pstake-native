@@ -94,6 +94,7 @@ message CosmosTx {
   string txHash = 4;
   int64 native_block_height = 5;
   int64 active_block_height = 6;
+  string signer_address = 7;
 }
 
 message TxHashValue {
