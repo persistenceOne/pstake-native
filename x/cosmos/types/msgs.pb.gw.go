@@ -386,13 +386,13 @@ func RegisterMsgHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 }
 
 var (
-	pattern_Msg_SetOrchestrator_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"pstake", "cosmos", "v1beta1", "SetOrchestrator"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Msg_SetOrchestrator_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"pstake", "cosmos", "v1beta1", "SetOrchestrator"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Msg_Withdraw_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"pstake", "cosmos", "v1beta1", "WithdrawStkAssets"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Msg_Withdraw_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"pstake", "cosmos", "v1beta1", "WithdrawStkAssets"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Msg_MintTokensForAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"pstake", "cosmos", "v1beta1", "MintTokensForAccount"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Msg_MintTokensForAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"pstake", "cosmos", "v1beta1", "MintTokensForAccount"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Msg_MakeProposal_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"pstake", "cosmos", "v1beta1", "MakeProposal"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Msg_MakeProposal_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"pstake", "cosmos", "v1beta1", "MakeProposal"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
