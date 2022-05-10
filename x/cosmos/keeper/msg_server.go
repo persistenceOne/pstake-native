@@ -535,12 +535,13 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	}
 
 	//verify signature
-	custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
+	custodialAddress, err := cosmosTypes.AccAddressFromBech32(outgoingTx.CosmosTxDetails.SignerAddress, cosmosTypes.Bech32Prefix)
 	if err != nil {
 		return nil, err
 	}
-	//TODO : remove bug
-	multisigAccount := k.authKeeper.GetAccount(ctx, custodialAddress)
+
+	// get account state from module db
+	multisigAccount := k.getAccountState(ctx, custodialAddress)
 	if multisigAccount == nil {
 		return nil, cosmosTypes.ErrMultiSigAddressNotFound
 	}
@@ -565,7 +566,6 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 		return nil, err
 	}
 
-	//TODO add signatures to DB
 	singleSignatureDataForOutgoingPool := cosmosTypes.ConvertSingleSignatureDataToSingleSignatureDataForOutgoingPool(signatureData)
 	err = k.addToOutgoingSignaturePool(ctx, singleSignatureDataForOutgoingPool, msg.OutgoingTxID, orchestratorAddr)
 	if err != nil {

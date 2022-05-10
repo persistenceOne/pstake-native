@@ -106,7 +106,7 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 		}
 
 		execMsg := authz.MsgExec{
-			Grantee: params.CustodialAddress,
+			Grantee: k.getCurrentAddress(ctx).String(),
 			Msgs:    sendMsgsAny,
 		}
 
@@ -132,11 +132,12 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 				},
 				Signatures: nil,
 			},
-			EventEmitted:      true,
+			EventEmitted:      false,
 			Status:            "",
 			TxHash:            "",
 			NativeBlockHeight: ctx.BlockHeight(),
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
+			SignerAddress:     k.getCurrentAddress(ctx).String(),
 		}
 
 		//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them

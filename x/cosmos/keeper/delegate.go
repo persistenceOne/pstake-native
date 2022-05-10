@@ -36,7 +36,7 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 		}
 
 		execMsg := authz.MsgExec{
-			Grantee: params.CustodialAddress,
+			Grantee: k.getCurrentAddress(ctx).String(),
 			Msgs:    delegateMsgsAny,
 		}
 
@@ -62,11 +62,12 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 				},
 				Signatures: nil,
 			},
-			EventEmitted:      true,
+			EventEmitted:      false,
 			Status:            "",
 			TxHash:            "",
 			NativeBlockHeight: ctx.BlockHeight(),
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
+			SignerAddress:     k.getCurrentAddress(ctx).String(),
 		}
 
 		// set acknowledgment flag true for future reference (not any yet)
