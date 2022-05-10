@@ -36,7 +36,7 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 		}
 
 		execMsg := authz.MsgExec{
-			Grantee: params.CustodialAddress,
+			Grantee: k.getCurrentAddress(ctx).String(),
 			Msgs:    undelegateMsgsAny,
 		}
 
@@ -62,11 +62,12 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 				},
 				Signatures: nil,
 			},
-			EventEmitted:      true,
+			EventEmitted:      false,
 			Status:            "",
 			TxHash:            "",
 			NativeBlockHeight: ctx.BlockHeight(),
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
+			SignerAddress:     k.getCurrentAddress(ctx).String(),
 		}
 
 		err = k.setIDInEpochPoolForWithdrawals(ctx, nextID, undelegategMsgs, params.CustodialAddress, epochNumber)

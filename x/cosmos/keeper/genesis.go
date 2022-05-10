@@ -13,5 +13,5 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data *cosmosTypes.GenesisState)
 	keeper.setCosmosValidatorParams(ctx, nil)
 	keeper.setTotalDelegatedAmountTillDate(ctx, sdk.Coin{})
 	//keeper.SetVotingParams(ctx, data.Params.CosmosProposalParams)
-	//TODO add remaining
+	//TODO add remaining : Setup initial multisig account and custodial address (either with a proposal or through genesis initialisation
 }

@@ -31,8 +31,27 @@ func (k Keeper) setNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosT
 	outgoingStore.Set(key, bz)
 }
 
-func (k Keeper) updateStatusOnceProcessed(cts sdk.Context, txID uint64, tx cosmosTypes.CosmosTx) {
-	//TODO
+func (k Keeper) updateStatusOnceProcessed(ctx sdk.Context, txID uint64, status string) {
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
+	key := cosmosTypes.UInt64Bytes(txID)
+
+	var cosmosTx cosmosTypes.CosmosTx
+	k.cdc.MustUnmarshal(outgoingStore.Get(key), &cosmosTx)
+
+	cosmosTx.Status = status
+	outgoingStore.Set(key, k.cdc.MustMarshal(&cosmosTx))
+}
+
+// sets event emitted to true once even is emitted
+func (k Keeper) setEventEmittedFlag(ctx sdk.Context, txID uint64, flag bool) {
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
+	key := cosmosTypes.UInt64Bytes(txID)
+
+	var cosmosTx cosmosTypes.CosmosTx
+	k.cdc.MustUnmarshal(outgoingStore.Get(key), &cosmosTx)
+
+	cosmosTx.EventEmitted = flag
+	outgoingStore.Set(key, k.cdc.MustMarshal(&cosmosTx))
 }
 
 //gets txn details by ID
@@ -211,6 +230,11 @@ func (k Keeper) getAllTxHashAndDetails(ctx sdk.Context) (list []TxHashAndDetails
 
 //______________________________________________________________________________________________
 
+type TransactionQueue struct {
+	txID   uint64
+	status cosmosTypes.OutgoingQueueValue
+}
+
 // Set new transaction in transaction queue with value 0 (pending)
 func (k Keeper) setNewInTransactionQueue(ctx sdk.Context, txID uint64) {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
@@ -294,7 +318,7 @@ func (k Keeper) removeFromTransactionQueue(ctx sdk.Context, txID uint64) {
 }
 
 // Gets the list of all transaction in the outgoing queue which are being sent out or yet to be sent out
-func (k Keeper) getAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatusMap map[uint64]cosmosTypes.OutgoingQueueValue) {
+func (k Keeper) getAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatus []TransactionQueue) {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 
 	//iterate through all the transactions present in queue and add to map
@@ -306,9 +330,19 @@ func (k Keeper) getAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatusMap ma
 		var value cosmosTypes.OutgoingQueueValue
 		k.cdc.MustUnmarshal(iterator.Value(), &value)
 
-		txIDAndStatusMap[key] = value
+		txIDAndStatus = append(txIDAndStatus, TransactionQueue{txID: key, status: value})
 	}
-	return txIDAndStatusMap
+	return txIDAndStatus
+}
+
+// Remove queue transactions passed in the transactions queue array
+func (k Keeper) removeGivenFromTransactionQueue(ctx sdk.Context, txIDAndStatus []TransactionQueue) {
+	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
+
+	// loop through list and remove all tx
+	for _, tx := range txIDAndStatus {
+		transactionQueueStore.Delete(cosmosTypes.UInt64Bytes(tx.txID))
+	}
 }
 
 // Emits event for transaction to be picked up by oracles to be signed
@@ -320,6 +354,7 @@ func (k Keeper) emitEventForActiveTransaction(ctx sdk.Context, txID uint64) {
 			sdk.NewAttribute(cosmosTypes.AttributeKeyOutgoingTXID, fmt.Sprint(txID)),
 		),
 	)
+	k.setEventEmittedFlag(ctx, txID, true)
 }
 
 //______________________________________________________________________________________________
@@ -388,8 +423,8 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 		if err != nil {
 			return err
 		}
-		//TODO : remove bug
-		multisigAccount := k.authKeeper.GetAccount(ctx, custodialAddress)
+
+		multisigAccount := k.getAccountState(ctx, custodialAddress)
 		if multisigAccount == nil {
 			return cosmosTypes.ErrMultiSigAddressNotFound
 		}
@@ -419,13 +454,11 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 					case *stakingTypes.MsgDelegate:
 						//TODO : update C value
 						err = k.processStakingSuccessTxns(ctx, tx.Details.TxID)
-						cosmosTx.CosmosTxDetails.Status = "success"
-						k.updateStatusOnceProcessed(ctx, tx.Details.TxID, cosmosTx.CosmosTxDetails)
+						k.updateStatusOnceProcessed(ctx, tx.Details.TxID, "success")
 					case *stakingTypes.MsgUndelegate:
 						//TODO : update C value
 						err = k.setEpochAndValidatorDetailsForAllUndelegations(ctx, tx.Details.TxID)
-						cosmosTx.CosmosTxDetails.Status = "success"
-						k.updateStatusOnceProcessed(ctx, tx.Details.TxID, cosmosTx.CosmosTxDetails)
+						k.updateStatusOnceProcessed(ctx, tx.Details.TxID, "success")
 						if err != nil {
 							return err
 						}
