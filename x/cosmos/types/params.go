@@ -111,22 +111,14 @@ func DefaultParams() Params {
 		},
 		ValidatorSetNativeChain: []WeightedAddress{
 			{
-				Address: "persistence183g695ap32wnds5k9xwd3yq997dqxudfts2gqg",
-				Weight:  sdk.NewDecWithPrec(5, 1),
-			},
-			{
-				Address: "persistence12v9prjx8m5fdalryqd0t4mgwe20637ltek5m0h",
-				Weight:  sdk.NewDecWithPrec(5, 1),
+				Address: "persistencevaloper183g695ap32wnds5k9xwd3yq997dqxudfz524f3",
+				Weight:  sdk.NewDecWithPrec(10, 1),
 			},
 		},
 		WeightedDeveloperRewardsReceivers: []WeightedAddress{
 			{
 				Address: "persistence1g5lz0gq98y8tav477dltxgpdft0wr9rmqt7mvu",
-				Weight:  sdk.NewDecWithPrec(5, 1),
-			},
-			{
-				Address: "persistence1n4v2su7weec6sqqkhet7gegu4635vc7l34y6ca",
-				Weight:  sdk.NewDecWithPrec(5, 1),
+				Weight:  sdk.NewDecWithPrec(10, 1),
 			},
 		},
 		DistributionProportion: DistributionProportions{
@@ -140,7 +132,7 @@ func DefaultParams() Params {
 			ReduceVotingPeriodBy: DefaultPeriod,
 		},
 		DelegationThreshold:       sdk.NewInt64Coin("uatom", 2000000000),
-		ModuleEnabled:             true, //TODO : Make false before launch
+		ModuleEnabled:             false, //TODO : Make false before launch
 		StakingEpochIdentifier:    "3hour",
 		CustodialAddress:          "cosmos15vm0p2x990762txvsrpr26ya54p5qlz9xqlw5z",
 		UndelegateEpochIdentifier: "3.5day",
@@ -373,7 +365,7 @@ func validateValidatorSetNativeChain(i interface{}) error {
 	for i, w := range v {
 		// we allow address to be "" to go to community pool
 		if w.Address != "" {
-			_, err := sdk.AccAddressFromBech32(w.Address)
+			_, err := sdk.ValAddressFromBech32(w.Address)
 			if err != nil {
 				return fmt.Errorf("invalid address at %dth", i)
 			}

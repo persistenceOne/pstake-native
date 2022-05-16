@@ -33,7 +33,7 @@ func (k Keeper) SetValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.ValA
 	}
 
 	//check if orchestrator address is already mapped to another validator
-	_, _, exist, err := k.getAllValidartorOrchestratorMappingAndFindIfExist(ctx, orch)
+	_, _, exist, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orch)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (k Keeper) getTotalValidatorOrchestratorCount(ctx sdkTypes.Context) int64 {
 	return int64(counter)
 }
 
-func (k Keeper) getAllValidartorOrchestratorMappingAndFindIfExist(ctx sdkTypes.Context, orch sdkTypes.AccAddress) (orchAddresses []string, valAddress sdkTypes.ValAddress, found bool, err error) {
+func (k Keeper) getAllValidatorOrchestratorMappingAndFindIfExist(ctx sdkTypes.Context, orch sdkTypes.AccAddress) (orchAddresses []string, valAddress sdkTypes.ValAddress, found bool, err error) {
 	found = false
 	orchestratorValidatorStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ValidatorOrchestratorStoreKey)
 	iterator := orchestratorValidatorStore.Iterator(nil, nil)
@@ -98,4 +98,49 @@ func (k Keeper) getAllValidartorOrchestratorMappingAndFindIfExist(ctx sdkTypes.C
 		}
 	}
 	return orchAddresses, valAddress, found, err
+}
+
+func (k Keeper) checkAllValidatorsHaveOrchestrators(ctx sdkTypes.Context) ([]string, error) {
+	orchestratorValidatorStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ValidatorOrchestratorStoreKey)
+	validatorOrchestratorMap := make(map[string][]string)
+	var orchestratorList []string
+	iterator := orchestratorValidatorStore.Iterator(nil, nil)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		val := sdkTypes.ValAddress(iterator.Key())
+		var validatorStoreValue cosmosTypes.ValidatorStoreValue
+		err := k.cdc.Unmarshal(iterator.Value(), &validatorStoreValue)
+		if err != nil {
+			return []string{}, err
+		}
+		count := 0
+		for _, address := range validatorStoreValue.OrchestratorAddresses {
+			if address != "" {
+				orchestratorList = append(orchestratorList, address)
+				count++
+			}
+		}
+		if count == 0 {
+			return []string{}, cosmosTypes.ErrValidatorOrchestratorMappingNotFound
+		}
+		if count > 1 {
+			return []string{}, cosmosTypes.ErrMoreThanOneMapping
+		}
+		validatorOrchestratorMap[val.String()] = validatorStoreValue.OrchestratorAddresses
+	}
+
+	for _, val := range k.GetParams(ctx).ValidatorSetNativeChain {
+		if validatorOrchestratorMap[val.Address] == nil {
+			return []string{}, fmt.Errorf("validator mapping not present in KV store")
+		}
+		delete(validatorOrchestratorMap, val.Address)
+	}
+
+	for key := range validatorOrchestratorMap {
+		if len(key) > 0 {
+			return []string{}, fmt.Errorf("more than expected valdiator orchestrator mapping present")
+		}
+	}
+
+	return orchestratorList, nil
 }

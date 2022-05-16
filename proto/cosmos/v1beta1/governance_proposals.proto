@@ -24,8 +24,14 @@ option (gogoproto.goproto_getters_all) = false;
 message ChangeMultisigProposal{
   string title = 1;
   string description = 2;
-  uint32 threshold = 3;
+  uint64 threshold = 3;
   repeated string orcastrator_addresses = 4;
   uint64 account_number = 5;
 }
 
+message EnableModuleProposal {
+  string title = 1;
+  string description = 2;
+  uint64 threshold = 3;
+  uint64 account_number = 4;
+}
