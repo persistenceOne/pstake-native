@@ -61,8 +61,8 @@ func newTestApp(isCheckTx bool, withGenesis bool) app.PstakeApp {
 }
 
 func createTestInput() (*codec.LegacyAmino, app.PstakeApp, sdk.Context) {
-	app := newTestApp(false, false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	testApp := newTestApp(false, false)
+	ctx := testApp.BaseApp.NewContext(false, tmproto.Header{})
 
-	return app.LegacyAmino(), app, ctx
+	return testApp.LegacyAmino(), testApp, ctx
 }
