@@ -13,14 +13,17 @@ const (
 	ProposalTypeEnableModule                 = "EnableModule"
 )
 
-var _ govtypes.Content = &ChangeMultisigProposal{}
-var _ govtypes.Content = &EnableModuleProposal{}
+var _, _, _, _ govtypes.Content = &ChangeMultisigProposal{}, &EnableModuleProposal{}, &ChangeCosmosValidatorWeightsProposal{}, &ChangeOracleValidatorWeightsProposal{}
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeChangeMultisig)
 	govtypes.RegisterProposalType(ProposalTypeEnableModule)
+	govtypes.RegisterProposalType(ProposalTypeChangeCosmosValidatorWeights)
+	govtypes.RegisterProposalType(ProposalTypeChangeOracleValidatorWeights)
 	govtypes.RegisterProposalTypeCodec(&ChangeMultisigProposal{}, "persistenceCore/ChangeMultisigProposal")
 	govtypes.RegisterProposalTypeCodec(&EnableModuleProposal{}, "persistenceCore/EnableModuleProposal")
+	govtypes.RegisterProposalTypeCodec(&ChangeCosmosValidatorWeightsProposal{}, "persistenceCore/ChangeCosmosValidatorWeightsProposal")
+	govtypes.RegisterProposalTypeCodec(&ChangeOracleValidatorWeightsProposal{}, "persistenceCore/ChangeOracleValidatorWeightsProposal")
 }
 
 func NewChangeMultisigProposal(title, description string, threshold uint64, orchestratorAddresses []string, accountNumber uint64) *ChangeMultisigProposal {
@@ -32,6 +35,7 @@ func NewChangeMultisigProposal(title, description string, threshold uint64, orch
 		AccountNumber:        accountNumber,
 	}
 }
+
 func (m *ChangeMultisigProposal) GetTitle() string {
 	return m.Title
 }
@@ -72,6 +76,7 @@ func NewEnableModuleProposal(title, description string, threshold uint64, accoun
 		AccountNumber: accountNumber,
 	}
 }
+
 func (m *EnableModuleProposal) GetTitle() string {
 	return m.Title
 }
@@ -94,6 +99,82 @@ func (m *EnableModuleProposal) ValidateBasic() error {
 }
 
 func (m *EnableModuleProposal) String() string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf(`Update Pool Incentives Proposal:
+  Title:                 %s
+  Description:           %s
+`, m.Title, m.Description))
+	return b.String()
+}
+
+func NewChangeCosmosValidatorWeightsProposal(title, description string, weightedAddresses []WeightedAddressCosmos) *ChangeCosmosValidatorWeightsProposal {
+	return &ChangeCosmosValidatorWeightsProposal{
+		Title:             title,
+		Description:       description,
+		WeightedAddresses: weightedAddresses,
+	}
+}
+
+func (m *ChangeCosmosValidatorWeightsProposal) GetTitle() string {
+	return m.Title
+}
+
+func (m *ChangeCosmosValidatorWeightsProposal) GetDescription() string {
+	return m.Description
+}
+
+func (m *ChangeCosmosValidatorWeightsProposal) ProposalRoute() string {
+	return RouterKey
+}
+
+func (m *ChangeCosmosValidatorWeightsProposal) ProposalType() string {
+	return ProposalTypeChangeCosmosValidatorWeights
+}
+
+func (m *ChangeCosmosValidatorWeightsProposal) ValidateBasic() error {
+	//TODO add validations
+	return nil
+}
+
+func (m *ChangeCosmosValidatorWeightsProposal) String() string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf(`Update Pool Incentives Proposal:
+  Title:                 %s
+  Description:           %s
+`, m.Title, m.Description))
+	return b.String()
+}
+
+func NewChangeOracleValidatorWeightsProposal(title, description string, weightedAddresses []WeightedAddress) *ChangeOracleValidatorWeightsProposal {
+	return &ChangeOracleValidatorWeightsProposal{
+		Title:             title,
+		Description:       description,
+		WeightedAddresses: weightedAddresses,
+	}
+}
+
+func (m *ChangeOracleValidatorWeightsProposal) GetTitle() string {
+	return m.Title
+}
+
+func (m *ChangeOracleValidatorWeightsProposal) GetDescription() string {
+	return m.Description
+}
+
+func (m *ChangeOracleValidatorWeightsProposal) ProposalRoute() string {
+	return RouterKey
+}
+
+func (m *ChangeOracleValidatorWeightsProposal) ProposalType() string {
+	return ProposalTypeChangeOracleValidatorWeights
+}
+
+func (m *ChangeOracleValidatorWeightsProposal) ValidateBasic() error {
+	//TODO add validations
+	return nil
+}
+
+func (m *ChangeOracleValidatorWeightsProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Update Pool Incentives Proposal:
   Title:                 %s

@@ -140,6 +140,8 @@ var (
 			ibcclientclient.UpgradeProposalHandler,
 			cosmosClient.EnableModuleProposalHandler,
 			cosmosClient.ChangeMultisigProposalHandler,
+			cosmosClient.ChangeCosmosValidatorWeightsProposalHandler,
+			cosmosClient.ChangeOracleValidatorWeightsProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},

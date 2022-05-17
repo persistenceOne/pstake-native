@@ -26,13 +26,6 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// Proposal defines the core field members of a governance proposal.
-//message ChangeCosmosValidatorWeightsProposal {
-//
-//}
-//message ChangeOracleValidatorWeightsProposal{
-//
-//}
 type ChangeMultisigProposal struct {
 	Title                string   `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	Description          string   `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
@@ -112,9 +105,87 @@ func (m *EnableModuleProposal) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EnableModuleProposal proto.InternalMessageInfo
 
+type ChangeCosmosValidatorWeightsProposal struct {
+	Title             string                  `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	Description       string                  `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	WeightedAddresses []WeightedAddressCosmos `protobuf:"bytes,4,rep,name=weighted_addresses,json=weightedAddresses,proto3" json:"weighted_addresses"`
+}
+
+func (m *ChangeCosmosValidatorWeightsProposal) Reset()      { *m = ChangeCosmosValidatorWeightsProposal{} }
+func (*ChangeCosmosValidatorWeightsProposal) ProtoMessage() {}
+func (*ChangeCosmosValidatorWeightsProposal) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e5f7c14866ddb7d4, []int{2}
+}
+func (m *ChangeCosmosValidatorWeightsProposal) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ChangeCosmosValidatorWeightsProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ChangeCosmosValidatorWeightsProposal.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ChangeCosmosValidatorWeightsProposal) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ChangeCosmosValidatorWeightsProposal.Merge(m, src)
+}
+func (m *ChangeCosmosValidatorWeightsProposal) XXX_Size() int {
+	return m.Size()
+}
+func (m *ChangeCosmosValidatorWeightsProposal) XXX_DiscardUnknown() {
+	xxx_messageInfo_ChangeCosmosValidatorWeightsProposal.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ChangeCosmosValidatorWeightsProposal proto.InternalMessageInfo
+
+type ChangeOracleValidatorWeightsProposal struct {
+	Title             string            `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	Description       string            `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	WeightedAddresses []WeightedAddress `protobuf:"bytes,4,rep,name=weighted_addresses,json=weightedAddresses,proto3" json:"weighted_addresses"`
+}
+
+func (m *ChangeOracleValidatorWeightsProposal) Reset()      { *m = ChangeOracleValidatorWeightsProposal{} }
+func (*ChangeOracleValidatorWeightsProposal) ProtoMessage() {}
+func (*ChangeOracleValidatorWeightsProposal) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e5f7c14866ddb7d4, []int{3}
+}
+func (m *ChangeOracleValidatorWeightsProposal) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ChangeOracleValidatorWeightsProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ChangeOracleValidatorWeightsProposal.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ChangeOracleValidatorWeightsProposal) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ChangeOracleValidatorWeightsProposal.Merge(m, src)
+}
+func (m *ChangeOracleValidatorWeightsProposal) XXX_Size() int {
+	return m.Size()
+}
+func (m *ChangeOracleValidatorWeightsProposal) XXX_DiscardUnknown() {
+	xxx_messageInfo_ChangeOracleValidatorWeightsProposal.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ChangeOracleValidatorWeightsProposal proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*ChangeMultisigProposal)(nil), "comsos.v1beta1.ChangeMultisigProposal")
 	proto.RegisterType((*EnableModuleProposal)(nil), "comsos.v1beta1.EnableModuleProposal")
+	proto.RegisterType((*ChangeCosmosValidatorWeightsProposal)(nil), "comsos.v1beta1.ChangeCosmosValidatorWeightsProposal")
+	proto.RegisterType((*ChangeOracleValidatorWeightsProposal)(nil), "comsos.v1beta1.ChangeOracleValidatorWeightsProposal")
 }
 
 func init() {
@@ -122,108 +193,40 @@ func init() {
 }
 
 var fileDescriptor_e5f7c14866ddb7d4 = []byte{
-	// 387 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x92, 0xc1, 0x6a, 0x14, 0x41,
-	0x10, 0x86, 0xa7, 0xcd, 0x46, 0xd8, 0x11, 0x73, 0x18, 0x56, 0x19, 0x97, 0xd0, 0x2e, 0x01, 0x61,
-	0x3d, 0xb8, 0x4d, 0x08, 0x78, 0x57, 0xf1, 0x18, 0x95, 0xf5, 0xe6, 0x65, 0xad, 0xe9, 0x29, 0x67,
-	0x1b, 0x67, 0xba, 0x9a, 0xae, 0x9a, 0xc5, 0xdc, 0x7c, 0x04, 0xc1, 0x97, 0xf0, 0x51, 0x82, 0xa7,
-	0x1c, 0x73, 0x34, 0xb3, 0x2f, 0x22, 0x99, 0x1d, 0x31, 0xa8, 0x57, 0x6f, 0x5d, 0xff, 0xf7, 0x53,
-	0x7c, 0x4d, 0x77, 0xfa, 0xd8, 0x12, 0x37, 0xc4, 0x66, 0x73, 0x5c, 0xa0, 0xc0, 0xb1, 0xa9, 0x68,
-	0x83, 0xd1, 0x83, 0xb7, 0xb8, 0x0a, 0x91, 0x02, 0x31, 0xd4, 0xbc, 0x08, 0x91, 0x84, 0xb2, 0x03,
-	0x4b, 0x0d, 0x13, 0x2f, 0x86, 0xea, 0x74, 0x52, 0x51, 0x45, 0x3d, 0x32, 0xd7, 0xa7, 0x5d, 0x6b,
-	0x7a, 0x58, 0x11, 0x55, 0x35, 0x1a, 0x08, 0xce, 0x80, 0xf7, 0x24, 0x20, 0x8e, 0xfc, 0xb0, 0x63,
-	0xfa, 0x60, 0xa0, 0xfd, 0x54, 0xb4, 0x1f, 0x0c, 0xf8, 0xb3, 0x01, 0x3d, 0xfc, 0x13, 0x89, 0x6b,
-	0x90, 0x05, 0x9a, 0xb0, 0x2b, 0x1c, 0x7d, 0x57, 0xe9, 0xfd, 0x17, 0x6b, 0xf0, 0x15, 0x9e, 0xb6,
-	0xb5, 0x38, 0x76, 0xd5, 0x9b, 0xc1, 0x30, 0x9b, 0xa4, 0xfb, 0xe2, 0xa4, 0xc6, 0x5c, 0xcd, 0xd4,
-	0x7c, 0xbc, 0xdc, 0x0d, 0xd9, 0x2c, 0xbd, 0x53, 0x22, 0xdb, 0xe8, 0xc2, 0xb5, 0x42, 0x7e, 0xab,
-	0x67, 0x37, 0xa3, 0xec, 0x30, 0x1d, 0xcb, 0x3a, 0x22, 0xaf, 0xa9, 0x2e, 0xf3, 0xbd, 0x99, 0x9a,
-	0x8f, 0x96, 0xbf, 0x83, 0xec, 0x24, 0xbd, 0x47, 0xd1, 0x02, 0x4b, 0x04, 0xa1, 0xb8, 0x82, 0xb2,
-	0x8c, 0xc8, 0x8c, 0x9c, 0x8f, 0x66, 0x7b, 0xf3, 0xf1, 0x72, 0x72, 0x03, 0x3e, 0xfb, 0xc5, 0xb2,
-	0x47, 0xe9, 0x01, 0x58, 0x4b, 0xad, 0x97, 0x95, 0x6f, 0x9b, 0x02, 0x63, 0xbe, 0xdf, 0xef, 0xbd,
-	0x3b, 0xa4, 0xaf, 0xfa, 0xf0, 0xe8, 0xab, 0x4a, 0x27, 0x2f, 0x3d, 0x14, 0x35, 0x9e, 0x52, 0xd9,
-	0xd6, 0xf8, 0x9f, 0xaf, 0xf2, 0xb7, 0xd5, 0xe8, 0x1f, 0x56, 0xcf, 0xdf, 0x9f, 0x5f, 0xe9, 0xe4,
-	0xf2, 0x4a, 0x27, 0x9f, 0x3b, 0x9d, 0x7c, 0xeb, 0xb4, 0x3a, 0xef, 0xb4, 0xba, 0xe8, 0xb4, 0xfa,
-	0xd1, 0x69, 0xf5, 0x65, 0xab, 0x93, 0x8b, 0xad, 0x4e, 0x2e, 0xb7, 0x3a, 0x79, 0xf7, 0xb4, 0x72,
-	0xb2, 0x6e, 0x8b, 0x85, 0xa5, 0xc6, 0x04, 0x8c, 0xec, 0x58, 0xd0, 0x5b, 0x7c, 0xed, 0xd1, 0x84,
-	0xb7, 0x02, 0x1f, 0xf1, 0x89, 0x07, 0x71, 0x1b, 0x34, 0x9f, 0xcc, 0xf0, 0xc3, 0xe4, 0x2c, 0x20,
-	0x17, 0xb7, 0xfb, 0xb7, 0x3c, 0xf9, 0x19, 0x00, 0x00, 0xff, 0xff, 0xff, 0xc1, 0x53, 0x8f, 0x78,
-	0x02, 0x00, 0x00,
+	// 492 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x93, 0x31, 0x6f, 0xd3, 0x40,
+	0x14, 0xc7, 0x7d, 0x34, 0x45, 0xca, 0x55, 0x54, 0xc2, 0x0a, 0x28, 0x84, 0xea, 0x12, 0x55, 0x54,
+	0x0a, 0x03, 0x39, 0x95, 0x4a, 0x0c, 0x6c, 0xb4, 0x62, 0x2c, 0x45, 0x01, 0x51, 0xa9, 0x4b, 0x38,
+	0x9f, 0x1f, 0xce, 0x09, 0xfb, 0x9e, 0x75, 0x77, 0x4e, 0xe9, 0xc6, 0x47, 0x60, 0x65, 0x63, 0xe4,
+	0x33, 0x30, 0x31, 0x66, 0xcc, 0xd8, 0x09, 0x51, 0x67, 0xe1, 0x63, 0xa0, 0xd8, 0x07, 0x94, 0x20,
+	0xe8, 0x00, 0x6c, 0x7e, 0xef, 0xf7, 0xd7, 0xd3, 0xff, 0xff, 0xce, 0x8f, 0xde, 0x96, 0x68, 0x33,
+	0xb4, 0x7c, 0xb2, 0x1d, 0x81, 0x13, 0xdb, 0x3c, 0xc1, 0x09, 0x18, 0x2d, 0xb4, 0x84, 0x51, 0x6e,
+	0x30, 0x47, 0x2b, 0x52, 0x3b, 0xc8, 0x0d, 0x3a, 0x0c, 0xd7, 0x25, 0x66, 0x16, 0xed, 0xc0, 0x4b,
+	0x3b, 0xad, 0x04, 0x13, 0xac, 0x10, 0x5f, 0x7c, 0xd5, 0xaa, 0xce, 0x46, 0x82, 0x98, 0xa4, 0xc0,
+	0x45, 0xae, 0xb8, 0xd0, 0x1a, 0x9d, 0x70, 0x0a, 0xb5, 0x9f, 0xd1, 0xb9, 0xe1, 0x69, 0x55, 0x45,
+	0xc5, 0x0b, 0x2e, 0xf4, 0x89, 0x47, 0xdd, 0x65, 0xe4, 0x54, 0x06, 0xd6, 0x89, 0x2c, 0xf7, 0x82,
+	0x9b, 0x4b, 0x56, 0xeb, 0xb2, 0x86, 0x9b, 0x33, 0x42, 0xaf, 0xef, 0x8d, 0x85, 0x4e, 0x60, 0xbf,
+	0x48, 0x9d, 0xb2, 0x2a, 0x79, 0xec, 0xed, 0x87, 0x2d, 0xba, 0xea, 0x94, 0x4b, 0xa1, 0x4d, 0x7a,
+	0xa4, 0xdf, 0x1c, 0xd6, 0x45, 0xd8, 0xa3, 0x6b, 0x31, 0x58, 0x69, 0x54, 0xbe, 0xf0, 0xd7, 0xbe,
+	0x54, 0xb1, 0xf3, 0xad, 0x70, 0x83, 0x36, 0xdd, 0xd8, 0x80, 0x1d, 0x63, 0x1a, 0xb7, 0x57, 0x7a,
+	0xa4, 0xdf, 0x18, 0xfe, 0x68, 0x84, 0x3b, 0xf4, 0x1a, 0x1a, 0x29, 0xac, 0x33, 0xc2, 0xa1, 0x19,
+	0x89, 0x38, 0x36, 0x60, 0x2d, 0xd8, 0x76, 0xa3, 0xb7, 0xd2, 0x6f, 0x0e, 0x5b, 0xe7, 0xe0, 0x83,
+	0x6f, 0x2c, 0xdc, 0xa2, 0xeb, 0x42, 0x4a, 0x2c, 0xb4, 0x1b, 0xe9, 0x22, 0x8b, 0xc0, 0xb4, 0x57,
+	0xab, 0xb9, 0x57, 0x7c, 0xf7, 0x51, 0xd5, 0xbc, 0xdf, 0xf8, 0xf2, 0xae, 0x1b, 0x6c, 0xbe, 0x25,
+	0xb4, 0xf5, 0x50, 0x8b, 0x28, 0x85, 0x7d, 0x8c, 0x8b, 0x14, 0xfe, 0x73, 0xa0, 0x5f, 0xbd, 0x35,
+	0x7e, 0xef, 0xed, 0x23, 0xa1, 0xb7, 0xea, 0x75, 0xef, 0x55, 0xaf, 0xf0, 0x4c, 0xa4, 0x2a, 0x5e,
+	0x64, 0x3d, 0x04, 0x95, 0x8c, 0x9d, 0xfd, 0x6b, 0xaf, 0x47, 0x34, 0x3c, 0xae, 0x46, 0x41, 0xbc,
+	0xb4, 0xdb, 0xb5, 0xbb, 0x5b, 0x03, 0xff, 0xf4, 0xfe, 0x4f, 0x18, 0x1c, 0x7a, 0xa5, 0x5f, 0x74,
+	0x6d, 0x69, 0xb7, 0x31, 0xfd, 0xd4, 0x0d, 0x86, 0x57, 0x8f, 0x7f, 0x86, 0x60, 0x7d, 0x84, 0x0f,
+	0xdf, 0x23, 0x1c, 0x18, 0x21, 0x53, 0xf8, 0xe7, 0x11, 0x9e, 0xfe, 0x21, 0x42, 0xf7, 0x82, 0x08,
+	0x17, 0x98, 0xdf, 0x7d, 0x3e, 0x3d, 0x63, 0xc1, 0xe9, 0x19, 0x0b, 0x5e, 0x97, 0x2c, 0x78, 0x5f,
+	0x32, 0x32, 0x2d, 0x19, 0x99, 0x95, 0x8c, 0x7c, 0x2e, 0x19, 0x79, 0x33, 0x67, 0xc1, 0x6c, 0xce,
+	0x82, 0xd3, 0x39, 0x0b, 0x8e, 0xee, 0x25, 0xca, 0x8d, 0x8b, 0x68, 0x20, 0x31, 0xe3, 0x39, 0x18,
+	0xab, 0xac, 0x03, 0x2d, 0xe1, 0x40, 0x03, 0xcf, 0x9f, 0x38, 0xf1, 0x12, 0xee, 0x68, 0xe1, 0xd4,
+	0x04, 0xf8, 0x2b, 0x7f, 0x50, 0xdc, 0x9d, 0xe4, 0x60, 0xa3, 0xcb, 0xd5, 0x5d, 0xed, 0x7c, 0x0d,
+	0x00, 0x00, 0xff, 0xff, 0x11, 0xeb, 0xe9, 0xb3, 0x21, 0x04, 0x00, 0x00,
 }
 
-func (this *ChangeMultisigProposal) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*ChangeMultisigProposal)
-	if !ok {
-		that2, ok := that.(ChangeMultisigProposal)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.Title != that1.Title {
-		return false
-	}
-	if this.Description != that1.Description {
-		return false
-	}
-	if this.Threshold != that1.Threshold {
-		return false
-	}
-	if len(this.OrcastratorAddresses) != len(that1.OrcastratorAddresses) {
-		return false
-	}
-	for i := range this.OrcastratorAddresses {
-		if this.OrcastratorAddresses[i] != that1.OrcastratorAddresses[i] {
-			return false
-		}
-	}
-	if this.AccountNumber != that1.AccountNumber {
-		return false
-	}
-	return true
-}
-func (this *EnableModuleProposal) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*EnableModuleProposal)
-	if !ok {
-		that2, ok := that.(EnableModuleProposal)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.Title != that1.Title {
-		return false
-	}
-	if this.Description != that1.Description {
-		return false
-	}
-	if this.Threshold != that1.Threshold {
-		return false
-	}
-	if this.AccountNumber != that1.AccountNumber {
-		return false
-	}
-	return true
-}
 func (m *ChangeMultisigProposal) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -327,6 +330,108 @@ func (m *EnableModuleProposal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *ChangeCosmosValidatorWeightsProposal) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ChangeCosmosValidatorWeightsProposal) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ChangeCosmosValidatorWeightsProposal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.WeightedAddresses) > 0 {
+		for iNdEx := len(m.WeightedAddresses) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.WeightedAddresses[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGovernanceProposals(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if len(m.Description) > 0 {
+		i -= len(m.Description)
+		copy(dAtA[i:], m.Description)
+		i = encodeVarintGovernanceProposals(dAtA, i, uint64(len(m.Description)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Title) > 0 {
+		i -= len(m.Title)
+		copy(dAtA[i:], m.Title)
+		i = encodeVarintGovernanceProposals(dAtA, i, uint64(len(m.Title)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ChangeOracleValidatorWeightsProposal) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ChangeOracleValidatorWeightsProposal) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ChangeOracleValidatorWeightsProposal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.WeightedAddresses) > 0 {
+		for iNdEx := len(m.WeightedAddresses) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.WeightedAddresses[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGovernanceProposals(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if len(m.Description) > 0 {
+		i -= len(m.Description)
+		copy(dAtA[i:], m.Description)
+		i = encodeVarintGovernanceProposals(dAtA, i, uint64(len(m.Description)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Title) > 0 {
+		i -= len(m.Title)
+		copy(dAtA[i:], m.Title)
+		i = encodeVarintGovernanceProposals(dAtA, i, uint64(len(m.Title)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintGovernanceProposals(dAtA []byte, offset int, v uint64) int {
 	offset -= sovGovernanceProposals(v)
 	base := offset
@@ -386,6 +491,52 @@ func (m *EnableModuleProposal) Size() (n int) {
 	}
 	if m.AccountNumber != 0 {
 		n += 1 + sovGovernanceProposals(uint64(m.AccountNumber))
+	}
+	return n
+}
+
+func (m *ChangeCosmosValidatorWeightsProposal) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Title)
+	if l > 0 {
+		n += 1 + l + sovGovernanceProposals(uint64(l))
+	}
+	l = len(m.Description)
+	if l > 0 {
+		n += 1 + l + sovGovernanceProposals(uint64(l))
+	}
+	if len(m.WeightedAddresses) > 0 {
+		for _, e := range m.WeightedAddresses {
+			l = e.Size()
+			n += 1 + l + sovGovernanceProposals(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *ChangeOracleValidatorWeightsProposal) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Title)
+	if l > 0 {
+		n += 1 + l + sovGovernanceProposals(uint64(l))
+	}
+	l = len(m.Description)
+	if l > 0 {
+		n += 1 + l + sovGovernanceProposals(uint64(l))
+	}
+	if len(m.WeightedAddresses) > 0 {
+		for _, e := range m.WeightedAddresses {
+			l = e.Size()
+			n += 1 + l + sovGovernanceProposals(uint64(l))
+		}
 	}
 	return n
 }
@@ -711,6 +862,302 @@ func (m *EnableModuleProposal) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGovernanceProposals(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ChangeCosmosValidatorWeightsProposal) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGovernanceProposals
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ChangeCosmosValidatorWeightsProposal: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ChangeCosmosValidatorWeightsProposal: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Title", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGovernanceProposals
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Title = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGovernanceProposals
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Description = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field WeightedAddresses", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGovernanceProposals
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.WeightedAddresses = append(m.WeightedAddresses, WeightedAddressCosmos{})
+			if err := m.WeightedAddresses[len(m.WeightedAddresses)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGovernanceProposals(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ChangeOracleValidatorWeightsProposal) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGovernanceProposals
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ChangeOracleValidatorWeightsProposal: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ChangeOracleValidatorWeightsProposal: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Title", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGovernanceProposals
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Title = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGovernanceProposals
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Description = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field WeightedAddresses", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGovernanceProposals
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGovernanceProposals
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.WeightedAddresses = append(m.WeightedAddresses, WeightedAddress{})
+			if err := m.WeightedAddresses[len(m.WeightedAddresses)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipGovernanceProposals(dAtA[iNdEx:])

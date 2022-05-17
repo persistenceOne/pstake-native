@@ -16,7 +16,7 @@ func (k Keeper) processAllRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin
 	validatorRewards := k.GetProportions(ctx, totalRewards, distributionProportion.ValidatorRewards)
 	developerRewards := k.GetProportions(ctx, totalRewards, distributionProportion.DeveloperRewards)
 
-	for _, wallet := range params.ValidatorSetNativeChain {
+	for _, wallet := range k.getAllOracleValidatorSet(ctx) {
 		amount := sdk.NewCoins(k.GetProportions(ctx, validatorRewards, wallet.Weight))
 		err := k.mintTokensForRewardReceivers(ctx, wallet.Address, amount)
 		if err != nil {

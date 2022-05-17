@@ -129,7 +129,7 @@ func (k Keeper) checkAllValidatorsHaveOrchestrators(ctx sdkTypes.Context) ([]str
 		validatorOrchestratorMap[val.String()] = validatorStoreValue.OrchestratorAddresses
 	}
 
-	for _, val := range k.GetParams(ctx).ValidatorSetNativeChain {
+	for _, val := range k.getAllOracleValidatorSet(ctx) {
 		if validatorOrchestratorMap[val.Address] == nil {
 			return []string{}, fmt.Errorf("validator mapping not present in KV store")
 		}

@@ -44,7 +44,7 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	}
 
 	// check if that validator can set an orchestrator address
-	valset := k.GetParams(ctx).ValidatorSetNativeChain
+	valset := k.getAllOracleValidatorSet(ctx)
 
 	found := false
 	for _, val := range valset {
@@ -392,8 +392,9 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 	}
 
 	//TODO : add failure type for proposal transactions. (in case of chain upgrade on cosmos chain)
-	if msg.Status == "success" || msg.Status == "gas failure" || msg.Status == "sequence mismatch" {
-		k.setTxHashAndDetails(ctx, orchAddr, 0, msg.TxHash, msg.Status, msg.SequenceNumber, msg.AccountNumber)
+	if msg.Status == "success" || msg.Status == "gas failure" || msg.Status == "sequence mismatch" || msg.Status == "keeper failure" {
+		k.setTxHashAndDetails(ctx, orchAddr, 0, msg.TxHash, msg.Status, msg.SequenceNumber, msg.AccountNumber,
+			msg.Balance, msg.BondedTokens, msg.UnbondingTokens)
 	} else {
 		return nil, cosmosTypes.ErrInvalidStatus
 	}
@@ -594,3 +595,5 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	)
 	return &cosmosTypes.MsgSetSignatureResponse{}, nil
 }
+
+// TODO : add slashing event msg

@@ -108,6 +108,12 @@ message TxHashValue {
   int64 active_block_height = 8;
   uint64 account_number = 9;
   uint64 sequence_number = 10;
+  repeated cosmos.base.v1beta1.Coin balance = 11
+  [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  repeated cosmos.base.v1beta1.Coin bonded_tokens = 12
+  [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  repeated cosmos.base.v1beta1.Coin unbonding_tokens = 13
+  [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }
 
 message WithdrawStoreValue {

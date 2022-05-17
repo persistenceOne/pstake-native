@@ -114,6 +114,10 @@ var (
 	KeyCurrentMultisigAddress = []byte{0x14}
 
 	KeyTransactionQueue = []byte{0x15}
+
+	KeyCosmosValidatorWeights = []byte{0x16}
+
+	KeyNativeValidatorWeights = []byte{0x17}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {

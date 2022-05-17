@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"fmt"
 	"sort"
 
 	multisig2 "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
@@ -172,6 +173,47 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 
 	k.enableModule(ctx)
 
+	return nil
+}
+
+func HandleChangeCosmosValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeCosmosValidatorWeightsProposal) error {
+	// step 1 : check total sum of weights is 1
+	err := cosmosTypes.ValidateValidatorSetCosmosChain(p.WeightedAddresses)
+	if err != nil {
+		return err
+	}
+	// step 2 : check if all the validator addresses are correct
+	for _, va := range p.WeightedAddresses {
+		_, err := cosmosTypes.ValAddressFromBech32(va.Address, cosmosTypes.Bech32PrefixValAddr)
+		if err != nil {
+			return err
+		}
+	}
+	// step 3 : update the weights and other values
+	k.setCosmosValidatorSet(ctx, p.WeightedAddresses)
+	return nil
+}
+
+func HandleChangeOracleValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeOracleValidatorWeightsProposal) error {
+	// step 1 : check total sum of weights is 1
+	err := cosmosTypes.ValidateValidatorSetNativeChain(p.WeightedAddresses)
+	if err != nil {
+		return err
+	}
+	// step 2 : check if all the validator are correct if already present in kv store
+	var valAddresses []sdk.ValAddress
+	for _, va := range p.WeightedAddresses {
+		valAddress, err := sdk.ValAddressFromBech32(va.Address)
+		if err != nil {
+			return err
+		}
+		valAddresses = append(valAddresses, valAddress)
+	}
+	// step 3 : update the weights and other values
+	if len(valAddresses) != len(p.WeightedAddresses) {
+		return fmt.Errorf("validator addresses and weight are not equally mapped")
+	}
+	k.setOracleValidatorSet(ctx, valAddresses, p.WeightedAddresses)
 	return nil
 }
 

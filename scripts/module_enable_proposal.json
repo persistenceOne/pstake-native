@@ -1,0 +1,8 @@
+{
+  "title": "oracle weights change proposal",
+  "description": "change oracle weights",
+  "threshold" : "1",
+  "account_number" : "0",
+  "depositor": "persistence183g695ap32wnds5k9xwd3yq997dqxudfts2gqg",
+  "deposit": "512stake"
+}

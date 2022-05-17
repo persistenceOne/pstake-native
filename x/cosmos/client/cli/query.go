@@ -37,6 +37,8 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryProposals(),
 		GetCmdQueryVote(),
 		GetCmdQueryVotes(),
+		GetCmdQueryCosmosValidatorSet(),
+		GetCmdQueryOracleValidatorSet(),
 	)
 
 	return cosmosQueryCmd
@@ -330,6 +332,62 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 	}
 
 	flags.AddPaginationFlagsToCmd(cmd, "votes")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryCosmosValidatorSet() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "cosmos-validator-set",
+		Short: "Query cosmos validator set",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := cosmosTypes.NewQueryClient(clientCtx)
+
+			params := &cosmosTypes.QueryCosmosValidatorSetRequest{}
+			res, err := queryClient.CosmosValidatorSet(context.Background(), params)
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryOracleValidatorSet() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "oracle-validator-set",
+		Short: "Query oracle validator set",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := cosmosTypes.NewQueryClient(clientCtx)
+
+			params := &cosmosTypes.QueryOracleValidatorSetRequest{}
+			res, err := queryClient.OracleValidatorSet(context.Background(), params)
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd

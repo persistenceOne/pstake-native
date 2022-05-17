@@ -21,6 +21,16 @@ type (
 		ChangeMultisig ChangeMultisigPropsoalJSON `json:"change_multisig" yaml:"change_multisig"`
 	}
 
+	ChangeCosmosValidatorWeightsProposalReq struct {
+		BaseReq            rest.BaseReq                             `json:"base_req" yaml:"base_req"`
+		CosmosValidatorSet ChangeCosmosValidatorWeightsProposalJSON `json:"cosmos_validator_set" yaml:"cosmos_validator_set"`
+	}
+
+	ChangeOracleValidatorWeightsProposalReq struct {
+		BaseReq            rest.BaseReq                             `json:"base_req" yaml:"base_req"`
+		OracleValidatorSet ChangeOracleValidatorWeightsProposalJSON `json:"oracle_validator_set" yaml:"oracle_validator_set"`
+	}
+
 	EnableModuleProposalJSON struct {
 		Title         string `json:"title" yaml:"title"`
 		Description   string `json:"description" yaml:"description"`
@@ -38,6 +48,27 @@ type (
 		AccountNumber         uint64   `json:"account_number" yaml:"account_number"`
 		Depositor             string   `json:"depositor" yaml:"depositor"`
 		Deposit               string   `json:"deposit" yaml:"deposit"`
+	}
+
+	ChangeCosmosValidatorWeightsProposalJSON struct {
+		Title             string              `json:"title" yaml:"title"`
+		Description       string              `json:"description" yaml:"description"`
+		WeightedAddresses []WeightedAddresses `json:"weighted_addresses" yaml:"weighted_addresses"`
+		Depositor         string              `json:"depositor" yaml:"depositor"`
+		Deposit           string              `json:"deposit" yaml:"deposit"`
+	}
+
+	ChangeOracleValidatorWeightsProposalJSON struct {
+		Title             string              `json:"title" yaml:"title"`
+		Description       string              `json:"description" yaml:"description"`
+		WeightedAddresses []WeightedAddresses `json:"weighted_addresses" yaml:"weighted_addresses"`
+		Depositor         string              `json:"depositor" yaml:"depositor"`
+		Deposit           string              `json:"deposit" yaml:"deposit"`
+	}
+
+	WeightedAddresses struct {
+		ValAddress string `json:"val_address" yaml:"val_address"`
+		Weight     string `json:"weight" yaml:"weight"`
 	}
 )
 
@@ -108,6 +139,38 @@ func ParseEnableModuleProposalJSON(cdc *codec.LegacyAmino, proposalFile string) 
 
 func ParseChangeMultisigProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (ChangeMultisigPropsoalJSON, error) {
 	proposal := ChangeMultisigPropsoalJSON{}
+
+	contents, err := ioutil.ReadFile(proposalFile)
+	if err != nil {
+		return proposal, err
+	}
+
+	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
+		return proposal, err
+	}
+
+	return proposal, nil
+}
+
+func ParseChangeCosmosValidatorWeightsProposalJSON(
+	cdc *codec.LegacyAmino, proposalFile string) (ChangeCosmosValidatorWeightsProposalJSON, error) {
+	proposal := ChangeCosmosValidatorWeightsProposalJSON{}
+
+	contents, err := ioutil.ReadFile(proposalFile)
+	if err != nil {
+		return proposal, err
+	}
+
+	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
+		return proposal, err
+	}
+
+	return proposal, nil
+}
+
+func ParseChangeOracleValidatorWeightsProposalJSON(
+	cdc *codec.LegacyAmino, proposalFile string) (ChangeOracleValidatorWeightsProposalJSON, error) {
+	proposal := ChangeOracleValidatorWeightsProposalJSON{}
 
 	contents, err := ioutil.ReadFile(proposalFile)
 	if err != nil {

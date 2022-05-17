@@ -50,10 +50,10 @@ func ParamKeyTable() paramsTypes.KeyTable {
 }
 
 func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningAmount sdk.Coin, maxBurningAmount sdk.Coin,
-	maxValidatorToDelegate uint64, validatorSetCosmosChain []WeightedAddressCosmos, validatorSetNativeChain []WeightedAddress,
-	weightedDeveloperRewardsReceivers []WeightedAddress, distributionProportion DistributionProportions, epochs int64,
-	maxIncomingAndOutgoingTxns int64, cosmosProposalParams CosmosChainProposalParams, stakingEpochIdentifier string,
-	custodialAddress string, undelegateEpochIdentifier string, ChunkSize int64, bondDenom []string, mintDenom string,
+	maxValidatorToDelegate uint64, weightedDeveloperRewardsReceivers []WeightedAddress,
+	distributionProportion DistributionProportions, epochs int64, maxIncomingAndOutgoingTxns int64,
+	cosmosProposalParams CosmosChainProposalParams, stakingEpochIdentifier string, custodialAddress string,
+	undelegateEpochIdentifier string, ChunkSize int64, bondDenom []string, mintDenom string,
 	multiSigThreshold uint64, retryLimit uint64) Params {
 	return Params{
 		MinMintingAmount:                  minMintingAmount,
@@ -61,8 +61,6 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 		MinBurningAmount:                  minBurningAmount,
 		MaxBurningAmount:                  maxBurningAmount,
 		MaxValidatorToDelegate:            maxValidatorToDelegate,
-		ValidatorSetCosmosChain:           validatorSetCosmosChain,
-		ValidatorSetNativeChain:           validatorSetNativeChain,
 		WeightedDeveloperRewardsReceivers: weightedDeveloperRewardsReceivers,
 		DistributionProportion:            distributionProportion,
 		Epochs:                            epochs,
@@ -87,34 +85,34 @@ func DefaultParams() Params {
 		MinBurningAmount:       sdk.NewInt64Coin("uatom", 5000000),
 		MaxBurningAmount:       sdk.NewInt64Coin("uatom", 100000000000),
 		MaxValidatorToDelegate: 3,
-		ValidatorSetCosmosChain: []WeightedAddressCosmos{
-			{
-				Address:                "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
-				Weight:                 sdk.NewDecWithPrec(5, 1),
-				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-			},
-			{
-				Address:                "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2",
-				Weight:                 sdk.NewDecWithPrec(2, 1),
-				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-			},
-			{
-				Address:                "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
-				Weight:                 sdk.NewDecWithPrec(1, 1),
-				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-			},
-			{
-				Address:                "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2",
-				Weight:                 sdk.NewDecWithPrec(2, 1),
-				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-			},
-		},
-		ValidatorSetNativeChain: []WeightedAddress{
-			{
-				Address: "persistencevaloper183g695ap32wnds5k9xwd3yq997dqxudfz524f3",
-				Weight:  sdk.NewDecWithPrec(10, 1),
-			},
-		},
+		//ValidatorSetCosmosChain: []WeightedAddressCosmos{
+		//	{
+		//		Address:                "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
+		//		Weight:                 sdk.NewDecWithPrec(5, 1),
+		//		CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
+		//	},
+		//	{
+		//		Address:                "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2",
+		//		Weight:                 sdk.NewDecWithPrec(2, 1),
+		//		CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
+		//	},
+		//	{
+		//		Address:                "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
+		//		Weight:                 sdk.NewDecWithPrec(1, 1),
+		//		CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
+		//	},
+		//	{
+		//		Address:                "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2",
+		//		Weight:                 sdk.NewDecWithPrec(2, 1),
+		//		CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
+		//	},
+		//},
+		//ValidatorSetNativeChain: []WeightedAddress{
+		//	{
+		//		Address: "persistencevaloper183g695ap32wnds5k9xwd3yq997dqxudfz524f3",
+		//		Weight:  sdk.NewDecWithPrec(10, 1),
+		//	},
+		//},
 		WeightedDeveloperRewardsReceivers: []WeightedAddress{
 			{
 				Address: "persistence1g5lz0gq98y8tav477dltxgpdft0wr9rmqt7mvu",
@@ -158,12 +156,6 @@ func (p Params) Validate() error {
 		return err
 	}
 	if err := validateMaxValidatorToDelegate(p.MaxValidatorToDelegate); err != nil {
-		return err
-	}
-	if err := validateValidatorSetCosmosChain(p.ValidatorSetCosmosChain); err != nil {
-		return err
-	}
-	if err := validateValidatorSetNativeChain(p.ValidatorSetNativeChain); err != nil {
 		return err
 	}
 	if err := validateWeightedDeveloperRewardsReceivers(p.WeightedDeveloperRewardsReceivers); err != nil {
@@ -226,8 +218,6 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyMinBurningAmount, &p.MinBurningAmount, validateMinBurningAmount),
 		paramsTypes.NewParamSetPair(KeyMaxBurningAmount, &p.MaxBurningAmount, validateMaxBurningAmount),
 		paramsTypes.NewParamSetPair(KeyMaxValidatorToDelegate, &p.MaxValidatorToDelegate, validateMaxValidatorToDelegate),
-		paramsTypes.NewParamSetPair(KeyValidatorSetCosmosChain, &p.ValidatorSetCosmosChain, validateValidatorSetCosmosChain),
-		paramsTypes.NewParamSetPair(KeyValidatorSetNativeChain, &p.ValidatorSetNativeChain, validateValidatorSetNativeChain),
 		paramsTypes.NewParamSetPair(KeyWeightedDeveloperRewardsReceivers, &p.WeightedDeveloperRewardsReceivers, validateWeightedDeveloperRewardsReceivers),
 		paramsTypes.NewParamSetPair(KeyDistributionProportion, &p.DistributionProportion, validateDistributionProportion),
 		paramsTypes.NewParamSetPair(KeyEpochs, &p.Epochs, validateEpochs),
@@ -311,7 +301,7 @@ func validateMaxValidatorToDelegate(i interface{}) error {
 	return nil
 }
 
-func validateValidatorSetCosmosChain(i interface{}) error {
+func ValidateValidatorSetCosmosChain(i interface{}) error {
 	v, ok := i.([]WeightedAddressCosmos)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -350,7 +340,7 @@ func validateValidatorSetCosmosChain(i interface{}) error {
 	return nil
 }
 
-func validateValidatorSetNativeChain(i interface{}) error {
+func ValidateValidatorSetNativeChain(i interface{}) error {
 	v, ok := i.([]WeightedAddress)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

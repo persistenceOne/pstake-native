@@ -22,6 +22,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUndelegateSuccess{}, "cosmos/MsgUndelegateSuccess", nil)
 	cdc.RegisterConcrete(&EnableModuleProposal{}, "cosmos/EnableModuleProposal", nil)
 	cdc.RegisterConcrete(&ChangeMultisigProposal{}, "cosmos/ChangeMultisigProposal", nil)
+	cdc.RegisterConcrete(&ChangeCosmosValidatorWeightsProposal{}, "cosmos/ChangeCosmosValidatorWeightsProposal", nil)
+	cdc.RegisterConcrete(&ChangeOracleValidatorWeightsProposal{}, "cosmos/ChangeOracleValidatorWeightsProposal", nil)
 }
 
 func RegisterInterfaces(registry codecTypes.InterfaceRegistry) {
@@ -41,6 +43,8 @@ func RegisterInterfaces(registry codecTypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*govtypes.Content)(nil),
 		&EnableModuleProposal{},
 		&ChangeMultisigProposal{},
+		&ChangeCosmosValidatorWeightsProposal{},
+		&ChangeOracleValidatorWeightsProposal{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

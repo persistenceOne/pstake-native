@@ -59,7 +59,8 @@ func NewProposalValue(title string, description string, orchAddress string, rati
 }
 
 func NewTxHashValue(txId uint64, orchestratorAddress sdkTypes.AccAddress, ratio float32, status string,
-	nativeBlockHeight int64, activeBlockHeight int64, accountNumber uint64, sequenceNumber uint64) TxHashValue {
+	nativeBlockHeight int64, activeBlockHeight int64, accountNumber uint64, sequenceNumber uint64, balance sdkTypes.Coins,
+	bondedTokens sdkTypes.Coins, unbondingTokens sdkTypes.Coins) TxHashValue {
 	return TxHashValue{
 		TxID:                  txId,
 		OrchestratorAddresses: []string{orchestratorAddress.String()},
@@ -71,6 +72,9 @@ func NewTxHashValue(txId uint64, orchestratorAddress sdkTypes.AccAddress, ratio 
 		ActiveBlockHeight:     activeBlockHeight,
 		AccountNumber:         accountNumber,
 		SequenceNumber:        sequenceNumber,
+		Balance:               balance,
+		BondedTokens:          bondedTokens,
+		UnbondingTokens:       unbondingTokens,
 	}
 }
 

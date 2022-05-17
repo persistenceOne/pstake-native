@@ -1,0 +1,12 @@
+{
+  "title": "oracle weights change proposal",
+  "description": "change oracle weights",
+  "weighted_addresses": [
+    {
+      "val_address": "persistencevaloper183g695ap32wnds5k9xwd3yq997dqxudfz524f3",
+      "weight": "1"
+    }
+  ],
+  "depositor": "persistence183g695ap32wnds5k9xwd3yq997dqxudfts2gqg",
+  "deposit": "512stake"
+}

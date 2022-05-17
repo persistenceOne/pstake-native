@@ -412,7 +412,7 @@ func NewEnableModuleCmd() *cobra.Command {
 func NewChangeMultisigCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "change-multisig [proposal-file] ",
-		Args:  cobra.ExactArgs(5),
+		Args:  cobra.ExactArgs(1),
 		Short: "Submit a multisig change proposal",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Submit a change-multisig proposal along with an initial deposit.`),
@@ -430,6 +430,111 @@ func NewChangeMultisigCmd() *cobra.Command {
 
 			from := clientCtx.GetFromAddress()
 			content := cosmosTypes.NewChangeMultisigProposal(proposal.Title, proposal.Description, proposal.Threshold, proposal.OrchestratorAddresses, proposal.AccountNumber)
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+}
+
+func NewChangeCosmosValidatorWeightsCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "change-cosmos-validator-weights [proposal-file] ",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a cosmos validator weights change proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a cosmos validator weights proposal along with an initial deposit.`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("entering cosmos validator set proposal")
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := utils.ParseChangeCosmosValidatorWeightsProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			var weightedAddresses []cosmosTypes.WeightedAddressCosmos
+
+			for _, weightedAddress := range proposal.WeightedAddresses {
+				weight, err := sdk.NewDecFromStr(weightedAddress.Weight)
+				if err != nil {
+					return err
+				}
+				weightedAddresses = append(
+					weightedAddresses,
+					cosmosTypes.WeightedAddressCosmos{
+						Address: weightedAddress.ValAddress,
+						Weight:  weight,
+					})
+			}
+
+			from := clientCtx.GetFromAddress()
+			content := cosmosTypes.NewChangeCosmosValidatorWeightsProposal(proposal.Title, proposal.Description, weightedAddresses)
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+}
+
+func NewChangeOracleValidatorWeightsCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "change-oracle-validator-weights [proposal-file] ",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a oracle validator weights change proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a oracle validator weights proposal along with an initial deposit.`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := utils.ParseChangeOracleValidatorWeightsProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			var weightedAddresses []cosmosTypes.WeightedAddress
+
+			for _, weightedAddress := range proposal.WeightedAddresses {
+				weight, err := sdk.NewDecFromStr(weightedAddress.Weight)
+				if err != nil {
+					return err
+				}
+				weightedAddresses = append(
+					weightedAddresses,
+					cosmosTypes.WeightedAddress{
+						Address: weightedAddress.ValAddress,
+						Weight:  weight,
+					})
+			}
+
+			from := clientCtx.GetFromAddress()
+			content := cosmosTypes.NewChangeOracleValidatorWeightsProposal(proposal.Title, proposal.Description, weightedAddresses)
 
 			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
 			if err != nil {
