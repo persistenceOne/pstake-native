@@ -1,9 +1,11 @@
 package keeper_test
 
 import (
+	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/pstake-native/app"
-	"github.com/persistenceOne/pstake-native/app/params"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -29,12 +31,42 @@ var defaultConsensusParams = &abci.ConsensusParams{
 	},
 }
 
-func newTestApp() app.PstakeApp {
+func newTestApp(isCheckTx bool, withGenesis bool) app.PstakeApp {
 	db := tmdb.NewMemDB()
 	// encCdc := app.MakeTestEncodingConfig()
 
-	encoding := params.MakeEncodingConfig()
-	testApp := app.NewGaiaApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encoding, simapp.EmptyAppOptions{})
-	//return testApp, app.NewDefaultGenesisState(encoding.Marshaler)
+	encoding := app.MakeEncodingConfig()
+	testApp := app.NewGaiaApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encoding, simapp.EmptyAppOptions{})
+	genesis := app.GenesisState{}
+	if withGenesis {
+		genesis = app.NewDefaultGenesisState()
+	}
+
+	if !isCheckTx {
+		// InitChain must be called to stop deliverState from being nil
+		stateBytes, err := json.MarshalIndent(genesis, "", " ")
+		if err != nil {
+			panic(err)
+		}
+		// Initialize the chain
+		testApp.InitChain(
+			abci.RequestInitChain{
+				Validators:      []abci.ValidatorUpdate{},
+				ConsensusParams: defaultConsensusParams,
+				AppStateBytes:   stateBytes,
+			},
+		)
+	}
 	return *testApp
+}
+
+func createTestInput() (*codec.LegacyAmino, app.PstakeApp, sdk.Context) {
+	app := newTestApp(false, false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+
+	//app.CosmosKeeper = keeper.NewKeeper(app.AppCodec(),
+	//	app.GetKey(cosmosTypes.StoreKey), app.GetSubspace(cosmosTypes.ModuleName),
+	//	&app.AccountKeeper, &app.BankKeeper, &app.MintKeeper, &app.StakingKeeper, app.EpochsKeeper) // Epochs keeper could be nil
+
+	return app.LegacyAmino(), app, ctx
 }
