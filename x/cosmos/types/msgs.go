@@ -355,11 +355,17 @@ func (m *MsgSignedTx) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgTxStatus returns a new MsgTxStatus
-func NewMsgTxStatus(orchAddress sdk.AccAddress, status string, txHash string) *MsgTxStatus {
+func NewMsgTxStatus(orchAddress sdk.AccAddress, status string, txHash string, accountNumber uint64, sequenceNumber uint64,
+	balance sdk.Coins, bondedTokens sdk.Coins, unbondingTokens sdk.Coins) *MsgTxStatus {
 	return &MsgTxStatus{
 		OrchestratorAddress: orchAddress.String(),
 		TxHash:              txHash,
 		Status:              status,
+		AccountNumber:       accountNumber,
+		SequenceNumber:      sequenceNumber,
+		Balance:             balance,
+		BondedTokens:        bondedTokens,
+		UnbondingTokens:     unbondingTokens,
 	}
 }
 
