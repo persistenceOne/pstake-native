@@ -64,9 +64,5 @@ func createTestInput() (*codec.LegacyAmino, app.PstakeApp, sdk.Context) {
 	app := newTestApp(false, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
-	//app.CosmosKeeper = keeper.NewKeeper(app.AppCodec(),
-	//	app.GetKey(cosmosTypes.StoreKey), app.GetSubspace(cosmosTypes.ModuleName),
-	//	&app.AccountKeeper, &app.BankKeeper, &app.MintKeeper, &app.StakingKeeper, app.EpochsKeeper) // Epochs keeper could be nil
-
 	return app.LegacyAmino(), app, ctx
 }
