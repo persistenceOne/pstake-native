@@ -3,12 +3,13 @@ package keeper_test
 import (
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/persistenceOne/pstake-native/app/helpers"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
-func Test(t *testing.T) {
-	_, app, ctx := createTestInput()
+func TestGetValidatorOrchestrator(t *testing.T) {
+	_, app, ctx := helpers.CreateTestInput()
 	keeper := app.CosmosKeeper
 
 	valAddr1 := sdkTypes.ValAddress("Val1")
