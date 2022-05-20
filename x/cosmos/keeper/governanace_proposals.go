@@ -98,7 +98,7 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 	}
 
 	// check if all the validators have orchestrator address set or not
-	orchestratorList, err := k.checkAllValidatorsHaveOrchestrators(ctx)
+	_, err := k.checkAllValidatorsHaveOrchestrators(ctx)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 	// can remove this validation when we allow to have multiple keys with one validator
 	// do not iterate over this, will cause non determinism.
 	valAddrMap := make(map[string]string)
-	for _, orcastratorAddress := range orchestratorList {
+	for _, orcastratorAddress := range p.OrchestratorAddresses {
 		//validate is orchestrator is actually correct
 		orchestratorAccAddress, err := sdk.AccAddressFromBech32(orcastratorAddress)
 		if err != nil {

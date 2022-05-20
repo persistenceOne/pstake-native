@@ -5,6 +5,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const (
+	Success          = "success"
+	GasFailure       = "gas failure"
+	SequenceMismatch = "sequence mismatch"
+	KeeperFailure    = "keeper failure"
+)
+
 // UInt64FromBytes create uint from binary big endian representation
 func UInt64FromBytes(s []byte) uint64 {
 	return binary.BigEndian.Uint64(s)

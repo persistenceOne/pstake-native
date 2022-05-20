@@ -7,7 +7,7 @@ package rest
 
 import (
 	"fmt"
-	types2 "github.com/cosmos/cosmos-sdk/types"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"net/http"
 
@@ -54,12 +54,12 @@ func postEnableModuleProposalHandlerFn(clientCtx client.Context) http.HandlerFun
 			req.EnableModule.Threshold,
 			req.EnableModule.AccountNumber)
 
-		deposit, err := types2.ParseCoinsNormalized(req.EnableModule.Deposit)
+		deposit, err := sdkTypes.ParseCoinsNormalized(req.EnableModule.Deposit)
 		if err != nil {
 			return
 		}
 
-		depositor, err := types2.AccAddressFromBech32(req.EnableModule.Depositor)
+		depositor, err := sdkTypes.AccAddressFromBech32(req.EnableModule.Depositor)
 		if err != nil {
 			return
 		}
@@ -103,13 +103,13 @@ func postChangeMultisigProposalHandlerFn(clientCtx client.Context) http.HandlerF
 			req.ChangeMultisig.AccountNumber)
 
 		//TODO : check if correct way to do it
-		deposit, err := types2.ParseCoinsNormalized(req.ChangeMultisig.Deposit)
+		deposit, err := sdkTypes.ParseCoinsNormalized(req.ChangeMultisig.Deposit)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		depositor, err := types2.AccAddressFromBech32(req.ChangeMultisig.Depositor)
+		depositor, err := sdkTypes.AccAddressFromBech32(req.ChangeMultisig.Depositor)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -150,7 +150,7 @@ func postChangeCosmosValidatorWeightsProposalHandlerFn(clientCtx client.Context)
 		var weightedAddresses []cosmosTypes.WeightedAddressCosmos
 
 		for _, weightedAddress := range req.CosmosValidatorSet.WeightedAddresses {
-			weight, err := types2.NewDecFromStr(weightedAddress.Weight)
+			weight, err := sdkTypes.NewDecFromStr(weightedAddress.Weight)
 			if err != nil {
 				return
 			}
@@ -167,12 +167,12 @@ func postChangeCosmosValidatorWeightsProposalHandlerFn(clientCtx client.Context)
 			req.CosmosValidatorSet.Description,
 			weightedAddresses)
 
-		deposit, err := types2.ParseCoinsNormalized(req.CosmosValidatorSet.Deposit)
+		deposit, err := sdkTypes.ParseCoinsNormalized(req.CosmosValidatorSet.Deposit)
 		if err != nil {
 			return
 		}
 
-		depositor, err := types2.AccAddressFromBech32(req.CosmosValidatorSet.Depositor)
+		depositor, err := sdkTypes.AccAddressFromBech32(req.CosmosValidatorSet.Depositor)
 		if err != nil {
 			return
 		}
@@ -212,7 +212,7 @@ func postChangeOracleValidatorWeightsProposalHandlerFn(clientCtx client.Context)
 		var weightedAddresses []cosmosTypes.WeightedAddress
 
 		for _, weightedAddress := range req.OracleValidatorSet.WeightedAddresses {
-			weight, err := types2.NewDecFromStr(weightedAddress.Weight)
+			weight, err := sdkTypes.NewDecFromStr(weightedAddress.Weight)
 			if err != nil {
 				return
 			}
@@ -229,12 +229,12 @@ func postChangeOracleValidatorWeightsProposalHandlerFn(clientCtx client.Context)
 			req.OracleValidatorSet.Description,
 			weightedAddresses)
 
-		deposit, err := types2.ParseCoinsNormalized(req.OracleValidatorSet.Deposit)
+		deposit, err := sdkTypes.ParseCoinsNormalized(req.OracleValidatorSet.Deposit)
 		if err != nil {
 			return
 		}
 
-		depositor, err := types2.AccAddressFromBech32(req.OracleValidatorSet.Depositor)
+		depositor, err := sdkTypes.AccAddressFromBech32(req.OracleValidatorSet.Depositor)
 		if err != nil {
 			return
 		}

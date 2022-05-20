@@ -16,6 +16,9 @@ service Msg {
   rpc SetOrchestrator(MsgSetOrchestrator) returns (MsgSetOrchestratorResponse) {
     option (google.api.http).post = "/pstake/cosmos/v1beta1/SetOrchestrator";
   }
+  rpc RemoveOrchestrator(MsgRemoveOrchestrator) returns (MsgRemoveOrchestratorResponse) {
+    option (google.api.http).post = "/pstake/cosmos/v1beta1/RemoveOrchestrator";
+  }
   rpc Withdraw(MsgWithdrawStkAsset) returns (MsgWithdrawStkAssetResponse) {
     option (google.api.http).post = "/pstake/cosmos/v1beta1/WithdrawStkAssets";
   }
@@ -32,6 +35,7 @@ service Msg {
   rpc RewardsClaimed(MsgRewardsClaimedOnCosmosChain) returns (MsgRewardsClaimedOnCosmosChainResponse) {}
   rpc UndelegateSuccess(MsgUndelegateSuccess) returns (MsgUndelegateSuccessResponse) {};
   rpc SetSignature(MsgSetSignature) returns (MsgSetSignatureResponse) {};
+  rpc SlashingEvent(MsgSlashingEventOnCosmosChain) returns (MsgSlashingEventOnCosmosChainResposne) {};
 }
 
 message MsgSetOrchestrator {
@@ -39,6 +43,13 @@ message MsgSetOrchestrator {
   string orchestrator = 2;
 }
 message MsgSetOrchestratorResponse {}
+
+message MsgRemoveOrchestrator {
+  string validator = 1;
+  string orchestrator = 2;
+}
+
+message MsgRemoveOrchestratorResponse {}
 
 message MsgWithdrawStkAsset {
   option (gogoproto.equal) = false;
@@ -126,10 +137,7 @@ message MsgTxStatus {
   uint64 sequence_number = 5;
   repeated cosmos.base.v1beta1.Coin balance = 6
   [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
-  repeated cosmos.base.v1beta1.Coin bonded_tokens = 7
-  [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
-  repeated cosmos.base.v1beta1.Coin unbonding_tokens = 8
-  [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  repeated ValidatorDetails validator_details = 7 [(gogoproto.nullable) = false];
 }
 message MsgTxStatusResponse {}
 
@@ -159,3 +167,20 @@ message MsgSetSignature{
   bytes signature = 3;
 }
 message MsgSetSignatureResponse{}
+
+message ValidatorDetails {
+  string validator_address = 1;
+  cosmos.base.v1beta1.Coin bonded_tokens = 2 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin unbonding_tokens = 3 [(gogoproto.nullable) = false];
+}
+
+message MsgSlashingEventOnCosmosChain {
+  string validator_address = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  string orchestrator_address = 3;
+  string tx_hash = 4;
+  string chain_i_d = 5;
+  int64 block_height = 6;
+}
+
+message MsgSlashingEventOnCosmosChainResposne {}

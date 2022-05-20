@@ -2,19 +2,18 @@ package types
 
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"time"
-
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 )
 
-func NewIncomingMintTx(orchestratorAddress sdkTypes.AccAddress, counter uint64) IncomingMintTx {
+func NewIncomingMintTx(orchestratorAddress sdkTypes.AccAddress, ratio sdkTypes.Dec) IncomingMintTx {
 	return IncomingMintTx{
 		OrchAddresses: []string{orchestratorAddress.String()},
-		Counter:       counter,
+		Counter:       1,
+		Ratio:         ratio,
 	}
 }
 
@@ -44,37 +43,26 @@ func NewProposalKey(chainID string, blockHeight int64, proposalID uint64) Propos
 	}
 }
 
-func NewProposalValue(title string, description string, orchAddress string, ratio float32, votingStartTime time.Time, votingEndTime time.Time, cosmosProposalID uint64) ProposalValue {
+func NewProposalValue(msg MsgMakeProposal, orchAddress string, ratio sdkTypes.Dec) ProposalValue {
 	return ProposalValue{
-		Title:                 title,
-		Description:           description,
+		ProposalDetails:       msg,
 		OrchestratorAddresses: []string{orchAddress},
+		ProposalPosted:        false,
 		Ratio:                 ratio,
 		Counter:               1,
-		ProposalPosted:        false,
-		VotingStartTime:       votingStartTime,
-		VotingEndTime:         votingEndTime,
-		CosmosProposalID:      cosmosProposalID,
 	}
 }
 
-func NewTxHashValue(txId uint64, orchestratorAddress sdkTypes.AccAddress, ratio float32, status string,
-	nativeBlockHeight int64, activeBlockHeight int64, accountNumber uint64, sequenceNumber uint64, balance sdkTypes.Coins,
-	bondedTokens sdkTypes.Coins, unbondingTokens sdkTypes.Coins) TxHashValue {
+func NewTxHashValue(msg MsgTxStatus, ratio sdkTypes.Dec, nativeBlockHeight, activeBlockHeight int64) TxHashValue {
 	return TxHashValue{
-		TxID:                  txId,
-		OrchestratorAddresses: []string{orchestratorAddress.String()},
-		Status:                []string{status},
+		TxStatus:              msg,
+		OrchestratorAddresses: []string{msg.OrchestratorAddress},
+		Status:                []string{msg.Status},
 		Ratio:                 ratio,
 		TxCleared:             false,
 		Counter:               1,
 		NativeBlockHeight:     nativeBlockHeight,
 		ActiveBlockHeight:     activeBlockHeight,
-		AccountNumber:         accountNumber,
-		SequenceNumber:        sequenceNumber,
-		Balance:               balance,
-		BondedTokens:          bondedTokens,
-		UnbondingTokens:       unbondingTokens,
 	}
 }
 
@@ -92,12 +80,12 @@ func NewValueOutgoingUnbondStore(undelegateMessage []stakingTypes.MsgUndelegate,
 	}
 }
 
-func NewValueUndelegateSuccessStore(valAddress sdkTypes.ValAddress, orchestratorAddress sdkTypes.AccAddress, ratio float32, amount sdkTypes.Coin, nativeBlockHeight int64, activeBlockHeight int64) ValueUndelegateSuccessStore {
+func NewValueUndelegateSuccessStore(msg MsgUndelegateSuccess, orchestratorAddress string, ratio sdkTypes.Dec,
+	nativeBlockHeight, activeBlockHeight int64) ValueUndelegateSuccessStore {
 	return ValueUndelegateSuccessStore{
-		ValidatorAddress:      valAddress.String(),
-		OrchestratorAddresses: []string{orchestratorAddress.String()},
+		UndelegateSuccess:     msg,
+		OrchestratorAddresses: []string{orchestratorAddress},
 		Ratio:                 ratio,
-		Amount:                amount,
 		Counter:               1,
 		NativeBlockHeight:     nativeBlockHeight,
 		ActiveBlockHeight:     activeBlockHeight,
@@ -116,10 +104,11 @@ func NewMintingEpochValue(txIDAndStatus MintingEpochValueMember) MintingEpochVal
 	}
 }
 
-func NewRewardsClaimedValue(orchestratorAddress sdkTypes.AccAddress, amount sdkTypes.Coin, ratio float32, nativeBlockHeight int64, activeBlockHeight int64) RewardsClaimedValue {
+func NewRewardsClaimedValue(msg MsgRewardsClaimedOnCosmosChain, orchestratorAddress string, ratio sdkTypes.Dec,
+	nativeBlockHeight, activeBlockHeight int64) RewardsClaimedValue {
 	return RewardsClaimedValue{
-		OrchestratorAddresses: []string{orchestratorAddress.String()},
-		Amount:                []sdkTypes.Coin{amount},
+		RewardsClaimed:        msg,
+		OrchestratorAddresses: []string{orchestratorAddress},
 		Ratio:                 ratio,
 		Counter:               1,
 		AddedToCurrentEpoch:   false,
@@ -160,6 +149,15 @@ func NewOutgoingQueueValue(active bool, retryCounter uint64) OutgoingQueueValue 
 	return OutgoingQueueValue{
 		Active:       active,
 		RetryCounter: retryCounter,
+	}
+}
+
+func NewSlashingStoreValue(msg MsgSlashingEventOnCosmosChain, ratio sdkTypes.Dec, orch string) SlashingStoreValue {
+	return SlashingStoreValue{
+		SlashingDetails:       msg,
+		Ratio:                 ratio,
+		OrchestratorAddresses: []string{orch},
+		Counter:               1,
 	}
 }
 

@@ -12,39 +12,36 @@ type UndelegateSuccessKeyAndValue struct {
 	ValueUndelegateSuccessStore cosmosTypes.ValueUndelegateSuccessStore
 }
 
-func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, validatorAddress sdk.ValAddress, orchestratorAddress sdk.AccAddress, amount sdk.Coin, txHash string, chainID string, blockHeight int64) error {
+func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.MsgUndelegateSuccess) {
 	undelegateSuccessStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyUndelegateSuccessStore)
-	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(chainID, blockHeight, txHash)
-	key, err := k.cdc.Marshal(&chainIDHeightAndTxHash)
-	if err != nil {
-		return err
+	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(msg.ChainID, msg.BlockHeight, msg.TxHash)
+	key := k.cdc.MustMarshal(&chainIDHeightAndTxHash)
+	totalValidatorCount := k.GetTotalValidatorOrchestratorCount(ctx)
+
+	// check if key present or not
+	if !undelegateSuccessStore.Has(key) {
+		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
+		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		undelegateSuccessStore.Set(key, k.cdc.MustMarshal(&newValue))
+		return
 	}
-	if undelegateSuccessStore.Has(key) {
-		var valueUndelegateSuccessStore cosmosTypes.ValueUndelegateSuccessStore
-		err = k.cdc.Unmarshal(undelegateSuccessStore.Get(key), &valueUndelegateSuccessStore)
-		if err != nil {
-			panic("error in unmarshalling valueUndelegateSuccessStore")
-		}
-		if !valueUndelegateSuccessStore.Find(orchestratorAddress.String()) {
-			valueUndelegateSuccessStore.OrchestratorAddresses = append(valueUndelegateSuccessStore.OrchestratorAddresses, orchestratorAddress.String())
-			valueUndelegateSuccessStore.Counter++
-			valueUndelegateSuccessStore.Ratio = float32(valueUndelegateSuccessStore.Counter) / float32(k.getTotalValidatorOrchestratorCount(ctx))
-			bz, err := k.cdc.Marshal(&valueUndelegateSuccessStore)
-			if err != nil {
-				panic("error in marshaling txHashValue")
-			}
-			undelegateSuccessStore.Set(key, bz)
-		}
-	} else {
-		ratio := float32(1) / float32(k.getTotalValidatorOrchestratorCount(ctx))
-		newValue := cosmosTypes.NewValueUndelegateSuccessStore(validatorAddress, orchestratorAddress, ratio, amount, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
-		bz, err := k.cdc.Marshal(&newValue)
-		if err != nil {
-			panic("error in marshaling valueUndelegateSuccessStore")
-		}
-		undelegateSuccessStore.Set(key, bz)
+
+	var valueUndelegateSuccessStore cosmosTypes.ValueUndelegateSuccessStore
+	k.cdc.MustUnmarshal(undelegateSuccessStore.Get(key), &valueUndelegateSuccessStore)
+
+	// Match if the message value and stored value are same
+	// if not equal then initialize by new value in store
+	if !StoreValueEqualOrNotUndelegateSuccess(valueUndelegateSuccessStore, msg) {
+		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
+		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		undelegateSuccessStore.Set(key, k.cdc.MustMarshal(&newValue))
+		return
 	}
-	return nil
+
+	if !valueUndelegateSuccessStore.Find(msg.OrchestratorAddress) {
+		valueUndelegateSuccessStore.UpdateValues(msg.OrchestratorAddress, totalValidatorCount)
+		undelegateSuccessStore.Set(key, k.cdc.MustMarshal(&valueUndelegateSuccessStore))
+	}
 }
 
 func (k Keeper) getAllUndelegateSuccessDetails(ctx sdk.Context) (list []UndelegateSuccessKeyAndValue, err error) {
@@ -83,8 +80,11 @@ func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) error {
 		return cosmosTypes.ErrInvalidEpochNumber
 	}
 	for _, element := range list {
-		if element.ValueUndelegateSuccessStore.Ratio > cosmosTypes.MinimumRatioForMajority {
-			k.setEpochNumberAndUndelegateDetailsOfIndividualValidator(ctx, element.ValueUndelegateSuccessStore.ValidatorAddress, epochNumber, element.ValueUndelegateSuccessStore.Amount)
+		if element.ValueUndelegateSuccessStore.Ratio.GT(cosmosTypes.MinimumRatioForMajority) {
+			k.setEpochNumberAndUndelegateDetailsOfIndividualValidator(
+				ctx, element.ValueUndelegateSuccessStore.UndelegateSuccess.ValidatorAddress,
+				epochNumber, element.ValueUndelegateSuccessStore.UndelegateSuccess.Amount,
+			)
 		}
 
 		if element.ValueUndelegateSuccessStore.ActiveBlockHeight <= ctx.BlockHeight() {
@@ -100,4 +100,27 @@ func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) error {
 		}
 	}
 	return nil
+}
+
+func StoreValueEqualOrNotUndelegateSuccess(storeValue cosmosTypes.ValueUndelegateSuccessStore,
+	msgValue cosmosTypes.MsgUndelegateSuccess) bool {
+	if storeValue.UndelegateSuccess.DelegatorAddress != msgValue.DelegatorAddress {
+		return false
+	}
+	if storeValue.UndelegateSuccess.ValidatorAddress != msgValue.ValidatorAddress {
+		return false
+	}
+	if !storeValue.UndelegateSuccess.Amount.IsEqual(msgValue.Amount) {
+		return false
+	}
+	if storeValue.UndelegateSuccess.TxHash != msgValue.TxHash {
+		return false
+	}
+	if storeValue.UndelegateSuccess.ChainID != msgValue.ChainID {
+		return false
+	}
+	if storeValue.UndelegateSuccess.BlockHeight != msgValue.BlockHeight {
+		return false
+	}
+	return true
 }

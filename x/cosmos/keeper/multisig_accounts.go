@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
@@ -43,4 +44,22 @@ func (k Keeper) getCurrentAddress(ctx sdk.Context) sdk.AccAddress {
 func (k Keeper) setCurrentAddress(ctx sdk.Context, accAddress sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(cosmosTypes.CurrentMultisigAddressKey(), accAddress)
+}
+
+func (k Keeper) checkOrchestratorAddressPresentInMultisig(ctx sdk.Context, orch sdk.AccAddress) bool {
+	// fetch orch address pub key on chain
+	orchPubKey := k.authKeeper.GetAccount(ctx, orch).GetPubKey()
+	if orchPubKey == nil {
+		panic("pub key for orch address not found")
+	}
+
+	// fetch multisig pub key
+	multsigPubKey := k.getAccountState(ctx, k.getCurrentAddress(ctx)).GetPubKey().(*multisig.LegacyAminoPubKey).GetPubKeys()
+
+	for _, pb := range multsigPubKey {
+		if pb == orchPubKey {
+			return true
+		}
+	}
+	return false
 }

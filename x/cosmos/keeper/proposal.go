@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	"time"
 
 	sdkClient "github.com/cosmos/cosmos-sdk/client"
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -15,16 +14,21 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
+type KeyAndValueForProposal struct {
+	Key   cosmosTypes.ProposalKey
+	Value cosmosTypes.ProposalValue
+}
+
 // creates a new proposal with given voting period in genesis
-func (k Keeper) createProposal(c sdk.Context, proposal cosmosTypes.KeyAndValueForProposal) error {
+func (k Keeper) createProposal(c sdk.Context, proposal KeyAndValueForProposal) error {
 	proposalID, err := k.GetProposalID(c)
 	if err != nil {
 		return err
 	}
-	submitTime := proposal.Value.VotingStartTime
-	votingPeriod := proposal.Value.VotingEndTime.Sub(proposal.Value.VotingStartTime) - k.GetParams(c).CosmosProposalParams.ReduceVotingPeriodBy
+	submitTime := proposal.Value.ProposalDetails.VotingStartTime
+	votingPeriod := proposal.Value.ProposalDetails.VotingEndTime.Sub(proposal.Value.ProposalDetails.VotingStartTime) - k.GetParams(c).CosmosProposalParams.ReduceVotingPeriodBy
 
-	newProposal, err := cosmosTypes.NewProposal(proposalID, proposal.Value.Title, proposal.Value.Description, submitTime, votingPeriod, proposal.Value.CosmosProposalID)
+	newProposal, err := cosmosTypes.NewProposal(proposalID, proposal.Value.ProposalDetails.Title, proposal.Value.ProposalDetails.Description, submitTime, votingPeriod, proposal.Value.ProposalDetails.ProposalID)
 
 	k.SetProposal(c, newProposal)
 	//k.InsertActiveProposalQueue(c, proposalID, newProposal.VotingEndTime)
@@ -242,43 +246,41 @@ func (k Keeper) GetProposalsFiltered(ctx sdk.Context, params cosmosTypes.QueryPr
 	return filteredProposals
 }
 
-func (k Keeper) setProposalDetails(ctx sdk.Context, chainID string, blockHeight int64, proposalID uint64, title string,
-	description string, orchestratorAddress sdk.AccAddress, votingStartTime time.Time, votingEndTime time.Time) {
-	store := ctx.KVStore(k.storeKey)
-	proposalStore := prefix.NewStore(store, []byte(cosmosTypes.ProposalStoreKey))
-	proposalKey := cosmosTypes.NewProposalKey(chainID, blockHeight, proposalID)
-	key, err := k.cdc.Marshal(&proposalKey)
-	if err != nil {
-		panic("error in marshaling proposalKey")
+func (k Keeper) setProposalDetails(ctx sdk.Context, msg cosmosTypes.MsgMakeProposal) {
+	proposalStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ProposalStoreKey)
+	proposalKey := cosmosTypes.NewProposalKey(msg.ChainID, msg.BlockHeight, msg.ProposalID)
+	key := k.cdc.MustMarshal(&proposalKey)
+	totalValidatorCount := k.GetTotalValidatorOrchestratorCount(ctx)
+
+	// store has the key in it or not
+	if !proposalStore.Has(key) {
+		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
+		newProposalValue := cosmosTypes.NewProposalValue(msg, msg.OrchestratorAddress, ratio)
+		proposalStore.Set(key, k.cdc.MustMarshal(&newProposalValue))
+		return
 	}
-	if proposalStore.Has(key) {
-		var proposalValue cosmosTypes.ProposalValue
-		err := k.cdc.Unmarshal(proposalStore.Get(key), &proposalValue)
-		if err != nil {
-			panic("error in unmarshalling proposalValue")
-		}
-		if !proposalValue.Find(orchestratorAddress.String()) {
-			proposalValue.OrchestratorAddresses = append(proposalValue.OrchestratorAddresses, orchestratorAddress.String())
-			proposalValue.Counter++
-			proposalValue.Ratio = float32(proposalValue.Counter) / float32(k.getTotalValidatorOrchestratorCount(ctx))
-			bz, err := k.cdc.Marshal(&proposalValue)
-			if err != nil {
-				panic("error in marshaling proposalValue")
-			}
-			proposalStore.Set(key, bz)
-		}
-	} else {
-		ratio := float32(1) / float32(k.getTotalValidatorOrchestratorCount(ctx))
-		newProposalValue := cosmosTypes.NewProposalValue(title, description, orchestratorAddress.String(), ratio, votingStartTime, votingEndTime, proposalID)
-		bz, err := k.cdc.Marshal(&newProposalValue)
-		if err != nil {
-			panic("error in marshaling proposalValue")
-		}
-		proposalStore.Set(key, bz)
+
+	var proposalValue cosmosTypes.ProposalValue
+	k.cdc.MustUnmarshal(proposalStore.Get(key), &proposalValue)
+
+	// Match if the message value and stored value are same
+	// if not equal then initialize by new value in store
+	if !StoreValueEqualOrNotProposalEvent(proposalValue, msg) {
+		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
+		newProposalValue := cosmosTypes.NewProposalValue(msg, msg.OrchestratorAddress, ratio)
+		proposalStore.Set(key, k.cdc.MustMarshal(&newProposalValue))
+		return
 	}
+
+	if !proposalValue.Find(msg.OrchestratorAddress) {
+		proposalValue.UpdateValues(msg.OrchestratorAddress, totalValidatorCount)
+		proposalStore.Set(key, k.cdc.MustMarshal(&proposalValue))
+		return
+	}
+	return
 }
 
-func (k Keeper) setProposalPosted(ctx sdk.Context, proposal cosmosTypes.KeyAndValueForProposal) {
+func (k Keeper) setProposalPosted(ctx sdk.Context, proposal KeyAndValueForProposal) {
 	store := ctx.KVStore(k.storeKey)
 	proposalStore := prefix.NewStore(store, []byte(cosmosTypes.ProposalStoreKey))
 	proposalKey := cosmosTypes.NewProposalKey(proposal.Key.ChainID, proposal.Key.BlockHeight, proposal.Key.ProposalID)
@@ -301,10 +303,10 @@ func (k Keeper) setProposalPosted(ctx sdk.Context, proposal cosmosTypes.KeyAndVa
 	}
 }
 
-func (k Keeper) getAllKeyAndValueForProposal(ctx sdk.Context) []cosmosTypes.KeyAndValueForProposal {
+func (k Keeper) getAllKeyAndValueForProposal(ctx sdk.Context) []KeyAndValueForProposal {
 	store := ctx.KVStore(k.storeKey)
 	proposalStore := prefix.NewStore(store, []byte(cosmosTypes.ProposalStoreKey))
-	var list []cosmosTypes.KeyAndValueForProposal
+	var list []KeyAndValueForProposal
 	iterator := proposalStore.Iterator(nil, nil)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -318,7 +320,7 @@ func (k Keeper) getAllKeyAndValueForProposal(ctx sdk.Context) []cosmosTypes.KeyA
 		if err != nil {
 			panic("error in unmarshalling proposal value")
 		}
-		list = append(list, cosmosTypes.KeyAndValueForProposal{
+		list = append(list, KeyAndValueForProposal{
 			Key:   key,
 			Value: value,
 		})
@@ -347,7 +349,7 @@ func (k Keeper) IterateProposalsForEmittingVotingTxn(ctx sdk.Context) {
 func (k Keeper) ProcessProposals(ctx sdk.Context) error {
 	list := k.getAllKeyAndValueForProposal(ctx)
 	for _, element := range list {
-		if element.Value.Ratio > 0.66 && !element.Value.ProposalPosted {
+		if element.Value.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !element.Value.ProposalPosted {
 			err := k.createProposal(ctx, element)
 			if err != nil {
 				return err
@@ -359,4 +361,29 @@ func (k Keeper) ProcessProposals(ctx sdk.Context) error {
 	k.IterateProposalsForEmittingVotingTxn(ctx)
 
 	return nil
+}
+
+func StoreValueEqualOrNotProposalEvent(storeValue cosmosTypes.ProposalValue, msgValue cosmosTypes.MsgMakeProposal) bool {
+	if storeValue.ProposalDetails.Title != msgValue.Title {
+		return false
+	}
+	if storeValue.ProposalDetails.Description != msgValue.Description {
+		return false
+	}
+	if storeValue.ProposalDetails.ProposalID != msgValue.ProposalID {
+		return false
+	}
+	if storeValue.ProposalDetails.ChainID != msgValue.ChainID {
+		return false
+	}
+	if storeValue.ProposalDetails.BlockHeight != msgValue.BlockHeight {
+		return false
+	}
+	if !storeValue.ProposalDetails.VotingStartTime.Equal(msgValue.VotingStartTime) {
+		return false
+	}
+	if !storeValue.ProposalDetails.VotingEndTime.Equal(msgValue.VotingEndTime) {
+		return false
+	}
+	return true
 }

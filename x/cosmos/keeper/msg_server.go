@@ -32,11 +32,6 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	}
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
-	//Accept transaction if module is disabled
-	if k.GetParams(ctx).ModuleEnabled {
-		return nil, cosmosTypes.ErrModuleNotEnabled
-	}
-
 	validator, e1 := sdkTypes.ValAddressFromBech32(msg.Validator)
 	orchestrator, e2 := sdkTypes.AccAddressFromBech32(msg.Orchestrator)
 	if e1 != nil || e2 != nil {
@@ -83,6 +78,36 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	)
 
 	return &cosmosTypes.MsgSetOrchestratorResponse{}, nil
+}
+
+func (k msgServer) RemoveOrchestrator(c context.Context, msg *cosmosTypes.MsgRemoveOrchestrator) (*cosmosTypes.MsgRemoveOrchestratorResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, sdkErrors.Wrap(err, "Key not valid")
+	}
+	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	validator, e1 := sdkTypes.ValAddressFromBech32(msg.Validator)
+	orchestrator, e2 := sdkTypes.AccAddressFromBech32(msg.Orchestrator)
+	if e1 != nil || e2 != nil {
+		return nil, sdkErrors.Wrap(err, "Key not valid")
+	}
+
+	// removes orch address from validator mapping if it is not present in current multisig or it is the one and ony mapping
+	err = k.RemoveValidatorOrchestrator(ctx, validator, orchestrator)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdkTypes.NewEvent(
+			sdkTypes.EventTypeMessage,
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
+			sdkTypes.NewAttribute(cosmosTypes.AttributeKeySetOperatorAddr, orchestrator.String()),
+		),
+	)
+
+	return &cosmosTypes.MsgRemoveOrchestratorResponse{}, nil
 }
 
 // Send TODO Modify outgoing pool
@@ -232,7 +257,7 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 		return nil, cosmosTypes.ErrInvalidProposal
 	}
 
-	k.setProposalDetails(ctx, msg.ChainID, msg.BlockHeight, msg.ProposalID, msg.Title, msg.Description, orchestratorAddress, msg.VotingStartTime, msg.VotingEndTime)
+	k.setProposalDetails(ctx, *msg)
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
@@ -392,9 +417,9 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 	}
 
 	//TODO : add failure type for proposal transactions. (in case of chain upgrade on cosmos chain)
-	if msg.Status == "success" || msg.Status == "gas failure" || msg.Status == "sequence mismatch" || msg.Status == "keeper failure" {
-		k.setTxHashAndDetails(ctx, orchAddr, 0, msg.TxHash, msg.Status, msg.SequenceNumber, msg.AccountNumber,
-			msg.Balance, msg.BondedTokens, msg.UnbondingTokens)
+	if msg.Status == cosmosTypes.Success || msg.Status == cosmosTypes.GasFailure ||
+		msg.Status == cosmosTypes.SequenceMismatch || msg.Status == cosmosTypes.KeeperFailure {
+		k.setTxHashAndDetails(ctx, *msg)
 	} else {
 		return nil, cosmosTypes.ErrInvalidStatus
 	}
@@ -441,10 +466,7 @@ func (k msgServer) RewardsClaimed(c context.Context, msg *cosmosTypes.MsgRewards
 		return nil, fmt.Errorf("validator address does not exit")
 	}
 
-	err = k.addToRewardsClaimedPool(ctx, orchAddr, msg.AmountClaimed, msg.ChainID, msg.BlockHeight)
-	if err != nil {
-		return nil, err
-	}
+	k.addToRewardsClaimedPool(ctx, *msg)
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
@@ -477,7 +499,7 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 	if err != nil {
 		return nil, err
 	}
-	validatorAddress, err := cosmosTypes.ValAddressFromBech32(msg.ValidatorAddress, cosmosTypes.Bech32PrefixValAddr)
+	_, err = cosmosTypes.ValAddressFromBech32(msg.ValidatorAddress, cosmosTypes.Bech32PrefixValAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -500,14 +522,11 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 	}
 
 	_, found := k.GetValidatorOrchestrator(ctx, val)
-	if found {
-		err = k.setUndelegateSuccessDetails(ctx, validatorAddress, orchestratorAddress, msg.Amount, msg.TxHash, msg.ChainID, msg.BlockHeight)
-		if err != nil {
-			return nil, err
-		}
-	} else {
+	if !found {
 		return nil, cosmosTypes.ErrInvalid
 	}
+
+	k.setUndelegateSuccessDetails(ctx, *msg)
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
@@ -564,7 +583,7 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	signerData := signing.SignerData{
 		ChainID:       k.GetParams(ctx).CosmosProposalParams.ChainID,
 		AccountNumber: multisigAccount.GetAccountNumber(),
-		Sequence:      multisigAccount.GetSequence(),
+		Sequence:      multisigAccount.GetSequence() + 1, // increment by 1 as it is the current sequence number is stored in the db
 	}
 	signatureData := signing2.SingleSignatureData{
 		SignMode:  signing2.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
@@ -596,4 +615,40 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	return &cosmosTypes.MsgSetSignatureResponse{}, nil
 }
 
-// TODO : add slashing event msg
+func (k msgServer) SlashingEvent(c context.Context, msg *cosmosTypes.MsgSlashingEventOnCosmosChain) (*cosmosTypes.MsgSlashingEventOnCosmosChainResposne, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, sdkErrors.Wrap(err, "Key not valid")
+	}
+	if err != nil {
+		return nil, err
+	}
+	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	//Accept transaction if module is enabled
+	params := k.GetParams(ctx)
+	if !params.ModuleEnabled {
+		return nil, cosmosTypes.ErrModuleNotEnabled
+	}
+
+	orchestratorAddress, err := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
+	if err != nil {
+		return nil, err
+	}
+	_, err = cosmosTypes.ValAddressFromBech32(msg.ValidatorAddress, cosmosTypes.Bech32PrefixValAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	k.setSlashingEventDetails(ctx, *msg)
+
+	ctx.EventManager().EmitEvent(
+		sdkTypes.NewEvent(
+			sdkTypes.EventTypeMessage,
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
+			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchestratorAddress.String()),
+		),
+	)
+
+	return &cosmosTypes.MsgSlashingEventOnCosmosChainResposne{}, nil
+}

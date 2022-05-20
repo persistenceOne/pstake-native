@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
@@ -159,53 +161,35 @@ type TxHashAndDetails struct {
 }
 
 // Set details corresponding to a particular txHash and update details if already present
-func (k Keeper) setTxHashAndDetails(ctx sdk.Context, orchAddress sdk.AccAddress, txID uint64, txHash string,
-	status string, accountNumber uint64, sequenceNumber uint64, balance sdk.Coins, bondedTokens sdk.Coins,
-	unbondingTokens sdk.Coins) {
-	txHashAndTxIDStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
-	key := []byte(txHash)
-	if txHashAndTxIDStore.Has(key) {
-		var txHashValue cosmosTypes.TxHashValue
-		err := k.cdc.Unmarshal(txHashAndTxIDStore.Get(key), &txHashValue)
-		if err != nil {
-			panic("error in unmarshalling txHashValue")
-		}
+func (k Keeper) setTxHashAndDetails(ctx sdk.Context, msg cosmosTypes.MsgTxStatus) {
+	txHashStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
+	key := []byte(msg.TxHash)
+	totalValidatorCount := k.GetTotalValidatorOrchestratorCount(ctx)
 
-		if !TxHashValueEqualOrNot(txHashValue, string(key), txID, txHash, accountNumber, sequenceNumber, balance, bondedTokens, unbondingTokens) {
-			ratio := float32(1) / float32(k.getTotalValidatorOrchestratorCount(ctx))
-			newTxHashValue := cosmosTypes.NewTxHashValue(txID, orchAddress, ratio, status, ctx.BlockHeight(),
-				ctx.BlockHeight()+cosmosTypes.StorageWindow, accountNumber, sequenceNumber, balance, bondedTokens, unbondingTokens)
-			bz, err := k.cdc.Marshal(&newTxHashValue)
-			if err != nil {
-				panic("error in marshaling txHashValue")
-			}
-			txHashAndTxIDStore.Set(key, bz)
-			return
-		}
-
-		if !txHashValue.Find(orchAddress.String()) {
-			txHashValue.OrchestratorAddresses = append(txHashValue.OrchestratorAddresses, orchAddress.String())
-			txHashValue.Status = append(txHashValue.Status, status)
-			txHashValue.Counter++
-			txHashValue.Ratio = float32(txHashValue.Counter) / float32(k.getTotalValidatorOrchestratorCount(ctx))
-			bz, err := k.cdc.Marshal(&txHashValue)
-			if err != nil {
-				panic("error in marshaling txHashValue")
-			}
-			txHashAndTxIDStore.Set(key, bz)
-			return
-		}
+	if !txHashStore.Has(key) {
+		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
+		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		txHashStore.Set(key, k.cdc.MustMarshal(&newTxHashValue))
+		return
 	}
 
-	ratio := float32(1) / float32(k.getTotalValidatorOrchestratorCount(ctx))
-	newTxHashValue := cosmosTypes.NewTxHashValue(txID, orchAddress, ratio, status, ctx.BlockHeight(),
-		ctx.BlockHeight()+cosmosTypes.StorageWindow, accountNumber, sequenceNumber, balance, bondedTokens, unbondingTokens)
-	bz, err := k.cdc.Marshal(&newTxHashValue)
-	if err != nil {
-		panic("error in marshaling txHashValue")
+	var txHashValue cosmosTypes.TxHashValue
+	k.cdc.MustUnmarshal(txHashStore.Get(key), &txHashValue)
+
+	// Match if the message value and stored value are same
+	// if not equal then initialize by new value in store
+	if !StoreValueEqualOrNotTxStatus(txHashValue, msg) {
+		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
+		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		txHashStore.Set(key, k.cdc.MustMarshal(&newTxHashValue))
+		return
 	}
-	txHashAndTxIDStore.Set(key, bz)
-	return
+
+	if !txHashValue.Find(msg.OrchestratorAddress) {
+		txHashValue.UpdateValues(msg.OrchestratorAddress, totalValidatorCount)
+		txHashStore.Set(key, k.cdc.MustMarshal(&txHashValue))
+		return
+	}
 }
 
 //Fetch details mapped to particular hash
@@ -246,13 +230,34 @@ func (k Keeper) getAllTxHashAndDetails(ctx sdk.Context) (list []TxHashAndDetails
 	return list, nil
 }
 
-func TxHashValueEqualOrNot(value cosmosTypes.TxHashValue, hashKey string, txID uint64, txHash string,
-	accountNumber uint64, sequenceNumber uint64, balance sdk.Coins, bondedTokens sdk.Coins,
-	unbondingTokens sdk.Coins) bool {
-	if hashKey != txHash || value.TxID != txID || value.AccountNumber != accountNumber || value.SequenceNumber != sequenceNumber ||
-		!value.Balance.IsEqual(balance) || !value.BondedTokens.IsEqual(bondedTokens) || !value.UnbondingTokens.IsEqual(unbondingTokens) {
+func StoreValueEqualOrNotTxStatus(storeValue cosmosTypes.TxHashValue, msgValue cosmosTypes.MsgTxStatus) bool {
+	if storeValue.TxStatus.TxHash != msgValue.TxHash {
 		return false
 	}
+	if storeValue.TxStatus.AccountNumber != msgValue.AccountNumber {
+		return false
+	}
+	if storeValue.TxStatus.SequenceNumber != msgValue.SequenceNumber {
+		return false
+	}
+	if !storeValue.TxStatus.Balance.IsEqual(msgValue.Balance) {
+		return false
+	}
+
+	var valueValidatorMap map[string]cosmosTypes.ValidatorDetails
+	for _, vd := range storeValue.TxStatus.ValidatorDetails {
+		valueValidatorMap[vd.ValidatorAddress] = vd
+	}
+
+	var validatorDetailsMap map[string]cosmosTypes.ValidatorDetails
+	for _, vd := range msgValue.ValidatorDetails {
+		validatorDetailsMap[vd.ValidatorAddress] = vd
+	}
+
+	if !reflect.DeepEqual(valueValidatorMap, validatorDetailsMap) {
+		return false
+	}
+
 	return true
 }
 
@@ -432,9 +437,15 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 		return err
 	}
 
+	queryResponse, err := k.getTxnFromOutgoingPoolByID(ctx, txID)
+	if err != nil {
+		return err
+	}
+
 	for _, tx := range txDetails {
+
 		// avoid processing inactive transaction
-		if tx.Details.TxID != txID {
+		if tx.TxHash != queryResponse.CosmosTxDetails.TxHash {
 			continue
 		}
 
@@ -442,7 +453,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 		majorityStatus := FindMajority(tx.Details.Status)
 
 		// get tx from outgoing pool
-		cosmosTx, err := k.getTxnFromOutgoingPoolByID(ctx, tx.Details.TxID)
+		cosmosTx, err := k.getTxnFromOutgoingPoolByID(ctx, txID)
 		if err != nil {
 			return err
 		}
@@ -463,16 +474,16 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 		}
 
 		// process tx if majority status is present
-		if tx.Details.Ratio < cosmosTypes.MinimumRatioForMajority {
+		if tx.Details.Ratio.LT(cosmosTypes.MinimumRatioForMajority) {
 			return nil
 		}
 
 		// TODO : deal with keeper failure and insufficient balance
-		if majorityStatus == "gas failure" {
+		if majorityStatus == cosmosTypes.GasFailure {
 			// retry txn with given failure
-			k.retryTransactionWithFailure(ctx, cosmosTx, tx.Details.TxID, tx.TxHash, majorityStatus)
+			k.retryTransactionWithFailure(ctx, cosmosTx, txID, tx.TxHash, majorityStatus)
 			k.emitEventForActiveTransaction(ctx, txID)
-		} else if majorityStatus == "success" {
+		} else if majorityStatus == cosmosTypes.Success {
 			// TODO : handle balance, bonded tokens and unbonding tokens value
 			// process txn success and perform success actions
 			msgs := cosmosTx.CosmosTxDetails.Tx.GetMsgs()
@@ -483,12 +494,12 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 					switch im.GetCachedValue().(type) {
 					case *stakingTypes.MsgDelegate:
 						//TODO : update C value
-						err = k.processStakingSuccessTxns(ctx, tx.Details.TxID)
-						k.updateStatusOnceProcessed(ctx, tx.Details.TxID, "success")
+						err = k.processStakingSuccessTxns(ctx, txID)
+						k.updateStatusOnceProcessed(ctx, txID, "success")
 					case *stakingTypes.MsgUndelegate:
 						//TODO : update C value
-						err = k.setEpochAndValidatorDetailsForAllUndelegations(ctx, tx.Details.TxID)
-						k.updateStatusOnceProcessed(ctx, tx.Details.TxID, "success")
+						err = k.setEpochAndValidatorDetailsForAllUndelegations(ctx, txID)
+						k.updateStatusOnceProcessed(ctx, txID, "success")
 						//TODO : update total delegated amount
 						if err != nil {
 							return err
@@ -500,20 +511,20 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 				}
 				k.removeFromTransactionQueue(ctx, txID)
 			}
-		} else if majorityStatus == "sequence mismatch" {
+		} else if majorityStatus == cosmosTypes.SequenceMismatch {
 			// retry txn with the given failure
 			k.retryTransactionWithFailure(ctx, cosmosTx, txID, tx.TxHash, majorityStatus)
 			k.emitEventForActiveTransaction(ctx, txID)
 		}
 
 		// set sequence number in any case of status, so it stays up to date
-		err = multisigAccount.SetSequence(txHashValue.SequenceNumber)
+		err = multisigAccount.SetSequence(txHashValue.TxStatus.SequenceNumber)
 		if err != nil {
 			return err
 		}
 
 		//set account number in any case of status, so it stays up to date
-		err = multisigAccount.SetAccountNumber(txHashValue.AccountNumber)
+		err = multisigAccount.SetAccountNumber(txHashValue.TxStatus.AccountNumber)
 		if err != nil {
 			return err
 		}
