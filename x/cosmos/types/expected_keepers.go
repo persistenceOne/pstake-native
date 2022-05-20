@@ -22,7 +22,7 @@ type MintKeeper interface {
 
 type DBHelper interface {
 	Find(address string) bool
-	AddAndIncrement(address string)
+	UpdateValues(address string, validatorCount int64)
 }
 
 // GovHooks event hooks for governance proposal object (noalias)

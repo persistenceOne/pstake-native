@@ -40,8 +40,6 @@ const (
 	QueryVote       = "vote"
 	QueryVotes      = "votes"
 
-	MinimumRatioForMajority = 0.66
-
 	StorageWindow = 20000
 
 	Bech32Prefix = "cosmos"
@@ -55,6 +53,8 @@ const (
 )
 
 var (
+	MinimumRatioForMajority = sdkTypes.NewDec(66).Quo(sdkTypes.NewDec(100))
+
 	KeyValidatorAddress = "KeyValidatorAddress"
 
 	SequenceKeyPrefix = "SequenceKeyPrefix"
@@ -118,6 +118,8 @@ var (
 	KeyCosmosValidatorWeights = []byte{0x16}
 
 	KeyNativeValidatorWeights = []byte{0x17}
+
+	KeySlashingStore = []byte{0x18}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {

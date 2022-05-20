@@ -8,69 +8,67 @@ import (
 	"strings"
 )
 
-type (
-	// EnableModuleProposalReq defines a community pool spend proposal request body.
-	EnableModuleProposalReq struct {
-		BaseReq      rest.BaseReq             `json:"base_req" yaml:"base_req"`
-		EnableModule EnableModuleProposalJSON `json:"enable_module" yaml:"enable_module"`
-	}
+// EnableModuleProposalReq defines a community pool spend proposal request body.
+type EnableModuleProposalReq struct {
+	BaseReq      rest.BaseReq             `json:"base_req" yaml:"base_req"`
+	EnableModule EnableModuleProposalJSON `json:"enable_module" yaml:"enable_module"`
+}
 
-	// ChangeMultisigPropsoalReq defines a community pool spend proposal request body.
-	ChangeMultisigPropsoalReq struct {
-		BaseReq        rest.BaseReq               `json:"base_req" yaml:"base_req"`
-		ChangeMultisig ChangeMultisigPropsoalJSON `json:"change_multisig" yaml:"change_multisig"`
-	}
+// ChangeMultisigPropsoalReq defines a community pool spend proposal request body.
+type ChangeMultisigPropsoalReq struct {
+	BaseReq        rest.BaseReq               `json:"base_req" yaml:"base_req"`
+	ChangeMultisig ChangeMultisigPropsoalJSON `json:"change_multisig" yaml:"change_multisig"`
+}
 
-	ChangeCosmosValidatorWeightsProposalReq struct {
-		BaseReq            rest.BaseReq                             `json:"base_req" yaml:"base_req"`
-		CosmosValidatorSet ChangeCosmosValidatorWeightsProposalJSON `json:"cosmos_validator_set" yaml:"cosmos_validator_set"`
-	}
+type ChangeCosmosValidatorWeightsProposalReq struct {
+	BaseReq            rest.BaseReq                             `json:"base_req" yaml:"base_req"`
+	CosmosValidatorSet ChangeCosmosValidatorWeightsProposalJSON `json:"cosmos_validator_set" yaml:"cosmos_validator_set"`
+}
 
-	ChangeOracleValidatorWeightsProposalReq struct {
-		BaseReq            rest.BaseReq                             `json:"base_req" yaml:"base_req"`
-		OracleValidatorSet ChangeOracleValidatorWeightsProposalJSON `json:"oracle_validator_set" yaml:"oracle_validator_set"`
-	}
+type ChangeOracleValidatorWeightsProposalReq struct {
+	BaseReq            rest.BaseReq                             `json:"base_req" yaml:"base_req"`
+	OracleValidatorSet ChangeOracleValidatorWeightsProposalJSON `json:"oracle_validator_set" yaml:"oracle_validator_set"`
+}
 
-	EnableModuleProposalJSON struct {
-		Title         string `json:"title" yaml:"title"`
-		Description   string `json:"description" yaml:"description"`
-		Threshold     uint64 `json:"threshold" yaml:"threshold"`
-		AccountNumber uint64 `json:"account_number" yaml:"account_number"`
-		Depositor     string `json:"depositor" yaml:"depositor"`
-		Deposit       string `json:"deposit" yaml:"deposit"`
-	}
+type EnableModuleProposalJSON struct {
+	Title         string `json:"title" yaml:"title"`
+	Description   string `json:"description" yaml:"description"`
+	Threshold     uint64 `json:"threshold" yaml:"threshold"`
+	AccountNumber uint64 `json:"account_number" yaml:"account_number"`
+	Depositor     string `json:"depositor" yaml:"depositor"`
+	Deposit       string `json:"deposit" yaml:"deposit"`
+}
 
-	ChangeMultisigPropsoalJSON struct {
-		Title                 string   `json:"title" yaml:"title"`
-		Description           string   `json:"description" yaml:"description"`
-		Threshold             uint64   `json:"threshold" yaml:"threshold"`
-		OrchestratorAddresses []string `json:"orchestrator_addresses" yaml:"orchestrator_addresses"`
-		AccountNumber         uint64   `json:"account_number" yaml:"account_number"`
-		Depositor             string   `json:"depositor" yaml:"depositor"`
-		Deposit               string   `json:"deposit" yaml:"deposit"`
-	}
+type ChangeMultisigPropsoalJSON struct {
+	Title                 string   `json:"title" yaml:"title"`
+	Description           string   `json:"description" yaml:"description"`
+	Threshold             uint64   `json:"threshold" yaml:"threshold"`
+	OrchestratorAddresses []string `json:"orchestrator_addresses" yaml:"orchestrator_addresses"`
+	AccountNumber         uint64   `json:"account_number" yaml:"account_number"`
+	Depositor             string   `json:"depositor" yaml:"depositor"`
+	Deposit               string   `json:"deposit" yaml:"deposit"`
+}
 
-	ChangeCosmosValidatorWeightsProposalJSON struct {
-		Title             string              `json:"title" yaml:"title"`
-		Description       string              `json:"description" yaml:"description"`
-		WeightedAddresses []WeightedAddresses `json:"weighted_addresses" yaml:"weighted_addresses"`
-		Depositor         string              `json:"depositor" yaml:"depositor"`
-		Deposit           string              `json:"deposit" yaml:"deposit"`
-	}
+type ChangeCosmosValidatorWeightsProposalJSON struct {
+	Title             string              `json:"title" yaml:"title"`
+	Description       string              `json:"description" yaml:"description"`
+	WeightedAddresses []WeightedAddresses `json:"weighted_addresses" yaml:"weighted_addresses"`
+	Depositor         string              `json:"depositor" yaml:"depositor"`
+	Deposit           string              `json:"deposit" yaml:"deposit"`
+}
 
-	ChangeOracleValidatorWeightsProposalJSON struct {
-		Title             string              `json:"title" yaml:"title"`
-		Description       string              `json:"description" yaml:"description"`
-		WeightedAddresses []WeightedAddresses `json:"weighted_addresses" yaml:"weighted_addresses"`
-		Depositor         string              `json:"depositor" yaml:"depositor"`
-		Deposit           string              `json:"deposit" yaml:"deposit"`
-	}
+type ChangeOracleValidatorWeightsProposalJSON struct {
+	Title             string              `json:"title" yaml:"title"`
+	Description       string              `json:"description" yaml:"description"`
+	WeightedAddresses []WeightedAddresses `json:"weighted_addresses" yaml:"weighted_addresses"`
+	Depositor         string              `json:"depositor" yaml:"depositor"`
+	Deposit           string              `json:"deposit" yaml:"deposit"`
+}
 
-	WeightedAddresses struct {
-		ValAddress string `json:"val_address" yaml:"val_address"`
-		Weight     string `json:"weight" yaml:"weight"`
-	}
-)
+type WeightedAddresses struct {
+	ValAddress string `json:"val_address" yaml:"val_address"`
+	Weight     string `json:"weight" yaml:"weight"`
+}
 
 // NormalizeVoteOption - normalize user specified vote option
 func NormalizeVoteOption(option string) string {

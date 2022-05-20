@@ -7,40 +7,36 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, orchAddress sdk.AccAddress, amount sdk.Coin, chainID string, blockHeight int64) error {
+func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, msg cosmosTypes.MsgRewardsClaimedOnCosmosChain) {
 	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
-	key := []byte(cosmosTypes.GetChainIDAndBlockHeightKey(chainID, blockHeight))
-	if rewardsClaimedStore.Has(key) {
-		bz := rewardsClaimedStore.Get(key)
-		var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
-		err := k.cdc.Unmarshal(bz, &rewardsClaimedValue)
-		if err != nil {
-			return err
-		}
-		if rewardsClaimedValue.Find(orchAddress.String()) {
-			return fmt.Errorf("already sent the confirmation for rewards claimed")
-		}
-
-		rewardsClaimedValue.AddAndIncrement(orchAddress.String())
-		rewardsClaimedValue.Amount = append(rewardsClaimedValue.Amount, amount)
-		rewardsClaimedValue.Ratio = float32(rewardsClaimedValue.Counter) / float32(k.getTotalValidatorOrchestratorCount(ctx))
-
-		bz1, err := k.cdc.Marshal(&rewardsClaimedValue)
-		if err != nil {
-			return err
-		}
-
-		rewardsClaimedStore.Set(key, bz1)
-		return nil
+	key := []byte(cosmosTypes.GetChainIDAndBlockHeightKey(msg.ChainID, msg.BlockHeight))
+	totalValidatorCount := k.GetTotalValidatorOrchestratorCount(ctx)
+	// store has key in it or not
+	if !rewardsClaimedStore.Has(key) {
+		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
+		newValue := cosmosTypes.NewRewardsClaimedValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&newValue))
+		return
 	}
-	ratio := float32(1) / float32(k.getTotalValidatorOrchestratorCount(ctx))
-	newRewardsClaimedValue := cosmosTypes.NewRewardsClaimedValue(orchAddress, amount, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
-	bz, err := k.cdc.Marshal(&newRewardsClaimedValue)
-	if err != nil {
-		return err
+
+	var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
+	k.cdc.MustUnmarshal(rewardsClaimedStore.Get(key), &rewardsClaimedValue)
+
+	// Match if the message value and stored value are same
+	// if not equal then initialize by new value in store
+	if !StoreValueEqualOrNotRewardsClaimed(rewardsClaimedValue, msg) {
+		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
+		newValue := cosmosTypes.NewRewardsClaimedValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&newValue))
+		return
 	}
-	rewardsClaimedStore.Set(key, bz)
-	return nil
+
+	// if equal then check if orchestrator has already sent same details previously
+	if !rewardsClaimedValue.Find(msg.OrchestratorAddress) {
+		rewardsClaimedValue.UpdateValues(msg.OrchestratorAddress, k.GetTotalValidatorOrchestratorCount(ctx))
+		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&rewardsClaimedValue))
+		return
+	}
 }
 
 func (k Keeper) getAllFromRewardsClaimedPool(ctx sdk.Context) (list []cosmosTypes.RewardsClaimedValue, keys [][]byte, err error) {
@@ -101,9 +97,8 @@ func (k Keeper) getFromRewardsInCurrentEpochAmount(ctx sdk.Context, epochNumber 
 		return sdk.NewInt64Coin("uatom", 0), err
 	}
 
-	//Take the first element as all of them are same
-	//TODO : check consistency of amount claimed, if not consistent then an average amount can be taken
-	return rewardsClaimedValue.Amount[0], nil
+	// return the exact amount of rewards claimed as present in the message as amount is also matched in case of rewards claim entries
+	return rewardsClaimedValue.RewardsClaimed.AmountClaimed, nil
 }
 
 func (k Keeper) deleteFromRewardsInCurrentEpoch(ctx sdk.Context, epochNumber int64) {
@@ -122,7 +117,7 @@ func (k Keeper) ProcessRewards(ctx sdk.Context) error {
 		return fmt.Errorf("rewards list and keys do not have equal number of elements")
 	}
 	for i, r := range rewardsList {
-		if r.Ratio > cosmosTypes.MinimumRatioForMajority && !r.AddedToCurrentEpoch {
+		if r.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !r.AddedToCurrentEpoch {
 			r.AddedToCurrentEpoch = true
 
 			err = k.addToRewardsInCurrentEpoch(ctx, r)
@@ -140,4 +135,18 @@ func (k Keeper) ProcessRewards(ctx sdk.Context) error {
 		}
 	}
 	return nil
+}
+
+func StoreValueEqualOrNotRewardsClaimed(storeValue cosmosTypes.RewardsClaimedValue,
+	msgValue cosmosTypes.MsgRewardsClaimedOnCosmosChain) bool {
+	if !storeValue.RewardsClaimed.AmountClaimed.IsEqual(msgValue.AmountClaimed) {
+		return false
+	}
+	if storeValue.RewardsClaimed.ChainID != msgValue.ChainID {
+		return false
+	}
+	if storeValue.RewardsClaimed.BlockHeight != msgValue.BlockHeight {
+		return false
+	}
+	return true
 }

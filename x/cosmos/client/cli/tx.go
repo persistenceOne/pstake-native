@@ -259,8 +259,8 @@ $ %s tx gov weighted-vote 1 yes=0.6,no=0.3,abstain=0.05,no_with_veto=0.05 --from
 
 func NewCmdTxStatusCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "tx-status [orchestrator-address] [tx-hash] [status] [account-number] [sequence-number] [balance] [bonded-tokens] [unbonding-tokens]",
-		Args:  cobra.ExactArgs(8),
+		Use:   "tx-status [orchestrator-address] [tx-hash] [status] [account-number] [sequence-number] [balance]",
+		Args:  cobra.ExactArgs(6),
 		Short: "Send status for transaction",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Submit status for transaction relayed to cosmos chain.
@@ -297,17 +297,8 @@ Only "success" or "failure" accepted as status.`,
 				return err
 			}
 
-			bondedTokens, err := sdk.ParseCoinsNormalized(args[5])
-			if err != nil {
-				return err
-			}
-
-			UnbondingTokens, err := sdk.ParseCoinsNormalized(args[5])
-			if err != nil {
-				return err
-			}
-
-			msg := cosmosTypes.NewMsgTxStatus(orchAddress, status, txHash, accountNumber, sequenceNumber, balance, bondedTokens, UnbondingTokens)
+			// todo parse validator details in json file
+			msg := cosmosTypes.NewMsgTxStatus(orchAddress, status, txHash, accountNumber, sequenceNumber, balance, []cosmosTypes.ValidatorDetails{})
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

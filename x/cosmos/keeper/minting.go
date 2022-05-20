@@ -11,40 +11,35 @@ import (
 */
 // add a transaction to minting pool for tallying how many orchs have sent a request for minting
 func (k Keeper) addToMintingPoolTx(ctx sdkTypes.Context, txHash string, destinationAddress sdkTypes.AccAddress, orchestratorAddress sdkTypes.AccAddress, amount sdkTypes.Coins) error {
-	store := ctx.KVStore(k.storeKey)
-	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
+	mintingPoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.MintingPoolStoreKey)
 	key := []byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, amount, txHash))
-	if mintingPoolStore.Has(key) {
-		var txnDetails cosmosTypes.IncomingMintTx
-		bz := mintingPoolStore.Get(key)
-		err := k.cdc.Unmarshal(bz, &txnDetails)
-		if err != nil {
-			return err
-		}
+	totalValidatorCount := k.GetTotalValidatorOrchestratorCount(ctx)
 
-		found := txnDetails.Find(orchestratorAddress.String())
-		if !found {
-			txnDetails.AddAndIncrement(orchestratorAddress.String())
-		}
-
-		bz, err = k.cdc.Marshal(&txnDetails)
-		if err != nil {
-			return err
-		}
-		mintingPoolStore.Set(key, bz)
-	} else {
-		txnDetails := cosmosTypes.NewIncomingMintTx(orchestratorAddress, 1)
+	// if store does not have the key then add new key to it
+	if !mintingPoolStore.Has(key) {
+		ratio := sdkTypes.NewDec(1).Quo(sdkTypes.NewDec(totalValidatorCount))
+		txnDetails := cosmosTypes.NewIncomingMintTx(orchestratorAddress, ratio)
 		bz, _ := k.cdc.Marshal(&txnDetails)
 		mintingPoolStore.Set(key, bz)
+		return nil
 	}
+
+	var incomingMintTx cosmosTypes.IncomingMintTx
+	k.cdc.MustUnmarshal(mintingPoolStore.Get(key), &incomingMintTx)
+
+	if !incomingMintTx.Find(orchestratorAddress.String()) {
+		incomingMintTx.UpdateValues(orchestratorAddress.String(), totalValidatorCount)
+		mintingPoolStore.Set(key, k.cdc.MustMarshal(&incomingMintTx))
+	}
+
 	return nil
 }
 
 // Fetches the list of items in minting pool
 func (k Keeper) fetchFromMintPoolTx(ctx sdkTypes.Context, keyAndValueForMinting []cosmosTypes.KeyAndValueForMinting) []cosmosTypes.KeyAndValueForMinting {
 	store := ctx.KVStore(k.storeKey)
-	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
-	totalCount := float32(k.getTotalValidatorOrchestratorCount(ctx))
+	mintingPoolStore := prefix.NewStore(store, cosmosTypes.MintingPoolStoreKey)
+	totalCount := k.GetTotalValidatorOrchestratorCount(ctx)
 	for i := range keyAndValueForMinting {
 		destinationAddress, err := sdkTypes.AccAddressFromBech32(keyAndValueForMinting[i].Value.DestinationAddress)
 		if err != nil {
@@ -55,12 +50,9 @@ func (k Keeper) fetchFromMintPoolTx(ctx sdkTypes.Context, keyAndValueForMinting 
 		bz := mintingPoolStore.Get(key)
 
 		var txnDetails cosmosTypes.IncomingMintTx
-		err = k.cdc.Unmarshal(bz, &txnDetails)
-		if err != nil {
-			panic("Error in unmarshalling txn Details")
-		}
+		k.cdc.MustUnmarshal(bz, &txnDetails)
 
-		keyAndValueForMinting[i].Ratio = float32(len(txnDetails.OrchAddresses)) / totalCount
+		keyAndValueForMinting[i].Ratio = sdkTypes.NewDec(int64(len(txnDetails.OrchAddresses))).Quo(sdkTypes.NewDec(totalCount))
 
 	}
 	return keyAndValueForMinting
@@ -205,7 +197,7 @@ func (k Keeper) ProcessAllMintingTransactions(ctx sdkTypes.Context) error {
 	listWithRatio := k.fetchFromMintPoolTx(ctx, listNew)
 
 	for _, addressToMintTokens := range listWithRatio {
-		if addressToMintTokens.Ratio > cosmosTypes.MinimumRatioForMajority && !addressToMintTokens.Value.Acknowledgment {
+		if addressToMintTokens.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !addressToMintTokens.Value.Acknowledgment {
 			addressToMintTokens.Value.Acknowledgment = true
 			k.addToStakingEpoch(ctx, addressToMintTokens)
 			k.setAcknowledgmentFlagTrue(ctx, addressToMintTokens.Key)
