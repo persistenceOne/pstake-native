@@ -76,12 +76,6 @@ message Params {
     (gogoproto.nullable) = false
   ];
   uint64 max_validator_to_delegate = 6 [(gogoproto.moretags) = "yaml:\"max_validator_to_delegate\""];
-  repeated WeightedAddressCosmos validator_set_cosmos_chain = 7 [
-    (gogoproto.moretags) = "yaml:\"validatorSetCosmosChain\"",
-    (gogoproto.nullable) = false
-  ];
-  repeated WeightedAddress validator_set_native_chain = 8 [(gogoproto.moretags) = "yaml:\"validatorSetNativeChain\"",
-    (gogoproto.nullable) = false];
   repeated WeightedAddress weighted_developer_rewards_receivers = 9 [(gogoproto.moretags) = "yaml:\"weightedDeveloperRewardsReceivers\"",
     (gogoproto.nullable) = false];
   DistributionProportions distribution_proportion = 10 [(gogoproto.moretags) = "yaml:\"weightedDeveloperRewardsReceivers\"",

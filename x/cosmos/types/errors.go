@@ -24,4 +24,8 @@ var (
 	ErrInvalidMultisigPubkey                    = sdkErrors.Register(ModuleName, 64, "multisig pubkey invalid")
 	ErrMoreMultisigAccountsBelongToOneValidator = sdkErrors.Register(ModuleName, 65, "More than 1 Multisig subkeys cannot be held by singular validator")
 	ErrMultiSigAddressNotFound                  = sdkErrors.Register(ModuleName, 66, "multi sig address not found")
+	ErrValidatorOrchestratorMappingNotFound     = sdkErrors.Register(ModuleName, 67, "validator orchestrator mapping not found")
+	ErrMoreThanTwoOrchestratorAddressesMapping  = sdkErrors.Register(ModuleName, 68, "not allowed more than two orchestrator for one validator")
+	ErrModuleAlreadyEnabled                     = sdkErrors.Register(ModuleName, 69, "module already enabled")
+	ErrValidatorNotAllowed                      = sdkErrors.Register(ModuleName, 70, "validator not allowed to add orchestrator address")
 )

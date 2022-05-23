@@ -20,28 +20,19 @@ func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context, singleSignature cosm
 	key := cosmosTypes.UInt64Bytes(txID)
 	if outgoingSignaturePoolStore.Has(key) {
 		var outgoingSignaturePoolValue cosmosTypes.OutgoingSignaturePoolValue
-		err := k.cdc.Unmarshal(outgoingSignaturePoolStore.Get(key), &outgoingSignaturePoolValue)
-		if err != nil {
-			return err
-		}
+		k.cdc.MustUnmarshal(outgoingSignaturePoolStore.Get(key), &outgoingSignaturePoolValue)
+
 		if !outgoingSignaturePoolValue.Find(orchestratorAddress.String()) {
 			return sdkErrors.Wrap(cosmosTypes.ErrOrchAddressPresentInSignaturePool, orchestratorAddress.String())
 		}
 		outgoingSignaturePoolValue.SingleSignatures = append(outgoingSignaturePoolValue.SingleSignatures, singleSignature)
-		outgoingSignaturePoolValue.AddAndIncrement(orchestratorAddress.String())
+		outgoingSignaturePoolValue.UpdateValues(orchestratorAddress.String(), k.GetTotalValidatorOrchestratorCount(ctx))
 
-		bz, err := k.cdc.Marshal(&outgoingSignaturePoolValue)
-		if err != nil {
-			return err
-		}
-		outgoingSignaturePoolStore.Set(key, bz)
+		outgoingSignaturePoolStore.Set(key, k.cdc.MustMarshal(&outgoingSignaturePoolValue))
+		return nil
 	}
 	outgoingSignaturePoolValue := cosmosTypes.NewOutgoingSignaturePoolValue(singleSignature, orchestratorAddress)
-	bz, err := k.cdc.Marshal(&outgoingSignaturePoolValue)
-	if err != nil {
-		return err
-	}
-	outgoingSignaturePoolStore.Set(key, bz)
+	outgoingSignaturePoolStore.Set(key, k.cdc.MustMarshal(&outgoingSignaturePoolValue))
 	return nil
 }
 

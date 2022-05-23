@@ -50,16 +50,16 @@ func (k Keeper) Proposal(context context.Context, req *cosmosTypes.QueryProposal
 }
 
 // Proposals implements the Query/Proposals gRPC method
-func (q Keeper) Proposals(c context.Context, req *cosmosTypes.QueryProposalsRequest) (*cosmosTypes.QueryProposalsResponse, error) {
+func (k Keeper) Proposals(c context.Context, req *cosmosTypes.QueryProposalsRequest) (*cosmosTypes.QueryProposalsResponse, error) {
 	var filteredProposals cosmosTypes.Proposals
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
-	store := ctx.KVStore(q.storeKey)
+	store := ctx.KVStore(k.storeKey)
 	proposalStore := prefix.NewStore(store, cosmosTypes.ProposalsKeyPrefix)
 
 	pageRes, err := query.FilteredPaginate(proposalStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		var p cosmosTypes.Proposal
-		if err := q.cdc.Unmarshal(value, &p); err != nil {
+		if err := k.cdc.Unmarshal(value, &p); err != nil {
 			return false, status.Error(codes.Internal, err.Error())
 		}
 
@@ -89,7 +89,7 @@ func (q Keeper) Proposals(c context.Context, req *cosmosTypes.QueryProposalsRequ
 }
 
 // Vote returns Voted information based on proposalID, voterAddr
-func (q Keeper) Vote(c context.Context, req *cosmosTypes.QueryVoteRequest) (*cosmosTypes.QueryVoteResponse, error) {
+func (k Keeper) Vote(c context.Context, req *cosmosTypes.QueryVoteRequest) (*cosmosTypes.QueryVoteResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -108,7 +108,7 @@ func (q Keeper) Vote(c context.Context, req *cosmosTypes.QueryVoteRequest) (*cos
 	if err != nil {
 		return nil, err
 	}
-	vote, found := q.GetVote(ctx, req.ProposalId, voter)
+	vote, found := k.GetVote(ctx, req.ProposalId, voter)
 	if !found {
 		return nil, status.Errorf(codes.InvalidArgument,
 			"voter: %v not found for proposal: %v", req.Voter, req.ProposalId)
@@ -118,7 +118,7 @@ func (q Keeper) Vote(c context.Context, req *cosmosTypes.QueryVoteRequest) (*cos
 }
 
 // Votes returns single proposal's votes
-func (q Keeper) Votes(c context.Context, req *cosmosTypes.QueryVotesRequest) (*cosmosTypes.QueryVotesResponse, error) {
+func (k Keeper) Votes(c context.Context, req *cosmosTypes.QueryVotesRequest) (*cosmosTypes.QueryVotesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -130,12 +130,12 @@ func (q Keeper) Votes(c context.Context, req *cosmosTypes.QueryVotesRequest) (*c
 	var votes cosmosTypes.Votes
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
-	store := ctx.KVStore(q.storeKey)
+	store := ctx.KVStore(k.storeKey)
 	votesStore := prefix.NewStore(store, cosmosTypes.VotesKey(req.ProposalId))
 
 	pageRes, err := query.Paginate(votesStore, req.Pagination, func(key []byte, value []byte) error {
 		var vote cosmosTypes.Vote
-		if err := q.cdc.Unmarshal(value, &vote); err != nil {
+		if err := k.cdc.Unmarshal(value, &vote); err != nil {
 			return err
 		}
 		populateLegacyOption(&vote)
@@ -149,4 +149,16 @@ func (q Keeper) Votes(c context.Context, req *cosmosTypes.QueryVotesRequest) (*c
 	}
 
 	return &cosmosTypes.QueryVotesResponse{Votes: votes, Pagination: pageRes}, nil
+}
+
+func (k Keeper) CosmosValidatorSet(c context.Context, _ *cosmosTypes.QueryCosmosValidatorSetRequest) (*cosmosTypes.QueryCosmosValidatorSetResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+	weihtedAddresses := k.getAllCosmosValidatorSet(ctx)
+	return &cosmosTypes.QueryCosmosValidatorSetResponse{WeightedAddresses: weihtedAddresses}, nil
+}
+
+func (k Keeper) OracleValidatorSet(c context.Context, _ *cosmosTypes.QueryOracleValidatorSetRequest) (*cosmosTypes.QueryOracleValidatorSetResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+	weightedAddresses := k.getAllOracleValidatorSet(ctx)
+	return &cosmosTypes.QueryOracleValidatorSetResponse{WeightedAddresses: weightedAddresses}, nil
 }

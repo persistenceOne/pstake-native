@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"strconv"
 	"strings"
 	"time"
@@ -258,8 +259,8 @@ $ %s tx gov weighted-vote 1 yes=0.6,no=0.3,abstain=0.05,no_with_veto=0.05 --from
 
 func NewCmdTxStatusCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "tx-status [orchestrator-address] [tx-hash] [status]",
-		Args:  cobra.ExactArgs(3),
+		Use:   "tx-status [orchestrator-address] [tx-hash] [status] [account-number] [sequence-number] [balance]",
+		Args:  cobra.ExactArgs(6),
 		Short: "Send status for transaction",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Submit status for transaction relayed to cosmos chain.
@@ -281,7 +282,23 @@ Only "success" or "failure" accepted as status.`,
 
 			status := args[2]
 
-			msg := cosmosTypes.NewMsgTxStatus(orchAddress, status, txHash)
+			accountNumber, err := strconv.ParseUint(args[3], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			sequenceNumber, err := strconv.ParseUint(args[4], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			balance, err := sdk.ParseCoinsNormalized(args[5])
+			if err != nil {
+				return err
+			}
+
+			// todo parse validator details in json file
+			msg := cosmosTypes.NewMsgTxStatus(orchAddress, status, txHash, accountNumber, sequenceNumber, balance, []cosmosTypes.ValidatorDetails{})
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -369,4 +386,183 @@ func NewRewardsClaimedCmd() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+func NewEnableModuleCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "enable-module [proposal-file]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a module enable proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a module-enable proposal along with an initial deposit.`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := utils.ParseEnableModuleProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			from := clientCtx.GetFromAddress()
+			content := cosmosTypes.NewEnableModuleProposal(proposal.Title, proposal.Description, proposal.Threshold, proposal.AccountNumber)
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+}
+
+func NewChangeMultisigCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "change-multisig [proposal-file] ",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a multisig change proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a change-multisig proposal along with an initial deposit.`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := utils.ParseChangeMultisigProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			from := clientCtx.GetFromAddress()
+			content := cosmosTypes.NewChangeMultisigProposal(proposal.Title, proposal.Description, proposal.Threshold, proposal.OrchestratorAddresses, proposal.AccountNumber)
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+}
+
+func NewChangeCosmosValidatorWeightsCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "change-cosmos-validator-weights [proposal-file] ",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a cosmos validator weights change proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a cosmos validator weights proposal along with an initial deposit.`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("entering cosmos validator set proposal")
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := utils.ParseChangeCosmosValidatorWeightsProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			var weightedAddresses []cosmosTypes.WeightedAddressCosmos
+
+			for _, weightedAddress := range proposal.WeightedAddresses {
+				weight, err := sdk.NewDecFromStr(weightedAddress.Weight)
+				if err != nil {
+					return err
+				}
+				weightedAddresses = append(
+					weightedAddresses,
+					cosmosTypes.WeightedAddressCosmos{
+						Address: weightedAddress.ValAddress,
+						Weight:  weight,
+					})
+			}
+
+			from := clientCtx.GetFromAddress()
+			content := cosmosTypes.NewChangeCosmosValidatorWeightsProposal(proposal.Title, proposal.Description, weightedAddresses)
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+}
+
+func NewChangeOracleValidatorWeightsCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "change-oracle-validator-weights [proposal-file] ",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a oracle validator weights change proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a oracle validator weights proposal along with an initial deposit.`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := utils.ParseChangeOracleValidatorWeightsProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			var weightedAddresses []cosmosTypes.WeightedAddress
+
+			for _, weightedAddress := range proposal.WeightedAddresses {
+				weight, err := sdk.NewDecFromStr(weightedAddress.Weight)
+				if err != nil {
+					return err
+				}
+				weightedAddresses = append(
+					weightedAddresses,
+					cosmosTypes.WeightedAddress{
+						Address: weightedAddress.ValAddress,
+						Weight:  weight,
+					})
+			}
+
+			from := clientCtx.GetFromAddress()
+			content := cosmosTypes.NewChangeOracleValidatorWeightsProposal(proposal.Title, proposal.Description, weightedAddresses)
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
 }

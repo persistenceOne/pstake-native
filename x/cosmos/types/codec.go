@@ -6,6 +6,7 @@ import (
 	cryptoCodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
@@ -19,6 +20,10 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgTxStatus{}, "cosmos/MsgTxStatus", nil)
 	cdc.RegisterConcrete(&MsgRewardsClaimedOnCosmosChain{}, "cosmos/MsgRewardsClaimedOnCosmosChain", nil)
 	cdc.RegisterConcrete(&MsgUndelegateSuccess{}, "cosmos/MsgUndelegateSuccess", nil)
+	cdc.RegisterConcrete(&EnableModuleProposal{}, "cosmos/EnableModuleProposal", nil)
+	cdc.RegisterConcrete(&ChangeMultisigProposal{}, "cosmos/ChangeMultisigProposal", nil)
+	cdc.RegisterConcrete(&ChangeCosmosValidatorWeightsProposal{}, "cosmos/ChangeCosmosValidatorWeightsProposal", nil)
+	cdc.RegisterConcrete(&ChangeOracleValidatorWeightsProposal{}, "cosmos/ChangeOracleValidatorWeightsProposal", nil)
 }
 
 func RegisterInterfaces(registry codecTypes.InterfaceRegistry) {
@@ -33,6 +38,13 @@ func RegisterInterfaces(registry codecTypes.InterfaceRegistry) {
 		&MsgTxStatus{},
 		&MsgRewardsClaimedOnCosmosChain{},
 		&MsgUndelegateSuccess{},
+	)
+
+	registry.RegisterImplementations((*govtypes.Content)(nil),
+		&EnableModuleProposal{},
+		&ChangeMultisigProposal{},
+		&ChangeCosmosValidatorWeightsProposal{},
+		&ChangeOracleValidatorWeightsProposal{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
