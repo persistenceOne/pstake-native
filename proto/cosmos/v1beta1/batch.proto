@@ -142,9 +142,9 @@ message SingleSignatureDataForOutgoingPool {
 
 message OutgoingSignaturePoolValue {
   repeated SingleSignatureDataForOutgoingPool single_signatures = 1 [(gogoproto.nullable) = false];
-  string ratio = 2[(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  repeated string orchestratorAddresses = 2;
-  uint64 counter = 3;
+  string ratio = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  repeated string orchestratorAddresses = 3;
+  uint64 counter = 4;
 }
 
 message OutgoingQueueValue {

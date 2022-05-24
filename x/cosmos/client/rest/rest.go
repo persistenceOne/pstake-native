@@ -147,7 +147,7 @@ func postChangeCosmosValidatorWeightsProposalHandlerFn(clientCtx client.Context)
 			return
 		}
 
-		var weightedAddresses []cosmosTypes.WeightedAddressCosmos
+		var weightedAddresses []cosmosTypes.WeightedAddressAmount
 
 		for _, weightedAddress := range req.CosmosValidatorSet.WeightedAddresses {
 			weight, err := sdkTypes.NewDecFromStr(weightedAddress.Weight)
@@ -156,7 +156,7 @@ func postChangeCosmosValidatorWeightsProposalHandlerFn(clientCtx client.Context)
 			}
 			weightedAddresses = append(
 				weightedAddresses,
-				cosmosTypes.WeightedAddressCosmos{
+				cosmosTypes.WeightedAddressAmount{
 					Address: weightedAddress.ValAddress,
 					Weight:  weight,
 				})

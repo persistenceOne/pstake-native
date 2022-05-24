@@ -105,7 +105,7 @@ message QueryCosmosValidatorSetRequest {}
 
 message QueryCosmosValidatorSetResponse {
   option (gogoproto.equal) = false;
-  repeated cosmos.v1beta1.WeightedAddressCosmos weighted_addresses = 1 [(gogoproto.nullable) = false];
+  repeated cosmos.v1beta1.WeightedAddressAmount weighted_addresses = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryOracleValidatorSetRequest {}
