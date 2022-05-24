@@ -8,6 +8,7 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 
+// TODO: Do no use in proposals, use WeightedAddress for proposals
 message WeightedAddressAmount {
   string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
   string weight = 2 [
