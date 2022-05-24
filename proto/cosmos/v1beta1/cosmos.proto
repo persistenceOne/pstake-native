@@ -8,15 +8,17 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 
-message WeightedAddressCosmos {
+message WeightedAddressAmount {
   string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
   string weight = 2 [
     (gogoproto.moretags) = "yaml:\"weight\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
-  cosmos.base.v1beta1.Coin current_delegated_amount = 3 [
-    (gogoproto.moretags) = "yaml:\"current_delegated_amount\"",
+  string denom  = 3;
+  string amount = 4 [
+    (gogoproto.moretags) = "yaml:\"amount\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
 }

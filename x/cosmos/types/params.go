@@ -85,34 +85,6 @@ func DefaultParams() Params {
 		MinBurningAmount:       sdk.NewInt64Coin("uatom", 5000000),
 		MaxBurningAmount:       sdk.NewInt64Coin("uatom", 100000000000),
 		MaxValidatorToDelegate: 3,
-		//ValidatorSetCosmosChain: []WeightedAddressCosmos{
-		//	{
-		//		Address:                "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
-		//		Weight:                 sdk.NewDecWithPrec(5, 1),
-		//		CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-		//	},
-		//	{
-		//		Address:                "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2",
-		//		Weight:                 sdk.NewDecWithPrec(2, 1),
-		//		CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-		//	},
-		//	{
-		//		Address:                "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
-		//		Weight:                 sdk.NewDecWithPrec(1, 1),
-		//		CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-		//	},
-		//	{
-		//		Address:                "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2",
-		//		Weight:                 sdk.NewDecWithPrec(2, 1),
-		//		CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-		//	},
-		//},
-		//ValidatorSetNativeChain: []WeightedAddress{
-		//	{
-		//		Address: "persistencevaloper183g695ap32wnds5k9xwd3yq997dqxudfz524f3",
-		//		Weight:  sdk.NewDecWithPrec(10, 1),
-		//	},
-		//},
 		WeightedDeveloperRewardsReceivers: []WeightedAddress{
 			{
 				Address: "persistence1g5lz0gq98y8tav477dltxgpdft0wr9rmqt7mvu",
@@ -302,7 +274,7 @@ func validateMaxValidatorToDelegate(i interface{}) error {
 }
 
 func ValidateValidatorSetCosmosChain(i interface{}) error {
-	v, ok := i.([]WeightedAddressCosmos)
+	v, ok := i.([]WeightedAddressAmount)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -328,7 +300,7 @@ func ValidateValidatorSetCosmosChain(i interface{}) error {
 			return fmt.Errorf("more than 1 weight at %dth", i)
 		}
 		weightSum = weightSum.Add(w.Weight)
-		if w.CurrentDelegatedAmount.IsNegative() {
+		if w.Amount.IsNegative() {
 			return fmt.Errorf("non-positive current delegation amount at %dth", i)
 		}
 	}
