@@ -14,7 +14,7 @@ func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, msg cosmosTypes.MsgRewa
 	// store has key in it or not
 	if !rewardsClaimedStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewRewardsClaimedValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewRewardsClaimedValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
@@ -26,7 +26,7 @@ func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, msg cosmosTypes.MsgRewa
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotRewardsClaimed(rewardsClaimedValue, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewRewardsClaimedValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewRewardsClaimedValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
@@ -55,14 +55,13 @@ func (k Keeper) getAllFromRewardsClaimedPool(ctx sdk.Context) (list []cosmosType
 	return list, keys, err
 }
 
-func (k Keeper) setAddedToCurrentEpochTrue(ctx sdk.Context, key []byte, val cosmosTypes.RewardsClaimedValue) error {
+func (k Keeper) setAddedToCurrentEpochTrue(ctx sdk.Context, key []byte) {
 	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
-	bz, err := k.cdc.Marshal(&val)
-	if err != nil {
-		return err
-	}
-	rewardsClaimedStore.Set(key, bz)
-	return nil
+
+	var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
+	k.cdc.MustUnmarshal(rewardsClaimedStore.Get(key), &rewardsClaimedValue)
+	rewardsClaimedValue.AddedToCurrentEpoch = true
+	rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&rewardsClaimedValue))
 }
 
 func (k Keeper) deleteFromRewardsClaimedPool(ctx sdk.Context, key []byte) {
@@ -72,33 +71,31 @@ func (k Keeper) deleteFromRewardsClaimedPool(ctx sdk.Context, key []byte) {
 
 //______________________________________________________________________________________________________________________
 
-func (k Keeper) addToRewardsInCurrentEpoch(ctx sdk.Context, value cosmosTypes.RewardsClaimedValue) error {
+func (k Keeper) addToRewardsInCurrentEpoch(ctx sdk.Context, amount sdk.Coin) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 	currentEpoch := k.epochsKeeper.GetEpochInfo(ctx, k.GetParams(ctx).StakingEpochIdentifier).CurrentEpoch
 	key := cosmosTypes.Int64Bytes(currentEpoch)
-	bz, err := k.cdc.Marshal(&value)
-	if err != nil {
-		return err
+
+	// if store does not have key in it then create a new one
+	if !rewardsInCurrentEpochStore.Has(key) {
+		rewardsInCurrentEpochStore.Set(key, k.cdc.MustMarshal(&amount))
+		return
 	}
-	rewardsInCurrentEpochStore.Set(key, bz)
-	return nil
+
+	// if store already has the key then add the amount to the previous value
+	var newAmount sdk.Coin
+	k.cdc.MustUnmarshal(rewardsInCurrentEpochStore.Get(key), &newAmount)
+	newAmount = newAmount.Add(amount)
+	rewardsInCurrentEpochStore.Set(key, k.cdc.MustMarshal(&newAmount))
 }
 
-func (k Keeper) getFromRewardsInCurrentEpochAmount(ctx sdk.Context, epochNumber int64) (sdk.Coin, error) {
+func (k Keeper) getFromRewardsInCurrentEpochAmount(ctx sdk.Context, epochNumber int64) (amount sdk.Coin) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
-	bz := rewardsInCurrentEpochStore.Get(cosmosTypes.Int64Bytes(epochNumber))
-	if bz == nil {
-		return sdk.NewInt64Coin("uatom", 0), nil
+	if rewardsInCurrentEpochStore.Has(cosmosTypes.Int64Bytes(epochNumber)) {
+		return sdk.Coin{}
 	}
-
-	var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
-	err := k.cdc.Unmarshal(bz, &rewardsClaimedValue)
-	if err != nil {
-		return sdk.NewInt64Coin("uatom", 0), err
-	}
-
-	// return the exact amount of rewards claimed as present in the message as amount is also matched in case of rewards claim entries
-	return rewardsClaimedValue.RewardsClaimed.AmountClaimed, nil
+	k.cdc.MustUnmarshal(rewardsInCurrentEpochStore.Get(cosmosTypes.Int64Bytes(epochNumber)), &amount)
+	return amount
 }
 
 func (k Keeper) deleteFromRewardsInCurrentEpoch(ctx sdk.Context, epochNumber int64) {
@@ -120,17 +117,11 @@ func (k Keeper) ProcessRewards(ctx sdk.Context) error {
 		if r.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !r.AddedToCurrentEpoch {
 			r.AddedToCurrentEpoch = true
 
-			err = k.addToRewardsInCurrentEpoch(ctx, r)
-			if err != nil {
-				return err
-			}
+			k.addToRewardsInCurrentEpoch(ctx, r.RewardsClaimed.AmountClaimed)
 
-			err = k.setAddedToCurrentEpochTrue(ctx, keys[i], r)
-			if err != nil {
-				return err
-			}
+			k.setAddedToCurrentEpochTrue(ctx, keys[i])
 		}
-		if r.ActiveBlockHeight <= ctx.BlockHeight() {
+		if r.ActiveBlockHeight <= ctx.BlockHeight() && r.AddedToCurrentEpoch {
 			k.deleteFromRewardsClaimedPool(ctx, keys[i])
 		}
 	}

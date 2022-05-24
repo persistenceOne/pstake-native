@@ -7,12 +7,17 @@ func (k Keeper) GetProportions(ctx sdk.Context, mintedCoin sdk.Coin, ratio sdk.D
 }
 
 func (k Keeper) processAllRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin) error {
+
+	// get amount in Stk assets form
 	params := k.GetParams(ctx)
 	rewardAmountInUSTK := sdk.NewCoin(params.MintDenom, rewardsAmount.Amount)
+
+	// get distribution proportions for minting stk assets
 	distributionProportion := params.DistributionProportion
 	totalDistributionProportion := distributionProportion.ValidatorRewards.Add(distributionProportion.DeveloperRewards)
 	totalRewards := k.GetProportions(ctx, rewardAmountInUSTK, totalDistributionProportion)
 
+	// calculate rewards for developers and validators
 	validatorRewards := k.GetProportions(ctx, totalRewards, distributionProportion.ValidatorRewards)
 	developerRewards := k.GetProportions(ctx, totalRewards, distributionProportion.DeveloperRewards)
 
@@ -32,6 +37,6 @@ func (k Keeper) processAllRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin
 		}
 	}
 
-	//TODO : update c ratio
+	// no need to update C value as it is already done in mintTokensForRewardReceivers()
 	return nil
 }

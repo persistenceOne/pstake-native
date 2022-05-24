@@ -14,44 +14,10 @@ import "cosmos/tx/signing/v1beta1/signing.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
-message OutgoingTxBatch {
-  uint64                      batch_nonce = 1;
-  uint64                      batch_timeout = 2;
-  repeated OutgoingTransferTx transactions = 3 [(gogoproto.nullable) = false];
-  uint64                      block = 5;
-}
-
-message OutgoingTransferTx {
-  uint64     id = 1;
-  google.protobuf.Any message = 2 [(gogoproto.moretags) = "yaml:\"public_key\""];
-  repeated cosmos.base.v1beta1.Coin fees = 3 [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
-}
-
-message IncomingMintTx {
-  repeated string orch_addresses = 1;
-  string ratio = 2[(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  int64 counter = 3;
-}
-
-message AddressAndAmountKey {
-  string destination_address = 1;
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
-  bool acknowledgment = 3;
-  bool minted = 4;
-  int64 native_block_height = 5;
-}
-
 message ChainIDHeightAndTxHashKey {
   string chain_i_d = 1;
   int64 block_height = 2;
   string tx_hash = 3;
-}
-
-message KeyAndValueForMinting {
-  ChainIDHeightAndTxHashKey key = 1 [(gogoproto.nullable) = false];
-  AddressAndAmountKey value = 2 [(gogoproto.nullable) = false];
-  string ratio = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  int64 counter = 4;
 }
 
 message ProposalKey {
@@ -66,6 +32,7 @@ message ProposalValue {
   repeated string orchestrator_addresses = 3;
   string ratio = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
   int64 counter = 5;
+  int64 active_block_height = 6;
 }
 
 message CosmosTx {
@@ -73,9 +40,8 @@ message CosmosTx {
   bool event_emitted = 2;
   string status = 3;
   string txHash = 4;
-  int64 native_block_height = 5;
-  int64 active_block_height = 6;
-  string signer_address = 7;
+  int64 active_block_height = 5;
+  string signer_address = 6;
 }
 
 message TxHashValue {
@@ -85,8 +51,7 @@ message TxHashValue {
   string ratio = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
   bool tx_cleared = 5;
   int64 counter = 6;
-  int64 native_block_height = 7;
-  int64 active_block_height = 8;
+  int64 active_block_height = 7;
 }
 
 message WithdrawStoreValue {
@@ -101,10 +66,6 @@ message ValueOutgoingUnbondStore {
 
 message ValidatorStoreValue {
   repeated string orchestrator_addresses = 1;
-}
-
-message StakingEpochValue {
-  repeated KeyAndValueForMinting epochMintingTxns = 1 [(gogoproto.nullable) = false];
 }
 
 message MintingEpochValueMember {
@@ -122,8 +83,7 @@ message RewardsClaimedValue {
   string ratio = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
   int64 counter = 4;
   bool added_to_current_epoch = 5;
-  int64 native_block_height = 6;
-  int64 active_block_height = 7;
+  int64 active_block_height = 6;
 }
 
 message ValueUndelegateSuccessStore {
@@ -131,8 +91,7 @@ message ValueUndelegateSuccessStore {
   repeated string orchestrator_addresses = 2;
   string ratio = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
   int64 counter = 4;
-  int64 native_block_height = 5;
-  int64 active_block_height = 6;
+  int64 active_block_height = 5;
 }
 
 message SingleSignatureDataForOutgoingPool {
@@ -143,8 +102,8 @@ message SingleSignatureDataForOutgoingPool {
 message OutgoingSignaturePoolValue {
   repeated SingleSignatureDataForOutgoingPool single_signatures = 1 [(gogoproto.nullable) = false];
   string ratio = 2[(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  repeated string orchestratorAddresses = 2;
-  uint64 counter = 3;
+  repeated string orchestratorAddresses = 3;
+  uint64 counter = 4;
 }
 
 message OutgoingQueueValue {
@@ -157,4 +116,16 @@ message SlashingStoreValue {
   string ratio = 2[(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
   repeated string orchestrator_addresses = 3;
   int64 counter = 4;
+  bool added_to_c_value = 5;
+  int64 active_block_height = 6;
+}
+
+message MintTokenStoreValue {
+  cosmos.v1beta1.MsgMintTokensForAccount mint_tokens = 1 [(gogoproto.nullable) = false];
+  string ratio = 2[(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  repeated string orchestratorAddresses = 3;
+  int64 counter = 4;
+  bool minted = 5;
+  bool added_to_epoch = 6;
+  int64 active_block_height = 7;
 }

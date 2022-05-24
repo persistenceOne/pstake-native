@@ -168,7 +168,7 @@ func (k Keeper) setTxHashAndDetails(ctx sdk.Context, msg cosmosTypes.MsgTxStatus
 
 	if !txHashStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		txHashStore.Set(key, k.cdc.MustMarshal(&newTxHashValue))
 		return
 	}
@@ -180,7 +180,7 @@ func (k Keeper) setTxHashAndDetails(ctx sdk.Context, msg cosmosTypes.MsgTxStatus
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotTxStatus(txHashValue, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		txHashStore.Set(key, k.cdc.MustMarshal(&newTxHashValue))
 		return
 	}

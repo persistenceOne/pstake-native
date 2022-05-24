@@ -35,7 +35,7 @@ var (
 	KeyCosmosProposalParams              = []byte("CosmosProposalParams")
 	KeyDelegationThreshold               = []byte("DelegationThreshold")
 	KeyModuleEnabled                     = []byte("ModuleEnabled")
-	KeyStakingEpochIdentifier            = []byte("StakingEpochIdentifier")
+	KeyStakingEpochIdentifier            = []byte("StakeEpochIdentifier")
 	KeyCustodialAddress                  = []byte("CustodialAddress")
 	KeyUndelegateEpochIdentifier         = []byte("UndelegateEpochIdentifier")
 	KeyChunkSize                         = []byte("ChunkSize")
@@ -43,6 +43,7 @@ var (
 	KeyMintDenom                         = []byte("MintDenom")
 	KeyMultisigThreshold                 = []byte("MultisigThreshold")
 	KeyRetryLimit                        = []byte("RetryLimit")
+	KeyRewardEpochIdentifier             = []byte("RewardEpochIdentifier")
 )
 
 func ParamKeyTable() paramsTypes.KeyTable {
@@ -131,9 +132,10 @@ func DefaultParams() Params {
 		},
 		DelegationThreshold:       sdk.NewInt64Coin("uatom", 2000000000),
 		ModuleEnabled:             false, //TODO : Make false before launch
-		StakingEpochIdentifier:    "3hour",
 		CustodialAddress:          "cosmos15vm0p2x990762txvsrpr26ya54p5qlz9xqlw5z",
-		UndelegateEpochIdentifier: "3.5day",
+		StakingEpochIdentifier:    "stake",
+		UndelegateEpochIdentifier: "undelegate",
+		RewardEpochIdentifier:     "reward",
 		ChunkSize:                 5,
 		BondDenoms:                DefaultBondDenom,
 		MintDenom:                 DefaultMintDenom,
@@ -203,6 +205,9 @@ func (p Params) Validate() error {
 	if err := validateRetryLimit(p.RetryLimit); err != nil {
 		return err
 	}
+	if err := epochsTypes.ValidateEpochIdentifierInterface(p.RewardEpochIdentifier); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -233,6 +238,7 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyMintDenom, &p.MintDenom, validateMintDenom),
 		paramsTypes.NewParamSetPair(KeyMultisigThreshold, &p.MultisigThreshold, validateMultisigThreshold),
 		paramsTypes.NewParamSetPair(KeyRetryLimit, &p.RetryLimit, validateRetryLimit),
+		paramsTypes.NewParamSetPair(KeyRewardEpochIdentifier, &p.RewardEpochIdentifier, epochsTypes.ValidateEpochIdentifierInterface),
 	}
 }
 

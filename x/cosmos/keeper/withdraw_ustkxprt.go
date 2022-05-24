@@ -135,7 +135,6 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 			EventEmitted:      false,
 			Status:            "",
 			TxHash:            "",
-			NativeBlockHeight: ctx.BlockHeight(),
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 			SignerAddress:     k.getCurrentAddress(ctx).String(),
 		}

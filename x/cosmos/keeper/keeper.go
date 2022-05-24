@@ -113,14 +113,18 @@ func prefixRange(prefix []byte) ([]byte, []byte) {
 	return prefix, end
 }
 
-func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, key cosmosTypes.ChainIDHeightAndTxHashKey, value cosmosTypes.AddressAndAmountKey) error {
-	//TODO incorporate minting_ratio
-	if value.Amount.Amount.GT(k.GetParams(ctx).MinMintingAmount.Amount) && value.Amount.Amount.LT(k.GetParams(ctx).MaxMintingAmount.Amount) {
-		destinationAddress, err := sdkTypes.AccAddressFromBech32(value.DestinationAddress)
+func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, mintStoreValue cosmosTypes.MsgMintTokensForAccount) error {
+
+	// convert the amount to minting amount and multiply by C value
+	mintingAmount := sdkTypes.NewCoin(k.GetParams(ctx).MintDenom, mintStoreValue.Amount.Amount)
+	// todo multiply by C value
+
+	if mintingAmount.Amount.GT(k.GetParams(ctx).MinMintingAmount.Amount) && mintingAmount.Amount.LT(k.GetParams(ctx).MaxMintingAmount.Amount) {
+		destinationAddress, err := sdkTypes.AccAddressFromBech32(mintStoreValue.AddressFromMemo)
 		if err != nil {
 			return err
 		}
-		amnt := sdkTypes.NewCoins(value.Amount)
+		amnt := sdkTypes.NewCoins(mintingAmount)
 		err = k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, amnt)
 		if err != nil {
 			return err
@@ -130,7 +134,6 @@ func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, key cosmosTypes.Chain
 			return err
 		}
 	}
-	k.setMintedFlagTrue(ctx, key)
 	return nil
 }
 

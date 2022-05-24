@@ -15,7 +15,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 }
 
 func minting(ctx sdk.Context, k Keeper) {
-	err := k.ProcessAllMintingTransactions(ctx)
+	err := k.ProcessAllMintingStoreValue(ctx)
 	logger := k.Logger(ctx)
 	if err != nil {
 		logger.Info(err.Error())

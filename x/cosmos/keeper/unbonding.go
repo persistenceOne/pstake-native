@@ -65,7 +65,6 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 			EventEmitted:      false,
 			Status:            "",
 			TxHash:            "",
-			NativeBlockHeight: ctx.BlockHeight(),
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 			SignerAddress:     k.getCurrentAddress(ctx).String(),
 		}

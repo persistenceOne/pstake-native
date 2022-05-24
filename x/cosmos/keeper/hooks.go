@@ -37,26 +37,29 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	params := k.GetParams(ctx)
 
 	if epochIdentifier == params.StakingEpochIdentifier {
-		listOfMintTxns, err := k.getFromStakingEpoch(ctx, epochNumber)
-		stakingDenom, err := params.GetBondDenomOf("uatom")
-		if err != nil {
-			panic(err)
-		}
-
-		rewardsToBeClaimed, err := k.getFromRewardsInCurrentEpochAmount(ctx, epochNumber)
-		if err != nil {
-			panic(err)
-		}
-
-		amt := getTotalStakingAmount(listOfMintTxns, stakingDenom)
-		amt.Add(rewardsToBeClaimed)
-
-		if !amt.IsZero() {
-			listOfValidatorsToStake := k.fetchValidatorsToDelegate(ctx, amt)
-			err = k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake, epochNumber)
+		amount := k.getAmountFromStakingEpoch(ctx, epochNumber)
+		if !amount.IsZero() {
+			listOfValidatorsToStake := k.fetchValidatorsToDelegate(ctx, amount)
+			err := k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake, epochNumber)
 			if err != nil {
 				panic(err)
 			}
+		}
+		k.deleteFromStakingEpoch(ctx, epochNumber)
+	}
+
+	if epochIdentifier == params.RewardEpochIdentifier {
+		rewardsToDelegate := k.getFromRewardsInCurrentEpochAmount(ctx, epochNumber)
+		if !rewardsToDelegate.IsZero() {
+			listOfValidatorsToStake := k.fetchValidatorsToDelegate(ctx, rewardsToDelegate)
+			err := k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake, epochNumber)
+			if err != nil {
+				panic(err)
+			}
+		}
+		err := k.processAllRewardsClaimed(ctx, rewardsToDelegate)
+		if err != nil {
+			panic(err)
 		}
 	}
 

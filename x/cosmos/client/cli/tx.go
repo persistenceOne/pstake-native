@@ -67,7 +67,7 @@ func NewIncomingTxnCmd() *cobra.Command {
 				return err
 			}
 
-			coins, err := sdk.ParseCoinsNormalized(args[2])
+			coins, err := sdk.ParseCoinNormalized(args[2])
 			if err != nil {
 				return err
 			}
