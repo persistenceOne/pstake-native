@@ -107,7 +107,7 @@ func (m *EnableModuleProposal) String() string {
 	return b.String()
 }
 
-func NewChangeCosmosValidatorWeightsProposal(title, description string, weightedAddresses []WeightedAddressCosmos) *ChangeCosmosValidatorWeightsProposal {
+func NewChangeCosmosValidatorWeightsProposal(title, description string, weightedAddresses []WeightedAddressAmount) *ChangeCosmosValidatorWeightsProposal {
 	return &ChangeCosmosValidatorWeightsProposal{
 		Title:             title,
 		Description:       description,

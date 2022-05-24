@@ -482,7 +482,7 @@ func NewChangeCosmosValidatorWeightsCmd() *cobra.Command {
 				return err
 			}
 
-			var weightedAddresses []cosmosTypes.WeightedAddressCosmos
+			var weightedAddresses []cosmosTypes.WeightedAddressAmount
 
 			for _, weightedAddress := range proposal.WeightedAddresses {
 				weight, err := sdk.NewDecFromStr(weightedAddress.Weight)
@@ -491,7 +491,7 @@ func NewChangeCosmosValidatorWeightsCmd() *cobra.Command {
 				}
 				weightedAddresses = append(
 					weightedAddresses,
-					cosmosTypes.WeightedAddressCosmos{
+					cosmosTypes.WeightedAddressAmount{
 						Address: weightedAddress.ValAddress,
 						Weight:  weight,
 					})
