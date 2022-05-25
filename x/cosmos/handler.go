@@ -2,9 +2,11 @@ package cosmos
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	"github.com/persistenceOne/pstake-native/x/cosmos/keeper"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
@@ -35,13 +37,13 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.Withdraw(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 		default:
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized Cosmos Module Msg type: %v", sdk.MsgTypeURL(msg)))
+			return nil, sdkErrors.Wrap(sdkErrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized Cosmos Module Msg type: %v", sdk.MsgTypeURL(msg)))
 		}
 	}
 }
 
-func NewCosmosLiquidStakingParametersHandler(k keeper.Keeper) govtypes.Handler {
-	return func(ctx sdk.Context, content govtypes.Content) error {
+func NewCosmosLiquidStakingParametersHandler(k keeper.Keeper) govTypes.Handler {
+	return func(ctx sdk.Context, content govTypes.Content) error {
 		switch c := content.(type) {
 		case *cosmosTypes.ChangeMultisigProposal:
 			return keeper.HandleChangeMultisigProposal(ctx, k, c)
@@ -52,7 +54,7 @@ func NewCosmosLiquidStakingParametersHandler(k keeper.Keeper) govtypes.Handler {
 		case *cosmosTypes.ChangeOracleValidatorWeightsProposal:
 			return keeper.HandleChangeOracleValidatorWeightsProposal(ctx, k, c)
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized distr proposal content type: %T", c)
+			return sdkErrors.Wrapf(sdkErrors.ErrUnknownRequest, "unrecognized distr proposal content type: %T", c)
 		}
 	}
 }

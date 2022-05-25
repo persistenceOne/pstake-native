@@ -1,14 +1,16 @@
 package keeper
 
 import (
+	"math"
+
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	"math"
 )
 
 func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidatorsAndUnbondingAmount []ValAddressAndAmountForStakingAndUndelegating, epochNumber int64) {
@@ -69,7 +71,7 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 			SignerAddress:     k.getCurrentAddress(ctx).String(),
 		}
 
-		err = k.setIDInEpochPoolForWithdrawals(ctx, nextID, undelegategMsgs, params.CustodialAddress, epochNumber)
+		err = k.setIDInEpochPoolForWithdrawals(ctx, nextID, undelegategMsgs, epochNumber)
 		if err != nil {
 			panic(err)
 		}
@@ -80,7 +82,7 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 	}
 }
 
-func (k Keeper) setIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64, undelegateMsgs []stakingTypes.MsgUndelegate, custodialAddress string, epochNumber int64) error {
+func (k Keeper) setIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64, undelegateMsgs []stakingTypes.MsgUndelegate, epochNumber int64) error {
 	unbondingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingUnbondStore)
 	key := cosmosTypes.UInt64Bytes(txID)
 	value := cosmosTypes.NewValueOutgoingUnbondStore(undelegateMsgs, epochNumber)
@@ -113,13 +115,6 @@ func (k Keeper) setEpochWithdrawSuccessStore(ctx sdk.Context, epochNumber int64)
 	if !epochWithdrawStore.Has(key) {
 		epochWithdrawStore.Set(key, []byte("false"))
 	}
-}
-
-func (k Keeper) getEpochWithdrawSuccessStore(ctx sdk.Context, epochNumber int64) string {
-	epochWithdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyEpochStoreForWithdrawSuccess)
-	key := cosmosTypes.Int64Bytes(epochNumber)
-	bz := epochWithdrawStore.Get(key)
-	return string(bz)
 }
 
 func (k Keeper) getLeastEpochNumberWithWithdrawStatusFalse(ctx sdk.Context) int64 {
@@ -175,12 +170,11 @@ func (k Keeper) getEpochNumberAndUndelegateDetailsOfValidators(ctx sdk.Context, 
 	return false
 }
 
-func (k Keeper) setEpochAndValidatorDetailsForAllUndelegations(ctx sdk.Context, txID uint64) error {
+func (k Keeper) setEpochAndValidatorDetailsForAllUndelegations(ctx sdk.Context, txID uint64) {
 	details := k.getIDInEpochPoolForWithdrawals(ctx, txID)
 	k.setEpochNumberAndUndelegateDetailsOfValidators(ctx, details) //sets undelegations txns for future verifications
 	k.deleteIDInEpochPoolForWithdrawals(ctx, txID)
 	k.setEpochWithdrawSuccessStore(ctx, details.EpochNumber) //sets withdraw batch success as false
-	return nil
 }
 
 func ChunkStakeAndUnStakeSlice(slice []ValAddressAndAmountForStakingAndUndelegating, chunkSize int64) (chunks [][]ValAddressAndAmountForStakingAndUndelegating) {

@@ -10,23 +10,23 @@ import (
 var _ cosmosTypes.GovHooks = Keeper{}
 
 // AfterProposalSubmission - call hook if registered
-func (keeper Keeper) AfterProposalSubmission(ctx sdk.Context, proposalID uint64) {
-	if keeper.hooks != nil {
-		keeper.hooks.AfterProposalSubmission(ctx, proposalID)
+func (k Keeper) AfterProposalSubmission(ctx sdk.Context, proposalID uint64) {
+	if k.hooks != nil {
+		k.hooks.AfterProposalSubmission(ctx, proposalID)
 	}
 }
 
 // AfterProposalVote - call hook if registered
-func (keeper Keeper) AfterProposalVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress) {
-	if keeper.hooks != nil {
-		keeper.hooks.AfterProposalVote(ctx, proposalID, voterAddr)
+func (k Keeper) AfterProposalVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress) {
+	if k.hooks != nil {
+		k.hooks.AfterProposalVote(ctx, proposalID, voterAddr)
 	}
 }
 
 // AfterProposalVotingPeriodEnded - call hook if registered
-func (keeper Keeper) AfterProposalVotingPeriodEnded(ctx sdk.Context, proposalID uint64) {
-	if keeper.hooks != nil {
-		keeper.hooks.AfterProposalVotingPeriodEnded(ctx, proposalID)
+func (k Keeper) AfterProposalVotingPeriodEnded(ctx sdk.Context, proposalID uint64) {
+	if k.hooks != nil {
+		k.hooks.AfterProposalVotingPeriodEnded(ctx, proposalID)
 	}
 }
 
@@ -40,7 +40,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		amount := k.getAmountFromStakingEpoch(ctx, epochNumber)
 		if !amount.IsZero() {
 			listOfValidatorsToStake := k.fetchValidatorsToDelegate(ctx, amount)
-			err := k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake, epochNumber)
+			err := k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake)
 			if err != nil {
 				panic(err)
 			}
@@ -52,7 +52,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		rewardsToDelegate := k.getFromRewardsInCurrentEpochAmount(ctx, epochNumber)
 		if !rewardsToDelegate.IsZero() {
 			listOfValidatorsToStake := k.fetchValidatorsToDelegate(ctx, rewardsToDelegate)
-			err := k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake, epochNumber)
+			err := k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake)
 			if err != nil {
 				panic(err)
 			}
@@ -61,6 +61,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		if err != nil {
 			panic(err)
 		}
+		k.deleteFromRewardsInCurrentEpoch(ctx, epochNumber)
 	}
 
 	if epochIdentifier == params.UndelegateEpochIdentifier {

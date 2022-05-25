@@ -2,9 +2,10 @@ package types
 
 import (
 	"fmt"
-	"github.com/ghodss/yaml"
 	"strings"
 	"time"
+
+	"github.com/ghodss/yaml"
 )
 
 func NewProposal(id uint64, title string, description string, submitTime time.Time, votingPeriod time.Duration, cosmosProposalID uint64) (Proposal, error) {

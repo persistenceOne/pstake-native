@@ -12,5 +12,4 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 	k.ProcessAllTxAndDetails(ctx)
 	k.ProcessAllUndelegateSuccess(ctx)
 	k.ProcessAllSignature(ctx)
-	return
 }
