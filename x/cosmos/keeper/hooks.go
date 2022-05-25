@@ -52,7 +52,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		amt.Add(rewardsToBeClaimed)
 
 		if !amt.IsZero() {
-			listOfValidatorsToStake, err := k.fetchValidatorsToDelegate(ctx, amt)
+			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, amt)
 			if err != nil {
 				panic(err)
 			}
@@ -75,7 +75,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		amount := k.totalAmountToBeUnbonded(withdrawTxns, unbondDenom)
 		//check if amount is zero then do not emit event
 		if !amount.IsZero() {
-			listOfValidatorsAndUnbondingAmount, err := k.fetchValidatorsToUndelegate(ctx, amount)
+			listOfValidatorsAndUnbondingAmount, err := k.FetchValidatorsToUndelegate(ctx, amount)
 			if err != nil {
 				panic(err)
 			}

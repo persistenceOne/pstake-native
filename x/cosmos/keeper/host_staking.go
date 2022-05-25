@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,7 +16,7 @@ type ValAddressAmount struct {
 
 // normalizedWeightedAddressAmounts function takes input as the weighted address amounts
 // finds the smallest amount or zero from the array and returns a new array with normalized amounts
-func normalizedWeightedAddressAmounts(weightedAddrAmt types.WeightedAddressAmounts) types.WeightedAddressAmounts {
+func NormalizedWeightedAddressAmounts(weightedAddrAmt types.WeightedAddressAmounts) types.WeightedAddressAmounts {
 	// Find smallest diff less than zero
 	smallestVal := sdk.ZeroInt()
 	normalizedDistribution := types.WeightedAddressAmounts{}
@@ -40,7 +41,7 @@ func normalizedWeightedAddressAmounts(weightedAddrAmt types.WeightedAddressAmoun
 	return normalizedDistribution
 }
 
-func getIdealCurrentDelegations(validatorState types.WeightedAddressAmounts, stakingDenom string) types.WeightedAddressAmounts {
+func GetIdealCurrentDelegations(validatorState types.WeightedAddressAmounts, stakingDenom string, reverse bool) types.WeightedAddressAmounts {
 	totalDelegations := validatorState.TotalAmount(stakingDenom)
 	curDiffDistribution := types.WeightedAddressAmounts{}
 	var idealTokens, curTokens sdk.Int
@@ -48,12 +49,15 @@ func getIdealCurrentDelegations(validatorState types.WeightedAddressAmounts, sta
 		// Note this can lead to some leaks
 		idealTokens = valState.Weight.Mul(totalDelegations.Amount.ToDec()).RoundInt()
 		curTokens = valState.Amount
-
+		amt := idealTokens.Sub(curTokens)
+		if reverse {
+			amt = curTokens.Sub(idealTokens)
+		}
 		curDiffDistribution = append(curDiffDistribution, types.WeightedAddressAmount{
 			Address: valState.Address,
 			Weight: valState.Weight,
 			Denom: valState.Denom,
-			Amount: idealTokens.Sub(curTokens),
+			Amount: amt,
 		})
 	}
 	return curDiffDistribution
@@ -72,7 +76,7 @@ func divideAmountWeightedSet(valAmounts []ValAddressAmount, coin sdk.Coin, valAd
 	return newValAmounts
 }
 
-func divideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) ([]ValAddressAmount, error) {
+func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) ([]ValAddressAmount, error) {
 	if coin.IsZero() {
 		return nil, nil
 	}
@@ -110,7 +114,7 @@ func divideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, co
 	return valAmounts, nil
 }
 
-func divideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) ([]ValAddressAmount, error) {
+func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) ([]ValAddressAmount, error) {
 	if coin.IsZero() {
 		return nil, nil
 	}
@@ -128,9 +132,10 @@ func divideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressA
 			valAmounts = append(valAmounts, ValAddressAmount{Validator: valAddr, Amount: coin})
 			return valAmounts, nil
 		}
+		fmt.Printf("Coins: %s and val amount: %s", coin.Amount, w.Amount)
 		valAmounts = append(valAmounts, ValAddressAmount{Validator: valAddr, Amount: w.Coin()})
-		coin = coin.SubAmount(w.Amount)
-	} 
+		coin = coin.SubAmount(w.Amount) // gets negative
+	}
 	
 	for _, w := range sortedValDiff {
 		// Skip validators with zero weights
@@ -147,9 +152,10 @@ func divideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressA
 			valAmounts = append(valAmounts, ValAddressAmount{Validator: valAddr, Amount: coin})
 			return valAmounts, nil
 		}
+		fmt.Printf("Coins: %s and val amount: %s", coin.Amount, w.Amount)
 		// ideal - current > coin
 		valAmounts = append(valAmounts, ValAddressAmount{Validator: valAddr, Amount: w.Coin()})
-		coin = coin.SubAmount(w.Amount)
+		coin = coin.SubAmount(w.Amount) // gets negative
 	}
 
 	// If the remaining amount is not possitive, return early
@@ -166,7 +172,7 @@ func divideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressA
 }
 
 // gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
-func (k Keeper) fetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) ([]ValAddressAmount, error) {
+func (k Keeper) FetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) ([]ValAddressAmount, error) {
 	params := k.GetParams(ctx)
 
 	// Return nil list if amount is less than delegation threshold
@@ -176,16 +182,16 @@ func (k Keeper) fetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) ([]V
 
 	valWeightedAmt := k.getAllCosmosValidatorSet(ctx)
 	
-	curDiffDistribution := getIdealCurrentDelegations(valWeightedAmt, params.StakingDenom)
-	curDiffDistribution = normalizedWeightedAddressAmounts(curDiffDistribution)
+	curDiffDistribution := GetIdealCurrentDelegations(valWeightedAmt, params.StakingDenom, false)
+	curDiffDistribution = NormalizedWeightedAddressAmounts(curDiffDistribution)
 	
 	sort.Sort(sort.Reverse(curDiffDistribution))
 
-	return divideAmountIntoValidatorSet(curDiffDistribution, amount)
+	return DivideAmountIntoValidatorSet(curDiffDistribution, amount)
 }
 
 // gives a list of validators having weighted amount for few validators
-func (k Keeper) fetchValidatorsToUndelegate(ctx sdk.Context, amount sdk.Coin) ([]ValAddressAmount, error) {
+func (k Keeper) FetchValidatorsToUndelegate(ctx sdk.Context, amount sdk.Coin) ([]ValAddressAmount, error) {
 	params := k.GetParams(ctx)
 
 	// Return nil list if amount is less than delegation threshold
@@ -194,11 +200,17 @@ func (k Keeper) fetchValidatorsToUndelegate(ctx sdk.Context, amount sdk.Coin) ([
 	}
 
 	valWeightedAmt := k.getAllCosmosValidatorSet(ctx)
+
+	// Check if amount asked to undelegate is more than total delegations
+	totalStaked := valWeightedAmt.TotalAmount(params.StakingDenom)
+	if totalStaked.Amount.LT(amount.Amount) {
+		return nil, fmt.Errorf("undelegate amount %d more than total staked %d", amount.Amount, totalStaked.Amount)
+	}
 	
-	curDiffDistribution := getIdealCurrentDelegations(valWeightedAmt, params.StakingDenom)
-	curDiffDistribution = normalizedWeightedAddressAmounts(curDiffDistribution)
+	curDiffDistribution := GetIdealCurrentDelegations(valWeightedAmt, params.StakingDenom, true)
+	curDiffDistribution = NormalizedWeightedAddressAmounts(curDiffDistribution)
 	
 	sort.Sort(sort.Reverse(curDiffDistribution))
 
-	return divideUndelegateAmountIntoValidatorSet(curDiffDistribution, amount)
+	return DivideUndelegateAmountIntoValidatorSet(curDiffDistribution, amount)
 }
