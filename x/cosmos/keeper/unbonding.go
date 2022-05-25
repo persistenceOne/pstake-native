@@ -11,7 +11,7 @@ import (
 	"math"
 )
 
-func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidatorsAndUnbondingAmount []ValAddressAndAmountForStakingAndUndelegating, epochNumber int64) {
+func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidatorsAndUnbondingAmount []ValAddressAmount, epochNumber int64) {
 	params := k.GetParams(ctx)
 
 	chunkMsgs := ChunkStakeAndUnStakeSlice(listOfValidatorsAndUnbondingAmount, params.ChunkSize)
@@ -24,8 +24,8 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 		for _, element := range chunk {
 			msg := stakingTypes.MsgUndelegate{
 				DelegatorAddress: params.CustodialAddress,
-				ValidatorAddress: element.validator.String(),
-				Amount:           element.amount,
+				ValidatorAddress: element.Validator.String(),
+				Amount:           element.Amount,
 			}
 			anyMsg, err := codecTypes.NewAnyWithValue(&msg)
 			if err != nil {
@@ -190,7 +190,7 @@ func (k Keeper) setEpochAndValidatorDetailsForAllUndelegations(ctx sdk.Context, 
 	return nil
 }
 
-func ChunkStakeAndUnStakeSlice(slice []ValAddressAndAmountForStakingAndUndelegating, chunkSize int64) (chunks [][]ValAddressAndAmountForStakingAndUndelegating) {
+func ChunkStakeAndUnStakeSlice(slice []ValAddressAmount, chunkSize int64) (chunks [][]ValAddressAmount) {
 	for {
 		if len(slice) == 0 {
 			break

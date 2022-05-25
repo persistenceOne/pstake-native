@@ -76,10 +76,20 @@ func (ws WeightedAddressAmounts) TotalAmount(denom string) sdk.Coin {
 	return total
 }
 
-func GetWeightedAddressMap(ws WeightedAddressAmounts) map[string]WeightedAddressAmount {
-	addressMap := map[string]WeightedAddressAmount{}
+func (ws WeightedAddressAmounts) GetZeroWeighted() WeightedAddressAmounts {
+	zeroWeightedAddrAmts := WeightedAddressAmounts{}
 	for _, w := range ws {
-		addressMap[w.Address] = w
+		if w.Weight.IsZero() {
+			zeroWeightedAddrAmts = append(zeroWeightedAddrAmts, w)
+		}
+	}
+	return zeroWeightedAddrAmts
+}
+
+func GetWeightedAddressMap(ws WeightedAddressAmounts) map[string]sdk.Dec {
+	addressMap := map[string]sdk.Dec{}
+	for _, w := range ws {
+		addressMap[w.Address] = w.Weight
 	}
 	return addressMap
 }
