@@ -94,7 +94,6 @@ func (k Keeper) addGrantTransactions(ctx sdk.Context, oldAccount authTypes.Accou
 		EventEmitted:      false,
 		Status:            "",
 		TxHash:            "",
-		NativeBlockHeight: ctx.BlockHeight(),
 		ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 		SignerAddress:     oldAccount.GetAddress().String(),
 	}
@@ -189,7 +188,6 @@ func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 		EventEmitted:      false,
 		Status:            "",
 		TxHash:            "",
-		NativeBlockHeight: ctx.BlockHeight(),
 		ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 		SignerAddress:     oldAccount.GetAddress().String(),
 	}
@@ -269,7 +267,6 @@ func (k Keeper) addRevokeTransactions(ctx sdk.Context, oldAccount authTypes.Acco
 		EventEmitted:      false,
 		Status:            "",
 		TxHash:            "",
-		NativeBlockHeight: ctx.BlockHeight(),
 		ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 		SignerAddress:     k.getCurrentAddress(ctx).String(),
 	}
@@ -313,7 +310,6 @@ func (k Keeper) shiftListOfTransactionsToNewIDs(ctx sdk.Context, transactionQueu
 		txDetails.CosmosTxDetails.Status = ""
 		txDetails.CosmosTxDetails.TxHash = ""
 		txDetails.CosmosTxDetails.EventEmitted = false
-		txDetails.CosmosTxDetails.NativeBlockHeight = ctx.BlockHeight()
 		txDetails.CosmosTxDetails.ActiveBlockHeight = ctx.BlockHeight() + cosmosTypes.StorageWindow
 		txDetails.CosmosTxDetails.SignerAddress = k.getCurrentAddress(ctx).String()
 

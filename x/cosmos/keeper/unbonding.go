@@ -65,7 +65,6 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 			EventEmitted:      false,
 			Status:            "",
 			TxHash:            "",
-			NativeBlockHeight: ctx.BlockHeight(),
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 			SignerAddress:     k.getCurrentAddress(ctx).String(),
 		}
@@ -93,14 +92,11 @@ func (k Keeper) setIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64, und
 	return nil
 }
 
-func (k Keeper) getIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64) (value cosmosTypes.ValueOutgoingUnbondStore, err error) {
+func (k Keeper) getIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64) (value cosmosTypes.ValueOutgoingUnbondStore) {
 	unbondingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingUnbondStore)
 	key := cosmosTypes.UInt64Bytes(txID)
-	err = k.cdc.Unmarshal(unbondingEpochStore.Get(key), &value)
-	if err != nil {
-		return cosmosTypes.ValueOutgoingUnbondStore{}, err
-	}
-	return value, nil
+	k.cdc.MustUnmarshal(unbondingEpochStore.Get(key), &value)
+	return value
 }
 
 func (k Keeper) deleteIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64) {
@@ -180,10 +176,7 @@ func (k Keeper) getEpochNumberAndUndelegateDetailsOfValidators(ctx sdk.Context, 
 }
 
 func (k Keeper) setEpochAndValidatorDetailsForAllUndelegations(ctx sdk.Context, txID uint64) error {
-	details, err := k.getIDInEpochPoolForWithdrawals(ctx, txID)
-	if err != nil {
-		return err
-	}
+	details := k.getIDInEpochPoolForWithdrawals(ctx, txID)
 	k.setEpochNumberAndUndelegateDetailsOfValidators(ctx, details) //sets undelegations txns for future verifications
 	k.deleteIDInEpochPoolForWithdrawals(ctx, txID)
 	k.setEpochWithdrawSuccessStore(ctx, details.EpochNumber) //sets withdraw batch success as false

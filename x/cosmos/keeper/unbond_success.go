@@ -21,7 +21,7 @@ func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.Msg
 	// check if key present or not
 	if !undelegateSuccessStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		undelegateSuccessStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
@@ -33,7 +33,7 @@ func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.Msg
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotUndelegateSuccess(valueUndelegateSuccessStore, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		undelegateSuccessStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
@@ -70,14 +70,14 @@ func (k Keeper) deleteUndelegateSuccessDetails(ctx sdk.Context, key cosmosTypes.
 	undelegateSuccessStore.Delete(storeKey)
 }
 
-func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) error {
+func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) {
 	list, err := k.getAllUndelegateSuccessDetails(ctx)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	epochNumber := k.getLeastEpochNumberWithWithdrawStatusFalse(ctx)
 	if epochNumber == int64(math.MaxInt64) {
-		return cosmosTypes.ErrInvalidEpochNumber
+		panic(cosmosTypes.ErrInvalidEpochNumber)
 	}
 	for _, element := range list {
 		if element.ValueUndelegateSuccessStore.Ratio.GT(cosmosTypes.MinimumRatioForMajority) {
@@ -96,10 +96,9 @@ func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) error {
 	if flagForWithdrawSuccess {
 		err = k.emitSendTransactionForAllWithdrawals(ctx, epochNumber)
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
-	return nil
 }
 
 func StoreValueEqualOrNotUndelegateSuccess(storeValue cosmosTypes.ValueUndelegateSuccessStore,

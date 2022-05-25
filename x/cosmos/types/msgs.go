@@ -156,7 +156,7 @@ func (m *MsgWithdrawStkAsset) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgMintTokensForAccount returns a new MsgMintTokensForAccount
-func NewMsgMintTokensForAccount(address sdk.AccAddress, orchAddress sdk.AccAddress, amount sdk.Coins, txHash string, chainID string, blockHeight int64) *MsgMintTokensForAccount {
+func NewMsgMintTokensForAccount(address sdk.AccAddress, orchAddress sdk.AccAddress, amount sdk.Coin, txHash string, chainID string, blockHeight int64) *MsgMintTokensForAccount {
 	return &MsgMintTokensForAccount{
 		AddressFromMemo:     address.String(),
 		OrchestratorAddress: orchAddress.String(),
@@ -185,7 +185,7 @@ func (m *MsgMintTokensForAccount) ValidateBasic() error {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
 	}
 
-	if !m.Amount.IsAllPositive() {
+	if !m.Amount.IsPositive() {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
 	}
 	if m.BlockHeight <= 0 {
@@ -627,28 +627,13 @@ func (m *MsgSlashingEventOnCosmosChain) GetSigners() []sdk.AccAddress {
 }
 
 // TODO find a better place for this.
-var _ DBHelper = &IncomingMintTx{}
 var _ DBHelper = &ProposalValue{}
 var _ DBHelper = &TxHashValue{}
 var _ DBHelper = &RewardsClaimedValue{}
 var _ DBHelper = &ValueUndelegateSuccessStore{}
 var _ DBHelper = &OutgoingSignaturePoolValue{}
 var _ DBHelper = &SlashingStoreValue{}
-
-func (m *IncomingMintTx) Find(orchAddress string) bool {
-	for _, address := range m.OrchAddresses {
-		if address == orchAddress {
-			return true
-		}
-	}
-	return false
-}
-
-func (m *IncomingMintTx) UpdateValues(orchAddress string, totalValidatorCount int64) {
-	m.OrchAddresses = append(m.OrchAddresses, orchAddress)
-	m.Counter++
-	m.Ratio = sdk.NewDec(m.Counter).Quo(sdk.NewDec(totalValidatorCount))
-}
+var _ DBHelper = &MintTokenStoreValue{}
 
 func (m *ProposalValue) Find(orchAddress string) bool {
 	for _, address := range m.OrchestratorAddresses {
@@ -734,6 +719,21 @@ func (m *SlashingStoreValue) Find(orchAddress string) bool {
 }
 
 func (m *SlashingStoreValue) UpdateValues(orchAddress string, totalValidatorCount int64) {
+	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
+	m.Counter++
+	m.Ratio = sdk.NewDec(m.Counter).Quo(sdk.NewDec(totalValidatorCount))
+}
+
+func (m *MintTokenStoreValue) Find(orchAddress string) bool {
+	for _, address := range m.OrchestratorAddresses {
+		if address == orchAddress {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *MintTokenStoreValue) UpdateValues(orchAddress string, totalValidatorCount int64) {
 	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
 	m.Counter++
 	m.Ratio = sdk.NewDec(m.Counter).Quo(sdk.NewDec(totalValidatorCount))

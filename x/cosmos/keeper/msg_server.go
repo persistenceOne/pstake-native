@@ -171,31 +171,30 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 		return nil, cosmosTypes.ErrModuleNotEnabled
 	}
 
+	// check if the address passed in the msg are correct or not
 	destinationAddress, err := sdkTypes.AccAddressFromBech32(msg.AddressFromMemo)
 	if err != nil {
 		return nil, err
 	}
-
 	orchestratorAddress, err := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
 	if err != nil {
 		return nil, err
 	}
 
+	// sanity check for arguments passed in the message
 	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(destinationAddress) != nil || sdkTypes.VerifyAddressFormat(orchestratorAddress) != nil ||
 		!msg.Amount.IsValid() {
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
 	}
 
-	params := k.GetParams(ctx)
-
-	uatomDenom, err := params.GetBondDenomOf("uatom")
+	// check if the denom for staking matches or not
+	uatomDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
 	if err != nil {
 		return nil, err
 	}
-	uatomAmount := msg.Amount.AmountOf(uatomDenom)
-	uStkXprtCoin := sdkTypes.NewCoin(params.MintDenom, uatomAmount)
-
-	k.setMintAddressAndAmount(ctx, msg.ChainID, msg.BlockHeight, msg.TxHash, destinationAddress, uStkXprtCoin)
+	if uatomDenom != msg.Amount.Denom {
+		return nil, cosmosTypes.ErrInvalidBondDenom
+	}
 
 	_, val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
@@ -205,14 +204,15 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 		return nil, fmt.Errorf("validator address not found")
 	}
 
-	_, found := k.GetValidatorOrchestrator(ctx, val)
+	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to make proposal")
+	}
 	if !found {
-		return nil, sdkErrors.Wrap(cosmosTypes.ErrOrchAddressNotFound, "No orchestrator validator mapping found")
+		return nil, cosmosTypes.ErrInvalidProposal
 	}
-	err = k.addToMintingPoolTx(ctx, msg.TxHash, destinationAddress, orchestratorAddress, msg.Amount)
-	if err != nil {
-		return nil, err
-	}
+
+	k.addToMintTokenStore(ctx, *msg)
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(

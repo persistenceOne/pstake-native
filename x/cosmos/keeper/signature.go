@@ -58,17 +58,17 @@ func (k Keeper) removeFromOutgoingSignaturePool(ctx sdk.Context, txID uint64) {
 	outgoingSignaturePoolStore.Delete(key)
 }
 
-func (k Keeper) ProcessAllSignature(ctx sdk.Context) error {
+func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 	outgoingSignaturePool, err := k.getAllFromOutgoingSignaturePool(ctx)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	params := k.GetParams(ctx)
 	for _, os := range outgoingSignaturePool {
 		if os.OutgoingSignaturePoolValue.Counter >= params.MultisigThreshold {
 			custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
 			if err != nil {
-				return err
+				panic(err)
 			}
 			multisigAccount := k.authKeeper.GetAccount(ctx, custodialAddress)
 			multisigPub := multisigAccount.GetPubKey().(*multisig2.LegacyAminoPubKey)
@@ -78,11 +78,11 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) error {
 				externalSig := cosmosTypes.ConvertSingleSignatureDataForOutgoingPoolToSingleSignatureData(sig)
 				orchAddress, err := sdk.AccAddressFromBech32(os.OutgoingSignaturePoolValue.OrchestratorAddresses[i])
 				if err != nil {
-					return err
+					panic(err)
 				}
 				account := k.authKeeper.GetAccount(ctx, orchAddress)
 				if err := multisig.AddSignatureFromPubKey(multisigSig, &externalSig, account.GetPubKey(), multisigPub.GetPubKeys()); err != nil {
-					return err
+					panic(err)
 				}
 			}
 
@@ -94,19 +94,18 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) error {
 
 			cosmosTx, err := k.getTxnFromOutgoingPoolByID(ctx, os.txID)
 			if err != nil {
-				return err
+				panic(err)
 			}
 
 			err = cosmosTx.CosmosTxDetails.SetSignatures(sigV2)
 			if err != nil {
-				return err
+				panic(err)
 			}
 
 			err = k.setOutgoingTxnSignaturesAndEmitEvent(ctx, cosmosTx.CosmosTxDetails, os.txID)
 			if err != nil {
-				return err
+				panic(err)
 			}
 		}
 	}
-	return nil
 }

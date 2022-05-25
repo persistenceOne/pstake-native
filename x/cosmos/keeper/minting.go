@@ -2,251 +2,120 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-/*
-//TODO : add mint pool structure as comment
-*/
-// add a transaction to minting pool for tallying how many orchs have sent a request for minting
-func (k Keeper) addToMintingPoolTx(ctx sdkTypes.Context, txHash string, destinationAddress sdkTypes.AccAddress, orchestratorAddress sdkTypes.AccAddress, amount sdkTypes.Coins) error {
-	mintingPoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.MintingPoolStoreKey)
-	key := []byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, amount, txHash))
+func (k Keeper) addToMintTokenStore(ctx sdk.Context, msg cosmosTypes.MsgMintTokensForAccount) {
+	mintTokenStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintTokenStore)
+	key := k.cdc.MustMarshal(&cosmosTypes.ChainIDHeightAndTxHashKey{ChainID: msg.ChainID, BlockHeight: msg.BlockHeight, TxHash: msg.TxHash})
 	totalValidatorCount := k.GetTotalValidatorOrchestratorCount(ctx)
 
-	// if store does not have the key then add new key to it
-	if !mintingPoolStore.Has(key) {
-		ratio := sdkTypes.NewDec(1).Quo(sdkTypes.NewDec(totalValidatorCount))
-		txnDetails := cosmosTypes.NewIncomingMintTx(orchestratorAddress, ratio)
-		bz, _ := k.cdc.Marshal(&txnDetails)
-		mintingPoolStore.Set(key, bz)
-		return nil
+	// store has the key in it or not
+	if !mintTokenStore.Has(key) {
+		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
+		mintTokenStoreValue := cosmosTypes.NewMintTokenStoreValue(msg, ratio, msg.OrchestratorAddress, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		mintTokenStore.Set(key, k.cdc.MustMarshal(&mintTokenStoreValue))
+		return
 	}
 
-	var incomingMintTx cosmosTypes.IncomingMintTx
-	k.cdc.MustUnmarshal(mintingPoolStore.Get(key), &incomingMintTx)
+	var mintTokenStoreValue cosmosTypes.MintTokenStoreValue
+	k.cdc.MustUnmarshal(mintTokenStore.Get(key), &mintTokenStoreValue)
 
-	if !incomingMintTx.Find(orchestratorAddress.String()) {
-		incomingMintTx.UpdateValues(orchestratorAddress.String(), totalValidatorCount)
-		mintingPoolStore.Set(key, k.cdc.MustMarshal(&incomingMintTx))
+	// Match if the message value and stored value are same
+	// if not equal then initialize by new value in store
+	if !StoreValueEqualOrNotMintToken(mintTokenStoreValue, msg) {
+		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
+		newValue := cosmosTypes.NewMintTokenStoreValue(msg, ratio, msg.OrchestratorAddress, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		mintTokenStore.Set(key, k.cdc.MustMarshal(&newValue))
+		return
 	}
 
-	return nil
+	// if equal then check if orchestrator has already sent same details previously
+	if !mintTokenStoreValue.Find(msg.OrchestratorAddress) {
+		mintTokenStoreValue.UpdateValues(msg.OrchestratorAddress, totalValidatorCount)
+		mintTokenStore.Set(key, k.cdc.MustMarshal(&mintTokenStoreValue))
+	}
 }
 
-// Fetches the list of items in minting pool
-func (k Keeper) fetchFromMintPoolTx(ctx sdkTypes.Context, keyAndValueForMinting []cosmosTypes.KeyAndValueForMinting) []cosmosTypes.KeyAndValueForMinting {
-	store := ctx.KVStore(k.storeKey)
-	mintingPoolStore := prefix.NewStore(store, cosmosTypes.MintingPoolStoreKey)
-	totalCount := k.GetTotalValidatorOrchestratorCount(ctx)
-	for i := range keyAndValueForMinting {
-		destinationAddress, err := sdkTypes.AccAddressFromBech32(keyAndValueForMinting[i].Value.DestinationAddress)
-		if err != nil {
-			panic("Error in parsing destination address")
-		}
-
-		key := []byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, sdkTypes.NewCoins(keyAndValueForMinting[i].Value.Amount), keyAndValueForMinting[i].Key.TxHash))
-		bz := mintingPoolStore.Get(key)
-
-		var txnDetails cosmosTypes.IncomingMintTx
-		k.cdc.MustUnmarshal(bz, &txnDetails)
-
-		keyAndValueForMinting[i].Ratio = sdkTypes.NewDec(int64(len(txnDetails.OrchAddresses))).Quo(sdkTypes.NewDec(totalCount))
-
-	}
-	return keyAndValueForMinting
-}
-
-// deletes an item from mint pool
-func (k Keeper) deleteFromMintPoolTx(ctx sdkTypes.Context, destinationAddress sdkTypes.AccAddress, amount sdkTypes.Coin, txHash string) {
-	store := ctx.KVStore(k.storeKey)
-	mintingPoolStore := prefix.NewStore(store, []byte(cosmosTypes.MintingPoolStoreKey))
-	mintingPoolStore.Delete([]byte(cosmosTypes.GetDestinationAddressAmountAndTxHashKey(destinationAddress, sdkTypes.NewCoins(amount), txHash)))
-}
-
-//______________________________________________________________________________________________
-/*
-TODO : Add structure
-*/
-func (k Keeper) setMintAddressAndAmount(ctx sdkTypes.Context, chainID string, blockHeight int64, txHash string, destinationAddress sdkTypes.AccAddress, amount sdkTypes.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
-
-	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(chainID, blockHeight, txHash)
-	key, err := k.cdc.Marshal(&chainIDHeightAndTxHash)
-	if err != nil {
-		panic("error in marshaling chainID, height and txHash")
-	}
-
-	if !mintAddressAndAmountStore.Has(key) {
-		addressAndAmount := cosmosTypes.NewAddressAndAmount(destinationAddress, amount, ctx.BlockHeight())
-		bz, err := k.cdc.Marshal(&addressAndAmount)
-		if err != nil {
-			panic("error in marshaling address and amount")
-		}
-		mintAddressAndAmountStore.Set(key, bz)
-	}
-
-}
-
-func (k Keeper) getAllMintAddressAndAmount(ctx sdkTypes.Context) (list []cosmosTypes.KeyAndValueForMinting, err error) {
-	store := ctx.KVStore(k.storeKey)
-	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
-
-	iterator := mintAddressAndAmountStore.Iterator(nil, nil)
+func (k Keeper) getAllMintTokenStoreValue(ctx sdk.Context) (list []cosmosTypes.MintTokenStoreValue) {
+	mintTokenStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintTokenStore)
+	iterator := mintTokenStore.Iterator(nil, nil)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var chainIDHeightAndTxHash cosmosTypes.ChainIDHeightAndTxHashKey
-
-		err = k.cdc.Unmarshal(iterator.Key(), &chainIDHeightAndTxHash)
-		if err != nil {
-			return nil, err
-		}
-
-		var addressAndAmount cosmosTypes.AddressAndAmountKey
-
-		err = k.cdc.Unmarshal(iterator.Value(), &addressAndAmount)
-		if err != nil {
-			return nil, err
-		}
-
-		a := cosmosTypes.KeyAndValueForMinting{
-			Key:   chainIDHeightAndTxHash,
-			Value: addressAndAmount,
-		}
-
-		list = append(list, a)
+		var mintTokenStoreValue cosmosTypes.MintTokenStoreValue
+		k.cdc.MustUnmarshal(iterator.Value(), &mintTokenStoreValue)
+		list = append(list, mintTokenStoreValue)
 	}
-	return list, nil
+	return list
 }
 
-func (k Keeper) deleteMintedAddressAndAmountKeys(ctx sdkTypes.Context, keyHash cosmosTypes.ChainIDHeightAndTxHashKey) {
-	store := ctx.KVStore(k.storeKey)
-	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
+func (k Keeper) setMintedFlagInMintTokenStore(ctx sdk.Context, mv cosmosTypes.MintTokenStoreValue) {
+	mintTokenStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintTokenStore)
+	key := k.cdc.MustMarshal(&cosmosTypes.ChainIDHeightAndTxHashKey{ChainID: mv.MintTokens.ChainID, BlockHeight: mv.MintTokens.BlockHeight, TxHash: mv.MintTokens.TxHash})
 
-	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(keyHash.ChainID, keyHash.BlockHeight, keyHash.TxHash)
-	key, err := k.cdc.Marshal(&chainIDHeightAndTxHash)
-	if err != nil {
-		panic("error in marshaling chainID, height and txHash")
-	}
+	var mintTokenStoreValue cosmosTypes.MintTokenStoreValue
+	k.cdc.MustUnmarshal(mintTokenStore.Get(key), &mintTokenStoreValue)
+	mintTokenStoreValue.Minted = true
 
-	mintAddressAndAmountStore.Delete(key)
+	mintTokenStore.Set(key, k.cdc.MustMarshal(&mintTokenStoreValue))
 }
 
-func (k Keeper) setMintedFlagTrue(ctx sdkTypes.Context, keyHash cosmosTypes.ChainIDHeightAndTxHashKey) {
-	store := ctx.KVStore(k.storeKey)
-	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
+func (k Keeper) setAddedToEpochFlagInMintTokenStore(ctx sdk.Context, mv cosmosTypes.MintTokenStoreValue) {
+	mintTokenStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintTokenStore)
+	key := k.cdc.MustMarshal(&cosmosTypes.ChainIDHeightAndTxHashKey{ChainID: mv.MintTokens.ChainID, BlockHeight: mv.MintTokens.BlockHeight, TxHash: mv.MintTokens.TxHash})
 
-	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(keyHash.ChainID, keyHash.BlockHeight, keyHash.TxHash)
-	key, err := k.cdc.Marshal(&chainIDHeightAndTxHash)
-	if err != nil {
-		panic("error in marshaling chainID, height and txHash")
-	}
+	var mintTokenStoreValue cosmosTypes.MintTokenStoreValue
+	k.cdc.MustUnmarshal(mintTokenStore.Get(key), &mintTokenStoreValue)
+	mintTokenStoreValue.AddedToEpoch = true
 
-	bz := mintAddressAndAmountStore.Get(key)
-	var a cosmosTypes.AddressAndAmountKey
-	err = k.cdc.Unmarshal(bz, &a)
-	if err != nil {
-		panic("error in unmarshalling address and amount")
-	}
-	a.Minted = true
-
-	bz, err = k.cdc.Marshal(&a)
-	if err != nil {
-		panic("error in marshaling address and amount")
-	}
-
-	mintAddressAndAmountStore.Set(key, bz)
+	mintTokenStore.Set(key, k.cdc.MustMarshal(&mintTokenStoreValue))
 }
 
-func (k Keeper) setAcknowledgmentFlagTrue(ctx sdkTypes.Context, keyHash cosmosTypes.ChainIDHeightAndTxHashKey) {
-	store := ctx.KVStore(k.storeKey)
-	mintAddressAndAmountStore := prefix.NewStore(store, []byte(cosmosTypes.AddressAndAmountStoreKey))
-
-	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(keyHash.ChainID, keyHash.BlockHeight, keyHash.TxHash)
-	key, err := k.cdc.Marshal(&chainIDHeightAndTxHash)
-	if err != nil {
-		panic("error in marshaling chainID, height and txHash")
-	}
-
-	bz := mintAddressAndAmountStore.Get(key)
-	var a cosmosTypes.AddressAndAmountKey
-	err = k.cdc.Unmarshal(bz, &a)
-	if err != nil {
-		panic("error in unmarshalling address and amount")
-	}
-	a.Acknowledgment = true
-
-	bz, err = k.cdc.Marshal(&a)
-	if err != nil {
-		panic("error in marshaling address and amount")
-	}
-
-	mintAddressAndAmountStore.Set(key, bz)
+func (k Keeper) deleteFromMintTokenStore(ctx sdk.Context, mv cosmosTypes.MintTokenStoreValue) {
+	mintTokenStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintTokenStore)
+	key := k.cdc.MustMarshal(&cosmosTypes.ChainIDHeightAndTxHashKey{ChainID: mv.MintTokens.ChainID, BlockHeight: mv.MintTokens.BlockHeight, TxHash: mv.MintTokens.TxHash})
+	mintTokenStore.Delete(key)
 }
 
-//______________________________________________________________________________________________
-
-// ProcessAllMintingTransactions Process all minting transactions
-func (k Keeper) ProcessAllMintingTransactions(ctx sdkTypes.Context) error {
-	listNew, err := k.getAllMintAddressAndAmount(ctx)
-	if err != nil {
-		return err
-	}
-	listWithRatio := k.fetchFromMintPoolTx(ctx, listNew)
-
-	for _, addressToMintTokens := range listWithRatio {
-		if addressToMintTokens.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !addressToMintTokens.Value.Acknowledgment {
-			addressToMintTokens.Value.Acknowledgment = true
-			k.addToStakingEpoch(ctx, addressToMintTokens)
-			k.setAcknowledgmentFlagTrue(ctx, addressToMintTokens.Key)
+func (k Keeper) ProcessAllMintingStoreValue(ctx sdk.Context) {
+	listOfMintTokenStoreValue := k.getAllMintTokenStoreValue(ctx)
+	for _, mv := range listOfMintTokenStoreValue {
+		if mv.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !mv.AddedToEpoch && !mv.Minted {
+			// step 1 : mint tokens for account
+			err := k.mintTokensOnMajority(ctx, mv.MintTokens)
+			if err != nil {
+				panic(err)
+			}
+			// step 2 : mark minted flag true
+			k.setMintedFlagInMintTokenStore(ctx, mv)
+			// step 3 : add to current epoch for staking
+			k.addToStakingEpoch(ctx, mv.MintTokens.Amount)
+			// step 4 : make added to epoch flag true
+			k.setAddedToEpochFlagInMintTokenStore(ctx, mv)
 		}
 
-		if addressToMintTokens.Value.NativeBlockHeight+cosmosTypes.StorageWindow < ctx.BlockHeight() {
-			k.deleteMintedAddressAndAmountKeys(ctx, addressToMintTokens.Key)
-			destinationAddress, err := sdkTypes.AccAddressFromBech32(addressToMintTokens.Value.DestinationAddress)
-			if err != nil {
-				return err
-			}
-			k.deleteFromMintPoolTx(ctx, destinationAddress, addressToMintTokens.Value.Amount, addressToMintTokens.Key.TxHash)
+		if mv.ActiveBlockHeight < ctx.BlockHeight() {
+			k.deleteFromMintTokenStore(ctx, mv)
 		}
 	}
+}
 
-	epochNumberAndTxIDStatusList, err := k.fetchAllInEpochPoolForMinting(ctx)
-	for _, en := range epochNumberAndTxIDStatusList {
-		count := 0
-		for _, txIDStatus := range en.mintingEpochValue.TxIDAndStatus {
-			if txIDStatus.Status == true {
-				count++
-			}
-		}
-		if count == len(en.mintingEpochValue.TxIDAndStatus) {
-			// distribute to be minted tokens from the all deposits in the given epoch
-			stakingEpochValue, err := k.getFromStakingEpoch(ctx, en.epochNumber)
-			if err != nil {
-				return err
-			}
-			for _, e := range stakingEpochValue.EpochMintingTxns {
-				err = k.mintTokensOnMajority(ctx, e.Key, e.Value)
-				if err != nil {
-					return err
-				}
-			}
-
-			// process all rewards distribution
-			rewardAmnt, err := k.getFromRewardsInCurrentEpochAmount(ctx, en.epochNumber)
-			if err != nil {
-				return err
-			}
-			err = k.processAllRewardsClaimed(ctx, rewardAmnt)
-			if err != nil {
-				return err
-			}
-		}
-		k.deleteFromRewardsInCurrentEpoch(ctx, en.epochNumber)
-		k.deleteFromStakingEpoch(ctx, en.epochNumber)
-		k.deleteInEpochPoolForMinting(ctx, en.epochNumber)
+func StoreValueEqualOrNotMintToken(storeValue cosmosTypes.MintTokenStoreValue, msgValue cosmosTypes.MsgMintTokensForAccount) bool {
+	if storeValue.MintTokens.AddressFromMemo != msgValue.AddressFromMemo {
+		return false
 	}
-	return nil
+	if !storeValue.MintTokens.Amount.IsEqual(msgValue.Amount) {
+		return false
+	}
+	if storeValue.MintTokens.TxHash != msgValue.TxHash {
+		return false
+	}
+	if storeValue.MintTokens.ChainID != msgValue.ChainID {
+		return false
+	}
+	if storeValue.MintTokens.BlockHeight != msgValue.BlockHeight {
+		return false
+	}
+	return true
 }

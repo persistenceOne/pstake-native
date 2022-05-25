@@ -120,6 +120,8 @@ var (
 	KeyNativeValidatorWeights = []byte{0x17}
 
 	KeySlashingStore = []byte{0x18}
+
+	KeyMintTokenStore = []byte{0x19}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {

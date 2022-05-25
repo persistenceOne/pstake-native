@@ -9,21 +9,15 @@ import (
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-func NewIncomingMintTx(orchestratorAddress sdkTypes.AccAddress, ratio sdkTypes.Dec) IncomingMintTx {
-	return IncomingMintTx{
-		OrchAddresses: []string{orchestratorAddress.String()},
-		Counter:       1,
-		Ratio:         ratio,
-	}
-}
-
-func NewAddressAndAmount(destinationAddress sdkTypes.AccAddress, amount sdkTypes.Coin, nativeBlockHeight int64) AddressAndAmountKey {
-	return AddressAndAmountKey{
-		DestinationAddress: destinationAddress.String(),
-		Amount:             amount,
-		Acknowledgment:     false,
-		Minted:             false,
-		NativeBlockHeight:  nativeBlockHeight,
+func NewMintTokenStoreValue(msg MsgMintTokensForAccount, ratio sdkTypes.Dec, orch string, activeBlockHeight int64) MintTokenStoreValue {
+	return MintTokenStoreValue{
+		MintTokens:            msg,
+		Ratio:                 ratio,
+		OrchestratorAddresses: []string{orch},
+		Counter:               1,
+		Minted:                false,
+		AddedToEpoch:          false,
+		ActiveBlockHeight:     activeBlockHeight,
 	}
 }
 
@@ -43,17 +37,18 @@ func NewProposalKey(chainID string, blockHeight int64, proposalID uint64) Propos
 	}
 }
 
-func NewProposalValue(msg MsgMakeProposal, orchAddress string, ratio sdkTypes.Dec) ProposalValue {
+func NewProposalValue(msg MsgMakeProposal, orchAddress string, ratio sdkTypes.Dec, blockHeight int64) ProposalValue {
 	return ProposalValue{
 		ProposalDetails:       msg,
 		OrchestratorAddresses: []string{orchAddress},
 		ProposalPosted:        false,
 		Ratio:                 ratio,
 		Counter:               1,
+		ActiveBlockHeight:     blockHeight,
 	}
 }
 
-func NewTxHashValue(msg MsgTxStatus, ratio sdkTypes.Dec, nativeBlockHeight, activeBlockHeight int64) TxHashValue {
+func NewTxHashValue(msg MsgTxStatus, ratio sdkTypes.Dec, activeBlockHeight int64) TxHashValue {
 	return TxHashValue{
 		TxStatus:              msg,
 		OrchestratorAddresses: []string{msg.OrchestratorAddress},
@@ -61,7 +56,6 @@ func NewTxHashValue(msg MsgTxStatus, ratio sdkTypes.Dec, nativeBlockHeight, acti
 		Ratio:                 ratio,
 		TxCleared:             false,
 		Counter:               1,
-		NativeBlockHeight:     nativeBlockHeight,
 		ActiveBlockHeight:     activeBlockHeight,
 	}
 }
@@ -81,20 +75,13 @@ func NewValueOutgoingUnbondStore(undelegateMessage []stakingTypes.MsgUndelegate,
 }
 
 func NewValueUndelegateSuccessStore(msg MsgUndelegateSuccess, orchestratorAddress string, ratio sdkTypes.Dec,
-	nativeBlockHeight, activeBlockHeight int64) ValueUndelegateSuccessStore {
+	activeBlockHeight int64) ValueUndelegateSuccessStore {
 	return ValueUndelegateSuccessStore{
 		UndelegateSuccess:     msg,
 		OrchestratorAddresses: []string{orchestratorAddress},
 		Ratio:                 ratio,
 		Counter:               1,
-		NativeBlockHeight:     nativeBlockHeight,
 		ActiveBlockHeight:     activeBlockHeight,
-	}
-}
-
-func NewStakingEpochValue(keyAndValue KeyAndValueForMinting) StakingEpochValue {
-	return StakingEpochValue{
-		EpochMintingTxns: []KeyAndValueForMinting{keyAndValue},
 	}
 }
 
@@ -105,14 +92,13 @@ func NewMintingEpochValue(txIDAndStatus MintingEpochValueMember) MintingEpochVal
 }
 
 func NewRewardsClaimedValue(msg MsgRewardsClaimedOnCosmosChain, orchestratorAddress string, ratio sdkTypes.Dec,
-	nativeBlockHeight, activeBlockHeight int64) RewardsClaimedValue {
+	activeBlockHeight int64) RewardsClaimedValue {
 	return RewardsClaimedValue{
 		RewardsClaimed:        msg,
 		OrchestratorAddresses: []string{orchestratorAddress},
 		Ratio:                 ratio,
 		Counter:               1,
 		AddedToCurrentEpoch:   false,
-		NativeBlockHeight:     nativeBlockHeight,
 		ActiveBlockHeight:     activeBlockHeight,
 	}
 }
@@ -152,12 +138,14 @@ func NewOutgoingQueueValue(active bool, retryCounter uint64) OutgoingQueueValue 
 	}
 }
 
-func NewSlashingStoreValue(msg MsgSlashingEventOnCosmosChain, ratio sdkTypes.Dec, orch string) SlashingStoreValue {
+func NewSlashingStoreValue(msg MsgSlashingEventOnCosmosChain, ratio sdkTypes.Dec, orch string, blockHeight int64) SlashingStoreValue {
 	return SlashingStoreValue{
 		SlashingDetails:       msg,
 		Ratio:                 ratio,
 		OrchestratorAddresses: []string{orch},
 		Counter:               1,
+		AddedToCValue:         false,
+		ActiveBlockHeight:     blockHeight,
 	}
 }
 
