@@ -350,13 +350,13 @@ func (k Keeper) IterateProposalsForEmittingVotingTxn(ctx sdk.Context) {
 	}
 }
 
-func (k Keeper) ProcessProposals(ctx sdk.Context) error {
+func (k Keeper) ProcessProposals(ctx sdk.Context) {
 	list := k.getAllKeyAndValueForProposal(ctx)
 	for _, element := range list {
 		if element.Value.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !element.Value.ProposalPosted {
 			err := k.createProposal(ctx, element)
 			if err != nil {
-				return err
+				panic(err)
 			}
 		}
 		if element.Value.ActiveBlockHeight < ctx.BlockHeight() && element.Value.ProposalPosted {
@@ -366,8 +366,6 @@ func (k Keeper) ProcessProposals(ctx sdk.Context) error {
 
 	fmt.Println(ctx.BlockTime(), "Current time")
 	k.IterateProposalsForEmittingVotingTxn(ctx)
-
-	return nil
 }
 
 func StoreValueEqualOrNotProposalEvent(storeValue cosmosTypes.ProposalValue, msgValue cosmosTypes.MsgMakeProposal) bool {

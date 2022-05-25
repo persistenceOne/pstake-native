@@ -70,14 +70,14 @@ func (k Keeper) deleteUndelegateSuccessDetails(ctx sdk.Context, key cosmosTypes.
 	undelegateSuccessStore.Delete(storeKey)
 }
 
-func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) error {
+func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) {
 	list, err := k.getAllUndelegateSuccessDetails(ctx)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	epochNumber := k.getLeastEpochNumberWithWithdrawStatusFalse(ctx)
 	if epochNumber == int64(math.MaxInt64) {
-		return cosmosTypes.ErrInvalidEpochNumber
+		panic(cosmosTypes.ErrInvalidEpochNumber)
 	}
 	for _, element := range list {
 		if element.ValueUndelegateSuccessStore.Ratio.GT(cosmosTypes.MinimumRatioForMajority) {
@@ -96,10 +96,9 @@ func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) error {
 	if flagForWithdrawSuccess {
 		err = k.emitSendTransactionForAllWithdrawals(ctx, epochNumber)
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
-	return nil
 }
 
 func StoreValueEqualOrNotUndelegateSuccess(storeValue cosmosTypes.ValueUndelegateSuccessStore,

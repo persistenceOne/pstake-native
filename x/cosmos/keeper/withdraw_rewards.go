@@ -105,13 +105,13 @@ func (k Keeper) deleteFromRewardsInCurrentEpoch(ctx sdk.Context, epochNumber int
 
 //______________________________________________________________________________________________________________________
 
-func (k Keeper) ProcessRewards(ctx sdk.Context) error {
+func (k Keeper) ProcessRewards(ctx sdk.Context) {
 	rewardsList, keys, err := k.getAllFromRewardsClaimedPool(ctx)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	if len(rewardsList) != len(keys) {
-		return fmt.Errorf("rewards list and keys do not have equal number of elements")
+		panic(fmt.Errorf("rewards list and keys do not have equal number of elements"))
 	}
 	for i, r := range rewardsList {
 		if r.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !r.AddedToCurrentEpoch {
@@ -125,7 +125,6 @@ func (k Keeper) ProcessRewards(ctx sdk.Context) error {
 			k.deleteFromRewardsClaimedPool(ctx, keys[i])
 		}
 	}
-	return nil
 }
 
 func StoreValueEqualOrNotRewardsClaimed(storeValue cosmosTypes.RewardsClaimedValue,

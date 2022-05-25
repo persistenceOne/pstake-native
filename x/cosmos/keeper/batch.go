@@ -417,7 +417,7 @@ func (k Keeper) retryTransactionWithFailure(ctx sdk.Context, txDetails cosmosTyp
 	k.removeTxHashAndDetails(ctx, txHash)
 }
 
-func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
+func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 	// fetch active transaction in the queue
 	txID := k.getActiveFromTransactionQueue(ctx)
 
@@ -425,21 +425,21 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 	if txID == 0 {
 		nextID := k.getNextFromTransactionQueue(ctx)
 		if nextID == 0 {
-			return nil
+			return
 		}
 		k.emitEventForActiveTransaction(ctx, nextID)
-		return nil
+		return
 	}
 
 	// get all txHash and details aggregated
 	txDetails, err := k.getAllTxHashAndDetails(ctx)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	queryResponse, err := k.getTxnFromOutgoingPoolByID(ctx, txID)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	for _, tx := range txDetails {
@@ -455,27 +455,27 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 		// get tx from outgoing pool
 		cosmosTx, err := k.getTxnFromOutgoingPoolByID(ctx, txID)
 		if err != nil {
-			return err
+			panic(err)
 		}
 
 		custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
 		if err != nil {
-			return err
+			panic(err)
 		}
 
 		multisigAccount := k.getAccountState(ctx, custodialAddress)
 		if multisigAccount == nil {
-			return cosmosTypes.ErrMultiSigAddressNotFound
+			panic(cosmosTypes.ErrMultiSigAddressNotFound)
 		}
 
 		txHashValue, err := k.getTxHashAndDetails(ctx, tx.TxHash)
 		if err != nil {
-			return err
+			panic(err)
 		}
 
 		// process tx if majority status is present
 		if tx.Details.Ratio.LT(cosmosTypes.MinimumRatioForMajority) {
-			return nil
+			panic(err)
 		}
 
 		// TODO : deal with keeper failure and insufficient balance
@@ -502,7 +502,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 						k.updateStatusOnceProcessed(ctx, txID, "success")
 						//TODO : update total delegated amount
 						if err != nil {
-							return err
+							panic(err)
 						}
 					case *types.MsgSend:
 						// TODO : update C value
@@ -520,13 +520,13 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 		// set sequence number in any case of status, so it stays up to date
 		err = multisigAccount.SetSequence(txHashValue.TxStatus.SequenceNumber)
 		if err != nil {
-			return err
+			panic(err)
 		}
 
 		//set account number in any case of status, so it stays up to date
 		err = multisigAccount.SetAccountNumber(txHashValue.TxStatus.AccountNumber)
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
 
@@ -543,7 +543,6 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 			k.removeFromTransactionQueue(ctx, tx.txID)
 		}
 	}
-	return nil
 }
 
 //______________________________________________________________________________________________

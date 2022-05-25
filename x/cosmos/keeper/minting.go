@@ -78,14 +78,14 @@ func (k Keeper) deleteFromMintTokenStore(ctx sdk.Context, mv cosmosTypes.MintTok
 	mintTokenStore.Delete(key)
 }
 
-func (k Keeper) ProcessAllMintingStoreValue(ctx sdk.Context) error {
+func (k Keeper) ProcessAllMintingStoreValue(ctx sdk.Context) {
 	listOfMintTokenStoreValue := k.getAllMintTokenStoreValue(ctx)
 	for _, mv := range listOfMintTokenStoreValue {
 		if mv.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !mv.AddedToEpoch && !mv.Minted {
 			// step 1 : mint tokens for account
 			err := k.mintTokensOnMajority(ctx, mv.MintTokens)
 			if err != nil {
-				return err
+				panic(err)
 			}
 			// step 2 : mark minted flag true
 			k.setMintedFlagInMintTokenStore(ctx, mv)
@@ -99,7 +99,6 @@ func (k Keeper) ProcessAllMintingStoreValue(ctx sdk.Context) error {
 			k.deleteFromMintTokenStore(ctx, mv)
 		}
 	}
-	return nil
 }
 
 func StoreValueEqualOrNotMintToken(storeValue cosmosTypes.MintTokenStoreValue, msgValue cosmosTypes.MsgMintTokensForAccount) bool {
