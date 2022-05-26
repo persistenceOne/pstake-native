@@ -9,7 +9,6 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"strconv"
-	"strings"
 	"time"
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
@@ -37,6 +36,7 @@ const (
 	QueryParameters = "parameters"
 	QueryTxByID     = "txByID"
 	QueryProposal   = "proposal"
+	QueryProposals  = "proposals"
 	QueryVote       = "vote"
 	QueryVotes      = "votes"
 
@@ -55,21 +55,13 @@ const (
 var (
 	MinimumRatioForMajority = sdkTypes.NewDec(66).Quo(sdkTypes.NewDec(100))
 
-	KeyValidatorAddress = "KeyValidatorAddress"
-
 	SequenceKeyPrefix = "SequenceKeyPrefix"
 
 	KeyLastTXPoolID = SequenceKeyPrefix + "lastTxPoolId"
 
-	KeyCosmosValidatorSet = []byte{0x01}
-
 	KeyTotalDelegationTillDate = []byte{0x02}
 
 	OutgoingTXPoolKey = []byte{0x03}
-
-	AddressAndAmountStoreKey = []byte{0x04}
-
-	MintingPoolStoreKey = []byte{0x05}
 
 	ValidatorOrchestratorStoreKey = []byte{0x07}
 
@@ -128,29 +120,8 @@ func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {
 	return append([]byte(KeyEpochStoreForUndelegation), Int64Bytes(epochNumber)...)
 }
 
-func ConvertByteArrToString(value []byte) string {
-	var ret strings.Builder
-	for i := 0; i < len(value); i++ {
-		ret.WriteString(string(value[i]))
-	}
-	return ret.String()
-}
-
-func GetChainIDTxHashBlockHeightKey(chainID string, blockHeight int64, txHash string) string {
-	return chainID + strconv.FormatInt(blockHeight, 10) + txHash
-}
-
 func GetChainIDAndBlockHeightKey(chainID string, blockHeight int64) string {
 	return chainID + strconv.FormatInt(blockHeight, 10)
-}
-
-func GetDestinationAddressAmountAndTxHashKey(destinationAddress sdkTypes.AccAddress, coins sdkTypes.Coins, txHash string) string {
-	amount := make([]byte, 32)
-	amount = []byte(coins[0].Amount.String())
-
-	a := append(destinationAddress.Bytes(), amount...)
-	b := append([]byte(txHash), a...)
-	return ConvertByteArrToString(b)
 }
 
 // GetProposalIDFromBytes returns proposalID in uint64 format from a byte array

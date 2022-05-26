@@ -1,12 +1,12 @@
 package types
 
 import (
-	"github.com/ghodss/yaml"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/ghodss/yaml"
 )
 
 var (
@@ -104,7 +104,7 @@ func (m *MsgRemoveOrchestrator) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgWithdrawStkAsset returns a new MsgWithdrawStkAsset
-func NewMsgWithdrawStkAsset(from sdk.AccAddress, to sdk.Address, amount sdk.Coin) *MsgWithdrawStkAsset {
+func NewMsgWithdrawStkAsset(from, to sdk.AccAddress, amount sdk.Coin) *MsgWithdrawStkAsset {
 	return &MsgWithdrawStkAsset{
 		FromAddress: from.String(),
 		ToAddress:   to.String(),

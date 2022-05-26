@@ -3,12 +3,13 @@ package types
 import (
 	"errors"
 	"fmt"
-	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ghodss/yaml"
+
+	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 )
 
 const (
@@ -510,7 +511,7 @@ func validateBondDenom(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if len(v) <= 0 {
+	if len(v) == 0 {
 		return fmt.Errorf("bond denom cannot be empty")
 	}
 	return nil

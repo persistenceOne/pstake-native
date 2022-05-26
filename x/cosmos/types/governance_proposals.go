@@ -2,8 +2,9 @@ package types
 
 import (
 	"fmt"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"strings"
+
+	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 const (
@@ -13,17 +14,17 @@ const (
 	ProposalTypeEnableModule                 = "EnableModule"
 )
 
-var _, _, _, _ govtypes.Content = &ChangeMultisigProposal{}, &EnableModuleProposal{}, &ChangeCosmosValidatorWeightsProposal{}, &ChangeOracleValidatorWeightsProposal{}
+var _, _, _, _ govTypes.Content = &ChangeMultisigProposal{}, &EnableModuleProposal{}, &ChangeCosmosValidatorWeightsProposal{}, &ChangeOracleValidatorWeightsProposal{}
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeChangeMultisig)
-	govtypes.RegisterProposalType(ProposalTypeEnableModule)
-	govtypes.RegisterProposalType(ProposalTypeChangeCosmosValidatorWeights)
-	govtypes.RegisterProposalType(ProposalTypeChangeOracleValidatorWeights)
-	govtypes.RegisterProposalTypeCodec(&ChangeMultisigProposal{}, "persistenceCore/ChangeMultisigProposal")
-	govtypes.RegisterProposalTypeCodec(&EnableModuleProposal{}, "persistenceCore/EnableModuleProposal")
-	govtypes.RegisterProposalTypeCodec(&ChangeCosmosValidatorWeightsProposal{}, "persistenceCore/ChangeCosmosValidatorWeightsProposal")
-	govtypes.RegisterProposalTypeCodec(&ChangeOracleValidatorWeightsProposal{}, "persistenceCore/ChangeOracleValidatorWeightsProposal")
+	govTypes.RegisterProposalType(ProposalTypeChangeMultisig)
+	govTypes.RegisterProposalType(ProposalTypeEnableModule)
+	govTypes.RegisterProposalType(ProposalTypeChangeCosmosValidatorWeights)
+	govTypes.RegisterProposalType(ProposalTypeChangeOracleValidatorWeights)
+	govTypes.RegisterProposalTypeCodec(&ChangeMultisigProposal{}, "persistenceCore/ChangeMultisigProposal")
+	govTypes.RegisterProposalTypeCodec(&EnableModuleProposal{}, "persistenceCore/EnableModuleProposal")
+	govTypes.RegisterProposalTypeCodec(&ChangeCosmosValidatorWeightsProposal{}, "persistenceCore/ChangeCosmosValidatorWeightsProposal")
+	govTypes.RegisterProposalTypeCodec(&ChangeOracleValidatorWeightsProposal{}, "persistenceCore/ChangeOracleValidatorWeightsProposal")
 }
 
 func NewChangeMultisigProposal(title, description string, threshold uint64, orchestratorAddresses []string, accountNumber uint64) *ChangeMultisigProposal {
@@ -62,7 +63,7 @@ func (m *ChangeMultisigProposal) String() string {
 	b.WriteString(fmt.Sprintf(`Update Pool Incentives Proposal:
   Title:                 %s
   Description:           %s
-  Threshold:             %s
+  Threshold:             %d
   OrcastratorAddresses:  %s
 `, m.Title, m.Description, m.Threshold, m.OrcastratorAddresses))
 	return b.String()

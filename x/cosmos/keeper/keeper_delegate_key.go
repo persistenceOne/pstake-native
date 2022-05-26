@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -25,11 +27,11 @@ func (k Keeper) SetValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.ValA
 	}
 
 	//check if orchestrator address is already mapped to another validator
-	_, _, exist, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orch)
+	_, exist, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orch)
 	if err != nil {
 		return err
 	}
-	if exist == true {
+	if exist {
 		return fmt.Errorf("orchestrator address already exist")
 	}
 
@@ -47,11 +49,7 @@ func (k Keeper) SetValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.ValA
 
 	// if no address is mapped with the validator
 	a := cosmosTypes.NewValidatorStoreValue(orch)
-	bz, err := k.cdc.Marshal(&a)
-	if err != nil {
-		return err
-	}
-	orchestratorValidatorStore.Set(key, bz)
+	orchestratorValidatorStore.Set(key, k.cdc.MustMarshal(&a))
 	return nil
 }
 
@@ -78,11 +76,11 @@ func (k Keeper) RemoveValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.V
 	}
 
 	//check if orchestrator address is already mapped to another validator
-	_, _, exist, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orch)
+	_, exist, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orch)
 	if err != nil {
 		return err
 	}
-	if exist != true {
+	if !exist {
 		return fmt.Errorf("orchestrator address : %s does not exist", orch.String())
 	}
 
@@ -136,7 +134,7 @@ func (k Keeper) GetTotalValidatorOrchestratorCount(ctx sdkTypes.Context) int64 {
 }
 
 func (k Keeper) getAllValidatorOrchestratorMappingAndFindIfExist(ctx sdkTypes.Context,
-	orch sdkTypes.AccAddress) (orchAddresses []string, valAddress sdkTypes.ValAddress, found bool, err error) {
+	orch sdkTypes.AccAddress) (valAddress sdkTypes.ValAddress, found bool, err error) {
 	found = false
 	orchestratorValidatorStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ValidatorOrchestratorStoreKey)
 	iterator := orchestratorValidatorStore.Iterator(nil, nil)
@@ -145,7 +143,7 @@ func (k Keeper) getAllValidatorOrchestratorMappingAndFindIfExist(ctx sdkTypes.Co
 		var validatorStoreValue cosmosTypes.ValidatorStoreValue
 		err = k.cdc.Unmarshal(iterator.Value(), &validatorStoreValue)
 		if err != nil {
-			return orchAddresses, nil, found, err
+			return nil, found, err
 		}
 		for _, address := range validatorStoreValue.OrchestratorAddresses {
 			if address == orch.String() {
@@ -153,10 +151,9 @@ func (k Keeper) getAllValidatorOrchestratorMappingAndFindIfExist(ctx sdkTypes.Co
 				valAddress = val
 				found = true
 			}
-			orchAddresses = append(orchAddresses, address)
 		}
 	}
-	return orchAddresses, valAddress, found, err
+	return valAddress, found, err
 }
 
 func (k Keeper) checkAllValidatorsHaveOrchestrators(ctx sdkTypes.Context) ([]string, error) {

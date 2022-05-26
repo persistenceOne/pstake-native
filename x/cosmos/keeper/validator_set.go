@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -14,24 +16,24 @@ func (k Keeper) setCosmosValidatorSet(ctx sdk.Context, cosmosValSetWeights []cos
 	cosmosValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCosmosValidatorWeights)
 
 	newSortedCosmosValSetWeights := cosmosTypes.NewWeightedAddressAmounts(cosmosValSetWeights).Sort()
-	for _, va := range newSortedCosmosValSetWeights {
-		valAddress, err := cosmosTypes.ValAddressFromBech32(va.Address, cosmosTypes.Bech32PrefixValAddr)
+	for i := range newSortedCosmosValSetWeights {
+		valAddress, err := cosmosTypes.ValAddressFromBech32(newSortedCosmosValSetWeights[i].Address, cosmosTypes.Bech32PrefixValAddr)
 		if err != nil {
 			panic(err)
 		}
 		if cosmosValSetStore.Has(valAddress.Bytes()) {
 			var weightedAddress cosmosTypes.WeightedAddressAmount
 			k.cdc.MustUnmarshal(cosmosValSetStore.Get(valAddress.Bytes()), &weightedAddress)
-			weightedAddress.Weight = va.Weight
+			weightedAddress.Weight = newSortedCosmosValSetWeights[i].Weight
 			cosmosValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&weightedAddress))
 		} else {
 			bondDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
 			if err != nil {
 				panic(err)
 			}
-			va.Amount = sdk.ZeroInt()
-			va.Denom = bondDenom
-			cosmosValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&va))
+			newSortedCosmosValSetWeights[i].Amount = sdk.ZeroInt()
+			newSortedCosmosValSetWeights[i].Denom = bondDenom
+			cosmosValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&newSortedCosmosValSetWeights[i]))
 		}
 	}
 }
