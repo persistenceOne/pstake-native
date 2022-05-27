@@ -35,3 +35,34 @@ func (c *CosmosChain) DepositTxEventForBlock(BlockHeight int64) error {
 	}()
 	return nil
 }
+
+func (c *CosmosChain) ActiveProposalEventHandler(BlockHeight int64) error {
+	client, err := rpchttp.New(c.RPCAddr, "/websocket")
+	if err != nil {
+		return err
+	}
+	err = client.Start()
+	if err != nil {
+		return err
+	}
+	defer client.Stop()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	query := "active_proposal"
+
+	proposals, err := client.Subscribe(ctx, "orchestrator", query)
+
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		for e := range proposals {
+			//relay to native chain
+			fmt.Println("got ", e.Data.(types.EventDataTx))
+		}
+	}()
+	return nil
+
+}

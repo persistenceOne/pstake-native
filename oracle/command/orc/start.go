@@ -6,9 +6,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	orc "github.com/persistenceOne/pStake-native/oracle/command"
+	"github.com/persistenceOne/pStake-native/oracle/configuration"
 	"github.com/persistenceOne/pStake-native/oracle/constants"
 	"github.com/persistenceOne/pStake-native/oracle/oracle"
 	"github.com/spf13/cobra"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -30,19 +32,24 @@ func StartCommand() *cobra.Command {
 		Use:   "start",
 		Short: "Start the orc server",
 		Long:  `Start the orc server`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			homepath, err := cmd.Flags().GetString(constants.FlagOrcHomeDir)
 			if err != nil {
 				fmt.Println(err)
-				return
+				log.Fatalln(err)
 			}
 
-			cosmosChain, err := orc.InitCosmosChain(homepath)
+			orcConfig := InitConfig(homepath)
+
+			orcSeeds := orcConfig.OrcSeeds
+			valAddr := orcConfig.ValAddress
+
+			cosmosChain, err := orc.InitCosmosChain(homepath, orcConfig.CosmosConfig)
 			if err != nil {
 				fmt.Println(err)
 			}
 
-			nativeChain, err := orc.InitNativeChain(homepath)
+			nativeChain, err := orc.InitNativeChain(homepath, orcConfig.NativeConfig)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -80,16 +87,26 @@ func StartCommand() *cobra.Command {
 			fmt.Println("start rpc server")
 
 			fmt.Println("start to listen for txs cosmos side")
-			go oracle.StartGettingDepositTx(clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
+			go oracle.StartListeningCosmosSideActions(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
+
+			fmt.Println("start to listen for txs cosmos side")
+			go oracle.StartListeningNativeSideActions()
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 			for sig := range signalChan {
 				fmt.Sprintf("Stopping the oracle %v", sig.String())
 
 			}
-
+			return nil
 		},
 	}
 	startCommand.Flags().String(constants.FlagOrcHomeDir, "", "home directory")
 	return startCommand
+}
+
+func InitConfig(homepath string) configuration.Config {
+	config := configuration.InitializeConfigFromToml(homepath)
+
+	return config
+
 }

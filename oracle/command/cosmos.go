@@ -11,15 +11,15 @@ import (
 	"time"
 )
 
-func InitCosmosChain(homePath string) (*oracle.CosmosChain, error) {
+func InitCosmosChain(homePath string, config configuration.CosmosConfig) (*oracle.CosmosChain, error) {
 	chain := &oracle.CosmosChain{}
 	chain.Key = "unusedKey"
-	chain.ChainID = configuration.GetConfig().CosmosConfig.ChainID
-	chain.RPCAddr = configuration.GetConfig().CosmosConfig.RPCAddr
-	chain.AccountPrefix = configuration.GetConfig().CosmosConfig.AccountPrefix
-	chain.GasAdjustment = configuration.GetConfig().CosmosConfig.GasAdjustment
-	chain.GasPrices = configuration.GetConfig().CosmosConfig.GasPrices
-	chain.CustodialAddress = sdk.AccAddress(configuration.GetConfig().CosmosConfig.CustodialAddr)
+	chain.ChainID = config.ChainID
+	chain.RPCAddr = config.RPCAddr
+	chain.AccountPrefix = config.AccountPrefix
+	chain.GasAdjustment = config.GasAdjustment
+	chain.GasPrices = config.GasPrice
+	chain.CustodialAddress = sdk.AccAddress(config.CustodialAddr)
 
 	err := chain.Init(string(chain.CustodialAddress), homePath, 1*time.Second, nil, true)
 	if err != nil {

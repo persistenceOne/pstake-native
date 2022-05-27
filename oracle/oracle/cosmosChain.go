@@ -1,60 +1,25 @@
 package oracle
 
-//func InitCosmosChain(timeout, homePath string) (*oracle.Chain, error) {
-//	chain := &oracle.Chain{}
-//	chain.Key = "cosmos"
-//	chain.ChainID = configuration.GetConfig().CosmosConfig.ChainID
-//	chain.RPCAddr = configuration.GetConfig().CosmosConfig.RPCAddr
-//	chain.AccountPrefix = configuration.GetConfig().CosmosConfig.AccountPrefix
-//	chain.GasAdjustment = configuration.GetConfig().CosmosConfig.GasAdjustment
-//	chain.GasPrices = configuration.GetConfig().CosmosConfig.GasPrice
-//	chain.TrustingPeriod = "21h"
-//
-//	to, err := time.ParseDuration(timeout)
-//	if err != nil {
-//		return nil, err
-//	}
-//	err = chain.Init(homePath, to, nil, true)
-//
-//	if chain.KeyExists(chain.Key) {
-//		println("Key Exists")
-//		err = chain.Keybase.Delete(chain.Key)
-//		if err != nil {
-//			return chain, err
-//		}
-//	}
-//
-//	_, err = helpers.KeyAddOrRestore(chain, chain.Key, constants.CosmosCoinType)
-//	if err != nil {
-//		return chain, err
-//	}
-//
-//	if err = chain.Start(); err != nil {
-//		if err != tendermintService.ErrAlreadyStarted {
-//			chain.Error(err)
-//			return chain, err
-//		}
-//	}
-//	return chain, nil
-//
-//}
-
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	keys "github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/persistenceOne/pStake-native/oracle/utils"
 	"github.com/tendermint/tendermint/libs/log"
 	provtypes "github.com/tendermint/tendermint/light/provider"
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	libclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
+	logg "log"
 	"os"
 	"path"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -172,21 +137,41 @@ func (c *CosmosChain) Start() error {
 
 var sdkContextMutex sync.Mutex
 
-func StartGettingDepositTx(nativeCliCtx client.Context, ClientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
+func StartListeningCosmosSideActions(valAddr string, orcSeeds []string, nativeCliCtx client.Context, ClientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
 	ctx := context.Background()
-	for {
+	var cHeight, nHeight uint64
+
+	if _, err := os.Stat(filepath.Join(chain.HomePath, "status.json")); err == nil {
+		cHeight, nHeight = utils.GetHeightStatus(chain.HomePath)
+	} else if errors.Is(err, os.ErrNotExist) {
 		abciInfoCosmos, err := chain.Client.ABCIInfo(ctx)
 		if err != nil {
 			fmt.Println("error getting abci info", err)
-			time.Sleep(time.Second * 5)
-			continue
+			logg.Println("error getting cosmos abci info", err)
 		}
+		cHeight = uint64(abciInfoCosmos.Response.LastBlockHeight)
 
-		block_height := abciInfoCosmos.Response.LastBlockHeight
-		block_height -= 4
-		fmt.Println("block height", block_height)
+		abciInfoNative, err := native.Client.ABCIInfo(ctx)
+		if err != nil {
+			fmt.Println("error getting abci info", err)
+			logg.Println("error getting native abci info", err)
+		}
+		cHeight = uint64(abciInfoNative.Response.LastBlockHeight)
 
-		err = chain.DepositHandler(nativeCliCtx, ClientCtx, native, block_height, codec)
+		utils.NewStatusJSON(chain.HomePath, cHeight, nHeight)
 
 	}
+	for cHeight > 0 && nHeight > 0 {
+		fmt.Println("cosmos Block height- ", cHeight)
+		fmt.Println("native Block Height", nHeight)
+
+		err := chain.DepositHandler(valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, int64(nHeight), codec)
+		if err != nil {
+			logg.Fatalln()
+		}
+		cHeight += 1
+		utils.NewStatusJSON(chain.HomePath, cHeight, nHeight)
+
+	}
+
 }

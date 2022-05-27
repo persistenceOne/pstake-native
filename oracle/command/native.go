@@ -10,15 +10,15 @@ import (
 	"time"
 )
 
-func InitNativeChain(homePath string) (*oracle.NativeChain, error) {
+func InitNativeChain(homePath string, config configuration.NativeConfig) (*oracle.NativeChain, error) {
 	chain := &oracle.NativeChain{}
 	chain.Key = "unusedNativeKey"
-	chain.ChainID = configuration.GetConfig().NativeConfig.ChainID
-	chain.RPCAddr = configuration.GetConfig().NativeConfig.RPCAddr
-	chain.AccountPrefix = configuration.GetConfig().NativeConfig.AccountPrefix
-	chain.GasAdjustment = configuration.GetConfig().NativeConfig.GasAdjustment
-	chain.GasPrices = configuration.GetConfig().NativeConfig.GasPrices
-	//= sdk.AccAddress(configuration.GetConfig().CosmosConfig.CustodialAddr)
+	chain.ChainID = config.ChainID
+	chain.RPCAddr = config.RPCAddr
+	chain.GRPCAddr = config.GRPCAddr
+	chain.AccountPrefix = config.AccountPrefix
+	chain.GasAdjustment = config.GasAdjustment
+	chain.GasPrices = config.GasPrices
 
 	err := chain.Init(homePath, 1*time.Second, nil, true)
 	if err != nil {
