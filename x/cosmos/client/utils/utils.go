@@ -33,12 +33,13 @@ type ChangeOracleValidatorWeightsProposalReq struct {
 }
 
 type EnableModuleProposalJSON struct {
-	Title         string `json:"title" yaml:"title"`
-	Description   string `json:"description" yaml:"description"`
-	Threshold     uint64 `json:"threshold" yaml:"threshold"`
-	AccountNumber uint64 `json:"account_number" yaml:"account_number"`
-	Depositor     string `json:"depositor" yaml:"depositor"`
-	Deposit       string `json:"deposit" yaml:"deposit"`
+	Title                 string   `json:"title" yaml:"title"`
+	Description           string   `json:"description" yaml:"description"`
+	Threshold             uint64   `json:"threshold" yaml:"threshold"`
+	AccountNumber         uint64   `json:"account_number" yaml:"account_number"`
+	OrchestratorAddresses []string `json:"orchestrator_addresses" yaml:"orchestrator_addresses"`
+	Depositor             string   `json:"depositor" yaml:"depositor"`
+	Deposit               string   `json:"deposit" yaml:"deposit"`
 }
 
 type ChangeMultisigPropsoalJSON struct {

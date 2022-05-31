@@ -52,7 +52,8 @@ func postEnableModuleProposalHandlerFn(clientCtx client.Context) http.HandlerFun
 			req.EnableModule.Title,
 			req.EnableModule.Description,
 			req.EnableModule.Threshold,
-			req.EnableModule.AccountNumber)
+			req.EnableModule.AccountNumber,
+			req.EnableModule.OrchestratorAddresses)
 
 		deposit, err := sdkTypes.ParseCoinsNormalized(req.EnableModule.Deposit)
 		if err != nil {

@@ -408,7 +408,7 @@ func NewEnableModuleCmd() *cobra.Command {
 			}
 
 			from := clientCtx.GetFromAddress()
-			content := cosmosTypes.NewEnableModuleProposal(proposal.Title, proposal.Description, proposal.Threshold, proposal.AccountNumber)
+			content := cosmosTypes.NewEnableModuleProposal(proposal.Title, proposal.Description, proposal.Threshold, proposal.AccountNumber, proposal.OrchestratorAddresses)
 
 			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
 			if err != nil {
