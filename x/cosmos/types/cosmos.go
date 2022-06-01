@@ -86,10 +86,31 @@ func (ws WeightedAddressAmounts) GetZeroWeighted() WeightedAddressAmounts {
 	return zeroWeightedAddrAmts
 }
 
+func (ws WeightedAddressAmounts) GetZeroValued() WeightedAddressAmounts {
+	zeroValuedAddrAmts := WeightedAddressAmounts{}
+	for _, w := range ws {
+		if w.Amount.IsNegative() {
+			zeroValuedAddrAmts = append(zeroValuedAddrAmts, w)
+		}
+	}
+	return zeroValuedAddrAmts
+}
+
 func GetWeightedAddressMap(ws WeightedAddressAmounts) map[string]sdk.Dec {
 	addressMap := map[string]sdk.Dec{}
 	for _, w := range ws {
 		addressMap[w.Address] = w.Weight
 	}
 	return addressMap
+}
+
+func GetZeroNonZeroWightedAddrAmts(ws WeightedAddressAmounts) (zeroWeighted, nonZeroWeighted WeightedAddressAmounts) {
+	for _, w := range ws {
+		if w.Weight.IsZero() {
+			zeroWeighted = append(zeroWeighted, w)
+		} else {
+			nonZeroWeighted = append(nonZeroWeighted, w)
+		}
+	}
+	return zeroWeighted, nonZeroWeighted
 }
