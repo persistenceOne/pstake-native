@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"math"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -78,9 +76,9 @@ func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) {
 		panic(err)
 	}
 	epochNumber := k.getLeastEpochNumberWithWithdrawStatusFalse(ctx)
-	if epochNumber == int64(math.MaxInt64) {
-		panic(cosmosTypes.ErrInvalidEpochNumber)
-	}
+	//if epochNumber == int64(math.MaxInt64) {
+	//	panic(cosmosTypes.ErrInvalidEpochNumber)
+	//}
 	for _, element := range list {
 		if element.ValueUndelegateSuccessStore.Ratio.GT(cosmosTypes.MinimumRatioForMajority) {
 			k.setEpochNumberAndUndelegateDetailsOfIndividualValidator(

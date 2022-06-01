@@ -133,6 +133,21 @@ func (k Keeper) GetTotalValidatorOrchestratorCount(ctx sdkTypes.Context) int64 {
 	return int64(counter)
 }
 
+func (k Keeper) getValidatorMapping(ctx sdkTypes.Context, valAddress sdkTypes.ValAddress) cosmosTypes.ValidatorStoreValue {
+	orchestratorValidatorStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ValidatorOrchestratorStoreKey)
+	iterator := orchestratorValidatorStore.Iterator(nil, nil)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		val := sdkTypes.ValAddress(iterator.Key())
+		if val.Equals(valAddress) {
+			var validatorStoreValue cosmosTypes.ValidatorStoreValue
+			k.cdc.MustUnmarshal(iterator.Value(), &validatorStoreValue)
+			return validatorStoreValue
+		}
+	}
+	return cosmosTypes.ValidatorStoreValue{}
+}
+
 func (k Keeper) getAllValidatorOrchestratorMappingAndFindIfExist(ctx sdkTypes.Context,
 	orch sdkTypes.AccAddress) (valAddress sdkTypes.ValAddress, found bool, err error) {
 	found = false

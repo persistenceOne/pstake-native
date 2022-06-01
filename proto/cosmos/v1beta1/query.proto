@@ -44,6 +44,10 @@ service Query {
     option (google.api.http).get = "/pstake/cosmos/v1beta1/oracle_validator_set";
   }
 
+  rpc ValidatorMapping(QueryValidatorMappingRequest) returns (QueryValidatorMappingResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/validator_mapping";
+  }
+
 }
 
 message QueryParamsRequest {}
@@ -113,4 +117,13 @@ message QueryOracleValidatorSetRequest {}
 message QueryOracleValidatorSetResponse {
   option (gogoproto.equal) = false;
   repeated cosmos.v1beta1.WeightedAddress weighted_addresses = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryValidatorMappingRequest {
+  string validator_address = 1;
+}
+
+message QueryValidatorMappingResponse {
+  string validator_address = 1;
+  repeated string orchestrator_address = 2;
 }

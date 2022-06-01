@@ -69,12 +69,13 @@ func (m *ChangeMultisigProposal) String() string {
 	return b.String()
 }
 
-func NewEnableModuleProposal(title, description string, threshold uint64, accountNumber uint64) *EnableModuleProposal {
+func NewEnableModuleProposal(title, description string, threshold uint64, accountNumber uint64, orchestratorAddresses []string) *EnableModuleProposal {
 	return &EnableModuleProposal{
-		Title:         title,
-		Description:   description,
-		Threshold:     threshold,
-		AccountNumber: accountNumber,
+		Title:                 title,
+		Description:           description,
+		Threshold:             threshold,
+		AccountNumber:         accountNumber,
+		OrchestratorAddresses: orchestratorAddresses,
 	}
 }
 

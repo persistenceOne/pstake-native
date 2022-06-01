@@ -40,6 +40,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryVotes(),
 		GetCmdQueryCosmosValidatorSet(),
 		GetCmdQueryOracleValidatorSet(),
+		GetCmdQueryValidatorMapping(),
 	)
 
 	return cosmosQueryCmd
@@ -380,6 +381,34 @@ func GetCmdQueryOracleValidatorSet() *cobra.Command {
 
 			params := &cosmosTypes.QueryOracleValidatorSetRequest{}
 			res, err := queryClient.OracleValidatorSet(context.Background(), params)
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryValidatorMapping() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "validator-mapping [validator-address]",
+		Short: "Query validator mapping",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := cosmosTypes.NewQueryClient(clientCtx)
+
+			params := &cosmosTypes.QueryValidatorMappingRequest{}
+			res, err := queryClient.ValidatorMapping(context.Background(), params)
 
 			if err != nil {
 				return err
