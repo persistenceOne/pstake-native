@@ -397,7 +397,7 @@ func (m *MsgSignedTx) GetSigners() []sdk.AccAddress {
 
 // NewMsgTxStatus returns a new MsgTxStatus
 func NewMsgTxStatus(orchAddress sdk.AccAddress, status string, txHash string, accountNumber uint64, sequenceNumber uint64,
-	balance sdk.Coins, details []ValidatorDetails) *MsgTxStatus {
+	balance sdk.Coins, details []ValidatorDetails, blockHeight int64) *MsgTxStatus {
 	return &MsgTxStatus{
 		OrchestratorAddress: orchAddress.String(),
 		TxHash:              txHash,
@@ -406,6 +406,7 @@ func NewMsgTxStatus(orchAddress sdk.AccAddress, status string, txHash string, ac
 		SequenceNumber:      sequenceNumber,
 		Balance:             balance,
 		ValidatorDetails:    details,
+		BlockHeight:         blockHeight,
 	}
 }
 
@@ -537,11 +538,12 @@ func (m *MsgRewardsClaimedOnCosmosChain) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
-func NewMsgSetSignature(orchAddress sdk.AccAddress, outgoingTxID uint64, signatures []byte) *MsgSetSignature {
+func NewMsgSetSignature(orchAddress sdk.AccAddress, outgoingTxID uint64, signatures []byte, blockHeight int64) *MsgSetSignature {
 	return &MsgSetSignature{
 		OrchestratorAddress: orchAddress.String(),
 		OutgoingTxID:        outgoingTxID,
 		Signature:           signatures,
+		BlockHeight:         blockHeight,
 	}
 }
 

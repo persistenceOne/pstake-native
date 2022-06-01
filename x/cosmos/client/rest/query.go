@@ -7,6 +7,7 @@ package rest
 
 import (
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"net/http"
 	"strconv"
 
@@ -27,6 +28,25 @@ func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 		queryTxByIDHandlerFn(cliCtx),
 	).Methods("GET")
 
+	r.HandleFunc(
+		"/cosmos/oracleHeight/{oracleAddress}",
+		queryOracleHeightHandlerFn(cliCtx),
+	).Methods("GET")
+
+	r.HandleFunc(
+		"/cosmos/validatorMapping/{validatorAddress}",
+		queryValidatorMappingHandlerFn(cliCtx),
+	).Methods("GET")
+
+	r.HandleFunc(
+		"/cosmos/{oracleValidatorSet}",
+		queryOracleValidatorMappingHandlerFn(cliCtx),
+	).Methods("GET")
+
+	r.HandleFunc(
+		"/cosmos/{cosmosValidatorSet}",
+		queryCosmosValidatorMappingHandlerFn(cliCtx),
+	).Methods("GET")
 }
 
 func queryParamsHandlerFn(cliCtx client.Context) http.HandlerFunc {
@@ -64,6 +84,116 @@ func queryTxByIDHandlerFn(clientCtx client.Context) http.HandlerFunc {
 		query := &types.QueryOutgoingTxByIDRequest{
 			TxID: txID,
 		}
+		bz, err := clientCtx.LegacyAmino.MarshalJSON(query)
+		if rest.CheckBadRequestError(w, err) {
+			return
+		}
+
+		res, height, err := clientCtx.QueryWithData(endpoint, bz)
+		if rest.CheckInternalServerError(w, err) {
+			return
+		}
+
+		clientCtx = clientCtx.WithHeight(height)
+		rest.PostProcessResponse(w, clientCtx, res)
+	}
+}
+
+func queryOracleHeightHandlerFn(clientCtx client.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		endpoint := fmt.Sprintf("custom/%s", types.QuerierRoute)
+		vars := mux.Vars(r)
+		oracleAddress, err := sdk.AccAddressFromBech32(vars["oracleAddress"])
+		if err != nil {
+			return
+		}
+
+		clientCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+		query := &types.QueryOracleLastUpdateHeightRequest{
+			OracleAddress: oracleAddress.String(),
+		}
+		bz, err := clientCtx.LegacyAmino.MarshalJSON(query)
+		if rest.CheckBadRequestError(w, err) {
+			return
+		}
+
+		res, height, err := clientCtx.QueryWithData(endpoint, bz)
+		if rest.CheckInternalServerError(w, err) {
+			return
+		}
+
+		clientCtx = clientCtx.WithHeight(height)
+		rest.PostProcessResponse(w, clientCtx, res)
+	}
+}
+
+func queryValidatorMappingHandlerFn(clientCtx client.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		endpoint := fmt.Sprintf("custom/%s", types.QuerierRoute)
+		vars := mux.Vars(r)
+		validatorAddress, err := sdk.ValAddressFromBech32(vars["validatorAddress"])
+		if err != nil {
+			return
+		}
+
+		clientCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+		query := &types.QueryValidatorMappingRequest{
+			ValidatorAddress: validatorAddress.String(),
+		}
+		bz, err := clientCtx.LegacyAmino.MarshalJSON(query)
+		if rest.CheckBadRequestError(w, err) {
+			return
+		}
+
+		res, height, err := clientCtx.QueryWithData(endpoint, bz)
+		if rest.CheckInternalServerError(w, err) {
+			return
+		}
+
+		clientCtx = clientCtx.WithHeight(height)
+		rest.PostProcessResponse(w, clientCtx, res)
+	}
+}
+
+func queryOracleValidatorMappingHandlerFn(clientCtx client.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		endpoint := fmt.Sprintf("custom/%s", types.QuerierRoute)
+
+		clientCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+		query := &types.QueryOracleValidatorSetRequest{}
+		bz, err := clientCtx.LegacyAmino.MarshalJSON(query)
+		if rest.CheckBadRequestError(w, err) {
+			return
+		}
+
+		res, height, err := clientCtx.QueryWithData(endpoint, bz)
+		if rest.CheckInternalServerError(w, err) {
+			return
+		}
+
+		clientCtx = clientCtx.WithHeight(height)
+		rest.PostProcessResponse(w, clientCtx, res)
+	}
+}
+
+func queryCosmosValidatorMappingHandlerFn(clientCtx client.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		endpoint := fmt.Sprintf("custom/%s", types.QuerierRoute)
+
+		clientCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+		query := &types.QueryCosmosValidatorSetRequest{}
 		bz, err := clientCtx.LegacyAmino.MarshalJSON(query)
 		if rest.CheckBadRequestError(w, err) {
 			return

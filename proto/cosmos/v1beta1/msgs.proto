@@ -137,6 +137,7 @@ message MsgTxStatus {
   repeated cosmos.base.v1beta1.Coin balance = 6
   [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
   repeated ValidatorDetails validator_details = 7 [(gogoproto.nullable) = false];
+  int64 block_height = 8;
 }
 message MsgTxStatusResponse {}
 
@@ -164,6 +165,7 @@ message MsgSetSignature{
   string orchestrator_address = 1;
   uint64 outgoing_tx_i_d = 2;
   bytes signature = 3;
+  int64 block_height = 4;
 }
 message MsgSetSignatureResponse{}
 

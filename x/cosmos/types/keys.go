@@ -114,6 +114,10 @@ var (
 	KeySlashingStore = []byte{0x18}
 
 	KeyMintTokenStore = []byte{0x19}
+
+	KeyOracleLastUpdateHeightNative = []byte{0x20}
+
+	KeyOracleLastUpdateHeightCosmos = []byte{0x21}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {

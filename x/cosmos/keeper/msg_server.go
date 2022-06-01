@@ -213,6 +213,10 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 		return nil, cosmosTypes.ErrInvalidProposal
 	}
 
+	// update oracle height for both sides
+	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
+	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
+
 	k.addToMintTokenStore(ctx, *msg)
 
 	ctx.EventManager().EmitEvent(
@@ -257,6 +261,10 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 	if !found {
 		return nil, cosmosTypes.ErrInvalidProposal
 	}
+
+	// update oracle height for both sides
+	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
+	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
 
 	k.setProposalDetails(ctx, *msg)
 
@@ -396,12 +404,12 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 		return nil, cosmosTypes.ErrModuleNotEnabled
 	}
 
-	orchAddr, orchErr := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
+	orchestratorAddress, orchErr := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
 	if orchErr != nil {
 		return nil, orchErr
 	}
 
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchAddr)
+	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -417,6 +425,10 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 		return nil, fmt.Errorf("validator address does not exit")
 	}
 
+	// update oracle height for both sides
+	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
+	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
+
 	//TODO : add failure type for proposal transactions. (in case of chain upgrade on cosmos chain)
 	if msg.Status == cosmosTypes.Success || msg.Status == cosmosTypes.GasFailure ||
 		msg.Status == cosmosTypes.SequenceMismatch || msg.Status == cosmosTypes.KeeperFailure {
@@ -429,7 +441,7 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
 			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
-			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchAddr.String()),
+			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchestratorAddress.String()),
 		),
 	)
 	return &cosmosTypes.MsgTxStatusResponse{}, nil
@@ -443,13 +455,13 @@ func (k msgServer) RewardsClaimed(c context.Context, msg *cosmosTypes.MsgRewards
 		return nil, cosmosTypes.ErrModuleNotEnabled
 	}
 
-	orchAddr, orchErr := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
+	orchestratorAddress, orchErr := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
 	if orchErr != nil {
 		return nil, orchErr
 	}
 
 	//check if orchestrator address is present in a validator orchestrator mapping
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchAddr)
+	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -467,13 +479,17 @@ func (k msgServer) RewardsClaimed(c context.Context, msg *cosmosTypes.MsgRewards
 		return nil, fmt.Errorf("validator address does not exit")
 	}
 
+	// update oracle height for both sides
+	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
+	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
+
 	k.addToRewardsClaimedPool(ctx, *msg)
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
 			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
-			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchAddr.String()),
+			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchestratorAddress.String()),
 		),
 	)
 
@@ -527,6 +543,10 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 		return nil, cosmosTypes.ErrInvalid
 	}
 
+	// update oracle height for both sides
+	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
+	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
+
 	k.setUndelegateSuccessDetails(ctx, *msg)
 
 	ctx.EventManager().EmitEvent(
@@ -542,7 +562,7 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 
 func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignature) (*cosmosTypes.MsgSetSignatureResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
-	orchestratorAddr, err := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
+	orchestratorAddress, err := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -556,7 +576,7 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	}
 
 	//check if orchestrator address is present in a validator orchestrator mapping
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddr)
+	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -591,7 +611,7 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 		Signature: msg.Signature,
 	}
 
-	account := k.authKeeper.GetAccount(ctx, orchestratorAddr)
+	account := k.authKeeper.GetAccount(ctx, orchestratorAddress)
 	if account == nil {
 		return nil, cosmosTypes.ErrOrchAddressNotFound
 	}
@@ -601,8 +621,12 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 		return nil, err
 	}
 
+	// update oracle height for both sides
+	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
+	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
+
 	singleSignatureDataForOutgoingPool := cosmosTypes.ConvertSingleSignatureDataToSingleSignatureDataForOutgoingPool(signatureData)
-	err = k.addToOutgoingSignaturePool(ctx, singleSignatureDataForOutgoingPool, msg.OutgoingTxID, orchestratorAddr)
+	err = k.addToOutgoingSignaturePool(ctx, singleSignatureDataForOutgoingPool, msg.OutgoingTxID, orchestratorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -610,7 +634,7 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
 			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeySender, msg.OrchestratorAddress),
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeySender, orchestratorAddress.String()),
 		),
 	)
 	return &cosmosTypes.MsgSetSignatureResponse{}, nil
@@ -640,6 +664,10 @@ func (k msgServer) SlashingEvent(c context.Context, msg *cosmosTypes.MsgSlashing
 	if err != nil {
 		return nil, err
 	}
+
+	// update oracle height for both sides
+	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
+	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
 
 	k.setSlashingEventDetails(ctx, *msg)
 
