@@ -96,6 +96,9 @@ func (k msgServer) RemoveOrchestrator(c context.Context, msg *cosmosTypes.MsgRem
 		return nil, sdkErrors.Wrap(err, "Key not valid")
 	}
 
+	// TODO check if account exists, ideally not required as it is checked
+	// when setting the orchestrator address, but important in case of  forks.
+
 	// removes orch address from validator mapping if it is not present in current multisig or it is the one and ony mapping
 	err = k.RemoveValidatorOrchestrator(ctx, validator, orchestrator)
 	if err != nil {
