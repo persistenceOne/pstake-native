@@ -2,10 +2,10 @@ package orc
 
 import (
 	"fmt"
-	"github.com/persistenceOne/pStake-native/oracle/configuration"
-	"github.com/persistenceOne/pStake-native/oracle/constants"
-	"github.com/persistenceOne/pStake-native/oracle/helpers"
-	"github.com/persistenceOne/pStake-native/oracle/oracle"
+	"github.com/persistenceOne/pstake-native/oracle/configuration"
+	"github.com/persistenceOne/pstake-native/oracle/constants"
+	"github.com/persistenceOne/pstake-native/oracle/helpers"
+	"github.com/persistenceOne/pstake-native/oracle/oracle"
 	tendermintService "github.com/tendermint/tendermint/libs/service"
 	"time"
 )

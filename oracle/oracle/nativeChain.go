@@ -1,43 +1,5 @@
 package oracle
 
-//func InitNativeChain(timeout, homePath string) (*oracle.Chain, error) {
-//	chain := &oracle.Chain{}
-//	chain.Key = "native"
-//	chain.ChainID = configuration.GetConfig().NativeConfig.ChainID
-//	chain.RPCAddr = configuration.GetConfig().NativeConfig.RPCAddr
-//	chain.AccountPrefix = configuration.GetConfig().NativeConfig.AccountPrefix
-//	chain.GasAdjustment = configuration.GetConfig().NativeConfig.GasAdjustment
-//	chain.GasPrices = configuration.GetConfig().NativeConfig.GasPrice
-//	chain.TrustingPeriod = "21h"
-//
-//	to, err := time.ParseDuration(timeout)
-//	if err != nil {
-//		return nil, err
-//	}
-//	err = chain.Init(homePath, to, nil, true)
-//
-//	if chain.KeyExists(chain.Key) {
-//		println("Key Exists")
-//		err = chain.Keybase.Delete(chain.Key)
-//		if err != nil {
-//			return chain, err
-//		}
-//	}
-//
-//	_, err = helpers.KeyAddOrRestore(chain, chain.Key, constants.NativeCoinType)
-//	if err != nil {
-//		return chain, err
-//	}
-//
-//	if err = chain.Start(); err != nil {
-//		if err != tendermintService.ErrAlreadyStarted {
-//			chain.Error(err)
-//			return chain, err
-//		}
-//	}
-//	return chain, nil
-//
-//}
 import (
 	"context"
 	"errors"
@@ -47,11 +9,12 @@ import (
 	keys "github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/pStake-native/oracle/utils"
+	"github.com/persistenceOne/pstake-native/oracle/utils"
 	"github.com/tendermint/tendermint/libs/log"
 	provtypes "github.com/tendermint/tendermint/light/provider"
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
+	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	logg "log"
 	"os"
 	"path/filepath"
@@ -146,8 +109,25 @@ func (c *NativeChain) Start() error {
 }
 
 func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCliCtx client.Context, ClientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
-	ctx := context.Background()
 	var cHeight, nHeight uint64
+
+	rpcClient, err := rpchttp.New(native.RPCAddr, "/websocket")
+	if err != nil {
+		_ = fmt.Errorf("RPC address invalid %v", err)
+		return
+	}
+
+	err = rpcClient.Start()
+
+	if err != nil {
+		_ = fmt.Errorf("unable to reach RPC %v", err)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	query := "tm.event = 'NewBlock'"
 
 	if _, err := os.Stat(filepath.Join(chain.HomePath, "status.json")); err == nil {
 		cHeight, nHeight = utils.GetHeightStatus(chain.HomePath)
@@ -164,7 +144,7 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 			fmt.Println("error getting abci info", err)
 			logg.Println("error getting native abci info", err)
 		}
-		cHeight = uint64(abciInfoNative.Response.LastBlockHeight)
+		nHeight = uint64(abciInfoNative.Response.LastBlockHeight)
 
 		utils.NewStatusJSON(chain.HomePath, cHeight, nHeight)
 
@@ -173,7 +153,26 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 		fmt.Println("cosmos Block height- ", cHeight)
 		fmt.Println("native Block Height", nHeight)
 
-		err := native.StakingHandler(valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, int64(nHeight), codec)
+		EventListForBlock, err := rpcClient.Subscribe(ctx, "oracle-client", query)
+		if err != nil {
+			logg.Println("error subscribing, to the Event", err)
+		}
+
+		for e := range EventListForBlock {
+			logg.Println("listening to events on native side")
+			txIdSlice := e.Events["outgoing_txn.outgoing_tx_id"]
+			if txIdSlice == nil {
+				continue
+			}
+			for _, txId := range txIdSlice {
+
+				err := native.OutgoingTxHandler(txId, valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, chain, int64(nHeight), codec)
+				if err != nil {
+					return
+				}
+			}
+		}
+
 		if err != nil {
 			logg.Fatalln()
 		}

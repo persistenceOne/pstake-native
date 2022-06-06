@@ -3,10 +3,10 @@ package orc
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/pStake-native/oracle/configuration"
-	"github.com/persistenceOne/pStake-native/oracle/constants"
-	"github.com/persistenceOne/pStake-native/oracle/helpers"
-	"github.com/persistenceOne/pStake-native/oracle/oracle"
+	"github.com/persistenceOne/pstake-native/oracle/configuration"
+	"github.com/persistenceOne/pstake-native/oracle/constants"
+	"github.com/persistenceOne/pstake-native/oracle/helpers"
+	"github.com/persistenceOne/pstake-native/oracle/oracle"
 	tendermintService "github.com/tendermint/tendermint/libs/service"
 	"time"
 )
@@ -15,6 +15,7 @@ func InitCosmosChain(homePath string, config configuration.CosmosConfig) (*oracl
 	chain := &oracle.CosmosChain{}
 	chain.Key = "unusedKey"
 	chain.ChainID = config.ChainID
+	chain.GRPCAddr = config.GRPCAddr
 	chain.RPCAddr = config.RPCAddr
 	chain.AccountPrefix = config.AccountPrefix
 	chain.GasAdjustment = config.GasAdjustment

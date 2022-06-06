@@ -9,8 +9,8 @@ import (
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/persistenceOne/pStake-native/oracle/utils"
-	cosmosTypes "github.com/persistenceOne/pStake-native/x/cosmos/types"
+	"github.com/persistenceOne/pstake-native/oracle/utils"
+	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	tendermintTypes "github.com/tendermint/tendermint/rpc/core/types"
 	"google.golang.org/grpc"
 	logg "log"
@@ -82,7 +82,6 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 			return err
 		}
 		memo := strings.TrimSpace(tx.GetMemo())
-		fmt.Println(memo + "<--memo")
 
 		for _, msg := range tx.GetMsgs() {
 			switch txMsg := msg.(type) {
@@ -104,7 +103,6 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 						fmt.Println(msg.String(), "<--nativeMsg")
 
 						txBytes, err := utils.SignNativeTx(orcSeeds[0], native, nativeCLiCtx, msg)
-						fmt.Println(txBytes, "<--signedMsg")
 						if err != nil {
 							return err
 						}

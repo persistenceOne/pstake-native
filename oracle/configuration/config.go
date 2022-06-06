@@ -2,7 +2,7 @@ package configuration
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/persistenceOne/pStake-native/oracle/constants"
+	"github.com/persistenceOne/pstake-native/oracle/constants"
 	"github.com/spf13/cobra"
 	"log"
 	"path/filepath"
@@ -39,6 +39,10 @@ func SetConfig(cmd *cobra.Command) Config {
 	if err != nil {
 		panic(err)
 	}
+	orcConfig.CosmosConfig.GRPCAddr, err = cmd.Flags().GetString(constants.FlagCosmosGRPCAddr)
+	if err != nil {
+		panic(err)
+	}
 	orcConfig.CosmosConfig.RPCAddr, err = cmd.Flags().GetString(constants.FlagCosmosRPCAddr)
 	if err != nil {
 		panic(err)
@@ -63,6 +67,10 @@ func SetConfig(cmd *cobra.Command) Config {
 		panic(err)
 	}
 	orcConfig.NativeConfig.Denom, err = cmd.Flags().GetString(constants.FlagNativeDenom)
+	if err != nil {
+		panic(err)
+	}
+	orcConfig.NativeConfig.GRPCAddr, err = cmd.Flags().GetString(constants.FlagNativeGRPCAddr)
 	if err != nil {
 		panic(err)
 	}
@@ -113,6 +121,7 @@ type CosmosConfig struct {
 	ChainID       string  `json:"chain_id"`
 	CustodialAddr string  `json:"custodial_addr"`
 	Denom         string  `json:"denom"`
+	GRPCAddr      string  `json:"grpc_addr"`
 	RPCAddr       string  `json:"rpc_addr"`
 	AccountPrefix string  `json:"account_prefix"`
 	GasAdjustment float64 `json:"gas_adjustment"`
@@ -136,6 +145,7 @@ func DefaultCosmosConfig() *CosmosConfig {
 		ChainID:       constants.CosmosChainID,
 		CustodialAddr: constants.CosmosCustodialAddr,
 		Denom:         constants.CosmosDenom,
+		GRPCAddr:      constants.CosmosGRPCAddr,
 		RPCAddr:       constants.CosmosRPCAddr,
 		AccountPrefix: constants.CosmosAccountPrefix,
 		GasAdjustment: constants.CosmosGasAdjustment,

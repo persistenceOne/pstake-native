@@ -2,34 +2,74 @@ package oracle
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
-	cosmosTypes "github.com/persistenceOne/pStake-native/x/cosmos/types"
-
-	"github.com/tendermint/tendermint/types"
-	"time"
+	txD "github.com/cosmos/cosmos-sdk/types/tx"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/persistenceOne/pstake-native/oracle/utils"
+	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
+	"google.golang.org/grpc"
+	logg "log"
+	"strconv"
 )
 
-func (c *CosmosChain) ProposalHandler(valAddr string, orcSeeds []string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, native *NativeChain, depositHeight int64, protoCodec *codec.ProtoCodec) error {
+func (c *CosmosChain) ProposalHandler(propId string, orcSeeds []string, nativeCliCtx cosmosClient.Context, native *NativeChain, chain *CosmosChain, cHeight int64) error {
+	propID, err := strconv.ParseUint(propId, 10, 64)
 
-	query := "active_proposal"
-	subscriber := fmt.Sprintf("%s-subscriber", "oracle")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	eventChan, err := c.Client.Subscribe(ctx, subscriber, query, 1000)
 	if err != nil {
 		return err
 	}
 
-	select {
-	case event := <-eventChan:
-		proposal := (event.Data.(types.TMEventData))
-		cosmosTypes.MsgMakeProposal{}
+	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
+	defer func(grpcConn *grpc.ClientConn) {
+		err := grpcConn.Close()
+		if err != nil {
+			logg.Println("GRPC Connection error")
+		}
+	}(grpcConn)
 
-	case <-ctx.Done():
-		return errors.New("timed out waiting for event")
+	GovClient := govtypes.NewQueryClient(grpcConn)
+
+	fmt.Println("gov query client connected")
+
+	PropResult, err := GovClient.Proposal(context.Background(),
+		&govtypes.QueryProposalRequest{ProposalId: propID},
+	)
+
+	Proposal := PropResult.Proposal
+
+	_, addr := utils.GetSDKPivKeyAndAddress(orcSeeds[0])
+	msg := &cosmosTypes.MsgMakeProposal{
+		Title:               Proposal.GetTitle(),
+		Description:         Proposal.ProposalType(),
+		OrchestratorAddress: addr.String(),
+		ProposalID:          Proposal.ProposalId,
+		ChainID:             chain.ChainID,
+		BlockHeight:         cHeight,
+		VotingStartTime:     Proposal.VotingStartTime,
+		VotingEndTime:       Proposal.VotingEndTime,
 	}
+
+	txBytes, err := utils.SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
+
+	if err != nil {
+		return err
+	}
+
+	txClient := txD.NewServiceClient(grpcConn)
+
+	res, err := txClient.BroadcastTx(context.Background(),
+		&txD.BroadcastTxRequest{
+			Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
+			TxBytes: txBytes,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+
+	return nil
 
 }
