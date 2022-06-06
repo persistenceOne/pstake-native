@@ -162,3 +162,19 @@ func (k Keeper) OracleValidatorSet(c context.Context, _ *cosmosTypes.QueryOracle
 	weightedAddresses := k.getAllOracleValidatorSet(ctx)
 	return &cosmosTypes.QueryOracleValidatorSetResponse{WeightedAddresses: weightedAddresses}, nil
 }
+
+func (k Keeper) ValidatorMapping(c context.Context, query *cosmosTypes.QueryValidatorMappingRequest) (*cosmosTypes.QueryValidatorMappingResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	validatorAddress, err := sdkTypes.ValAddressFromBech32(query.ValidatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	validatorMapping := k.getValidatorMapping(ctx, validatorAddress)
+
+	return &cosmosTypes.QueryValidatorMappingResponse{
+		ValidatorAddress:    validatorAddress.String(),
+		OrchestratorAddress: validatorMapping.OrchestratorAddresses,
+	}, nil
+}

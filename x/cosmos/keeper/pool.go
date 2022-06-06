@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/binary"
+
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 )
 

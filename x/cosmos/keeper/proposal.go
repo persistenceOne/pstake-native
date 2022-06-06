@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/authz"
 
 	sdkClient "github.com/cosmos/cosmos-sdk/client"
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -10,7 +9,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -29,6 +30,9 @@ func (k Keeper) createProposal(c sdk.Context, proposal KeyAndValueForProposal) e
 	votingPeriod := proposal.Value.ProposalDetails.VotingEndTime.Sub(proposal.Value.ProposalDetails.VotingStartTime) - k.GetParams(c).CosmosProposalParams.ReduceVotingPeriodBy
 
 	newProposal, err := cosmosTypes.NewProposal(proposalID, proposal.Value.ProposalDetails.Title, proposal.Value.ProposalDetails.Description, submitTime, votingPeriod, proposal.Value.ProposalDetails.ProposalID)
+	if err != nil {
+		return err
+	}
 
 	k.SetProposal(c, newProposal)
 	//k.InsertActiveProposalQueue(c, proposalID, newProposal.VotingEndTime)
@@ -115,7 +119,6 @@ func (k Keeper) generateOutgoingWeightedVoteEvent(ctx sdk.Context, result map[co
 		EventEmitted:      false,
 		Status:            "",
 		TxHash:            "",
-		NativeBlockHeight: ctx.BlockHeight(),
 		ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 		SignerAddress:     k.getCurrentAddress(ctx).String(),
 	}
@@ -162,23 +165,20 @@ func (k Keeper) SetProposal(ctx sdk.Context, proposal cosmosTypes.Proposal) {
 	store.Set(cosmosTypes.ProposalKey1(proposal.ProposalId), bz)
 }
 
-func (k Keeper) SetProposalPassed(ctx sdk.Context, proposalID uint64, result map[cosmosTypes.VoteOption]sdk.Dec) error {
+func (k Keeper) SetProposalPassed(ctx sdk.Context, proposalID uint64, result map[cosmosTypes.VoteOption]sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(cosmosTypes.ProposalKey1(proposalID))
 	var proposal cosmosTypes.Proposal
-	err := k.cdc.Unmarshal(bz, &proposal)
-	if err != nil {
-		return err
-	}
+	k.cdc.MustUnmarshal(bz, &proposal)
+
 	proposal.Status = cosmosTypes.StatusPassed
 	proposal.FinalTallyResult.Abstain = result[cosmosTypes.OptionAbstain].RoundInt()
 	proposal.FinalTallyResult.Yes = result[cosmosTypes.OptionYes].RoundInt()
 	proposal.FinalTallyResult.No = result[cosmosTypes.OptionNo].RoundInt()
 	proposal.FinalTallyResult.NoWithVeto = result[cosmosTypes.OptionNoWithVeto].RoundInt()
-	bz, err = k.cdc.Marshal(&proposal)
-	store.Set(cosmosTypes.ProposalKey1(proposalID), bz)
-	return nil
+
+	store.Set(cosmosTypes.ProposalKey1(proposalID), k.cdc.MustMarshal(&proposal))
 }
 
 func (k Keeper) GetProposalID(ctx sdk.Context) (proposalID uint64, err error) {
@@ -255,7 +255,7 @@ func (k Keeper) setProposalDetails(ctx sdk.Context, msg cosmosTypes.MsgMakePropo
 	// store has the key in it or not
 	if !proposalStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newProposalValue := cosmosTypes.NewProposalValue(msg, msg.OrchestratorAddress, ratio)
+		newProposalValue := cosmosTypes.NewProposalValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		proposalStore.Set(key, k.cdc.MustMarshal(&newProposalValue))
 		return
 	}
@@ -267,7 +267,7 @@ func (k Keeper) setProposalDetails(ctx sdk.Context, msg cosmosTypes.MsgMakePropo
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotProposalEvent(proposalValue, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newProposalValue := cosmosTypes.NewProposalValue(msg, msg.OrchestratorAddress, ratio)
+		newProposalValue := cosmosTypes.NewProposalValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		proposalStore.Set(key, k.cdc.MustMarshal(&newProposalValue))
 		return
 	}
@@ -277,12 +277,16 @@ func (k Keeper) setProposalDetails(ctx sdk.Context, msg cosmosTypes.MsgMakePropo
 		proposalStore.Set(key, k.cdc.MustMarshal(&proposalValue))
 		return
 	}
-	return
+}
+
+func (k Keeper) deleteProposalDetails(ctx sdk.Context, key cosmosTypes.ProposalKey) {
+	proposalStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ProposalStoreKey)
+	proposalStore.Delete(k.cdc.MustMarshal(&key))
 }
 
 func (k Keeper) setProposalPosted(ctx sdk.Context, proposal KeyAndValueForProposal) {
 	store := ctx.KVStore(k.storeKey)
-	proposalStore := prefix.NewStore(store, []byte(cosmosTypes.ProposalStoreKey))
+	proposalStore := prefix.NewStore(store, cosmosTypes.ProposalStoreKey)
 	proposalKey := cosmosTypes.NewProposalKey(proposal.Key.ChainID, proposal.Key.BlockHeight, proposal.Key.ProposalID)
 	key, err := k.cdc.Marshal(&proposalKey)
 	if err != nil {
@@ -305,7 +309,7 @@ func (k Keeper) setProposalPosted(ctx sdk.Context, proposal KeyAndValueForPropos
 
 func (k Keeper) getAllKeyAndValueForProposal(ctx sdk.Context) []KeyAndValueForProposal {
 	store := ctx.KVStore(k.storeKey)
-	proposalStore := prefix.NewStore(store, []byte(cosmosTypes.ProposalStoreKey))
+	proposalStore := prefix.NewStore(store, cosmosTypes.ProposalStoreKey)
 	var list []KeyAndValueForProposal
 	iterator := proposalStore.Iterator(nil, nil)
 	defer iterator.Close()
@@ -331,36 +335,33 @@ func (k Keeper) getAllKeyAndValueForProposal(ctx sdk.Context) []KeyAndValueForPr
 func (k Keeper) IterateProposalsForEmittingVotingTxn(ctx sdk.Context) {
 	proposals := k.GetProposals(ctx)
 	for _, proposal := range proposals {
-		if !(proposal.Status == cosmosTypes.StatusPassed) {
-			if proposal.VotingEndTime.Before(ctx.BlockTime()) {
-				passes, tallResults := k.Tally(ctx, proposal)
-				if passes {
-					err := k.SetProposalPassed(ctx, proposal.ProposalId, tallResults)
-					if err != nil {
-						panic(err)
-					}
-					k.generateOutgoingWeightedVoteEvent(ctx, tallResults, proposal.CosmosProposalId)
-				}
-			}
+		if proposal.Status == cosmosTypes.StatusPassed && proposal.VotingEndTime.After(ctx.BlockTime()) {
+			continue
+		}
+		passes, tallyResults := k.Tally(ctx, proposal)
+		if passes {
+			k.SetProposalPassed(ctx, proposal.ProposalId, tallyResults)
+			k.generateOutgoingWeightedVoteEvent(ctx, tallyResults, proposal.CosmosProposalId)
 		}
 	}
 }
 
-func (k Keeper) ProcessProposals(ctx sdk.Context) error {
+func (k Keeper) ProcessProposals(ctx sdk.Context) {
 	list := k.getAllKeyAndValueForProposal(ctx)
 	for _, element := range list {
 		if element.Value.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !element.Value.ProposalPosted {
 			err := k.createProposal(ctx, element)
 			if err != nil {
-				return err
+				panic(err)
 			}
+		}
+		if element.Value.ActiveBlockHeight < ctx.BlockHeight() && element.Value.ProposalPosted {
+			k.deleteProposalDetails(ctx, element.Key)
 		}
 	}
 
 	fmt.Println(ctx.BlockTime(), "Current time")
 	k.IterateProposalsForEmittingVotingTxn(ctx)
-
-	return nil
 }
 
 func StoreValueEqualOrNotProposalEvent(storeValue cosmosTypes.ProposalValue, msgValue cosmosTypes.MsgMakeProposal) bool {

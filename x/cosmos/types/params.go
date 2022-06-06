@@ -3,12 +3,13 @@ package types
 import (
 	"errors"
 	"fmt"
-	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ghodss/yaml"
+
+	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 )
 
 const (
@@ -36,7 +37,7 @@ var (
 	KeyCosmosProposalParams              = []byte("CosmosProposalParams")
 	KeyDelegationThreshold               = []byte("DelegationThreshold")
 	KeyModuleEnabled                     = []byte("ModuleEnabled")
-	KeyStakingEpochIdentifier            = []byte("StakingEpochIdentifier")
+	KeyStakingEpochIdentifier            = []byte("StakeEpochIdentifier")
 	KeyCustodialAddress                  = []byte("CustodialAddress")
 	KeyUndelegateEpochIdentifier         = []byte("UndelegateEpochIdentifier")
 	KeyChunkSize                         = []byte("ChunkSize")
@@ -45,6 +46,7 @@ var (
 	KeyMintDenom                         = []byte("MintDenom")
 	KeyMultisigThreshold                 = []byte("MultisigThreshold")
 	KeyRetryLimit                        = []byte("RetryLimit")
+	KeyRewardEpochIdentifier             = []byte("RewardEpochIdentifier")
 )
 
 func ParamKeyTable() paramsTypes.KeyTable {
@@ -55,8 +57,13 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 	maxValidatorToDelegate uint64, weightedDeveloperRewardsReceivers []WeightedAddress,
 	distributionProportion DistributionProportions, epochs int64, maxIncomingAndOutgoingTxns int64,
 	cosmosProposalParams CosmosChainProposalParams, stakingEpochIdentifier string, custodialAddress string,
+<<<<<<< HEAD
 	undelegateEpochIdentifier string, ChunkSize int64, bondDenom []string, stakingDenom string, mintDenom string,
 	multiSigThreshold uint64, retryLimit uint64) Params {
+=======
+	undelegateEpochIdentifier string, chunkSize int64, bondDenom []string, mintDenom string,
+	multiSigThreshold uint64, retryLimit uint64, rewardEpochIdentifier string) Params {
+>>>>>>> origin/develop
 	return Params{
 		MinMintingAmount:                  minMintingAmount,
 		MaxMintingAmount:                  maxMintingAmount,
@@ -72,7 +79,8 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 		StakingEpochIdentifier:            stakingEpochIdentifier,
 		CustodialAddress:                  custodialAddress,
 		UndelegateEpochIdentifier:         undelegateEpochIdentifier,
-		ChunkSize:                         ChunkSize,
+		RewardEpochIdentifier:             rewardEpochIdentifier,
+		ChunkSize:                         chunkSize,
 		BondDenoms:                        bondDenom,
 		StakingDenom: 					   stakingDenom,
 		MintDenom:                         mintDenom,
@@ -106,9 +114,10 @@ func DefaultParams() Params {
 		},
 		DelegationThreshold:       sdk.NewInt64Coin("uatom", 2000000000),
 		ModuleEnabled:             false, //TODO : Make false before launch
-		StakingEpochIdentifier:    "3hour",
 		CustodialAddress:          "cosmos15vm0p2x990762txvsrpr26ya54p5qlz9xqlw5z",
-		UndelegateEpochIdentifier: "3.5day",
+		StakingEpochIdentifier:    "stake",
+		UndelegateEpochIdentifier: "undelegate",
+		RewardEpochIdentifier:     "reward",
 		ChunkSize:                 5,
 		BondDenoms:                []string{DefaultStakingDenom},
 		StakingDenom: 			   DefaultStakingDenom,
@@ -182,6 +191,9 @@ func (p Params) Validate() error {
 	if err := validateRetryLimit(p.RetryLimit); err != nil {
 		return err
 	}
+	if err := epochsTypes.ValidateEpochIdentifierInterface(p.RewardEpochIdentifier); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -213,6 +225,7 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyMintDenom, &p.MintDenom, validateMintDenom),
 		paramsTypes.NewParamSetPair(KeyMultisigThreshold, &p.MultisigThreshold, validateMultisigThreshold),
 		paramsTypes.NewParamSetPair(KeyRetryLimit, &p.RetryLimit, validateRetryLimit),
+		paramsTypes.NewParamSetPair(KeyRewardEpochIdentifier, &p.RewardEpochIdentifier, epochsTypes.ValidateEpochIdentifierInterface),
 	}
 }
 
@@ -511,7 +524,7 @@ func validateBondDenom(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if len(v) <= 0 {
+	if len(v) == 0 {
 		return fmt.Errorf("bond denom cannot be empty")
 	}
 	return nil

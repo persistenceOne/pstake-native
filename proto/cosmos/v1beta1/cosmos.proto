@@ -100,4 +100,5 @@ message Params {
   string staking_denom = 22;
   uint64 multisig_threshold = 23;
   uint64 retry_limit = 24;
+  string reward_epoch_identifier = 25;
 }

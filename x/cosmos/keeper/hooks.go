@@ -10,23 +10,23 @@ import (
 var _ cosmosTypes.GovHooks = Keeper{}
 
 // AfterProposalSubmission - call hook if registered
-func (keeper Keeper) AfterProposalSubmission(ctx sdk.Context, proposalID uint64) {
-	if keeper.hooks != nil {
-		keeper.hooks.AfterProposalSubmission(ctx, proposalID)
+func (k Keeper) AfterProposalSubmission(ctx sdk.Context, proposalID uint64) {
+	if k.hooks != nil {
+		k.hooks.AfterProposalSubmission(ctx, proposalID)
 	}
 }
 
 // AfterProposalVote - call hook if registered
-func (keeper Keeper) AfterProposalVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress) {
-	if keeper.hooks != nil {
-		keeper.hooks.AfterProposalVote(ctx, proposalID, voterAddr)
+func (k Keeper) AfterProposalVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress) {
+	if k.hooks != nil {
+		k.hooks.AfterProposalVote(ctx, proposalID, voterAddr)
 	}
 }
 
 // AfterProposalVotingPeriodEnded - call hook if registered
-func (keeper Keeper) AfterProposalVotingPeriodEnded(ctx sdk.Context, proposalID uint64) {
-	if keeper.hooks != nil {
-		keeper.hooks.AfterProposalVotingPeriodEnded(ctx, proposalID)
+func (k Keeper) AfterProposalVotingPeriodEnded(ctx sdk.Context, proposalID uint64) {
+	if k.hooks != nil {
+		k.hooks.AfterProposalVotingPeriodEnded(ctx, proposalID)
 	}
 }
 
@@ -37,22 +37,9 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	params := k.GetParams(ctx)
 
 	if epochIdentifier == params.StakingEpochIdentifier {
-		listOfMintTxns, err := k.getFromStakingEpoch(ctx, epochNumber)
-		stakingDenom, err := params.GetBondDenomOf("uatom")
-		if err != nil {
-			panic(err)
-		}
-
-		rewardsToBeClaimed, err := k.getFromRewardsInCurrentEpochAmount(ctx, epochNumber)
-		if err != nil {
-			panic(err)
-		}
-
-		amt := getTotalStakingAmount(listOfMintTxns, stakingDenom)
-		amt.Add(rewardsToBeClaimed)
-
-		if !amt.IsZero() {
-			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, amt)
+		amount := k.getAmountFromStakingEpoch(ctx, epochNumber)
+		if !amount.IsZero() {
+			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, amount)
 			if err != nil {
 				panic(err)
 			}
@@ -61,6 +48,26 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 				panic(err)
 			}
 		}
+		k.deleteFromStakingEpoch(ctx, epochNumber)
+	}
+
+	if epochIdentifier == params.RewardEpochIdentifier {
+		rewardsToDelegate := k.getFromRewardsInCurrentEpochAmount(ctx, epochNumber)
+		if !rewardsToDelegate.IsZero() {
+			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, rewardsToDelegate)
+			if err != nil {
+				panic(err)
+			}
+			err = k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake, epochNumber)
+			if err != nil {
+				panic(err)
+			}
+		}
+		err := k.processAllRewardsClaimed(ctx, rewardsToDelegate)
+		if err != nil {
+			panic(err)
+		}
+		k.deleteFromRewardsInCurrentEpoch(ctx, epochNumber)
 	}
 
 	if epochIdentifier == params.UndelegateEpochIdentifier {

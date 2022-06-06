@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"strconv"
 	"strings"
 	"time"
@@ -12,9 +11,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/spf13/cobra"
+
 	"github.com/persistenceOne/pstake-native/x/cosmos/client/utils"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	"github.com/spf13/cobra"
 )
 
 // Proposal flags
@@ -67,7 +68,7 @@ func NewIncomingTxnCmd() *cobra.Command {
 				return err
 			}
 
-			coins, err := sdk.ParseCoinsNormalized(args[2])
+			coins, err := sdk.ParseCoinNormalized(args[2])
 			if err != nil {
 				return err
 			}
@@ -263,9 +264,8 @@ func NewCmdTxStatusCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(6),
 		Short: "Send status for transaction",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Submit status for transaction relayed to cosmos chain.
+			`Submit status for transaction relayed to cosmos chain.
 Only "success" or "failure" accepted as status.`,
-			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -314,7 +314,7 @@ func NewWithdrawCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		Short: "Withdraw transaction",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Submit destination address on cosmos chain for uatom withdrawal`),
+			`Submit destination address on cosmos chain for uatom withdrawal`,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -353,7 +353,7 @@ func NewRewardsClaimedCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(4),
 		Short: "Rewards claimed transaction",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Submit amount claimed on other chain to be re staked`),
+			`Submit amount claimed on other chain to be re staked`,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -394,7 +394,7 @@ func NewEnableModuleCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "Submit a module enable proposal",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Submit a module-enable proposal along with an initial deposit.`),
+			`Submit a module-enable proposal along with an initial deposit.`,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -408,14 +408,14 @@ func NewEnableModuleCmd() *cobra.Command {
 			}
 
 			from := clientCtx.GetFromAddress()
-			content := cosmosTypes.NewEnableModuleProposal(proposal.Title, proposal.Description, proposal.Threshold, proposal.AccountNumber)
+			content := cosmosTypes.NewEnableModuleProposal(proposal.Title, proposal.Description, proposal.Threshold, proposal.AccountNumber, proposal.OrchestratorAddresses)
 
 			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
 			if err != nil {
 				return err
 			}
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			msg, err := govTypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
 				return err
 			}
@@ -431,7 +431,7 @@ func NewChangeMultisigCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "Submit a multisig change proposal",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Submit a change-multisig proposal along with an initial deposit.`),
+			`Submit a change-multisig proposal along with an initial deposit.`,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -452,7 +452,7 @@ func NewChangeMultisigCmd() *cobra.Command {
 				return err
 			}
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			msg, err := govTypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
 				return err
 			}
@@ -468,7 +468,7 @@ func NewChangeCosmosValidatorWeightsCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "Submit a cosmos validator weights change proposal",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Submit a cosmos validator weights proposal along with an initial deposit.`),
+			`Submit a cosmos validator weights proposal along with an initial deposit.`,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			fmt.Println("entering cosmos validator set proposal")
@@ -505,7 +505,7 @@ func NewChangeCosmosValidatorWeightsCmd() *cobra.Command {
 				return err
 			}
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			msg, err := govTypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
 				return err
 			}
@@ -521,7 +521,7 @@ func NewChangeOracleValidatorWeightsCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "Submit a oracle validator weights change proposal",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Submit a oracle validator weights proposal along with an initial deposit.`),
+			`Submit a oracle validator weights proposal along with an initial deposit.`,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -557,7 +557,7 @@ func NewChangeOracleValidatorWeightsCmd() *cobra.Command {
 				return err
 			}
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			msg, err := govTypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
 				return err
 			}

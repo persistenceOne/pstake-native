@@ -22,6 +22,8 @@ func NewQuerier(k Keeper, legacyQuerierCdc *sdkCodec.LegacyAmino) sdkTypes.Queri
 			return queryVote(ctx, req, k, legacyQuerierCdc)
 		case cosmosTypes.QueryVotes:
 			return queryVotes(ctx, req, k, legacyQuerierCdc)
+		case cosmosTypes.QueryProposals:
+			return queryProposals(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkErrors.Wrapf(sdkErrors.ErrUnknownRequest, "unknown %s query endpoint", cosmosTypes.ModuleName)
 		}
@@ -60,7 +62,6 @@ func queryTxByID(ctx sdkTypes.Context, req abciTypes.RequestQuery, k Keeper, leg
 	return res, nil
 }
 
-// nolint: unparam
 func queryProposal(ctx sdkTypes.Context, req abciTypes.RequestQuery, keeper Keeper, legacyQuerierCdc *sdkCodec.LegacyAmino) ([]byte, error) {
 	var params cosmosTypes.QueryProposalRequest
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)

@@ -2,6 +2,8 @@ package types
 
 import (
 	"errors"
+	"strings"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
@@ -9,7 +11,6 @@ import (
 	signing2 "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
-	"strings"
 )
 
 // VerifySignature Multisig only supports Amino Signing, hence the code will only check for amino signing

@@ -32,7 +32,7 @@ func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Chan
 		if err != nil {
 			return err
 		}
-		_, valAddr, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAccAddress)
+		valAddr, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAccAddress)
 		if err != nil {
 			return err
 		}
@@ -115,7 +115,7 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 		if err != nil {
 			return err
 		}
-		_, valAddr, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAccAddress)
+		valAddr, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAccAddress)
 		if err != nil {
 			return err
 		}
@@ -201,7 +201,7 @@ func HandleChangeOracleValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *co
 		return err
 	}
 	// step 2 : check if all the validator are correct if already present in kv store
-	var valAddresses []sdk.ValAddress
+	valAddresses := []sdk.ValAddress{}
 	for _, va := range p.WeightedAddresses {
 		valAddress, err := sdk.ValAddressFromBech32(va.Address)
 		if err != nil {
@@ -218,9 +218,8 @@ func HandleChangeOracleValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *co
 }
 
 func (k Keeper) handleTransactionQueue(ctx sdk.Context, oldAccount authTypes.AccountI) {
-	var list []TransactionQueue
 	//step 1 : move all pending and active transactions to an array
-	list = k.getAllFromTransactionQueue(ctx) //gets a map of all transactions
+	list := k.getAllFromTransactionQueue(ctx) //gets a map of all transactions
 
 	//add grant and revoke transactions in an order to queue
 	// for granting access to new multisig account and revoke from previous account

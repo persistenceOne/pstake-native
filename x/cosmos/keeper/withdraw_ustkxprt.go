@@ -2,12 +2,14 @@ package keeper
 
 import (
 	"fmt"
+
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -28,7 +30,7 @@ func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdraw
 	//move withdraw transaction to next undelegating epoch if current block time is after the diffTime
 	currentEpoch := undelegateEpochInfo.CurrentEpoch
 	if ctx.BlockTime().Before(diffTime) {
-		currentEpoch = currentEpoch + 1
+		currentEpoch++
 	}
 
 	//if store has the key then append new withdrawals to the existing array, else make a new key value pair
@@ -90,7 +92,6 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 	for _, chunk := range chunkSlice {
 		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 		var sendMsgsAny []*codecTypes.Any
-		var sendMsgs []types.MsgSend
 		for _, element := range chunk {
 			msg := types.MsgSend{
 				FromAddress: params.CustodialAddress,
@@ -102,7 +103,6 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 				panic(err)
 			}
 			sendMsgsAny = append(sendMsgsAny, anyMsg)
-			sendMsgs = append(sendMsgs, msg)
 		}
 
 		execMsg := authz.MsgExec{
@@ -135,7 +135,6 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 			EventEmitted:      false,
 			Status:            "",
 			TxHash:            "",
-			NativeBlockHeight: ctx.BlockHeight(),
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 			SignerAddress:     k.getCurrentAddress(ctx).String(),
 		}

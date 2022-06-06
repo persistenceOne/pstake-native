@@ -7,25 +7,25 @@ package rest
 
 import (
 	"fmt"
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"net/http"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	restClient "github.com/cosmos/cosmos-sdk/client/rest"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/gorilla/mux"
-	"github.com/persistenceOne/pstake-native/x/cosmos/client/utils"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
+
+	"github.com/persistenceOne/pstake-native/x/cosmos/client/utils"
 )
 
 func RegisterHandlers(clientCtx client.Context, rtr *mux.Router) {
 	r := restClient.WithHTTPDeprecationHeaders(rtr)
 	registerQueryRoutes(clientCtx, r)
-	r.HandleFunc(fmt.Sprintf("/cosmos/incoming/minting"), NewMintRequestHandlerFn(clientCtx)).Methods("POST")
+	r.HandleFunc("/cosmos/incoming/minting", NewMintRequestHandlerFn(clientCtx)).Methods("POST")
 }
 
 // EnableModuleProposalRESTHandler returns a EnableModuleProposalRESTHandler that exposes the community pool spend REST handler with a given sub-route.
@@ -48,11 +48,12 @@ func postEnableModuleProposalHandlerFn(clientCtx client.Context) http.HandlerFun
 			return
 		}
 
-		content := types.NewEnableModuleProposal(
+		content := cosmosTypes.NewEnableModuleProposal(
 			req.EnableModule.Title,
 			req.EnableModule.Description,
 			req.EnableModule.Threshold,
-			req.EnableModule.AccountNumber)
+			req.EnableModule.AccountNumber,
+			req.EnableModule.OrchestratorAddresses)
 
 		deposit, err := sdkTypes.ParseCoinsNormalized(req.EnableModule.Deposit)
 		if err != nil {
@@ -96,7 +97,7 @@ func postChangeMultisigProposalHandlerFn(clientCtx client.Context) http.HandlerF
 			return
 		}
 
-		content := types.NewChangeMultisigProposal(req.ChangeMultisig.Title,
+		content := cosmosTypes.NewChangeMultisigProposal(req.ChangeMultisig.Title,
 			req.ChangeMultisig.Description,
 			req.ChangeMultisig.Threshold,
 			req.ChangeMultisig.OrchestratorAddresses,
@@ -162,7 +163,7 @@ func postChangeCosmosValidatorWeightsProposalHandlerFn(clientCtx client.Context)
 				})
 		}
 
-		content := types.NewChangeCosmosValidatorWeightsProposal(
+		content := cosmosTypes.NewChangeCosmosValidatorWeightsProposal(
 			req.CosmosValidatorSet.Title,
 			req.CosmosValidatorSet.Description,
 			weightedAddresses)
@@ -224,7 +225,7 @@ func postChangeOracleValidatorWeightsProposalHandlerFn(clientCtx client.Context)
 				})
 		}
 
-		content := types.NewChangeOracleValidatorWeightsProposal(
+		content := cosmosTypes.NewChangeOracleValidatorWeightsProposal(
 			req.OracleValidatorSet.Title,
 			req.OracleValidatorSet.Description,
 			weightedAddresses)

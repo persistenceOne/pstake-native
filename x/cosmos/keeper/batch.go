@@ -2,14 +2,13 @@ package keeper
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"reflect"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	"github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -24,7 +23,7 @@ type txIDAndDetailsInOutgoingPool struct {
 }
 
 func (k Keeper) setNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosTypes.CosmosTx) {
-	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	bz, err := k.cdc.Marshal(&tx)
 	if err != nil {
@@ -34,7 +33,7 @@ func (k Keeper) setNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosT
 }
 
 func (k Keeper) updateStatusOnceProcessed(ctx sdk.Context, txID uint64, status string) {
-	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 
 	var cosmosTx cosmosTypes.CosmosTx
@@ -46,7 +45,7 @@ func (k Keeper) updateStatusOnceProcessed(ctx sdk.Context, txID uint64, status s
 
 // sets event emitted to true once even is emitted
 func (k Keeper) setEventEmittedFlag(ctx sdk.Context, txID uint64, flag bool) {
-	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 
 	var cosmosTx cosmosTypes.CosmosTx
@@ -58,7 +57,7 @@ func (k Keeper) setEventEmittedFlag(ctx sdk.Context, txID uint64, flag bool) {
 
 //gets txn details by ID
 func (k Keeper) getTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmosTypes.QueryOutgoingTxByIDResponse, error) {
-	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	bz := outgoingStore.Get(key)
 	if bz == nil {
@@ -73,13 +72,13 @@ func (k Keeper) getTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmos
 
 // Deletes txn Details by ID
 func (k Keeper) removeTxnDetailsByID(ctx sdk.Context, txID uint64) {
-	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	outgoingStore.Delete(key)
 }
 
 func (k Keeper) setOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosTypes.CosmosTx, txID uint64) error {
-	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 
 	//calculate and set txHash
@@ -107,32 +106,8 @@ func (k Keeper) setOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosT
 	return nil
 }
 
-//Sets txBytes once received from Orchestrator after signing.
-func (k Keeper) setTxDetailsSignedByOrchestrator(ctx sdk.Context, txID uint64, txHash string, tx sdkTx.Tx) error {
-	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
-	key := cosmosTypes.UInt64Bytes(txID)
-	var cosmosTx cosmosTypes.CosmosTx
-	if outgoingStore.Has(key) {
-		err := k.cdc.Unmarshal(outgoingStore.Get(key), &cosmosTx)
-		if err != nil {
-			return err
-		}
-
-		cosmosTx.TxHash = txHash
-		cosmosTx.Tx = tx
-
-		bz, err := cosmosTx.Marshal()
-		if err != nil {
-			return err
-		}
-
-		outgoingStore.Set(key, bz)
-	}
-	return nil
-}
-
 func (k Keeper) getAllTxInOutgoingPool(ctx sdk.Context) (details []txIDAndDetailsInOutgoingPool, err error) {
-	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(cosmosTypes.OutgoingTXPoolKey))
+	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	iterator := outgoingStore.Iterator(nil, nil)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -168,7 +143,7 @@ func (k Keeper) setTxHashAndDetails(ctx sdk.Context, msg cosmosTypes.MsgTxStatus
 
 	if !txHashStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		txHashStore.Set(key, k.cdc.MustMarshal(&newTxHashValue))
 		return
 	}
@@ -180,7 +155,7 @@ func (k Keeper) setTxHashAndDetails(ctx sdk.Context, msg cosmosTypes.MsgTxStatus
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotTxStatus(txHashValue, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		txHashStore.Set(key, k.cdc.MustMarshal(&newTxHashValue))
 		return
 	}
@@ -244,21 +219,17 @@ func StoreValueEqualOrNotTxStatus(storeValue cosmosTypes.TxHashValue, msgValue c
 		return false
 	}
 
-	var valueValidatorMap map[string]cosmosTypes.ValidatorDetails
+	valueValidatorMap := make(map[string]cosmosTypes.ValidatorDetails)
 	for _, vd := range storeValue.TxStatus.ValidatorDetails {
 		valueValidatorMap[vd.ValidatorAddress] = vd
 	}
 
-	var validatorDetailsMap map[string]cosmosTypes.ValidatorDetails
+	validatorDetailsMap := make(map[string]cosmosTypes.ValidatorDetails)
 	for _, vd := range msgValue.ValidatorDetails {
 		validatorDetailsMap[vd.ValidatorAddress] = vd
 	}
 
-	if !reflect.DeepEqual(valueValidatorMap, validatorDetailsMap) {
-		return false
-	}
-
-	return true
+	return reflect.DeepEqual(valueValidatorMap, validatorDetailsMap)
 }
 
 //______________________________________________________________________________________________
@@ -292,7 +263,7 @@ func (k Keeper) getActiveFromTransactionQueue(ctx sdk.Context) uint64 {
 	for ; iterator.Valid(); iterator.Next() {
 		var value cosmosTypes.OutgoingQueueValue
 		k.cdc.MustUnmarshal(iterator.Value(), &value)
-		if value.Active == true {
+		if value.Active {
 			return cosmosTypes.UInt64FromBytes(iterator.Key())
 		}
 	}
@@ -368,16 +339,6 @@ func (k Keeper) getAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatus []Tra
 	return txIDAndStatus
 }
 
-// Remove queue transactions passed in the transactions queue array
-func (k Keeper) removeGivenFromTransactionQueue(ctx sdk.Context, txIDAndStatus []TransactionQueue) {
-	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
-
-	// loop through list and remove all tx
-	for _, tx := range txIDAndStatus {
-		transactionQueueStore.Delete(cosmosTypes.UInt64Bytes(tx.txID))
-	}
-}
-
 // Emits event for transaction to be picked up by oracles to be signed
 func (k Keeper) emitEventForActiveTransaction(ctx sdk.Context, txID uint64) {
 	k.incrementRetryCounterInTransactionQueue(ctx, txID)
@@ -407,7 +368,7 @@ func (k Keeper) retryTransactionWithFailure(ctx sdk.Context, txDetails cosmosTyp
 		//cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit == cosmosTypes.GasLimit &&
 		//2*cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit < cosmosTypes.GasLimit // TODO
 		// TODO : test case when transaction fails even after reaching max_gas limit
-		cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit = cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit * 2
+		cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit *= 2
 	}
 
 	//set it back again in outgoing txn
@@ -417,7 +378,7 @@ func (k Keeper) retryTransactionWithFailure(ctx sdk.Context, txDetails cosmosTyp
 	k.removeTxHashAndDetails(ctx, txHash)
 }
 
-func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
+func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 	// fetch active transaction in the queue
 	txID := k.getActiveFromTransactionQueue(ctx)
 
@@ -425,21 +386,21 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 	if txID == 0 {
 		nextID := k.getNextFromTransactionQueue(ctx)
 		if nextID == 0 {
-			return nil
+			return
 		}
 		k.emitEventForActiveTransaction(ctx, nextID)
-		return nil
+		return
 	}
 
 	// get all txHash and details aggregated
 	txDetails, err := k.getAllTxHashAndDetails(ctx)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	queryResponse, err := k.getTxnFromOutgoingPoolByID(ctx, txID)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	for _, tx := range txDetails {
@@ -455,35 +416,36 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 		// get tx from outgoing pool
 		cosmosTx, err := k.getTxnFromOutgoingPoolByID(ctx, txID)
 		if err != nil {
-			return err
+			panic(err)
 		}
 
 		custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
 		if err != nil {
-			return err
+			panic(err)
 		}
 
 		multisigAccount := k.getAccountState(ctx, custodialAddress)
 		if multisigAccount == nil {
-			return cosmosTypes.ErrMultiSigAddressNotFound
+			panic(cosmosTypes.ErrMultiSigAddressNotFound)
 		}
 
 		txHashValue, err := k.getTxHashAndDetails(ctx, tx.TxHash)
 		if err != nil {
-			return err
+			panic(err)
 		}
 
 		// process tx if majority status is present
 		if tx.Details.Ratio.LT(cosmosTypes.MinimumRatioForMajority) {
-			return nil
+			panic(err)
 		}
 
 		// TODO : deal with keeper failure and insufficient balance
-		if majorityStatus == cosmosTypes.GasFailure {
+		switch majorityStatus {
+		case cosmosTypes.GasFailure:
 			// retry txn with given failure
 			k.retryTransactionWithFailure(ctx, cosmosTx, txID, tx.TxHash, majorityStatus)
 			k.emitEventForActiveTransaction(ctx, txID)
-		} else if majorityStatus == cosmosTypes.Success {
+		case cosmosTypes.Success:
 			// TODO : handle balance, bonded tokens and unbonding tokens value
 			// process txn success and perform success actions
 			msgs := cosmosTx.CosmosTxDetails.Tx.GetMsgs()
@@ -494,15 +456,14 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 					switch im.GetCachedValue().(type) {
 					case *stakingTypes.MsgDelegate:
 						//TODO : update C value
-						err = k.processStakingSuccessTxns(ctx, txID)
 						k.updateStatusOnceProcessed(ctx, txID, "success")
 					case *stakingTypes.MsgUndelegate:
 						//TODO : update C value
-						err = k.setEpochAndValidatorDetailsForAllUndelegations(ctx, txID)
+						k.setEpochAndValidatorDetailsForAllUndelegations(ctx, txID)
 						k.updateStatusOnceProcessed(ctx, txID, "success")
 						//TODO : update total delegated amount
 						if err != nil {
-							return err
+							panic(err)
 						}
 					case *types.MsgSend:
 						// TODO : update C value
@@ -511,7 +472,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 				}
 				k.removeFromTransactionQueue(ctx, txID)
 			}
-		} else if majorityStatus == cosmosTypes.SequenceMismatch {
+		case cosmosTypes.SequenceMismatch:
 			// retry txn with the given failure
 			k.retryTransactionWithFailure(ctx, cosmosTx, txID, tx.TxHash, majorityStatus)
 			k.emitEventForActiveTransaction(ctx, txID)
@@ -520,13 +481,13 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 		// set sequence number in any case of status, so it stays up to date
 		err = multisigAccount.SetSequence(txHashValue.TxStatus.SequenceNumber)
 		if err != nil {
-			return err
+			panic(err)
 		}
 
 		//set account number in any case of status, so it stays up to date
 		err = multisigAccount.SetAccountNumber(txHashValue.TxStatus.AccountNumber)
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
 
@@ -543,7 +504,6 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) error {
 			k.removeFromTransactionQueue(ctx, tx.txID)
 		}
 	}
-	return nil
 }
 
 //______________________________________________________________________________________________
