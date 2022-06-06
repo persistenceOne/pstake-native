@@ -57,13 +57,8 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 	maxValidatorToDelegate uint64, weightedDeveloperRewardsReceivers []WeightedAddress,
 	distributionProportion DistributionProportions, epochs int64, maxIncomingAndOutgoingTxns int64,
 	cosmosProposalParams CosmosChainProposalParams, stakingEpochIdentifier string, custodialAddress string,
-<<<<<<< HEAD
-	undelegateEpochIdentifier string, ChunkSize int64, bondDenom []string, stakingDenom string, mintDenom string,
-	multiSigThreshold uint64, retryLimit uint64) Params {
-=======
-	undelegateEpochIdentifier string, chunkSize int64, bondDenom []string, mintDenom string,
+	undelegateEpochIdentifier string, chunkSize int64, bondDenom []string, stakingDenom string, mintDenom string,
 	multiSigThreshold uint64, retryLimit uint64, rewardEpochIdentifier string) Params {
->>>>>>> origin/develop
 	return Params{
 		MinMintingAmount:                  minMintingAmount,
 		MaxMintingAmount:                  maxMintingAmount,
