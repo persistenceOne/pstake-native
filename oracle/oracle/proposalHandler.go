@@ -6,7 +6,6 @@ import (
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/persistenceOne/pstake-native/oracle/utils"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"google.golang.org/grpc"
 	logg "log"
@@ -38,7 +37,7 @@ func (c *CosmosChain) ProposalHandler(propId string, orcSeeds []string, nativeCl
 
 	Proposal := PropResult.Proposal
 
-	_, addr := utils.GetSDKPivKeyAndAddress(orcSeeds[0])
+	_, addr := GetSDKPivKeyAndAddress(orcSeeds[0])
 	msg := &cosmosTypes.MsgMakeProposal{
 		Title:               Proposal.GetTitle(),
 		Description:         Proposal.ProposalType(),
@@ -50,7 +49,7 @@ func (c *CosmosChain) ProposalHandler(propId string, orcSeeds []string, nativeCl
 		VotingEndTime:       Proposal.VotingEndTime,
 	}
 
-	txBytes, err := utils.SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
+	txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
 
 	if err != nil {
 		return err

@@ -9,7 +9,6 @@ import (
 	keys "github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/pstake-native/oracle/utils"
 	"github.com/tendermint/tendermint/libs/log"
 	provtypes "github.com/tendermint/tendermint/light/provider"
 	prov "github.com/tendermint/tendermint/light/provider/http"
@@ -130,7 +129,7 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 	query := "tm.event = 'NewBlock'"
 
 	if _, err := os.Stat(filepath.Join(chain.HomePath, "status.json")); err == nil {
-		cHeight, nHeight = utils.GetHeightStatus(chain.HomePath)
+		cHeight, nHeight = GetHeightStatus(chain.HomePath)
 	} else if errors.Is(err, os.ErrNotExist) {
 		abciInfoCosmos, err := chain.Client.ABCIInfo(ctx)
 		if err != nil {
@@ -146,7 +145,7 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 		}
 		nHeight = uint64(abciInfoNative.Response.LastBlockHeight)
 
-		utils.NewStatusJSON(chain.HomePath, cHeight, nHeight)
+		NewStatusJSON(chain.HomePath, cHeight, nHeight)
 
 	}
 	for cHeight > 0 && nHeight > 0 {
@@ -177,7 +176,7 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 			logg.Fatalln()
 		}
 		nHeight += 1
-		utils.NewStatusJSON(chain.HomePath, cHeight, nHeight)
+		NewStatusJSON(chain.HomePath, cHeight, nHeight)
 
 	}
 

@@ -9,7 +9,6 @@ import (
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/persistenceOne/pstake-native/oracle/utils"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	tendermintTypes "github.com/tendermint/tendermint/rpc/core/types"
 	"google.golang.org/grpc"
@@ -89,12 +88,12 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 				if txMsg.ToAddress == chain.CustodialAddress.String() {
 					for _, coin := range txMsg.Amount {
 						//TODO: handle multiple keys for signing
-						_, addr := utils.GetSDKPivKeyAndAddress(orcSeeds[0])
+						_, addr := GetSDKPivKeyAndAddress(orcSeeds[0])
 						logg.Println("orchestrator address, ", addr)
 						msg = &cosmosTypes.MsgMintTokensForAccount{
 							AddressFromMemo:     memo,
 							OrchestratorAddress: addr.String(),
-							Amount:              sdk.NewCoins(sdk.NewCoin(coin.Denom, coin.Amount)),
+							Amount:              sdk.NewCoin(coin.Denom, coin.Amount),
 							TxHash:              txResult.Hash.String(),
 							ChainID:             chain.ChainID,
 							BlockHeight:         depositHeight,
@@ -102,7 +101,7 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 
 						fmt.Println(msg.String(), "<--nativeMsg")
 
-						txBytes, err := utils.SignNativeTx(orcSeeds[0], native, nativeCLiCtx, msg)
+						txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCLiCtx, msg)
 						if err != nil {
 							return err
 						}

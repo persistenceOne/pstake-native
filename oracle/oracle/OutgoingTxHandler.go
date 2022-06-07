@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
-	"github.com/persistenceOne/pstake-native/oracle/utils"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"google.golang.org/grpc"
 	logg "log"
@@ -56,7 +55,7 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 	for _, msg := range tx.GetMsgs() {
 		fmt.Println(msg.String())
 
-		signedTxBytes, err := utils.SignCosmosTx(orcSeeds[0], chain, nativeCliCtx, msg)
+		signedTxBytes, err := SignCosmosTx(orcSeeds[0], chain, nativeCliCtx, msg)
 		if err != nil {
 			return err
 		}

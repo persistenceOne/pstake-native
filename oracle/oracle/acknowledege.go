@@ -5,13 +5,12 @@ import (
 	"fmt"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
-	"github.com/persistenceOne/pstake-native/oracle/utils"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"google.golang.org/grpc"
 )
 
 func SendMsgAcknowledgement(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string, TxHash string, valAddr string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context) error {
-	_, addr := utils.GetSDKPivKeyAndAddress(orcSeeds[0])
+	_, addr := GetSDKPivKeyAndAddress(orcSeeds[0])
 
 	ValDetails := GetValidatorDetails(cosmosChain)
 
@@ -24,7 +23,7 @@ func SendMsgAcknowledgement(native *NativeChain, cosmosChain *CosmosChain, orcSe
 		ValidatorDetails:    ValDetails,
 	}
 
-	txBytes, err := utils.SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
+	txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
 
 	if err != nil {
 		return err
