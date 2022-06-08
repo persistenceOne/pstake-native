@@ -1,6 +1,9 @@
 package keeper
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
+)
 
 func (k Keeper) GetProportions(ctx sdk.Context, mintedCoin sdk.Coin, ratio sdk.Dec) sdk.Coin {
 	return sdk.NewCoin(mintedCoin.Denom, mintedCoin.Amount.ToDec().Mul(ratio).TruncateInt())
@@ -23,7 +26,11 @@ func (k Keeper) processAllRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin
 
 	for _, wallet := range k.getAllOracleValidatorSet(ctx) {
 		amount := sdk.NewCoins(k.GetProportions(ctx, validatorRewards, wallet.Weight))
-		err := k.mintTokensForRewardReceivers(ctx, wallet.Address, amount)
+		accAddress, err := cosmosTypes.AccAddressFromBech32(wallet.Address, "persistencevaloper")
+		if err != nil {
+			return err
+		}
+		err = k.mintTokensForRewardReceivers(ctx, accAddress, amount)
 		if err != nil {
 			return err
 		}
@@ -31,7 +38,11 @@ func (k Keeper) processAllRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin
 
 	for _, wallet := range params.WeightedDeveloperRewardsReceivers {
 		amount := sdk.NewCoins(k.GetProportions(ctx, developerRewards, wallet.Weight))
-		err := k.mintTokensForRewardReceivers(ctx, wallet.Address, amount)
+		accAddress, err := sdk.AccAddressFromBech32(wallet.Address)
+		if err != nil {
+			return err
+		}
+		err = k.mintTokensForRewardReceivers(ctx, accAddress, amount)
 		if err != nil {
 			return err
 		}

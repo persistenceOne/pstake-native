@@ -91,33 +91,33 @@ var (
 
 	KeyEpochStoreForUndelegation = "EpochStoreForUndelegation"
 
-	KeyEpochStoreForWithdrawSuccess = []byte{0x10}
+	KeyEpochStoreForWithdrawSuccess = []byte{0x15}
 
-	KeyUndelegateSuccessStore = []byte{0x11}
+	KeyUndelegateSuccessStore = []byte{0x16}
 
-	KeyWithdrawStore = []byte{0x12}
+	KeyWithdrawStore = []byte{0x17}
 
-	KeyOutgoingTxSignature = []byte{0x11}
+	KeyOutgoingTxSignature = []byte{0x18}
 
-	KeyOutgoingSignaturePoolKey = []byte{0x12}
+	KeyOutgoingSignaturePoolKey = []byte{0x19}
 
-	KeyMultisigAccountStore = []byte{0x13}
+	KeyMultisigAccountStore = []byte{0x20}
 
-	KeyCurrentMultisigAddress = []byte{0x14}
+	KeyCurrentMultisigAddress = []byte{0x21}
 
-	KeyTransactionQueue = []byte{0x15}
+	KeyTransactionQueue = []byte{0x22}
 
-	KeyCosmosValidatorWeights = []byte{0x16}
+	KeyCosmosValidatorWeights = []byte{0x23}
 
-	KeyNativeValidatorWeights = []byte{0x17}
+	KeyNativeValidatorWeights = []byte{0x24}
 
-	KeySlashingStore = []byte{0x18}
+	KeySlashingStore = []byte{0x25}
 
-	KeyMintTokenStore = []byte{0x19}
+	KeyMintTokenStore = []byte{0x26}
 
-	KeyOracleLastUpdateHeightNative = []byte{0x20}
+	KeyOracleLastUpdateHeightNative = []byte{0x27}
 
-	KeyOracleLastUpdateHeightCosmos = []byte{0x21}
+	KeyOracleLastUpdateHeightCosmos = []byte{0x28}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {

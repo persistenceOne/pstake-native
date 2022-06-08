@@ -6,6 +6,9 @@ import (
 
 func EndBlocker(ctx sdk.Context, k Keeper) {
 	// TODO implement EndBlocker
+	if !k.GetParams(ctx).ModuleEnabled {
+		return
+	}
 	k.ProcessAllMintingStoreValue(ctx)
 	k.ProcessProposals(ctx)
 	k.ProcessRewards(ctx)

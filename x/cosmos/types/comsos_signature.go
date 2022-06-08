@@ -36,7 +36,7 @@ func AccAddressFromBech32(address, prefix string) (addr sdkTypes.AccAddress, err
 		return nil, err
 	}
 
-	return sdkTypes.AccAddress(bz), nil
+	return bz, nil
 }
 
 func ValAddressFromBech32(address, prefix string) (valAddr sdkTypes.ValAddress, err error) {
@@ -54,7 +54,7 @@ func ValAddressFromBech32(address, prefix string) (valAddr sdkTypes.ValAddress, 
 		return nil, err
 	}
 
-	return sdkTypes.ValAddress(bz), nil
+	return bz, nil
 }
 
 func Bech32ifyAddressBytes(prefix string, address sdkTypes.AccAddress) (string, error) {

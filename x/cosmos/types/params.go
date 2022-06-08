@@ -225,6 +225,40 @@ func (p Params) GetBondDenomOf(s string) (string, error) {
 	return "", ErrInvalidBondDenom
 }
 
+func (p Params) Equal(other Params) bool {
+	for i := range p.WeightedDeveloperRewardsReceivers {
+		if p.WeightedDeveloperRewardsReceivers[i] != other.WeightedDeveloperRewardsReceivers[i] {
+			return false
+		}
+	}
+
+	for i := range p.BondDenoms {
+		if p.BondDenoms[i] != other.BondDenoms[i] {
+			return false
+		}
+	}
+	return p.MintDenom == other.MintDenom &&
+		p.CustodialAddress == other.CustodialAddress &&
+		p.MinMintingAmount.IsEqual(other.MinMintingAmount) &&
+		p.MaxMintingAmount.IsEqual(other.MaxMintingAmount) &&
+		p.MinBurningAmount.IsEqual(other.MinBurningAmount) &&
+		p.MaxBurningAmount.IsEqual(other.MaxBurningAmount) &&
+		p.MaxValidatorToDelegate == other.MaxValidatorToDelegate &&
+		p.DistributionProportion == other.DistributionProportion &&
+		p.Epochs == other.Epochs &&
+		p.MaxIncomingAndOutgoingTxns == other.MaxIncomingAndOutgoingTxns &&
+		p.CosmosProposalParams == other.CosmosProposalParams &&
+		p.CustodialAddress == other.CustodialAddress &&
+		p.DelegationThreshold == other.DelegationThreshold &&
+		p.ModuleEnabled == p.ModuleEnabled &&
+		p.StakingEpochIdentifier == other.StakingEpochIdentifier &&
+		p.ChunkSize == other.ChunkSize &&
+		p.UndelegateEpochIdentifier == other.UndelegateEpochIdentifier &&
+		p.MultisigThreshold == other.MultisigThreshold &&
+		p.RetryLimit == other.RetryLimit &&
+		p.RewardEpochIdentifier == other.RewardEpochIdentifier
+}
+
 func validateMinMintingAmount(i interface{}) error {
 	coin, ok := i.(sdk.Coin)
 	if !ok {

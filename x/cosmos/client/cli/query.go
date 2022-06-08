@@ -408,7 +408,7 @@ func GetCmdQueryValidatorMapping() *cobra.Command {
 			}
 			queryClient := cosmosTypes.NewQueryClient(clientCtx)
 
-			params := &cosmosTypes.QueryValidatorMappingRequest{}
+			params := &cosmosTypes.QueryValidatorMappingRequest{ValidatorAddress: args[0]}
 			res, err := queryClient.ValidatorMapping(context.Background(), params)
 
 			if err != nil {

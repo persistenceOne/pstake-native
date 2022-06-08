@@ -27,3 +27,7 @@ func DefaultGenesisState() *GenesisState {
 		OutgoingTxn:       OutgoingTx{},
 	}
 }
+
+func (data GenesisState) Equal(other GenesisState) bool {
+	return data.Params.Equal(other.Params)
+}

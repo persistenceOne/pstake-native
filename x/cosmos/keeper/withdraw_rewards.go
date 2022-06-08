@@ -41,20 +41,17 @@ func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, msg cosmosTypes.MsgRewa
 	}
 }
 
-func (k Keeper) getAllFromRewardsClaimedPool(ctx sdk.Context) (list []cosmosTypes.RewardsClaimedValue, keys [][]byte, err error) {
+func (k Keeper) getAllFromRewardsClaimedPool(ctx sdk.Context) (list []cosmosTypes.RewardsClaimedValue, keys [][]byte) {
 	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
 	iterator := rewardsClaimedStore.Iterator(nil, nil)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
-		err = k.cdc.Unmarshal(iterator.Value(), &rewardsClaimedValue)
-		if err != nil {
-			return list, keys, err
-		}
+		k.cdc.MustUnmarshal(iterator.Value(), &rewardsClaimedValue)
 		list = append(list, rewardsClaimedValue)
 		keys = append(keys, iterator.Key())
 	}
-	return list, keys, err
+	return list, keys
 }
 
 func (k Keeper) setAddedToCurrentEpochTrue(ctx sdk.Context, key []byte) {
@@ -93,8 +90,8 @@ func (k Keeper) addToRewardsInCurrentEpoch(ctx sdk.Context, amount sdk.Coin) {
 
 func (k Keeper) getFromRewardsInCurrentEpochAmount(ctx sdk.Context, epochNumber int64) (amount sdk.Coin) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
-	if rewardsInCurrentEpochStore.Has(cosmosTypes.Int64Bytes(epochNumber)) {
-		return sdk.Coin{}
+	if !rewardsInCurrentEpochStore.Has(cosmosTypes.Int64Bytes(epochNumber)) {
+		return sdk.NewInt64Coin("uatom", 0)
 	}
 	k.cdc.MustUnmarshal(rewardsInCurrentEpochStore.Get(cosmosTypes.Int64Bytes(epochNumber)), &amount)
 	return amount
@@ -108,10 +105,7 @@ func (k Keeper) deleteFromRewardsInCurrentEpoch(ctx sdk.Context, epochNumber int
 //______________________________________________________________________________________________________________________
 
 func (k Keeper) ProcessRewards(ctx sdk.Context) {
-	rewardsList, keys, err := k.getAllFromRewardsClaimedPool(ctx)
-	if err != nil {
-		panic(err)
-	}
+	rewardsList, keys := k.getAllFromRewardsClaimedPool(ctx)
 	if len(rewardsList) != len(keys) {
 		panic(fmt.Errorf("rewards list and keys do not have equal number of elements"))
 	}

@@ -301,12 +301,14 @@ func (k Keeper) getNextFromTransactionQueue(ctx sdk.Context) uint64 {
 	//start iteration through the store and return the first key found in the store
 	//as the keys stored are in ascending order
 	iterator := transactionQueueStore.Iterator(nil, nil)
+	fmt.Println("entered")
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		key := cosmosTypes.UInt64FromBytes(iterator.Key())
 		value := cosmosTypes.NewOutgoingQueueValue(false, 0)
 		bz := k.cdc.MustMarshal(&value)
 		transactionQueueStore.Set(iterator.Key(), bz)
+		fmt.Println(key)
 		return key
 	}
 
@@ -382,6 +384,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 	// fetch active transaction in the queue
 	txID := k.getActiveFromTransactionQueue(ctx)
 
+	fmt.Println(txID)
 	//if txID returned is 0, then emit a new transaction
 	if txID == 0 {
 		nextID := k.getNextFromTransactionQueue(ctx)
