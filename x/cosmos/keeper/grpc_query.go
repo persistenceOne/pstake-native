@@ -153,7 +153,7 @@ func (k Keeper) Votes(c context.Context, req *cosmosTypes.QueryVotesRequest) (*c
 
 func (k Keeper) CosmosValidatorSet(c context.Context, _ *cosmosTypes.QueryCosmosValidatorSetRequest) (*cosmosTypes.QueryCosmosValidatorSetResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
-	weihtedAddresses := k.getAllCosmosValidatorSet(ctx)
+	weihtedAddresses := k.GetAllCosmosValidatorSet(ctx)
 	return &cosmosTypes.QueryCosmosValidatorSetResponse{WeightedAddresses: weihtedAddresses}, nil
 }
 

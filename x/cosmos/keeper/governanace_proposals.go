@@ -190,7 +190,7 @@ func HandleChangeCosmosValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *co
 		}
 	}
 	// step 3 : update the weights and other values
-	k.setCosmosValidatorSet(ctx, p.WeightedAddresses)
+	k.SetCosmosValidatorSet(ctx, p.WeightedAddresses)
 	return nil
 }
 

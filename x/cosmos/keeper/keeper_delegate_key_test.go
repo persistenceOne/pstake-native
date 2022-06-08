@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetValidatorOrchestrator(t *testing.T) {
-	_, app, ctx := helpers.CreateTestInput()
+	_, app, ctx := helpers.CreateTestApp()
 	keeper := app.CosmosKeeper
 
 	valAddr1 := sdkTypes.ValAddress("Val1")
@@ -36,5 +36,4 @@ func TestGetValidatorOrchestrator(t *testing.T) {
 	valNotExists, ok := keeper.GetValidatorOrchestrator(ctx, valAddrNotExists)
 	require.Nil(t, valNotExists)
 	require.Equal(t, false, ok)
-
 }

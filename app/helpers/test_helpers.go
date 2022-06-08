@@ -69,7 +69,7 @@ func newTestApp(isCheckTx bool, withGenesis bool) app.PstakeApp {
 	return *testApp
 }
 
-func CreateTestInput() (*codec.LegacyAmino, app.PstakeApp, sdk.Context) {
+func CreateTestApp() (*codec.LegacyAmino, app.PstakeApp, sdk.Context) {
 	testApp := newTestApp(false, false)
 	ctx := testApp.BaseApp.NewContext(false, tmproto.Header{})
 

@@ -11,7 +11,7 @@ import (
 )
 
 // Generate an event for delegating on cosmos chain once staking epoch is called
-func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []ValAddressAndAmountForStakingAndUndelegating) error {
+func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []ValAddressAmount, epochNumber int64) error {
 	params := k.GetParams(ctx)
 
 	//create chunks for delegation on cosmos chain
@@ -24,8 +24,8 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 		for _, element := range chunk {
 			msg := stakingTypes.MsgDelegate{
 				DelegatorAddress: params.CustodialAddress,
-				ValidatorAddress: element.validator.String(),
-				Amount:           element.amount,
+				ValidatorAddress: element.Validator.String(),
+				Amount:           element.Amount,
 			}
 			anyMsg, err := codecTypes.NewAnyWithValue(&msg)
 			if err != nil {
