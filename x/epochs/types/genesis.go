@@ -19,7 +19,7 @@ func DefaultGenesis() *GenesisState {
 		{
 			Identifier:              "stake",
 			StartTime:               time.Time{},
-			Duration:                time.Minute * 2, //TODO revert
+			Duration:                time.Minute * 1, //TODO revert
 			CurrentEpoch:            0,
 			CurrentEpochStartHeight: 0,
 			CurrentEpochStartTime:   time.Time{},
@@ -28,7 +28,7 @@ func DefaultGenesis() *GenesisState {
 		{
 			Identifier:              "reward",
 			StartTime:               time.Time{},
-			Duration:                time.Minute * 2, //TODO revert
+			Duration:                time.Minute * 1, //TODO revert
 			CurrentEpoch:            0,
 			CurrentEpochStartHeight: 0,
 			CurrentEpochStartTime:   time.Time{},
@@ -37,7 +37,7 @@ func DefaultGenesis() *GenesisState {
 		{
 			Identifier:              "undelegate",
 			StartTime:               time.Time{},
-			Duration:                time.Minute * 15, //TODO revert
+			Duration:                time.Minute * 8, //TODO revert
 			CurrentEpoch:            0,
 			CurrentEpochStartHeight: 0,
 			CurrentEpochStartTime:   time.Time{},

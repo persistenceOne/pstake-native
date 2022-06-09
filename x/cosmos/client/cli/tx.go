@@ -476,7 +476,6 @@ func NewChangeCosmosValidatorWeightsCmd() *cobra.Command {
 			`Submit a cosmos validator weights proposal along with an initial deposit.`,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("entering cosmos validator set proposal")
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
