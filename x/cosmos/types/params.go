@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	DefaultPeriod    time.Duration = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
-	DefaultMintDenom string        = "ustkxprt"
-	DefaultStakingDenom = "uatom"
+	DefaultPeriod       time.Duration = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
+	DefaultMintDenom    string        = "ustkxprt"
+	DefaultStakingDenom               = "uatom"
 )
 
 var (
@@ -77,7 +77,7 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 		RewardEpochIdentifier:             rewardEpochIdentifier,
 		ChunkSize:                         chunkSize,
 		BondDenoms:                        bondDenom,
-		StakingDenom: 					   stakingDenom,
+		StakingDenom:                      stakingDenom,
 		MintDenom:                         mintDenom,
 		MultisigThreshold:                 multiSigThreshold,
 		RetryLimit:                        retryLimit,
@@ -115,7 +115,7 @@ func DefaultParams() Params {
 		RewardEpochIdentifier:     "reward",
 		ChunkSize:                 5,
 		BondDenoms:                []string{DefaultStakingDenom},
-		StakingDenom: 			   DefaultStakingDenom,
+		StakingDenom:              DefaultStakingDenom,
 		MintDenom:                 DefaultMintDenom,
 		MultisigThreshold:         3,
 		RetryLimit:                10,
@@ -231,6 +231,40 @@ func (p Params) GetBondDenomOf(s string) (string, error) {
 		}
 	}
 	return "", ErrInvalidBondDenom
+}
+
+func (p Params) Equal(other Params) bool {
+	for i := range p.WeightedDeveloperRewardsReceivers {
+		if p.WeightedDeveloperRewardsReceivers[i] != other.WeightedDeveloperRewardsReceivers[i] {
+			return false
+		}
+	}
+
+	for i := range p.BondDenoms {
+		if p.BondDenoms[i] != other.BondDenoms[i] {
+			return false
+		}
+	}
+	return p.MintDenom == other.MintDenom &&
+		p.CustodialAddress == other.CustodialAddress &&
+		p.MinMintingAmount.IsEqual(other.MinMintingAmount) &&
+		p.MaxMintingAmount.IsEqual(other.MaxMintingAmount) &&
+		p.MinBurningAmount.IsEqual(other.MinBurningAmount) &&
+		p.MaxBurningAmount.IsEqual(other.MaxBurningAmount) &&
+		p.MaxValidatorToDelegate == other.MaxValidatorToDelegate &&
+		p.DistributionProportion == other.DistributionProportion &&
+		p.Epochs == other.Epochs &&
+		p.MaxIncomingAndOutgoingTxns == other.MaxIncomingAndOutgoingTxns &&
+		p.CosmosProposalParams == other.CosmosProposalParams &&
+		p.CustodialAddress == other.CustodialAddress &&
+		p.DelegationThreshold == other.DelegationThreshold &&
+		p.ModuleEnabled == p.ModuleEnabled &&
+		p.StakingEpochIdentifier == other.StakingEpochIdentifier &&
+		p.ChunkSize == other.ChunkSize &&
+		p.UndelegateEpochIdentifier == other.UndelegateEpochIdentifier &&
+		p.MultisigThreshold == other.MultisigThreshold &&
+		p.RetryLimit == other.RetryLimit &&
+		p.RewardEpochIdentifier == other.RewardEpochIdentifier
 }
 
 func validateMinMintingAmount(i interface{}) error {

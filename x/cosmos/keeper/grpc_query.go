@@ -178,3 +178,20 @@ func (k Keeper) ValidatorMapping(c context.Context, query *cosmosTypes.QueryVali
 		OrchestratorAddress: validatorMapping.OrchestratorAddresses,
 	}, nil
 }
+
+func (k Keeper) OracleHeight(c context.Context, query *cosmosTypes.QueryOracleLastUpdateHeightRequest) (*cosmosTypes.QueryOracleLastUpdateHeightResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	oracleAddress, err := sdkTypes.AccAddressFromBech32(query.OracleAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	oracleLastUpadteHeightNative := k.getOracleLastUpdateHeightNative(ctx, oracleAddress)
+	oracleLastUpadteHeightCosmos := k.getOracleLastUpdateHeightCosmos(ctx, oracleAddress)
+
+	return &cosmosTypes.QueryOracleLastUpdateHeightResponse{
+		BlockHeightCosmos: oracleLastUpadteHeightCosmos,
+		BlockHeightNative: oracleLastUpadteHeightNative,
+	}, nil
+}

@@ -16,7 +16,7 @@ func TestNegativeCoin(t *testing.T) {
 	coinFunc := func() {
 		sdk.NewCoin("uatom", sdk.NewInt(-1000))
 	}
-	
+
 	assert.Panics(t, coinFunc)
 }
 
@@ -37,8 +37,8 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 		amount int64
 	}
 	testMatrix := []struct {
-		amount int64
-		given  []testValState
+		amount   int64
+		given    []testValState
 		expected []testValState
 	}{
 		{
@@ -134,7 +134,7 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 			},
 			expected: []testValState{
 				{"cosmosVal1", "", 10000000},
-				{"cosmosVal2", "",10000000},
+				{"cosmosVal2", "", 10000000},
 				{"cosmosVal3", "", -10000000},
 			},
 		},
@@ -160,17 +160,17 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 		givenState := types.WeightedAddressAmounts{}
 		expectedMap := map[string]types.WeightedAddressAmount{}
 		for i := 0; i < len(test.given); i++ {
-			weight, _ :=  sdk.NewDecFromStr(test.given[i].weight)
+			weight, _ := sdk.NewDecFromStr(test.given[i].weight)
 			givenState = append(givenState, types.WeightedAddressAmount{
 				Address: test.given[i].name,
-				Weight: weight,
-				Denom: denom,
-				Amount: sdk.NewInt(test.given[i].amount),
+				Weight:  weight,
+				Denom:   denom,
+				Amount:  sdk.NewInt(test.given[i].amount),
 			})
 			expectedMap[test.expected[i].name] = types.WeightedAddressAmount{
 				Address: test.expected[i].name,
-				Denom: denom,
-				Amount: sdk.NewInt(test.expected[i].amount),
+				Denom:   denom,
+				Amount:  sdk.NewInt(test.expected[i].amount),
 			}
 		}
 		// Call getIdealCurrentDelegations function with params
@@ -188,7 +188,7 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 
 func testStateData(denom string) types.WeightedAddressAmounts {
 	testStruct := []struct {
-		name string
+		name   string
 		weight string
 		amount int64
 	}{
@@ -220,13 +220,13 @@ func testStateData(denom string) types.WeightedAddressAmounts {
 	}
 	// Create state
 	state := types.WeightedAddressAmounts{}
-	for _, ts := range testStruct{
-		weight, _ :=  sdk.NewDecFromStr(ts.weight)
+	for _, ts := range testStruct {
+		weight, _ := sdk.NewDecFromStr(ts.weight)
 		state = append(state, types.WeightedAddressAmount{
-			Weight: weight,
-			Amount: sdk.NewInt(ts.amount),
+			Weight:  weight,
+			Amount:  sdk.NewInt(ts.amount),
 			Address: sdk.ValAddress(ts.name).String(),
-			Denom: denom,
+			Denom:   denom,
 		})
 	}
 	return state
@@ -243,7 +243,7 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
 
 	// Test data
 	testMatrix := []struct {
-		given int64
+		given    int64
 		expected map[string]int64
 	}{
 		{
@@ -318,7 +318,7 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 
 	// Test data
 	testMatrix := []struct {
-		given int64
+		given    int64
 		expected map[string]int64
 	}{
 		{
@@ -330,12 +330,12 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 		{
 			given: 10000000,
 			expected: map[string]int64{
-				"cosmosVal5": 5000000, 
+				"cosmosVal5": 5000000,
 				"cosmosVal2": 5000000,
 			},
 		},
 		{
-			given: 0,
+			given:    0,
 			expected: map[string]int64{},
 		},
 		{
@@ -378,7 +378,7 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 		// Run getIdealCurrentDelegations function with params
 		valAmounts, err := app.CosmosKeeper.FetchValidatorsToUndelegate(ctx, givenCoin)
 		suite.Nil(err, "Error is not nil for validator to delegate")
-		
+
 		// Check outputs
 		actualMap := map[string]int64{}
 		for _, va := range valAmounts {

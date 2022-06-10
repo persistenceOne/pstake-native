@@ -48,6 +48,10 @@ service Query {
     option (google.api.http).get = "/pstake/cosmos/v1beta1/validator_mapping";
   }
 
+  rpc OracleHeight(QueryOracleLastUpdateHeightRequest) returns (QueryOracleLastUpdateHeightResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/oracle_height";
+  }
+
 }
 
 message QueryParamsRequest {}
@@ -126,4 +130,13 @@ message QueryValidatorMappingRequest {
 message QueryValidatorMappingResponse {
   string validator_address = 1;
   repeated string orchestrator_address = 2;
+}
+
+message QueryOracleLastUpdateHeightRequest {
+  string oracle_address = 1;
+}
+
+message QueryOracleLastUpdateHeightResponse {
+  int64 block_height_cosmos = 1;
+  int64 block_height_native = 2;
 }

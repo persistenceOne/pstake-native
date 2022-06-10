@@ -110,20 +110,15 @@ func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, mintStoreValue cosmos
 	return nil
 }
 
-func (k Keeper) mintTokensForRewardReceivers(ctx sdkTypes.Context, address string, amount sdkTypes.Coins) error {
+func (k Keeper) mintTokensForRewardReceivers(ctx sdkTypes.Context, address sdkTypes.AccAddress, amount sdkTypes.Coins) error {
 	//TODO : incorporate minting_ratio
 
-	accAddress, err := sdkTypes.AccAddressFromBech32(address)
+	err := k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, amount)
 	if err != nil {
 		return err
 	}
 
-	err = k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, amount)
-	if err != nil {
-		return err
-	}
-
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, cosmosTypes.ModuleName, accAddress, amount)
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, cosmosTypes.ModuleName, address, amount)
 	if err != nil {
 		return err
 	}

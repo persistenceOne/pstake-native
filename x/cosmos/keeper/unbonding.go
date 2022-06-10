@@ -120,6 +120,7 @@ func (k Keeper) setEpochWithdrawSuccessStore(ctx sdk.Context, epochNumber int64)
 func (k Keeper) getLeastEpochNumberWithWithdrawStatusFalse(ctx sdk.Context) int64 {
 	epochWithdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyEpochStoreForWithdrawSuccess)
 	iterator := epochWithdrawStore.Iterator(nil, nil)
+	defer iterator.Close()
 	min := int64(math.MaxInt64)
 	for ; iterator.Valid(); iterator.Next() {
 		if string(iterator.Value()) == "false" {
@@ -157,6 +158,7 @@ func (k Keeper) setEpochNumberAndUndelegateDetailsOfIndividualValidator(ctx sdk.
 func (k Keeper) getEpochNumberAndUndelegateDetailsOfValidators(ctx sdk.Context, epochNumber int64) bool {
 	epochNumberStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.GetEpochStoreForUndelegationKey(epochNumber))
 	iterator := epochNumberStore.Iterator(nil, nil)
+	defer iterator.Close()
 	counter := 0
 	for ; iterator.Valid(); iterator.Next() {
 		counter++

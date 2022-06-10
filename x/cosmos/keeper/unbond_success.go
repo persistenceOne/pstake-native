@@ -3,6 +3,7 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"math"
 
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
@@ -44,24 +45,20 @@ func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.Msg
 	}
 }
 
-func (k Keeper) getAllUndelegateSuccessDetails(ctx sdk.Context) (list []UndelegateSuccessKeyAndValue, err error) {
+func (k Keeper) getAllUndelegateSuccessDetails(ctx sdk.Context) (list []UndelegateSuccessKeyAndValue) {
 	undelegateSuccessStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyUndelegateSuccessStore)
 	iterator := undelegateSuccessStore.Iterator(nil, nil)
+	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var chainIDHeightAndTxHashKey cosmosTypes.ChainIDHeightAndTxHashKey
-		err = k.cdc.Unmarshal(iterator.Key(), &chainIDHeightAndTxHashKey)
-		if err != nil {
-			return nil, err
-		}
+		k.cdc.MustUnmarshal(iterator.Key(), &chainIDHeightAndTxHashKey)
 
 		var valueUndelegateSuccessStore cosmosTypes.ValueUndelegateSuccessStore
-		err = k.cdc.Unmarshal(iterator.Value(), &valueUndelegateSuccessStore)
-		if err != nil {
-			return nil, err
-		}
+		k.cdc.MustUnmarshal(iterator.Value(), &valueUndelegateSuccessStore)
+
 		list = append(list, UndelegateSuccessKeyAndValue{ChainIDHeightAndTxHashKey: chainIDHeightAndTxHashKey, ValueUndelegateSuccessStore: valueUndelegateSuccessStore})
 	}
-	return list, nil
+	return list
 }
 
 func (k Keeper) deleteUndelegateSuccessDetails(ctx sdk.Context, key cosmosTypes.ChainIDHeightAndTxHashKey) {
@@ -71,14 +68,11 @@ func (k Keeper) deleteUndelegateSuccessDetails(ctx sdk.Context, key cosmosTypes.
 }
 
 func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) {
-	list, err := k.getAllUndelegateSuccessDetails(ctx)
-	if err != nil {
-		panic(err)
-	}
+	list := k.getAllUndelegateSuccessDetails(ctx)
 	epochNumber := k.getLeastEpochNumberWithWithdrawStatusFalse(ctx)
-	//if epochNumber == int64(math.MaxInt64) {
-	//	panic(cosmosTypes.ErrInvalidEpochNumber)
-	//}
+	if epochNumber == int64(math.MaxInt64) {
+		return
+	}
 	for _, element := range list {
 		if element.ValueUndelegateSuccessStore.Ratio.GT(cosmosTypes.MinimumRatioForMajority) {
 			k.setEpochNumberAndUndelegateDetailsOfIndividualValidator(
@@ -94,7 +88,7 @@ func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) {
 
 	flagForWithdrawSuccess := k.getEpochNumberAndUndelegateDetailsOfValidators(ctx, epochNumber)
 	if flagForWithdrawSuccess {
-		err = k.emitSendTransactionForAllWithdrawals(ctx, epochNumber)
+		err := k.emitSendTransactionForAllWithdrawals(ctx, epochNumber)
 		if err != nil {
 			panic(err)
 		}

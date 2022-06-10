@@ -33,9 +33,9 @@ func GetIdealCurrentDelegations(validatorState types.WeightedAddressAmounts, amt
 		}
 		curDiffDistribution = append(curDiffDistribution, types.WeightedAddressAmount{
 			Address: valState.Address,
-			Weight: valState.Weight,
-			Denom: valState.Denom,
-			Amount: diffAmt,
+			Weight:  valState.Weight,
+			Denom:   valState.Denom,
+			Amount:  diffAmt,
 		})
 	}
 	return curDiffDistribution
@@ -43,7 +43,7 @@ func GetIdealCurrentDelegations(validatorState types.WeightedAddressAmounts, amt
 
 func divideAmountWeightedSet(valAmounts []ValAddressAmount, coin sdk.Coin, valAddressWeightMap map[string]sdk.Dec) []ValAddressAmount {
 	newValAmounts := []ValAddressAmount{}
-	
+
 	totalWeight := sdk.ZeroDec()
 	for _, weight := range valAddressWeightMap {
 		totalWeight = totalWeight.Add(weight)
@@ -54,7 +54,7 @@ func divideAmountWeightedSet(valAmounts []ValAddressAmount, coin sdk.Coin, valAd
 		amt := weight.MulInt(coin.Amount).RoundInt()
 		newValAmounts = append(newValAmounts, ValAddressAmount{
 			Validator: valAmt.Validator,
-			Amount: sdk.NewCoin(valAmt.Amount.Denom, valAmt.Amount.Amount.Add(amt)),
+			Amount:    sdk.NewCoin(valAmt.Amount.Denom, valAmt.Amount.Amount.Add(amt)),
 		})
 	}
 	return newValAmounts
@@ -90,7 +90,7 @@ func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, co
 	// Delegate to non zero weighted validator set only
 	_, nonZeroWeighted := types.GetZeroNonZeroWightedAddrAmts(sortedValDiff)
 	sort.Sort(sort.Reverse(nonZeroWeighted))
-	
+
 	valAmounts, remainderCoin, err := distributeCoinsAmongstValSet(nonZeroWeighted, coin)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressA
 	sort.Sort(sort.Reverse(zeroWeighted))
 	sort.Sort(sort.Reverse(nonZeroWeighted))
 	valWeighted := append(zeroWeighted, nonZeroWeighted...)
-	
+
 	valAmounts, remainderCoin, err := distributeCoinsAmongstValSet(valWeighted, coin)
 	if err != nil {
 		return nil, err
@@ -130,7 +130,7 @@ func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressA
 	if !remainderCoin.IsPositive() {
 		return valAmounts, nil
 	}
-	
+
 	// Divide the remaining amount amongst the validators a/c to weight
 	zeroValued := sortedValDiff.GetZeroValued()
 	valAddressMap := types.GetWeightedAddressMap(zeroValued)
@@ -172,9 +172,9 @@ func (k Keeper) FetchValidatorsToUndelegate(ctx sdk.Context, amount sdk.Coin) ([
 	if totalStaked.Amount.LT(amount.Amount) {
 		return nil, fmt.Errorf("undelegate amount %d more than total staked %d", amount.Amount, totalStaked.Amount)
 	}
-	
+
 	curDiffDistribution := GetIdealCurrentDelegations(valWeightedAmt, amount, true)
-	
+
 	sort.Sort(sort.Reverse(curDiffDistribution))
 
 	return DivideUndelegateAmountIntoValidatorSet(curDiffDistribution, amount)

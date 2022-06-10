@@ -66,11 +66,10 @@ func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdraw
 
 func (k Keeper) fetchWithdrawTxnsWithCurrentEpochInfo(ctx sdk.Context, currentEpoch int64) (withdrawStoreValue cosmosTypes.WithdrawStoreValue, err error) {
 	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
-	bz := withdrawStore.Get(cosmosTypes.Int64Bytes(currentEpoch))
-	err = k.cdc.Unmarshal(bz, &withdrawStoreValue)
-	if err != nil {
-		return cosmosTypes.WithdrawStoreValue{}, err
+	if !withdrawStore.Has(cosmosTypes.Int64Bytes(currentEpoch)) {
+		return cosmosTypes.WithdrawStoreValue{WithdrawDetails: []cosmosTypes.MsgWithdrawStkAsset{{Amount: sdk.NewInt64Coin("uatom", 0)}}}, nil
 	}
+	k.cdc.MustUnmarshal(withdrawStore.Get(cosmosTypes.Int64Bytes(currentEpoch)), &withdrawStoreValue)
 	return withdrawStoreValue, nil
 }
 

@@ -14,8 +14,8 @@ import (
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	app         *app.PstakeApp
-	ctx         sdk.Context
+	app *app.PstakeApp
+	ctx sdk.Context
 }
 
 func (suite *IntegrationTestSuite) SetupTest() {
