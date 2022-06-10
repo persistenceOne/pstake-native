@@ -97,7 +97,8 @@ message Params {
   int64 chunk_size = 19;
   string undelegate_epoch_identifier = 20;
   repeated string bond_denoms = 21;
-  uint64 multisig_threshold = 22;
-  uint64 retry_limit = 23;
-  string reward_epoch_identifier = 24;
+  string staking_denom = 22;
+  uint64 multisig_threshold = 23;
+  uint64 retry_limit = 24;
+  string reward_epoch_identifier = 25;
 }

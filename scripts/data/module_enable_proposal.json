@@ -4,8 +4,11 @@
   "threshold" : "1",
   "account_number" : "0",
   "orchestrator_addresses" : [
-    "persistence12v9prjx8m5fdalryqd0t4mgwe20637ltek5m0h"
+    "persistence1dv3wegykp4l7wk6h7fy5g398se07s8d3er6064",
+    "persistence1kma3k7lzgg2rjtymda0kn7z3nvc677ca36wapd",
+    "persistence1vf0u3ak5a64yc0evexwq0hd9w4q8hv26uvcp0g",
+    "persistence1u7qe2gprjl972yzsaq6pw5kw8l5rxy8vslcdlg"
   ],
-  "depositor": "persistence183g695ap32wnds5k9xwd3yq997dqxudfts2gqg",
+  "depositor": "persistence1pqzzhm4mqz42mglmamvlqywc5rj3yy78xun486",
   "deposit": "512stake"
 }

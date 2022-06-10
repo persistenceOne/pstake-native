@@ -3,6 +3,7 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"math"
 
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
@@ -69,9 +70,9 @@ func (k Keeper) deleteUndelegateSuccessDetails(ctx sdk.Context, key cosmosTypes.
 func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) {
 	list := k.getAllUndelegateSuccessDetails(ctx)
 	epochNumber := k.getLeastEpochNumberWithWithdrawStatusFalse(ctx)
-	//if epochNumber == int64(math.MaxInt64) {
-	//	panic(cosmosTypes.ErrInvalidEpochNumber)
-	//}
+	if epochNumber == int64(math.MaxInt64) {
+		return
+	}
 	for _, element := range list {
 		if element.ValueUndelegateSuccessStore.Ratio.GT(cosmosTypes.MinimumRatioForMajority) {
 			k.setEpochNumberAndUndelegateDetailsOfIndividualValidator(
