@@ -56,7 +56,7 @@ func (k Keeper) checkOrchestratorAddressPresentInMultisig(ctx sdk.Context, orch 
 	// fetch multisig pub key
 	multsigPubKey := k.getAccountState(ctx, k.getCurrentAddress(ctx)).GetPubKey().(*multisig.LegacyAminoPubKey).GetPubKeys()
 
-	for _, pb := range multisigPubKey2 {
+	for _, pb := range multsigPubKey {
 		if pb.Equals(orchPubKey) {
 			return true
 		}
