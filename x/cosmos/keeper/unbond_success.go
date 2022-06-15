@@ -13,7 +13,7 @@ type UndelegateSuccessKeyAndValue struct {
 	ValueUndelegateSuccessStore cosmosTypes.ValueUndelegateSuccessStore
 }
 
-func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.MsgUndelegateSuccess) {
+func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.MsgUndelegateSuccess, validatorAddress sdk.ValAddress) {
 	undelegateSuccessStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyUndelegateSuccessStore)
 	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(msg.ChainID, msg.BlockHeight, msg.TxHash)
 	key := k.cdc.MustMarshal(&chainIDHeightAndTxHash)
@@ -22,7 +22,7 @@ func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.Msg
 	// check if key present or not
 	if !undelegateSuccessStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		undelegateSuccessStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
@@ -34,13 +34,13 @@ func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.Msg
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotUndelegateSuccess(valueUndelegateSuccessStore, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		undelegateSuccessStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
 
-	if !valueUndelegateSuccessStore.Find(msg.OrchestratorAddress) {
-		valueUndelegateSuccessStore.UpdateValues(msg.OrchestratorAddress, totalValidatorCount)
+	if !valueUndelegateSuccessStore.Find(validatorAddress.String()) {
+		valueUndelegateSuccessStore.UpdateValues(validatorAddress.String(), totalValidatorCount)
 		undelegateSuccessStore.Set(key, k.cdc.MustMarshal(&valueUndelegateSuccessStore))
 	}
 }

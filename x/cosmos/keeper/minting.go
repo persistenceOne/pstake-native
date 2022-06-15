@@ -6,7 +6,7 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-func (k Keeper) addToMintTokenStore(ctx sdk.Context, msg cosmosTypes.MsgMintTokensForAccount) {
+func (k Keeper) addToMintTokenStore(ctx sdk.Context, msg cosmosTypes.MsgMintTokensForAccount, validatorAddress sdk.ValAddress) {
 	mintTokenStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintTokenStore)
 	key := k.cdc.MustMarshal(&cosmosTypes.ChainIDHeightAndTxHashKey{ChainID: msg.ChainID, BlockHeight: msg.BlockHeight, TxHash: msg.TxHash})
 	totalValidatorCount := k.GetTotalValidatorOrchestratorCount(ctx)
@@ -14,7 +14,7 @@ func (k Keeper) addToMintTokenStore(ctx sdk.Context, msg cosmosTypes.MsgMintToke
 	// store has the key in it or not
 	if !mintTokenStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		mintTokenStoreValue := cosmosTypes.NewMintTokenStoreValue(msg, ratio, msg.OrchestratorAddress, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		mintTokenStoreValue := cosmosTypes.NewMintTokenStoreValue(msg, ratio, validatorAddress, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		mintTokenStore.Set(key, k.cdc.MustMarshal(&mintTokenStoreValue))
 		return
 	}
@@ -26,14 +26,14 @@ func (k Keeper) addToMintTokenStore(ctx sdk.Context, msg cosmosTypes.MsgMintToke
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotMintToken(mintTokenStoreValue, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewMintTokenStoreValue(msg, ratio, msg.OrchestratorAddress, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewMintTokenStoreValue(msg, ratio, validatorAddress, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		mintTokenStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
 
 	// if equal then check if orchestrator has already sent same details previously
-	if !mintTokenStoreValue.Find(msg.OrchestratorAddress) {
-		mintTokenStoreValue.UpdateValues(msg.OrchestratorAddress, totalValidatorCount)
+	if !mintTokenStoreValue.Find(validatorAddress.String()) {
+		mintTokenStoreValue.UpdateValues(validatorAddress.String(), totalValidatorCount)
 		mintTokenStore.Set(key, k.cdc.MustMarshal(&mintTokenStoreValue))
 	}
 }

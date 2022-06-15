@@ -107,8 +107,8 @@ func DefaultParams() Params {
 			ChainID:              "cosmoshub-4", //TODO use these as conditions for proposals
 			ReduceVotingPeriodBy: DefaultPeriod,
 		},
-		DelegationThreshold:       sdk.NewInt64Coin("uatom", 2000000000),
-		ModuleEnabled:             false, //TODO : Make false before launch
+		DelegationThreshold:       sdk.NewInt64Coin("uatom", 2000000000), // todo discard
+		ModuleEnabled:             false,                                 //TODO : Make false before launch
 		CustodialAddress:          "cosmos15vm0p2x990762txvsrpr26ya54p5qlz9xqlw5z",
 		StakingEpochIdentifier:    "stake",
 		UndelegateEpochIdentifier: "undelegate",

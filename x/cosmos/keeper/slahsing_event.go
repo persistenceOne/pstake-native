@@ -6,7 +6,7 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-func (k Keeper) setSlashingEventDetails(ctx sdk.Context, msg cosmosTypes.MsgSlashingEventOnCosmosChain) {
+func (k Keeper) setSlashingEventDetails(ctx sdk.Context, msg cosmosTypes.MsgSlashingEventOnCosmosChain, validatorAddress sdk.ValAddress) {
 	slashingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeySlashingStore)
 	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(msg.ChainID, msg.BlockHeight, msg.TxHash)
 	key := k.cdc.MustMarshal(&chainIDHeightAndTxHash)
@@ -15,7 +15,7 @@ func (k Keeper) setSlashingEventDetails(ctx sdk.Context, msg cosmosTypes.MsgSlas
 	// store has the key in it or not
 	if !slashingStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewSlashingStoreValue(msg, ratio, msg.OrchestratorAddress, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewSlashingStoreValue(msg, ratio, validatorAddress, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		slashingStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
@@ -27,14 +27,14 @@ func (k Keeper) setSlashingEventDetails(ctx sdk.Context, msg cosmosTypes.MsgSlas
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotSlashingEvent(slashingStoreValue.SlashingDetails, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewSlashingStoreValue(msg, ratio, msg.OrchestratorAddress, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewSlashingStoreValue(msg, ratio, validatorAddress, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		slashingStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
 
 	// if equal then check if orchestrator has already sent same details previously
-	if !slashingStoreValue.Find(msg.OrchestratorAddress) {
-		slashingStoreValue.UpdateValues(msg.OrchestratorAddress, totalValidatorCount)
+	if !slashingStoreValue.Find(validatorAddress.String()) {
+		slashingStoreValue.UpdateValues(validatorAddress.String(), totalValidatorCount)
 		slashingStore.Set(key, k.cdc.MustMarshal(&slashingStoreValue))
 	}
 }

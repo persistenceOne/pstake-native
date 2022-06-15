@@ -246,7 +246,7 @@ func (k Keeper) GetProposalsFiltered(ctx sdk.Context, params cosmosTypes.QueryPr
 	return filteredProposals
 }
 
-func (k Keeper) setProposalDetails(ctx sdk.Context, msg cosmosTypes.MsgMakeProposal) {
+func (k Keeper) setProposalDetails(ctx sdk.Context, msg cosmosTypes.MsgMakeProposal, validatorAddress sdk.ValAddress) {
 	proposalStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ProposalStoreKey)
 	proposalKey := cosmosTypes.NewProposalKey(msg.ChainID, msg.BlockHeight, msg.ProposalID)
 	key := k.cdc.MustMarshal(&proposalKey)
@@ -255,7 +255,7 @@ func (k Keeper) setProposalDetails(ctx sdk.Context, msg cosmosTypes.MsgMakePropo
 	// store has the key in it or not
 	if !proposalStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newProposalValue := cosmosTypes.NewProposalValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newProposalValue := cosmosTypes.NewProposalValue(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		proposalStore.Set(key, k.cdc.MustMarshal(&newProposalValue))
 		return
 	}
@@ -267,13 +267,13 @@ func (k Keeper) setProposalDetails(ctx sdk.Context, msg cosmosTypes.MsgMakePropo
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotProposalEvent(proposalValue, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newProposalValue := cosmosTypes.NewProposalValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newProposalValue := cosmosTypes.NewProposalValue(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		proposalStore.Set(key, k.cdc.MustMarshal(&newProposalValue))
 		return
 	}
 
-	if !proposalValue.Find(msg.OrchestratorAddress) {
-		proposalValue.UpdateValues(msg.OrchestratorAddress, totalValidatorCount)
+	if !proposalValue.Find(validatorAddress.String()) {
+		proposalValue.UpdateValues(validatorAddress.String(), totalValidatorCount)
 		proposalStore.Set(key, k.cdc.MustMarshal(&proposalValue))
 		return
 	}

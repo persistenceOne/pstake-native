@@ -118,6 +118,12 @@ var (
 	KeyOracleLastUpdateHeightNative = []byte{0x27}
 
 	KeyOracleLastUpdateHeightCosmos = []byte{0x28}
+
+	KeyMintedAmount = []byte{0x29}
+
+	KeyVirtuallyStakedAmount = []byte{0x2A}
+
+	KeyStakedAmount = []byte{0x2B}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {

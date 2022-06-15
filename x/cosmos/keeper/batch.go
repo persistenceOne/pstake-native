@@ -136,14 +136,14 @@ type TxHashAndDetails struct {
 }
 
 // Set details corresponding to a particular txHash and update details if already present
-func (k Keeper) setTxHashAndDetails(ctx sdk.Context, msg cosmosTypes.MsgTxStatus) {
+func (k Keeper) setTxHashAndDetails(ctx sdk.Context, msg cosmosTypes.MsgTxStatus, validatorAddress sdk.ValAddress) {
 	txHashStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
 	key := []byte(msg.TxHash)
 	totalValidatorCount := k.GetTotalValidatorOrchestratorCount(ctx)
 
 	if !txHashStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow, validatorAddress)
 		txHashStore.Set(key, k.cdc.MustMarshal(&newTxHashValue))
 		return
 	}
@@ -155,13 +155,13 @@ func (k Keeper) setTxHashAndDetails(ctx sdk.Context, msg cosmosTypes.MsgTxStatus
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotTxStatus(txHashValue, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow, validatorAddress)
 		txHashStore.Set(key, k.cdc.MustMarshal(&newTxHashValue))
 		return
 	}
 
-	if !txHashValue.Find(msg.OrchestratorAddress) {
-		txHashValue.UpdateValues(msg.OrchestratorAddress, totalValidatorCount)
+	if !txHashValue.Find(validatorAddress.String()) {
+		txHashValue.UpdateValues(validatorAddress.String(), totalValidatorCount)
 		txHashStore.Set(key, k.cdc.MustMarshal(&txHashValue))
 		return
 	}

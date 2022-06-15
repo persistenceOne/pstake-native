@@ -15,23 +15,24 @@ type OutgoingSignaturePoolKeyAndValue struct {
 	OutgoingSignaturePoolValue cosmosTypes.OutgoingSignaturePoolValue
 }
 
-func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context, singleSignature cosmosTypes.SingleSignatureDataForOutgoingPool, txID uint64, orchestratorAddress sdk.AccAddress) error {
+func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context, singleSignature cosmosTypes.SingleSignatureDataForOutgoingPool, txID uint64, orchestratorAddress sdk.AccAddress, validatorAddress sdk.ValAddress) error {
 	outgoingSignaturePoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingSignaturePoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	if outgoingSignaturePoolStore.Has(key) {
 		var outgoingSignaturePoolValue cosmosTypes.OutgoingSignaturePoolValue
 		k.cdc.MustUnmarshal(outgoingSignaturePoolStore.Get(key), &outgoingSignaturePoolValue)
 
-		if !outgoingSignaturePoolValue.Find(orchestratorAddress.String()) {
-			return sdkErrors.Wrap(cosmosTypes.ErrOrchAddressPresentInSignaturePool, orchestratorAddress.String())
+		if !outgoingSignaturePoolValue.Find(validatorAddress.String()) {
+			return sdkErrors.Wrap(cosmosTypes.ErrOrchAddressPresentInSignaturePool, validatorAddress.String())
 		}
 		outgoingSignaturePoolValue.SingleSignatures = append(outgoingSignaturePoolValue.SingleSignatures, singleSignature)
-		outgoingSignaturePoolValue.UpdateValues(orchestratorAddress.String(), k.GetTotalValidatorOrchestratorCount(ctx))
+		outgoingSignaturePoolValue.UpdateValues(validatorAddress.String(), k.GetTotalValidatorOrchestratorCount(ctx))
+		outgoingSignaturePoolValue.OrchestratorAddresses = append(outgoingSignaturePoolValue.OrchestratorAddresses, orchestratorAddress.String())
 
 		outgoingSignaturePoolStore.Set(key, k.cdc.MustMarshal(&outgoingSignaturePoolValue))
 		return nil
 	}
-	outgoingSignaturePoolValue := cosmosTypes.NewOutgoingSignaturePoolValue(singleSignature, orchestratorAddress)
+	outgoingSignaturePoolValue := cosmosTypes.NewOutgoingSignaturePoolValue(singleSignature, validatorAddress)
 	outgoingSignaturePoolStore.Set(key, k.cdc.MustMarshal(&outgoingSignaturePoolValue))
 	return nil
 }

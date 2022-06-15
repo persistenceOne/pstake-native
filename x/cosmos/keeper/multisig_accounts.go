@@ -9,7 +9,7 @@ import (
 
 //TODO : Use this once module is enabled to set multisig account
 func (k Keeper) setAccountState(ctx sdk.Context, acc authTypes.AccountI) {
-	addr := acc.GetAddress()
+	addr, _ := sdk.AccAddressFromHex(acc.GetPubKey().Address().String()) // todo : remove this
 	store := ctx.KVStore(k.storeKey)
 
 	bz, err := k.authKeeper.MarshalAccount(acc)
@@ -56,8 +56,8 @@ func (k Keeper) checkOrchestratorAddressPresentInMultisig(ctx sdk.Context, orch 
 	// fetch multisig pub key
 	multsigPubKey := k.getAccountState(ctx, k.getCurrentAddress(ctx)).GetPubKey().(*multisig.LegacyAminoPubKey).GetPubKeys()
 
-	for _, pb := range multsigPubKey {
-		if pb == orchPubKey {
+	for _, pb := range multisigPubKey2 {
+		if pb.Equals(orchPubKey) {
 			return true
 		}
 	}

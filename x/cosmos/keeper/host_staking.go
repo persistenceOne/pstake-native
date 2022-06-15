@@ -144,7 +144,7 @@ func (k Keeper) FetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) ([]V
 	params := k.GetParams(ctx)
 
 	// Return nil list if amount is less than delegation threshold
-	if amount.IsLT(params.DelegationThreshold) {
+	if amount.IsLT(params.MinMintingAmount) {
 		return nil, nil
 	}
 
@@ -161,7 +161,7 @@ func (k Keeper) FetchValidatorsToUndelegate(ctx sdk.Context, amount sdk.Coin) ([
 	params := k.GetParams(ctx)
 
 	// Return nil list if amount is less than delegation threshold
-	if amount.IsLT(params.DelegationThreshold) {
+	if amount.IsLT(params.MinBurningAmount) {
 		return nil, nil
 	}
 

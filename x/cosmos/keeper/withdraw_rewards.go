@@ -9,14 +9,14 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, msg cosmosTypes.MsgRewardsClaimedOnCosmosChain) {
+func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, msg cosmosTypes.MsgRewardsClaimedOnCosmosChain, validatorAddress sdk.ValAddress) {
 	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
 	key := []byte(cosmosTypes.GetChainIDAndBlockHeightKey(msg.ChainID, msg.BlockHeight))
 	totalValidatorCount := k.GetTotalValidatorOrchestratorCount(ctx)
 	// store has key in it or not
 	if !rewardsClaimedStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewRewardsClaimedValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewRewardsClaimedValue(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
@@ -28,14 +28,14 @@ func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, msg cosmosTypes.MsgRewa
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotRewardsClaimed(rewardsClaimedValue, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewRewardsClaimedValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewRewardsClaimedValue(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
 
 	// if equal then check if orchestrator has already sent same details previously
-	if !rewardsClaimedValue.Find(msg.OrchestratorAddress) {
-		rewardsClaimedValue.UpdateValues(msg.OrchestratorAddress, k.GetTotalValidatorOrchestratorCount(ctx))
+	if !rewardsClaimedValue.Find(validatorAddress.String()) {
+		rewardsClaimedValue.UpdateValues(validatorAddress.String(), k.GetTotalValidatorOrchestratorCount(ctx))
 		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&rewardsClaimedValue))
 		return
 	}
