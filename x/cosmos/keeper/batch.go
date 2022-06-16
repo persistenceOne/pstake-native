@@ -446,7 +446,6 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 			k.retryTransactionWithFailure(ctx, cosmosTx, txID, tx.TxHash, majorityStatus)
 			k.emitEventForActiveTransaction(ctx, txID)
 		case cosmosTypes.Success:
-			// TODO : handle balance, bonded tokens and unbonding tokens value
 			// process txn success and perform success actions
 			msgs := cosmosTx.CosmosTxDetails.Tx.GetMsgs()
 			for _, msg := range msgs {
@@ -461,7 +460,6 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 						//TODO : update C value
 						k.setEpochAndValidatorDetailsForAllUndelegations(ctx, txID)
 						k.updateStatusOnceProcessed(ctx, txID, "success")
-						//TODO : update total delegated amount
 						if err != nil {
 							panic(err)
 						}
@@ -476,6 +474,15 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 			// retry txn with the given failure
 			k.retryTransactionWithFailure(ctx, cosmosTx, txID, tx.TxHash, majorityStatus)
 			k.emitEventForActiveTransaction(ctx, txID)
+		}
+
+		// TODO : handle balance, bonded tokens and unbonding tokens value
+		for _, delegation := range tx.Details.TxStatus.ValidatorDetails {
+			valAddress, err := cosmosTypes.ValAddressFromBech32(delegation.ValidatorAddress, cosmosTypes.Bech32PrefixValAddr)
+			if err != nil {
+				panic(err)
+			}
+			k.UpdateCurrentDelegatedAmountOfCosmosValidator(ctx, valAddress, delegation.BondedTokens)
 		}
 
 		// set sequence number in any case of status, so it stays up to date

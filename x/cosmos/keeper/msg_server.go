@@ -201,16 +201,13 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
-	}
 
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to make proposal")
-	}
 	if !found {
 		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to make proposal")
 	}
 
 	// update oracle height for both sides
@@ -250,16 +247,13 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
-	}
 
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to make proposal")
-	}
 	if !found {
 		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to make proposal")
 	}
 
 	// update oracle height for both sides
@@ -299,15 +293,13 @@ func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTyp
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
-	}
+
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to vote")
-	}
 	if !found {
-		return nil, cosmosTypes.ErrInvalidVote
+		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to make proposal")
 	}
 
 	err = k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, cosmosTypes.NewNonSplitVoteOption(msg.Option))
@@ -354,16 +346,13 @@ func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeigh
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
-	}
 
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to vote")
-	}
 	if !found {
-		return nil, cosmosTypes.ErrInvalidVote
+		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to make proposal")
 	}
 
 	err = k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, msg.Options)
@@ -413,16 +402,13 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
-	}
 
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to send tx status")
-	}
 	if !found {
-		return nil, fmt.Errorf("validator address does not exit")
+		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to make proposal")
 	}
 
 	// update oracle height for both sides
@@ -465,18 +451,14 @@ func (k msgServer) RewardsClaimed(c context.Context, msg *cosmosTypes.MsgRewards
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
-	}
 
 	//check if validator exists on the network
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to send tx status")
-	}
-
 	if !found {
-		return nil, fmt.Errorf("validator address does not exit")
+		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to make proposal")
 	}
 
 	// update oracle height for both sides
@@ -534,18 +516,14 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
-	}
 
 	//check if validator exists on the network
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to send tx status")
-	}
-
 	if !found {
-		return nil, fmt.Errorf("validator address does not exit")
+		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to make proposal")
 	}
 
 	// update oracle height for both sides
@@ -585,18 +563,14 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
-	}
 
 	//check if validator exists on the network
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to send tx status")
-	}
-
 	if !found {
-		return nil, fmt.Errorf("validator address does not exit")
+		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to make proposal")
 	}
 
 	//verify signature
@@ -650,7 +624,7 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	return &cosmosTypes.MsgSetSignatureResponse{}, nil
 }
 
-func (k msgServer) SlashingEvent(c context.Context, msg *cosmosTypes.MsgSlashingEventOnCosmosChain) (*cosmosTypes.MsgSlashingEventOnCosmosChainResposne, error) {
+func (k msgServer) SlashingEvent(c context.Context, msg *cosmosTypes.MsgSlashingEventOnCosmosChain) (*cosmosTypes.MsgSlashingEventOnCosmosChainResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, sdkErrors.Wrap(err, "Key not valid")
@@ -680,18 +654,14 @@ func (k msgServer) SlashingEvent(c context.Context, msg *cosmosTypes.MsgSlashing
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
-	}
 
 	//check if validator exists on the network
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to send tx status")
-	}
-
 	if !found {
-		return nil, fmt.Errorf("validator address does not exit")
+		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to make proposal")
 	}
 
 	// update oracle height for both sides
@@ -708,5 +678,5 @@ func (k msgServer) SlashingEvent(c context.Context, msg *cosmosTypes.MsgSlashing
 		),
 	)
 
-	return &cosmosTypes.MsgSlashingEventOnCosmosChainResposne{}, nil
+	return &cosmosTypes.MsgSlashingEventOnCosmosChainResponse{}, nil
 }

@@ -8,7 +8,7 @@ import (
 
 func (k Keeper) setSlashingEventDetails(ctx sdk.Context, msg cosmosTypes.MsgSlashingEventOnCosmosChain, validatorAddress sdk.ValAddress) {
 	slashingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeySlashingStore)
-	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(msg.ChainID, msg.BlockHeight, msg.TxHash)
+	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(msg.ChainID, msg.BlockHeight, msg.SlashType)
 	key := k.cdc.MustMarshal(&chainIDHeightAndTxHash)
 	totalValidatorCount := k.GetTotalValidatorOrchestratorCount(ctx)
 
@@ -53,7 +53,7 @@ func (k Keeper) getAllSlashingEventDetails(ctx sdk.Context) (list []cosmosTypes.
 
 func (k Keeper) deleteSlashingEventDetails(ctx sdk.Context, value cosmosTypes.SlashingStoreValue) {
 	slashingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeySlashingStore)
-	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(value.SlashingDetails.ChainID, value.SlashingDetails.BlockHeight, value.SlashingDetails.TxHash)
+	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(value.SlashingDetails.ChainID, value.SlashingDetails.BlockHeight, value.SlashingDetails.SlashType)
 	slashingStore.Delete(k.cdc.MustMarshal(&chainIDHeightAndTxHash))
 }
 
@@ -62,6 +62,7 @@ func (k Keeper) ProcessAllSlashingEvents(ctx sdk.Context) {
 	for _, se := range slashingEventList {
 		if se.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !se.AddedToCValue {
 			// todo : edit C value
+			// todo : update validator delegation details
 		}
 		if se.ActiveBlockHeight < ctx.BlockHeight() {
 			k.deleteSlashingEventDetails(ctx, se)
@@ -73,10 +74,10 @@ func StoreValueEqualOrNotSlashingEvent(storeValue cosmosTypes.MsgSlashingEventOn
 	if storeValue.ValidatorAddress != msgValue.ValidatorAddress {
 		return false
 	}
-	if !storeValue.Amount.IsEqual(msgValue.Amount) {
+	if !storeValue.CurrentDelegation.IsEqual(msgValue.CurrentDelegation) {
 		return false
 	}
-	if storeValue.TxHash != msgValue.TxHash {
+	if storeValue.SlashType != msgValue.SlashType {
 		return false
 	}
 	if storeValue.ChainID != msgValue.ChainID {

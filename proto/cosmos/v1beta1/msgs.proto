@@ -35,7 +35,7 @@ service Msg {
   rpc RewardsClaimed(MsgRewardsClaimedOnCosmosChain) returns (MsgRewardsClaimedOnCosmosChainResponse) {}
   rpc UndelegateSuccess(MsgUndelegateSuccess) returns (MsgUndelegateSuccessResponse) {};
   rpc SetSignature(MsgSetSignature) returns (MsgSetSignatureResponse) {};
-  rpc SlashingEvent(MsgSlashingEventOnCosmosChain) returns (MsgSlashingEventOnCosmosChainResposne) {};
+  rpc SlashingEvent(MsgSlashingEventOnCosmosChain) returns (MsgSlashingEventOnCosmosChainResponse) {};
 }
 
 message MsgSetOrchestrator {
@@ -177,11 +177,11 @@ message ValidatorDetails {
 
 message MsgSlashingEventOnCosmosChain {
   string validator_address = 1;
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin current_delegation = 2 [(gogoproto.nullable) = false];
   string orchestrator_address = 3;
-  string tx_hash = 4;
+  string slash_type = 4;
   string chain_i_d = 5;
   int64 block_height = 6;
 }
 
-message MsgSlashingEventOnCosmosChainResposne {}
+message MsgSlashingEventOnCosmosChainResponse {}

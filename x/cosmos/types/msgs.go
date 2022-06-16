@@ -577,12 +577,12 @@ func (m *MsgSetSignature) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgSlashingEventOnCosmosChain returns a new MsgSlashingEventOnCosmosChain
-func NewMsgSlashingEventOnCosmosChain(val sdk.ValAddress, amount sdk.Coin, orchAddress sdk.AccAddress, txHash string, chainID string, blockHeight int64) *MsgSlashingEventOnCosmosChain {
+func NewMsgSlashingEventOnCosmosChain(val sdk.ValAddress, amount sdk.Coin, orchAddress sdk.AccAddress, slashType string, chainID string, blockHeight int64) *MsgSlashingEventOnCosmosChain {
 	return &MsgSlashingEventOnCosmosChain{
 		ValidatorAddress:    val.String(),
-		Amount:              amount,
+		CurrentDelegation:   amount,
 		OrchestratorAddress: orchAddress.String(),
-		TxHash:              txHash,
+		SlashType:           slashType,
 		ChainID:             chainID,
 		BlockHeight:         blockHeight,
 	}
@@ -605,7 +605,7 @@ func (m *MsgSlashingEventOnCosmosChain) ValidateBasic() error {
 	if _, err := AccAddressFromBech32(m.OrchestratorAddress, Bech32Prefix); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
 	}
-	if !m.Amount.IsValid() || !m.Amount.Amount.IsPositive() {
+	if !m.CurrentDelegation.IsValid() || !m.CurrentDelegation.Amount.IsPositive() {
 		return sdkErrors.Wrap(
 			sdkErrors.ErrInvalidRequest,
 			"invalid delegation amount",
