@@ -307,7 +307,7 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
 		}
 
 		// Run getIdealCurrentDelegations function with params
-		valAmounts, err := app.CosmosKeeper.FetchValidatorsToDelegate(ctx, givenCoin)
+		valAmounts, err := app.CosmosKeeper.FetchValidatorsToDelegate(ctx, givenCoin, "reward")
 		suite.Nil(err, "Error is not nil for validator to delegate")
 		// Check outputs
 		actualMap := map[string]int64{}
