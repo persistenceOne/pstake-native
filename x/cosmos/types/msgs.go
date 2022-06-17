@@ -105,9 +105,13 @@ func (m *MsgRemoveOrchestrator) GetSigners() []sdk.AccAddress {
 
 // NewMsgWithdrawStkAsset returns a new MsgWithdrawStkAsset
 func NewMsgWithdrawStkAsset(from, to sdk.AccAddress, amount sdk.Coin) *MsgWithdrawStkAsset {
+	toAddress, err := Bech32ifyAddressBytes(Bech32PrefixAccAddr, to)
+	if err != nil {
+		panic(err)
+	}
 	return &MsgWithdrawStkAsset{
 		FromAddress: from.String(),
-		ToAddress:   to.String(),
+		ToAddress:   toAddress,
 		Amount:      amount,
 	}
 }
@@ -578,8 +582,12 @@ func (m *MsgSetSignature) GetSigners() []sdk.AccAddress {
 
 // NewMsgSlashingEventOnCosmosChain returns a new MsgSlashingEventOnCosmosChain
 func NewMsgSlashingEventOnCosmosChain(val sdk.ValAddress, amount sdk.Coin, orchAddress sdk.AccAddress, slashType string, chainID string, blockHeight int64) *MsgSlashingEventOnCosmosChain {
+	valAddress, err := Bech32ifyValAddressBytes(Bech32PrefixValAddr, val)
+	if err != nil {
+		panic(err)
+	}
 	return &MsgSlashingEventOnCosmosChain{
-		ValidatorAddress:    val.String(),
+		ValidatorAddress:    valAddress,
 		CurrentDelegation:   amount,
 		OrchestratorAddress: orchAddress.String(),
 		SlashType:           slashType,
@@ -600,9 +608,6 @@ func (m *MsgSlashingEventOnCosmosChain) ValidateBasic() error {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.ValidatorAddress)
 	}
 	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
-	}
-	if _, err := AccAddressFromBech32(m.OrchestratorAddress, Bech32Prefix); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
 	}
 	if !m.CurrentDelegation.IsValid() || !m.CurrentDelegation.Amount.IsPositive() {

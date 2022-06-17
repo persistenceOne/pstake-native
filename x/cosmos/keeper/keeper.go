@@ -7,6 +7,7 @@ import (
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	mintKeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	mintTypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -27,12 +28,13 @@ type Keeper struct {
 	stakingKeeper *stakingKeeper.Keeper
 	hooks         cosmosTypes.GovHooks
 	epochsKeeper  cosmosTypes.EpochKeeper
+	distrKeeper   *distrkeeper.Keeper
 }
 
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdkTypes.StoreKey, paramSpace paramsTypes.Subspace, authKeeper *authKeeper.AccountKeeper,
 	bankKeeper *bankKeeper.BaseKeeper, mintKeeper *mintKeeper.Keeper, stakingKeeper *stakingKeeper.Keeper,
-	epochKeeper cosmosTypes.EpochKeeper,
+	epochKeeper cosmosTypes.EpochKeeper, distrKeeper *distrkeeper.Keeper,
 ) Keeper {
 
 	return Keeper{
@@ -44,6 +46,7 @@ func NewKeeper(
 		mintKeeper:    mintKeeper,
 		stakingKeeper: stakingKeeper,
 		epochsKeeper:  epochKeeper,
+		distrKeeper:   distrKeeper,
 	}
 }
 
@@ -87,16 +90,18 @@ func (k Keeper) SetMintingParams(ctx sdkTypes.Context, params mintTypes.Params) 
 }
 
 func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, mintStoreValue cosmosTypes.MsgMintTokensForAccount) error {
+	destinationAddress, err := sdkTypes.AccAddressFromBech32(mintStoreValue.AddressFromMemo)
+	if err != nil {
+		return err
+	}
 
 	// convert the amount to minting amount and multiply by C value
-	mintingAmount := sdkTypes.NewCoin(k.GetParams(ctx).MintDenom, mintStoreValue.Amount.Amount)
-	// todo multiply by C value
+	toBeMinted := mintStoreValue.Amount.Amount.ToDec().Mul(k.GetCValue(ctx))
+
+	// remainder is not considered as they cannot be minted
+	mintingAmount, _ := sdkTypes.NewDecCoinFromDec(k.GetParams(ctx).MintDenom, toBeMinted).TruncateDecimal()
 
 	if mintingAmount.Amount.GT(k.GetParams(ctx).MinMintingAmount.Amount) && mintingAmount.Amount.LT(k.GetParams(ctx).MaxMintingAmount.Amount) {
-		destinationAddress, err := sdkTypes.AccAddressFromBech32(mintStoreValue.AddressFromMemo)
-		if err != nil {
-			return err
-		}
 		amnt := sdkTypes.NewCoins(mintingAmount)
 		err = k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, amnt)
 		if err != nil {
@@ -106,22 +111,33 @@ func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, mintStoreValue cosmos
 		if err != nil {
 			return err
 		}
+
+		// add the minted amount
+		k.AddToMintedAmount(ctx, mintingAmount)
+
+		// add to virtually staked amount
+		k.AddToVirtuallyStakedAmount(ctx, mintStoreValue.Amount)
 	}
 	return nil
 }
 
-func (k Keeper) mintTokensForRewardReceivers(ctx sdkTypes.Context, address sdkTypes.AccAddress, amount sdkTypes.Coins) error {
+func (k Keeper) mintTokensForRewardReceivers(ctx sdkTypes.Context, address sdkTypes.AccAddress, amount sdkTypes.Coin) error {
 	//TODO : incorporate minting_ratio
 
-	err := k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, amount)
+	toBeMinted := sdkTypes.NewCoins(amount)
+
+	err := k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, toBeMinted)
 	if err != nil {
 		return err
 	}
 
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, cosmosTypes.ModuleName, address, amount)
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, cosmosTypes.ModuleName, address, toBeMinted)
 	if err != nil {
 		return err
 	}
+
+	// add the minted amount
+	k.AddToMintedAmount(ctx, amount)
 
 	return nil
 }

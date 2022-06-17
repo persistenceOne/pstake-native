@@ -140,11 +140,11 @@ func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressA
 }
 
 // gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
-func (k Keeper) FetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) ([]ValAddressAmount, error) {
+func (k Keeper) FetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin, identifier string) ([]ValAddressAmount, error) {
 	params := k.GetParams(ctx)
 
 	// Return nil list if amount is less than delegation threshold
-	if amount.IsLT(params.MinMintingAmount) {
+	if amount.IsLT(params.MinMintingAmount) && identifier == "stake" {
 		return nil, nil
 	}
 

@@ -142,6 +142,7 @@ func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAs
 		return nil, cosmosTypes.ErrInvalidWithdrawDenom
 	}
 
+	// send amount from account to module
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, cosmosTypes.ModuleName, sdkTypes.NewCoins(msg.Amount)); err != nil {
 		return nil, err
 	}
@@ -197,9 +198,12 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 		return nil, cosmosTypes.ErrInvalidBondDenom
 	}
 
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
@@ -243,9 +247,12 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 		return nil, err
 	}
 
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
@@ -289,9 +296,12 @@ func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTyp
 		return nil, accErr
 	}
 
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, accAddr)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, accAddr)
 	if err != nil {
 		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
@@ -342,9 +352,12 @@ func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeigh
 		return nil, accErr
 	}
 
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, accAddr)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, accAddr)
 	if err != nil {
 		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
@@ -398,9 +411,12 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 		return nil, orchErr
 	}
 
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
 	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
@@ -447,9 +463,12 @@ func (k msgServer) RewardsClaimed(c context.Context, msg *cosmosTypes.MsgRewards
 	}
 
 	//check if orchestrator address is present in a validator orchestrator mapping
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
 	//check if validator exists on the network
@@ -512,9 +531,12 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 	}
 
 	//check if orchestrator address is present in a validator orchestrator mapping
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
 	//check if validator exists on the network
@@ -559,9 +581,12 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	}
 
 	//check if orchestrator address is present in a validator orchestrator mapping
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
 	//check if validator exists on the network
@@ -650,9 +675,12 @@ func (k msgServer) SlashingEvent(c context.Context, msg *cosmosTypes.MsgSlashing
 	}
 
 	//check if orchestrator address is present in a validator orchestrator mapping
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
 	//check if validator exists on the network

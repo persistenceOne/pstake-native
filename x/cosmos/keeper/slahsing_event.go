@@ -61,8 +61,19 @@ func (k Keeper) ProcessAllSlashingEvents(ctx sdk.Context) {
 	slashingEventList := k.getAllSlashingEventDetails(ctx)
 	for _, se := range slashingEventList {
 		if se.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !se.AddedToCValue {
-			// todo : edit C value
-			// todo : update validator delegation details
+			valAddress, err := cosmosTypes.ValAddressFromBech32(se.SlashingDetails.ValidatorAddress, cosmosTypes.Bech32PrefixValAddr)
+			if err != nil {
+				panic(err)
+			}
+
+			// get current delegation of validator
+			delegation := k.getDelegationCosmosValidator(ctx, valAddress)
+			// calculate slashed amount
+			slashedAmount := delegation.Sub(se.SlashingDetails.CurrentDelegation)
+			// update C value based on slashed amount
+			k.SlashingEvent(ctx, slashedAmount)
+			// update current delegations of the validator with the delegation supplied with message
+			k.UpdateDelegationCosmosValidator(ctx, valAddress, se.SlashingDetails.CurrentDelegation)
 		}
 		if se.ActiveBlockHeight < ctx.BlockHeight() {
 			k.deleteSlashingEventDetails(ctx, se)

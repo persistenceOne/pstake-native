@@ -2,13 +2,15 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	"github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"reflect"
 
+	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -454,16 +456,17 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 					//Only first element is checked as event transactions will always be grouped as one type of message
 					switch im.GetCachedValue().(type) {
 					case *stakingTypes.MsgDelegate:
-						//TODO : update C value
 						k.updateStatusOnceProcessed(ctx, txID, "success")
+						amnt := GetAmountFromMessage(execMsgs)
+						k.SubFromVirtuallyStakedAmount(ctx, amnt)
+						k.AddToStakedAmount(ctx, amnt)
 					case *stakingTypes.MsgUndelegate:
-						//TODO : update C value
 						k.setEpochAndValidatorDetailsForAllUndelegations(ctx, txID)
 						k.updateStatusOnceProcessed(ctx, txID, "success")
-						if err != nil {
-							panic(err)
-						}
-					case *types.MsgSend:
+						//k.SubFromStakedAmount(ctx, GetAmountFromMessage(execMsgs))
+						// burn the tokens taken to module side and then update
+					case *bankTypes.MsgSend:
+						// not sure to keep it
 						// TODO : update C value
 					}
 					break
@@ -482,7 +485,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 			if err != nil {
 				panic(err)
 			}
-			k.UpdateCurrentDelegatedAmountOfCosmosValidator(ctx, valAddress, delegation.BondedTokens)
+			k.UpdateDelegationCosmosValidator(ctx, valAddress, delegation.BondedTokens)
 		}
 
 		// set sequence number in any case of status, so it stays up to date
@@ -536,4 +539,19 @@ func FindMajority(inputArr []string) string {
 		}
 	}
 	return m //return majority element
+}
+
+func GetAmountFromMessage(execMsgs []*codecTypes.Any) sdk.Coin {
+	tempAmnt := sdk.NewInt64Coin("uatom", 0)
+	for _, m := range execMsgs {
+		switch m.GetCachedValue().(type) {
+		case *stakingTypes.MsgDelegate:
+			tempAmnt = tempAmnt.Add(m.GetCachedValue().(*stakingTypes.MsgDelegate).Amount)
+		case *stakingTypes.MsgUndelegate:
+			tempAmnt = tempAmnt.Add(m.GetCachedValue().(*stakingTypes.MsgDelegate).Amount)
+		case *bankTypes.MsgSend:
+			tempAmnt = tempAmnt.Add(m.GetCachedValue().(*stakingTypes.MsgDelegate).Amount)
+		}
+	}
+	return tempAmnt
 }

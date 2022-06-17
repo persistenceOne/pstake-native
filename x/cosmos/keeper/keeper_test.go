@@ -36,7 +36,7 @@ func (suite *IntegrationTestSuite) SetupValWeightedAmounts(ws types.WeightedAddr
 	suite.app.CosmosKeeper.SetCosmosValidatorSet(suite.ctx, ws)
 	for _, w := range ws {
 		valAddr, _ := types.ValAddressFromBech32(w.Address, types.Bech32PrefixValAddr)
-		suite.app.CosmosKeeper.UpdateCurrentDelegatedAmountOfCosmosValidator(suite.ctx, valAddr, w.Coin())
+		suite.app.CosmosKeeper.UpdateDelegationCosmosValidator(suite.ctx, valAddr, w.Coin())
 	}
 }
 

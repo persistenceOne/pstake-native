@@ -39,7 +39,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	if epochIdentifier == params.StakingEpochIdentifier {
 		amount := k.getAmountFromStakingEpoch(ctx, epochNumber)
 		if !amount.IsZero() {
-			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, amount)
+			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, amount, epochIdentifier)
 			if err != nil {
 				panic(err)
 			}
@@ -54,7 +54,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	if epochIdentifier == params.RewardEpochIdentifier {
 		rewardsToDelegate := k.getFromRewardsInCurrentEpochAmount(ctx, epochNumber)
 		if !rewardsToDelegate.IsZero() {
-			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, rewardsToDelegate)
+			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, rewardsToDelegate, epochIdentifier)
 			if err != nil {
 				panic(err)
 			}
@@ -62,12 +62,14 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 			if err != nil {
 				panic(err)
 			}
+
+			err = k.processAllRewardsClaimed(ctx, rewardsToDelegate)
+			if err != nil {
+				panic(err)
+			}
+			k.deleteFromRewardsInCurrentEpoch(ctx, epochNumber)
 		}
-		err := k.processAllRewardsClaimed(ctx, rewardsToDelegate)
-		if err != nil {
-			panic(err)
-		}
-		k.deleteFromRewardsInCurrentEpoch(ctx, epochNumber)
+
 	}
 
 	if epochIdentifier == params.UndelegateEpochIdentifier {
@@ -79,14 +81,36 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		if err != nil {
 			panic(err)
 		}
-		amount := k.totalAmountToBeUnbonded(withdrawTxns, unbondDenom)
+		totalWithdrawal := k.totalAmountToBeUnbonded(withdrawTxns, unbondDenom)
+
+		// calculate uatoms to be unbonded after incorporating C value
+		toBeUnbondedAmount, _ := sdk.NewDecCoinFromDec(totalWithdrawal.Denom, totalWithdrawal.Amount.ToDec().Mul(sdk.NewDec(1).Quo(k.GetCValue(ctx)))).TruncateDecimal()
 		//check if amount is zero then do not emit event
-		if !amount.IsZero() {
-			listOfValidatorsAndUnbondingAmount, err := k.FetchValidatorsToUndelegate(ctx, amount)
+		if !toBeUnbondedAmount.IsZero() {
+			listOfValidatorsAndUnbondingAmount, err := k.FetchValidatorsToUndelegate(ctx, toBeUnbondedAmount)
 			if err != nil {
 				panic(err)
 			}
 			k.generateUnbondingOutgoingEvent(ctx, listOfValidatorsAndUnbondingAmount, epochNumber)
+
+			// convert the total withdrawal back to mint denom to burn the same amount as the unbonding transaction has been added to the queue
+			burnCoin := sdk.NewCoin(k.GetParams(ctx).MintDenom, totalWithdrawal.Amount)
+
+			// burn coins
+			err = k.bankKeeper.BurnCoins(ctx, cosmosTypes.ModuleName, sdk.NewCoins(burnCoin))
+			if err != nil {
+				panic(err)
+			}
+
+			// subtract from minted amount as the tokens have been burnt from module
+			k.SubFromMintedAmount(ctx, burnCoin)
+
+			// todo : check if it is right place to sub from staked amount or after MsgUndelegate success in batch.go by introducing a virtually unstaked amount
+			// subtract from staked amount as the transaction has been added to the queue
+			k.SubFromStakedAmount(ctx, toBeUnbondedAmount)
+
+			// delete the entry for withdrawal from current epoch info once processed
+			k.deleteWithdrawTxnWithCurrentEpochInfo(ctx, epochNumber)
 		}
 	}
 }

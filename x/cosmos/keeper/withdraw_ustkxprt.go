@@ -73,6 +73,11 @@ func (k Keeper) fetchWithdrawTxnsWithCurrentEpochInfo(ctx sdk.Context, currentEp
 	return withdrawStoreValue, nil
 }
 
+func (k Keeper) deleteWithdrawTxnWithCurrentEpochInfo(ctx sdk.Context, currentEpoch int64) {
+	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
+	withdrawStore.Delete(cosmosTypes.Int64Bytes(currentEpoch))
+}
+
 func (k Keeper) totalAmountToBeUnbonded(value cosmosTypes.WithdrawStoreValue, denom string) sdk.Coin {
 	amount := sdk.NewInt64Coin(denom, 0)
 	for _, element := range value.WithdrawDetails {

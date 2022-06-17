@@ -168,9 +168,6 @@ func (k Keeper) getAllValidatorOrchestratorMappingAndFindIfExist(ctx sdkTypes.Co
 			}
 		}
 	}
-	if valAddress == nil {
-		err = fmt.Errorf("validator address not found")
-	}
 	return valAddress, found, err
 }
 

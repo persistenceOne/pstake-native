@@ -69,3 +69,16 @@ func Bech32ifyAddressBytes(prefix string, address sdkTypes.AccAddress) (string, 
 	}
 	return bech32.ConvertAndEncode(prefix, address.Bytes())
 }
+
+func Bech32ifyValAddressBytes(prefix string, address sdkTypes.ValAddress) (string, error) {
+	if address.Empty() {
+		return "", nil
+	}
+	if len(address.Bytes()) == 0 {
+		return "", nil
+	}
+	if len(prefix) == 0 {
+		return "", errors.New("prefix cannot be empty")
+	}
+	return bech32.ConvertAndEncode(prefix, address.Bytes())
+}
