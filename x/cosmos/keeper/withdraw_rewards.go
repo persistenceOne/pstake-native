@@ -97,6 +97,29 @@ func (k Keeper) getFromRewardsInCurrentEpochAmount(ctx sdk.Context, epochNumber 
 	return amount
 }
 
+// shifts the rewards in the given epoch number to the next epoch number for rewards delegation
+func (k Keeper) shiftRewardsToNextEpoch(ctx sdk.Context, epochNumber int64) {
+	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
+
+	// get given epoch number amount
+	var amount sdk.Coin
+	k.cdc.MustUnmarshal(rewardsInCurrentEpochStore.Get(cosmosTypes.Int64Bytes(epochNumber)), &amount)
+
+	// check if next epoch number is present in the store, if not then set this amount to the next epoch number
+	newEpochKey := cosmosTypes.Int64Bytes(epochNumber + 1)
+	if !rewardsInCurrentEpochStore.Has(newEpochKey) {
+		rewardsInCurrentEpochStore.Set(newEpochKey, k.cdc.MustMarshal(&amount))
+		return
+	}
+
+	// if next epoch number is present then add this amount to the already existing amount for new epoch number
+	var nextEpochAmount sdk.Coin
+	k.cdc.MustUnmarshal(rewardsInCurrentEpochStore.Get(newEpochKey), &nextEpochAmount)
+	nextEpochAmount = nextEpochAmount.Add(amount)
+	rewardsInCurrentEpochStore.Set(newEpochKey, k.cdc.MustMarshal(&nextEpochAmount))
+	return
+}
+
 func (k Keeper) deleteFromRewardsInCurrentEpoch(ctx sdk.Context, epochNumber int64) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 	rewardsInCurrentEpochStore.Delete(cosmosTypes.Int64Bytes(epochNumber))

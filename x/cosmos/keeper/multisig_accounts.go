@@ -7,7 +7,6 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-//TODO : Use this once module is enabled to set multisig account
 func (k Keeper) setAccountState(ctx sdk.Context, acc authTypes.AccountI) {
 	addr, _ := sdk.AccAddressFromHex(acc.GetPubKey().Address().String()) // todo : remove this
 	store := ctx.KVStore(k.storeKey)

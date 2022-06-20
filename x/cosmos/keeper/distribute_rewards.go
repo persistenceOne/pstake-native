@@ -9,10 +9,10 @@ func (k Keeper) GetProportions(ctx sdk.Context, mintedCoin sdk.Coin, ratio sdk.D
 	return sdk.NewCoin(mintedCoin.Denom, mintedCoin.Amount.ToDec().Mul(ratio).TruncateInt())
 }
 
-func (k Keeper) processAllRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin) error {
+func (k Keeper) mintRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin) error {
 	// get amount in Stk assets form
 	params := k.GetParams(ctx)
-	rewardAmountInUSTK := sdk.NewCoin(params.MintDenom, rewardsAmount.Amount)
+	rewardAmountInUSTK, _ := sdk.NewDecCoinFromDec(params.MintDenom, rewardsAmount.Amount.ToDec().Mul(k.GetCValue(ctx))).TruncateDecimal()
 
 	// get distribution proportions for minting stk assets
 	distributionProportion := params.DistributionProportion
@@ -48,7 +48,7 @@ func (k Keeper) processAllRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin
 	}
 
 	// add to virtually staked amount
-	k.AddToVirtuallyStakedAmount(ctx, rewardsAmount)
+	k.AddToVirtuallyStaked(ctx, rewardsAmount)
 
 	return nil
 }

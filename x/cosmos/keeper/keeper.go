@@ -50,9 +50,6 @@ func NewKeeper(
 	}
 }
 
-//TODO : Add hooks in app.go
-//TODO : Add epoch hooks
-
 // SetHooks sets the hooks for governance
 func (k *Keeper) SetHooks(gh cosmosTypes.GovHooks, eh epochsTypes.EpochHooks) *Keeper {
 	if k.hooks != nil {
@@ -113,17 +110,15 @@ func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, mintStoreValue cosmos
 		}
 
 		// add the minted amount
-		k.AddToMintedAmount(ctx, mintingAmount)
+		k.AddToMinted(ctx, mintingAmount)
 
 		// add to virtually staked amount
-		k.AddToVirtuallyStakedAmount(ctx, mintStoreValue.Amount)
+		k.AddToVirtuallyStaked(ctx, mintStoreValue.Amount)
 	}
 	return nil
 }
 
 func (k Keeper) mintTokensForRewardReceivers(ctx sdkTypes.Context, address sdkTypes.AccAddress, amount sdkTypes.Coin) error {
-	//TODO : incorporate minting_ratio
-
 	toBeMinted := sdkTypes.NewCoins(amount)
 
 	err := k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, toBeMinted)
@@ -137,7 +132,7 @@ func (k Keeper) mintTokensForRewardReceivers(ctx sdkTypes.Context, address sdkTy
 	}
 
 	// add the minted amount
-	k.AddToMintedAmount(ctx, amount)
+	k.AddToMinted(ctx, amount)
 
 	return nil
 }

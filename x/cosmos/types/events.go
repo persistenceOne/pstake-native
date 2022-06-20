@@ -1,6 +1,5 @@
 package types
 
-//TODO Events
 const (
 	EventTypeSubmitProposal = "submit_proposal"
 	EventTypeOutgoing       = "outgoing_txn"

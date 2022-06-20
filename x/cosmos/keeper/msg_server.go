@@ -111,7 +111,6 @@ func (k msgServer) RemoveOrchestrator(c context.Context, msg *cosmosTypes.MsgRem
 	return &cosmosTypes.MsgRemoveOrchestratorResponse{}, nil
 }
 
-// Send TODO Modify outgoing pool
 func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAsset) (*cosmosTypes.MsgWithdrawStkAssetResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -140,6 +139,11 @@ func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAs
 
 	if msg.Amount.GetDenom() != k.GetParams(ctx).MintDenom {
 		return nil, cosmosTypes.ErrInvalidWithdrawDenom
+	}
+
+	withdrawalAmount := msg.Amount.Amount.ToDec().Mul(sdkTypes.NewDec(1).Quo(k.GetCValue(ctx)))
+	if !withdrawalAmount.GT(k.GetParams(ctx).MaxBurningAmount.Amount.ToDec()) && !withdrawalAmount.LT(k.GetParams(ctx).MinBurningAmount.Amount.ToDec()) {
+		return nil, fmt.Errorf("withdrawal is out of range for withdrawals")
 	}
 
 	// send amount from account to module
@@ -187,6 +191,11 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 	if ctx.IsZero() || sdkTypes.VerifyAddressFormat(destinationAddress) != nil || sdkTypes.VerifyAddressFormat(orchestratorAddress) != nil ||
 		!msg.Amount.IsValid() {
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
+	}
+
+	tentativeMintAmount := msg.Amount.Amount.ToDec().Mul(k.GetCValue(ctx))
+	if !tentativeMintAmount.GT(k.GetParams(ctx).MinMintingAmount.Amount.ToDec()) && !tentativeMintAmount.LT(k.GetParams(ctx).MaxMintingAmount.Amount.ToDec()) {
+		return nil, fmt.Errorf("minting is out of range for minting stk tokens")
 	}
 
 	// check if the denom for staking matches or not

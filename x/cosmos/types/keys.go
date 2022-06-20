@@ -124,6 +124,8 @@ var (
 	KeyVirtuallyStakedAmount = []byte{0x2A}
 
 	KeyStakedAmount = []byte{0x2B}
+
+	KeyVirtuallyUnbonded = []byte{0x2C}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {

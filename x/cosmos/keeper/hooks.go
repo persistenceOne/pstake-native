@@ -58,15 +58,27 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 			if err != nil {
 				panic(err)
 			}
-			err = k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake, epochNumber)
-			if err != nil {
-				panic(err)
+
+			// if length of validators to delegate is 0 and amount already is non-zero
+			// then the rewards can be shifted to next epoch number
+			if len(listOfValidatorsToStake) == 0 {
+				k.shiftRewardsToNextEpoch(ctx, epochNumber)
 			}
 
-			err = k.processAllRewardsClaimed(ctx, rewardsToDelegate)
-			if err != nil {
-				panic(err)
+			// if the list of validator is not empty then generate a list to delegate and mint the rewards
+			if len(listOfValidatorsToStake) != 0 {
+				err = k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake, epochNumber)
+				if err != nil {
+					panic(err)
+				}
+
+				err = k.mintRewardsClaimed(ctx, rewardsToDelegate)
+				if err != nil {
+					panic(err)
+				}
 			}
+
+			// delete rewards from the current epoch as soon as all the surrounding process is complete
 			k.deleteFromRewardsInCurrentEpoch(ctx, epochNumber)
 		}
 
@@ -103,11 +115,10 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 			}
 
 			// subtract from minted amount as the tokens have been burnt from module
-			k.SubFromMintedAmount(ctx, burnCoin)
+			k.SubFromMinted(ctx, burnCoin)
 
-			// todo : check if it is right place to sub from staked amount or after MsgUndelegate success in batch.go by introducing a virtually unstaked amount
 			// subtract from staked amount as the transaction has been added to the queue
-			k.SubFromStakedAmount(ctx, toBeUnbondedAmount)
+			k.AddToVirtuallyUnbonded(ctx, toBeUnbondedAmount)
 
 			// delete the entry for withdrawal from current epoch info once processed
 			k.deleteWithdrawTxnWithCurrentEpochInfo(ctx, epochNumber)

@@ -457,14 +457,13 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 					switch im.GetCachedValue().(type) {
 					case *stakingTypes.MsgDelegate:
 						k.updateStatusOnceProcessed(ctx, txID, "success")
-						amnt := GetAmountFromMessage(execMsgs)
-						k.SubFromVirtuallyStakedAmount(ctx, amnt)
-						k.AddToStakedAmount(ctx, amnt)
+						k.SubFromVirtuallyStaked(ctx, GetAmountFromMessage(execMsgs))
+						k.AddToStaked(ctx, GetAmountFromMessage(execMsgs))
 					case *stakingTypes.MsgUndelegate:
 						k.setEpochAndValidatorDetailsForAllUndelegations(ctx, txID)
 						k.updateStatusOnceProcessed(ctx, txID, "success")
-						//k.SubFromStakedAmount(ctx, GetAmountFromMessage(execMsgs))
-						// burn the tokens taken to module side and then update
+						k.SubFromVirtuallyUnbonded(ctx, GetAmountFromMessage(execMsgs))
+						k.SubFromStaked(ctx, GetAmountFromMessage(execMsgs))
 					case *bankTypes.MsgSend:
 						// not sure to keep it
 						// TODO : update C value

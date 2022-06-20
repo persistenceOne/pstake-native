@@ -15,9 +15,9 @@ func TestKeeper_GetCValue(t *testing.T) {
 	cValue := keeper.GetCValue(ctx)
 	fmt.Println(cValue)
 
-	keeper.AddToMintedAmount(ctx, sdk.NewInt64Coin("uatom", 100))
-	keeper.AddToVirtuallyStakedAmount(ctx, sdk.NewInt64Coin("uatom", 60))
-	keeper.AddToStakedAmount(ctx, sdk.NewInt64Coin("uatom", 39))
+	keeper.AddToMinted(ctx, sdk.NewInt64Coin("uatom", 100))
+	keeper.AddToVirtuallyStaked(ctx, sdk.NewInt64Coin("uatom", 60))
+	keeper.AddToStaked(ctx, sdk.NewInt64Coin("uatom", 39))
 
 	cValue = keeper.GetCValue(ctx)
 	fmt.Println(cValue)
@@ -26,9 +26,9 @@ func TestKeeper_GetCValue(t *testing.T) {
 	fmt.Println(cValue)
 
 	keeper.SlashingEvent(ctx, sdk.NewInt64Coin("uatom", 10))
-	keeper.AddToMintedAmount(ctx, sdk.NewInt64Coin("uatom", 100))
-	keeper.AddToVirtuallyStakedAmount(ctx, sdk.NewInt64Coin("uatom", 60))
-	keeper.AddToStakedAmount(ctx, sdk.NewInt64Coin("uatom", 39))
+	keeper.AddToMinted(ctx, sdk.NewInt64Coin("uatom", 100))
+	keeper.AddToVirtuallyStaked(ctx, sdk.NewInt64Coin("uatom", 60))
+	keeper.AddToStaked(ctx, sdk.NewInt64Coin("uatom", 39))
 
 	fmt.Println(keeper.GetMintedAmount(ctx))
 	fmt.Println(keeper.GetVirtuallyStakedAmount(ctx))

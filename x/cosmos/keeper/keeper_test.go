@@ -25,7 +25,6 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	// Set weighted developer address to empty to not conflict with sdk addr prefix
 	params.WeightedDeveloperRewardsReceivers = []types.WeightedAddress{}
 	// Set DelegationThreshold to 10 unit
-	params.DelegationThreshold = sdk.NewInt64Coin("uatom", 10)
 	app.CosmosKeeper.SetParams(ctx, params)
 
 	suite.app = &app

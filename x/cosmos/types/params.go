@@ -28,14 +28,11 @@ var (
 	KeyMinBurningAmount                  = []byte("MinBurningAmount")
 	KeyMaxBurningAmount                  = []byte("MaxBurningAmount")
 	KeyMaxValidatorToDelegate            = []byte("MaxValidatorToDelegate")
-	KeyValidatorSetCosmosChain           = []byte("ValidatorSetCosmosChain")
-	KeyValidatorSetNativeChain           = []byte("ValidatorSetNativeChain")
 	KeyWeightedDeveloperRewardsReceivers = []byte("WeightedDeveloperRewardsReceivers")
 	KeyDistributionProportion            = []byte("DistributionProportion")
 	KeyEpochs                            = []byte("Epochs")
 	KeyMaxIncomingAndOutgoingTxns        = []byte("MaxIncomingAndOutgoingTxns")
 	KeyCosmosProposalParams              = []byte("CosmosProposalParams")
-	KeyDelegationThreshold               = []byte("DelegationThreshold")
 	KeyModuleEnabled                     = []byte("ModuleEnabled")
 	KeyStakingEpochIdentifier            = []byte("StakeEpochIdentifier")
 	KeyCustodialAddress                  = []byte("CustodialAddress")
@@ -107,8 +104,7 @@ func DefaultParams() Params {
 			ChainID:              "cosmoshub-4", //TODO use these as conditions for proposals
 			ReduceVotingPeriodBy: DefaultPeriod,
 		},
-		DelegationThreshold:       sdk.NewInt64Coin("uatom", 2000000000), // todo discard
-		ModuleEnabled:             false,                                 //TODO : Make false before launch
+		ModuleEnabled:             false, //TODO : Make false before launch
 		CustodialAddress:          "cosmos15vm0p2x990762txvsrpr26ya54p5qlz9xqlw5z",
 		StakingEpochIdentifier:    "stake",
 		UndelegateEpochIdentifier: "undelegate",
@@ -151,9 +147,6 @@ func (p Params) Validate() error {
 		return err
 	}
 	if err := validateCosmosProposalParams(p.CosmosProposalParams); err != nil {
-		return err
-	}
-	if err := validateDelegationThreshold(p.DelegationThreshold); err != nil {
 		return err
 	}
 	if err := validateModuleEnabled(p.ModuleEnabled); err != nil {
@@ -209,7 +202,6 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyEpochs, &p.Epochs, validateEpochs),
 		paramsTypes.NewParamSetPair(KeyMaxIncomingAndOutgoingTxns, &p.MaxIncomingAndOutgoingTxns, validateMaxIncomingAndOutgoingTxns),
 		paramsTypes.NewParamSetPair(KeyCosmosProposalParams, &p.CosmosProposalParams, validateCosmosProposalParams),
-		paramsTypes.NewParamSetPair(KeyDelegationThreshold, &p.DelegationThreshold, validateDelegationThreshold),
 		paramsTypes.NewParamSetPair(KeyModuleEnabled, &p.ModuleEnabled, validateModuleEnabled),
 		paramsTypes.NewParamSetPair(KeyStakingEpochIdentifier, &p.StakingEpochIdentifier, epochsTypes.ValidateEpochIdentifierInterface),
 		paramsTypes.NewParamSetPair(KeyCustodialAddress, &p.CustodialAddress, validateCustodialAddress),
@@ -257,7 +249,6 @@ func (p Params) Equal(other Params) bool {
 		p.MaxIncomingAndOutgoingTxns == other.MaxIncomingAndOutgoingTxns &&
 		p.CosmosProposalParams == other.CosmosProposalParams &&
 		p.CustodialAddress == other.CustodialAddress &&
-		p.DelegationThreshold == other.DelegationThreshold &&
 		p.ModuleEnabled == p.ModuleEnabled &&
 		p.StakingEpochIdentifier == other.StakingEpochIdentifier &&
 		p.ChunkSize == other.ChunkSize &&
@@ -497,19 +488,6 @@ func validateCosmosProposalParams(i interface{}) error {
 		return fmt.Errorf("incorrect voting Period %T", i)
 	}
 
-	return nil
-}
-
-func validateDelegationThreshold(i interface{}) error {
-	v, ok := i.(sdk.Coin)
-
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v.IsNegative() {
-		return fmt.Errorf("delegation threshold cannot be negative")
-	}
 	return nil
 }
 
