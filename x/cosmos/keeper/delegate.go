@@ -10,7 +10,7 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-// Generate an event for delegating on cosmos chain once staking epoch is called
+// generateDelegateOutgoingEvent Generate an event for delegating on cosmos chain once staking epoch is called
 func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []ValAddressAmount) error {
 	params := k.GetParams(ctx)
 

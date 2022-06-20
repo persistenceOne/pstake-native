@@ -9,6 +9,7 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
+// EndBlocker implements the functions to be run at the end of each block
 func EndBlocker(ctx sdk.Context, k Keeper) {
 	if !k.GetParams(ctx).ModuleEnabled {
 		return

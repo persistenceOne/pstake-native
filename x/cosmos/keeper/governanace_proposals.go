@@ -238,7 +238,7 @@ func HandleChangeOracleValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *co
 	return nil
 }
 
-// helper function for handling transaction queue in HandleChangeMultisigProposal
+// handleTransactionQueue helper function for handling transaction queue in HandleChangeMultisigProposal
 func (k Keeper) handleTransactionQueue(ctx sdk.Context, oldAccount authTypes.AccountI) {
 	//step 1 : move all pending and active transactions to an array
 	list := k.getAllFromTransactionQueue(ctx) //gets a map of all transactions

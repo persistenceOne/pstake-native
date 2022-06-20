@@ -142,7 +142,7 @@ func (k Keeper) GetTotalValidatorOrchestratorCount(ctx sdkTypes.Context) int64 {
 	return int64(counter)
 }
 
-// gets the validator mapping currently present in DB
+// getValidatorMapping gets the validator mapping currently present in DB
 func (k Keeper) getValidatorMapping(ctx sdkTypes.Context, valAddress sdkTypes.ValAddress) cosmosTypes.ValidatorStoreValue {
 	orchestratorValidatorStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ValidatorOrchestratorStoreKey)
 	iterator := orchestratorValidatorStore.Iterator(nil, nil)
@@ -158,7 +158,7 @@ func (k Keeper) getValidatorMapping(ctx sdkTypes.Context, valAddress sdkTypes.Va
 	return cosmosTypes.ValidatorStoreValue{}
 }
 
-// gets all validator mapping  and checks if the given oracle address is present in it.
+// getAllValidatorOrchestratorMappingAndFindIfExist gets all validator mapping  and checks if the given oracle address is present in it.
 func (k Keeper) getAllValidatorOrchestratorMappingAndFindIfExist(ctx sdkTypes.Context,
 	orch sdkTypes.AccAddress) (valAddress sdkTypes.ValAddress, found bool, err error) {
 	found = false

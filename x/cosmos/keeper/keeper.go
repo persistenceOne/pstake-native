@@ -77,7 +77,7 @@ func (k Keeper) SetParams(ctx sdkTypes.Context, params cosmosTypes.Params) {
 
 //______________________________________________________________________
 
-// mints tokens in the given account after multiplying with the cValue
+// mintTokens mints tokens in the given account after multiplying with the cValue
 func (k Keeper) mintTokens(ctx sdkTypes.Context, mintStoreValue cosmosTypes.MsgMintTokensForAccount) error {
 	destinationAddress, err := sdkTypes.AccAddressFromBech32(mintStoreValue.AddressFromMemo)
 	if err != nil {
@@ -110,7 +110,7 @@ func (k Keeper) mintTokens(ctx sdkTypes.Context, mintStoreValue cosmosTypes.MsgM
 	return nil
 }
 
-// mint tokens for the given rewards receiver account with the given amount
+// mintTokensForRewardReceivers mint tokens for the given rewards receiver account with the given amount
 func (k Keeper) mintTokensForRewardReceivers(ctx sdkTypes.Context, address sdkTypes.AccAddress, amount sdkTypes.Coin) error {
 	toBeMinted := sdkTypes.NewCoins(amount)
 

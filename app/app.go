@@ -416,7 +416,7 @@ func NewGaiaApp(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
-		AddRoute(cosmosTypes.RouterKey, cosmos.NewCosmosLiquidStakingParametersHandler(app.CosmosKeeper))
+		AddRoute(cosmosTypes.RouterKey, cosmos.NewCosmosLiquidStakingProposalHandler(app.CosmosKeeper))
 
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,

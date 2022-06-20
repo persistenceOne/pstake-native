@@ -9,13 +9,14 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
+// UndelegateSuccessKeyAndValue :
 type UndelegateSuccessKeyAndValue struct {
 	ChainIDHeightAndTxHashKey   cosmosTypes.ChainIDHeightAndTxHashKey
 	ValueUndelegateSuccessStore cosmosTypes.ValueUndelegateSuccessStore
 }
 
 /*
-Adds the undelegate success message entry to the undelegate success store with the given validator address.
+setUndelegateSuccessDetails Adds the undelegate success message entry to the undelegate success store with the given validator address.
 Performs the following actions :
   1. Checks if store has the key or not. If not then create new entry
   2. Checks if store has it and matches all the details present in the message. If not then create a new entry.
@@ -53,7 +54,7 @@ func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.Msg
 	}
 }
 
-// Gets all the undelegate success details present in the undelegate success store
+// getAllUndelegateSuccessDetails Gets all the undelegate success details present in the undelegate success store
 func (k Keeper) getAllUndelegateSuccessDetails(ctx sdk.Context) (list []UndelegateSuccessKeyAndValue) {
 	undelegateSuccessStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyUndelegateSuccessStore)
 	iterator := undelegateSuccessStore.Iterator(nil, nil)
@@ -70,7 +71,7 @@ func (k Keeper) getAllUndelegateSuccessDetails(ctx sdk.Context) (list []Undelega
 	return list
 }
 
-// Removes the given key from the undelegate success store
+// deleteUndelegateSuccessDetails Removes the given key from the undelegate success store
 func (k Keeper) deleteUndelegateSuccessDetails(ctx sdk.Context, key cosmosTypes.ChainIDHeightAndTxHashKey) {
 	undelegateSuccessStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyUndelegateSuccessStore)
 	storeKey := k.cdc.MustMarshal(&key)

@@ -10,7 +10,7 @@ func (k Keeper) GetProportions(ctx sdk.Context, mintedCoin sdk.Coin, ratio sdk.D
 	return sdk.NewCoin(mintedCoin.Denom, mintedCoin.Amount.ToDec().Mul(ratio).TruncateInt())
 }
 
-// mints given rewards amount for the already set validators and developer rewards receivers with the given ratio as set in params
+// mintRewardsClaimed mints given rewards amount for the already set validators and developer rewards receivers with the given ratio as set in params
 func (k Keeper) mintRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin) error {
 	// get amount in Stk assets form
 	params := k.GetParams(ctx)
