@@ -29,11 +29,11 @@ func TestGetValidatorOrchestrator(t *testing.T) {
 	err = keeper.SetValidatorOrchestrator(ctx, valAddr2, orchAddr2)
 	require.Nil(t, err, "Could not set valAddr2")
 
-	val1, ok := keeper.GetValidatorOrchestrator(ctx, valAddr1)
+	val1, ok := keeper.CheckValidator(ctx, valAddr1)
 	require.Equal(t, valAddr1, val1)
 	require.Equal(t, true, ok)
 
-	valNotExists, ok := keeper.GetValidatorOrchestrator(ctx, valAddrNotExists)
+	valNotExists, ok := keeper.CheckValidator(ctx, valAddrNotExists)
 	require.Nil(t, valNotExists)
 	require.Equal(t, false, ok)
 }

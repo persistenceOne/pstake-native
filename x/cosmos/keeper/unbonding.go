@@ -13,10 +13,11 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidatorsAndUnbondingAmount []ValAddressAmount, epochNumber int64) {
+// Generate unbonding outgoing transaction and set in outoging pool with given txID
+func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAndUnbondingAmount []ValAddressAmount, epochNumber int64) {
 	params := k.GetParams(ctx)
 
-	chunkMsgs := ChunkStakeAndUnStakeSlice(listOfValidatorsAndUnbondingAmount, params.ChunkSize)
+	chunkMsgs := ChunkDelegateAndUndelegateSlice(listOfValidatorsAndUnbondingAmount, params.ChunkSize)
 
 	for _, chunk := range chunkMsgs {
 		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
@@ -82,6 +83,7 @@ func (k Keeper) generateUnbondingOutgoingEvent(ctx sdk.Context, listOfValidators
 	}
 }
 
+// Sets ID in epoch pool for withdrawals for the given aaray of undelegate messages
 func (k Keeper) setIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64, undelegateMsgs []stakingTypes.MsgUndelegate, epochNumber int64) error {
 	unbondingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingUnbondStore)
 	key := cosmosTypes.UInt64Bytes(txID)
@@ -94,6 +96,7 @@ func (k Keeper) setIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64, und
 	return nil
 }
 
+// Gets the details corresponding to the given txID in the epoch pool for withdrawals
 func (k Keeper) getIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64) (value cosmosTypes.ValueOutgoingUnbondStore) {
 	unbondingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingUnbondStore)
 	key := cosmosTypes.UInt64Bytes(txID)
@@ -101,6 +104,7 @@ func (k Keeper) getIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64) (va
 	return value
 }
 
+// Removes the details corresponding to the given ID in the epoch pool for withdrawals
 func (k Keeper) deleteIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64) {
 	unbondingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingUnbondStore)
 	key := cosmosTypes.UInt64Bytes(txID)
@@ -109,6 +113,7 @@ func (k Keeper) deleteIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64) 
 
 //_____________________________________________________________________________________
 
+// Set given epoch number with status "false" in epoch withdraw success store
 func (k Keeper) setEpochWithdrawSuccessStore(ctx sdk.Context, epochNumber int64) {
 	epochWithdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyEpochStoreForWithdrawSuccess)
 	key := cosmosTypes.Int64Bytes(epochNumber)
@@ -117,6 +122,7 @@ func (k Keeper) setEpochWithdrawSuccessStore(ctx sdk.Context, epochNumber int64)
 	}
 }
 
+// Gets the least epoch number with withdraw status false from withdraw success store
 func (k Keeper) getLeastEpochNumberWithWithdrawStatusFalse(ctx sdk.Context) int64 {
 	epochWithdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyEpochStoreForWithdrawSuccess)
 	iterator := epochWithdrawStore.Iterator(nil, nil)
@@ -133,6 +139,7 @@ func (k Keeper) getLeastEpochNumberWithWithdrawStatusFalse(ctx sdk.Context) int6
 	return min
 }
 
+// Removes the given epoch number entry from the epoch withdraw success store
 func (k Keeper) deleteEpochWithdrawSuccessStore(ctx sdk.Context, epochNumber int64) {
 	epochWithdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyEpochStoreForWithdrawSuccess)
 	key := cosmosTypes.Int64Bytes(epochNumber)
@@ -141,6 +148,7 @@ func (k Keeper) deleteEpochWithdrawSuccessStore(ctx sdk.Context, epochNumber int
 
 //___________________________________________________________________________________________
 
+// Set epoch number and undelegate details of given validators in the epoch number store
 func (k Keeper) setEpochNumberAndUndelegateDetailsOfValidators(ctx sdk.Context, details cosmosTypes.ValueOutgoingUnbondStore) {
 	epochNumberStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.GetEpochStoreForUndelegationKey(details.EpochNumber))
 	for _, element := range details.UndelegateMessages {
@@ -149,12 +157,14 @@ func (k Keeper) setEpochNumberAndUndelegateDetailsOfValidators(ctx sdk.Context, 
 	}
 }
 
+// Set epoch number and undelefate details of validator in the epoch number store
 func (k Keeper) setEpochNumberAndUndelegateDetailsOfIndividualValidator(ctx sdk.Context, validatorAddress string, epochNumber int64, amount sdk.Coin) {
 	epochNumberStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.GetEpochStoreForUndelegationKey(epochNumber))
 	a := append([]byte(validatorAddress), []byte(amount.String())...)
 	epochNumberStore.Set(a, []byte("true"))
 }
 
+// Gets the undelegate details of validator mapped to the given epoch number in the epoch number store
 func (k Keeper) getEpochNumberAndUndelegateDetailsOfValidators(ctx sdk.Context, epochNumber int64) bool {
 	epochNumberStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.GetEpochStoreForUndelegationKey(epochNumber))
 	iterator := epochNumberStore.Iterator(nil, nil)
@@ -172,6 +182,7 @@ func (k Keeper) getEpochNumberAndUndelegateDetailsOfValidators(ctx sdk.Context, 
 	return false
 }
 
+// set the validator details for all MsgUndelegate success entries
 func (k Keeper) setEpochAndValidatorDetailsForAllUndelegations(ctx sdk.Context, txID uint64) {
 	details := k.getIDInEpochPoolForWithdrawals(ctx, txID)
 	k.setEpochNumberAndUndelegateDetailsOfValidators(ctx, details) //sets undelegations txns for future verifications
@@ -179,7 +190,9 @@ func (k Keeper) setEpochAndValidatorDetailsForAllUndelegations(ctx sdk.Context, 
 	k.setEpochWithdrawSuccessStore(ctx, details.EpochNumber) //sets withdraw batch success as false
 }
 
-func ChunkStakeAndUnStakeSlice(slice []ValAddressAmount, chunkSize int64) (chunks [][]ValAddressAmount) {
+// ChunkDelegateAndUndelegateSlice divides 1D slice of ValAddressAmount into chunks of given size and
+// returns it by putting it in a 2D slice
+func ChunkDelegateAndUndelegateSlice(slice []ValAddressAmount, chunkSize int64) (chunks [][]ValAddressAmount) {
 	for {
 		if len(slice) == 0 {
 			break

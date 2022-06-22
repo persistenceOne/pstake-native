@@ -113,4 +113,8 @@ message Params {
   uint64 multisig_threshold = 21;
   uint64 retry_limit = 22;
   string reward_epoch_identifier = 23;
+  cosmos.base.v1beta1.Coin min_reward = 24 [
+    (gogoproto.moretags) = "yaml:\"min_minting_amount\"",
+    (gogoproto.nullable) = false
+  ];
 }

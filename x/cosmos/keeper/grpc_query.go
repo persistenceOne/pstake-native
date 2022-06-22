@@ -30,6 +30,7 @@ func (k Keeper) QueryTxByID(context context.Context, req *cosmosTypes.QueryOutgo
 	return &cosmosTxDetails, nil
 }
 
+// Proposal Query proposal by ID which came in from cosmos side
 func (k Keeper) Proposal(context context.Context, req *cosmosTypes.QueryProposalRequest) (*cosmosTypes.QueryProposalResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -151,18 +152,21 @@ func (k Keeper) Votes(c context.Context, req *cosmosTypes.QueryVotesRequest) (*c
 	return &cosmosTypes.QueryVotesResponse{Votes: votes, Pagination: pageRes}, nil
 }
 
+// CosmosValidatorSet returns the cosmos validator set and their respective weights
 func (k Keeper) CosmosValidatorSet(c context.Context, _ *cosmosTypes.QueryCosmosValidatorSetRequest) (*cosmosTypes.QueryCosmosValidatorSetResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 	weihtedAddresses := k.GetAllCosmosValidatorSet(ctx)
 	return &cosmosTypes.QueryCosmosValidatorSetResponse{WeightedAddresses: weihtedAddresses}, nil
 }
 
+// OracleValidatorSet returns the oracle validator set and their respective weights
 func (k Keeper) OracleValidatorSet(c context.Context, _ *cosmosTypes.QueryOracleValidatorSetRequest) (*cosmosTypes.QueryOracleValidatorSetResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 	weightedAddresses := k.getAllOracleValidatorSet(ctx)
 	return &cosmosTypes.QueryOracleValidatorSetResponse{WeightedAddresses: weightedAddresses}, nil
 }
 
+// ValidatorMapping returns the oracle address mapped to the given validator address
 func (k Keeper) ValidatorMapping(c context.Context, query *cosmosTypes.QueryValidatorMappingRequest) (*cosmosTypes.QueryValidatorMappingResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
@@ -179,6 +183,7 @@ func (k Keeper) ValidatorMapping(c context.Context, query *cosmosTypes.QueryVali
 	}, nil
 }
 
+// OracleHeight returns the last updated height of given oracle
 func (k Keeper) OracleHeight(c context.Context, query *cosmosTypes.QueryOracleLastUpdateHeightRequest) (*cosmosTypes.QueryOracleLastUpdateHeightResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 

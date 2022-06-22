@@ -33,13 +33,20 @@ func (k Keeper) AfterProposalVotingPeriodEnded(ctx sdk.Context, proposalID uint6
 func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) {
 }
 
+/*
+AfterEpochEnd handle the "stake", "reward" and "undelegate" epoch and their respective actions
+1. "stake" generates delegate transaction for delegating the amount of uatom accumulated over the "stake" epoch
+2. "reward" generates delegate transaction for delegating the amount of uatom accumulated over the "reward" epochs
+and shift the amount to next epoch if the min amount is not reached
+3. "undelegate" generated the undelegate transaction for undelegating the amount accumulated over the "undelegate" epoch
+*/
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) {
 	params := k.GetParams(ctx)
 
 	if epochIdentifier == params.StakingEpochIdentifier {
 		amount := k.getAmountFromStakingEpoch(ctx, epochNumber)
 		if !amount.IsZero() {
-			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, amount, epochIdentifier)
+			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, amount)
 			if err != nil {
 				panic(err)
 			}
@@ -54,7 +61,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	if epochIdentifier == params.RewardEpochIdentifier {
 		rewardsToDelegate := k.getFromRewardsInCurrentEpochAmount(ctx, epochNumber)
 		if !rewardsToDelegate.IsZero() {
-			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, rewardsToDelegate, epochIdentifier)
+			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, rewardsToDelegate)
 			if err != nil {
 				panic(err)
 			}
@@ -103,7 +110,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 			if err != nil {
 				panic(err)
 			}
-			k.generateUnbondingOutgoingEvent(ctx, listOfValidatorsAndUnbondingAmount, epochNumber)
+			k.generateUnbondingOutgoingTxn(ctx, listOfValidatorsAndUnbondingAmount, epochNumber)
 
 			// convert the total withdrawal back to mint denom to burn the same amount as the unbonding transaction has been added to the queue
 			burnCoin := sdk.NewCoin(k.GetParams(ctx).MintDenom, totalWithdrawal.Amount)

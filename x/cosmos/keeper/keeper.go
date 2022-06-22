@@ -18,6 +18,7 @@ import (
 	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 )
 
+// Keeper of the cosmos store
 type Keeper struct {
 	cdc           codec.BinaryCodec
 	storeKey      sdkTypes.StoreKey
@@ -31,6 +32,7 @@ type Keeper struct {
 	distrKeeper   *distrkeeper.Keeper
 }
 
+// NewKeeper creates a new cosmos Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdkTypes.StoreKey, paramSpace paramsTypes.Subspace, authKeeper *authKeeper.AccountKeeper,
 	bankKeeper *bankKeeper.BaseKeeper, mintKeeper *mintKeeper.Keeper, stakingKeeper *stakingKeeper.Keeper,
@@ -86,7 +88,10 @@ func (k Keeper) SetMintingParams(ctx sdkTypes.Context, params mintTypes.Params) 
 	k.mintKeeper.SetParams(ctx, params)
 }
 
-func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, mintStoreValue cosmosTypes.MsgMintTokensForAccount) error {
+//______________________________________________________________________
+
+// mints tokens in the given account after multiplying with the cValue
+func (k Keeper) mintTokens(ctx sdkTypes.Context, mintStoreValue cosmosTypes.MsgMintTokensForAccount) error {
 	destinationAddress, err := sdkTypes.AccAddressFromBech32(mintStoreValue.AddressFromMemo)
 	if err != nil {
 		return err
@@ -118,6 +123,7 @@ func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, mintStoreValue cosmos
 	return nil
 }
 
+// mint tokens for the given rewards receiver account with the given amount
 func (k Keeper) mintTokensForRewardReceivers(ctx sdkTypes.Context, address sdkTypes.AccAddress, amount sdkTypes.Coin) error {
 	toBeMinted := sdkTypes.NewCoins(amount)
 

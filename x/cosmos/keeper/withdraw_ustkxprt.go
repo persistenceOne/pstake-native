@@ -64,6 +64,7 @@ func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdraw
 	return nil
 }
 
+// Gets withdraw transaction mapped to current epoch number
 func (k Keeper) fetchWithdrawTxnsWithCurrentEpochInfo(ctx sdk.Context, currentEpoch int64) (withdrawStoreValue cosmosTypes.WithdrawStoreValue, err error) {
 	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
 	if !withdrawStore.Has(cosmosTypes.Int64Bytes(currentEpoch)) {
@@ -73,11 +74,13 @@ func (k Keeper) fetchWithdrawTxnsWithCurrentEpochInfo(ctx sdk.Context, currentEp
 	return withdrawStoreValue, nil
 }
 
+// Remove the details mapped to the current epoch number
 func (k Keeper) deleteWithdrawTxnWithCurrentEpochInfo(ctx sdk.Context, currentEpoch int64) {
 	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
 	withdrawStore.Delete(cosmosTypes.Int64Bytes(currentEpoch))
 }
 
+// Get the total amount that is to be unbonded
 func (k Keeper) totalAmountToBeUnbonded(value cosmosTypes.WithdrawStoreValue, denom string) sdk.Coin {
 	amount := sdk.NewInt64Coin(denom, 0)
 	for _, element := range value.WithdrawDetails {
@@ -86,7 +89,8 @@ func (k Keeper) totalAmountToBeUnbonded(value cosmosTypes.WithdrawStoreValue, de
 	return amount
 }
 
-func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumber int64) error {
+// Generates send transaction for the withdrawals and add it to the outgoing pool with the given txID
+func (k Keeper) generateSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumber int64) error {
 	withdrawStoreValue, err := k.fetchWithdrawTxnsWithCurrentEpochInfo(ctx, epochNumber)
 	if err != nil {
 		return err
@@ -152,6 +156,8 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 	return nil
 }
 
+// ChunkWithdrawSlice divides 1D slice of MsgWithdrawStkAsset into chunks of given size and
+// returns it by putting it in a 2D slice
 func ChunkWithdrawSlice(slice []cosmosTypes.MsgWithdrawStkAsset, chunkSize int64) (chunks [][]cosmosTypes.MsgWithdrawStkAsset) {
 	for {
 		if len(slice) == 0 {

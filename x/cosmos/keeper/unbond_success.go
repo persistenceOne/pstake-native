@@ -13,6 +13,13 @@ type UndelegateSuccessKeyAndValue struct {
 	ValueUndelegateSuccessStore cosmosTypes.ValueUndelegateSuccessStore
 }
 
+/*
+Adds the undelegate success message entry to the undelegate success store with the given validator address.
+Performs the following actions :
+  1. Checks if store has the key or not. If not then create new entry
+  2. Checks if store has it and matches all the details present in the message. If not then create a new entry.
+  3. Finally, if all the details match then append the validator address to keep track.
+*/
 func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.MsgUndelegateSuccess, validatorAddress sdk.ValAddress) {
 	undelegateSuccessStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyUndelegateSuccessStore)
 	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(msg.ChainID, msg.BlockHeight, msg.TxHash)
@@ -45,6 +52,7 @@ func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.Msg
 	}
 }
 
+// Gets all the undelegate success details present in the undelegate success store
 func (k Keeper) getAllUndelegateSuccessDetails(ctx sdk.Context) (list []UndelegateSuccessKeyAndValue) {
 	undelegateSuccessStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyUndelegateSuccessStore)
 	iterator := undelegateSuccessStore.Iterator(nil, nil)
@@ -61,12 +69,21 @@ func (k Keeper) getAllUndelegateSuccessDetails(ctx sdk.Context) (list []Undelega
 	return list
 }
 
+// Removes the given key from the undelegate success store
 func (k Keeper) deleteUndelegateSuccessDetails(ctx sdk.Context, key cosmosTypes.ChainIDHeightAndTxHashKey) {
 	undelegateSuccessStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyUndelegateSuccessStore)
 	storeKey := k.cdc.MustMarshal(&key)
 	undelegateSuccessStore.Delete(storeKey)
 }
 
+/*
+ProcessAllUndelegateSuccess processes all the undelegate success requests
+This function is called every EndBlocker to perform the defined set of actions as mentioned below :
+   1. Get the list of all undelegate success requests and the last epoch with withdraw status false.
+   2. Checks if the majority of the validator oracle have sent the minting request.
+   3. If majority is reached, set the epch number and undelegate details if individual details of validator.
+   4. Another check is present for setting send transaction in outgoing pool.
+*/
 func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) {
 	list := k.getAllUndelegateSuccessDetails(ctx)
 	epochNumber := k.getLeastEpochNumberWithWithdrawStatusFalse(ctx)
@@ -88,13 +105,14 @@ func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) {
 
 	flagForWithdrawSuccess := k.getEpochNumberAndUndelegateDetailsOfValidators(ctx, epochNumber)
 	if flagForWithdrawSuccess {
-		err := k.emitSendTransactionForAllWithdrawals(ctx, epochNumber)
+		err := k.generateSendTransactionForAllWithdrawals(ctx, epochNumber)
 		if err != nil {
 			panic(err)
 		}
 	}
 }
 
+// StoreValueEqualOrNotUndelegateSuccess Helper function for undelegate success store to check if the relevant details in the message matches or not.
 func StoreValueEqualOrNotUndelegateSuccess(storeValue cosmosTypes.ValueUndelegateSuccessStore,
 	msgValue cosmosTypes.MsgUndelegateSuccess) bool {
 	if storeValue.UndelegateSuccess.DelegatorAddress != msgValue.DelegatorAddress {

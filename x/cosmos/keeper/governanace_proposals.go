@@ -13,6 +13,13 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
+/*
+HandleChangeMultisigProposal handles the multisig change proposal
+Multisig change proposal is used to change the multsig account on cosmos side with the given oracle addresses in
+the proposal and does the following actions :
+1. Aggregate all the keys and form a multisig address
+2. Handle the transaction queue (by making grant, feegrant and revoke transactions for changing authorizations)
+*/
 func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeMultisigProposal) error {
 	oldAccountAddress := k.getCurrentAddress(ctx)
 	oldAccount := k.getAccountState(ctx, oldAccountAddress)
@@ -91,6 +98,11 @@ func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Chan
 	return nil
 }
 
+/*
+HandleEnableModuleProposal handles the proposal to enable module by setting the moduleEnable flag in params
+Initially checks if module is already enabled. After verifying the account addresses supplied with the proposal a new
+multisig address is formed and set. Post all these step the module is enabled by calling enableModule function
+*/
 func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.EnableModuleProposal) error {
 	// check if module already enabled
 	if k.GetParams(ctx).ModuleEnabled {
@@ -176,6 +188,10 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 	return nil
 }
 
+/*
+HandleChangeCosmosValidatorWeightsProposal handles the proposal for change of weights of cosmos side validator set
+by verifying the supplied data and then setting it in DB
+*/
 func HandleChangeCosmosValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeCosmosValidatorWeightsProposal) error {
 	// step 1 : check total sum of weights is 1
 	err := cosmosTypes.ValidateValidatorSetCosmosChain(p.WeightedAddresses)
@@ -194,6 +210,10 @@ func HandleChangeCosmosValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *co
 	return nil
 }
 
+/*
+HandleChangeOracleValidatorWeightsProposal handles the proposal for change of weights of oracle validator set
+by verifying the supplied data and then setting it in DB
+*/
 func HandleChangeOracleValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeOracleValidatorWeightsProposal) error {
 	// step 1 : check total sum of weights is 1
 	err := cosmosTypes.ValidateValidatorSetNativeChain(p.WeightedAddresses)
@@ -217,6 +237,7 @@ func HandleChangeOracleValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *co
 	return nil
 }
 
+// helper function for handling transaction queue in HandleChangeMultisigProposal
 func (k Keeper) handleTransactionQueue(ctx sdk.Context, oldAccount authTypes.AccountI) {
 	//step 1 : move all pending and active transactions to an array
 	list := k.getAllFromTransactionQueue(ctx) //gets a map of all transactions

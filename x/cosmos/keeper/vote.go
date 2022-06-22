@@ -98,6 +98,7 @@ func (k Keeper) deleteVote(ctx sdkTypes.Context, proposalID uint64, voterAddr sd
 	store.Delete(cosmosTypes.VoteKey(proposalID, voterAddr))
 }
 
+// IterateVotes iterates over the all the proposals votes and performs a callback function
 func (k Keeper) IterateVotes(ctx sdkTypes.Context, proposalID uint64, cb func(vote cosmosTypes.Vote) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdkTypes.KVStorePrefixIterator(store, cosmosTypes.VotesKey(proposalID))

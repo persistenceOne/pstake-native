@@ -27,6 +27,7 @@ var (
 	KeyMaxMintingAmount                  = []byte("MaxMintingAmount")
 	KeyMinBurningAmount                  = []byte("MinBurningAmount")
 	KeyMaxBurningAmount                  = []byte("MaxBurningAmount")
+	KeyMinReward                         = []byte("MinReward")
 	KeyMaxValidatorToDelegate            = []byte("MaxValidatorToDelegate")
 	KeyWeightedDeveloperRewardsReceivers = []byte("WeightedDeveloperRewardsReceivers")
 	KeyDistributionProportion            = []byte("DistributionProportion")
@@ -55,12 +56,13 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 	distributionProportion DistributionProportions, epochs int64, maxIncomingAndOutgoingTxns int64,
 	cosmosProposalParams CosmosChainProposalParams, stakingEpochIdentifier string, custodialAddress string,
 	undelegateEpochIdentifier string, chunkSize int64, bondDenom []string, stakingDenom string, mintDenom string,
-	multiSigThreshold uint64, retryLimit uint64, rewardEpochIdentifier string) Params {
+	multiSigThreshold uint64, retryLimit uint64, rewardEpochIdentifier string, minReward sdk.Coin) Params {
 	return Params{
 		MinMintingAmount:                  minMintingAmount,
 		MaxMintingAmount:                  maxMintingAmount,
 		MinBurningAmount:                  minBurningAmount,
 		MaxBurningAmount:                  maxBurningAmount,
+		MinReward:                         minReward,
 		MaxValidatorToDelegate:            maxValidatorToDelegate,
 		WeightedDeveloperRewardsReceivers: weightedDeveloperRewardsReceivers,
 		DistributionProportion:            distributionProportion,
@@ -87,6 +89,7 @@ func DefaultParams() Params {
 		MaxMintingAmount:       sdk.NewInt64Coin("uatom", 100000000000),
 		MinBurningAmount:       sdk.NewInt64Coin("uatom", 5000000),
 		MaxBurningAmount:       sdk.NewInt64Coin("uatom", 100000000000),
+		MinReward:              sdk.NewInt64Coin("uatom", 1000),
 		MaxValidatorToDelegate: 3,
 		WeightedDeveloperRewardsReceivers: []WeightedAddress{
 			{
@@ -119,16 +122,16 @@ func DefaultParams() Params {
 }
 
 func (p Params) Validate() error {
-	if err := validateMinMintingAmount(p.MinMintingAmount); err != nil {
+	if err := validateAmount(p.MinMintingAmount); err != nil {
 		return err
 	}
-	if err := validateMaxMintingAmount(p.MaxMintingAmount); err != nil {
+	if err := validateAmount(p.MaxMintingAmount); err != nil {
 		return err
 	}
-	if err := validateMinBurningAmount(p.MinBurningAmount); err != nil {
+	if err := validateAmount(p.MinBurningAmount); err != nil {
 		return err
 	}
-	if err := validateMaxBurningAmount(p.MaxBurningAmount); err != nil {
+	if err := validateAmount(p.MaxBurningAmount); err != nil {
 		return err
 	}
 	if err := validateMaxValidatorToDelegate(p.MaxValidatorToDelegate); err != nil {
@@ -192,10 +195,11 @@ func (p Params) String() string {
 
 func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 	return paramsTypes.ParamSetPairs{
-		paramsTypes.NewParamSetPair(KeyMinMintingAmount, &p.MinMintingAmount, validateMinMintingAmount),
-		paramsTypes.NewParamSetPair(KeyMaxMintingAmount, &p.MaxMintingAmount, validateMaxMintingAmount),
-		paramsTypes.NewParamSetPair(KeyMinBurningAmount, &p.MinBurningAmount, validateMinBurningAmount),
-		paramsTypes.NewParamSetPair(KeyMaxBurningAmount, &p.MaxBurningAmount, validateMaxBurningAmount),
+		paramsTypes.NewParamSetPair(KeyMinMintingAmount, &p.MinMintingAmount, validateAmount),
+		paramsTypes.NewParamSetPair(KeyMaxMintingAmount, &p.MaxMintingAmount, validateAmount),
+		paramsTypes.NewParamSetPair(KeyMinBurningAmount, &p.MinBurningAmount, validateAmount),
+		paramsTypes.NewParamSetPair(KeyMaxBurningAmount, &p.MaxBurningAmount, validateAmount),
+		paramsTypes.NewParamSetPair(KeyMinReward, &p.MinReward, validateAmount),
 		paramsTypes.NewParamSetPair(KeyMaxValidatorToDelegate, &p.MaxValidatorToDelegate, validateMaxValidatorToDelegate),
 		paramsTypes.NewParamSetPair(KeyWeightedDeveloperRewardsReceivers, &p.WeightedDeveloperRewardsReceivers, validateWeightedDeveloperRewardsReceivers),
 		paramsTypes.NewParamSetPair(KeyDistributionProportion, &p.DistributionProportion, validateDistributionProportion),
@@ -258,50 +262,14 @@ func (p Params) Equal(other Params) bool {
 		p.RewardEpochIdentifier == other.RewardEpochIdentifier
 }
 
-func validateMinMintingAmount(i interface{}) error {
+func validateAmount(i interface{}) error {
 	coin, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
 	if coin.IsNegative() {
-		return errors.New("min minting amount cannot be negative")
-	}
-	return nil
-}
-
-func validateMaxMintingAmount(i interface{}) error {
-	coin, ok := i.(sdk.Coin)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if coin.IsNegative() {
-		return errors.New("max minting amount cannot be negative")
-	}
-	return nil
-}
-
-func validateMinBurningAmount(i interface{}) error {
-	coin, ok := i.(sdk.Coin)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if coin.IsNegative() {
-		return errors.New("min burning amount cannot be negative")
-	}
-	return nil
-}
-
-func validateMaxBurningAmount(i interface{}) error {
-	coin, ok := i.(sdk.Coin)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if coin.IsNegative() {
-		return errors.New("max burning amount cannot be negative")
+		return fmt.Errorf("amount cannot be negative")
 	}
 	return nil
 }

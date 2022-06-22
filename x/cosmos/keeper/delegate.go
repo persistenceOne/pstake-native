@@ -15,7 +15,7 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 	params := k.GetParams(ctx)
 
 	//create chunks for delegation on cosmos chain
-	chunkSlice := ChunkStakeAndUnStakeSlice(validatorSet, params.ChunkSize)
+	chunkSlice := ChunkDelegateAndUndelegateSlice(validatorSet, params.ChunkSize)
 
 	for _, chunk := range chunkSlice {
 		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
@@ -70,32 +70,12 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 
 		// set acknowledgment flag true for future reference (not any yet)
 
-		//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
+		// Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
 		k.setNewTxnInOutgoingPool(ctx, nextID, tx)
 
+		// sets the transaction in transaction queue with the given tx ID
 		k.setNewInTransactionQueue(ctx, nextID)
 	}
 
 	return nil
-}
-
-//______________________________________________________________________________________________________________________
-func (k Keeper) setTotalDelegatedAmountTillDate(ctx sdk.Context, addToTotal sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	bz, err := k.cdc.Marshal(&addToTotal)
-	if err != nil {
-		panic(err)
-	}
-	store.Set(cosmosTypes.KeyTotalDelegationTillDate, bz)
-}
-
-func (k Keeper) getTotalDelegatedAmountTillDate(ctx sdk.Context) sdk.Coin {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(cosmosTypes.KeyTotalDelegationTillDate)
-	var amount sdk.Coin
-	err := k.cdc.Unmarshal(bz, &amount)
-	if err != nil {
-		panic(err)
-	}
-	return amount
 }

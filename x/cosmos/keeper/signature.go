@@ -15,6 +15,12 @@ type OutgoingSignaturePoolKeyAndValue struct {
 	OutgoingSignaturePoolValue cosmosTypes.OutgoingSignaturePoolValue
 }
 
+/*
+Adds the signature entry to the signature pool store with the given validator address.
+Performs the following actions :
+  1. Checks if the store has the key, if it has the key then it appends the signature.
+  2. If not present in the store then creates a new entry.
+*/
 func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context, singleSignature cosmosTypes.SingleSignatureDataForOutgoingPool, txID uint64, orchestratorAddress sdk.AccAddress, validatorAddress sdk.ValAddress) error {
 	outgoingSignaturePoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingSignaturePoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
@@ -37,6 +43,7 @@ func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context, singleSignature cosm
 	return nil
 }
 
+// Gets all the entries from the outgoing signature pool
 func (k Keeper) getAllFromOutgoingSignaturePool(ctx sdk.Context) (list []OutgoingSignaturePoolKeyAndValue, err error) {
 	outgoingSignaturePoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingSignaturePoolKey)
 	iterator := outgoingSignaturePoolStore.Iterator(nil, nil)
@@ -53,12 +60,21 @@ func (k Keeper) getAllFromOutgoingSignaturePool(ctx sdk.Context) (list []Outgoin
 	return list, err
 }
 
+// Removes the entry corresponding to the given txID from the outgoing signature pool
 func (k Keeper) removeFromOutgoingSignaturePool(ctx sdk.Context, txID uint64) {
 	outgoingSignaturePoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingSignaturePoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	outgoingSignaturePoolStore.Delete(key)
 }
 
+/*
+ProcessAllSignature processes all the outgoing signature entries
+This function is called every EndBlocker to perform the defined set of actions as mentioned below :
+   1. Get the list of all outgoing signature entries
+   2. Checks if the signatures sent have crossed the threshold.
+   3. If majority is reached and other conditions match then the signature is added to the transaction.
+   4. Once the signature is added, a signed outgoing txn event is generated.
+*/
 func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 	outgoingSignaturePool, err := k.getAllFromOutgoingSignaturePool(ctx)
 	if err != nil {
@@ -107,6 +123,8 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 			if err != nil {
 				panic(err)
 			}
+
+			k.removeFromOutgoingSignaturePool(ctx, os.txID)
 		}
 	}
 }

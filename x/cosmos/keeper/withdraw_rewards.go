@@ -9,6 +9,13 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
+/*
+Adds the rewards claimed message entry to the rewards claimed store with the given validator address.
+Performs the following actions :
+  1. Checks if store has the key or not. If not then create new entry
+  2. Checks if store has it and matches all the details present in the message. If not then create a new entry.
+  3. Finally, if all the details match then append the validator address to keep track.
+*/
 func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, msg cosmosTypes.MsgRewardsClaimedOnCosmosChain, validatorAddress sdk.ValAddress) {
 	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
 	key := []byte(cosmosTypes.GetChainIDAndBlockHeightKey(msg.ChainID, msg.BlockHeight))
@@ -41,6 +48,7 @@ func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, msg cosmosTypes.MsgRewa
 	}
 }
 
+// Gets the list of all rewards claimed requests from rewards claimed store
 func (k Keeper) getAllFromRewardsClaimedPool(ctx sdk.Context) (list []cosmosTypes.RewardsClaimedValue, keys [][]byte) {
 	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
 	iterator := rewardsClaimedStore.Iterator(nil, nil)
@@ -54,6 +62,7 @@ func (k Keeper) getAllFromRewardsClaimedPool(ctx sdk.Context) (list []cosmosType
 	return list, keys
 }
 
+// Set added to current epoch true for the given key in rewards claimed store
 func (k Keeper) setAddedToCurrentEpochTrue(ctx sdk.Context, key []byte) {
 	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
 
@@ -63,6 +72,7 @@ func (k Keeper) setAddedToCurrentEpochTrue(ctx sdk.Context, key []byte) {
 	rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&rewardsClaimedValue))
 }
 
+// Remove the given key from the rewards claimed store
 func (k Keeper) deleteFromRewardsClaimedPool(ctx sdk.Context, key []byte) {
 	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
 	rewardsClaimedStore.Delete(key)
@@ -70,6 +80,7 @@ func (k Keeper) deleteFromRewardsClaimedPool(ctx sdk.Context, key []byte) {
 
 //______________________________________________________________________________________________________________________
 
+// Add the rewards claimed amount to the current epoch
 func (k Keeper) addToRewardsInCurrentEpoch(ctx sdk.Context, amount sdk.Coin) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 	currentEpoch := k.epochsKeeper.GetEpochInfo(ctx, k.GetParams(ctx).StakingEpochIdentifier).CurrentEpoch
@@ -88,6 +99,7 @@ func (k Keeper) addToRewardsInCurrentEpoch(ctx sdk.Context, amount sdk.Coin) {
 	rewardsInCurrentEpochStore.Set(key, k.cdc.MustMarshal(&newAmount))
 }
 
+// Get the amount of rewards claimed mapped to the given epoch number
 func (k Keeper) getFromRewardsInCurrentEpochAmount(ctx sdk.Context, epochNumber int64) (amount sdk.Coin) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 	if !rewardsInCurrentEpochStore.Has(cosmosTypes.Int64Bytes(epochNumber)) {
@@ -120,6 +132,7 @@ func (k Keeper) shiftRewardsToNextEpoch(ctx sdk.Context, epochNumber int64) {
 	return
 }
 
+// Remove the given key from the rewards in current epoch store
 func (k Keeper) deleteFromRewardsInCurrentEpoch(ctx sdk.Context, epochNumber int64) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 	rewardsInCurrentEpochStore.Delete(cosmosTypes.Int64Bytes(epochNumber))
@@ -127,6 +140,16 @@ func (k Keeper) deleteFromRewardsInCurrentEpoch(ctx sdk.Context, epochNumber int
 
 //______________________________________________________________________________________________________________________
 
+/*
+ProcessRewards processes all the rewards requests
+This function is called every EndBlocker to perform the defined set of actions as mentioned below :
+   1. Get the list of all rewards requests
+   2. Checks if the majority of the validator oracle have sent the minting request. Also checks the
+      addedToCurrentEpoch flag.
+   3. If majority is reached and other conditions match then rewards are added to current epoch and
+      addedToCurrentEpoch flag is marked true.
+   4. Another condition of ActiveBlockHeight is also checked whether to delete the entry or not.
+*/
 func (k Keeper) ProcessRewards(ctx sdk.Context) {
 	rewardsList, keys := k.getAllFromRewardsClaimedPool(ctx)
 	if len(rewardsList) != len(keys) {
@@ -146,6 +169,7 @@ func (k Keeper) ProcessRewards(ctx sdk.Context) {
 	}
 }
 
+// StoreValueEqualOrNotRewardsClaimed Helper function for rewards claimed store to check if the relevant details in the message matches or not.
 func StoreValueEqualOrNotRewardsClaimed(storeValue cosmosTypes.RewardsClaimedValue,
 	msgValue cosmosTypes.MsgRewardsClaimedOnCosmosChain) bool {
 	if !storeValue.RewardsClaimed.AmountClaimed.IsEqual(msgValue.AmountClaimed) {

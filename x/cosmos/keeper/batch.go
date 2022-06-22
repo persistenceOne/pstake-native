@@ -24,6 +24,7 @@ type txIDAndDetailsInOutgoingPool struct {
 	txDetails cosmosTypes.CosmosTx
 }
 
+// sets new transaction in outoging pool with the given transaction details
 func (k Keeper) setNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosTypes.CosmosTx) {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
@@ -34,6 +35,7 @@ func (k Keeper) setNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosT
 	outgoingStore.Set(key, bz)
 }
 
+// updates the status of the transactions once they are done with processing and successful
 func (k Keeper) updateStatusOnceProcessed(ctx sdk.Context, txID uint64, status string) {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
@@ -57,7 +59,7 @@ func (k Keeper) setEventEmittedFlag(ctx sdk.Context, txID uint64, flag bool) {
 	outgoingStore.Set(key, k.cdc.MustMarshal(&cosmosTx))
 }
 
-//gets txn details by ID
+// gets txn details corresponding to the given ID
 func (k Keeper) getTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmosTypes.QueryOutgoingTxByIDResponse, error) {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
@@ -128,9 +130,6 @@ func (k Keeper) getAllTxInOutgoingPool(ctx sdk.Context) (details []txIDAndDetail
 }
 
 //______________________________________________________________________________________________
-/*
-TODO : Add key and value structure
-*/
 
 type TxHashAndDetails struct {
 	TxHash  string
@@ -464,9 +463,6 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 						k.updateStatusOnceProcessed(ctx, txID, "success")
 						k.SubFromVirtuallyUnbonded(ctx, GetAmountFromMessage(execMsgs))
 						k.SubFromStaked(ctx, GetAmountFromMessage(execMsgs))
-					case *bankTypes.MsgSend:
-						// not sure to keep it
-						// TODO : update C value
 					}
 					break
 				}
