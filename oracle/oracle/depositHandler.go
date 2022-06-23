@@ -99,8 +99,6 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 							BlockHeight:         depositHeight,
 						}
 
-						fmt.Println(msg.String(), "<--nativeMsg")
-
 						txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCLiCtx, msg)
 						if err != nil {
 							return err

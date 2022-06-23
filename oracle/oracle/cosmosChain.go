@@ -32,6 +32,7 @@ type CosmosChain struct {
 	GasAdjustment    float64        `json:"gas_adjustment" yaml:"gas_adjustment"`
 	GasPrices        string         `json:"gas_prices" yaml:"gas_prices"`
 	CustodialAddress sdk.AccAddress `json:"custodial_address" yaml:"custodial_address"`
+	CoinType         uint32         `json:"coin_type" yaml:"coin_type"`
 
 	HomePath string                `json:"home_path" yaml:"home_path"`
 	KeyBase  keys.Keyring          `json:"-" yaml:""`
@@ -137,9 +138,17 @@ func (c *CosmosChain) Start() error {
 
 var sdkContextMutex sync.Mutex
 
-func StartListeningCosmosSideActions(valAddr string, orcSeeds []string, nativeCliCtx client.Context, ClientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
+func StartListeningCosmosEvent(valAddr string, orcSeeds []string, nativeCliCtx client.Context, ClientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
 	ctx := context.Background()
-	var cHeight, nHeight uint64
+
+	var cHeight uint64
+
+	abciInfoCosmos, err := chain.Client.ABCIInfo(ctx)
+	if err != nil {
+		fmt.Println("error getting abci info", err)
+		logg.Println("error getting cosmos abci info", err)
+	}
+	cHeight = uint64(abciInfoCosmos.Response.LastBlockHeight)
 
 	rpcClient, err := rpchttp.New(chain.RPCAddr, "/websocket")
 	if err != nil {
@@ -157,6 +166,44 @@ func StartListeningCosmosSideActions(valAddr string, orcSeeds []string, nativeCl
 	defer cancel()
 
 	query := "tm.event = 'NewBlock'"
+
+	EventListForBlock, err := rpcClient.Subscribe(ctx, "oracle-client", query)
+	if err != nil {
+		logg.Println("error subscribing, to the Event", err)
+	}
+	logg.Println("listening to events on Cosmos side")
+	for e := range EventListForBlock {
+		logg.Println("listening to events on Cosmos side")
+
+		slashSlice := e.Events["slash.address"]
+
+		if slashSlice == nil {
+			continue
+		}
+
+		for _, slashAddr := range slashSlice {
+			err := chain.SlashingHandler(slashAddr, orcSeeds, valAddr, nativeCliCtx, native, chain, int64(cHeight))
+			if err != nil {
+				logg.Println("proposal handling error")
+				return
+			}
+		}
+		propIDSlice := e.Events["active_proposal.proposal_id"]
+		if propIDSlice == nil {
+			continue
+		}
+		for _, propId := range propIDSlice {
+			err := chain.ProposalHandler(propId, orcSeeds, nativeCliCtx, native, chain, int64(cHeight))
+			if err != nil {
+				logg.Println("proposal handling error")
+				return
+			}
+		}
+	}
+}
+func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx client.Context, ClientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
+	ctx := context.Background()
+	var cHeight, nHeight uint64
 
 	if _, err := os.Stat(filepath.Join(chain.HomePath, "status.json")); err == nil {
 		cHeight, nHeight = GetHeightStatus(chain.HomePath)
@@ -186,29 +233,19 @@ func StartListeningCosmosSideActions(valAddr string, orcSeeds []string, nativeCl
 			logg.Fatalln()
 		}
 
-		EventListForBlock, err := rpcClient.Subscribe(ctx, "oracle-client", query)
+		time.Sleep(5)
+
+		abciInfoCosmos, err := chain.Client.ABCIInfo(ctx)
 		if err != nil {
-			logg.Println("error subscribing, to the Event", err)
-		}
+			fmt.Println("error getting abci info", err)
+			logg.Println("error getting cosmos abci info", err)
 
-		for e := range EventListForBlock {
-			logg.Println("listening to events on Cosmos side")
-			propIDSlice := e.Events["active_proposal.proposal_id"]
-			if propIDSlice == nil {
-				continue
-			}
-			for _, propId := range propIDSlice {
-				err := chain.ProposalHandler(propId, orcSeeds, nativeCliCtx, native, chain, int64(cHeight))
-				if err != nil {
-					logg.Println("proposal handling error")
-					return
-				}
-			}
-		}
+			time.Sleep(4)
+			cHeight = uint64(abciInfoCosmos.Response.LastBlockHeight)
 
-		cHeight += 1
-		NewStatusJSON(chain.HomePath, cHeight, nHeight)
+			NewStatusJSON(chain.HomePath, cHeight, nHeight)
+
+		}
 
 	}
-
 }

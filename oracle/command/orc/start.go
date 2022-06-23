@@ -71,15 +71,18 @@ func StartCommand() *cobra.Command {
 				WithHomeDir(homepath).
 				WithViper("")
 
-			//nativeProtoCodec := codec.NewProtoCodec(clientContextNative.InterfaceRegistry)
+			nativeProtoCodec := codec.NewProtoCodec(clientContextNative.InterfaceRegistry)
 
 			fmt.Println("start rpc server")
 
 			fmt.Println("start to listen for txs cosmos side")
-			go oracle.StartListeningCosmosSideActions(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
 
-			fmt.Println("start to listen for txs cosmos side")
-			go oracle.StartListeningNativeSideActions(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
+			go oracle.StartListeningCosmosEvent(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
+			fmt.Println("started liastening for deposits")
+			go oracle.StartListeningCosmosDeposit(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
+
+			fmt.Println("start to listen for txs native side")
+			go oracle.StartListeningNativeSideActions(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, nativeProtoCodec)
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)

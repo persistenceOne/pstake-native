@@ -1,10 +1,10 @@
 package configuration
 
 import (
+	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/persistenceOne/pstake-native/oracle/constants"
 	"github.com/spf13/cobra"
-	"log"
 	"path/filepath"
 )
 
@@ -59,6 +59,7 @@ func SetConfig(cmd *cobra.Command) Config {
 	if err != nil {
 		panic(err)
 	}
+	orcConfig.CosmosConfig.CoinType, err = cmd.Flags().GetUint32(constants.FlagCosmosCoinType)
 
 	//	native Config
 
@@ -90,6 +91,7 @@ func SetConfig(cmd *cobra.Command) Config {
 	if err != nil {
 		panic(err)
 	}
+	orcConfig.NativeConfig.CoinType, err = cmd.Flags().GetUint32(constants.FlagNativeCoinType)
 
 	return orcConfig
 
@@ -201,7 +203,8 @@ func newConfig() Config {
 
 func InitializeConfigFromToml(homepath string) Config {
 	var config = newConfig()
-	_, err := toml.DecodeFile(filepath.Join(homepath, "config.toml"), &config)
-	log.Fatalf("Error Decoding oracle config: %v\n", err.Error())
+	_, _ = toml.DecodeFile(filepath.Join(homepath, "config.toml"), &config)
+	//log.Fatalf("Error Decoding oracle config: %v\n", err.Error())
+	fmt.Println(config)
 	return config
 }

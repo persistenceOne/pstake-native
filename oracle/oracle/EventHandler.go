@@ -5,6 +5,7 @@ import (
 	"fmt"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	"github.com/tendermint/tendermint/types"
+	"strconv"
 	"time"
 )
 
@@ -21,7 +22,7 @@ func (c *CosmosChain) DepositTxEventForBlock(BlockHeight int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	query := "tm.event = 'Tx' AND transfer.recipient = '" + string(c.CustodialAddress) + "' AND tx.height = '" + string(BlockHeight) + "'"
+	query := "tm.event = 'Tx' AND transfer.recipient = '" + string(c.CustodialAddress) + "' AND tx.height = '" + strconv.FormatInt(BlockHeight, 10) + "'"
 	txs, err := client.Subscribe(ctx, "orchestrator", query)
 	if err != nil {
 		return err
@@ -45,7 +46,12 @@ func (c *CosmosChain) ActiveProposalEventHandler(BlockHeight int64) error {
 	if err != nil {
 		return err
 	}
-	defer client.Stop()
+	defer func(client *rpchttp.HTTP) {
+		err := client.Stop()
+		if err != nil {
+
+		}
+	}(client)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 

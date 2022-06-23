@@ -2,6 +2,9 @@ package oracle
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+
 	//"github.com/cosmos/cosmos-sdk/crypto/hd"
 	//"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -24,7 +27,7 @@ func SignCosmosTx(seed string, chain *CosmosChain, clientCtx client.Context, msg
 
 	txBuilder.SetGasLimit(400000)
 
-	privKey, _ := GetSDKPivKeyAndAddress(seed)
+	privKey, _ := GetSDKPivKeyAndAddressR(chain.AccountPrefix, chain.CoinType, seed)
 	accSeqs := []uint64{0}
 
 	err := txBuilder.SetMsgs(msg)
@@ -79,7 +82,7 @@ func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, ms
 
 	txBuilder.SetGasLimit(400000)
 
-	privKey, _ := GetSDKPivKeyAndAddress(seed)
+	privKey, _ := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, seed)
 	accSeqs := []uint64{0}
 
 	err := txBuilder.SetMsgs(msg)
@@ -139,4 +142,69 @@ func GetSDKPivKeyAndAddress(Seed string) (sdkcryptotypes.PrivKey, sdk.AccAddress
 		panic(err)
 	}
 	return privKey, address
+}
+
+func GetSDKPivKeyAndAddressR(prefix string, cointype uint32, mnemonic string) (sdkcryptotypes.PrivKey, sdk.AccAddress) {
+
+	kb, err := keyring.New("pstake", keyring.BackendMemory, "", nil)
+
+	keyringAlgos, _ := kb.SupportedAlgorithms()
+
+	algo, err := keyring.NewSigningAlgoFromString(string(hd.Secp256k1Type), keyringAlgos)
+
+	hdPath := hd.CreateHDPath(cointype, 0, 0)
+
+	derivedPriv, err := algo.Derive()(mnemonic, "", hdPath.String())
+
+	privKey := algo.Generate()(derivedPriv)
+
+	addrString, err := sdk.Bech32ifyAddressBytes(prefix, privKey.PubKey().Address())
+	if err != nil {
+		panic(err)
+	}
+	return privKey, sdk.AccAddress(addrString)
+
+}
+
+func GetSignature(seed string, chain *CosmosChain, clientCtx client.Context, msg sdk.Msg) ([]byte, error) {
+	txBuilder := clientCtx.TxConfig.NewTxBuilder()
+
+	txBuilder.SetGasLimit(400000)
+
+	privKey, _ := GetSDKPivKeyAndAddressR(chain.AccountPrefix, chain.CoinType, seed)
+	accSeqs := []uint64{0}
+
+	err := txBuilder.SetMsgs(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	sig := signing.SignatureV2{PubKey: privKey.PubKey(),
+		Data: &signing.SingleSignatureData{
+			SignMode:  clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+			Signature: nil,
+		},
+	}
+
+	err = txBuilder.SetSignatures(sig)
+	if err != nil {
+		return nil, err
+	}
+
+	ac, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, msg.GetSigners()[0])
+	fmt.Println(ac, seq, err)
+	signerData := xauthsigning.SignerData{
+		ChainID:       chain.ChainID,
+		AccountNumber: ac,
+		Sequence:      seq,
+	}
+	sigv2, err := tx.SignWithPrivKey(
+		clientCtx.TxConfig.SignModeHandler().DefaultMode(), signerData, txBuilder, privKey, clientCtx.TxConfig, accSeqs[0])
+	if err != nil {
+		return nil, err
+	}
+
+	signature := sigv2.Data.(*signing.SingleSignatureData).Signature
+
+	return signature, nil
 }

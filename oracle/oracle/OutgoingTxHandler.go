@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
@@ -13,7 +12,7 @@ import (
 	"strconv"
 )
 
-func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds []string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, native *NativeChain, chain *CosmosChain, depositHeight int64, protoCodec *codec.ProtoCodec) error {
+func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds []string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, native *NativeChain, chain *CosmosChain) error {
 	txId, err := strconv.ParseUint(txIdstr, 10, 64)
 
 	if err != nil {
@@ -55,11 +54,10 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 	for _, msg := range tx.GetMsgs() {
 		fmt.Println(msg.String())
 
-		signedTxBytes, err := SignCosmosTx(orcSeeds[0], chain, nativeCliCtx, msg)
-		if err != nil {
-			return err
-		}
-		grpcConn, _ := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
+		signatureBytes, err := GetSignature(orcSeeds[0], chain, nativeCliCtx, msg)
+
+		_, addr := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, orcSeeds[0])
+		grpcConn, _ := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
 		defer func(grpcConn *grpc.ClientConn) {
 			err := grpcConn.Close()
 			if err != nil {
@@ -71,10 +69,18 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 
 		fmt.Println("client created")
 
+		msg := &cosmosTypes.MsgSetSignature{
+			OrchestratorAddress: string(addr),
+			OutgoingTxID:        txId,
+			Signature:           signatureBytes,
+		}
+
+		txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
+
 		res, err := txClient.BroadcastTx(context.Background(),
 			&txD.BroadcastTxRequest{
 				Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
-				TxBytes: signedTxBytes,
+				TxBytes: txBytes,
 			},
 		)
 		if err != nil {

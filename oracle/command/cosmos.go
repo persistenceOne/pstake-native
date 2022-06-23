@@ -21,6 +21,7 @@ func InitCosmosChain(homePath string, config configuration.CosmosConfig) (*oracl
 	chain.GasAdjustment = config.GasAdjustment
 	chain.GasPrices = config.GasPrice
 	chain.CustodialAddress = sdk.AccAddress(config.CustodialAddr)
+	chain.CoinType = config.CoinType
 
 	err := chain.Init(string(chain.CustodialAddress), homePath, 1*time.Second, nil, true)
 	if err != nil {

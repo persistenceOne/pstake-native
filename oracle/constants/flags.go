@@ -18,5 +18,7 @@ const (
 	FlagNativeGasAdjustment = "nativeGasAdjustment"
 	FlagNativeGasPrice      = "nativeGasPrice"
 	FlagNativeModuleName    = "nativeModuleName"
+	FlagNativeCoinType      = "nativeCoinType"
+	FlagCosmosCoinType      = "cosmosCoinType"
 	FlagOrcHomeDir          = "orcHome"
 )

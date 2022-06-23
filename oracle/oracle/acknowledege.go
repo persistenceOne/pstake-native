@@ -10,16 +10,19 @@ import (
 )
 
 func SendMsgAcknowledgement(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string, TxHash string, valAddr string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context) error {
-	_, addr := GetSDKPivKeyAndAddress(orcSeeds[0])
+
+	_, addr := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
 	ValDetails := GetValidatorDetails(cosmosChain)
 
+	SeqNum, AccountNum := GetAccountDetails(clientCtx, cosmosChain, string(addr))
+	//Todo : sequence number which account?
 	msg := &cosmosTypes.MsgTxStatus{
 		OrchestratorAddress: addr.String(),
 		TxHash:              TxHash,
 		Status:              "success",
-		SequenceNumber:      1,
-		AccountNumber:       1,
+		SequenceNumber:      SeqNum,
+		AccountNumber:       AccountNum,
 		ValidatorDetails:    ValDetails,
 	}
 
@@ -50,6 +53,12 @@ func SendMsgAcknowledgement(native *NativeChain, cosmosChain *CosmosChain, orcSe
 	}
 
 	fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+	cosmosTxHash := res.TxResponse.TxHash
+
+	err = SendMsgAcknowledgement(native, cosmosChain, orcSeeds, cosmosTxHash, valAddr, nativeCliCtx, clientCtx)
+	if err != nil {
+		return err
+	}
 
 	return nil
 

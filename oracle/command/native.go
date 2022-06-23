@@ -19,6 +19,7 @@ func InitNativeChain(homePath string, config configuration.NativeConfig) (*oracl
 	chain.AccountPrefix = config.AccountPrefix
 	chain.GasAdjustment = config.GasAdjustment
 	chain.GasPrices = config.GasPrices
+	chain.CoinType = config.CoinType
 
 	err := chain.Init(homePath, 1*time.Second, nil, true)
 	if err != nil {

@@ -53,6 +53,7 @@ func InitCommand() *cobra.Command {
 	cmd.Flags().String(constants.FlagCosmosAccountPrefix, constants.CosmosAccountPrefix, "cosmos account prefix")
 	cmd.Flags().Float64(constants.FlagCosmosGasAdjustment, constants.CosmosGasAdjustment, "cosmos fee")
 	cmd.Flags().String(constants.FlagCosmosGasPrice, constants.CosmosGasPrice, "cosmos gas price")
+	cmd.Flags().Uint32(constants.FlagCosmosCoinType, constants.CosmosCoinType, "cosmos coin type")
 
 	// Native Flag
 	cmd.Flags().String(constants.FlagNativeChainID, constants.NativeChainID, "")
@@ -63,6 +64,7 @@ func InitCommand() *cobra.Command {
 	cmd.Flags().Float64(constants.FlagNativeGasAdjustment, constants.NativeGasAdjustment, "")
 	cmd.Flags().String(constants.FlagNativeGasPrice, constants.NativeGasPrice, "")
 	cmd.Flags().String(constants.FlagNativeModuleName, constants.ModuleName, "")
+	cmd.Flags().Uint32(constants.FlagNativeCoinType, constants.NativeCoinType, "native coin type")
 
 	return cmd
 }
