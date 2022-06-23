@@ -13,19 +13,19 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	simTypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	cosmosCli "github.com/persistenceOne/pstake-native/x/cosmos/client/cli"
-	"github.com/persistenceOne/pstake-native/x/cosmos/client/rest"
-	"github.com/persistenceOne/pstake-native/x/cosmos/keeper"
-	//"github.com/persistenceOne/pstake-native/x/cosmos/simulation"
-	"github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	cosmosCli "github.com/persistenceOne/pstake-native/x/cosmos/client/cli"
+	cosmosRest "github.com/persistenceOne/pstake-native/x/cosmos/client/rest"
+	cosmosKeeper "github.com/persistenceOne/pstake-native/x/cosmos/keeper"
+	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
 var (
@@ -43,43 +43,43 @@ var _ module.AppModuleBasic = AppModuleBasic{}
 
 // Name returns the cosmos module's name.
 func (AppModuleBasic) Name() string {
-	return types.ModuleName
+	return cosmosTypes.ModuleName
 }
 
 // RegisterLegacyAminoCodec registers the cosmos module's types on the given LegacyAmino codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterLegacyAminoCodec(cdc)
+	cosmosTypes.RegisterLegacyAminoCodec(cdc)
 }
 
 // RegisterInterfaces registers the module's interface types
-func (b AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
-	types.RegisterInterfaces(registry)
+func (b AppModuleBasic) RegisterInterfaces(registry codecTypes.InterfaceRegistry) {
+	cosmosTypes.RegisterInterfaces(registry)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the cosmos
 // module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesisState())
+	return cdc.MustMarshalJSON(cosmosTypes.DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the cosmos module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, bz json.RawMessage) error {
-	var data types.GenesisState
+	var data cosmosTypes.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", cosmosTypes.ModuleName, err)
 	}
 
-	return types.ValidateGenesis(data)
+	return cosmosTypes.ValidateGenesis(data)
 }
 
 // RegisterRESTRoutes registers the REST routes for the cosmos module.
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterHandlers(clientCtx, rtr)
+	cosmosRest.RegisterHandlers(clientCtx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the cosmos module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	_ = types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	_ = cosmosTypes.RegisterQueryHandlerClient(context.Background(), mux, cosmosTypes.NewQueryClient(clientCtx))
 }
 
 // GetTxCmd returns no root tx command for the cosmos module.
@@ -96,11 +96,11 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper keeper.Keeper
+	keeper cosmosKeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(cdc codec.Codec, keeper keeper.Keeper) AppModule {
+func NewAppModule(cdc codec.Codec, keeper cosmosKeeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{cdc: cdc},
 		keeper:         keeper,
@@ -109,7 +109,7 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper) AppModule {
 
 // Name returns the cosmos module's name.
 func (AppModule) Name() string {
-	return types.ModuleName
+	return cosmosTypes.ModuleName
 }
 
 // RegisterInvariants registers the cosmos module invariants.
@@ -117,12 +117,12 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route returns the message routing key for the cosmos module.
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
+	return sdk.NewRoute(cosmosTypes.RouterKey, NewHandler(am.keeper))
 }
 
 // QuerierRoute returns the cosmos module's querier route name.
 func (AppModule) QuerierRoute() string {
-	return types.QuerierRoute
+	return cosmosTypes.QuerierRoute
 }
 
 // ConsensusVersion returns the cosmos module's consensus version number.
@@ -132,23 +132,23 @@ func (am AppModule) ConsensusVersion() uint64 {
 
 // LegacyQuerierHandler returns the cosmos module sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
+	return cosmosKeeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }
 
 // RegisterServices registers a gRPC query service to respond to the
 // module-specific gRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	cosmosTypes.RegisterMsgServer(cfg.MsgServer(), cosmosKeeper.NewMsgServerImpl(am.keeper))
+	cosmosTypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
 // InitGenesis performs genesis initialization for the cosmos module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState types.GenesisState
+	var genesisState cosmosTypes.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
-	keeper.InitGenesis(ctx, am.keeper, &genesisState)
+	cosmosKeeper.InitGenesis(ctx, am.keeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
@@ -181,12 +181,12 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+func (AppModule) ProposalContents(_ module.SimulationState) []simTypes.WeightedProposalContent {
 	return nil
 }
 
 // RandomizedParams creates randomized cosmos param changes for the simulator.
-func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+func (AppModule) RandomizedParams(r *rand.Rand) []simTypes.ParamChange {
 	//return simulation.ParamChanges(r)
 	panic("implement me")
 }
@@ -195,6 +195,6 @@ func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
 func (AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
 
 // WeightedOperations doesn't return any cosmos module operation.
-func (AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
+func (AppModule) WeightedOperations(_ module.SimulationState) []simTypes.WeightedOperation {
 	return nil
 }

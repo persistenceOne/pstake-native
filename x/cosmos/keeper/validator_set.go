@@ -2,42 +2,42 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-// put a check on length of validator set and val set weights to maintain equal mapping
+// SetCosmosValidatorSet put a check on length of validator set and val set weights to maintain equal mapping
 // sets the cosmos validator address as key and weight details as value
-func (k Keeper) setCosmosValidatorSet(ctx sdk.Context, cosmosValSetWeights []cosmosTypes.WeightedAddressAmount) {
+func (k Keeper) SetCosmosValidatorSet(ctx sdk.Context, cosmosValSetWeights []cosmosTypes.WeightedAddressAmount) {
 	cosmosValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCosmosValidatorWeights)
 
 	newSortedCosmosValSetWeights := cosmosTypes.NewWeightedAddressAmounts(cosmosValSetWeights).Sort()
-	for _, va := range newSortedCosmosValSetWeights {
-		valAddress, err := cosmosTypes.ValAddressFromBech32(va.Address, cosmosTypes.Bech32PrefixValAddr)
+	for i := range newSortedCosmosValSetWeights {
+		valAddress, err := cosmosTypes.ValAddressFromBech32(newSortedCosmosValSetWeights[i].Address, cosmosTypes.Bech32PrefixValAddr)
 		if err != nil {
 			panic(err)
 		}
 		if cosmosValSetStore.Has(valAddress.Bytes()) {
 			var weightedAddress cosmosTypes.WeightedAddressAmount
 			k.cdc.MustUnmarshal(cosmosValSetStore.Get(valAddress.Bytes()), &weightedAddress)
-			weightedAddress.Weight = va.Weight
+			weightedAddress.Weight = newSortedCosmosValSetWeights[i].Weight
 			cosmosValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&weightedAddress))
 		} else {
 			bondDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
 			if err != nil {
 				panic(err)
 			}
-			va.Amount = sdk.ZeroInt()
-			va.Denom = bondDenom
-			cosmosValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&va))
+			newSortedCosmosValSetWeights[i].Amount = sdk.ZeroInt()
+			newSortedCosmosValSetWeights[i].Denom = bondDenom
+			cosmosValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&newSortedCosmosValSetWeights[i]))
 		}
 	}
 }
 
-// sets given weight details if store already has val address in it or panics
-func (k Keeper) setCosmosValidatorWeight(ctx sdk.Context, valAddress sdk.ValAddress, weight sdk.Dec) {
+// SetCosmosValidatorWeight sets given weight details if store already has val address in it or panics
+func (k Keeper) SetCosmosValidatorWeight(ctx sdk.Context, valAddress sdk.ValAddress, weight sdk.Dec) {
 	cosmosValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCosmosValidatorWeights)
 	if !cosmosValSetStore.Has(valAddress.Bytes()) {
 		panic(fmt.Errorf("valAddress not present in kv store"))
@@ -48,7 +48,8 @@ func (k Keeper) setCosmosValidatorWeight(ctx sdk.Context, valAddress sdk.ValAddr
 	cosmosValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&weightedAddress))
 }
 
-func (k Keeper) getAllCosmosValidatorSet(ctx sdk.Context) (weightedAddresses cosmosTypes.WeightedAddressAmounts) {
+// GetAllCosmosValidatorSet gets all the cosmos validator set details
+func (k Keeper) GetAllCosmosValidatorSet(ctx sdk.Context) (weightedAddresses cosmosTypes.WeightedAddressAmounts) {
 	cosmosValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCosmosValidatorWeights)
 	iterator := cosmosValSetStore.Iterator(nil, nil)
 	defer iterator.Close()
@@ -60,7 +61,8 @@ func (k Keeper) getAllCosmosValidatorSet(ctx sdk.Context) (weightedAddresses cos
 	return weightedAddresses.Sort()
 }
 
-func (k Keeper) updateCurrentDelegatedAmountOfCosmosValidator(ctx sdk.Context, valAddress sdk.ValAddress, amount sdk.Coin) {
+// UpdateDelegationCosmosValidator updates the delegation of given cosmos validator
+func (k Keeper) UpdateDelegationCosmosValidator(ctx sdk.Context, valAddress sdk.ValAddress, amount sdk.Coin) {
 	cosmosValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCosmosValidatorWeights)
 	if !cosmosValSetStore.Has(valAddress.Bytes()) {
 		panic(fmt.Errorf("valAddress not present in kv store"))
@@ -72,42 +74,8 @@ func (k Keeper) updateCurrentDelegatedAmountOfCosmosValidator(ctx sdk.Context, v
 	cosmosValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&weightedAddress))
 }
 
-func (k Keeper) updateCosmosValidatorStakingParams(ctx sdk.Context, msgs []sdk.Msg) error {
-	uatomDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
-	if err != nil {
-		return err
-	}
-	totalAmountInDelegateMsgs := sdk.NewInt64Coin(uatomDenom, 0)
-
-	//TODO : MsgUndelegate
-	msgsMap := make(map[string]stakingTypes.MsgDelegate, len(msgs))
-	for _, msg := range msgs {
-		delegateMsg := msg.(*stakingTypes.MsgDelegate)
-		totalAmountInDelegateMsgs = totalAmountInDelegateMsgs.Add(delegateMsg.Amount)
-		msgsMap[delegateMsg.ValidatorAddress] = *delegateMsg
-	}
-
-	k.setTotalDelegatedAmountTillDate(ctx, totalAmountInDelegateMsgs)
-
-	internalWeightedAddressCosmos := k.getAllCosmosValidatorSet(ctx)
-	for _, element := range internalWeightedAddressCosmos {
-		if val, ok := msgsMap[element.Address]; ok {
-			if element.Denom != val.Amount.Denom {
-				continue
-			}
-			element.Amount.Add(val.Amount.Amount)
-			valAddress, err := cosmosTypes.ValAddressFromBech32(element.Address, cosmosTypes.Bech32PrefixValAddr)
-			if err != nil {
-				panic(err)
-			}
-			k.updateCurrentDelegatedAmountOfCosmosValidator(ctx, valAddress, element.Coin())
-		}
-	}
-	return nil
-	//TODO : Update c token ratio
-}
-
-func (k Keeper) getCurrentDelegatedAmountOfCosmosValidator(ctx sdk.Context, valAddress sdk.ValAddress) sdk.Coin {
+// Gets the delegation of given cosmos validator
+func (k Keeper) getDelegationCosmosValidator(ctx sdk.Context, valAddress sdk.ValAddress) sdk.Coin {
 	cosmosValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCosmosValidatorWeights)
 	if !cosmosValSetStore.Has(valAddress.Bytes()) {
 		panic(fmt.Errorf("valAddress not present in kv store"))
@@ -144,6 +112,7 @@ func (k Keeper) setOracleValidatorWeight(ctx sdk.Context, valAddress sdk.ValAddr
 	nativeValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&weight))
 }
 
+// gets the list of all oracle validator set
 func (k Keeper) getAllOracleValidatorSet(ctx sdk.Context) (weightedAddresses []cosmosTypes.WeightedAddress) {
 	nativeValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyNativeValidatorWeights)
 	iterator := nativeValSetStore.Iterator(nil, nil)

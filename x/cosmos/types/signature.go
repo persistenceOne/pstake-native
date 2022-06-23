@@ -2,6 +2,8 @@ package types
 
 import (
 	"errors"
+	"strings"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
@@ -9,7 +11,6 @@ import (
 	signing2 "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
-	"strings"
 )
 
 // VerifySignature Multisig only supports Amino Signing, hence the code will only check for amino signing
@@ -35,7 +36,7 @@ func AccAddressFromBech32(address, prefix string) (addr sdkTypes.AccAddress, err
 		return nil, err
 	}
 
-	return sdkTypes.AccAddress(bz), nil
+	return bz, nil
 }
 
 func ValAddressFromBech32(address, prefix string) (valAddr sdkTypes.ValAddress, err error) {
@@ -53,10 +54,23 @@ func ValAddressFromBech32(address, prefix string) (valAddr sdkTypes.ValAddress, 
 		return nil, err
 	}
 
-	return sdkTypes.ValAddress(bz), nil
+	return bz, nil
 }
 
 func Bech32ifyAddressBytes(prefix string, address sdkTypes.AccAddress) (string, error) {
+	if address.Empty() {
+		return "", nil
+	}
+	if len(address.Bytes()) == 0 {
+		return "", nil
+	}
+	if len(prefix) == 0 {
+		return "", errors.New("prefix cannot be empty")
+	}
+	return bech32.ConvertAndEncode(prefix, address.Bytes())
+}
+
+func Bech32ifyValAddressBytes(prefix string, address sdkTypes.ValAddress) (string, error) {
 	if address.Empty() {
 		return "", nil
 	}

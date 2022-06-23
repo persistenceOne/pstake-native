@@ -2,19 +2,28 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, msg cosmosTypes.MsgRewardsClaimedOnCosmosChain) {
+/*
+Adds the rewards claimed message entry to the rewards claimed store with the given validator address.
+Performs the following actions :
+  1. Checks if store has the key or not. If not then create new entry
+  2. Checks if store has it and matches all the details present in the message. If not then create a new entry.
+  3. Finally, if all the details match then append the validator address to keep track.
+*/
+func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, msg cosmosTypes.MsgRewardsClaimedOnCosmosChain, validatorAddress sdk.ValAddress) {
 	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
 	key := []byte(cosmosTypes.GetChainIDAndBlockHeightKey(msg.ChainID, msg.BlockHeight))
 	totalValidatorCount := k.GetTotalValidatorOrchestratorCount(ctx)
 	// store has key in it or not
 	if !rewardsClaimedStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewRewardsClaimedValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewRewardsClaimedValue(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
@@ -26,45 +35,44 @@ func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, msg cosmosTypes.MsgRewa
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotRewardsClaimed(rewardsClaimedValue, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewRewardsClaimedValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewRewardsClaimedValue(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
 
 	// if equal then check if orchestrator has already sent same details previously
-	if !rewardsClaimedValue.Find(msg.OrchestratorAddress) {
-		rewardsClaimedValue.UpdateValues(msg.OrchestratorAddress, k.GetTotalValidatorOrchestratorCount(ctx))
+	if !rewardsClaimedValue.Find(validatorAddress.String()) {
+		rewardsClaimedValue.UpdateValues(validatorAddress.String(), k.GetTotalValidatorOrchestratorCount(ctx))
 		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&rewardsClaimedValue))
 		return
 	}
 }
 
-func (k Keeper) getAllFromRewardsClaimedPool(ctx sdk.Context) (list []cosmosTypes.RewardsClaimedValue, keys [][]byte, err error) {
+// Gets the list of all rewards claimed requests from rewards claimed store
+func (k Keeper) getAllFromRewardsClaimedPool(ctx sdk.Context) (list []cosmosTypes.RewardsClaimedValue, keys [][]byte) {
 	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
 	iterator := rewardsClaimedStore.Iterator(nil, nil)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
-		err = k.cdc.Unmarshal(iterator.Value(), &rewardsClaimedValue)
-		if err != nil {
-			return list, keys, err
-		}
+		k.cdc.MustUnmarshal(iterator.Value(), &rewardsClaimedValue)
 		list = append(list, rewardsClaimedValue)
 		keys = append(keys, iterator.Key())
 	}
-	return list, keys, err
+	return list, keys
 }
 
-func (k Keeper) setAddedToCurrentEpochTrue(ctx sdk.Context, key []byte, val cosmosTypes.RewardsClaimedValue) error {
+// Set added to current epoch true for the given key in rewards claimed store
+func (k Keeper) setAddedToCurrentEpochTrue(ctx sdk.Context, key []byte) {
 	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
-	bz, err := k.cdc.Marshal(&val)
-	if err != nil {
-		return err
-	}
-	rewardsClaimedStore.Set(key, bz)
-	return nil
+
+	var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
+	k.cdc.MustUnmarshal(rewardsClaimedStore.Get(key), &rewardsClaimedValue)
+	rewardsClaimedValue.AddedToCurrentEpoch = true
+	rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&rewardsClaimedValue))
 }
 
+// Remove the given key from the rewards claimed store
 func (k Keeper) deleteFromRewardsClaimedPool(ctx sdk.Context, key []byte) {
 	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
 	rewardsClaimedStore.Delete(key)
@@ -72,35 +80,59 @@ func (k Keeper) deleteFromRewardsClaimedPool(ctx sdk.Context, key []byte) {
 
 //______________________________________________________________________________________________________________________
 
-func (k Keeper) addToRewardsInCurrentEpoch(ctx sdk.Context, value cosmosTypes.RewardsClaimedValue) error {
+// Add the rewards claimed amount to the current epoch
+func (k Keeper) addToRewardsInCurrentEpoch(ctx sdk.Context, amount sdk.Coin) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 	currentEpoch := k.epochsKeeper.GetEpochInfo(ctx, k.GetParams(ctx).StakingEpochIdentifier).CurrentEpoch
 	key := cosmosTypes.Int64Bytes(currentEpoch)
-	bz, err := k.cdc.Marshal(&value)
-	if err != nil {
-		return err
+
+	// if store does not have key in it then create a new one
+	if !rewardsInCurrentEpochStore.Has(key) {
+		rewardsInCurrentEpochStore.Set(key, k.cdc.MustMarshal(&amount))
+		return
 	}
-	rewardsInCurrentEpochStore.Set(key, bz)
-	return nil
+
+	// if store already has the key then add the amount to the previous value
+	var newAmount sdk.Coin
+	k.cdc.MustUnmarshal(rewardsInCurrentEpochStore.Get(key), &newAmount)
+	newAmount = newAmount.Add(amount)
+	rewardsInCurrentEpochStore.Set(key, k.cdc.MustMarshal(&newAmount))
 }
 
-func (k Keeper) getFromRewardsInCurrentEpochAmount(ctx sdk.Context, epochNumber int64) (sdk.Coin, error) {
+// Get the amount of rewards claimed mapped to the given epoch number
+func (k Keeper) getFromRewardsInCurrentEpochAmount(ctx sdk.Context, epochNumber int64) (amount sdk.Coin) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
-	bz := rewardsInCurrentEpochStore.Get(cosmosTypes.Int64Bytes(epochNumber))
-	if bz == nil {
-		return sdk.NewInt64Coin("uatom", 0), nil
+	if !rewardsInCurrentEpochStore.Has(cosmosTypes.Int64Bytes(epochNumber)) {
+		return sdk.NewInt64Coin("uatom", 0)
 	}
-
-	var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
-	err := k.cdc.Unmarshal(bz, &rewardsClaimedValue)
-	if err != nil {
-		return sdk.NewInt64Coin("uatom", 0), err
-	}
-
-	// return the exact amount of rewards claimed as present in the message as amount is also matched in case of rewards claim entries
-	return rewardsClaimedValue.RewardsClaimed.AmountClaimed, nil
+	k.cdc.MustUnmarshal(rewardsInCurrentEpochStore.Get(cosmosTypes.Int64Bytes(epochNumber)), &amount)
+	return amount
 }
 
+// shifts the rewards in the given epoch number to the next epoch number for rewards delegation
+func (k Keeper) shiftRewardsToNextEpoch(ctx sdk.Context, epochNumber int64) {
+	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
+
+	// get given epoch number amount
+	var amount sdk.Coin
+	k.cdc.MustUnmarshal(rewardsInCurrentEpochStore.Get(cosmosTypes.Int64Bytes(epochNumber)), &amount)
+
+	// check if next epoch number is present in the store, if not then set this amount to the next epoch number
+	newEpochKey := cosmosTypes.Int64Bytes(epochNumber + 1)
+	if !rewardsInCurrentEpochStore.Has(newEpochKey) {
+		rewardsInCurrentEpochStore.Set(newEpochKey, k.cdc.MustMarshal(&amount))
+		return
+	}
+
+	// if next epoch number is present then add this amount to the already existing amount for new epoch number
+	var nextEpochAmount sdk.Coin
+	k.cdc.MustUnmarshal(rewardsInCurrentEpochStore.Get(newEpochKey), &nextEpochAmount)
+	nextEpochAmount = nextEpochAmount.Add(amount)
+	rewardsInCurrentEpochStore.Set(newEpochKey, k.cdc.MustMarshal(&nextEpochAmount))
+	return
+}
+
+// Remove the given key from the rewards in current epoch store
 func (k Keeper) deleteFromRewardsInCurrentEpoch(ctx sdk.Context, epochNumber int64) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 	rewardsInCurrentEpochStore.Delete(cosmosTypes.Int64Bytes(epochNumber))
@@ -108,35 +140,36 @@ func (k Keeper) deleteFromRewardsInCurrentEpoch(ctx sdk.Context, epochNumber int
 
 //______________________________________________________________________________________________________________________
 
-func (k Keeper) ProcessRewards(ctx sdk.Context) error {
-	rewardsList, keys, err := k.getAllFromRewardsClaimedPool(ctx)
-	if err != nil {
-		return err
-	}
+/*
+ProcessRewards processes all the rewards requests
+This function is called every EndBlocker to perform the defined set of actions as mentioned below :
+   1. Get the list of all rewards requests
+   2. Checks if the majority of the validator oracle have sent the minting request. Also checks the
+      addedToCurrentEpoch flag.
+   3. If majority is reached and other conditions match then rewards are added to current epoch and
+      addedToCurrentEpoch flag is marked true.
+   4. Another condition of ActiveBlockHeight is also checked whether to delete the entry or not.
+*/
+func (k Keeper) ProcessRewards(ctx sdk.Context) {
+	rewardsList, keys := k.getAllFromRewardsClaimedPool(ctx)
 	if len(rewardsList) != len(keys) {
-		return fmt.Errorf("rewards list and keys do not have equal number of elements")
+		panic(fmt.Errorf("rewards list and keys do not have equal number of elements"))
 	}
 	for i, r := range rewardsList {
 		if r.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !r.AddedToCurrentEpoch {
 			r.AddedToCurrentEpoch = true
 
-			err = k.addToRewardsInCurrentEpoch(ctx, r)
-			if err != nil {
-				return err
-			}
+			k.addToRewardsInCurrentEpoch(ctx, r.RewardsClaimed.AmountClaimed)
 
-			err = k.setAddedToCurrentEpochTrue(ctx, keys[i], r)
-			if err != nil {
-				return err
-			}
+			k.setAddedToCurrentEpochTrue(ctx, keys[i])
 		}
-		if r.ActiveBlockHeight <= ctx.BlockHeight() {
+		if r.ActiveBlockHeight <= ctx.BlockHeight() && r.AddedToCurrentEpoch {
 			k.deleteFromRewardsClaimedPool(ctx, keys[i])
 		}
 	}
-	return nil
 }
 
+// StoreValueEqualOrNotRewardsClaimed Helper function for rewards claimed store to check if the relevant details in the message matches or not.
 func StoreValueEqualOrNotRewardsClaimed(storeValue cosmosTypes.RewardsClaimedValue,
 	msgValue cosmosTypes.MsgRewardsClaimedOnCosmosChain) bool {
 	if !storeValue.RewardsClaimed.AmountClaimed.IsEqual(msgValue.AmountClaimed) {

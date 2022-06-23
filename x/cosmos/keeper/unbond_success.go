@@ -3,8 +3,9 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"math"
+
+	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
 type UndelegateSuccessKeyAndValue struct {
@@ -12,7 +13,14 @@ type UndelegateSuccessKeyAndValue struct {
 	ValueUndelegateSuccessStore cosmosTypes.ValueUndelegateSuccessStore
 }
 
-func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.MsgUndelegateSuccess) {
+/*
+Adds the undelegate success message entry to the undelegate success store with the given validator address.
+Performs the following actions :
+  1. Checks if store has the key or not. If not then create new entry
+  2. Checks if store has it and matches all the details present in the message. If not then create a new entry.
+  3. Finally, if all the details match then append the validator address to keep track.
+*/
+func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.MsgUndelegateSuccess, validatorAddress sdk.ValAddress) {
 	undelegateSuccessStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyUndelegateSuccessStore)
 	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(msg.ChainID, msg.BlockHeight, msg.TxHash)
 	key := k.cdc.MustMarshal(&chainIDHeightAndTxHash)
@@ -21,7 +29,7 @@ func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.Msg
 	// check if key present or not
 	if !undelegateSuccessStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		undelegateSuccessStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
@@ -33,51 +41,54 @@ func (k Keeper) setUndelegateSuccessDetails(ctx sdk.Context, msg cosmosTypes.Msg
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotUndelegateSuccess(valueUndelegateSuccessStore, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight(), ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newValue := cosmosTypes.NewValueUndelegateSuccessStore(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		undelegateSuccessStore.Set(key, k.cdc.MustMarshal(&newValue))
 		return
 	}
 
-	if !valueUndelegateSuccessStore.Find(msg.OrchestratorAddress) {
-		valueUndelegateSuccessStore.UpdateValues(msg.OrchestratorAddress, totalValidatorCount)
+	if !valueUndelegateSuccessStore.Find(validatorAddress.String()) {
+		valueUndelegateSuccessStore.UpdateValues(validatorAddress.String(), totalValidatorCount)
 		undelegateSuccessStore.Set(key, k.cdc.MustMarshal(&valueUndelegateSuccessStore))
 	}
 }
 
-func (k Keeper) getAllUndelegateSuccessDetails(ctx sdk.Context) (list []UndelegateSuccessKeyAndValue, err error) {
+// Gets all the undelegate success details present in the undelegate success store
+func (k Keeper) getAllUndelegateSuccessDetails(ctx sdk.Context) (list []UndelegateSuccessKeyAndValue) {
 	undelegateSuccessStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyUndelegateSuccessStore)
 	iterator := undelegateSuccessStore.Iterator(nil, nil)
+	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var chainIDHeightAndTxHashKey cosmosTypes.ChainIDHeightAndTxHashKey
-		err = k.cdc.Unmarshal(iterator.Key(), &chainIDHeightAndTxHashKey)
-		if err != nil {
-			return nil, err
-		}
+		k.cdc.MustUnmarshal(iterator.Key(), &chainIDHeightAndTxHashKey)
 
 		var valueUndelegateSuccessStore cosmosTypes.ValueUndelegateSuccessStore
-		err = k.cdc.Unmarshal(iterator.Value(), &valueUndelegateSuccessStore)
-		if err != nil {
-			return nil, err
-		}
+		k.cdc.MustUnmarshal(iterator.Value(), &valueUndelegateSuccessStore)
+
 		list = append(list, UndelegateSuccessKeyAndValue{ChainIDHeightAndTxHashKey: chainIDHeightAndTxHashKey, ValueUndelegateSuccessStore: valueUndelegateSuccessStore})
 	}
-	return list, nil
+	return list
 }
 
+// Removes the given key from the undelegate success store
 func (k Keeper) deleteUndelegateSuccessDetails(ctx sdk.Context, key cosmosTypes.ChainIDHeightAndTxHashKey) {
 	undelegateSuccessStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyUndelegateSuccessStore)
 	storeKey := k.cdc.MustMarshal(&key)
 	undelegateSuccessStore.Delete(storeKey)
 }
 
-func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) error {
-	list, err := k.getAllUndelegateSuccessDetails(ctx)
-	if err != nil {
-		return err
-	}
+/*
+ProcessAllUndelegateSuccess processes all the undelegate success requests
+This function is called every EndBlocker to perform the defined set of actions as mentioned below :
+   1. Get the list of all undelegate success requests and the last epoch with withdraw status false.
+   2. Checks if the majority of the validator oracle have sent the minting request.
+   3. If majority is reached, set the epch number and undelegate details if individual details of validator.
+   4. Another check is present for setting send transaction in outgoing pool.
+*/
+func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) {
+	list := k.getAllUndelegateSuccessDetails(ctx)
 	epochNumber := k.getLeastEpochNumberWithWithdrawStatusFalse(ctx)
 	if epochNumber == int64(math.MaxInt64) {
-		return cosmosTypes.ErrInvalidEpochNumber
+		return
 	}
 	for _, element := range list {
 		if element.ValueUndelegateSuccessStore.Ratio.GT(cosmosTypes.MinimumRatioForMajority) {
@@ -94,14 +105,14 @@ func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) error {
 
 	flagForWithdrawSuccess := k.getEpochNumberAndUndelegateDetailsOfValidators(ctx, epochNumber)
 	if flagForWithdrawSuccess {
-		err = k.emitSendTransactionForAllWithdrawals(ctx, epochNumber)
+		err := k.generateSendTransactionForAllWithdrawals(ctx, epochNumber)
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
-	return nil
 }
 
+// StoreValueEqualOrNotUndelegateSuccess Helper function for undelegate success store to check if the relevant details in the message matches or not.
 func StoreValueEqualOrNotUndelegateSuccess(storeValue cosmosTypes.ValueUndelegateSuccessStore,
 	msgValue cosmosTypes.MsgUndelegateSuccess) bool {
 	if storeValue.UndelegateSuccess.DelegatorAddress != msgValue.DelegatorAddress {

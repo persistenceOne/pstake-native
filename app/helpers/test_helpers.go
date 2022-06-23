@@ -2,18 +2,20 @@ package helpers
 
 import (
 	"encoding/json"
+	"testing"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/pstake-native/app"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
-	"testing"
-	"time"
+
+	"github.com/persistenceOne/pstake-native/app"
 )
 
 // SimAppChainID hardcoded chainID for simulation
@@ -67,7 +69,7 @@ func newTestApp(isCheckTx bool, withGenesis bool) app.PstakeApp {
 	return *testApp
 }
 
-func CreateTestInput() (*codec.LegacyAmino, app.PstakeApp, sdk.Context) {
+func CreateTestApp() (*codec.LegacyAmino, app.PstakeApp, sdk.Context) {
 	testApp := newTestApp(false, false)
 	ctx := testApp.BaseApp.NewContext(false, tmproto.Header{})
 

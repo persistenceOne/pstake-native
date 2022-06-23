@@ -2,12 +2,14 @@ package keeper
 
 import (
 	"fmt"
+
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -28,7 +30,7 @@ func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdraw
 	//move withdraw transaction to next undelegating epoch if current block time is after the diffTime
 	currentEpoch := undelegateEpochInfo.CurrentEpoch
 	if ctx.BlockTime().Before(diffTime) {
-		currentEpoch = currentEpoch + 1
+		currentEpoch++
 	}
 
 	//if store has the key then append new withdrawals to the existing array, else make a new key value pair
@@ -62,16 +64,23 @@ func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdraw
 	return nil
 }
 
+// Gets withdraw transaction mapped to current epoch number
 func (k Keeper) fetchWithdrawTxnsWithCurrentEpochInfo(ctx sdk.Context, currentEpoch int64) (withdrawStoreValue cosmosTypes.WithdrawStoreValue, err error) {
 	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
-	bz := withdrawStore.Get(cosmosTypes.Int64Bytes(currentEpoch))
-	err = k.cdc.Unmarshal(bz, &withdrawStoreValue)
-	if err != nil {
-		return cosmosTypes.WithdrawStoreValue{}, err
+	if !withdrawStore.Has(cosmosTypes.Int64Bytes(currentEpoch)) {
+		return cosmosTypes.WithdrawStoreValue{WithdrawDetails: []cosmosTypes.MsgWithdrawStkAsset{{Amount: sdk.NewInt64Coin("uatom", 0)}}}, nil
 	}
+	k.cdc.MustUnmarshal(withdrawStore.Get(cosmosTypes.Int64Bytes(currentEpoch)), &withdrawStoreValue)
 	return withdrawStoreValue, nil
 }
 
+// Remove the details mapped to the current epoch number
+func (k Keeper) deleteWithdrawTxnWithCurrentEpochInfo(ctx sdk.Context, currentEpoch int64) {
+	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
+	withdrawStore.Delete(cosmosTypes.Int64Bytes(currentEpoch))
+}
+
+// Get the total amount that is to be unbonded
 func (k Keeper) totalAmountToBeUnbonded(value cosmosTypes.WithdrawStoreValue, denom string) sdk.Coin {
 	amount := sdk.NewInt64Coin(denom, 0)
 	for _, element := range value.WithdrawDetails {
@@ -80,7 +89,8 @@ func (k Keeper) totalAmountToBeUnbonded(value cosmosTypes.WithdrawStoreValue, de
 	return amount
 }
 
-func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumber int64) error {
+// Generates send transaction for the withdrawals and add it to the outgoing pool with the given txID
+func (k Keeper) generateSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumber int64) error {
 	withdrawStoreValue, err := k.fetchWithdrawTxnsWithCurrentEpochInfo(ctx, epochNumber)
 	if err != nil {
 		return err
@@ -90,7 +100,6 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 	for _, chunk := range chunkSlice {
 		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 		var sendMsgsAny []*codecTypes.Any
-		var sendMsgs []types.MsgSend
 		for _, element := range chunk {
 			msg := types.MsgSend{
 				FromAddress: params.CustodialAddress,
@@ -102,7 +111,6 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 				panic(err)
 			}
 			sendMsgsAny = append(sendMsgsAny, anyMsg)
-			sendMsgs = append(sendMsgs, msg)
 		}
 
 		execMsg := authz.MsgExec{
@@ -135,7 +143,6 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 			EventEmitted:      false,
 			Status:            "",
 			TxHash:            "",
-			NativeBlockHeight: ctx.BlockHeight(),
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
 			SignerAddress:     k.getCurrentAddress(ctx).String(),
 		}
@@ -149,6 +156,8 @@ func (k Keeper) emitSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumbe
 	return nil
 }
 
+// ChunkWithdrawSlice divides 1D slice of MsgWithdrawStkAsset into chunks of given size and
+// returns it by putting it in a 2D slice
 func ChunkWithdrawSlice(slice []cosmosTypes.MsgWithdrawStkAsset, chunkSize int64) (chunks [][]cosmosTypes.MsgWithdrawStkAsset) {
 	for {
 		if len(slice) == 0 {

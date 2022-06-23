@@ -8,16 +8,17 @@ package cli
 import (
 	"context"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/spf13/cobra"
+
 	cosmosUtils "github.com/persistenceOne/pstake-native/x/cosmos/client/utils"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	"github.com/spf13/cobra"
 )
 
 // GetQueryCmd returns the cli query commands for the cosmos module.
@@ -39,6 +40,8 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryVotes(),
 		GetCmdQueryCosmosValidatorSet(),
 		GetCmdQueryOracleValidatorSet(),
+		GetCmdQueryValidatorMapping(),
+		GetCmdQueryOracleHeight(),
 	)
 
 	return cosmosQueryCmd
@@ -379,6 +382,62 @@ func GetCmdQueryOracleValidatorSet() *cobra.Command {
 
 			params := &cosmosTypes.QueryOracleValidatorSetRequest{}
 			res, err := queryClient.OracleValidatorSet(context.Background(), params)
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryValidatorMapping() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "validator-mapping [validator-address]",
+		Short: "Query validator mapping",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := cosmosTypes.NewQueryClient(clientCtx)
+
+			params := &cosmosTypes.QueryValidatorMappingRequest{ValidatorAddress: args[0]}
+			res, err := queryClient.ValidatorMapping(context.Background(), params)
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryOracleHeight() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "oracle-height [oracle-address]",
+		Short: "Query oracle height",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := cosmosTypes.NewQueryClient(clientCtx)
+
+			params := &cosmosTypes.QueryOracleLastUpdateHeightRequest{OracleAddress: args[0]}
+			res, err := queryClient.OracleHeight(context.Background(), params)
 
 			if err != nil {
 				return err

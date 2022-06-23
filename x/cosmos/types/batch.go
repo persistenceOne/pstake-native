@@ -9,21 +9,15 @@ import (
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-func NewIncomingMintTx(orchestratorAddress sdkTypes.AccAddress, ratio sdkTypes.Dec) IncomingMintTx {
-	return IncomingMintTx{
-		OrchAddresses: []string{orchestratorAddress.String()},
-		Counter:       1,
-		Ratio:         ratio,
-	}
-}
-
-func NewAddressAndAmount(destinationAddress sdkTypes.AccAddress, amount sdkTypes.Coin, nativeBlockHeight int64) AddressAndAmountKey {
-	return AddressAndAmountKey{
-		DestinationAddress: destinationAddress.String(),
-		Amount:             amount,
-		Acknowledgment:     false,
+func NewMintTokenStoreValue(msg MsgMintTokensForAccount, ratio sdkTypes.Dec, valAddress sdkTypes.ValAddress, activeBlockHeight int64) MintTokenStoreValue {
+	return MintTokenStoreValue{
+		MintTokens:         msg,
+		Ratio:              ratio,
+		ValidatorAddresses: []string{valAddress.String()},
+		Counter:            1,
 		Minted:             false,
-		NativeBlockHeight:  nativeBlockHeight,
+		AddedToEpoch:       false,
+		ActiveBlockHeight:  activeBlockHeight,
 	}
 }
 
@@ -43,26 +37,26 @@ func NewProposalKey(chainID string, blockHeight int64, proposalID uint64) Propos
 	}
 }
 
-func NewProposalValue(msg MsgMakeProposal, orchAddress string, ratio sdkTypes.Dec) ProposalValue {
+func NewProposalValue(msg MsgMakeProposal, valAddress sdkTypes.ValAddress, ratio sdkTypes.Dec, blockHeight int64) ProposalValue {
 	return ProposalValue{
-		ProposalDetails:       msg,
-		OrchestratorAddresses: []string{orchAddress},
-		ProposalPosted:        false,
-		Ratio:                 ratio,
-		Counter:               1,
+		ProposalDetails:    msg,
+		ValidatorAddresses: []string{valAddress.String()},
+		ProposalPosted:     false,
+		Ratio:              ratio,
+		Counter:            1,
+		ActiveBlockHeight:  blockHeight,
 	}
 }
 
-func NewTxHashValue(msg MsgTxStatus, ratio sdkTypes.Dec, nativeBlockHeight, activeBlockHeight int64) TxHashValue {
+func NewTxHashValue(msg MsgTxStatus, ratio sdkTypes.Dec, activeBlockHeight int64, valAddress sdkTypes.ValAddress) TxHashValue {
 	return TxHashValue{
-		TxStatus:              msg,
-		OrchestratorAddresses: []string{msg.OrchestratorAddress},
-		Status:                []string{msg.Status},
-		Ratio:                 ratio,
-		TxCleared:             false,
-		Counter:               1,
-		NativeBlockHeight:     nativeBlockHeight,
-		ActiveBlockHeight:     activeBlockHeight,
+		TxStatus:           msg,
+		ValidatorAddresses: []string{valAddress.String()},
+		Status:             []string{msg.Status},
+		Ratio:              ratio,
+		TxCleared:          false,
+		Counter:            1,
+		ActiveBlockHeight:  activeBlockHeight,
 	}
 }
 
@@ -80,21 +74,14 @@ func NewValueOutgoingUnbondStore(undelegateMessage []stakingTypes.MsgUndelegate,
 	}
 }
 
-func NewValueUndelegateSuccessStore(msg MsgUndelegateSuccess, orchestratorAddress string, ratio sdkTypes.Dec,
-	nativeBlockHeight, activeBlockHeight int64) ValueUndelegateSuccessStore {
+func NewValueUndelegateSuccessStore(msg MsgUndelegateSuccess, valAddress sdkTypes.ValAddress, ratio sdkTypes.Dec,
+	activeBlockHeight int64) ValueUndelegateSuccessStore {
 	return ValueUndelegateSuccessStore{
-		UndelegateSuccess:     msg,
-		OrchestratorAddresses: []string{orchestratorAddress},
-		Ratio:                 ratio,
-		Counter:               1,
-		NativeBlockHeight:     nativeBlockHeight,
-		ActiveBlockHeight:     activeBlockHeight,
-	}
-}
-
-func NewStakingEpochValue(keyAndValue KeyAndValueForMinting) StakingEpochValue {
-	return StakingEpochValue{
-		EpochMintingTxns: []KeyAndValueForMinting{keyAndValue},
+		UndelegateSuccess:  msg,
+		ValidatorAddresses: []string{valAddress.String()},
+		Ratio:              ratio,
+		Counter:            1,
+		ActiveBlockHeight:  activeBlockHeight,
 	}
 }
 
@@ -104,16 +91,15 @@ func NewMintingEpochValue(txIDAndStatus MintingEpochValueMember) MintingEpochVal
 	}
 }
 
-func NewRewardsClaimedValue(msg MsgRewardsClaimedOnCosmosChain, orchestratorAddress string, ratio sdkTypes.Dec,
-	nativeBlockHeight, activeBlockHeight int64) RewardsClaimedValue {
+func NewRewardsClaimedValue(msg MsgRewardsClaimedOnCosmosChain, valAddress sdkTypes.ValAddress, ratio sdkTypes.Dec,
+	activeBlockHeight int64) RewardsClaimedValue {
 	return RewardsClaimedValue{
-		RewardsClaimed:        msg,
-		OrchestratorAddresses: []string{orchestratorAddress},
-		Ratio:                 ratio,
-		Counter:               1,
-		AddedToCurrentEpoch:   false,
-		NativeBlockHeight:     nativeBlockHeight,
-		ActiveBlockHeight:     activeBlockHeight,
+		RewardsClaimed:      msg,
+		ValidatorAddresses:  []string{valAddress.String()},
+		Ratio:               ratio,
+		Counter:             1,
+		AddedToCurrentEpoch: false,
+		ActiveBlockHeight:   activeBlockHeight,
 	}
 }
 
@@ -123,11 +109,11 @@ func NewValidatorStoreValue(orchAddress sdkTypes.AccAddress) ValidatorStoreValue
 	}
 }
 
-func NewOutgoingSignaturePoolValue(singleSignature SingleSignatureDataForOutgoingPool, orchestratorAddress sdkTypes.AccAddress) OutgoingSignaturePoolValue {
+func NewOutgoingSignaturePoolValue(singleSignature SingleSignatureDataForOutgoingPool, valAddress sdkTypes.ValAddress) OutgoingSignaturePoolValue {
 	return OutgoingSignaturePoolValue{
-		SingleSignatures:      []SingleSignatureDataForOutgoingPool{singleSignature},
-		OrchestratorAddresses: []string{orchestratorAddress.String()},
-		Counter:               1,
+		SingleSignatures:   []SingleSignatureDataForOutgoingPool{singleSignature},
+		ValidatorAddresses: []string{valAddress.String()},
+		Counter:            1,
 	}
 }
 
@@ -152,12 +138,14 @@ func NewOutgoingQueueValue(active bool, retryCounter uint64) OutgoingQueueValue 
 	}
 }
 
-func NewSlashingStoreValue(msg MsgSlashingEventOnCosmosChain, ratio sdkTypes.Dec, orch string) SlashingStoreValue {
+func NewSlashingStoreValue(msg MsgSlashingEventOnCosmosChain, ratio sdkTypes.Dec, valAddress sdkTypes.ValAddress, blockHeight int64) SlashingStoreValue {
 	return SlashingStoreValue{
-		SlashingDetails:       msg,
-		Ratio:                 ratio,
-		OrchestratorAddresses: []string{orch},
-		Counter:               1,
+		SlashingDetails:    msg,
+		Ratio:              ratio,
+		ValidatorAddresses: []string{valAddress.String()},
+		Counter:            1,
+		AddedToCValue:      false,
+		ActiveBlockHeight:  blockHeight,
 	}
 }
 

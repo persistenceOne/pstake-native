@@ -15,27 +15,35 @@ type OutgoingSignaturePoolKeyAndValue struct {
 	OutgoingSignaturePoolValue cosmosTypes.OutgoingSignaturePoolValue
 }
 
-func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context, singleSignature cosmosTypes.SingleSignatureDataForOutgoingPool, txID uint64, orchestratorAddress sdk.AccAddress) error {
+/*
+Adds the signature entry to the signature pool store with the given validator address.
+Performs the following actions :
+  1. Checks if the store has the key, if it has the key then it appends the signature.
+  2. If not present in the store then creates a new entry.
+*/
+func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context, singleSignature cosmosTypes.SingleSignatureDataForOutgoingPool, txID uint64, orchestratorAddress sdk.AccAddress, validatorAddress sdk.ValAddress) error {
 	outgoingSignaturePoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingSignaturePoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	if outgoingSignaturePoolStore.Has(key) {
 		var outgoingSignaturePoolValue cosmosTypes.OutgoingSignaturePoolValue
 		k.cdc.MustUnmarshal(outgoingSignaturePoolStore.Get(key), &outgoingSignaturePoolValue)
 
-		if !outgoingSignaturePoolValue.Find(orchestratorAddress.String()) {
-			return sdkErrors.Wrap(cosmosTypes.ErrOrchAddressPresentInSignaturePool, orchestratorAddress.String())
+		if !outgoingSignaturePoolValue.Find(validatorAddress.String()) {
+			return sdkErrors.Wrap(cosmosTypes.ErrOrchAddressPresentInSignaturePool, validatorAddress.String())
 		}
 		outgoingSignaturePoolValue.SingleSignatures = append(outgoingSignaturePoolValue.SingleSignatures, singleSignature)
-		outgoingSignaturePoolValue.UpdateValues(orchestratorAddress.String(), k.GetTotalValidatorOrchestratorCount(ctx))
+		outgoingSignaturePoolValue.UpdateValues(validatorAddress.String(), k.GetTotalValidatorOrchestratorCount(ctx))
+		outgoingSignaturePoolValue.OrchestratorAddresses = append(outgoingSignaturePoolValue.OrchestratorAddresses, orchestratorAddress.String())
 
 		outgoingSignaturePoolStore.Set(key, k.cdc.MustMarshal(&outgoingSignaturePoolValue))
 		return nil
 	}
-	outgoingSignaturePoolValue := cosmosTypes.NewOutgoingSignaturePoolValue(singleSignature, orchestratorAddress)
+	outgoingSignaturePoolValue := cosmosTypes.NewOutgoingSignaturePoolValue(singleSignature, validatorAddress)
 	outgoingSignaturePoolStore.Set(key, k.cdc.MustMarshal(&outgoingSignaturePoolValue))
 	return nil
 }
 
+// Gets all the entries from the outgoing signature pool
 func (k Keeper) getAllFromOutgoingSignaturePool(ctx sdk.Context) (list []OutgoingSignaturePoolKeyAndValue, err error) {
 	outgoingSignaturePoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingSignaturePoolKey)
 	iterator := outgoingSignaturePoolStore.Iterator(nil, nil)
@@ -52,23 +60,32 @@ func (k Keeper) getAllFromOutgoingSignaturePool(ctx sdk.Context) (list []Outgoin
 	return list, err
 }
 
+// Removes the entry corresponding to the given txID from the outgoing signature pool
 func (k Keeper) removeFromOutgoingSignaturePool(ctx sdk.Context, txID uint64) {
 	outgoingSignaturePoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingSignaturePoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	outgoingSignaturePoolStore.Delete(key)
 }
 
-func (k Keeper) ProcessAllSignature(ctx sdk.Context) error {
+/*
+ProcessAllSignature processes all the outgoing signature entries
+This function is called every EndBlocker to perform the defined set of actions as mentioned below :
+   1. Get the list of all outgoing signature entries
+   2. Checks if the signatures sent have crossed the threshold.
+   3. If majority is reached and other conditions match then the signature is added to the transaction.
+   4. Once the signature is added, a signed outgoing txn event is generated.
+*/
+func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 	outgoingSignaturePool, err := k.getAllFromOutgoingSignaturePool(ctx)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	params := k.GetParams(ctx)
 	for _, os := range outgoingSignaturePool {
 		if os.OutgoingSignaturePoolValue.Counter >= params.MultisigThreshold {
 			custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
 			if err != nil {
-				return err
+				panic(err)
 			}
 			multisigAccount := k.authKeeper.GetAccount(ctx, custodialAddress)
 			multisigPub := multisigAccount.GetPubKey().(*multisig2.LegacyAminoPubKey)
@@ -78,11 +95,11 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) error {
 				externalSig := cosmosTypes.ConvertSingleSignatureDataForOutgoingPoolToSingleSignatureData(sig)
 				orchAddress, err := sdk.AccAddressFromBech32(os.OutgoingSignaturePoolValue.OrchestratorAddresses[i])
 				if err != nil {
-					return err
+					panic(err)
 				}
 				account := k.authKeeper.GetAccount(ctx, orchAddress)
 				if err := multisig.AddSignatureFromPubKey(multisigSig, &externalSig, account.GetPubKey(), multisigPub.GetPubKeys()); err != nil {
-					return err
+					panic(err)
 				}
 			}
 
@@ -94,19 +111,20 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) error {
 
 			cosmosTx, err := k.getTxnFromOutgoingPoolByID(ctx, os.txID)
 			if err != nil {
-				return err
+				panic(err)
 			}
 
 			err = cosmosTx.CosmosTxDetails.SetSignatures(sigV2)
 			if err != nil {
-				return err
+				panic(err)
 			}
 
 			err = k.setOutgoingTxnSignaturesAndEmitEvent(ctx, cosmosTx.CosmosTxDetails, os.txID)
 			if err != nil {
-				return err
+				panic(err)
 			}
+
+			k.removeFromOutgoingSignaturePool(ctx, os.txID)
 		}
 	}
-	return nil
 }

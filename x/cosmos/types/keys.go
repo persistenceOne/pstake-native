@@ -9,7 +9,6 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"strconv"
-	"strings"
 	"time"
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
@@ -37,6 +36,7 @@ const (
 	QueryParameters = "parameters"
 	QueryTxByID     = "txByID"
 	QueryProposal   = "proposal"
+	QueryProposals  = "proposals"
 	QueryVote       = "vote"
 	QueryVotes      = "votes"
 
@@ -55,21 +55,13 @@ const (
 var (
 	MinimumRatioForMajority = sdkTypes.NewDec(66).Quo(sdkTypes.NewDec(100))
 
-	KeyValidatorAddress = "KeyValidatorAddress"
-
 	SequenceKeyPrefix = "SequenceKeyPrefix"
 
 	KeyLastTXPoolID = SequenceKeyPrefix + "lastTxPoolId"
 
-	KeyCosmosValidatorSet = []byte{0x01}
-
 	KeyTotalDelegationTillDate = []byte{0x02}
 
 	OutgoingTXPoolKey = []byte{0x03}
-
-	AddressAndAmountStoreKey = []byte{0x04}
-
-	MintingPoolStoreKey = []byte{0x05}
 
 	ValidatorOrchestratorStoreKey = []byte{0x07}
 
@@ -99,56 +91,49 @@ var (
 
 	KeyEpochStoreForUndelegation = "EpochStoreForUndelegation"
 
-	KeyEpochStoreForWithdrawSuccess = []byte{0x10}
+	KeyEpochStoreForWithdrawSuccess = []byte{0x15}
 
-	KeyUndelegateSuccessStore = []byte{0x11}
+	KeyUndelegateSuccessStore = []byte{0x16}
 
-	KeyWithdrawStore = []byte{0x12}
+	KeyWithdrawStore = []byte{0x17}
 
-	KeyOutgoingTxSignature = []byte{0x11}
+	KeyOutgoingTxSignature = []byte{0x18}
 
-	KeyOutgoingSignaturePoolKey = []byte{0x12}
+	KeyOutgoingSignaturePoolKey = []byte{0x19}
 
-	KeyMultisigAccountStore = []byte{0x13}
+	KeyMultisigAccountStore = []byte{0x20}
 
-	KeyCurrentMultisigAddress = []byte{0x14}
+	KeyCurrentMultisigAddress = []byte{0x21}
 
-	KeyTransactionQueue = []byte{0x15}
+	KeyTransactionQueue = []byte{0x22}
 
-	KeyCosmosValidatorWeights = []byte{0x16}
+	KeyCosmosValidatorWeights = []byte{0x23}
 
-	KeyNativeValidatorWeights = []byte{0x17}
+	KeyNativeValidatorWeights = []byte{0x24}
 
-	KeySlashingStore = []byte{0x18}
+	KeySlashingStore = []byte{0x25}
+
+	KeyMintTokenStore = []byte{0x26}
+
+	KeyOracleLastUpdateHeightNative = []byte{0x27}
+
+	KeyOracleLastUpdateHeightCosmos = []byte{0x28}
+
+	KeyMintedAmount = []byte{0x29}
+
+	KeyVirtuallyStakedAmount = []byte{0x2A}
+
+	KeyStakedAmount = []byte{0x2B}
+
+	KeyVirtuallyUnbonded = []byte{0x2C}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {
 	return append([]byte(KeyEpochStoreForUndelegation), Int64Bytes(epochNumber)...)
 }
 
-func ConvertByteArrToString(value []byte) string {
-	var ret strings.Builder
-	for i := 0; i < len(value); i++ {
-		ret.WriteString(string(value[i]))
-	}
-	return ret.String()
-}
-
-func GetChainIDTxHashBlockHeightKey(chainID string, blockHeight int64, txHash string) string {
-	return chainID + strconv.FormatInt(blockHeight, 10) + txHash
-}
-
 func GetChainIDAndBlockHeightKey(chainID string, blockHeight int64) string {
 	return chainID + strconv.FormatInt(blockHeight, 10)
-}
-
-func GetDestinationAddressAmountAndTxHashKey(destinationAddress sdkTypes.AccAddress, coins sdkTypes.Coins, txHash string) string {
-	amount := make([]byte, 32)
-	amount = []byte(coins[0].Amount.String())
-
-	a := append(destinationAddress.Bytes(), amount...)
-	b := append([]byte(txHash), a...)
-	return ConvertByteArrToString(b)
 }
 
 // GetProposalIDFromBytes returns proposalID in uint64 format from a byte array

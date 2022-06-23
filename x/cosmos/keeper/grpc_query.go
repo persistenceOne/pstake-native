@@ -30,6 +30,7 @@ func (k Keeper) QueryTxByID(context context.Context, req *cosmosTypes.QueryOutgo
 	return &cosmosTxDetails, nil
 }
 
+// Proposal Query proposal by ID which came in from cosmos side
 func (k Keeper) Proposal(context context.Context, req *cosmosTypes.QueryProposalRequest) (*cosmosTypes.QueryProposalResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -151,14 +152,51 @@ func (k Keeper) Votes(c context.Context, req *cosmosTypes.QueryVotesRequest) (*c
 	return &cosmosTypes.QueryVotesResponse{Votes: votes, Pagination: pageRes}, nil
 }
 
+// CosmosValidatorSet returns the cosmos validator set and their respective weights
 func (k Keeper) CosmosValidatorSet(c context.Context, _ *cosmosTypes.QueryCosmosValidatorSetRequest) (*cosmosTypes.QueryCosmosValidatorSetResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
-	weihtedAddresses := k.getAllCosmosValidatorSet(ctx)
+	weihtedAddresses := k.GetAllCosmosValidatorSet(ctx)
 	return &cosmosTypes.QueryCosmosValidatorSetResponse{WeightedAddresses: weihtedAddresses}, nil
 }
 
+// OracleValidatorSet returns the oracle validator set and their respective weights
 func (k Keeper) OracleValidatorSet(c context.Context, _ *cosmosTypes.QueryOracleValidatorSetRequest) (*cosmosTypes.QueryOracleValidatorSetResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 	weightedAddresses := k.getAllOracleValidatorSet(ctx)
 	return &cosmosTypes.QueryOracleValidatorSetResponse{WeightedAddresses: weightedAddresses}, nil
+}
+
+// ValidatorMapping returns the oracle address mapped to the given validator address
+func (k Keeper) ValidatorMapping(c context.Context, query *cosmosTypes.QueryValidatorMappingRequest) (*cosmosTypes.QueryValidatorMappingResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	validatorAddress, err := sdkTypes.ValAddressFromBech32(query.ValidatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	validatorMapping := k.getValidatorMapping(ctx, validatorAddress)
+
+	return &cosmosTypes.QueryValidatorMappingResponse{
+		ValidatorAddress:    validatorAddress.String(),
+		OrchestratorAddress: validatorMapping.OrchestratorAddresses,
+	}, nil
+}
+
+// OracleHeight returns the last updated height of given oracle
+func (k Keeper) OracleHeight(c context.Context, query *cosmosTypes.QueryOracleLastUpdateHeightRequest) (*cosmosTypes.QueryOracleLastUpdateHeightResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	oracleAddress, err := sdkTypes.AccAddressFromBech32(query.OracleAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	oracleLastUpadteHeightNative := k.getOracleLastUpdateHeightNative(ctx, oracleAddress)
+	oracleLastUpadteHeightCosmos := k.getOracleLastUpdateHeightCosmos(ctx, oracleAddress)
+
+	return &cosmosTypes.QueryOracleLastUpdateHeightResponse{
+		BlockHeightCosmos: oracleLastUpadteHeightCosmos,
+		BlockHeightNative: oracleLastUpadteHeightNative,
+	}, nil
 }

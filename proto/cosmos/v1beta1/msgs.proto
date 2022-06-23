@@ -35,7 +35,7 @@ service Msg {
   rpc RewardsClaimed(MsgRewardsClaimedOnCosmosChain) returns (MsgRewardsClaimedOnCosmosChainResponse) {}
   rpc UndelegateSuccess(MsgUndelegateSuccess) returns (MsgUndelegateSuccessResponse) {};
   rpc SetSignature(MsgSetSignature) returns (MsgSetSignatureResponse) {};
-  rpc SlashingEvent(MsgSlashingEventOnCosmosChain) returns (MsgSlashingEventOnCosmosChainResposne) {};
+  rpc SlashingEvent(MsgSlashingEventOnCosmosChain) returns (MsgSlashingEventOnCosmosChainResponse) {};
 }
 
 message MsgSetOrchestrator {
@@ -89,8 +89,7 @@ message MsgVoteWeightedResponse {}
 message MsgMintTokensForAccount {
   string address_from_memo = 1;
   string orchestrator_address = 2;
-  repeated cosmos.base.v1beta1.Coin amount = 3
-  [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
   string tx_hash = 4;
   string chain_i_d = 5;
   int64 block_height = 6;
@@ -138,6 +137,7 @@ message MsgTxStatus {
   repeated cosmos.base.v1beta1.Coin balance = 6
   [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
   repeated ValidatorDetails validator_details = 7 [(gogoproto.nullable) = false];
+  int64 block_height = 8;
 }
 message MsgTxStatusResponse {}
 
@@ -165,6 +165,7 @@ message MsgSetSignature{
   string orchestrator_address = 1;
   uint64 outgoing_tx_i_d = 2;
   bytes signature = 3;
+  int64 block_height = 4;
 }
 message MsgSetSignatureResponse{}
 
@@ -176,11 +177,11 @@ message ValidatorDetails {
 
 message MsgSlashingEventOnCosmosChain {
   string validator_address = 1;
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin current_delegation = 2 [(gogoproto.nullable) = false];
   string orchestrator_address = 3;
-  string tx_hash = 4;
+  string slash_type = 4;
   string chain_i_d = 5;
   int64 block_height = 6;
 }
 
-message MsgSlashingEventOnCosmosChainResposne {}
+message MsgSlashingEventOnCosmosChainResponse {}
