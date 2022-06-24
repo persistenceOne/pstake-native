@@ -160,6 +160,7 @@ var (
 		router.AppModuleBasic{},
 		cosmos.AppModuleBasic{},
 		epochs.AppModuleBasic{},
+		liquidstaking.AppModuleBasic{},
 	)
 
 	// module account permissions
