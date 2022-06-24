@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/persistenceOne/pstake-native/x/liquidstaking"
 	"io"
 	stdlog "log"
 	"net/http"
@@ -96,6 +97,8 @@ import (
 	epochs "github.com/persistenceOne/pstake-native/x/epochs"
 	epochsKeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
 	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
+	liquidstakingkeeper "github.com/persistenceOne/pstake-native/x/liquidstaking/keeper"
+	liquidstakingtypes "github.com/persistenceOne/pstake-native/x/liquidstaking/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -170,6 +173,8 @@ var (
 		liquiditytypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		cosmos.ModuleName:              {authtypes.Minter, authtypes.Burner},
+		liquidstakingtypes.ModuleName:  {authtypes.Minter, authtypes.Burner},
+
 	}
 )
 
@@ -215,6 +220,8 @@ type PstakeApp struct {
 	RouterKeeper     routerkeeper.Keeper
 	CosmosKeeper     cosmos.Keeper
 	EpochsKeeper     epochsKeeper.Keeper
+	LiquidStakingKeeper liquidstakingkeeper.Keeper
+
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -265,7 +272,7 @@ func NewGaiaApp(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, liquiditytypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey,
-		cosmos.StoreKey, epochsTypes.StoreKey,
+		cosmos.StoreKey, epochsTypes.StoreKey, liquidstakingtypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -427,6 +434,17 @@ func NewGaiaApp(
 		govRouter,
 	)
 
+	app.LiquidStakingKeeper = liquidstakingkeeper.NewKeeper(
+		appCodec,
+		keys[liquidstakingtypes.StoreKey],
+		app.ParamsKeeper.Subspace(liquidstakingtypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.StakingKeeper,
+		app.DistrKeeper,
+		app.SlashingKeeper,
+	)
+
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
@@ -493,6 +511,7 @@ func NewGaiaApp(
 		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
 		cosmos.NewAppModule(appCodec, app.CosmosKeeper),
 		epochs.NewAppModule(appCodec, app.EpochsKeeper),
+		liquidstaking.NewAppModule(appCodec, app.LiquidStakingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper),
 		transferModule,
 		routerModule,
 	)
@@ -509,6 +528,7 @@ func NewGaiaApp(
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
+		liquidstakingtypes.ModuleName,
 		liquiditytypes.ModuleName,
 		ibchost.ModuleName,
 		routertypes.ModuleName,
@@ -519,6 +539,7 @@ func NewGaiaApp(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
+		liquidstakingtypes.ModuleName,
 		liquiditytypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
@@ -543,6 +564,7 @@ func NewGaiaApp(
 		crisistypes.ModuleName,
 		ibchost.ModuleName,
 		genutiltypes.ModuleName,
+		liquidstakingtypes.ModuleName,
 		evidencetypes.ModuleName,
 		liquiditytypes.ModuleName,
 		ibctransfertypes.ModuleName,
@@ -579,6 +601,7 @@ func NewGaiaApp(
 		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		cosmos.NewAppModule(appCodec, app.CosmosKeeper),
+		liquidstaking.NewAppModule(appCodec, app.LiquidStakingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper),
 		transferModule,
 	)
 
