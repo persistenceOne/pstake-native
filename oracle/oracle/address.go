@@ -202,7 +202,7 @@ func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Con
 	privkey, _ := GetSDKPivKeyAndAddressR(chain.AccountPrefix, chain.CoinType, seed)
 
 	SetSDKConfigPrefix(chain.AccountPrefix)
-	signerAddr, _ := AccAddressFromBech32(signerAddress, chain.AccountPrefix)
+	signerAddr, err := AccAddressFromBech32(signerAddress, chain.AccountPrefix)
 	ac, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, signerAddr)
 	if err != nil {
 		return nil, err
@@ -228,49 +228,6 @@ func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Con
 
 	return signature, nil
 
-}
-
-func GetSignature(seed string, chain *CosmosChain, clientCtx client.Context, msg sdk.Msg) ([]byte, error) {
-	txBuilder := clientCtx.TxConfig.NewTxBuilder()
-
-	txBuilder.SetGasLimit(400000)
-
-	privKey, _ := GetSDKPivKeyAndAddressR(chain.AccountPrefix, chain.CoinType, seed)
-	accSeqs := []uint64{0}
-
-	err := txBuilder.SetMsgs(msg)
-	if err != nil {
-		return nil, err
-	}
-
-	sig := signing.SignatureV2{PubKey: privKey.PubKey(),
-		Data: &signing.SingleSignatureData{
-			SignMode:  clientCtx.TxConfig.SignModeHandler().DefaultMode(),
-			Signature: nil,
-		},
-	}
-
-	err = txBuilder.SetSignatures(sig)
-	if err != nil {
-		return nil, err
-	}
-
-	ac, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, msg.GetSigners()[0])
-	fmt.Println(ac, seq, err)
-	signerData := xauthsigning.SignerData{
-		ChainID:       chain.ChainID,
-		AccountNumber: ac,
-		Sequence:      seq,
-	}
-	sigv2, err := tx.SignWithPrivKey(
-		clientCtx.TxConfig.SignModeHandler().DefaultMode(), signerData, txBuilder, privKey, clientCtx.TxConfig, accSeqs[0])
-	if err != nil {
-		return nil, err
-	}
-
-	signature := sigv2.Data.(*signing.SingleSignatureData).Signature
-
-	return signature, nil
 }
 
 // AccAddressFromBech32 creates an AccAddress from a Bech32 string.

@@ -39,7 +39,7 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 	signerAddress := TxResult.CosmosTxDetails.SignerAddress
 
 	signature, err := GetSignBytesForCosmos(orcSeeds[0], chain, clientCtx, OutgoingTx, signerAddress)
-	_, addr := GetSDKPivKeyAndAddressR(chain.AccountPrefix, chain.CoinType, orcSeeds[0])
+	_, addr := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
 	if err != nil {
 		return err
@@ -75,6 +75,8 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 		return err
 	}
 	fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+
+	//err = SendMsgAcknowledgement(native, chain, orcSeeds, res.TxResponse.TxHash, valAddr, nativeCliCtx, clientCtx)
 
 	if err != nil {
 		return err

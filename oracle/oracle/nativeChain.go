@@ -109,6 +109,8 @@ func (c *NativeChain) Start() error {
 func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCliCtx client.Context, ClientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
 	ctx := context.Background()
 
+	fmt.Println("Listening to native side events")
+
 	var nHeight uint64
 
 	abciInfoNative, err := native.Client.ABCIInfo(ctx)
@@ -154,8 +156,9 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 
 			err := native.OutgoingTxHandler(txId, valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, chain)
 			if err != nil {
-				logg.Println("outgoing tx handling error")
-				return
+
+				panic(err)
+				continue
 			}
 		}
 
@@ -167,8 +170,8 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 		for _, txID := range txSignIdSlice {
 			err := native.SignedOutgoingTxHandler(txID, valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, chain)
 			if err != nil {
-				panic(err)
 				logg.Println("signed outgoing tx handling error")
+				panic(err)
 				return
 
 			}
