@@ -560,7 +560,7 @@ func (m *MsgSetSignature) Type() string { return "msg_set_signature" }
 
 // ValidateBasic performs stateless checks
 func (m *MsgSetSignature) ValidateBasic() error {
-	if _, err := sdk.ValAddressFromBech32(m.OrchestratorAddress); err != nil {
+	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
 	}
 	//TODO see how to add signature verification.
