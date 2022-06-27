@@ -42,6 +42,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryOracleValidatorSet(),
 		GetCmdQueryValidatorMapping(),
 		GetCmdQueryOracleHeight(),
+		GetCmdQueryCosmosBalance(),
 	)
 
 	return cosmosQueryCmd
@@ -438,6 +439,34 @@ func GetCmdQueryOracleHeight() *cobra.Command {
 
 			params := &cosmosTypes.QueryOracleLastUpdateHeightRequest{OracleAddress: args[0]}
 			res, err := queryClient.OracleHeight(context.Background(), params)
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryCosmosBalance() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "cosmos-balances",
+		Short: "Query oracle height",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := cosmosTypes.NewQueryClient(clientCtx)
+
+			params := &cosmosTypes.QueryCosmosBalanceRequest{}
+			res, err := queryClient.CosmosBalance(context.Background(), params)
 
 			if err != nil {
 				return err

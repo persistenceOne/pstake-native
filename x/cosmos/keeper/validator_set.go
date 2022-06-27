@@ -31,6 +31,7 @@ func (k Keeper) SetCosmosValidatorSet(ctx sdk.Context, cosmosValSetWeights []cos
 			}
 			newSortedCosmosValSetWeights[i].Amount = sdk.ZeroInt()
 			newSortedCosmosValSetWeights[i].Denom = bondDenom
+			newSortedCosmosValSetWeights[i].UnbondingTokens = sdk.NewCoin(bondDenom, sdk.ZeroInt())
 			cosmosValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&newSortedCosmosValSetWeights[i]))
 		}
 	}
@@ -62,7 +63,7 @@ func (k Keeper) GetAllCosmosValidatorSet(ctx sdk.Context) (weightedAddresses cos
 }
 
 // UpdateDelegationCosmosValidator updates the delegation of given cosmos validator
-func (k Keeper) UpdateDelegationCosmosValidator(ctx sdk.Context, valAddress sdk.ValAddress, amount sdk.Coin) {
+func (k Keeper) UpdateDelegationCosmosValidator(ctx sdk.Context, valAddress sdk.ValAddress, amount sdk.Coin, unbondingAmount sdk.Coin) {
 	cosmosValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCosmosValidatorWeights)
 	if !cosmosValSetStore.Has(valAddress.Bytes()) {
 		panic(fmt.Errorf("valAddress not present in kv store"))
@@ -71,6 +72,9 @@ func (k Keeper) UpdateDelegationCosmosValidator(ctx sdk.Context, valAddress sdk.
 	k.cdc.MustUnmarshal(cosmosValSetStore.Get(valAddress.Bytes()), &weightedAddress)
 	weightedAddress.Amount = amount.Amount
 	weightedAddress.Denom = amount.Denom
+	if !unbondingAmount.IsZero() {
+		weightedAddress.UnbondingTokens = unbondingAmount
+	}
 	cosmosValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&weightedAddress))
 }
 

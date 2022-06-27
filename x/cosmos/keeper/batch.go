@@ -24,8 +24,8 @@ type txIDAndDetailsInOutgoingPool struct {
 	txDetails cosmosTypes.CosmosTx
 }
 
-// sets new transaction in outoging pool with the given transaction details
-func (k Keeper) setNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosTypes.CosmosTx) {
+// SetNewTxnInOutgoingPool sets new transaction in outgoing pool with the given transaction details
+func (k Keeper) SetNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosTypes.CosmosTx) {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	bz, err := k.cdc.Marshal(&tx)
@@ -35,7 +35,7 @@ func (k Keeper) setNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosT
 	outgoingStore.Set(key, bz)
 }
 
-// updates the status of the transactions once they are done with processing and successful
+// updateStatusOnceProcessed updates the status of the transactions once they are done with processing and successful
 func (k Keeper) updateStatusOnceProcessed(ctx sdk.Context, txID uint64, status string) {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
@@ -373,7 +373,7 @@ func (k Keeper) retryTransactionWithFailure(ctx sdk.Context, txDetails cosmosTyp
 	}
 
 	//set it back again in outgoing txn
-	k.setNewTxnInOutgoingPool(ctx, txID, cosmosTxDetails)
+	k.SetNewTxnInOutgoingPool(ctx, txID, cosmosTxDetails)
 
 	//remove txHash and mapping
 	k.removeTxHashAndDetails(ctx, txHash)
@@ -475,12 +475,13 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 		}
 
 		// TODO : handle balance, bonded tokens and unbonding tokens value
+		k.setCosmosBalance(ctx, tx.Details.TxStatus.Balance)
 		for _, delegation := range tx.Details.TxStatus.ValidatorDetails {
 			valAddress, err := cosmosTypes.ValAddressFromBech32(delegation.ValidatorAddress, cosmosTypes.Bech32PrefixValAddr)
 			if err != nil {
 				panic(err)
 			}
-			k.UpdateDelegationCosmosValidator(ctx, valAddress, delegation.BondedTokens)
+			k.UpdateDelegationCosmosValidator(ctx, valAddress, delegation.BondedTokens, delegation.UnbondingTokens)
 		}
 
 		// set sequence number in any case of status, so it stays up to date

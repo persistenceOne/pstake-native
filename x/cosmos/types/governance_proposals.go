@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
 
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -27,6 +28,7 @@ func init() {
 	govTypes.RegisterProposalTypeCodec(&ChangeOracleValidatorWeightsProposal{}, "persistenceCore/ChangeOracleValidatorWeightsProposal")
 }
 
+// NewChangeMultisigProposal creates a new multisig change proposal.
 func NewChangeMultisigProposal(title, description string, threshold uint64, orchestratorAddresses []string, accountNumber uint64) *ChangeMultisigProposal {
 	return &ChangeMultisigProposal{
 		Title:                title,
@@ -37,27 +39,45 @@ func NewChangeMultisigProposal(title, description string, threshold uint64, orch
 	}
 }
 
+// GetTitle returns the title of the multisig change proposal.
 func (m *ChangeMultisigProposal) GetTitle() string {
 	return m.Title
 }
 
+// GetDescription returns the description of multisig change proposal.
 func (m *ChangeMultisigProposal) GetDescription() string {
 	return m.Description
 }
 
+// ProposalRoute returns the proposal route of multisig change proposal.
 func (m *ChangeMultisigProposal) ProposalRoute() string {
 	return RouterKey
 }
 
+// ProposalType returns the proposal type of multisig change proposal.
 func (m *ChangeMultisigProposal) ProposalType() string {
 	return ProposalTypeChangeMultisig
 }
 
+// ValidateBasic runs basic stateless validity checks
 func (m *ChangeMultisigProposal) ValidateBasic() error {
-	//TODO add validations
+	err := govTypes.ValidateAbstract(m)
+	if err != nil {
+		return err
+	}
+
+	if m.Threshold > uint64(len(m.OrcastratorAddresses)) {
+		return fmt.Errorf("threshold cannot be greated than the number of addresses")
+	}
+
+	if m.AccountNumber < 0 {
+		return fmt.Errorf("account number must be non-negative")
+	}
+
 	return nil
 }
 
+// String returns the string of proposal details
 func (m *ChangeMultisigProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Update Pool Incentives Proposal:
@@ -69,6 +89,7 @@ func (m *ChangeMultisigProposal) String() string {
 	return b.String()
 }
 
+// NewEnableModuleProposal returns a new module enable proposal
 func NewEnableModuleProposal(title, description string, threshold uint64, accountNumber uint64, orchestratorAddresses []string) *EnableModuleProposal {
 	return &EnableModuleProposal{
 		Title:                 title,
@@ -79,27 +100,45 @@ func NewEnableModuleProposal(title, description string, threshold uint64, accoun
 	}
 }
 
+// GetTitle returns the title of module enable proposal
 func (m *EnableModuleProposal) GetTitle() string {
 	return m.Title
 }
 
+// GetDescription returns the description of module enable proposal
 func (m *EnableModuleProposal) GetDescription() string {
 	return m.Description
 }
 
+// ProposalRoute returns the proposal route for the module enable proposal
 func (m *EnableModuleProposal) ProposalRoute() string {
 	return RouterKey
 }
 
+// ProposalType returns the proposal type for the module enable proposal
 func (m *EnableModuleProposal) ProposalType() string {
 	return ProposalTypeEnableModule
 }
 
+// ValidateBasic runs basic stateless validity checks
 func (m *EnableModuleProposal) ValidateBasic() error {
-	//TODO add validations
+	err := govTypes.ValidateAbstract(m)
+	if err != nil {
+		return err
+	}
+
+	if m.Threshold > uint64(len(m.OrchestratorAddresses)) {
+		return fmt.Errorf("threshold cannot be greater than the number of addresses")
+	}
+
+	if m.AccountNumber < 0 {
+		return fmt.Errorf("account number must be non-negative")
+	}
+
 	return nil
 }
 
+// String returns the string of proposal details
 func (m *EnableModuleProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Update Pool Incentives Proposal:
@@ -109,6 +148,7 @@ func (m *EnableModuleProposal) String() string {
 	return b.String()
 }
 
+// NewChangeCosmosValidatorWeightsProposal returns a new cosmos validator weights change proposal
 func NewChangeCosmosValidatorWeightsProposal(title, description string, weightedAddresses []WeightedAddressAmount) *ChangeCosmosValidatorWeightsProposal {
 	return &ChangeCosmosValidatorWeightsProposal{
 		Title:             title,
@@ -117,27 +157,62 @@ func NewChangeCosmosValidatorWeightsProposal(title, description string, weighted
 	}
 }
 
+// GetTitle returns the title of cosmos validator weights change proposal
 func (m *ChangeCosmosValidatorWeightsProposal) GetTitle() string {
 	return m.Title
 }
 
+// GetDescription returns the description of cosmos validator weights change proposal
 func (m *ChangeCosmosValidatorWeightsProposal) GetDescription() string {
 	return m.Description
 }
 
+// ProposalRoute returns the proposal route for the cosmos validator weights change proposal
 func (m *ChangeCosmosValidatorWeightsProposal) ProposalRoute() string {
 	return RouterKey
 }
 
+// ProposalType returns the proposal type for the cosmos validator weights change proposal
 func (m *ChangeCosmosValidatorWeightsProposal) ProposalType() string {
 	return ProposalTypeChangeCosmosValidatorWeights
 }
 
+// ValidateBasic runs basic stateless validity checks
 func (m *ChangeCosmosValidatorWeightsProposal) ValidateBasic() error {
-	//TODO add validations
+	err := govTypes.ValidateAbstract(m)
+	if err != nil {
+		return err
+	}
+
+	if len(m.WeightedAddresses) == 0 {
+		return fmt.Errorf("address should be more than zero")
+	}
+
+	weightSum := sdk.NewDec(0)
+	for i, w := range m.WeightedAddresses {
+		if w.Address != "" {
+			_, err := ValAddressFromBech32(w.Address, Bech32PrefixValAddr)
+			if err != nil {
+				return fmt.Errorf("invalid address at %dth", i)
+			}
+		}
+		if !w.Weight.IsPositive() {
+			return fmt.Errorf("non-positive weight at %dth", i)
+		}
+		if w.Weight.GT(sdk.NewDec(1)) {
+			return fmt.Errorf("more than 1 weight at %dth", i)
+		}
+		weightSum = weightSum.Add(w.Weight)
+	}
+
+	if !weightSum.Equal(sdk.NewDec(1)) {
+		return fmt.Errorf("invalid weight sum: %s", weightSum.String())
+	}
+
 	return nil
 }
 
+// String returns the string of proposal details
 func (m *ChangeCosmosValidatorWeightsProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Update Pool Incentives Proposal:
@@ -147,6 +222,7 @@ func (m *ChangeCosmosValidatorWeightsProposal) String() string {
 	return b.String()
 }
 
+// NewChangeOracleValidatorWeightsProposal returns a new oracle validator weights change proposal
 func NewChangeOracleValidatorWeightsProposal(title, description string, weightedAddresses []WeightedAddress) *ChangeOracleValidatorWeightsProposal {
 	return &ChangeOracleValidatorWeightsProposal{
 		Title:             title,
@@ -155,27 +231,62 @@ func NewChangeOracleValidatorWeightsProposal(title, description string, weighted
 	}
 }
 
+// GetTitle returns the title of oracle validator weights change proposal
 func (m *ChangeOracleValidatorWeightsProposal) GetTitle() string {
 	return m.Title
 }
 
+// GetDescription returns the description of oracle validator weights change proposal
 func (m *ChangeOracleValidatorWeightsProposal) GetDescription() string {
 	return m.Description
 }
 
+// ProposalRoute returns the proposal route for the oracle validator weights change proposal
 func (m *ChangeOracleValidatorWeightsProposal) ProposalRoute() string {
 	return RouterKey
 }
 
+// ProposalType returns the proposal type for the oracle validator weights change proposal
 func (m *ChangeOracleValidatorWeightsProposal) ProposalType() string {
 	return ProposalTypeChangeOracleValidatorWeights
 }
 
+// ValidateBasic runs basic stateless validity checks
 func (m *ChangeOracleValidatorWeightsProposal) ValidateBasic() error {
-	//TODO add validations
+	err := govTypes.ValidateAbstract(m)
+	if err != nil {
+		return err
+	}
+
+	if len(m.WeightedAddresses) == 0 {
+		return fmt.Errorf("address should be more than zero")
+	}
+
+	weightSum := sdk.NewDec(0)
+	for i, w := range m.WeightedAddresses {
+		if w.Address != "" {
+			_, err := sdk.ValAddressFromBech32(w.Address)
+			if err != nil {
+				return fmt.Errorf("invalid address at %dth", i)
+			}
+		}
+		if !w.Weight.IsPositive() {
+			return fmt.Errorf("non-positive weight at %dth", i)
+		}
+		if w.Weight.GT(sdk.NewDec(1)) {
+			return fmt.Errorf("more than 1 weight at %dth", i)
+		}
+		weightSum = weightSum.Add(w.Weight)
+	}
+
+	if !weightSum.Equal(sdk.NewDec(1)) {
+		return fmt.Errorf("invalid weight sum: %s", weightSum.String())
+	}
+
 	return nil
 }
 
+// String returns the string of proposal details
 func (m *ChangeOracleValidatorWeightsProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Update Pool Incentives Proposal:

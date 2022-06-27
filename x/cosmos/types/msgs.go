@@ -542,6 +542,7 @@ func (m *MsgRewardsClaimedOnCosmosChain) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
+// NewMsgSetSignature returns a MsgSetSignature
 func NewMsgSetSignature(orchAddress sdk.AccAddress, outgoingTxID uint64, signatures []byte, blockHeight int64) *MsgSetSignature {
 	return &MsgSetSignature{
 		OrchestratorAddress: orchAddress.String(),

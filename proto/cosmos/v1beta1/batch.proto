@@ -73,10 +73,6 @@ message MintingEpochValueMember {
   bool status = 2;
 }
 
-message MintingEpochValue {
-  repeated MintingEpochValueMember tx_i_d_and_status = 1 [(gogoproto.nullable) = false];
-}
-
 message RewardsClaimedValue {
   cosmos.v1beta1.MsgRewardsClaimedOnCosmosChain rewards_claimed = 1 [(gogoproto.nullable) = false];
   repeated string validator_addresses = 2;

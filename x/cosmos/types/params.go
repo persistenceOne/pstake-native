@@ -12,16 +12,19 @@ import (
 	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 )
 
+// Default constants for period, mint and staking denom
 const (
-	DefaultPeriod       time.Duration = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
-	DefaultMintDenom    string        = "ustkxprt"
-	DefaultStakingDenom               = "uatom"
+	DefaultPeriod       = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
+	DefaultMintDenom    = "ustkxprt"
+	DefaultStakingDenom = "uatom"
 )
 
+// DefaultBondDenom is a default bond denom param
 var (
 	DefaultBondDenom = []string{"uatom"}
 )
 
+// Parameter store key
 var (
 	KeyMinMintingAmount                  = []byte("MinMintingAmount")
 	KeyMaxMintingAmount                  = []byte("MaxMintingAmount")
@@ -47,10 +50,12 @@ var (
 	KeyRewardEpochIdentifier             = []byte("RewardEpochIdentifier")
 )
 
+// ParamKeyTable - Key declaration for parameters
 func ParamKeyTable() paramsTypes.KeyTable {
 	return paramsTypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
+// NewParams creates a new Params object
 func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningAmount sdk.Coin, maxBurningAmount sdk.Coin,
 	maxValidatorToDelegate uint64, weightedDeveloperRewardsReceivers []WeightedAddress,
 	distributionProportion DistributionProportions, epochs int64, maxIncomingAndOutgoingTxns int64,
@@ -83,6 +88,7 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 	}
 }
 
+// DefaultParams default parameters for deposits
 func DefaultParams() Params {
 	return Params{
 		MinMintingAmount:       sdk.NewInt64Coin("uatom", 5000000),
@@ -121,6 +127,7 @@ func DefaultParams() Params {
 	}
 }
 
+// ValidateBasic runs basic stateless validity checks
 func (p Params) Validate() error {
 	if err := validateAmount(p.MinMintingAmount); err != nil {
 		return err
@@ -188,11 +195,14 @@ func (p Params) Validate() error {
 	return nil
 }
 
+// String implements stringer interface
 func (p Params) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)
 }
 
+// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
+// of cosmos module's parameters.
 func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 	return paramsTypes.ParamSetPairs{
 		paramsTypes.NewParamSetPair(KeyMinMintingAmount, &p.MinMintingAmount, validateAmount),
@@ -220,6 +230,7 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 	}
 }
 
+// GetBondDenomOf returns the bond denom if present
 func (p Params) GetBondDenomOf(s string) (string, error) {
 	for _, element := range p.BondDenoms {
 		if element == s {
@@ -229,6 +240,7 @@ func (p Params) GetBondDenomOf(s string) (string, error) {
 	return "", ErrInvalidBondDenom
 }
 
+// Equal returns if the other param set matches or not
 func (p Params) Equal(other Params) bool {
 	for i := range p.WeightedDeveloperRewardsReceivers {
 		if p.WeightedDeveloperRewardsReceivers[i] != other.WeightedDeveloperRewardsReceivers[i] {

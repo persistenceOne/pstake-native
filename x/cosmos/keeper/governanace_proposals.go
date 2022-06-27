@@ -21,7 +21,7 @@ the proposal and does the following actions :
 2. Handle the transaction queue (by making grant, feegrant and revoke transactions for changing authorizations)
 */
 func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeMultisigProposal) error {
-	oldAccountAddress := k.getCurrentAddress(ctx)
+	oldAccountAddress := k.GetCurrentAddress(ctx)
 	oldAccount := k.getAccountState(ctx, oldAccountAddress)
 	_, ok := oldAccount.GetPubKey().(*multisig2.LegacyAminoPubKey)
 	if !ok {
@@ -180,6 +180,7 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 		k.setAccountState(ctx, multisigAcc)
 	}
 
+	fmt.Println(multisigAccAddress)
 	// set new multisig address as the current address for transaction signing
 	k.setCurrentAddress(ctx, multisigAccAddress)
 

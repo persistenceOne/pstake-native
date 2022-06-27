@@ -22,6 +22,7 @@ message WeightedAddressAmount {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  cosmos.base.v1beta1.Coin unbonding_tokens = 5 [(gogoproto.nullable) = false];
 }
 
 message WeightedAddress {

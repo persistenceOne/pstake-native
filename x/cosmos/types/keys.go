@@ -59,8 +59,6 @@ var (
 
 	KeyLastTXPoolID = SequenceKeyPrefix + "lastTxPoolId"
 
-	KeyTotalDelegationTillDate = []byte{0x02}
-
 	OutgoingTXPoolKey = []byte{0x03}
 
 	ValidatorOrchestratorStoreKey = []byte{0x07}
@@ -82,8 +80,6 @@ var (
 	KeyOutgoingUnbondStore = []byte{0xF}
 
 	KeyStakingEpochStore = []byte{0x10}
-
-	KeyMintingEpochStore = []byte{0x12}
 
 	KeyRewardsStore = []byte{0x13}
 
@@ -126,6 +122,10 @@ var (
 	KeyStakedAmount = []byte{0x2B}
 
 	KeyVirtuallyUnbonded = []byte{0x2C}
+
+	KeyCosmosBalances = []byte{0x2D}
+
+	KeyCosmosUnbonding = []byte{0x2E}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {

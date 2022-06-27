@@ -7,6 +7,7 @@ import "cosmos/v1beta1/cosmos.proto";
 import "cosmos/v1beta1/batch.proto";
 import "cosmos/v1beta1/proposal.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -52,6 +53,9 @@ service Query {
     option (google.api.http).get = "/pstake/cosmos/v1beta1/oracle_height";
   }
 
+  rpc CosmosBalance(QueryCosmosBalanceRequest) returns (QueryCosmosBalanceResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/cosmos_balance";
+  }
 }
 
 message QueryParamsRequest {}
@@ -139,4 +143,11 @@ message QueryOracleLastUpdateHeightRequest {
 message QueryOracleLastUpdateHeightResponse {
   int64 block_height_cosmos = 1;
   int64 block_height_native = 2;
+}
+
+message QueryCosmosBalanceRequest {}
+
+message QueryCosmosBalanceResponse {
+  repeated cosmos.base.v1beta1.Coin balance = 1
+  [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }

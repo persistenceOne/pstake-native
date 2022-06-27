@@ -9,7 +9,6 @@ import (
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	mintKeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	mintTypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingKeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	tmLog "github.com/tendermint/tendermint/libs/log"
@@ -74,18 +73,6 @@ func (k Keeper) GetParams(ctx sdkTypes.Context) (params cosmosTypes.Params) {
 // SetParams sets the total set of parameters.
 func (k Keeper) SetParams(ctx sdkTypes.Context, params cosmosTypes.Params) {
 	k.paramSpace.SetParamSet(ctx, &params)
-}
-
-//______________________________________________________________________
-
-// GetMintingParams returns the total set of cosmos parameters.
-func (k Keeper) GetMintingParams(ctx sdkTypes.Context) (params mintTypes.Params) {
-	return k.mintKeeper.GetParams(ctx)
-}
-
-// SetMintingParams sets the total set of cosmos parameters.
-func (k Keeper) SetMintingParams(ctx sdkTypes.Context, params mintTypes.Params) {
-	k.mintKeeper.SetParams(ctx, params)
 }
 
 //______________________________________________________________________

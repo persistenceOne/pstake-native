@@ -37,7 +37,7 @@ func (k Keeper) getAccountState(ctx sdk.Context, accAddress sdk.AccAddress) auth
 }
 
 // Gets the current multisig address
-func (k Keeper) getCurrentAddress(ctx sdk.Context) sdk.AccAddress {
+func (k Keeper) GetCurrentAddress(ctx sdk.Context) sdk.AccAddress {
 	store := ctx.KVStore(k.storeKey)
 	return store.Get(cosmosTypes.CurrentMultisigAddressKey())
 
@@ -58,7 +58,7 @@ func (k Keeper) checkOrchestratorAddressPresentInMultisig(ctx sdk.Context, orch 
 	}
 
 	// fetch multisig pub key
-	multsigPubKey := k.getAccountState(ctx, k.getCurrentAddress(ctx)).GetPubKey().(*multisig.LegacyAminoPubKey).GetPubKeys()
+	multsigPubKey := k.getAccountState(ctx, k.GetCurrentAddress(ctx)).GetPubKey().(*multisig.LegacyAminoPubKey).GetPubKeys()
 
 	for _, pb := range multsigPubKey {
 		if pb.Equals(orchPubKey) {

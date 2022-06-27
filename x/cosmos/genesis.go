@@ -14,5 +14,5 @@ import (
 func ExportGenesis(ctx sdk.Context, keeper Keeper) *GenesisState {
 	//TODO
 	params := keeper.GetParams(ctx)
-	return NewGenesisState(params, nil, nil, types.OutgoingTx{})
+	return NewGenesisState(params, types.OutgoingTx{})
 }

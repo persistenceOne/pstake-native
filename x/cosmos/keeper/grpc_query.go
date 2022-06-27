@@ -200,3 +200,10 @@ func (k Keeper) OracleHeight(c context.Context, query *cosmosTypes.QueryOracleLa
 		BlockHeightNative: oracleLastUpadteHeightNative,
 	}, nil
 }
+
+// CosmosBalance returns the cosmos account balances
+func (k Keeper) CosmosBalance(c context.Context, query *cosmosTypes.QueryCosmosBalanceRequest) (*cosmosTypes.QueryCosmosBalanceResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+	balance := k.getCosmosBalances(ctx)
+	return &cosmosTypes.QueryCosmosBalanceResponse{Balance: balance}, nil
+}

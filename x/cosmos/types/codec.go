@@ -9,6 +9,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
+// RegisterLegacyAminoCodec registers all the necessary types and interfaces for the
+// cosmos module.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgSetOrchestrator{}, "cosmos/MsgSetOrchestrator", nil)
 	cdc.RegisterConcrete(&MsgWithdrawStkAsset{}, "cosmos/MsgWithdrawStkAsset", nil)

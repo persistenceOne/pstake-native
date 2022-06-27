@@ -2,6 +2,7 @@ package cosmos
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
 func EndBlocker(ctx sdk.Context, k Keeper) {
@@ -9,10 +10,11 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 	logger := k.Logger(ctx)
-	logger.Info("C value : ", k.GetCValue(ctx))
-	logger.Info("Minted Amount : ", k.GetMintedAmount(ctx))
-	logger.Info("Staked Amount : ", k.GetStakedAmount(ctx))
-	logger.Info("vStaked Amount : ", k.GetVirtuallyStakedAmount(ctx))
+	logger.Info(k.GetCValue(ctx).String())
+	logger.Info(k.GetMintedAmount(ctx).String())
+	logger.Info(k.GetStakedAmount(ctx).String())
+	logger.Info(k.GetVirtuallyStakedAmount(ctx).String())
+	logger.Info(cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx)))
 	k.ProcessAllMintingStoreValue(ctx)
 	k.ProcessProposals(ctx)
 	k.ProcessRewards(ctx)

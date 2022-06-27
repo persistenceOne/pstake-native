@@ -103,7 +103,7 @@ func (k Keeper) addGrantTransactions(ctx sdk.Context, oldAccount authTypes.Accou
 	}
 
 	// sets transaction in outgoing pool with the given tx ID
-	k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+	k.SetNewTxnInOutgoingPool(ctx, nextID, tx)
 
 	return nextID
 }
@@ -113,7 +113,7 @@ func (k Keeper) generateGrantMsgAny(ctx sdk.Context, custodialAddress sdk.AccAdd
 	// generate a grant msg of type any for granting given authorization to new account
 	grantMsgAny, err := authz.NewMsgGrant(
 		custodialAddress,
-		k.getAccountState(ctx, k.getCurrentAddress(ctx)).GetAddress(),
+		k.getAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(),
 		authorization,
 		time.Unix(0, 0),
 	)
@@ -153,7 +153,7 @@ func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 	feegrantMsg, err := feegrant.NewMsgGrantAllowance(
 		grant,
 		custodialAddress,
-		k.getAccountState(ctx, k.getCurrentAddress(ctx)).GetAddress(),
+		k.getAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(),
 	)
 	if err != nil {
 		panic(err)
@@ -204,7 +204,7 @@ func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 	}
 
 	// set new transaction in outgoing pool with the given tx ID
-	k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+	k.SetNewTxnInOutgoingPool(ctx, nextID, tx)
 
 	return nextID
 }
@@ -252,7 +252,7 @@ func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 	)
 
 	execMsg := authz.MsgExec{
-		Grantee: k.getCurrentAddress(ctx).String(),
+		Grantee: k.GetCurrentAddress(ctx).String(),
 		Msgs:    revokeMsgsAny,
 	}
 
@@ -283,11 +283,11 @@ func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 		Status:            "",
 		TxHash:            "",
 		ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
-		SignerAddress:     k.getCurrentAddress(ctx).String(),
+		SignerAddress:     k.GetCurrentAddress(ctx).String(),
 	}
 
 	// set new transaction in outgoing pool with the given tx ID
-	k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+	k.SetNewTxnInOutgoingPool(ctx, nextID, tx)
 
 	return nextID
 }
@@ -296,7 +296,7 @@ func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 func (k Keeper) generateRevokeMsgAny(ctx sdk.Context, custodialAddress sdk.AccAddress, msgAuthorized string) *codecTypes.Any {
 	// generate revoke message with given msgAuthorized
 	revokeMsg := authz.NewMsgRevoke(
-		k.getAccountState(ctx, k.getCurrentAddress(ctx)).GetAddress(),
+		k.getAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(),
 		custodialAddress,
 		msgAuthorized,
 	)
@@ -330,10 +330,10 @@ func (k Keeper) shiftListOfTransactionsToNewIDs(ctx sdk.Context, transactionQueu
 		txDetails.CosmosTxDetails.TxHash = ""
 		txDetails.CosmosTxDetails.EventEmitted = false
 		txDetails.CosmosTxDetails.ActiveBlockHeight = ctx.BlockHeight() + cosmosTypes.StorageWindow
-		txDetails.CosmosTxDetails.SignerAddress = k.getCurrentAddress(ctx).String()
+		txDetails.CosmosTxDetails.SignerAddress = k.GetCurrentAddress(ctx).String()
 
 		// set this transaction in outgoing pool with new ID
-		k.setNewTxnInOutgoingPool(ctx, nextID, txDetails.CosmosTxDetails)
+		k.SetNewTxnInOutgoingPool(ctx, nextID, txDetails.CosmosTxDetails)
 		k.setNewInTransactionQueue(ctx, nextID)
 
 		// remove old transaction from outgoing pool

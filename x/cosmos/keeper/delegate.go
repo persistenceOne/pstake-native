@@ -35,7 +35,7 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 		}
 
 		execMsg := authz.MsgExec{
-			Grantee: k.getCurrentAddress(ctx).String(),
+			Grantee: k.GetCurrentAddress(ctx).String(),
 			Msgs:    delegateMsgsAny,
 		}
 
@@ -65,13 +65,13 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 			Status:            "",
 			TxHash:            "",
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
-			SignerAddress:     k.getCurrentAddress(ctx).String(),
+			SignerAddress:     k.GetCurrentAddress(ctx).String(),
 		}
 
 		// set acknowledgment flag true for future reference (not any yet)
 
 		// Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
-		k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+		k.SetNewTxnInOutgoingPool(ctx, nextID, tx)
 
 		// sets the transaction in transaction queue with the given tx ID
 		k.setNewInTransactionQueue(ctx, nextID)

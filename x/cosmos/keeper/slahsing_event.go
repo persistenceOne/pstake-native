@@ -104,7 +104,8 @@ func (k Keeper) ProcessAllSlashingEvents(ctx sdk.Context) {
 			// set added to C value true
 			k.setAddedToCValueTrue(ctx, se)
 			// update current delegations of the validator with the delegation supplied with message
-			k.UpdateDelegationCosmosValidator(ctx, valAddress, se.SlashingDetails.CurrentDelegation)
+			// supply a zero coin with any denom in order to keep the unbonding delegations same
+			k.UpdateDelegationCosmosValidator(ctx, valAddress, se.SlashingDetails.CurrentDelegation, sdk.NewCoin("test", sdk.ZeroInt()))
 		}
 		if se.ActiveBlockHeight < ctx.BlockHeight() && se.AddedToCValue {
 			k.deleteSlashingEventDetails(ctx, se)

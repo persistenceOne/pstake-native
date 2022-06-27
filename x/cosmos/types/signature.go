@@ -39,6 +39,7 @@ func AccAddressFromBech32(address, prefix string) (addr sdkTypes.AccAddress, err
 	return bz, nil
 }
 
+// ValAddressFromBech32 creates a ValAddress from a Bech32 string.
 func ValAddressFromBech32(address, prefix string) (valAddr sdkTypes.ValAddress, err error) {
 	if len(strings.TrimSpace(address)) == 0 {
 		return sdkTypes.ValAddress{}, errors.New("empty address string is not allowed")
@@ -57,6 +58,9 @@ func ValAddressFromBech32(address, prefix string) (valAddr sdkTypes.ValAddress, 
 	return bz, nil
 }
 
+// Bech32ifyAddressBytes returns a bech32 representation of address bytes.
+// Returns an empty sting if the byte slice is 0-length. Returns an error if the bech32 conversion
+// fails or the prefix is empty.
 func Bech32ifyAddressBytes(prefix string, address sdkTypes.AccAddress) (string, error) {
 	if address.Empty() {
 		return "", nil
@@ -70,6 +74,9 @@ func Bech32ifyAddressBytes(prefix string, address sdkTypes.AccAddress) (string, 
 	return bech32.ConvertAndEncode(prefix, address.Bytes())
 }
 
+// Bech32ifyValAddressBytes returns a bech32 representation of valAddress bytes.
+// Returns an empty sting if the byte slice is 0-length. Returns an error if the bech32 conversion
+// fails or the prefix is empty.
 func Bech32ifyValAddressBytes(prefix string, address sdkTypes.ValAddress) (string, error) {
 	if address.Empty() {
 		return "", nil
