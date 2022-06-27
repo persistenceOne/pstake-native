@@ -76,7 +76,8 @@ func (c *NativeChain) Init(homepath string, timeout time.Duration, logger log.Lo
 	if c.logger == nil {
 		c.logger = defaultChainLogger()
 	}
-
+	fmt.Println(c, "chain-")
+	fmt.Println(homepath)
 	return nil
 
 }
@@ -166,6 +167,7 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 		for _, txID := range txSignIdSlice {
 			err := native.SignedOutgoingTxHandler(txID, valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, chain)
 			if err != nil {
+				panic(err)
 				logg.Println("signed outgoing tx handling error")
 				return
 

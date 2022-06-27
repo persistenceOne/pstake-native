@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/persistenceOne/pstake-native/app"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -32,8 +33,8 @@ func (n *NativeChain) MakeEncodingConfig() params.EncodingConfig {
 
 	std.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
-	simapp.ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
-	simapp.ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	app.ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
+	app.ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
 	return encodingConfig
 }

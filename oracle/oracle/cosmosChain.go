@@ -63,12 +63,13 @@ func (c *CosmosChain) Init(custAddr string, homepath string, timeout time.Durati
 	if err != nil {
 		return fmt.Errorf("failed to parse gas prices (%s) for chain %s", c.GasPrices, c.ChainID)
 	}
-	custodialAddress, err := sdk.AccAddressFromBech32(custAddr)
-
+	fmt.Println("Here1")
+	custodialAddress, err := AccAddressFromBech32(custAddr, c.AccountPrefix)
 	if err != nil {
+		fmt.Println("Here1.5")
 		return err
 	}
-
+	fmt.Println("Here2")
 	encodingConfig := c.MakeEncodingConfig()
 
 	c.KeyBase = keybase
@@ -80,6 +81,8 @@ func (c *CosmosChain) Init(custAddr string, homepath string, timeout time.Durati
 	c.debug = debug
 	c.Provider = liteprovider
 	c.CustodialAddress = custodialAddress
+
+	fmt.Println(rpcClient, "cosmos rpcClient")
 
 	if c.logger == nil {
 		c.logger = defaultChainLogger()
@@ -142,7 +145,7 @@ func StartListeningCosmosEvent(valAddr string, orcSeeds []string, nativeCliCtx c
 	ctx := context.Background()
 
 	var cHeight uint64
-
+	fmt.Println(chain, "printing chain")
 	abciInfoCosmos, err := chain.Client.ABCIInfo(ctx)
 	if err != nil {
 		fmt.Println("error getting abci info", err)
@@ -208,6 +211,7 @@ func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx
 	if _, err := os.Stat(filepath.Join(chain.HomePath, "status.json")); err == nil {
 		cHeight, nHeight = GetHeightStatus(chain.HomePath)
 	} else if errors.Is(err, os.ErrNotExist) {
+		fmt.Println(chain.Client, "sssp")
 		abciInfoCosmos, err := chain.Client.ABCIInfo(ctx)
 		if err != nil {
 			fmt.Println("error getting abci info", err)
@@ -234,19 +238,17 @@ func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx
 			logg.Fatalln()
 		}
 
-		time.Sleep(5)
-
-		abciInfoCosmos, err := chain.Client.ABCIInfo(ctx)
+		_, err = chain.Client.ABCIInfo(ctx)
 		if err != nil {
 			fmt.Println("error getting abci info", err)
 			logg.Println("error getting cosmos abci info", err)
 
-			time.Sleep(4)
-			cHeight = uint64(abciInfoCosmos.Response.LastBlockHeight)
-
-			NewStatusJSON(chain.HomePath, cHeight, nHeight)
-
 		}
+
+		time.Sleep(5 * time.Second)
+		cHeight = cHeight + 1
+
+		NewStatusJSON(chain.HomePath, cHeight, nHeight)
 
 	}
 }

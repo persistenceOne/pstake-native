@@ -5,7 +5,6 @@ import (
 	"fmt"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
-	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"google.golang.org/grpc"
 	logg "log"
@@ -34,66 +33,52 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 		&cosmosTypes.QueryOutgoingTxByIDRequest{TxID: uint64(txId)},
 	)
 
-	OutgoingTx := TxResult.CosmosTxDetails.Tx
-	TxBytes, err := clientCtx.TxConfig.TxEncoder()(&OutgoingTx)
+	//ac,seq,err := clientCtx.AccountRetriever.GetAccount()
+
+	OutgoingTx := TxResult.CosmosTxDetails.GetTx()
+	signerAddress := TxResult.CosmosTxDetails.SignerAddress
+
+	signature, err := GetSignBytesForCosmos(orcSeeds[0], chain, clientCtx, OutgoingTx, signerAddress)
+	_, addr := GetSDKPivKeyAndAddressR(chain.AccountPrefix, chain.CoinType, orcSeeds[0])
+
 	if err != nil {
-		panic(err)
 		return err
 	}
 
-	txInterface, err := clientCtx.TxConfig.TxDecoder()(TxBytes)
+	grpcConnCos, _ := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
+	defer func(grpcConnCos *grpc.ClientConn) {
+		err := grpcConnCos.Close()
+		if err != nil {
+
+		}
+	}(grpcConnCos)
+
+	txClient := txD.NewServiceClient(grpcConnCos)
+
+	fmt.Println("client created")
+
+	msg := &cosmosTypes.MsgSetSignature{
+		OrchestratorAddress: addr,
+		OutgoingTxID:        txId,
+		Signature:           signature,
+	}
+
+	txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
+
+	res, err := txClient.BroadcastTx(context.Background(),
+		&txD.BroadcastTxRequest{
+			Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
+			TxBytes: txBytes,
+		},
+	)
 	if err != nil {
-		panic(err)
+		return err
+	}
+	fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+
+	if err != nil {
 		return err
 	}
 
-	tx, ok := txInterface.(signing.Tx)
-	if !ok {
-		return err
-	}
-	for _, msg := range tx.GetMsgs() {
-		fmt.Println(msg.String())
-
-		signatureBytes, err := GetSignature(orcSeeds[0], chain, nativeCliCtx, msg)
-
-		_, addr := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, orcSeeds[0])
-		grpcConn, _ := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
-		defer func(grpcConn *grpc.ClientConn) {
-			err := grpcConn.Close()
-			if err != nil {
-
-			}
-		}(grpcConn)
-
-		txClient := txD.NewServiceClient(grpcConn)
-
-		fmt.Println("client created")
-
-		msg := &cosmosTypes.MsgSetSignature{
-			OrchestratorAddress: string(addr),
-			OutgoingTxID:        txId,
-			Signature:           signatureBytes,
-		}
-
-		txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
-
-		res, err := txClient.BroadcastTx(context.Background(),
-			&txD.BroadcastTxRequest{
-				Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
-				TxBytes: txBytes,
-			},
-		)
-		if err != nil {
-			return err
-		}
-		fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
-
-		cosmosTxHash := res.TxResponse.TxHash
-
-		err = SendMsgAcknowledgement(native, chain, orcSeeds, cosmosTxHash, valAddr, nativeCliCtx, clientCtx)
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }

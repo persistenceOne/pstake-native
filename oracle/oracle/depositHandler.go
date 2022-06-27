@@ -88,17 +88,21 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 				if txMsg.ToAddress == chain.CustodialAddress.String() {
 					for _, coin := range txMsg.Amount {
 						//TODO: handle multiple keys for signing
-						_, addr := GetSDKPivKeyAndAddress(orcSeeds[0])
+						_, addr := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, orcSeeds[0])
+
 						logg.Println("orchestrator address, ", addr)
 						msg = &cosmosTypes.MsgMintTokensForAccount{
 							AddressFromMemo:     memo,
-							OrchestratorAddress: addr.String(),
+							OrchestratorAddress: addr,
 							Amount:              sdk.NewCoin(coin.Denom, coin.Amount),
 							TxHash:              txResult.Hash.String(),
 							ChainID:             chain.ChainID,
 							BlockHeight:         depositHeight,
 						}
 
+						fmt.Println(msg)
+						fmt.Println("test-test")
+						fmt.Println(native)
 						txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCLiCtx, msg)
 						if err != nil {
 							return err

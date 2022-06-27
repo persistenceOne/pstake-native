@@ -46,9 +46,9 @@ func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr s
 	_, addr := GetSDKPivKeyAndAddress(orcSeeds[0])
 	msg := &cosmosTypes.MsgSlashingEventOnCosmosChain{
 		ValidatorAddress:    valAddr,
-		Amount:              BondedDelegations,
+		CurrentDelegation:   BondedDelegations,
 		OrchestratorAddress: string(addr),
-		TxHash:              "",
+		SlashType:           "",
 		ChainID:             chain.ChainID,
 		BlockHeight:         cHeight,
 	}
