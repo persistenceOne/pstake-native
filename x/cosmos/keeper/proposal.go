@@ -91,8 +91,9 @@ func (k Keeper) generateOutgoingWeightedVoteTx(ctx sdk.Context, result map[cosmo
 	}
 
 	voteMsgAny = append(voteMsgAny, msgAny)
+	cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
 	execMsg := authz.MsgExec{
-		Grantee: k.GetCurrentAddress(ctx).String(),
+		Grantee: cosmosAddrr,
 		Msgs:    voteMsgAny,
 	}
 
@@ -122,7 +123,7 @@ func (k Keeper) generateOutgoingWeightedVoteTx(ctx sdk.Context, result map[cosmo
 		Status:            "",
 		TxHash:            "",
 		ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
-		SignerAddress:     k.GetCurrentAddress(ctx).String(),
+		SignerAddress:     cosmosAddrr,
 	}
 
 	//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them

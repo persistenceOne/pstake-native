@@ -312,7 +312,7 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
 		// Check outputs
 		actualMap := map[string]int64{}
 		for _, va := range valAmounts {
-			actualMap[va.Validator.String()] = va.Amount.Amount.Int64()
+			actualMap[va.Validator] = va.Amount.Amount.Int64()
 		}
 		suite.Equal(expectedMap, actualMap, "Matching val distribution")
 	}
@@ -393,7 +393,7 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 		// Check outputs
 		actualMap := map[string]int64{}
 		for _, va := range valAmounts {
-			actualMap[va.Validator.String()] = va.Amount.Amount.Int64()
+			actualMap[va.Validator] = va.Amount.Amount.Int64()
 		}
 		suite.Equal(expectedMap, actualMap, "Matching val distribution")
 	}

@@ -38,8 +38,9 @@ func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAn
 			undelegategMsgs = append(undelegategMsgs, msg)
 		}
 
+		cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
 		execMsg := authz.MsgExec{
-			Grantee: k.GetCurrentAddress(ctx).String(),
+			Grantee: cosmosAddrr,
 			Msgs:    undelegateMsgsAny,
 		}
 
@@ -69,7 +70,7 @@ func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAn
 			Status:            "",
 			TxHash:            "",
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
-			SignerAddress:     k.GetCurrentAddress(ctx).String(),
+			SignerAddress:     cosmosAddrr,
 		}
 
 		err = k.setIDInEpochPoolForWithdrawals(ctx, nextID, undelegategMsgs, epochNumber)

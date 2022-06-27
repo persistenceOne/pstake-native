@@ -113,7 +113,7 @@ func (k Keeper) generateGrantMsgAny(ctx sdk.Context, custodialAddress sdk.AccAdd
 	// generate a grant msg of type any for granting given authorization to new account
 	grantMsgAny, err := authz.NewMsgGrant(
 		custodialAddress,
-		k.getAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(),
+		k.getAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(), // todo : fix acc address issue as it converts to persistence address
 		authorization,
 		time.Unix(0, 0),
 	)
@@ -153,7 +153,7 @@ func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 	feegrantMsg, err := feegrant.NewMsgGrantAllowance(
 		grant,
 		custodialAddress,
-		k.getAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(),
+		k.getAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(), // todo : fix acc address issue as it converts to persistence address
 	)
 	if err != nil {
 		panic(err)
@@ -251,8 +251,9 @@ func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 		revokeVoteAuthorizationAny,
 	)
 
+	cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
 	execMsg := authz.MsgExec{
-		Grantee: k.GetCurrentAddress(ctx).String(),
+		Grantee: cosmosAddrr,
 		Msgs:    revokeMsgsAny,
 	}
 
@@ -283,7 +284,7 @@ func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 		Status:            "",
 		TxHash:            "",
 		ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
-		SignerAddress:     k.GetCurrentAddress(ctx).String(),
+		SignerAddress:     cosmosAddrr,
 	}
 
 	// set new transaction in outgoing pool with the given tx ID
@@ -323,6 +324,10 @@ func (k Keeper) shiftListOfTransactionsToNewIDs(ctx sdk.Context, transactionQueu
 			panic(err)
 		}
 
+		cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
+		if err != nil {
+			panic(err)
+		}
 		// reset few details of the outgoing transaction for accepting new signatures
 		txDetails.CosmosTxDetails.Tx.AuthInfo.SignerInfos = nil
 		txDetails.CosmosTxDetails.Tx.Signatures = nil
@@ -330,7 +335,7 @@ func (k Keeper) shiftListOfTransactionsToNewIDs(ctx sdk.Context, transactionQueu
 		txDetails.CosmosTxDetails.TxHash = ""
 		txDetails.CosmosTxDetails.EventEmitted = false
 		txDetails.CosmosTxDetails.ActiveBlockHeight = ctx.BlockHeight() + cosmosTypes.StorageWindow
-		txDetails.CosmosTxDetails.SignerAddress = k.GetCurrentAddress(ctx).String()
+		txDetails.CosmosTxDetails.SignerAddress = cosmosAddrr
 
 		// set this transaction in outgoing pool with new ID
 		k.SetNewTxnInOutgoingPool(ctx, nextID, txDetails.CosmosTxDetails)

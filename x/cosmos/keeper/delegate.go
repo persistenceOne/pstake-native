@@ -34,8 +34,9 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 			delegateMsgsAny = append(delegateMsgsAny, anyMsg)
 		}
 
+		cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
 		execMsg := authz.MsgExec{
-			Grantee: k.GetCurrentAddress(ctx).String(),
+			Grantee: cosmosAddrr,
 			Msgs:    delegateMsgsAny,
 		}
 
@@ -65,7 +66,7 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 			Status:            "",
 			TxHash:            "",
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
-			SignerAddress:     k.GetCurrentAddress(ctx).String(),
+			SignerAddress:     cosmosAddrr,
 		}
 
 		// set acknowledgment flag true for future reference (not any yet)

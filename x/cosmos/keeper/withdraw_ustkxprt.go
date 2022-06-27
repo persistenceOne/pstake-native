@@ -113,8 +113,9 @@ func (k Keeper) generateSendTransactionForAllWithdrawals(ctx sdk.Context, epochN
 			sendMsgsAny = append(sendMsgsAny, anyMsg)
 		}
 
+		cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
 		execMsg := authz.MsgExec{
-			Grantee: k.GetCurrentAddress(ctx).String(),
+			Grantee: cosmosAddrr,
 			Msgs:    sendMsgsAny,
 		}
 
@@ -144,7 +145,7 @@ func (k Keeper) generateSendTransactionForAllWithdrawals(ctx sdk.Context, epochN
 			Status:            "",
 			TxHash:            "",
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
-			SignerAddress:     k.GetCurrentAddress(ctx).String(),
+			SignerAddress:     cosmosAddrr,
 		}
 
 		//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
