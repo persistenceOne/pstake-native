@@ -75,17 +75,22 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v2/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v2/modules/core"
-	ibcclient "github.com/cosmos/ibc-go/v2/modules/core/02-client"
-	ibcclientclient "github.com/cosmos/ibc-go/v2/modules/core/02-client/client"
-	ibcclienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
-	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
-	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-	ibckeeper "github.com/cosmos/ibc-go/v2/modules/core/keeper"
+	ica "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts"
+	icaHost "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host"
+	icaHostKeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/keeper"
+	icaHostTypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
+	icaTypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v3/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v3/modules/core"
+	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
+	ibcclientclient "github.com/cosmos/ibc-go/v3/modules/core/02-client/client"
+	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	"github.com/gorilla/mux"
 	"github.com/gravity-devs/liquidity/x/liquidity"
 	liquiditykeeper "github.com/gravity-devs/liquidity/x/liquidity/keeper"
@@ -99,9 +104,6 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	gaiaappparams "github.com/persistenceOne/pstake-native/app/params"
-	"github.com/strangelove-ventures/packet-forward-middleware/router"
-	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/router/keeper"
-	routertypes "github.com/strangelove-ventures/packet-forward-middleware/router/types"
 
 	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
@@ -144,13 +146,14 @@ var (
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		liquidity.AppModuleBasic{},
-		router.AppModuleBasic{},
+		ica.AppModuleBasic{},
 	)
 
 	// module account permissions
 	maccPerms = map[string][]string{
 		authtypes.FeeCollectorName:     nil,
 		distrtypes.ModuleName:          nil,
+		icaTypes.ModuleName:            nil,
 		minttypes.ModuleName:           {authtypes.Minter},
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
@@ -194,16 +197,18 @@ type PstakeApp struct {
 	UpgradeKeeper    upgradekeeper.Keeper
 	ParamsKeeper     paramskeeper.Keeper
 	IBCKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	ICAHostKeeper     icaHostKeeper.Keeper
 	EvidenceKeeper   evidencekeeper.Keeper
 	TransferKeeper   ibctransferkeeper.Keeper
 	FeeGrantKeeper   feegrantkeeper.Keeper
 	AuthzKeeper      authzkeeper.Keeper
 	LiquidityKeeper  liquiditykeeper.Keeper
-	RouterKeeper     routerkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
+	ScopedICAHostKeeper  capabilitykeeper.ScopedKeeper
+
 
 	// the module manager
 	mm *module.Manager
@@ -219,7 +224,8 @@ func init() {
 		stdlog.Println("Failed to get home dir %2", err)
 	}
 
-	DefaultNodeHome = filepath.Join(userHomeDir, ".gaia")
+	DefaultNodeHome = filepath.Join(userHomeDir, ".pstaked")
+	fmt.Println("Default Node Home", DefaultNodeHome)
 }
 
 // NewGaiaApp returns a reference to an initialized Gaia.
@@ -248,8 +254,8 @@ func NewGaiaApp(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
-		evidencetypes.StoreKey, liquiditytypes.StoreKey, ibctransfertypes.StoreKey,
-		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey,
+		evidencetypes.StoreKey, ibctransfertypes.StoreKey, liquiditytypes.StoreKey,
+		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, icaHostTypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -280,6 +286,7 @@ func NewGaiaApp(
 	// add capability keeper and ScopeToModule for ibc module
 	app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
+	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icaHostTypes.SubModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	app.CapabilityKeeper.Seal()
 
@@ -401,19 +408,34 @@ func NewGaiaApp(
 		keys[ibctransfertypes.StoreKey],
 		app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
 		app.AccountKeeper,
 		app.BankKeeper,
 		scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
+	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
-	app.RouterKeeper = routerkeeper.NewKeeper(appCodec, keys[routertypes.StoreKey], app.GetSubspace(routertypes.ModuleName), app.TransferKeeper, app.DistrKeeper)
+	app.ICAHostKeeper = icaHostKeeper.NewKeeper(
+		appCodec,
+		keys[icaHostTypes.StoreKey],
+		app.ParamsKeeper.Subspace(icaHostTypes.SubModuleName),
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		app.AccountKeeper,
+		scopedICAHostKeeper,
+		app.MsgServiceRouter(),
+	)
 
-	routerModule := router.NewAppModule(app.RouterKeeper, transferModule)
+	icaModule := ica.NewAppModule(nil, &app.ICAHostKeeper)
+	icaHostIBCModule := icaHost.NewIBCModule(app.ICAHostKeeper)
+
+
 	// create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, routerModule)
+	ibcRouter.AddRoute(icaHostTypes.SubModuleName, icaHostIBCModule).
+		AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// create evidence keeper with router
@@ -455,7 +477,7 @@ func NewGaiaApp(
 		params.NewAppModule(app.ParamsKeeper),
 		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
 		transferModule,
-		routerModule,
+		icaModule,
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -470,9 +492,10 @@ func NewGaiaApp(
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
+		ibctransfertypes.ModuleName,
 		liquiditytypes.ModuleName,
 		ibchost.ModuleName,
-		routertypes.ModuleName,
+		icaTypes.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
@@ -480,6 +503,9 @@ func NewGaiaApp(
 		stakingtypes.ModuleName,
 		liquiditytypes.ModuleName,
 		feegrant.ModuleName,
+		ibctransfertypes.ModuleName,
+		ibchost.ModuleName,
+		icaTypes.ModuleName,
 		authz.ModuleName,
 	)
 
@@ -498,14 +524,14 @@ func NewGaiaApp(
 		govtypes.ModuleName,
 		minttypes.ModuleName,
 		crisistypes.ModuleName,
+		ibctransfertypes.ModuleName,
+		icaTypes.ModuleName,
 		ibchost.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		liquiditytypes.ModuleName,
-		ibctransfertypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
-		routertypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -552,7 +578,7 @@ func NewGaiaApp(
 				SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
-			IBCChannelkeeper: app.IBCKeeper.ChannelKeeper,
+			IBCChannelkeeper: app.IBCKeeper,
 		},
 	)
 	if err != nil {
@@ -576,7 +602,6 @@ func NewGaiaApp(
 			// delete new modules from the map, for _new_ modules as to not skip InitGenesis
 			delete(fromVM, authz.ModuleName)
 			delete(fromVM, feegrant.ModuleName)
-			delete(fromVM, routertypes.ModuleName)
 
 			// make fromVM[authtypes.ModuleName] = 2 to skip the first RunMigrations for auth (because from version 2 to migration version 2 will not migrate)
 			fromVM[authtypes.ModuleName] = 2
@@ -601,7 +626,7 @@ func NewGaiaApp(
 
 	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
-			Added: []string{authz.ModuleName, feegrant.ModuleName, routertypes.ModuleName},
+			Added: []string{authz.ModuleName, feegrant.ModuleName},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
@@ -782,7 +807,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(liquiditytypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
-	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
 
 	return paramsKeeper
 }
