@@ -34,8 +34,8 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 	)
 
 	//ac,seq,err := clientCtx.AccountRetriever.GetAccount()
-
 	OutgoingTx := TxResult.CosmosTxDetails.GetTx()
+
 	signerAddress := TxResult.CosmosTxDetails.SignerAddress
 
 	signature, err := GetSignBytesForCosmos(orcSeeds[0], chain, clientCtx, OutgoingTx, signerAddress)

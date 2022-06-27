@@ -43,7 +43,7 @@ func (c *CosmosChain) MakeEncodingConfig() params.EncodingConfig {
 	amino := codec.NewLegacyAmino()
 	interfaceRegistry := types.NewInterfaceRegistry()
 	marshaler := c.NewProtoCodec(interfaceRegistry, c.AccountPrefix)
-	txCfg := tx.NewTxConfig(marshaler, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT})
+	txCfg := tx.NewTxConfig(marshaler, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT, signingtypes.SignMode_SIGN_MODE_LEGACY_AMINO_JSON})
 
 	encodingConfig := params.EncodingConfig{
 		InterfaceRegistry: interfaceRegistry,

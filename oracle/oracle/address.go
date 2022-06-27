@@ -3,33 +3,33 @@ package oracle
 import (
 	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
-	"github.com/persistenceOne/pstake-native/app"
+	tx2 "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	//"github.com/cosmos/cosmos-sdk/crypto/hd"
 	//"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdkcryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 )
 
 func SetSDKConfigPrefix(prefix string) {
 	configuration := sdkTypes.GetConfig()
-	configuration.SetBech32PrefixForAccount(app.Bech32PrefixAccAddr, app.Bech32PrefixAccPub)
-	configuration.SetBech32PrefixForValidator(app.Bech32PrefixValAddr, app.Bech32PrefixValPub)
-	configuration.SetBech32PrefixForConsensusNode(app.Bech32PrefixConsAddr, app.Bech32PrefixConsPub)
-	configuration.SetCoinType(app.CoinType)
-	configuration.SetFullFundraiserPath(app.FullFundraiserPath)
+	configuration.SetBech32PrefixForAccount(prefix, prefix+sdkTypes.PrefixPublic)
+	configuration.SetBech32PrefixForValidator(prefix, prefix+sdkTypes.PrefixValidator+sdkTypes.PrefixOperator)
+	configuration.SetBech32PrefixForConsensusNode(prefix+sdkTypes.PrefixValidator+sdkTypes.PrefixConsensus, prefix+sdkTypes.PrefixValidator+sdkTypes.PrefixConsensus+sdkTypes.PrefixPublic)
+
 }
 
 func SignCosmosTx(seed string, chain *CosmosChain, clientCtx client.Context, msg sdk.Msg) ([]byte, error) {
@@ -203,17 +203,29 @@ func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Con
 
 	SetSDKConfigPrefix(chain.AccountPrefix)
 	signerAddr, err := AccAddressFromBech32(signerAddress, chain.AccountPrefix)
+	fmt.Println(Bech32ifyAddressBytes(chain.AccountPrefix, signerAddr))
 	ac, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, signerAddr)
 	if err != nil {
 		return nil, err
 	}
 
-	SignBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+	nativeProtoCodec := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
+
+	err = OutgoingTx.UnpackInterfaces(nativeProtoCodec)
+	if err != nil {
+		panic(err)
+	}
+
+	exec := OutgoingTx.GetMsgs()[0].(*authz.MsgExec)
+	fmt.Println(exec.Msgs[0].GetCachedValue())
+	txBuilder := tx2.WrapTx(&OutgoingTx)
+
+	SignBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
 		xauthsigning.SignerData{
 			ChainID:       chain.ChainID,
 			AccountNumber: ac,
 			Sequence:      seq,
-		}, &OutgoingTx)
+		}, txBuilder.GetTx())
 
 	if err != nil {
 		panic(err)
