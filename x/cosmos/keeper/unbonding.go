@@ -27,7 +27,7 @@ func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAn
 		for _, element := range chunk {
 			msg := stakingTypes.MsgUndelegate{
 				DelegatorAddress: params.CustodialAddress,
-				ValidatorAddress: element.Validator.String(),
+				ValidatorAddress: element.Validator,
 				Amount:           element.Amount,
 			}
 			anyMsg, err := codecTypes.NewAnyWithValue(&msg)

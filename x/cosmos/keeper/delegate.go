@@ -24,7 +24,7 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 		for _, element := range chunk {
 			msg := stakingTypes.MsgDelegate{
 				DelegatorAddress: params.CustodialAddress,
-				ValidatorAddress: element.Validator.String(),
+				ValidatorAddress: element.Validator,
 				Amount:           element.Amount,
 			}
 			anyMsg, err := codecTypes.NewAnyWithValue(&msg)

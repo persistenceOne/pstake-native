@@ -10,7 +10,7 @@ import (
 )
 
 type ValAddressAmount struct {
-	Validator sdk.ValAddress
+	Validator string
 	Amount    sdk.Coin
 }
 
@@ -50,7 +50,7 @@ func divideAmountWeightedSet(valAmounts []ValAddressAmount, coin sdk.Coin, valAd
 	}
 
 	for _, valAmt := range valAmounts {
-		weight := valAddressWeightMap[valAmt.Validator.String()].Quo(totalWeight)
+		weight := valAddressWeightMap[valAmt.Validator].Quo(totalWeight)
 		amt := weight.MulInt(coin.Amount).RoundInt()
 		newValAmounts = append(newValAmounts, ValAddressAmount{
 			Validator: valAmt.Validator,
@@ -67,15 +67,15 @@ func distributeCoinsAmongstValSet(ws types.WeightedAddressAmounts, coin sdk.Coin
 
 	for _, w := range ws {
 		// Create val address
-		valAddr, err := types.ValAddressFromBech32(w.Address, types.Bech32PrefixValAddr)
-		if err != nil {
-			return nil, coin, err
-		}
+		//valAddr, err := types.ValAddressFromBech32(w.Address, types.Bech32PrefixValAddr)
+		//if err != nil {
+		//	return nil, coin, err
+		//}
 		if coin.Amount.LTE(w.Amount) {
-			valAddrAmts = append(valAddrAmts, ValAddressAmount{Validator: valAddr, Amount: coin})
+			valAddrAmts = append(valAddrAmts, ValAddressAmount{Validator: w.Address, Amount: coin})
 			return valAddrAmts, sdk.NewInt64Coin(coin.Denom, 0), nil
 		}
-		valAddrAmts = append(valAddrAmts, ValAddressAmount{Validator: valAddr, Amount: w.Coin()})
+		valAddrAmts = append(valAddrAmts, ValAddressAmount{Validator: w.Address, Amount: w.Coin()})
 		coin = coin.SubAmount(w.Amount)
 	}
 
