@@ -1,3 +1,4 @@
+<!-- markdown-link-check-disable -->
 # 최신 퍼블릭 테스트넷에 참가하기
 
 ::: tip 최신 테스트넷
@@ -17,7 +18,7 @@
 
 
 ```bash
-pstaked init <your_custom_moniker>
+gaiad init <your_custom_moniker>
 ```
 
 ::: warning 참고
@@ -68,7 +69,7 @@ curl https://raw.githubusercontent.com/cosmos/launch/master/genesis.json > $HOME
 설정이 올바르게 작동하는지 확인하기 위해서는 다음을 실행하세요:
 
 ```bash
-pstaked start
+gaiad start
 ```
 ### 시드 노드 추가하기
 
@@ -114,13 +115,13 @@ pstaked start
 다음 커맨드로 풀노드를 시작하세요:
 
 ```bash
-pstaked start
+gaiad start
 ```
 
 모든 것이 잘 작동하고 있는지 확인하기 위해서는:
 
 ```bash
-pstaked status
+gaiad status
 ```
 
 네트워크 상태를 [코스모스 익스플로러](https://cosmos.network/launch)에서 확인하세요.
@@ -132,29 +133,29 @@ Gaia는 현재 애플리케이션의 상태를 JSON파일 형태로 내보낼 �
 현재 상태를 내보내기 위해서는:
 
 ```bash
-pstaked export > [filename].json
+gaiad export > [filename].json
 ```
 
 특정 블록 높이의 상태를 내보낼 수 있습니다(해당 블록 처리 후 상태):
 
 ```bash
-pstaked export --height [height] > [filename].json
+gaiad export --height [height] > [filename].json
 ```
 
 만약 해당 상태를 기반으로 새로운 네트워크를 시작하시려 한다면, `--for-zero-height` 플래그를 이용하셔서 내보내기를 실행해주세요:
 
 ```bash
-pstaked export --height [height] --for-zero-height > [filename].json
+gaiad export --height [height] --for-zero-height > [filename].json
 ```
 
 ## 메인넷 검증하기
 
 각 폴노드에서 invariant를 실행하여 검증 중 위험한 상황이 발생하는 것을 방지하세요. Invariant를 사용하여 메인넷의 상태(state)가 올바른 상태인 것을 확인합니다. 중요한 invariant 검증 중 하나는 프로토콜 예상 범위 밖에서 새로운 아톰이 생성되거나 사라지는 행위를 미리 감지하고 예빵합니다. 이 외에도 다양한 invariant check가 모듈 내 내장되어있습니다.
 
-Invariant check는 블록체인 연산력을 상당하게 소모하기 때문에, 기본적으로 비활성화 되어있습니다. Invariant check를 실행한 상태로 노드를 시작하기 원하시는 경우 `assert-invariants-blockly` 플래그를 추가하세요:
+Invariant check는 블록체인 연산력을 상당하게 소모하기 때문에, 기본적으로 비활성화 되어있습니다. Invariant check를 실행한 상태로 노드를 시작하기 원하시는 경우 `inv-check-period` 플래그를 추가하세요:
 
 ```bash
-pstaked start --assert-invariants-blockly
+gaiad start --inv-check-period [block-count]
 ```
 
 만약 노드 내 invariant가 문제를 감지하는 경우, 노드는 패닉하여 메인넷을 중지하는 트랜잭션을 전송합니다. 예시 메시지는 다음과 같습니다:
@@ -165,7 +166,7 @@ invariant broken:
         pool.NotBondedTokens: 100
         sum of account tokens: 101
     CRITICAL please submit the following transaction:
-        pstaked tx crisis invariant-broken staking supply
+        gaiad tx crisis invariant-broken staking supply
 
 ```
 
@@ -174,3 +175,5 @@ Invariant-broken 트랜잭션을 전송하는 경우 블록체인이 중지되�
 ## 검증인 노드로 업그레이드 하기
 
 이제 풀노드 설정을 완료하셨습니다. 원하신다면 풀노드를 코스모스 검증인으로 업그레이드 하실 수 있습니다. 보팅 파워 상위 100위 검증인은 코스모스 허브의 새로운 블록 프로포즈 과정에 참여할 수 있습니다. [검증인 세팅하기](./validators/validator-setup.md)를 확인하세요.
+
+<!-- markdown-link-check-enable -->

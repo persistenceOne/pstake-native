@@ -1,6 +1,7 @@
 <!--
 order: 3
 -->
+<!-- markdown-link-check-disable -->
 
 # Únase a la red principal del Cosmos Hub
 
@@ -19,7 +20,7 @@ Estas instrucciones son para establecer un nuevo nodo completo desde cero.
 Primero, inicie el nodo y cree los archivos de configuración necesarios:
 
 ```bash
-pstaked init <your_custom_moniker>
+gaiad init <your_custom_moniker>
 ```
 
 :::Warning
@@ -69,7 +70,7 @@ Si en cambio quiere conectarse a la red de pruebas pública, haga clic [aquí](.
 Para verificar la validez de la configuración:
 
 ```bash
-pstaked start
+gaiad start
 ```
 
 ### Añada los nodos semilla
@@ -127,13 +128,13 @@ Por defecto cada nodo está en modo `PruneSyncable`. Si desea cambiar su estrate
 Inicie el nodo completo con este comando:
 
 ```bash
-pstaked start
+gaiad start
 ```
 
 Comprueba que todo funciona bien:
 
 ```bash
-pstaked status
+gaiad status
 ```
 
 Vea el estado de la red con el [Explorador de Cosmos](https://cosmos.network/launch)
@@ -145,27 +146,27 @@ Gaia puede volcar todo el estado de la aplicación a un archivo JSON, que podrí
 Exporte el estado con:
 
 ```bash
-pstaked export > [filename].json
+gaiad export > [filename].json
 ```
 
 También puede exportar el estado desde una altura en especial (al final del procesamiento del bloque en esa altura):
 
 ```bash
-pstaked export --height [height] > [filename].json
+gaiad export --height [height] > [filename].json
 ```
 
 Si desea empezar una nueva red desde el estado exportado, expórtelo con la opción `--for-zero-height`:
 
 ```bash
-pstaked export --height [height] --for-zero-height > [filename].json
+gaiad export --height [height] --for-zero-height > [filename].json
 ```
 
 ## Verifica la red principal
 
-Ayude a prevenir problemas críticos ejecutando invariantes en cada bloque de su nodo. En esencia, al ejecutar invariantes se asegura que el estado de la red principal es el estado esperado correcto. Una comprobación de la invariante vital es que ningún átomo está siendo creado o destruido fuera del protocolo esperado, sin embargo hay muchas otras invariantes, comprueben cada una de ellas de forma única para su respectivo módulo. Porque la invariante es costosa desde el punto de vista computacional, no están habilitados por defecto. Para ejecutar un nodo con  estas comprobaciones inicie su nodo con la opción assert-invariants-blockly:
+Ayude a prevenir problemas críticos ejecutando invariantes en cada bloque de su nodo. En esencia, al ejecutar invariantes se asegura que el estado de la red principal es el estado esperado correcto. Una comprobación de la invariante vital es que ningún átomo está siendo creado o destruido fuera del protocolo esperado, sin embargo hay muchas otras invariantes, comprueben cada una de ellas de forma única para su respectivo módulo. Porque la invariante es costosa desde el punto de vista computacional, no están habilitados por defecto. Para ejecutar un nodo con  estas comprobaciones inicie su nodo con la opción `inv-check-period`:
 
 ```bash
-pstaked start --assert-invariants-blockly
+gaiad start --inv-check-period [block-count]
 ```
 
 Si se rompe una invariante en su nodo, su nodo entrará en pánico (`panic` de Golang) y le pedirá que envíe una transacción que detenga la red principal. Por ejemplo, el mensaje proporcionado puede parecerse a:
@@ -176,7 +177,7 @@ invariant broken:
         pool.NotBondedTokens: 100
         sum of account tokens: 101
     CRITICAL please submit the following transaction:
-        pstaked tx crisis invariant-broken staking supply
+        gaiad tx crisis invariant-broken staking supply
 
 ```
 
@@ -185,3 +186,5 @@ Cuando se presenta una transacción inválida, no se deducen los tokens de honor
 ## Actualice a un nodo validador
 
 Ahora tienes un nodo completo activo. ¿Cuál es el siguiente paso? Puedes actualizar tu nodo completo para convertirte en un Validador del Cosmos. Los 120 mejores validadores tienen la capacidad de proponer nuevos bloques en el Hub de Cosmos. Continúe en la [Configuración del Validador](../validators/validator-setup.md)
+
+<!-- markdown-link-check-enable -->

@@ -1,6 +1,7 @@
-<!--
+---
 order: 4
--->
+title: Ledger Support
+---
 
 # Ledger Nano Support
 
@@ -17,7 +18,9 @@ Do not lose or share your 24 words with anyone. To prevent theft or loss of fund
 Installing the `Cosmos` application on your ledger device is required before you can use either [Keplr](#keplr-+-ledger-nano) or [`gaiad`](#gaia-cli-+-ledger-nano). To do so, you need to:
 
 1. Install [Ledger Live](https://shop.ledger.com/pages/ledger-live) on your machine. 
-2. Using Ledger Live, [update your Ledger Nano S with the latest firmware](https://support.ledger.com/hc/en-us/articles/360002731113-Update-device-firmware).
+<!-- markdown-link-check-disable -->
+2. Using Ledger Live, [update your Ledger Nano S with the latest firmware](https://support.ledger.com/hc/en-us/articles/360002731113?docs=true).
+<!-- markdown-link-check-enable -->
 3. On the Ledger Live application, navigate to the `Manager` menu . 
     ![manager](../images/ledger-tuto-manager.png)
 4. Connect your Ledger Nano device and allow Ledger Manager from it. 
@@ -55,7 +58,9 @@ You can double check that Keplr is displaying the correct address directly on yo
 You should now see the same address that is displayed on the Keplr extension. 
 
 To learn more about using Keplr, we suggest you have a look at their [support documentation](https://keplr.crunch.help).
-You can also have a look at the [Ledger support page](https://support.ledger.com/hc/en-us/articles/4411149814417-Set-up-and-use-Keplr-to-access-your-Ledger-Cosmos-ATOM-account?docs=true) for more details.
+<!-- markdown-link-check-disable -->
+You can also have a look at the [Ledger support page](https://support.ledger.com/hc/en-us/articles/4411149814417?docs=true) for more details.
+<!-- markdown-link-check-enable -->
 
 ## Gaia CLI + Ledger Nano
 
@@ -66,12 +71,12 @@ The tool used to generate addresses and transactions on the Cosmos Hub network i
 ### Before you Begin
 
 - [Install Golang](https://golang.org/doc/install)
-- [Install Gaia](https://cosmos.network/docs/cosmos-hub/installation.html)
+- [Install Gaia](../getting-started/installation.md)
 
 Verify that gaiad is installed correctly with the following command
 
 ```bash
-pstaked version --long
+gaiad version --long
 
 ➜ cosmos-sdk: 0.34.3
 git commit: 67ab0b1e1d1e5b898c8cbdede35ad5196dba01b2
@@ -91,7 +96,7 @@ Be sure to change the _keyName_ parameter to be a meaningful name. The `ledger` 
 :::
 
 ```bash
-pstaked keys add <keyName> --ledger
+gaiad keys add <keyName> --ledger
 
 ➜ NAME: TYPE: ADDRESS:     PUBKEY:
 <keyName> ledger cosmos1... cosmospub1...
@@ -100,7 +105,7 @@ pstaked keys add <keyName> --ledger
 Cosmos uses [HD Wallets](./hd-wallets.md). This means you can setup many accounts using the same Ledger seed. To create another account from your Ledger device, run (change the integer i to some value >= 0 to choose the account for HD derivation):
 
 ```bash
-pstaked keys add <secondKeyName> --ledger --account <i>
+gaiad keys add <secondKeyName> --ledger --account <i>
 ```
 
 ### Confirm your address
@@ -108,7 +113,7 @@ pstaked keys add <secondKeyName> --ledger --account <i>
 Run this command to display your address on the device. Use the `keyName` you gave your ledger key. The `-d` flag is supported in version `1.5.0` and higher.
 
 ```bash
-pstaked keys show <keyName> -d
+gaiad keys show <keyName> -d
 ```
 
 Confirm that the address displayed on the device matches that displayed when you added the key.
@@ -118,8 +123,8 @@ Confirm that the address displayed on the device matches that displayed when you
 Next, you need to configure gaiad with the URL of a Cosmos full node and the appropriate `chain_id`. In this example we connect to the public load balanced full node operated by Chorus One on the `cosmoshub-2` chain. But you can point your `gaiad` to any Cosmos full node. Be sure that the `chain-id` is set to the same chain as the full node.
 
 ```bash
-pstaked config node https://cosmos.chorus.one:26657
-pstaked config chain_id cosmoshub-2
+gaiad config node https://cosmos.chorus.one:26657
+gaiad config chain_id cosmoshub-2
 ```
 
 Test your connection with a query such as:
@@ -129,7 +134,7 @@ gaiad query staking validators
 ```
 
 ::: tip
-To run your own full node locally [read more here.](https://cosmos.network/docs/cosmos-hub/join-mainnet.html#setting-up-a-new-node).
+To run your own full node locally [read more here.](../hub-tutorials/join-mainnet.md).
 :::
 
 ### Sign a transaction
@@ -137,7 +142,7 @@ To run your own full node locally [read more here.](https://cosmos.network/docs/
 You are now ready to start signing and sending transactions. Send a transaction with gaiad using the `tx send` command.
 
 ``` bash
-gaiad tx send --help # to see all available options.
+gaiad tx bank send --help # to see all available options.
 ```
 
 ::: tip
@@ -147,7 +152,7 @@ Be sure to unlock your device with the PIN and open the Cosmos app before trying
 Use the `keyName` you set for your Ledger key and gaia will connect with the Cosmos Ledger app to then sign your transaction.
 
 ```bash
-pstaked tx send <keyName> <destinationAddress> <amount><denomination>
+gaiad tx bank send <keyName> <destinationAddress> <amount><denomination>
 ```
 
 When prompted with `confirm transaction before signing`, Answer `Y`.
@@ -161,7 +166,7 @@ Now, you are all set to start [sending transactions on the network](../delegator
 To receive funds to the Cosmos account on your Ledger device, retrieve the address for your Ledger account (the ones with `TYPE ledger`) with this command:
 
 ```bash
-pstaked keys list
+gaiad keys list
 
 ➜ NAME: TYPE: ADDRESS:     PUBKEY:
 <keyName> ledger cosmos1... cosmospub1...
@@ -177,13 +182,13 @@ The `gaiad` help commands are nested. So `$ gaiad` will output docs for the top 
 For example, to print the `query` commands:
 
 ```bash
-pstaked query --help
+gaiad query --help
 ```
 
 Or to print the `tx` (transaction) commands:
 
 ```bash
-pstaked tx --help
+gaiad tx --help
 ```
 :::
 
@@ -207,4 +212,4 @@ Feel welcome to reach out in our [Telegram channel](https://t.me/cosmosproject) 
 Here are a few relevant and helpful tutorials from the wonderful Cosmos community:
 
 - [Catdotfish](https://catdotfish.medium.com/) - [How to use the Keplr Wallet](https://medium.com/chainapsis/how-to-use-keplr-wallet-40afc80907f6)
-- [Cryptium Labs](https://medium.com/cryptium-cosmos) - [How to store your ATOMS on your Ledger and delegate with the command line](https://medium.com/cryptium-cosmos/how-to-store-your-cosmos-atoms-on-your-ledger-and-delegate-with-the-command-line-929eb29705f)
+- [Cryptium Labs](https://medium.com/cryptium) - [How to store your ATOMS on your Ledger and delegate with the command line](https://medium.com/cryptium-cosmos/how-to-store-your-cosmos-atoms-on-your-ledger-and-delegate-with-the-command-line-929eb29705f)

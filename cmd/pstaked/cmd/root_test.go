@@ -11,7 +11,6 @@ import (
 )
 
 func TestRootCmdConfig(t *testing.T) {
-
 	rootCmd, _ := cmd.NewRootCmd()
 	rootCmd.SetArgs([]string{
 		"config",          // Test the config cmd
@@ -19,5 +18,5 @@ func TestRootCmdConfig(t *testing.T) {
 		"test",            // value
 	})
 
-	require.NoError(t, svrcmd.Execute(rootCmd, app.DefaultNodeHome))
+	require.NoError(t, svrcmd.Execute(rootCmd, "", app.DefaultNodeHome))
 }

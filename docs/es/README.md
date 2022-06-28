@@ -1,3 +1,4 @@
+<!-- markdown-link-check-disable -->
 # Documentación para el Hub de Cosmos
 
 Bienvenido a la documentación de la **aplicación para el Hub de Cosmos: `gaia`**
@@ -20,7 +21,7 @@ Bienvenido a la documentación de la **aplicación para el Hub de Cosmos: `gaia`
 
 ## Prepare su propia Testnet de `gaia`
 
-- [Prepare su propia Testnet de `gaia`](./hub-tutorials/deploy-testnet.md)
+- [Prepare su propia Testnet de `gaia`](../hub-tutorials/deploy-testnet.md)
 
 ## Recursos adicionales
 
@@ -39,3 +40,5 @@ Consulte [este archivo](./DOCS_README.md) para conocer los detalles del proceso 
 # Versión
 
 Esta documentación ha construida usando el siguiente commit:
+
+<!-- markdown-link-check-enable -->

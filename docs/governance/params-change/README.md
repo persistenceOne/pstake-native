@@ -16,7 +16,7 @@ Drafting and submitting a parameter-change governance proposal involves two kind
 
 If you are considering drafting a proposal, you should review the general
 background on drafting and submitting a proposal:
-1. [How the voting process and governance mechanism works](../overview.md)
+1. [How the voting process and governance mechanism works](../process.md)
 1. [How to draft your proposal and engage with the Cosmos community about it](../best-practices.md)
 1. [How to format proposals](../formatting.md)
 1. [How to submit your proposal](../submitting.md)
@@ -38,9 +38,9 @@ There are currently 8 modules active in the Cosmos Hub with parameters that may 
 6. [distribution](./Distribution.md) - Fee distribution and staking token provision distribution
 7. [crisis](./Crisis.md) - Halting the blockchain under certain circumstances (ie. if an invariant is broken)
 8. [mint](./Mint.md) - Creation of new units of staking token
-
+<!-- markdown-link-check-disable -->
 The value or setting for each parameter may be verified in the chain's genesis file, [found here](https://raw.githubusercontent.com/cosmos/launch/master/genesis.json). These are the parameter settings that the latest Cosmos Hub chain launched with, and will remain so unless a governance proposal or software upgrade changes them.
-
+<!-- markdown-link-check-enable -->
 There are also ways to query the current settings for each module's parameter(s). Some can be queried with the command line program [`gaiad`](../../getting-started/installation.md), but I'm still exploring the ways that these settings can be queried. 
 
 You can begin by using the command `gaia q [module] -h` to get help about the subcommands for the module you want to query. For example, `gaiad q staking params --chain-id cosmoshub-3 --node http://51.79.82.228:26657` returns the settings of four parameters:
@@ -54,7 +54,7 @@ bond_denom: uatom
 
 ## The Voting Process & Governance Mechanism
 
-The criteria for submitting a parameter-change proposal and the subsequent voting conditions are the same as those for signalling (text-based) proposals and community-spend proposals. Details about the deposit period can be found [here](../overview.md#_1-deposit-period), and voting period [here](../overview.md#what-determines-whether-or-not-a-governance-proposal-passes).
+The criteria for submitting a parameter-change proposal and the subsequent voting conditions are the same as those for signalling (text-based) proposals and community-spend proposals. Details about the deposit period can be found [here](../process.md#_1-deposit-period), and voting period [here](../process.md#what-determines-whether-or-not-a-governance-proposal-passes).
 
 If a paramater-change proposal is successful, the change takes effect immediately upon completion of the voting period.
 
@@ -68,7 +68,8 @@ If a paramater-change proposal is successful, the change takes effect immediatel
 ## Full nodes
 
 Running a full node can be difficult for those not technically-inclined, so you may choose to use a third-party's full node. In this case, the primary security risk is that of censorship: it's the single place where you have a single gateway to the network, and any messages submitted through an untrusted node could be censored.
-- https://rpc.cosmos.network:443 ([Tendermint, Inc](https://tendermint.com))
+
+You can find a list of available Cosmos Hub endpoints under the [API section](https://github.com/cosmos/chain-registry/blob/master/cosmoshub/chain.json) in the [Chain Registry](https://github.com/cosmos/chain-registry).
 
 ## Credits
 

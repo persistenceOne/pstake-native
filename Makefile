@@ -18,7 +18,7 @@ SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 TM_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::') # grab everything after the space in "github.com/tendermint/tendermint v0.34.7"
 DOCKER := $(shell which docker)
 BUILDDIR ?= $(CURDIR)/build
-TEST_DOCKER_REPO=mkoijn6/pstakednode
+TEST_DOCKER_REPO=jackzampolin/gaiatest
 
 export GO111MODULE = on
 
@@ -48,7 +48,7 @@ ifeq ($(LEDGER_ENABLED),true)
   endif
 endif
 
-ifeq (cleveldb,$(findstring cleveldb,$(PSTAKE_BUILD_OPTIONS)))
+ifeq (cleveldb,$(findstring cleveldb,$(GAIA_BUILD_OPTIONS)))
   build_tags += gcc cleveldb
 endif
 build_tags += $(BUILD_TAGS)
@@ -61,17 +61,17 @@ build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
 # process linker flags
 
-ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=pstake \
-		  -X github.com/cosmos/cosmos-sdk/version.AppName=pstaked \
+ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=gaia \
+		  -X github.com/cosmos/cosmos-sdk/version.AppName=gaiad \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
 			-X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TM_VERSION)
 
-ifeq (cleveldb,$(findstring cleveldb,$(PSTAKE_BUILD_OPTIONS)))
+ifeq (cleveldb,$(findstring cleveldb,$(GAIA_BUILD_OPTIONS)))
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
 endif
-ifeq (,$(findstring nostrip,$(PSTAKE_BUILD_OPTIONS)))
+ifeq (,$(findstring nostrip,$(GAIA_BUILD_OPTIONS)))
   ldflags += -w -s
 endif
 ldflags += $(LDFLAGS)
@@ -79,7 +79,7 @@ ldflags := $(strip $(ldflags))
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 # check for nostrip option
-ifeq (,$(findstring nostrip,$(PSTAKE_BUILD_OPTIONS)))
+ifeq (,$(findstring nostrip,$(GAIA_BUILD_OPTIONS)))
   BUILD_FLAGS += -trimpath
 endif
 
@@ -108,11 +108,11 @@ build-reproducible: go.sum
 	$(DOCKER) rm latest-build || true
 	$(DOCKER) run --volume=$(CURDIR):/sources:ro \
         --env TARGET_PLATFORMS='linux/amd64 darwin/amd64 linux/arm64 windows/amd64' \
-        --env APP=pstaked \
+        --env APP=gaiad \
         --env VERSION=$(VERSION) \
         --env COMMIT=$(COMMIT) \
         --env LEDGER_ENABLED=$(LEDGER_ENABLED) \
-        --name latest-build cosmossdk/rbuilder:latest
+        --name latest-build tendermintdev/rbuilder:latest
 	$(DOCKER) cp -a latest-build:/home/builder/artifacts/ $(CURDIR)/
 
 build-linux: go.sum
@@ -132,8 +132,8 @@ go.sum: go.mod
 
 draw-deps:
 	@# requires brew install graphviz or apt-get install graphviz
-	go get github.com/RobotsAndPencils/goviz
-	@goviz -i ./cmd/pstaked -d 2 | dot -Tpng -o dependency-graph.png
+	go install github.com/RobotsAndPencils/goviz
+	@goviz -i ./cmd/gaiad -d 2 | dot -Tpng -o dependency-graph.png
 
 clean:
 	rm -rf $(BUILDDIR)/ artifacts/
@@ -170,30 +170,47 @@ sync-docs:
 
 include sims.mk
 
-test: test-unit test-build
+PACKAGES_UNIT=$(shell go list ./... | grep -v -e '/tests/e2e')
+PACKAGES_E2E=$(shell go list ./... | grep '/e2e')
+TEST_PACKAGES=./...
+TEST_TARGETS := test-unit test-unit-cover test-race test-e2e
 
-test-all: check test-race test-cover
+test-unit: ARGS=-timeout=5m -tags='norace'
+test-unit: TEST_PACKAGES=$(PACKAGES_UNIT)
+test-unit-cover: ARGS=-timeout=5m -tags='norace' -coverprofile=coverage.txt -covermode=atomic
+test-unit-cover: TEST_PACKAGES=$(PACKAGES_UNIT)
+test-race: ARGS=-timeout=5m -race
+test-race: TEST_PACKAGES=$(PACKAGES_UNIT)
+test-e2e: ARGS=-timeout=25m -v
+test-e2e: TEST_PACKAGES=$(PACKAGES_E2E)
+$(TEST_TARGETS): run-tests
 
-test-unit:
-	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
+run-tests:
+ifneq (,$(shell which tparse 2>/dev/null))
+	@echo "--> Running tests"
+	@go test -mod=readonly -json $(ARGS) $(TEST_PACKAGES) | tparse
+else
+	@echo "--> Running tests"
+	@go test -mod=readonly $(ARGS) $(TEST_PACKAGES)
+endif
 
-test-race:
-	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
+.PHONY: run-tests $(TEST_TARGETS)
 
-test-cover:
-	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock' ./...
+docker-build-debug:
+	@docker build -t cosmos/gaiad-e2e --build-arg IMG_TAG=debug -f e2e.Dockerfile .
 
-benchmark:
-	@go test -mod=readonly -bench=. ./...
-
+# TODO: Push this to the Cosmos Dockerhub so we don't have to keep building it
+# in CI.
+docker-build-hermes:
+	@cd tests/e2e/docker; docker build -t cosmos/hermes-e2e:latest -f hermes.Dockerfile .
 
 ###############################################################################
 ###                                Linting                                  ###
 ###############################################################################
 
 lint:
-	golangci-lint run
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" | xargs gofmt -d -s
+	@echo "--> Running linter"
+	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout=10m
 
 format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs gofmt -w -s
@@ -204,17 +221,14 @@ format:
 ###                                Localnet                                 ###
 ###############################################################################
 
-build-docker-pstakednode:
-	$(MAKE) -C networks/local
+start-localnet-ci:
+	@ignite chain serve --reset-once -v -c ./ignite.ci.yml
 
-# Run a 4-node testnet locally
-localnet-start: build-linux localnet-stop
-	@if ! [ -f build/node0/pstaked/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/pstaked:Z mkoijn6/pstakednode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
-	docker-compose up -d
+.PHONY: start-localnet-ci
 
-# Stop testnet
-localnet-stop:
-	docker-compose down
+###############################################################################
+###                                Docker                                   ###
+###############################################################################
 
 test-docker:
 	@docker build -f contrib/Dockerfile.test -t ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) .
@@ -226,10 +240,5 @@ test-docker-push: test-docker
 	@docker push ${TEST_DOCKER_REPO}:$(shell git rev-parse --abbrev-ref HEAD | sed 's#/#_#g')
 	@docker push ${TEST_DOCKER_REPO}:latest
 
-.PHONY: all build-linux install format lint \
-	go-mod-cache draw-deps clean build \
-	setup-transactions setup-contract-tests-data start-gaia run-lcd-contract-tests contract-tests \
-	test test-all test-build test-cover test-unit test-race \
-	benchmark \
-	build-docker-pstakednode localnet-start localnet-stop \
-	docker-single-node
+.PHONY: all build-linux install format lint go-mod-cache draw-deps clean build \
+	start-gaia contract-tests benchmark docker-build-debug docker-build-hermes

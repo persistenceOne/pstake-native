@@ -1,3 +1,8 @@
+---
+title: Cosmos Hub 2 Upgrade
+order: 6
+---
+<!-- markdown-link-check-disable -->
 # Cosmos Hub 2 Upgrade Instructions
 
 The following document describes the necessary steps involved that full-node operators
@@ -215,3 +220,5 @@ single parameter, `max_validators`, that we're upgrading based on [proposal 10](
    and ship an upgrade for cosmoshub-3 compatibility unless they have some kind of switch they can throw
    for the new tx formats. Server side applications should experience briefer service interruptions and
    be able to just spin up new nodes and migrate to the new apis.
+
+<!-- markdown-link-check-enable -->

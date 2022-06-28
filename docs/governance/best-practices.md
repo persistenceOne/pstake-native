@@ -125,18 +125,20 @@ Assume that many people will stop reading at this point. However it is important
    - do you have conflicts of interest to declare?
 
 ### Begin with a well-considered draft proposal
+<!-- markdown-link-check-disable -->
 
 The ideal format for a proposal is as a Markdown file (ie. `.md`) in a github repo. Markdown
 is a simple and accessible format for writing plain text files that is easy to
 learn. See the [Github Markdown
-Guide](https://guides.github.com/features/mastering-markdown/) for details on
+Guide](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) for details on
 writing markdown files.
 
 If you don't have a [Github](http://github.com/) account already, register one. Then fork this
 repository, draft your proposal in the `proposals` directory, and make a
 pull-request back to this repository. For more details on using Github, see the
-[Github Forking Guide](https://guides.github.com/activities/forking/). If you
+[Github Forking Guide](https://docs.github.com/en/get-started/quickstart/contributing-to-projects). If you
 need help using Github, don't be afraid to ask someone!
+<!-- markdown-link-check-enale -->
 
 If you really don't want to deal with Github, you can always draft a proposal in
 Word or Google Docs, or directly in the forums, or otherwise. However Markdown
@@ -170,9 +172,9 @@ See the [submitting guide](./submitting.md) for more on submitting proposals.
 
 ### The Deposit Period
 
-The deposit period currently lasts 14 days. If you submitted your transaction with the minimum deposit (512 ATOM), your proposal will immediately enter the voting period. If you didn't submit the minimum deposit amount (currently 512 ATOM), then this may be an opportunity for others to show their support by contributing (and risking) their ATOMs as a bond for your proposal. You can request contributions openly and also contact stakeholders directly (particularly stakeholders who are enthusiastic about your proposal). Remember that each contributor is risking their funds, and you can [read more about the conditions for burning deposits here](./overview.md#burned-deposits).
+The deposit period currently lasts 14 days. If you submitted your transaction with the minimum deposit (64 ATOM), your proposal will immediately enter the voting period. If you didn't submit the minimum deposit amount (currently 64 ATOM), then this may be an opportunity for others to show their support by contributing (and risking) their ATOMs as a bond for your proposal. You can request contributions openly and also contact stakeholders directly (particularly stakeholders who are enthusiastic about your proposal). Remember that each contributor is risking their funds, and you can [read more about the conditions for burning deposits here](./process.md#burned-deposits).
 
-This is a stage where proposals may begin to get broader attention. Most popular explorers currently display proposals that are in the deposit period, but due to proposal spamming, this may change. [Hubble](https://hubble.figment.network/cosmos/chains/cosmoshub-3/governance), for example, only displays proposals that have 10% or more of the minimum deposit, so 51.2 ATOM or more.
+This is a stage where proposals may begin to get broader attention. Most popular explorers currently display proposals that are in the deposit period, but due to proposal spamming, this may change. [Hubble](https://hubble.figment.network/cosmos/chains/cosmoshub-4/governance), for example, only displays proposals that have 10% or more of the minimum deposit, so 6.4 ATOM or more.
 
 A large cross-section of the blockchain/cryptocurrency community exists on Twitter. Having your proposal in the deposit period is a good time to engage the so-called 'crypto Twitter' Cosmos community to prepare validators to vote (eg. tag [@cosmosvalidator](https://twitter.com/cosmosvalidator)) and ATOM-holders that are staking (eg. tag [@cosmos](https://twitter.com/cosmos), [@adriana_kalpa](https://twitter.com/adriana_kalpa)). 
 
@@ -185,4 +187,4 @@ At this point you'll want to track which validator has voted and which has not. 
 
 Remember that any voter may change their vote at any time before the voting period ends. That historically doesn't happen often, but there may be an opportunity to convince a voter to change their vote. The biggest risk is that stakeholders won't vote at all (for a number of reasons). Validator operators tend to need multiple reminders to vote. How you choose to contact validator operators, how often, and what you say is up to you--remember that no validator is obligated to vote, and that operators are likely occupied by competing demands for their attention. Take care not to stress any potential relationship with validator operators.
 
-   [forum]: https://forum.cosmos.network/c/governance
+   [forum]: https://forum.cosmos.network/c/hub-proposals/25

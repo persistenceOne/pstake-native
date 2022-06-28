@@ -22,10 +22,12 @@ can upload it to the IPFS network:
 
 1. either by [running an IPFS node and the IPFS software](https://ipfs.io), or
 2. using a service such as [https://pinata.cloud](https://pinata.cloud)
+<!-- markdown-link-check-disable -->
 
 Ensure that you "pin" the file so that it continues to be available on the network. You should get a URL like this: https://ipfs.io/ipfs/QmbkQNtCAdR1CNbFE8ujub2jcpwUcmSRpSCg8gVWrTHSWD
 The value QmbkQNtCAdR1CNbFE8ujub2jcpwUcmSRpSCg8gVWrTHSWD is called the `CID` of
 your file - it is effectively the file's hash.
+<!-- markdown-link-check-enable -->
 
 If you uploaded a markdown file, you can use the IPFS markdown viewer to render
 the document for better viewing. Links for the markdown viewer look like
@@ -38,7 +40,7 @@ The reason we use IPFS is that it is a decentralized means of storage, making it
 
 ## Formatting the JSON file for the governance proposal
 
-Prior to sending the transaction that submits your proposal on-chain, you must create a JSON file. This file will contain the information that will be stored on-chain as the governance proposal. Begin by creating a new text (.txt) file to enter this information. Use [these best practices](./best_practices.md) as a guide for the contents of your proposal. When you're done, save the file as a .json file. See the examples that follow to help format your proposal.
+Prior to sending the transaction that submits your proposal on-chain, you must create a JSON file. This file will contain the information that will be stored on-chain as the governance proposal. Begin by creating a new text (.txt) file to enter this information. Use [these best practices](./best-practices.md) as a guide for the contents of your proposal. When you're done, save the file as a .json file. See the examples that follow to help format your proposal.
 
 Each proposal type is unique in how the JSON should be formatted.
 See the relevant section for the type of proposal you are drafting:
@@ -54,7 +56,7 @@ Once on-chain, most people will rely upon network explorers to interpret this in
 
 ## Sending the transaction that submits your governance proposal
 
-For information on how to use gaiad (the command line interface) to submit an on-chain proposal through the governance module, please refer to the [gaiad resource](../resources/gaiad.md) for the Cosmos Hub documentation.
+For information on how to use gaiad (the command line interface) to submit an on-chain proposal through the governance module, please refer to the [gaiad resource](../hub-tutorials/gaiad.md) for the Cosmos Hub documentation.
 
 ### Walkthrough example
 
@@ -106,7 +108,7 @@ There are a number of reasons why a transaction may fail. Here are two examples:
 
 2. **Incorrect denomination** - You may have specified an amount in 'utom' or 'atom' instead of 'uatom', causing the transaction to fail.
 
-If you encounter a problem, try to troubleshoot it first, and then ask for help on the All in Bits Cosmos forum: [https://forum.cosmos.network/c/governance](https://forum.cosmos.network/c/governance). We can learn from failed attempts and use them to improve upon this guide.
+If you encounter a problem, try to troubleshoot it first, and then ask for help on the Cosmos Hub forum: [https://forum.cosmos.network](https://forum.cosmos.network/c/hub-proposals/25). We can learn from failed attempts and use them to improve upon this guide.
 
 ### Depositing funds after a proposal has been submitted
 Sometimes a proposal is submitted without having the minimum token amount deposited yet. In these cases you would want to be able to deposit more tokens to get the proposal into the voting stage. In order to deposit tokens, you'll need to know what your proposal ID is after you've submitted your proposal. You can query all proposals by the following command:

@@ -1,3 +1,4 @@
+<!-- markdown-link-check-disable -->
 # Gaia 클라이언트
 
 ## Gaia CLI
@@ -9,7 +10,7 @@
 `gaiad`를 설정하는데 사용되는 주 명령어는 다음과 같습니다:
 
 ```bash
-pstaked config <플래그(flag)> <값(value)>
+gaiad config <플래그(flag)> <값(value)>
 ```
 
 위 명령어는 각 플래그의 기본 값을 설정할 수 있도록 합니다.
@@ -17,25 +18,17 @@ pstaked config <플래그(flag)> <값(value)>
 우선 연결할 풀노드의 주소를 설정하겠습니다:
 
 ```bash
-pstaked config node <호스트(host)>:<포트(port)>
+gaiad config node <호스트(host)>:<포트(port)>
 
-# 예시: pstaked config node https://77.87.106.33:26657
+# 예시: gaiad config node https://77.87.106.33:26657
 ```
 
 자체적으로 풀노드를 운영하시는 경우, 주소 값에 `tcp://localhost:26657`을 입력하세요.
 
-이후, `--trust-node` 플래그의 기본 값을 설정하겠습니다:
-
-```bash
-pstaked config trust-node true
-
-# 연결하시는 원격 풀노드를 신뢰하시는 경우, true를 선택하세요. 신뢰하지 않는 경우 false를 선택하세요.
-```
-
 마지막으로 연결하려는 블록체인의 `chain-id` 값을 설정하겠습니다:
 
 ```bash
-pstaked config chain-id cosmoshub-2
+gaiad config chain-id cosmoshub-2
 ```
 
 ### 키(Keys)
@@ -69,7 +62,7 @@ pstaked config chain-id cosmoshub-2
 새로운 _secp256k1_ 키를 생성하기 위해서는:
 
 ```bash
-pstaked keys add <계정_명칭(account_name)>
+gaiad keys add <계정_명칭(account_name)>
 ```
 
 이제 해당 키를 안전하게 디스크에 보관하기 위해서 비밀번호를 설정합니다.
@@ -77,31 +70,31 @@ pstaked keys add <계정_명칭(account_name)>
 새로운 키를 생성하는 과정에서 나오는 _시트키(seed phrase)_ 는 안전하게 저장하시길 바랍니다. 시드키는 다음과 같은 명령을 실행하여 잊어버린 퍼블릭/프라이빗 키를 복구하는데 이용됩니다:
 
 ```bash
-pstaked keys add --recover
+gaiad keys add --recover
 ```
 
 이제 프라이빗 키를 확인하고 `<계정_명칭(account_name)>`을 찾으면 됩니다:
 
 ```bash
-pstaked keys show <계정_명칭(account_name)>
+gaiad keys show <계정_명칭(account_name)>
 ```
 
 검증인 운영자 주소는 다음과 같이 확인하실 수 있습니다:
 
 ```bash
-pstaked keys show <account_name> --bech=val
+gaiad keys show <account_name> --bech=val
 ```
 
 관련 되어 있는 모든 키 목록은 다음 명령어로 찾으실 수 있습니다:
 
 ```bash
-pstaked keys list
+gaiad keys list
 ```
 
 본인이 연결된 노드의 검증인 pubkey는 다음과 같이 확인할 수 있습니다:
 
 ```bash
-pstaked tendermint show-validator
+gaiad tendermint show-validator
 ```
 
 위 키는 텐더민트 사이닝 키이며, 위임 트랜잭션에서 이용되는 '오퍼레이터 키'가 아니라는 점을 참고하세요.
@@ -115,7 +108,7 @@ pstaked tendermint show-validator
 새로운 멀티시그 퍼블릭키를 생성하고 확인하시려면 다음과 같은 명령을 입력하세요:
 
 ```bash
-pstaked keys add --multisig=name1,name2,name3[...] --multisig-threshold=K new_key_name
+gaiad keys add --multisig=name1,name2,name3[...] --multisig-threshold=K new_key_name
 ```
 
 여기서 `K`는 트랜잭션이 승인되기 위해서 필요한 최소의 키 개수입니다.
@@ -123,14 +116,14 @@ pstaked keys add --multisig=name1,name2,name3[...] --multisig-threshold=K new_ke
 `--multisig` 플래그는 로컬 데이터베이스에 `new_key_name`으로 저장될 멀티시그 퍼블릭 키를 생성할때 사용되는 다수의 퍼블릭 키들의 값을 뜻합니다. `--multisig` 값에 포함될 각 키는 로컬 데이터베이스에 존재해야 합니다. `--nosort` 플래그가 정의된지 않은 경우, 멀티시그 조합에 필요한 키들이 입력되는 순서는 무관합니다. 예를 들어 다음 두 명령어는 두개의 동일한 멀티시그 퍼블릭 키를 생성합니다:
 
 ```bash
-pstaked keys add --multisig=foo,bar,baz --multisig-threshold=2 multisig_address
-pstaked keys add --multisig=baz,foo,bar --multisig-threshold=2 multisig_address
+gaiad keys add --multisig=foo,bar,baz --multisig-threshold=2 multisig_address
+gaiad keys add --multisig=baz,foo,bar --multisig-threshold=2 multisig_address
 ```
 
 멀티시그 키의 주소는 다음과 같이 빠르게 생성하여 커맨드라인에 프린트할 수 있습니다:
 
 ```bash
-pstaked keys show --multisig-threshold K name1 name2 name3 [...]
+gaiad keys show --multisig-threshold K name1 name2 name3 [...]
 ```
 
 멀티시그 트랜잭션를 생성, 서명, 전파하는 방법은 [멀티시그 트랜잭션](#멀티시그-트랜잭션) 항목을 참고하세요.
@@ -152,13 +145,13 @@ __참고__: 위와 같은 메커니즘에서 일부 검증인은 멤풀에 있�
 예시)
 
 ```bash
-pstaked tx send ... --fees=5000uatom
+gaiad tx bank send ... --fees=5000uatom
 ```
 
 또는
 
 ```bash
-pstaked tx send ... --gas-prices=0.0025uatom
+gaiad tx bank send ... --gas-prices=0.0025uatom
 ```
 
 ### 계정
@@ -172,7 +165,7 @@ pstaked tx send ... --gas-prices=0.0025uatom
 주소에 토큰을 받으신 후 잔고를 확인하시려면 다음 명령어를 입력하시면 됩니다:
 
 ```bash
-pstaked query account <코스모스_주소(account_cosmos)>
+gaiad query account <코스모스_주소(account_cosmos)>
 ```
 
 ::: warning 참고
@@ -184,7 +177,7 @@ pstaked query account <코스모스_주소(account_cosmos)>
 한 계정에서 다른 계정으로 토큰/코인을 전송하기 위해서는 다음 명령어를 이용하시면 됩니다:
 
 ```bash
-pstaked tx send <보내는_사람_키_명칭_또는_주소(sender_key_name_or_address)> 10faucetToken \
+gaiad tx bank send <보내는_사람_키_명칭_또는_주소(sender_key_name_or_address)> 10faucetToken \
   --chain-id=<체인_아이디(chain_id)> \
 ```
 
@@ -199,20 +192,20 @@ pstaked tx send <보내는_사람_키_명칭_또는_주소(sender_key_name_or_ad
 이제 토큰을 전송한 계정과 토큰을 받은 계정의 잔고를 확인합니다:
 
 ```bash
-pstaked query account <보내는_주소(account_cosmos)>
-pstaked query account <수신자_주소(destination_cosmos)>
+gaiad query account <보내는_주소(account_cosmos)>
+gaiad query account <수신자_주소(destination_cosmos)>
 ```
 
 특정 블록 높의에서의 잔고를 확인하고 싶으시다면 `--block` 플래그를 사용하실 수 있습니다:
 
 ```bash
-pstaked query account <코스모스_주소(account_cosmos)> --block=<블록_높이(block_height)>
+gaiad query account <코스모스_주소(account_cosmos)> --block=<블록_높이(block_height)>
 ```
 
 트랜잭션을 실제 전파하지 않고 시뮬레이션을 하시려면 명령어 뒤에 `--dry-run` 플래그를 추가하세요:
 
 ```bash
-pstaked tx send <보내는_사람_키_명칭_또는_주소(sender_key_name_or_address)> 10faucetToken \
+gaiad tx bank send <보내는_사람_키_명칭_또는_주소(sender_key_name_or_address)> 10faucetToken \
   --chain-id=<체인_아이디(chain-id)> \
   --dry-run
 ```
@@ -220,7 +213,7 @@ pstaked tx send <보내는_사람_키_명칭_또는_주소(sender_key_name_or_ad
 또한 트랜잭션을 빌드한 후 해당 트랜잭션을 JSON 포맷으로 STDOUT에 프린트 하시기를 원하면 `--generate-only`를 명령어에 추가하시면 됩니다:
 
 ```bash
-pstaked tx send <보내는이_주소(sender_address)> <수신자_주소(destination_cosmosaccaddr)> 10faucetToken \
+gaiad tx bank send <보내는이_주소(sender_address)> <수신자_주소(destination_cosmosaccaddr)> 10faucetToken \
   --chain-id=<체인_아이디(chain-id)> \
   --generate-only > unsignedSendTx.json
 ```
@@ -233,7 +226,7 @@ pstaked tx send <보내는이_주소(sender_address)> <수신자_주소(destinat
 이제 `--generate-only`를 통해 프린트된 트랜잭션 파일을 서명하시려면 다음 명령어를 통해 키를 입력하시면 됩니다:
 
 ```bash
-pstaked tx sign \
+gaiad tx sign \
   --chain-id=<체인_아이디(chain-id)> \
   --from=<키_명칭(key_name)> \
   unsignedSendTx.json > signedSendTx.json
@@ -242,14 +235,14 @@ pstaked tx sign \
 해당 트랜잭션의 서명은 다음 명령어를 통해 검증하실 수 있습니다:
 
 ```bash
-pstaked tx sign --validate-signatures
+gaiad tx sign --validate-signatures
   signedSendTx.json
 ```
 
 서명된 트랜잭션을 노드로 전파하기 위해서는 JSON 파일을 다음 명령어를 통해 전달하면 됩니다:
 
 ```bash
-pstaked tx broadcast --node=<node> signedSendTx.json
+gaiad tx broadcast --node=<node> signedSendTx.json
 ```
 
 ### 트랜잭션 조회하기
@@ -263,19 +256,19 @@ pstaked tx broadcast --node=<node> signedSendTx.json
 `events`를 이용한 트랜잭션 조회는 다음과 같이 합니다:
 
 ```bash
-pstaked query txs --events='message.sender=cosmos1...'
+gaiad query txs --events='message.sender=cosmos1...'
 ```
 
 다수의 `events`를 이용하실 경우:
 
 ```bash
-pstaked query txs --events='message.sender=cosmos1...&message.action=withdraw_delegator_reward'
+gaiad query txs --events='message.sender=cosmos1...&message.action=withdraw_delegator_reward'
 ```
 
 페이지네이션은 `page`와 `limit` 값으로 지원됩니다.
 
 ```bash
-pstaked query txs --events='message.sender=cosmos1...' --page=1 --limit=20
+gaiad query txs --events='message.sender=cosmos1...' --page=1 --limit=20
 ```
 
 ::: tip 참고
@@ -296,7 +289,7 @@ pstaked query txs --events='message.sender=cosmos1...' --page=1 --limit=20
 다음과 같은 명령어를 이용하여 한 트랜잭션의 해시값을 이용해 조회를 할 수 있습니다:
 
 ```bash
-pstaked query tx [hash]
+gaiad query tx [hash]
 ```
 
 ### 슬래싱
@@ -306,7 +299,7 @@ pstaked query tx [hash]
 제일링 된 검증인을 언제일 하기 위해서는:
 
 ```bash
-pstaked tx slashing unjail --from <검증인_오퍼레이터_주소(validator-operator-addr)>
+gaiad tx slashing unjail --from <검증인_오퍼레이터_주소(validator-operator-addr)>
 ```
 
 #### 서명 정보
@@ -314,7 +307,7 @@ pstaked tx slashing unjail --from <검증인_오퍼레이터_주소(validator-op
 특정 검증인의 서명 정보를 확인하기 위해서는:
 
 ```bash
-pstaked query slashing signing-info <검증인_pubkey(validator-pubkey)>
+gaiad query slashing signing-info <검증인_pubkey(validator-pubkey)>
 ```
 
 #### 슬래싱 파라미터 조회
@@ -322,7 +315,7 @@ pstaked query slashing signing-info <검증인_pubkey(validator-pubkey)>
 현재 슬래싱 파라미터를 확인하기 위해서는:
 
 ```bash
-pstaked query slashing params
+gaiad query slashing params
 ```
 
 ### 민팅
@@ -330,19 +323,19 @@ pstaked query slashing params
 민팅/인플레이션 파라미터 값은 다음과 같이 조회하실 수 있습니다:
 
 ```bash
-pstaked query minting params
+gaiad query minting params
 ```
 
 현재 인플레이션 값은 다음과 같이 조회하실 수 있습니다:
 
 ```bash
-pstaked query minting inflation
+gaiad query minting inflation
 ```
 
 현재 프로비젼(provisions) 값은 다음과 같이 조회하실 수 있습니다:
 
 ```bash
-pstaked query minting annual-provisions
+gaiad query minting annual-provisions
 ```
 
 ### 스테이킹
@@ -359,13 +352,13 @@ pstaked query minting annual-provisions
 특정 체인의 모든 검증인 목록을 확인하기 위해서는 다음 명령을 실행하세요:
 
 ```bash
-pstaked query staking validators
+gaiad query staking validators
 ```
 
 특정 검증인에 대한 정보를 원하실 경우 다음 명령을 실행하세요:
 
 ```bash
-pstaked query staking validator <cosmosval_계정(account_cosmosval)>
+gaiad query staking validator <cosmosval_계정(account_cosmosval)>
 ```
 
 #### 토큰 본딩하기
@@ -374,7 +367,7 @@ pstaked query staking validator <cosmosval_계정(account_cosmosval)>
 
 
 ```bash
-pstaked tx staking delegate \
+gaiad tx staking delegate \
   --amount=10000000uatom \
   --validator=<검증인_주소(validator)> \
   --from=<키_명칭(key_name)> \
@@ -384,7 +377,7 @@ pstaked tx staking delegate \
 `<validator>` 는 위임 대상 검증인의 검증인 운영자 주소(valoper)입니다. 로컬 테스트넷을 운영하시는 경우, 다음 명령어로 관련 주소를 확인하실 수 있습니다:
 
 ```bash
-pstaked keys show [name] --bech val
+gaiad keys show [name] --bech val
 ```
 
 여기에서`[name]`은 `gaiad`를 처음 설정하셨을때 정의한 키의 명칭입니다.
@@ -396,14 +389,14 @@ pstaked keys show [name] --bech val
 위임 요청을 검증인에게 전송한 경우, 관련 정보를 다음 명령을 통해 조회하실 수 있습니다:
 
 ```bash
-pstaked query staking delegation <위임자_코스모스_주소(delegator_addr)> <검증인_주소(validator_addr)>
+gaiad query staking delegation <위임자_코스모스_주소(delegator_addr)> <검증인_주소(validator_addr)>
 
 ```
 
 만약 모든 위임 상태를 확인하고 싶으실 경우 다음 명령을 이용하세요:
 
 ```bash
-pstaked query staking delegation <위임자_코스모스_주소(delegator_addr)>
+gaiad query staking delegation <위임자_코스모스_주소(delegator_addr)>
 ```
 
 #### 토큰 언본딩 하기
@@ -411,7 +404,7 @@ pstaked query staking delegation <위임자_코스모스_주소(delegator_addr)>
 만약 특정 검증인이 악의적인 행동을 했거나 또는 본인이 개인적인 이유로 일부 토큰을 언본딩을 워하는 경우 다음 명령어를 통해 토큰을 언본딩 할 수 있습니다:
 
 ```bash
-pstaked tx staking unbond \
+gaiad tx staking unbond \
   <검증인_주소(validator_addr)> \
   10atom \
   --from=<키_명칭(key_name)> \
@@ -425,19 +418,19 @@ pstaked tx staking unbond \
 언본딩 절차를 시작하신 후 관련 정보를 조회하는 방법은 다음과 같습니다:
 
 ```bash
-pstaked query staking unbonding-delegation <위임자_주소(delegator-addr)> <검증인_주소(validator_addr)>
+gaiad query staking unbonding-delegation <위임자_주소(delegator-addr)> <검증인_주소(validator_addr)>
 ```
 
 또는 특정 위임자의 모든 언본딩 정보를 확인하고 싶으신 경우:
 
 ```bash
-pstaked query staking unbonding-delegations <위임자_주소(account_cosmos)>
+gaiad query staking unbonding-delegations <위임자_주소(account_cosmos)>
 ```
 
 추가적으로 특정 검증인으로 부터 언본딩하는 정보를 확인하고 싶으신 경우:
 
 ```bash
-pstaked query staking unbonding-delegations-from <검증인_cosmosval_주소(account_cosmosval)>
+gaiad query staking unbonding-delegations-from <검증인_cosmosval_주소(account_cosmosval)>
 ```
 
 #### 재위임(Redelegate) 하기
@@ -445,7 +438,7 @@ pstaked query staking unbonding-delegations-from <검증인_cosmosval_주소(acc
 재위임이란 본딩 되어있는 토큰을 한 검증인으로 부터 다른 검증인으로 옮기는 것입니다:
 
 ```bash
-pstaked tx staking redelegate \
+gaiad tx staking redelegate \
   <기존_검증인_valoper_주소(src_validator_operator_addr)> \
   <대상_검증인_valoper_주소(dst_validator_operator_addr)> \
   10atom \
@@ -462,19 +455,19 @@ pstaked tx staking redelegate \
 재위임을 시작하신 후, 다음 명령을 통해서 관련 정보를 조회하실 수 있습니다:
 
 ```bash
-pstaked query staking redelegation <위임자_주소(delegator_addr)> <기존_검증인_주소(src_val_addr)> <대상_검증인_주소(dst_val_addr)>
+gaiad query staking redelegation <위임자_주소(delegator_addr)> <기존_검증인_주소(src_val_addr)> <대상_검증인_주소(dst_val_addr)>
 ```
 
 특정 위임자의 모든 검증인에 대한 재위임을 확인하고 싶으신 경우:
 
 ```bash
-pstaked query staking redelegations <위임자_주소(account_cosmos)>
+gaiad query staking redelegations <위임자_주소(account_cosmos)>
 ```
 
 특정 검증인에 대한 재위임을 확인하고 싶으신 경우:
 
 ```bash
-  pstaked query staking redelegations-from <검증인_주소(account_cosmosval)>
+  gaiad query staking redelegations-from <검증인_주소(account_cosmosval)>
 ```
 
 #### 파라미터 조회
@@ -482,7 +475,7 @@ pstaked query staking redelegations <위임자_주소(account_cosmos)>
 파라미터는 스테이킹의 하이-레벨 설정을 정의합니다. 현재 값은 다음 명령어를 통해서 조회할 수 있습니다:
 
 ```bash
-pstaked query staking params
+gaiad query staking params
 ```
 
 위 명령어는 다음과 같은 정보를 표기합니다:
@@ -498,7 +491,7 @@ pstaked query staking params
 스티이킹 풀은 현재 상태(state)에 대한 다이내믹 파라미터(dynamic parameter)를 정의합니다. 관련 정보는 다음 명령을 통해 조회할 수 있습니다:
 
 ```bash
-pstaked query staking pool
+gaiad query staking pool
 ```
 
 `pool` 명령은 다음과 같은 정보에 대한 현재 값을 제공합니다:
@@ -512,7 +505,7 @@ pstaked query staking pool
 특정 검증인에 대한 모든 위임은 다음 명령으로 조회가 가능합니다:
 
 ```bash
-  pstaked query delegations-to <검증인_주소(account_cosmosval)>
+  gaiad query delegations-to <검증인_주소(account_cosmosval)>
 ```
 
 ### 거버넌스
@@ -537,7 +530,7 @@ pstaked query staking pool
 새로운 거버넌스 프로포절을 생성하기 위해서는 프로포절 제목, 프로포절 내용 그리고 보증금을 예치해야 합니다. 거버넌스 모듈 외의 모듈에서 프로포절 타입과 핸들러를 도입할 수 있습니다 (예, 파라미터 변경), 거버넌스 모듈 자체는 `Text` 프로포절을 지원합니다. 거버넌스 외 모듈의 프로포절은 `submit-proposal` 위에 명령을 추가할 수 있습니다.
 
 ```bash
-pstaked tx gov submit-proposal \
+gaiad tx gov submit-proposal \
   --title=<제목(title)> \
   --description=<설명(description)> \
   --type="Text" \
@@ -551,7 +544,7 @@ pstaked tx gov submit-proposal \
 파라미터 변경 프로포절의 경우 내용을 CLI 인풋으로 입력하기 어렵기 때문에 프로포절 파일을 제출해야 합니다.
 
 ```bash
-pstaked tx gov submit-proposal param-change <프로포절/파일/경로/프로포절.json> \
+gaiad tx gov submit-proposal param-change <프로포절/파일/경로/프로포절.json> \
   --from=<키_명칭(key_name)> \
   --chain-id=<체인_아이디(chain_id)>
 ```
@@ -597,13 +590,13 @@ pstaked tx gov submit-proposal param-change <프로포절/파일/경로/프로�
 프로포절이 생성된 후 관련 정보를 조회하는 방법은 다음과 같습니다:
 
 ```bash
-pstaked query gov proposal <프로포절_ID(proposal_id)>
+gaiad query gov proposal <프로포절_ID(proposal_id)>
 ```
 
 모든 프로포절에 대한 조회를 하기 위해서는:
 
 ```bash
-pstaked query gov proposals
+gaiad query gov proposals
 ```
 
 프로포절을 `voter` 또는 `depositor`로 필터링 해서 조회할 수도 있습니다.
@@ -611,7 +604,7 @@ pstaked query gov proposals
 특정 거버넌스 프로포절의 제안자를 확인하기 위해서는:
 
 ```bash
-pstaked query gov proposer <프로포절_ID(proposal_id)>
+gaiad query gov proposer <프로포절_ID(proposal_id)>
 ```
 
 #### 보증금 추가하기
@@ -619,7 +612,7 @@ pstaked query gov proposer <프로포절_ID(proposal_id)>
 프로포절이 네트워크에 전파되기 위해서는 해당 프로포절의 보증금이 `minDeposit` 값 이상이어야 합니다 (현재 기본 값은 `512000000uatom`입니다). 만약 사전에 생성한 프로포절이 해당 기준을 충족하지 못하였다면 추후에 보증금을 추가 예치하여 활성화할 수 있습니다. 프로포절의 보증금이 최소 값을 도달하면 해당 프로포절의 투표는 활성화 됩니다:
 
 ```bash
-pstaked tx gov deposit <프로포절_ID(proposal_id)> "10000000uatom" \
+gaiad tx gov deposit <프로포절_ID(proposal_id)> "10000000uatom" \
   --from=<키_명칭(name)> \
   --chain-id=<체인_ID(chain_id)>
 ```
@@ -631,13 +624,13 @@ pstaked tx gov deposit <프로포절_ID(proposal_id)> "10000000uatom" \
 새로운 프로포절이 생성된 후, 해당 프로포절에 대한 보증금은 다음과 같이 조회할 수 있습니다:
 
 ```bash
-pstaked query gov deposits <프로포절_ID(proposal_id)>
+gaiad query gov deposits <프로포절_ID(proposal_id)>
 ```
 
 특정 주소에 대한 보증금은 다음과 같이 확인하실 수 있습니다:
 
 ```bash
-pstaked query gov deposit <프로포절_ID(proposal_id)> <보증금_제공자_주소(depositor_address)>
+gaiad query gov deposit <프로포절_ID(proposal_id)> <보증금_제공자_주소(depositor_address)>
 ```
 
 #### 프로포절 투표하기
@@ -646,7 +639,7 @@ pstaked query gov deposit <프로포절_ID(proposal_id)> <보증금_제공자_�
 
 
 ```bash
-pstaked tx gov vote <프로포절_ID(proposal_id)> <Yes/No/NoWithVeto/Abstain(표 선택)> \
+gaiad tx gov vote <프로포절_ID(proposal_id)> <Yes/No/NoWithVeto/Abstain(표 선택)> \
   --from=<키_명칭(key_name)> \
   --chain-id=<체인_아이디(chain-id)>
 ```
@@ -656,12 +649,12 @@ pstaked tx gov vote <프로포절_ID(proposal_id)> <Yes/No/NoWithVeto/Abstain(�
 특정 표와 관련한 정보를 조회하기 위해서는:
 
 ```bash
-pstaked query gov vote <프로포절_ID(proposal_id)> <투표자_주소(voter_address)>
+gaiad query gov vote <프로포절_ID(proposal_id)> <투표자_주소(voter_address)>
 ```
 과거 프로포절에 대한 표 정보를 확인하기 위해서는:
 
 ```bash
-pstaked query gov votes <프로포절_ID(proposal_id)>
+gaiad query gov votes <프로포절_ID(proposal_id)>
 ```
 
 #### 프로포절 결과 조회하기
@@ -669,7 +662,7 @@ pstaked query gov votes <프로포절_ID(proposal_id)>
 특정 프로포절에 대한 결과를 확인하기 위해서는 `tally` 명령어를 사용하실 수 있습니다:
 
 ```bash
-pstaked query gov tally <프로포절_ID(proposal_id)>
+gaiad query gov tally <프로포절_ID(proposal_id)>
 ```
 
 #### 거버넌스 파라미터 조회하기
@@ -677,9 +670,9 @@ pstaked query gov tally <프로포절_ID(proposal_id)>
 현재 거버넌스 파라미터를 조회하기 위해서는:
 
 ```bash
-pstaked query gov param voting
-pstaked query gov param tallying
-pstaked query gov param deposit
+gaiad query gov param voting
+gaiad query gov param tallying
+gaiad query gov param deposit
 ```
 
 ### 스테이킹 리워드 분배
@@ -689,7 +682,7 @@ pstaked query gov param deposit
 현재 리워드 분배 파라미터 값을 조회하기 위해서는:
 
 ```bash
-pstaked query distribution params
+gaiad query distribution params
 ```
 
 #### 커뮤니티 풀 잔고 조회
@@ -697,7 +690,7 @@ pstaked query distribution params
 거버넌스 소유권에 있는 커뮤니티 풀 자산을 조회하기 위해서는 다음 명령어를 사용하세요:
 
 ```bash
-pstaked query distribution params
+gaiad query distribution params
 ```
 
 #### 수령되지 않은 리워드를 받기
@@ -705,7 +698,7 @@ pstaked query distribution params
 수령하지 않은 리워드를 수령하기 위해서는:
 
 ```bash
-pstaked query distribution outstanding-rewards
+gaiad query distribution outstanding-rewards
 ```
 
 #### 검증인 커미션 조회
@@ -713,7 +706,7 @@ pstaked query distribution outstanding-rewards
 특정 검증인의 커미션을 조회하기 위해서는:
 
 ```bash
-pstaked query distribution commission <검증인_주소(validator_address)>
+gaiad query distribution commission <검증인_주소(validator_address)>
 ```
 
 #### 검증인 슬래싱 조회
@@ -721,7 +714,7 @@ pstaked query distribution commission <검증인_주소(validator_address)>
 특정 검증인의 슬래싱 기록을 조회하기 위해서는:
 
 ```bash
-pstaked query distribution slashes <검증인_주소(validator_address)> <시작_블록_높이(start_height)> <끝_블록_높이(end_height)>
+gaiad query distribution slashes <검증인_주소(validator_address)> <시작_블록_높이(start_height)> <끝_블록_높이(end_height)>
 ```
 
 #### 특정 검증인에서 수령되지 않은 리워드 조회
@@ -729,7 +722,7 @@ pstaked query distribution slashes <검증인_주소(validator_address)> <시작
 위임자의 특정 검증인에서 발생된 미수령 리워드를 조회하기 위해서는:
 
 ```bash
-pstaked query distribution rewards <위임자_주소(delegator_address)> <검증인_주소(validator_address)>
+gaiad query distribution rewards <위임자_주소(delegator_address)> <검증인_주소(validator_address)>
 ```
 
 #### 위임자의 수령 대기중인 모든 리워드 조회
@@ -737,7 +730,7 @@ pstaked query distribution rewards <위임자_주소(delegator_address)> <검증
 위임자의 모든 수령 대기 리워드를 조회하기 위해서는:
 
 ```bash
-pstaked query distribution rewards <위임자_주소(delegator_address)>
+gaiad query distribution rewards <위임자_주소(delegator_address)>
 ```
 
 ### 멀티시그 트랜잭션
@@ -747,13 +740,13 @@ pstaked query distribution rewards <위임자_주소(delegator_address)>
 예를 들어 멀티시그 키가 `p1`, `p2`, `p3` 키로 이루어진다면, `p1` 키 보유자는 `p2`와 `p3`의 키가 있어야 멀티시그 계정의 퍼블릭 키를 생성할 수 있습니다.
 
 ```bash
-pstaked keys add \
+gaiad keys add \
   --pubkey=cosmospub1addwnpepqtd28uwa0yxtwal5223qqr5aqf5y57tc7kk7z8qd4zplrdlk5ez5kdnlrj4 \
   p2
- pstaked keys add \
+ gaiad keys add \
   --pubkey=cosmospub1addwnpepqgj04jpm9wrdml5qnss9kjxkmxzywuklnkj0g3a3f8l5wx9z4ennz84ym5t \
   p3
- pstaked keys add \
+ gaiad keys add \
   --multisig-threshold=2 \
   --multisig=p1,p2,p3
 ```
@@ -761,21 +754,21 @@ pstaked keys add \
 이제 새로운 멀티시그 키 `p1p2p3`이 보관되었으며 이 주소를 기반으로 멀티 트랜잭션이 서명됩니다:
 
 ```bash
-pstaked keys show --address p1p2p3
+gaiad keys show --address p1p2p3
 ```
 
 멀티시그 주소의 투표 통과 기준, pubkey 투표자 그리고 각자 투표권 부게를 확인하기 위해서는 JSON 아웃풋을 확인하거나 `--show-multisig` 플래그를 사용하실 수 있습니다:
 
 ```bash
-pstaked keys show p1p2p3 -o json
+gaiad keys show p1p2p3 -o json
 
-pstaked keys show p1p2p3 --show-multisig
+gaiad keys show p1p2p3 --show-multisig
 ```
 
 위 주소를 기반으로 멀티시그 트랜잭션을 생성하는 과정의 첫 단계는 다음과 같습니다:
 
 ```bash
-pstaked tx send cosmos1570v2fq3twt0f0x02vhxpuzc9jc4yl30q2qned 10000000uatom \
+gaiad tx bank send cosmos1570v2fq3twt0f0x02vhxpuzc9jc4yl30q2qned 10000000uatom \
   --from=<멀티시그_주소(multisig_address)> \
   --generate-only > unsignedTx.json
 ```
@@ -783,7 +776,7 @@ pstaked tx send cosmos1570v2fq3twt0f0x02vhxpuzc9jc4yl30q2qned 10000000uatom \
 `unsignedTx.json` 파일은 서명되지 않은 트랜잭션을 JSON 형태로 보관합니다. 이제 `p1`은 본인의 프라이빗 키를 사용해 트랜잭션을 서명할 수 있습니다:
 
 ```bash
-pstaked tx sign \
+gaiad tx sign \
   unsignedTx.json \
   --multisig=<멀티시그_주소(multisig_address)> \
   --from=p1 \
@@ -793,7 +786,7 @@ pstaked tx sign \
 서명이 생성된 후, `p1`은 `unsignedTx.json`과 `p1signature.json`을 `p2` 또는 `p3`에게 전다합니다. `p2`와 `p3`은 이를 기반으로 서명을 진행합니다:
 
 ```bash
-pstaked tx sign \
+gaiad tx sign \
   unsignedTx.json \
   --multisig=<멀티시그_주소(multisig_address)> \
   --name=p2 \
@@ -803,7 +796,7 @@ pstaked tx sign \
 `p1p2p3`은 3명 중 2명의 서명을 필요로 하는 멀티시그 키입니다. 그렇기 때문에 `p1`이 서명한 트랜잭션에 하나의 프라이빗 키만 더해지면 트랜잭션이 유효합니다. 이제 다른 키 보유자들은 필요한 서명 파일을 결합하여 멀티시그 트랜잭션을 생성할 수 있습니다:
 
 ```bash
-pstaked tx multisign \
+gaiad tx multisign \
   unsignedTx.json \
   p1p2p3 \
   p1signature.json p2signature.json > signedTx.json
@@ -812,7 +805,7 @@ pstaked tx multisign \
 서명된 트랜잭션은 다음과 같은 명령을 실행하여 노드에 전파합니다:
 
 ```bash
-pstaked tx broadcast signedTx.json
+gaiad tx broadcast signedTx.json
 ```
 
 ## Shell 완료 스크립트
@@ -822,15 +815,15 @@ pstaked tx broadcast signedTx.json
 `Bash` 완료 스크립트를 생성하기 위해서는 다음 명령어를 실행하세요:
 
 ```bash
-pstaked completion > gaiad_completion
-pstaked completion > gaiacli_completion
+gaiad completion > gaiad_completion
+gaiad completion > gaiacli_completion
 ```
 
 `Zsh` 완료 스크립트를 생성하기 위해서는 다음 명령어를 실행하세요:
 
 ```bash
-pstaked completion --zsh > gaiad_completion
-pstaked completion --zsh > gaiacli_completion
+gaiad completion --zsh > gaiad_completion
+gaiad completion --zsh > gaiacli_completion
 ```
 
 ::: tip 참고
@@ -843,3 +836,5 @@ echo '. gaiacli_completion' >> ~/.bashrc
 
 셸 자동 완성을 사용하시려면 사용하시는 OS의 매뉴얼을 참고하십시오.
 :::
+
+<!-- markdown-link-check-enable -->

@@ -1,6 +1,7 @@
-<!--
+---
 order: 1
--->
+title: Introduction
+---
 
 ![Welcome to the Cosmos Hub](../images/cosmos-hub-image.jpg)
 
@@ -29,11 +30,9 @@ These community-maintained web and mobile wallets allow you to store & transfer 
 * [imToken](https://token.im/) - Android, iOS
 * [Keplr](https://wallet.keplr.app) - Web
 * [Ledger](https://www.ledger.com/cosmos-wallet) - Hardware
-* [Lunagram](https://lunamint.com/) - Android, iOS
 * [Lunie](https://lunie.io) - Web
 * [Math Wallet](https://www.mathwallet.org/en/) - Android, iOS, Web
 * [Rainbow Wallet](https://www.rainbow.one) - Android, iOS
-* [Qbao Wallet](https://qbao.fund/) - Android, iOS
 * [Trust Wallet](https://trustwallet.com/) Android, iOS
 * [Wetez](https://www.wetez.io/pc/homepage) - Android, iOS
 * [Crypto.com](https://crypto.com/) - Android, iOS
@@ -47,7 +46,6 @@ These block explorers allow you to search, view and analyze Cosmos Hub data&mdas
 * [ATOMScan](https://atomscan.com)
 * [Big Dipper](https://cosmos.bigdipper.live)
 * [Cosmos Overview](https://genesislab.net)
-* [Coris](http://coris.network)
 * [Cosmoscan](https://cosmoscan.net/)
 * [Cosmos Visualizer](https://nylira.net/3d)
 * [Hubble](https://hubble.figment.network)

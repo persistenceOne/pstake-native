@@ -1,3 +1,4 @@
+<!-- markdown-link-check-disable -->
 # 노드 업그레이드 하기
 
 이 문서는 `gaiad` 풀노드를 새로운 버전으로 업그레이드하는 절차를 설명합니다.
@@ -91,3 +92,5 @@ pstaked unsafe-reset-all
 ```bash
 pstaked start
 ```
+
+<!-- markdown-link-check-enable -->

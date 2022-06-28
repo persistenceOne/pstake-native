@@ -1,3 +1,4 @@
+<!-- markdown-link-check-disable -->
 # Cosmos Hub主网上线计划
 
 * 2016年夏天，Cosmos首次发表了项目白皮书。
@@ -10,7 +11,7 @@
 
 **Atom通证持有人务必仔细阅读以下内容，以保障您的通证能够安全委托给验证人。在您开始实际操作前，请先仔细阅读整个CLI指南并熟悉所有命令**
 
-* [CLI指南](https://github.com/cosmos/cosmos-sdk/blob/develop/docs/gaia/delegator-guide-cli.md)
+* [CLI指南](../delegator/delegator-guide-cli.md)
 
 CLI指南中所介绍的流程是至今为止唯一经过验证的在主网实现通证委托的安全途径。这是因为指南中用到的gaiacli工具是唯一正在进行第三方安全审计的数字钱包软件，目前尚没有其他数字钱包供应商通过类似的安全审计。
 
@@ -69,3 +70,5 @@ CLI指南中所介绍的流程是至今为止唯一经过验证的在主网实�
 * 在发送交易前再次确认交易。链上地址的确很长，但请仔细检查，确保交易发送到正确的地址，防止错误发送。
 
 如果突然出现的交易极具诱惑，或显示的消息要求您提供永远不应该与其他人分享的信息，您就应该立刻通过Cosmos网站或者其他官方渠道来验证这些信息。请再次牢记，来自Cosmos，Tendermint团队或跨链基金会的任何人都不会发送电子邮件要求您提供任何类型的帐户凭据或您的助记词，我们仅会通过我们的官方博客，Twitter和GitHub帐户与Cosmos社区沟通重要新闻和进展。
+
+<!-- markdown-link-check-enable -->

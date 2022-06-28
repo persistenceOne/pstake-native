@@ -1,12 +1,13 @@
-<!--
-order: 5
--->
+---
+order: 6
+title: Service Providers
+---
 
 # Service Providers
 
 'Service Providers' are defined as entities that provide services for end-users that involve some form of interaction with the Cosmos Hub. More specifically, this document is focused on interactions with tokens.
 
-Service Providers are expected to act as trusted points of contact to the blockchain for their end-users. This Service Providers section does not apply to wallet builders that want to provide Light Client functionalities. 
+Service Providers are expected to act as trusted points of contact to the blockchain for their end-users. This Service Providers section does not apply to wallet builders that want to provide Light Client functionalities.
 
 This document describes:
 
@@ -29,7 +30,7 @@ This document describes:
 
 There are four main technologies to consider to connect to the Cosmos Hub:
 
-- Full Nodes: Interact with the blockchain. 
+- Full Nodes: Interact with the blockchain.
 - REST Server: Serves for HTTP calls.
 - REST API: Use available endpoints for the REST Server.
 - GRPC: Connect to the Cosmos Hub using gRPC.
@@ -38,7 +39,7 @@ There are four main technologies to consider to connect to the Cosmos Hub:
 
 ### What is a Full Node?
 
-A Full Node is a network node that syncs up with the state of the blockchain. It provides blockchain data to others by using RESTful APIs, a replica of the database by exposing data with interfaces. A Full Node keeps in syncs with the rest of the blockchain nodes and stores the state on disk. If the full node does not have the queried block on disk the full node can go find the blockchain where the queried data lives. 
+A Full Node is a network node that syncs up with the state of the blockchain. It provides blockchain data to others by using RESTful APIs, a replica of the database by exposing data with interfaces. A Full Node keeps in syncs with the rest of the blockchain nodes and stores the state on disk. If the full node does not have the queried block on disk the full node can go find the blockchain where the queried data lives.
 
 ### Installation and Configuration
 
@@ -56,7 +57,7 @@ To use the CLI, you must install the latest version of `gaia` on your machine.
 Compare your version with the [latest release version](https://github.com/cosmos/gaia/releases)
 
 ```bash
-pstaked version --long
+gaiad version --long
 ```
 
 ### Available Commands
@@ -64,14 +65,14 @@ pstaked version --long
 All available CLI commands are shown when you run the `gaiad` command:
 
 ```bash
-pstaked 
+gaiad
 ```
 
 ```bash
 Stargate Cosmos Hub App
 
 Usage:
-  pstaked [command]
+  gaiad [command]
 
 Available Commands:
 
@@ -96,22 +97,22 @@ Available Commands:
   version             Print the application binary version information
 
 Flags:
-  -h, --help                help for pstaked
+  -h, --help                help for gaiad
       --home string         directory for config and data (default "/Users/tobias/.gaia")
       --log_format string   The logging format (json|plain) (default "plain")
       --log_level string    The logging level (trace|debug|info|warn|error|fatal|panic) (default "info")
       --trace               print out full stack trace on errors
 
-Use "pstaked [command] --help" for more information about a command.
+Use "gaiad [command] --help" for more information about a command.
 ```
 
-For each displayed command, you can use the `--help` flag to get further information. 
+For each displayed command, you can use the `--help` flag to get further information.
 
 ```bash
-pstaked query --help
+gaiad query --help
 Usage:
-  pstaked query [flags]
-  pstaked query [command]
+  gaiad query [flags]
+  gaiad query [command]
 
 Aliases:
   query, q
@@ -157,31 +158,23 @@ When choosing to remote access a Full Node and gaiad, you need a Full Node runni
 To set up `gaiad` on a local machine and connect to an existing full node, use the following command:
 
 ```bash
-pstaked config <flag> <value>
+gaiad config <flag> <value>
 ```
 
 First, set up the address of the full node you want to connect to:
 
 ```bash
-pstaked config node <host>:<port
+gaiad config node <host>:<port
 
-// example: pstaked config node https://77.87.106.33:26657
+// example: gaiad config node https://77.87.106.33:26657 (note: this is a placeholder)
 ```
 
-If you run your own full node locally, use `tcp://localhost:26657` as the address. 
-
-Set the default value of the `--trust-node` flag:
-
-```bash
-pstaked config trust-node false
-
-// Set to true if you run a light client node
-```
+If you run your own full node locally, use `tcp://localhost:26657` as the address.
 
 Finally, set the `chain-id` of the blockchain you want to interact with:
 
 ```bash
-pstaked config chain-id cosmoshub-4
+gaiad config chain-id cosmoshub-4
 ```
 
 Next, learn to use CLI commands to interact with the full node.
@@ -194,13 +187,13 @@ The default key is `secp256k1 elliptic curve`. Use the `gaiad keys` command to l
 
 
 ```bash
-pstaked keys add <your_key_name>
+gaiad keys add <your_key_name>
 ```
 
 You will be asked to create a password (at least 8 characters) for this key-pair. This will return the information listed below:
 
 - `NAME`: Name of your key
-- `TYPE`: Type of your key, always `local`. 
+- `TYPE`: Type of your key, always `local`.
 - `ADDRESS`: Your address. Used to receive funds.
 - `PUBKEY`: Your public key. Useful for validators.
 - `MNEMONIC`: 24-word phrase. **Save this mnemonic somewhere safe**. This phrase is required to recover your private key in case you forget the password. The mnemonic is displayed at the end of the output.
@@ -208,13 +201,13 @@ You will be asked to create a password (at least 8 characters) for this key-pair
 You can see all available keys by typing:
 
 ```bash
-pstaked keys list
+gaiad keys list
 ```
 
 Use the `--recover` flag to add a key that imports a mnemonic to your keyring.
 
 ```bash
-pstaked keys add <your_key_name> --recover
+gaiad keys add <your_key_name> --recover
 ```
 
 #### Check your Account
@@ -222,7 +215,7 @@ pstaked keys add <your_key_name> --recover
 You can view your account by using the `query account` command.
 
 ```bash
-pstaked query account <YOUR_ADDRESS>
+gaiad query account <YOUR_ADDRESS>
 ```
 
 It will display your account type, account number, public key and current account sequence.
@@ -242,7 +235,7 @@ sequence: "x"
 Query the account balance with the command:
 
 ```bash
-pstaked query bank balances <YOUR_ADDRESS>
+gaiad query bank balances <YOUR_ADDRESS>
 ```
 
 The response contains keys `balances` and `pagination`.
@@ -250,7 +243,7 @@ Each `balances` entry contains an `amount` held, connected to a `denom` identifi
 The typical $ATOM token is identified by the denom `uatom`. Where 1 `uatom` is 0.000001 ATOM.
 
 ```bash
-balances: 
+balances:
 - amount: "12345678"
   denom: uatom
 pagination:
@@ -272,8 +265,7 @@ pagination:
 To send coins using the CLI:
 
 ```bash
-pstaked tx send <from_key_or_address> <to_address> <amount> \
-    --chain-id=<your_chain_id> 
+gaiad tx bank send [from_key_or_address] [to_address] [amount] [flags]
 ```
 
 Parameters:
@@ -289,7 +281,7 @@ Flags:
 
 ## REST API
 
-The [REST API documents](https://cosmos.network/rpc/) list all the available endpoints that you can use to interact
+The [REST API documents](https://v1.cosmos.network/rpc/v0.44.5) list all the available endpoints that you can use to interact
 with your full node. Learn [how to enable the REST API](../hub-tutorials/join-mainnet.md#enable-the-rest-api) on your full node.
 
 ### Listen for Incoming Transactions
