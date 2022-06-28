@@ -305,7 +305,7 @@ func (k Keeper) getNextFromTransactionQueue(ctx sdk.Context) uint64 {
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		key := cosmosTypes.UInt64FromBytes(iterator.Key())
-		value := cosmosTypes.NewOutgoingQueueValue(false, 0)
+		value := cosmosTypes.NewOutgoingQueueValue(true, 0)
 		bz := k.cdc.MustMarshal(&value)
 		transactionQueueStore.Set(iterator.Key(), bz)
 		return key

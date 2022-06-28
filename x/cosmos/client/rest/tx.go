@@ -21,7 +21,7 @@ type SendReq struct {
 	BlockHeight         int64        `json:"block_height" yaml:"block_height"`
 }
 
-// NewSendRequestHandlerFn returns an HTTP REST handler for creating a MsgMint
+// NewMintRequestHandlerFn returns an HTTP REST handler for creating a MsgMint
 // transaction.
 func NewMintRequestHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

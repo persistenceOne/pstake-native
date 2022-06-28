@@ -96,7 +96,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		if err != nil {
 			panic(err)
 		}
-		unbondDenom, err := params.GetBondDenomOf("uatom")
+		unbondDenom, err := params.GetBondDenomOf("stake")
 		if err != nil {
 			panic(err)
 		}

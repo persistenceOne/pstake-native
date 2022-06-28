@@ -22,6 +22,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgTxStatus{}, "cosmos/MsgTxStatus", nil)
 	cdc.RegisterConcrete(&MsgRewardsClaimedOnCosmosChain{}, "cosmos/MsgRewardsClaimedOnCosmosChain", nil)
 	cdc.RegisterConcrete(&MsgUndelegateSuccess{}, "cosmos/MsgUndelegateSuccess", nil)
+	cdc.RegisterConcrete(&MsgSetSignature{}, "cosmos/MsgSetSignature", nil)
 	cdc.RegisterConcrete(&EnableModuleProposal{}, "cosmos/EnableModuleProposal", nil)
 	cdc.RegisterConcrete(&ChangeMultisigProposal{}, "cosmos/ChangeMultisigProposal", nil)
 	cdc.RegisterConcrete(&ChangeCosmosValidatorWeightsProposal{}, "cosmos/ChangeCosmosValidatorWeightsProposal", nil)
@@ -39,6 +40,7 @@ func RegisterInterfaces(registry codecTypes.InterfaceRegistry) {
 		&MsgSignedTx{},
 		&MsgTxStatus{},
 		&MsgRewardsClaimedOnCosmosChain{},
+		&MsgSetSignature{},
 		&MsgUndelegateSuccess{},
 	)
 

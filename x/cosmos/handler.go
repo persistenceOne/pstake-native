@@ -36,6 +36,21 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *cosmosTypes.MsgWithdrawStkAsset:
 			res, err := msgServer.Withdraw(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+		case *cosmosTypes.MsgSetSignature:
+			res, err := msgServer.SetSignature(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *cosmosTypes.MsgRemoveOrchestrator:
+			res, err := msgServer.RemoveOrchestrator(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *cosmosTypes.MsgTxStatus:
+			res, err := msgServer.TxStatus(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *cosmosTypes.MsgRewardsClaimedOnCosmosChain:
+			res, err := msgServer.RewardsClaimed(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *cosmosTypes.MsgSlashingEventOnCosmosChain:
+			res, err := msgServer.SlashingEvent(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 		default:
 			return nil, sdkErrors.Wrap(sdkErrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized Cosmos Module Msg type: %v", sdk.MsgTypeURL(msg)))
 		}

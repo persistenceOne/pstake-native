@@ -16,12 +16,12 @@ import (
 const (
 	DefaultPeriod       = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
 	DefaultMintDenom    = "ustkxprt"
-	DefaultStakingDenom = "uatom"
+	DefaultStakingDenom = "stake"
 )
 
 // DefaultBondDenom is a default bond denom param
 var (
-	DefaultBondDenom = []string{"uatom"}
+	DefaultBondDenom = []string{"stake"}
 )
 
 // Parameter store key
@@ -91,11 +91,11 @@ func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningA
 // DefaultParams default parameters for deposits
 func DefaultParams() Params {
 	return Params{
-		MinMintingAmount:       sdk.NewInt64Coin("uatom", 5000000),
-		MaxMintingAmount:       sdk.NewInt64Coin("uatom", 100000000000),
-		MinBurningAmount:       sdk.NewInt64Coin("uatom", 5000000),
-		MaxBurningAmount:       sdk.NewInt64Coin("uatom", 100000000000),
-		MinReward:              sdk.NewInt64Coin("uatom", 1000),
+		MinMintingAmount:       sdk.NewInt64Coin("stake", 5000000),
+		MaxMintingAmount:       sdk.NewInt64Coin("stake", 100000000000),
+		MinBurningAmount:       sdk.NewInt64Coin("stake", 5000000),
+		MaxBurningAmount:       sdk.NewInt64Coin("stake", 100000000000),
+		MinReward:              sdk.NewInt64Coin("stake", 1000),
 		MaxValidatorToDelegate: 3,
 		WeightedDeveloperRewardsReceivers: []WeightedAddress{
 			{
@@ -110,11 +110,11 @@ func DefaultParams() Params {
 		Epochs:                     0,
 		MaxIncomingAndOutgoingTxns: 10000,
 		CosmosProposalParams: CosmosChainProposalParams{
-			ChainID:              "cosmoshub-4", //TODO use these as conditions for proposals
+			ChainID:              "test", //TODO use these as conditions for proposals
 			ReduceVotingPeriodBy: DefaultPeriod,
 		},
 		ModuleEnabled:             false, //TODO : Make false before launch
-		CustodialAddress:          "cosmos15vm0p2x990762txvsrpr26ya54p5qlz9xqlw5z",
+		CustodialAddress:          "cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2",
 		StakingEpochIdentifier:    "stake",
 		UndelegateEpochIdentifier: "undelegate",
 		RewardEpochIdentifier:     "reward",
@@ -460,7 +460,7 @@ func validateCosmosProposalParams(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v.ChainID != "cosmoshub-4" {
+	if v.ChainID != "test" {
 		return fmt.Errorf("invalid chain-id for cosmos %T", i)
 	}
 

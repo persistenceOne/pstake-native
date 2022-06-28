@@ -574,7 +574,7 @@ func (m *MsgSetSignature) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgSetSignature) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.ValAddressFromBech32(m.OrchestratorAddress)
+	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
 	if err != nil {
 		panic(err)
 	}

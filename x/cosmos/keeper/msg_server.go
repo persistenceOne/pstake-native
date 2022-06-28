@@ -203,7 +203,7 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 	}
 
 	// check if the denom for staking matches or not
-	uatomDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
+	uatomDenom, err := k.GetParams(ctx).GetBondDenomOf("stake")
 	if err != nil {
 		return nil, err
 	}
@@ -597,9 +597,9 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	if err != nil {
 		return nil, err
 	}
-	if len(outgoingTx.CosmosTxDetails.Tx.AuthInfo.SignerInfos) != 1 {
-		return nil, sdkErrors.Wrap(sdkErrors.ErrorInvalidSigner, "there should be exactly one signer info.")
-	}
+	//if len(outgoingTx.CosmosTxDetails.Tx.AuthInfo.SignerInfos) != 1 {
+	//	return nil, sdkErrors.Wrap(sdkErrors.ErrorInvalidSigner, "there should be exactly one signer info.")
+	//}
 
 	//check if orchestrator address is present in a validator orchestrator mapping
 	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
@@ -644,6 +644,11 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	account := k.authKeeper.GetAccount(ctx, orchestratorAddress)
 	if account == nil {
 		return nil, cosmosTypes.ErrOrchAddressNotFound
+	}
+
+	err = outgoingTx.CosmosTxDetails.Tx.UnpackInterfaces(k.cdc)
+	if err != nil {
+		return nil, err
 	}
 
 	err = cosmosTypes.VerifySignature(account.GetPubKey(), signerData, signatureData, outgoingTx.CosmosTxDetails.Tx)
