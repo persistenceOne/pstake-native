@@ -633,7 +633,7 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 
 	signerData := signing.SignerData{
 		ChainID:       k.GetParams(ctx).CosmosProposalParams.ChainID,
-		AccountNumber: multisigAccount.GetSequence(),
+		AccountNumber: multisigAccount.GetAccountNumber(),
 		Sequence:      multisigAccount.GetSequence(),
 	}
 	signatureData := signing2.SingleSignatureData{
