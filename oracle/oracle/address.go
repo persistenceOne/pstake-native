@@ -2,7 +2,6 @@ package oracle
 
 import (
 	"errors"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -11,6 +10,7 @@ import (
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	tx2 "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	logg "log"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -49,7 +49,7 @@ func SignCosmosTx(seed string, chain *CosmosChain, clientCtx client.Context, msg
 	}
 	SetSDKConfigPrefix(chain.AccountPrefix)
 	ac, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, msg.GetSigners()[0])
-	fmt.Println(ac, seq, err)
+	logg.Println(ac, seq, err)
 
 	sig := signing.SignatureV2{PubKey: privKey.PubKey(),
 		Data: &signing.SingleSignatureData{
@@ -80,7 +80,7 @@ func SignCosmosTx(seed string, chain *CosmosChain, clientCtx client.Context, msg
 		return nil, err
 	}
 
-	fmt.Println(txBuilder.GetTx(), "Signed Tx")
+	logg.Println(txBuilder.GetTx(), "Signed Tx")
 	txBytes, err := clientCtx.TxConfig.TxEncoder()(txBuilder.GetTx())
 	if err != nil {
 		return nil, err
@@ -99,7 +99,6 @@ func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, ms
 	txBuilder.SetGasLimit(400000)
 
 	privKey, _ := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, seed)
-	//accSeqs := []uint64{0}
 
 	err := txBuilder.SetMsgs(msg)
 	if err != nil {
@@ -107,7 +106,7 @@ func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, ms
 	}
 	SetSDKConfigPrefix(native.AccountPrefix)
 	ac, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, msg.GetSigners()[0])
-	fmt.Println(ac, seq, err)
+	logg.Println(ac, seq, err)
 
 	sig := signing.SignatureV2{PubKey: privKey.PubKey(),
 		Data: &signing.SingleSignatureData{
@@ -138,7 +137,7 @@ func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, ms
 		return nil, err
 	}
 
-	fmt.Println(txBuilder.GetTx(), "Signed Tx")
+	logg.Println(txBuilder.GetTx(), "Signed Tx")
 	txBytes, err := clientCtx.TxConfig.TxEncoder()(txBuilder.GetTx())
 	if err != nil {
 		return nil, err
@@ -155,7 +154,7 @@ func GetSDKPivKeyAndAddress(Seed string) (sdkcryptotypes.PrivKey, sdk.AccAddress
 	pubkey := privKey.PubKey()
 
 	address, err := sdk.AccAddressFromHex(pubkey.Address().String())
-	fmt.Println(address.String())
+	logg.Println(address.String())
 	if err != nil {
 		panic(err)
 	}
@@ -203,8 +202,9 @@ func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Con
 
 	SetSDKConfigPrefix(chain.AccountPrefix)
 	signerAddr, err := AccAddressFromBech32(signerAddress, chain.AccountPrefix)
-	fmt.Println(Bech32ifyAddressBytes(chain.AccountPrefix, signerAddr))
+
 	ac, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, signerAddr)
+
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +217,7 @@ func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Con
 	}
 
 	exec := OutgoingTx.GetMsgs()[0].(*authz.MsgExec)
-	fmt.Println(exec.Msgs[0].GetCachedValue())
+	logg.Println(exec.Msgs[0].GetCachedValue())
 	txBuilder := tx2.WrapTx(&OutgoingTx)
 
 	SignBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,

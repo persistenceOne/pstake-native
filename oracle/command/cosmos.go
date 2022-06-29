@@ -1,13 +1,13 @@
 package orc
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/pstake-native/oracle/configuration"
 	"github.com/persistenceOne/pstake-native/oracle/constants"
 	"github.com/persistenceOne/pstake-native/oracle/helpers"
 	"github.com/persistenceOne/pstake-native/oracle/oracle"
 	tendermintService "github.com/tendermint/tendermint/libs/service"
+	logg "log"
 	"time"
 )
 
@@ -28,7 +28,7 @@ func InitCosmosChain(homePath string, config configuration.CosmosConfig) (*oracl
 		return chain, err
 	}
 	if chain.KeyExists(chain.Key) {
-		fmt.Println("Key Exists")
+		logg.Println("Key Exists")
 		err = chain.KeyBase.Delete(chain.Key)
 		if err != nil {
 			return chain, err

@@ -1,7 +1,6 @@
 package orc
 
 import (
-	"fmt"
 	"github.com/persistenceOne/pstake-native/oracle/configuration"
 	"github.com/persistenceOne/pstake-native/oracle/constants"
 	"github.com/persistenceOne/pstake-native/oracle/helpers"
@@ -26,7 +25,7 @@ func InitNativeChain(homePath string, config configuration.NativeConfig) (*oracl
 		return chain, err
 	}
 	if chain.KeyExists(chain.Key) {
-		fmt.Println("Key Exists")
+		logg.Println("Key Exists")
 		err = chain.KeyBase.Delete(chain.Key)
 		if err != nil {
 			return chain, err

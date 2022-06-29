@@ -24,7 +24,7 @@ func StartCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			homepath, err := cmd.Flags().GetString(constants.FlagOrcHomeDir)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				log.Fatalln(err)
 			}
 
@@ -73,15 +73,15 @@ func StartCommand() *cobra.Command {
 
 			nativeProtoCodec := codec.NewProtoCodec(clientContextNative.InterfaceRegistry)
 
-			fmt.Println("start rpc server")
+			log.Println("start rpc server")
 
-			fmt.Println("start to listen for txs cosmos side")
+			log.Println("start to listen for txs cosmos side")
 
 			go oracle.StartListeningCosmosEvent(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
-			fmt.Println("started liastening for deposits")
+			log.Println("started liastening for deposits")
 			go oracle.StartListeningCosmosDeposit(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
 
-			fmt.Println("start to listen for txs native side")
+			log.Println("start to listen for txs native side")
 			go oracle.StartListeningNativeSideActions(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, nativeProtoCodec)
 
 			signalChan := make(chan os.Signal, 1)

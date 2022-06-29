@@ -2,7 +2,6 @@ package oracle
 
 import (
 	"context"
-	"fmt"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
@@ -31,7 +30,7 @@ func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr s
 
 	stakingQueryClient := stakingTypes.NewQueryClient(grpcConn)
 
-	fmt.Println("staking query client connected")
+	logg.Println("staking query client connected")
 
 	BondedTokensQueryResult, err := stakingQueryClient.Delegation(context.Background(),
 		&stakingTypes.QueryDelegationRequest{
@@ -71,7 +70,7 @@ func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr s
 		return err
 	}
 
-	fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+	logg.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
 
 	return nil
 

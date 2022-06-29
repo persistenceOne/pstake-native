@@ -2,27 +2,34 @@ package oracle
 
 import (
 	"context"
-	"fmt"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"google.golang.org/grpc"
+	logg "log"
 )
 
-func SendMsgAcknowledgement(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string, TxHash string, valAddr string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context) error {
+func SendMsgAcknowledgement(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string, TxHash string, status string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context) error {
 
 	_, addr := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
+	address, err := AccAddressFromBech32(addr, native.AccountPrefix)
+	if err != nil {
+		return err
+	}
 	ValDetails := GetValidatorDetails(cosmosChain)
+	acc, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, address)
 
-	SeqNum, AccountNum := GetAccountDetails(clientCtx, cosmosChain, addr)
-	//Todo : sequence number which account?
+	if err != nil {
+		return err
+	}
+
 	msg := &cosmosTypes.MsgTxStatus{
 		OrchestratorAddress: addr,
 		TxHash:              TxHash,
-		Status:              "success",
-		SequenceNumber:      SeqNum,
-		AccountNumber:       AccountNum,
+		Status:              status,
+		SequenceNumber:      seq,
+		AccountNumber:       acc,
 		ValidatorDetails:    ValDetails,
 	}
 
@@ -52,7 +59,7 @@ func SendMsgAcknowledgement(native *NativeChain, cosmosChain *CosmosChain, orcSe
 		return err
 	}
 
-	fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+	logg.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
 
 	if err != nil {
 		return err

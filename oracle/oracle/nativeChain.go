@@ -120,6 +120,14 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 	}
 	nHeight = uint64(abciInfoNative.Response.LastBlockHeight)
 
+	abciInfoCosmos, err := chain.Client.ABCIInfo(ctx)
+	if err != nil {
+		fmt.Println("error getting abci info", err)
+		logg.Println("error getting cosmos abci info", err)
+	}
+	cHeight := uint64(abciInfoCosmos.Response.LastBlockHeight)
+	nHeight = uint64(abciInfoNative.Response.LastBlockHeight)
+
 	fmt.Println(nHeight)
 
 	rpcClient, err := rpchttp.New(native.RPCAddr, "/websocket")
@@ -154,11 +162,10 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 		}
 		for _, txId := range txIdSlice {
 
-			err := native.OutgoingTxHandler(txId, valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, chain)
+			err := native.OutgoingTxHandler(txId, valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, chain, cHeight)
 			if err != nil {
-
 				panic(err)
-				continue
+
 			}
 		}
 

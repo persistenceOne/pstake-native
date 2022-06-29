@@ -2,7 +2,6 @@ package orc
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/persistenceOne/pstake-native/oracle/configuration"
 	"github.com/persistenceOne/pstake-native/oracle/constants"
@@ -20,7 +19,7 @@ func InitCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config := configuration.SetConfig(cmd)
 			var buf bytes.Buffer
-			fmt.Println("init ")
+			logg.Println("init ")
 			encoder := toml.NewEncoder(&buf)
 			if err := encoder.Encode(config); err != nil {
 				return err

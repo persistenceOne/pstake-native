@@ -2,9 +2,9 @@ package oracle
 
 import (
 	"context"
-	"fmt"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	"github.com/tendermint/tendermint/types"
+	logg "log"
 	"strconv"
 	"time"
 )
@@ -31,7 +31,7 @@ func (c *CosmosChain) DepositTxEventForBlock(BlockHeight int64) error {
 	go func() {
 		for e := range txs {
 			//relay to native chain
-			fmt.Println("got ", e.Data.(types.EventDataTx))
+			logg.Println("got ", e.Data.(types.EventDataTx))
 		}
 	}()
 	return nil
@@ -66,7 +66,7 @@ func (c *CosmosChain) ActiveProposalEventHandler(BlockHeight int64) error {
 	go func() {
 		for e := range proposals {
 			//relay to native chain
-			fmt.Println("got ", e.Data.(types.EventDataTx))
+			logg.Println("got ", e.Data.(types.EventDataTx))
 		}
 	}()
 	return nil

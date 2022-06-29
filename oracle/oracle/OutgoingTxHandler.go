@@ -2,7 +2,6 @@ package oracle
 
 import (
 	"context"
-	"fmt"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
@@ -11,7 +10,7 @@ import (
 	"strconv"
 )
 
-func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds []string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, native *NativeChain, chain *CosmosChain) error {
+func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds []string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, native *NativeChain, chain *CosmosChain, cHeight uint64) error {
 	txId, err := strconv.ParseUint(txIdstr, 10, 64)
 
 	if err != nil {
@@ -27,13 +26,12 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 	}(grpcConn)
 	LiquidStakingModuleClient := cosmosTypes.NewQueryClient(grpcConn)
 
-	fmt.Println("query client connected")
+	logg.Println("query client connected")
 
 	TxResult, err := LiquidStakingModuleClient.QueryTxByID(context.Background(),
 		&cosmosTypes.QueryOutgoingTxByIDRequest{TxID: uint64(txId)},
 	)
 
-	//ac,seq,err := clientCtx.AccountRetriever.GetAccount()
 	OutgoingTx := TxResult.CosmosTxDetails.GetTx()
 
 	signerAddress := TxResult.CosmosTxDetails.SignerAddress
@@ -55,12 +53,13 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 
 	txClient := txD.NewServiceClient(grpcConnCos)
 
-	fmt.Println("client created")
+	logg.Println("client created")
 
 	msg := &cosmosTypes.MsgSetSignature{
 		OrchestratorAddress: addr,
 		OutgoingTxID:        txId,
 		Signature:           signature,
+		BlockHeight:         int64(cHeight),
 	}
 
 	txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
@@ -74,9 +73,7 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 	if err != nil {
 		return err
 	}
-	fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
-
-	//err = SendMsgAcknowledgement(native, chain, orcSeeds, res.TxResponse.TxHash, valAddr, nativeCliCtx, clientCtx)
+	logg.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
 
 	if err != nil {
 		return err

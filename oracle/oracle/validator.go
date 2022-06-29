@@ -10,13 +10,19 @@ import (
 	"github.com/persistenceOne/pstake-native/oracle/constants"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 	logg "log"
 )
 
 func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 	var ValidatorDetailsArr []cosmosTypes.ValidatorDetails
 
-	custodialAddr := chain.CustodialAddress.String()
+	custodialAddr, err := Bech32ifyAddressBytes(chain.AccountPrefix, chain.CustodialAddress)
+	if err != nil {
+		logg.Println(err)
+		panic(err)
+
+	}
 	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
@@ -32,7 +38,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 
 	stakingQueryClient := stakingTypes.NewQueryClient(grpcConn)
 
-	fmt.Println("staking query client connected")
+	logg.Println("staking query client connected")
 
 	BondedTokensQueryResult, err := stakingQueryClient.DelegatorDelegations(context.Background(),
 		&stakingTypes.QueryDelegatorDelegationsRequest{
@@ -44,7 +50,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 	if err != nil {
 		logg.Println("cannot get total delegations")
 	}
-
+	flag := true
 	for _, Delegations := range BondedTokensQueryResult.DelegationResponses {
 		valAddr := Delegations.Delegation.ValidatorAddress
 		BondedTokens := Delegations.Balance
@@ -56,14 +62,24 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 		)
 
 		if err != nil {
-			logg.Println("cannot get unbonding delegations")
+			statusErr := status.Convert(err)
+
+			if statusErr.Code() == 5 {
+				flag = false
+			} else {
+				logg.Println("cannot get unbonding delegations")
+				panic(err)
+			}
 
 		}
 
-		UnBondingEntries := UnbondingTokensQueryResult.Unbond.Entries
 		Unbondingtokens := types.NewInt(0)
-		for _, Entry := range UnBondingEntries {
-			Unbondingtokens.Add(Entry.Balance)
+
+		if flag == true {
+			UnBondingEntries := UnbondingTokensQueryResult.Unbond.Entries
+			for _, Entry := range UnBondingEntries {
+				Unbondingtokens.Add(Entry.Balance)
+			}
 		}
 
 		newEntry := cosmosTypes.ValidatorDetails{
@@ -72,6 +88,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 			UnbondingTokens:  types.NewCoin(constants.CosmosDenom, Unbondingtokens),
 		}
 		ValidatorDetailsArr = append(ValidatorDetailsArr, newEntry)
+		flag = true
 	}
 
 	return ValidatorDetailsArr
