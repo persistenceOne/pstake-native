@@ -568,7 +568,7 @@ func FindMajority(inputArr []string) string {
 }
 
 func GetAmountFromMessage(execMsgs []*codecTypes.Any) sdk.Coin {
-	tempAmnt := sdk.NewInt64Coin("uatom", 0)
+	tempAmnt := sdk.NewInt64Coin("stake", 0)
 	for _, m := range execMsgs {
 		switch m.GetCachedValue().(type) {
 		case *stakingTypes.MsgDelegate:
