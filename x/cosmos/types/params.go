@@ -15,7 +15,7 @@ import (
 // Default constants for period, mint and staking denom
 const (
 	DefaultPeriod       = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
-	DefaultMintDenom    = "ustkxprt"
+	DefaultMintDenom    = "ustkatom"
 	DefaultStakingDenom = "stake"
 )
 

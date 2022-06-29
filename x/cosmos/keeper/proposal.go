@@ -113,7 +113,7 @@ func (k Keeper) generateOutgoingWeightedVoteTx(ctx sdk.Context, result map[cosmo
 				SignerInfos: nil,
 				Fee: &sdkTx.Fee{
 					Amount:   nil,
-					GasLimit: 200000,
+					GasLimit: 400000,
 					Payer:    "",
 				},
 			},

@@ -56,7 +56,7 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 					SignerInfos: nil,
 					Fee: &sdkTx.Fee{
 						Amount:   nil,
-						GasLimit: 200000,
+						GasLimit: 400000,
 						Payer:    "",
 					},
 				},

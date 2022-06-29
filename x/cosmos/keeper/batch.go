@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -15,9 +16,6 @@ import (
 )
 
 //______________________________________________________________________________________________
-/*
-TODO : Add Key and value structure as comment
-*/
 
 type txIDAndDetailsInOutgoingPool struct {
 	txID      uint64
@@ -59,8 +57,8 @@ func (k Keeper) setEventEmittedFlag(ctx sdk.Context, txID uint64, flag bool) {
 	outgoingStore.Set(key, k.cdc.MustMarshal(&cosmosTx))
 }
 
-// gets txn details corresponding to the given ID
-func (k Keeper) getTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmosTypes.QueryOutgoingTxByIDResponse, error) {
+// GetTxnFromOutgoingPoolByID gets txn details corresponding to the given ID
+func (k Keeper) GetTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmosTypes.QueryOutgoingTxByIDResponse, error) {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	bz := outgoingStore.Get(key)
@@ -81,7 +79,7 @@ func (k Keeper) removeTxnDetailsByID(ctx sdk.Context, txID uint64) {
 	outgoingStore.Delete(key)
 }
 
-func (k Keeper) setOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosTypes.CosmosTx, txID uint64) error {
+func (k Keeper) SetOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosTypes.CosmosTx, txID uint64) error {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 
@@ -90,7 +88,7 @@ func (k Keeper) setOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosT
 	if err != nil {
 		return err
 	}
-	txHash := cosmosTypes.BytesToHexUpper(txBytes)
+	txHash := strings.ToUpper(cosmosTypes.BytesToHexUpper(txBytes))
 	tx.TxHash = txHash
 
 	bz, err := k.cdc.Marshal(&tx)
@@ -364,8 +362,9 @@ func (k Keeper) retryTransactionWithFailure(ctx sdk.Context, txDetails cosmosTyp
 	cosmosTxDetails.Tx.Signatures = nil
 	cosmosTxDetails.TxHash = ""
 
+	newGas := cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit * 2
 	// double gas in case of gas failure
-	if failure == "gas failure" {
+	if failure == "gas failure" && newGas <= 4000000 { // todo move to params
 		//cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit == cosmosTypes.GasLimit &&
 		//2*cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit < cosmosTypes.GasLimit // TODO
 		// TODO : test case when transaction fails even after reaching max_gas limit
@@ -399,7 +398,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 		panic(err)
 	}
 
-	queryResponse, err := k.getTxnFromOutgoingPoolByID(ctx, txID)
+	queryResponse, err := k.GetTxnFromOutgoingPoolByID(ctx, txID)
 	if err != nil {
 		panic(err)
 	}
@@ -415,7 +414,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 		majorityStatus := FindMajority(tx.Details.Status)
 
 		// get tx from outgoing pool
-		cosmosTx, err := k.getTxnFromOutgoingPoolByID(ctx, txID)
+		cosmosTx, err := k.GetTxnFromOutgoingPoolByID(ctx, txID)
 		if err != nil {
 			panic(err)
 		}
@@ -425,7 +424,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 			panic(err)
 		}
 
-		multisigAccount := k.getAccountState(ctx, custodialAddress)
+		multisigAccount := k.GetAccountState(ctx, custodialAddress)
 		if multisigAccount == nil {
 			panic(cosmosTypes.ErrMultiSigAddressNotFound)
 		}

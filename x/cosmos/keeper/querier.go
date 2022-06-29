@@ -49,7 +49,7 @@ func queryTxByID(ctx sdkTypes.Context, req abciTypes.RequestQuery, k Keeper, leg
 		return nil, sdkErrors.Wrap(sdkErrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	tx, err := k.getTxnFromOutgoingPoolByID(ctx, txByIDRequest.TxID)
+	tx, err := k.GetTxnFromOutgoingPoolByID(ctx, txByIDRequest.TxID)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func queryVotes(ctx sdkTypes.Context, req abciTypes.RequestQuery, keeper Keeper,
 	if votes == nil {
 		votes = cosmosTypes.Votes{}
 	} else {
-		start, end := sdkClient.Paginate(len(votes), 10, 10, 100) //TODO incorporate page limit and page
+		start, end := sdkClient.Paginate(len(votes), 10, 10, 100)
 		if start < 0 || end < 0 {
 			votes = cosmosTypes.Votes{}
 		} else {

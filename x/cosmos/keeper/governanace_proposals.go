@@ -22,7 +22,7 @@ the proposal and does the following actions :
 */
 func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeMultisigProposal) error {
 	oldAccountAddress := k.GetCurrentAddress(ctx)
-	oldAccount := k.getAccountState(ctx, oldAccountAddress)
+	oldAccount := k.GetAccountState(ctx, oldAccountAddress)
 	_, ok := oldAccount.GetPubKey().(*multisig2.LegacyAminoPubKey)
 	if !ok {
 		return cosmosTypes.ErrInvalidMultisigPubkey
@@ -53,7 +53,7 @@ func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Chan
 		}
 		valAddrMap[valAddr.String()] = orcastratorAddress
 
-		account := k.authKeeper.GetAccount(ctx, orchestratorAccAddress)
+		account := k.AuthKeeper.GetAccount(ctx, orchestratorAccAddress)
 		if account == nil {
 			return cosmosTypes.ErrOrchAddressNotFound
 		}
@@ -69,7 +69,7 @@ func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Chan
 	})
 	multisigPubkey := multisig2.NewLegacyAminoPubKey(int(p.Threshold), multisigPubkeys)
 	multisigAccAddress := sdk.AccAddress(multisigPubkey.Address().Bytes())
-	multisigAcc := k.getAccountState(ctx, multisigAccAddress)
+	multisigAcc := k.GetAccountState(ctx, multisigAccAddress)
 	if multisigAcc == nil {
 		//TODO add caching for this address string.
 		cosmosAddr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32Prefix, multisigAccAddress)
@@ -89,10 +89,10 @@ func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Chan
 		if err != nil {
 			return err
 		}
-		k.setAccountState(ctx, multisigAcc)
+		k.SetAccountState(ctx, multisigAcc)
 	}
 
-	k.setCurrentAddress(ctx, multisigAccAddress)
+	k.SetCurrentAddress(ctx, multisigAccAddress)
 
 	k.handleTransactionQueue(ctx, oldAccount)
 	return nil
@@ -141,7 +141,7 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 		}
 		valAddrMap[valAddr.String()] = orcastratorAddress
 
-		account := k.authKeeper.GetAccount(ctx, orchestratorAccAddress)
+		account := k.AuthKeeper.GetAccount(ctx, orchestratorAccAddress)
 		if account == nil {
 			return cosmosTypes.ErrOrchAddressNotFound
 		}
@@ -157,7 +157,7 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 	})
 	multisigPubkey := multisig2.NewLegacyAminoPubKey(int(p.Threshold), multisigPubkeys)
 	multisigAccAddress := sdk.AccAddress(multisigPubkey.Address().Bytes())
-	multisigAcc := k.getAccountState(ctx, multisigAccAddress)
+	multisigAcc := k.GetAccountState(ctx, multisigAccAddress)
 	if multisigAcc == nil {
 		//TODO add caching for this address string.
 		cosmosAddr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32Prefix, multisigAccAddress)
@@ -177,12 +177,12 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 		if err != nil {
 			return err
 		}
-		k.setAccountState(ctx, multisigAcc)
+		k.SetAccountState(ctx, multisigAcc)
 	}
 
 	fmt.Println(multisigAccAddress)
 	// set new multisig address as the current address for transaction signing
-	k.setCurrentAddress(ctx, multisigAccAddress)
+	k.SetCurrentAddress(ctx, multisigAccAddress)
 
 	k.enableModule(ctx)
 

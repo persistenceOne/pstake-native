@@ -114,11 +114,12 @@ func NewValidatorStoreValue(orchAddress sdkTypes.AccAddress) ValidatorStoreValue
 }
 
 // NewOutgoingSignaturePoolValue returns OutgoingSignaturePoolValue struct
-func NewOutgoingSignaturePoolValue(singleSignature SingleSignatureDataForOutgoingPool, valAddress sdkTypes.ValAddress) OutgoingSignaturePoolValue {
+func NewOutgoingSignaturePoolValue(singleSignature SingleSignatureDataForOutgoingPool, valAddress sdkTypes.ValAddress, orchestratorAddress sdkTypes.AccAddress) OutgoingSignaturePoolValue {
 	return OutgoingSignaturePoolValue{
-		SingleSignatures:   []SingleSignatureDataForOutgoingPool{singleSignature},
-		ValidatorAddresses: []string{valAddress.String()},
-		Counter:            1,
+		SingleSignatures:      []SingleSignatureDataForOutgoingPool{singleSignature},
+		ValidatorAddresses:    []string{valAddress.String()},
+		Counter:               1,
+		OrchestratorAddresses: []string{orchestratorAddress.String()},
 	}
 }
 

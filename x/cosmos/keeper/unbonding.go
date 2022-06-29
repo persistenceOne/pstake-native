@@ -60,7 +60,7 @@ func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAn
 					SignerInfos: nil,
 					Fee: &sdkTx.Fee{
 						Amount:   nil,
-						GasLimit: 200000,
+						GasLimit: 400000,
 						Payer:    "",
 					},
 				},

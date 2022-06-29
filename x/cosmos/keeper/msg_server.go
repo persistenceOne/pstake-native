@@ -55,7 +55,7 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	}
 
 	//check if orchestrator public key exist or not
-	orchAccI := k.authKeeper.GetAccount(ctx, orchestrator)
+	orchAccI := k.AuthKeeper.GetAccount(ctx, orchestrator)
 	if orchAccI.GetPubKey() == nil {
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrPubKeyNotFound, orchestrator.String())
 	}
@@ -593,7 +593,7 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 		return nil, err
 	}
 
-	outgoingTx, err := k.getTxnFromOutgoingPoolByID(ctx, msg.OutgoingTxID)
+	outgoingTx, err := k.GetTxnFromOutgoingPoolByID(ctx, msg.OutgoingTxID)
 	if err != nil {
 		return nil, err
 	}
@@ -626,22 +626,22 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	}
 
 	// get account state from module db
-	multisigAccount := k.getAccountState(ctx, custodialAddress)
+	multisigAccount := k.GetAccountState(ctx, custodialAddress)
 	if multisigAccount == nil {
 		return nil, cosmosTypes.ErrMultiSigAddressNotFound
 	}
 
 	signerData := signing.SignerData{
 		ChainID:       k.GetParams(ctx).CosmosProposalParams.ChainID,
-		AccountNumber: multisigAccount.GetAccountNumber(),
-		Sequence:      multisigAccount.GetSequence() + 1, // increment by 1 as it is the current sequence number is stored in the db
+		AccountNumber: multisigAccount.GetSequence(),
+		Sequence:      multisigAccount.GetSequence(),
 	}
 	signatureData := signing2.SingleSignatureData{
 		SignMode:  signing2.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
 		Signature: msg.Signature,
 	}
 
-	account := k.authKeeper.GetAccount(ctx, orchestratorAddress)
+	account := k.AuthKeeper.GetAccount(ctx, orchestratorAddress)
 	if account == nil {
 		return nil, cosmosTypes.ErrOrchAddressNotFound
 	}

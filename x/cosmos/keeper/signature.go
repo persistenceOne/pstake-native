@@ -38,7 +38,7 @@ func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context, singleSignature cosm
 		outgoingSignaturePoolStore.Set(key, k.cdc.MustMarshal(&outgoingSignaturePoolValue))
 		return nil
 	}
-	outgoingSignaturePoolValue := cosmosTypes.NewOutgoingSignaturePoolValue(singleSignature, validatorAddress)
+	outgoingSignaturePoolValue := cosmosTypes.NewOutgoingSignaturePoolValue(singleSignature, validatorAddress, orchestratorAddress)
 	outgoingSignaturePoolStore.Set(key, k.cdc.MustMarshal(&outgoingSignaturePoolValue))
 	return nil
 }
@@ -80,15 +80,15 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 	if err != nil {
 		panic(err)
 	}
-	params := k.GetParams(ctx)
+
 	for _, os := range outgoingSignaturePool {
-		if os.OutgoingSignaturePoolValue.Counter >= params.MultisigThreshold {
-			custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
-			if err != nil {
-				panic(err)
-			}
-			multisigAccount := k.authKeeper.GetAccount(ctx, custodialAddress)
-			multisigPub := multisigAccount.GetPubKey().(*multisig2.LegacyAminoPubKey)
+		ka, ok := k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetPubKey().(multisig.PubKey)
+		if !ok {
+			panic("not able to convert to pubkey")
+		}
+		if os.OutgoingSignaturePoolValue.Counter >= uint64(ka.GetThreshold()) {
+			multisigAcc := k.GetAccountState(ctx, k.GetCurrentAddress(ctx))
+			multisigPub := multisigAcc.GetPubKey().(*multisig2.LegacyAminoPubKey)
 			multisigSig := multisig.NewMultisig(len(multisigPub.PubKeys))
 
 			for i, sig := range os.OutgoingSignaturePoolValue.SingleSignatures {
@@ -97,7 +97,7 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 				if err != nil {
 					panic(err)
 				}
-				account := k.authKeeper.GetAccount(ctx, orchAddress)
+				account := k.AuthKeeper.GetAccount(ctx, orchAddress)
 				if err := multisig.AddSignatureFromPubKey(multisigSig, &externalSig, account.GetPubKey(), multisigPub.GetPubKeys()); err != nil {
 					panic(err)
 				}
@@ -106,10 +106,10 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 			sigV2 := signingtypes.SignatureV2{
 				PubKey:   multisigPub,
 				Data:     multisigSig,
-				Sequence: multisigAccount.GetSequence(),
+				Sequence: multisigAcc.GetSequence(),
 			}
 
-			cosmosTx, err := k.getTxnFromOutgoingPoolByID(ctx, os.txID)
+			cosmosTx, err := k.GetTxnFromOutgoingPoolByID(ctx, os.txID)
 			if err != nil {
 				panic(err)
 			}
@@ -119,7 +119,7 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 				panic(err)
 			}
 
-			err = k.setOutgoingTxnSignaturesAndEmitEvent(ctx, cosmosTx.CosmosTxDetails, os.txID)
+			err = k.SetOutgoingTxnSignaturesAndEmitEvent(ctx, cosmosTx.CosmosTxDetails, os.txID)
 			if err != nil {
 				panic(err)
 			}

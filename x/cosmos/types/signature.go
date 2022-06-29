@@ -2,12 +2,13 @@ package types
 
 import (
 	"errors"
+	"fmt"
+	"github.com/cosmos/cosmos-sdk/types/tx"
 	"strings"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	"github.com/cosmos/cosmos-sdk/types/tx"
 	signing2 "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -15,9 +16,22 @@ import (
 
 // VerifySignature Multisig only supports Amino Signing, hence the code will only check for amino signing
 func VerifySignature(pubkey cryptotypes.PubKey, signerData signing.SignerData, sigData signing2.SingleSignatureData, transaction tx.Tx) error {
-	aminoSignModeHandler := legacytx.NewStdTxSignModeHandler()
+	signBytes, err := GetSignBytes(signerData, transaction)
+	if err != nil {
+		return err
+	}
+	if !pubkey.VerifySignature(signBytes, sigData.Signature) {
+		return fmt.Errorf("unable to verify single signer signature")
+	}
+	return nil
+}
 
-	return signing.VerifySignature(pubkey, signerData, &sigData, aminoSignModeHandler, &transaction)
+func GetSignBytes(data signing.SignerData, txn tx.Tx) ([]byte, error) {
+	return legacytx.StdSignBytes(
+		data.ChainID, data.AccountNumber, data.Sequence, 0,
+		legacytx.StdFee{Amount: txn.GetFee(), Gas: txn.GetGas()},
+		txn.GetMsgs(), "",
+	), nil
 }
 
 // AccAddressFromBech32 creates an AccAddress from a Bech32 string.

@@ -2,11 +2,10 @@ package types
 
 import sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-// NewGenesisState creates a new GenesisState object. todo fill up outgoing transactions array and maintain it with a length of 10000 txns
-func NewGenesisState(params Params, outgoingTx OutgoingTx) *GenesisState {
+// NewGenesisState creates a new GenesisState object.
+func NewGenesisState(params Params) *GenesisState {
 	return &GenesisState{
-		Params:      params,
-		OutgoingTxn: outgoingTx,
+		Params: params,
 	}
 }
 
@@ -22,8 +21,7 @@ func ValidateGenesis(data GenesisState) error {
 // DefaultGenesisState creates a default GenesisState object.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params:      DefaultParams(),
-		OutgoingTxn: OutgoingTx{},
+		Params: DefaultParams(),
 	}
 }
 

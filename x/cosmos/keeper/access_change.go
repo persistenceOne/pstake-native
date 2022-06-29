@@ -89,7 +89,7 @@ func (k Keeper) addGrantTransactions(ctx sdk.Context, oldAccount authTypes.Accou
 				SignerInfos: nil,
 				Fee: &sdkTx.Fee{
 					Amount:   nil,
-					GasLimit: 200000,
+					GasLimit: 400000,
 					Payer:    "",
 				},
 			},
@@ -113,7 +113,7 @@ func (k Keeper) generateGrantMsgAny(ctx sdk.Context, custodialAddress sdk.AccAdd
 	// generate a grant msg of type any for granting given authorization to new account
 	grantMsgAny, err := authz.NewMsgGrant(
 		custodialAddress,
-		k.getAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(), // todo : fix acc address issue as it converts to persistence address
+		k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(), // todo : fix acc address issue as it converts to persistence address
 		authorization,
 		time.Unix(0, 0),
 	)
@@ -153,7 +153,7 @@ func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 	feegrantMsg, err := feegrant.NewMsgGrantAllowance(
 		grant,
 		custodialAddress,
-		k.getAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(), // todo : fix acc address issue as it converts to persistence address
+		k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(), // todo : fix acc address issue as it converts to persistence address
 	)
 	if err != nil {
 		panic(err)
@@ -190,7 +190,7 @@ func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 				SignerInfos: nil,
 				Fee: &sdkTx.Fee{
 					Amount:   nil,
-					GasLimit: 200000,
+					GasLimit: 400000,
 					Payer:    "",
 				},
 			},
@@ -274,7 +274,7 @@ func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 				SignerInfos: nil,
 				Fee: &sdkTx.Fee{
 					Amount:   nil,
-					GasLimit: 200000,
+					GasLimit: 400000,
 					Payer:    "",
 				},
 			},
@@ -297,7 +297,7 @@ func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 func (k Keeper) generateRevokeMsgAny(ctx sdk.Context, custodialAddress sdk.AccAddress, msgAuthorized string) *codecTypes.Any {
 	// generate revoke message with given msgAuthorized
 	revokeMsg := authz.NewMsgRevoke(
-		k.getAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(),
+		k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(),
 		custodialAddress,
 		msgAuthorized,
 	)
@@ -319,7 +319,7 @@ func (k Keeper) shiftListOfTransactionsToNewIDs(ctx sdk.Context, transactionQueu
 		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 
 		// fetch tx details from db for the given txID
-		txDetails, err := k.getTxnFromOutgoingPoolByID(ctx, tq.txID)
+		txDetails, err := k.GetTxnFromOutgoingPoolByID(ctx, tq.txID)
 		if err != nil {
 			panic(err)
 		}

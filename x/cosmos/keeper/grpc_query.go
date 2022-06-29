@@ -23,7 +23,7 @@ func (k Keeper) QueryParams(context context.Context, _ *cosmosTypes.QueryParamsR
 // QueryTxByID Query txns by ID for orchestrators to sign
 func (k Keeper) QueryTxByID(context context.Context, req *cosmosTypes.QueryOutgoingTxByIDRequest) (*cosmosTypes.QueryOutgoingTxByIDResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(context)
-	cosmosTxDetails, err := k.getTxnFromOutgoingPoolByID(ctx, req.TxID)
+	cosmosTxDetails, err := k.GetTxnFromOutgoingPoolByID(ctx, req.TxID)
 	if err != nil {
 		return nil, err
 	}

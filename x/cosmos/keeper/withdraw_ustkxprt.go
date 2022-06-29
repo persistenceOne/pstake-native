@@ -135,7 +135,7 @@ func (k Keeper) generateSendTransactionForAllWithdrawals(ctx sdk.Context, epochN
 					SignerInfos: nil,
 					Fee: &sdkTx.Fee{
 						Amount:   nil,
-						GasLimit: 200000,
+						GasLimit: 400000,
 						Payer:    "",
 					},
 				},
