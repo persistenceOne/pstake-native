@@ -19,7 +19,7 @@ func InitCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config := configuration.SetConfig(cmd)
 			var buf bytes.Buffer
-			logg.Println("init ")
+			log.Println("init ")
 			encoder := toml.NewEncoder(&buf)
 			if err := encoder.Encode(config); err != nil {
 				return err

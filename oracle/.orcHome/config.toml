@@ -1,22 +1,22 @@
-ValAddress = ""
-OrcSeeds = [""]
+ValAddress = "persistencevaloper1pss7nxeh3f9md2vuxku8q99femnwdjtcga9tdu"
+OrcSeeds = ["april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel"]
 
 [CosmosConfig]
     ChainID = "test"
-    CustodialAddr = ""
+    CustodialAddr = "cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2"
     Denom = "stake"
-    GRPCAddr = ""
-    RPCAddr = ""
+    GRPCAddr = "13.212.166.231:9090"
+    RPCAddr = "http://13.212.166.231:26657"
     AccountPrefix = "cosmos"
     GasAdjustment = 1.0
     GasPrice = "0.025stake"
     CoinType = 118
 
 [NativeConfig]
-    ChainID = "test"
+    ChainID = "native"
     Denom = "stake"
-    RPCAddr = ""
-    GRPCAddr = ""
+    RPCAddr = "http://18.139.224.127:26657"
+    GRPCAddr = "18.139.224.127:9090"
     AccountPrefix = "persistence"
     GasAdjustment = 1.0
     GasPrices = "0.025stake"

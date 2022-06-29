@@ -19,20 +19,21 @@ import (
 )
 
 func TestB(t *testing.T) {
-
-	seed := "marble allow december print trial know resource cry next segment twice nose because steel omit confirm hair extend shrimp seminar one minor phone deputy"
+	rpcaddr := "http://10.128.36.249:26657"
+	grpcaddr := "10.128.36.249:9090"
+	seed := "april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel"
 	_, addr := GetSDKPivKeyAndAddressR("persistence", 118, seed)
 
-	rpcClient, _ := newRPCClient("http://10.128.36.249:26657", 1*time.Second)
-	liteprovider, _ := prov.New("native", "http://10.128.36.249:26657")
+	rpcClient, _ := newRPCClient(rpcaddr, 1*time.Second)
+	liteprovider, _ := prov.New("native", rpcaddr)
 	chain := &NativeChain{
 		Key:           "unusedNativeKey",
-		ChainID:       "test",
-		RPCAddr:       "http://10.128.36.249:26657",
+		ChainID:       "native",
+		RPCAddr:       grpcaddr,
 		AccountPrefix: "persistence",
 		GasAdjustment: 1.0,
 		GasPrices:     "0.025stake",
-		GRPCAddr:      "10.128.36.249:9090",
+		GRPCAddr:      grpcaddr,
 		CoinType:      118,
 		HomePath:      "",
 		KeyBase:       nil,
@@ -63,16 +64,18 @@ func TestB(t *testing.T) {
 		WithViper("").
 		WithChainID(chain.ChainID)
 
-	rpcClientC, _ := newRPCClient("http://13.212.166.231:26657", 1*time.Second)
-	liteproviderC, _ := prov.New("native", "http://13.212.166.231:26657")
+	cosmosrpc := "http://13.212.166.231:26657"
+	cosmosgrpc := "13.212.166.231:9090"
+	rpcClientC, _ := newRPCClient(cosmosrpc, 1*time.Second)
+	liteproviderC, _ := prov.New("native", cosmosrpc)
 	chainC := &CosmosChain{
 		Key:           "unusedNativeKey",
 		ChainID:       "test",
-		RPCAddr:       "http://13.212.166.231:26657",
+		RPCAddr:       cosmosrpc,
 		AccountPrefix: "cosmos",
 		GasAdjustment: 1.0,
 		GasPrices:     "0.025stake",
-		GRPCAddr:      "13.212.166.231:9090",
+		GRPCAddr:      cosmosgrpc,
 		CoinType:      118,
 		HomePath:      "",
 		KeyBase:       nil,
@@ -108,7 +111,7 @@ func TestB(t *testing.T) {
 		panic(err)
 	}
 
-	grpcConn, err := grpc.Dial("10.128.36.249:9090", grpc.WithInsecure())
+	grpcConn, err := grpc.Dial(grpcaddr, grpc.WithInsecure())
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {

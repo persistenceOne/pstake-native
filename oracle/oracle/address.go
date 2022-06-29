@@ -2,6 +2,7 @@ package oracle
 
 import (
 	"errors"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -236,6 +237,11 @@ func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Con
 	if err != nil {
 		panic(err)
 		return nil, err
+	}
+
+	if !privkey.PubKey().VerifySignature(SignBytes, signature) {
+
+		panic(fmt.Sprintf("signature verification failed err: %v", err))
 	}
 
 	return signature, nil

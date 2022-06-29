@@ -6,6 +6,7 @@ import (
 	"github.com/persistenceOne/pstake-native/oracle/helpers"
 	"github.com/persistenceOne/pstake-native/oracle/oracle"
 	tendermintService "github.com/tendermint/tendermint/libs/service"
+	"log"
 	"time"
 )
 
@@ -25,7 +26,7 @@ func InitNativeChain(homePath string, config configuration.NativeConfig) (*oracl
 		return chain, err
 	}
 	if chain.KeyExists(chain.Key) {
-		logg.Println("Key Exists")
+		log.Println("Key Exists")
 		err = chain.KeyBase.Delete(chain.Key)
 		if err != nil {
 			return chain, err

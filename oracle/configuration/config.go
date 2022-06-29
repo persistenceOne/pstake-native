@@ -4,6 +4,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/persistenceOne/pstake-native/oracle/constants"
 	"github.com/spf13/cobra"
+	"log"
 	"path/filepath"
 )
 
@@ -204,6 +205,6 @@ func InitializeConfigFromToml(homepath string) Config {
 	var config = newConfig()
 	_, _ = toml.DecodeFile(filepath.Join(homepath, "config.toml"), &config)
 	//log.Fatalf("Error Decoding oracle config: %v\n", err.Error())
-	logg.Println(config)
+	log.Println(config)
 	return config
 }
