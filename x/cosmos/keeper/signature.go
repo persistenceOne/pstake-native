@@ -28,7 +28,7 @@ func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context, singleSignature cosm
 		var outgoingSignaturePoolValue cosmosTypes.OutgoingSignaturePoolValue
 		k.cdc.MustUnmarshal(outgoingSignaturePoolStore.Get(key), &outgoingSignaturePoolValue)
 
-		if !outgoingSignaturePoolValue.Find(validatorAddress.String()) {
+		if outgoingSignaturePoolValue.Find(validatorAddress.String()) {
 			return sdkErrors.Wrap(cosmosTypes.ErrOrchAddressPresentInSignaturePool, validatorAddress.String())
 		}
 		outgoingSignaturePoolValue.SingleSignatures = append(outgoingSignaturePoolValue.SingleSignatures, singleSignature)
