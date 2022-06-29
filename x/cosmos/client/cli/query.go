@@ -43,6 +43,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryValidatorMapping(),
 		GetCmdQueryOracleHeight(),
 		GetCmdQueryCosmosBalance(),
+		GetCmdQueryActiveTxn(),
 	)
 
 	return cosmosQueryCmd
@@ -467,6 +468,34 @@ func GetCmdQueryCosmosBalance() *cobra.Command {
 
 			params := &cosmosTypes.QueryCosmosBalanceRequest{}
 			res, err := queryClient.CosmosBalance(context.Background(), params)
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryActiveTxn() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "active-transaction",
+		Short: "Query active transaction",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := cosmosTypes.NewQueryClient(clientCtx)
+
+			params := &cosmosTypes.QueryActiveTxnRequest{}
+			res, err := queryClient.ActiveTxn(context.Background(), params)
 
 			if err != nil {
 				return err

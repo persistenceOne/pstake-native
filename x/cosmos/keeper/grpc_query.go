@@ -207,3 +207,10 @@ func (k Keeper) CosmosBalance(c context.Context, query *cosmosTypes.QueryCosmosB
 	balance := k.getCosmosBalances(ctx)
 	return &cosmosTypes.QueryCosmosBalanceResponse{Balance: balance}, nil
 }
+
+// ActiveTxn returns the active transaction in the queue
+func (k Keeper) ActiveTxn(c context.Context, query *cosmosTypes.QueryActiveTxnRequest) (*cosmosTypes.QueryActiveTxnResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+	txID := k.getActiveFromTransactionQueue(ctx)
+	return &cosmosTypes.QueryActiveTxnResponse{TxID: txID}, nil
+}

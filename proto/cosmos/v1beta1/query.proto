@@ -56,6 +56,10 @@ service Query {
   rpc CosmosBalance(QueryCosmosBalanceRequest) returns (QueryCosmosBalanceResponse) {
     option (google.api.http).get = "/pstake/cosmos/v1beta1/cosmos_balance";
   }
+
+  rpc ActiveTxn(QueryActiveTxnRequest) returns (QueryActiveTxnResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/active_txn";
+  }
 }
 
 message QueryParamsRequest {}
@@ -150,4 +154,10 @@ message QueryCosmosBalanceRequest {}
 message QueryCosmosBalanceResponse {
   repeated cosmos.base.v1beta1.Coin balance = 1
   [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+}
+
+message QueryActiveTxnRequest {}
+
+message QueryActiveTxnResponse {
+  uint64 txID = 1;
 }
