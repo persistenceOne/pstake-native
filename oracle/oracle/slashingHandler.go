@@ -3,7 +3,6 @@ package oracle
 import (
 	"context"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
@@ -12,8 +11,18 @@ import (
 )
 
 func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr string, nativeCliCtx cosmosClient.Context, native *NativeChain, chain *CosmosChain, cHeight int64) error {
-	custodialAddr := chain.CustodialAddress.String()
-	slashedValAddress, _ := sdk.AccAddressFromHex(slash)
+	custodialAddr, err := Bech32ifyAddressBytes(chain.AccountPrefix, chain.CustodialAddress)
+	if err != nil {
+		logg.Println(err)
+		panic(err)
+	}
+	SetSDKConfigPrefix(chain.AccountPrefix)
+	slashedValAddress, err := AccAddressFromBech32(slash, chain.AccountPrefix)
+
+	if err != nil {
+		logg.Println(err)
+		panic(err)
+	}
 
 	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
 	defer func(grpcConn *grpc.ClientConn) {
@@ -40,13 +49,12 @@ func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr s
 	)
 
 	BondedDelegations := BondedTokensQueryResult.DelegationResponse.Balance
-	//valAddr := BondedTokensQueryResult.DelegationResponse.Delegation.ValidatorAddress
 
-	_, addr := GetSDKPivKeyAndAddress(orcSeeds[0])
+	_, addr := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, orcSeeds[0])
 	msg := &cosmosTypes.MsgSlashingEventOnCosmosChain{
 		ValidatorAddress:    valAddr,
 		CurrentDelegation:   BondedDelegations,
-		OrchestratorAddress: string(addr),
+		OrchestratorAddress: addr,
 		SlashType:           "",
 		ChainID:             chain.ChainID,
 		BlockHeight:         cHeight,
@@ -58,7 +66,15 @@ func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr s
 		return err
 	}
 
-	txClient := txD.NewServiceClient(grpcConn)
+	grpcConnN, _ := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
+	defer func(grpcConnN *grpc.ClientConn) {
+		err := grpcConnN.Close()
+		if err != nil {
+
+		}
+	}(grpcConnN)
+
+	txClient := txD.NewServiceClient(grpcConnN)
 
 	res, err := txClient.BroadcastTx(context.Background(),
 		&txD.BroadcastTxRequest{

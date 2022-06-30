@@ -19,9 +19,9 @@ import (
 )
 
 func TestB(t *testing.T) {
-	rpcaddr := "http://10.128.36.249:26657"
-	grpcaddr := "10.128.36.249:9090"
-	seed := "april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel"
+	rpcaddr := "http://13.229.64.99:26657"
+	grpcaddr := "13.229.64.99:9090"
+	seed := "bomb sand fashion torch return coconut color captain vapor inhale lyrics lady grant ordinary lazy decrease quit devote paddle impulse prize equip hip ball"
 	_, addr := GetSDKPivKeyAndAddressR("persistence", 118, seed)
 
 	rpcClient, _ := newRPCClient(rpcaddr, 1*time.Second)
@@ -67,7 +67,7 @@ func TestB(t *testing.T) {
 	cosmosrpc := "http://13.212.166.231:26657"
 	cosmosgrpc := "13.212.166.231:9090"
 	rpcClientC, _ := newRPCClient(cosmosrpc, 1*time.Second)
-	liteproviderC, _ := prov.New("native", cosmosrpc)
+	liteproviderC, _ := prov.New("test", cosmosrpc)
 	chainC := &CosmosChain{
 		Key:           "unusedNativeKey",
 		ChainID:       "test",

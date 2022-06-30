@@ -24,16 +24,16 @@ func TestC(t *testing.T) {
 	seed := "april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel"
 	_, addr := GetSDKPivKeyAndAddressR("persistence", 118, seed)
 
-	rpcClient, _ := newRPCClient("http://18.139.224.127:26657", 1*time.Second)
-	liteprovider, _ := prov.New("native", "http://18.139.224.127:26657")
+	rpcClient, _ := newRPCClient("http://13.229.64.99:26657", 1*time.Second)
+	liteprovider, _ := prov.New("native", "http://13.229.64.99:26657")
 	chain := &NativeChain{
 		Key:           "unusedNativeKey",
-		ChainID:       "test",
-		RPCAddr:       "http://18.139.224.127:26657",
+		ChainID:       "native",
+		RPCAddr:       "http://13.229.64.99:26657",
 		AccountPrefix: "persistence",
 		GasAdjustment: 1.0,
 		GasPrices:     "0.025stake",
-		GRPCAddr:      "18.139.224.127:9090",
+		GRPCAddr:      "13.229.64.99:9090",
 		CoinType:      118,
 		HomePath:      "",
 		KeyBase:       nil,
@@ -65,9 +65,9 @@ func TestC(t *testing.T) {
 		WithChainID(chain.ChainID)
 
 	rpcClientC, _ := newRPCClient("http://13.212.166.231:26657", 1*time.Second)
-	liteproviderC, _ := prov.New("native", "http://13.212.166.231:26657")
+	liteproviderC, _ := prov.New("test", "http://13.212.166.231:26657")
 	chainC := &CosmosChain{
-		Key:           "unusedNativeKey",
+		Key:           "unusedKey",
 		ChainID:       "test",
 		RPCAddr:       "http://13.212.166.231:26657",
 		AccountPrefix: "cosmos",

@@ -54,8 +54,15 @@ func (c *CosmosChain) ProposalHandler(propId string, orcSeeds []string, nativeCl
 	if err != nil {
 		return err
 	}
+	grpcConnN, err := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
+	defer func(grpcConnN *grpc.ClientConn) {
+		err := grpcConnN.Close()
+		if err != nil {
+			logg.Println("GRPC Connection error")
+		}
+	}(grpcConnN)
 
-	txClient := txD.NewServiceClient(grpcConn)
+	txClient := txD.NewServiceClient(grpcConnN)
 
 	res, err := txClient.BroadcastTx(context.Background(),
 		&txD.BroadcastTxRequest{

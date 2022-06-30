@@ -3,6 +3,7 @@ package oracle
 import (
 	"context"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/types"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"google.golang.org/grpc"
@@ -13,11 +14,10 @@ func SendMsgAcknowledgement(native *NativeChain, cosmosChain *CosmosChain, orcSe
 
 	_, addr := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
-	address, err := AccAddressFromBech32(addr, native.AccountPrefix)
-	if err != nil {
-		return err
-	}
 	ValDetails := GetValidatorDetails(cosmosChain)
+
+	SetSDKConfigPrefix(cosmosChain.ChainID)
+	address, err := GetMultiSigAddress(native, cosmosChain)
 	acc, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, address)
 
 	if err != nil {
@@ -66,5 +66,47 @@ func SendMsgAcknowledgement(native *NativeChain, cosmosChain *CosmosChain, orcSe
 	}
 
 	return nil
+
+}
+
+func GetMultiSigAddress(chain *NativeChain, chainC *CosmosChain) (types.AccAddress, error) {
+	var txId uint64
+
+	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
+	defer func(grpcConn *grpc.ClientConn) {
+		err := grpcConn.Close()
+		if err != nil {
+			logg.Println("GRPC Connection error")
+		}
+	}(grpcConn)
+
+	if err != nil {
+		logg.Println("GRPC Connection failed")
+		panic(err)
+	}
+
+	cosmosQueryClient := cosmosTypes.NewQueryClient(grpcConn)
+
+	logg.Println("staking query client connected")
+
+	ActiveTxID, err := cosmosQueryClient.ActiveTxn(context.Background(),
+		&cosmosTypes.QueryActiveTxnRequest{},
+	)
+
+	txId = ActiveTxID.GetTxID()
+
+	TxResult, err := cosmosQueryClient.QueryTxByID(context.Background(),
+		&cosmosTypes.QueryOutgoingTxByIDRequest{TxID: uint64(txId)},
+	)
+
+	signerAddress := TxResult.CosmosTxDetails.SignerAddress
+	SetSDKConfigPrefix(chainC.AccountPrefix)
+
+	signerAddr, err := AccAddressFromBech32(signerAddress, chainC.AccountPrefix)
+	if err != nil {
+		return nil, err
+	}
+
+	return signerAddr, nil
 
 }

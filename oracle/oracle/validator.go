@@ -73,12 +73,12 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 
 		}
 
-		Unbondingtokens := types.NewInt(0)
+		Unbondingtokens := types.ZeroInt()
 
 		if flag == true {
 			UnBondingEntries := UnbondingTokensQueryResult.Unbond.Entries
 			for _, Entry := range UnBondingEntries {
-				Unbondingtokens.Add(Entry.Balance)
+				Unbondingtokens = Unbondingtokens.Add(Entry.Balance)
 			}
 		}
 
