@@ -8,7 +8,7 @@ mnemonic1="marble allow december print trial know resource cry next segment twic
 mnemonic2="axis decline final suggest denial erupt satisfy weekend utility fortune dry glory recall real other evil spatial speed seek rubber struggle wolf tortoise large"
 mnemonic3="knock board dolphin cricket strike sense throw security mistake link ocean educate merit pet public economy embark shoot horror pond budget rent toe frozen"
 
-pstaked init test --chain-id native
+pstaked init test --chain-id test
 
 echo "$mnemonic" | pstaked keys add test --recover --keyring-backend=test
 
