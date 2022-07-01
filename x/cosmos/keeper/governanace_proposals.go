@@ -158,29 +158,29 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 	multisigPubkey := multisig2.NewLegacyAminoPubKey(int(p.Threshold), multisigPubkeys)
 	multisigAccAddress := sdk.AccAddress(multisigPubkey.Address().Bytes())
 	multisigAcc := k.GetAccountState(ctx, multisigAccAddress)
-	if multisigAcc == nil {
-		//TODO add caching for this address string.
-		cosmosAddr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32Prefix, multisigAccAddress)
-		if err != nil {
-			return err
-		}
-		if cosmosAddr == "" {
-			return cosmosTypes.ErrInvalidCustodialAddress
-		}
-		multisigAcc = &authTypes.BaseAccount{
-			Address:       cosmosAddr,
-			PubKey:        nil,
-			AccountNumber: p.AccountNumber,
-			Sequence:      0,
-		}
-		err = multisigAcc.SetPubKey(multisigPubkey)
-		if err != nil {
-			return err
-		}
-		k.SetAccountState(ctx, multisigAcc)
-	}
 
-	fmt.Println(multisigAccAddress)
+	//TODO add caching for this address string.
+	cosmosAddr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32Prefix, multisigAccAddress)
+	if err != nil {
+		return err
+	}
+	if cosmosAddr == "" {
+		return cosmosTypes.ErrInvalidCustodialAddress
+	}
+	multisigAcc = &authTypes.BaseAccount{
+		Address:       cosmosAddr,
+		PubKey:        nil,
+		AccountNumber: p.AccountNumber,
+		Sequence:      p.SequenceNumber,
+	}
+	err = multisigAcc.SetPubKey(multisigPubkey)
+	if err != nil {
+		return err
+	}
+	k.SetAccountState(ctx, multisigAcc)
+
+	logger := k.Logger(ctx)
+	logger.Info(cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, multisigAccAddress))
 	// set new multisig address as the current address for transaction signing
 	k.SetCurrentAddress(ctx, multisigAccAddress)
 

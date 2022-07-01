@@ -252,6 +252,9 @@ func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 	)
 
 	cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
+	if err != nil {
+		panic(err)
+	}
 	execMsg := authz.MsgExec{
 		Grantee: cosmosAddrr,
 		Msgs:    revokeMsgsAny,

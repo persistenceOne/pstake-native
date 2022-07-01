@@ -32,7 +32,6 @@ service Msg {
   rpc VoteWeighted(MsgVoteWeighted) returns (MsgVoteWeightedResponse) {};
   //  rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
   rpc TxStatus(MsgTxStatus) returns (MsgTxStatusResponse) {};
-  rpc RewardsClaimed(MsgRewardsClaimedOnCosmosChain) returns (MsgRewardsClaimedOnCosmosChainResponse) {};
   rpc UndelegateSuccess(MsgUndelegateSuccess) returns (MsgUndelegateSuccessResponse) {};
   rpc SetSignature(MsgSetSignature) returns (MsgSetSignatureResponse) {};
   rpc SlashingEvent(MsgSlashingEventOnCosmosChain) returns (MsgSlashingEventOnCosmosChainResponse) {};
@@ -141,14 +140,12 @@ message MsgTxStatus {
 }
 message MsgTxStatusResponse {}
 
-message MsgRewardsClaimedOnCosmosChain {
-  string orchestrator_address = 1;
-  cosmos.base.v1beta1.Coin amount_claimed = 2 [(gogoproto.nullable) = false];
-  string chain_i_d = 3;
-  int64 block_height = 4;
+message ValidatorDetails {
+  string validator_address = 1;
+  cosmos.base.v1beta1.Coin bonded_tokens = 2 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin unbonding_tokens = 3 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin rewards_collected = 4 [(gogoproto.nullable) = false];
 }
-
-message MsgRewardsClaimedOnCosmosChainResponse {}
 
 message MsgUndelegateSuccess {
   string delegator_address = 1;
@@ -168,12 +165,6 @@ message MsgSetSignature{
   int64 block_height = 4;
 }
 message MsgSetSignatureResponse{}
-
-message ValidatorDetails {
-  string validator_address = 1;
-  cosmos.base.v1beta1.Coin bonded_tokens = 2 [(gogoproto.nullable) = false];
-  cosmos.base.v1beta1.Coin unbonding_tokens = 3 [(gogoproto.nullable) = false];
-}
 
 message MsgSlashingEventOnCosmosChain {
   string validator_address = 1;

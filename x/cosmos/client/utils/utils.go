@@ -37,6 +37,7 @@ type EnableModuleProposalJSON struct {
 	Description           string   `json:"description" yaml:"description"`
 	Threshold             uint64   `json:"threshold" yaml:"threshold"`
 	AccountNumber         uint64   `json:"account_number" yaml:"account_number"`
+	SequenceNumber        uint64   `json:"sequence_number" yaml:"sequence_number"`
 	OrchestratorAddresses []string `json:"orchestrator_addresses" yaml:"orchestrator_addresses"`
 	Depositor             string   `json:"depositor" yaml:"depositor"`
 	Deposit               string   `json:"deposit" yaml:"deposit"`

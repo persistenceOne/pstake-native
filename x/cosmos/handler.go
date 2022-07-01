@@ -45,9 +45,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *cosmosTypes.MsgTxStatus:
 			res, err := msgServer.TxStatus(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *cosmosTypes.MsgRewardsClaimedOnCosmosChain:
-			res, err := msgServer.RewardsClaimed(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
 		case *cosmosTypes.MsgSlashingEventOnCosmosChain:
 			res, err := msgServer.SlashingEvent(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)

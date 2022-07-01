@@ -92,6 +92,9 @@ func (k Keeper) generateOutgoingWeightedVoteTx(ctx sdk.Context, result map[cosmo
 
 	voteMsgAny = append(voteMsgAny, msgAny)
 	cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
+	if err != nil {
+		panic(err)
+	}
 	execMsg := authz.MsgExec{
 		Grantee: cosmosAddrr,
 		Msgs:    voteMsgAny,

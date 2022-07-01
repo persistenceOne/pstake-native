@@ -1,84 +1,11 @@
 package keeper
 
 import (
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
-
-/*
-Adds the rewards claimed message entry to the rewards claimed store with the given validator address.
-Performs the following actions :
-  1. Checks if store has the key or not. If not then create new entry
-  2. Checks if store has it and matches all the details present in the message. If not then create a new entry.
-  3. Finally, if all the details match then append the validator address to keep track.
-*/
-func (k Keeper) addToRewardsClaimedPool(ctx sdk.Context, msg cosmosTypes.MsgRewardsClaimedOnCosmosChain, validatorAddress sdk.ValAddress) {
-	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
-	key := []byte(cosmosTypes.GetChainIDAndBlockHeightKey(msg.ChainID, msg.BlockHeight))
-	totalValidatorCount := k.GetTotalValidatorOrchestratorCount(ctx)
-	// store has key in it or not
-	if !rewardsClaimedStore.Has(key) {
-		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewRewardsClaimedValue(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
-		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&newValue))
-		return
-	}
-
-	var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
-	k.cdc.MustUnmarshal(rewardsClaimedStore.Get(key), &rewardsClaimedValue)
-
-	// Match if the message value and stored value are same
-	// if not equal then initialize by new value in store
-	if !StoreValueEqualOrNotRewardsClaimed(rewardsClaimedValue, msg) {
-		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newValue := cosmosTypes.NewRewardsClaimedValue(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
-		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&newValue))
-		return
-	}
-
-	// if equal then check if orchestrator has already sent same details previously
-	if !rewardsClaimedValue.Find(validatorAddress.String()) {
-		rewardsClaimedValue.UpdateValues(validatorAddress.String(), k.GetTotalValidatorOrchestratorCount(ctx))
-		rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&rewardsClaimedValue))
-		return
-	}
-}
-
-// Gets the list of all rewards claimed requests from rewards claimed store
-func (k Keeper) getAllFromRewardsClaimedPool(ctx sdk.Context) (list []cosmosTypes.RewardsClaimedValue, keys [][]byte) {
-	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
-	iterator := rewardsClaimedStore.Iterator(nil, nil)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
-		k.cdc.MustUnmarshal(iterator.Value(), &rewardsClaimedValue)
-		list = append(list, rewardsClaimedValue)
-		keys = append(keys, iterator.Key())
-	}
-	return list, keys
-}
-
-// Set added to current epoch true for the given key in rewards claimed store
-func (k Keeper) setAddedToCurrentEpochTrue(ctx sdk.Context, key []byte) {
-	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
-
-	var rewardsClaimedValue cosmosTypes.RewardsClaimedValue
-	k.cdc.MustUnmarshal(rewardsClaimedStore.Get(key), &rewardsClaimedValue)
-	rewardsClaimedValue.AddedToCurrentEpoch = true
-	rewardsClaimedStore.Set(key, k.cdc.MustMarshal(&rewardsClaimedValue))
-}
-
-// Remove the given key from the rewards claimed store
-func (k Keeper) deleteFromRewardsClaimedPool(ctx sdk.Context, key []byte) {
-	rewardsClaimedStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyRewardsStore)
-	rewardsClaimedStore.Delete(key)
-}
-
-//______________________________________________________________________________________________________________________
 
 // Add the rewards claimed amount to the current epoch
 func (k Keeper) addToRewardsInCurrentEpoch(ctx sdk.Context, amount sdk.Coin) {
@@ -129,57 +56,10 @@ func (k Keeper) shiftRewardsToNextEpoch(ctx sdk.Context, epochNumber int64) {
 	k.cdc.MustUnmarshal(rewardsInCurrentEpochStore.Get(newEpochKey), &nextEpochAmount)
 	nextEpochAmount = nextEpochAmount.Add(amount)
 	rewardsInCurrentEpochStore.Set(newEpochKey, k.cdc.MustMarshal(&nextEpochAmount))
-	return
 }
 
 // Remove the given key from the rewards in current epoch store
 func (k Keeper) deleteFromRewardsInCurrentEpoch(ctx sdk.Context, epochNumber int64) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 	rewardsInCurrentEpochStore.Delete(cosmosTypes.Int64Bytes(epochNumber))
-}
-
-//______________________________________________________________________________________________________________________
-
-/*
-ProcessRewards processes all the rewards requests
-This function is called every EndBlocker to perform the defined set of actions as mentioned below :
-   1. Get the list of all rewards requests
-   2. Checks if the majority of the validator oracle have sent the minting request. Also checks the
-      addedToCurrentEpoch flag.
-   3. If majority is reached and other conditions match then rewards are added to current epoch and
-      addedToCurrentEpoch flag is marked true.
-   4. Another condition of ActiveBlockHeight is also checked whether to delete the entry or not.
-*/
-func (k Keeper) ProcessRewards(ctx sdk.Context) {
-	rewardsList, keys := k.getAllFromRewardsClaimedPool(ctx)
-	if len(rewardsList) != len(keys) {
-		panic(fmt.Errorf("rewards list and keys do not have equal number of elements"))
-	}
-	for i, r := range rewardsList {
-		if r.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !r.AddedToCurrentEpoch {
-			r.AddedToCurrentEpoch = true
-
-			k.addToRewardsInCurrentEpoch(ctx, r.RewardsClaimed.AmountClaimed)
-
-			k.setAddedToCurrentEpochTrue(ctx, keys[i])
-		}
-		if r.ActiveBlockHeight <= ctx.BlockHeight() && r.AddedToCurrentEpoch {
-			k.deleteFromRewardsClaimedPool(ctx, keys[i])
-		}
-	}
-}
-
-// StoreValueEqualOrNotRewardsClaimed Helper function for rewards claimed store to check if the relevant details in the message matches or not.
-func StoreValueEqualOrNotRewardsClaimed(storeValue cosmosTypes.RewardsClaimedValue,
-	msgValue cosmosTypes.MsgRewardsClaimedOnCosmosChain) bool {
-	if !storeValue.RewardsClaimed.AmountClaimed.IsEqual(msgValue.AmountClaimed) {
-		return false
-	}
-	if storeValue.RewardsClaimed.ChainID != msgValue.ChainID {
-		return false
-	}
-	if storeValue.RewardsClaimed.BlockHeight != msgValue.BlockHeight {
-		return false
-	}
-	return true
 }

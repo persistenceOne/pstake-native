@@ -62,24 +62,19 @@ func divideAmountWeightedSet(valAmounts []ValAddressAmount, coin sdk.Coin, valAd
 
 // distributeCoinsAmongstValSet takes the validator distribution and coins to distribute and returns the
 // validator address amount to distribute and the remaining amount to make
-func distributeCoinsAmongstValSet(ws types.WeightedAddressAmounts, coin sdk.Coin) ([]ValAddressAmount, sdk.Coin, error) {
+func distributeCoinsAmongstValSet(ws types.WeightedAddressAmounts, coin sdk.Coin) ([]ValAddressAmount, sdk.Coin) {
 	valAddrAmts := []ValAddressAmount{}
 
 	for _, w := range ws {
-		// Create val address
-		//valAddr, err := types.ValAddressFromBech32(w.Address, types.Bech32PrefixValAddr)
-		//if err != nil {
-		//	return nil, coin, err
-		//}
 		if coin.Amount.LTE(w.Amount) {
 			valAddrAmts = append(valAddrAmts, ValAddressAmount{Validator: w.Address, Amount: coin})
-			return valAddrAmts, sdk.NewInt64Coin(coin.Denom, 0), nil
+			return valAddrAmts, sdk.NewInt64Coin(coin.Denom, 0)
 		}
 		valAddrAmts = append(valAddrAmts, ValAddressAmount{Validator: w.Address, Amount: w.Coin()})
 		coin = coin.SubAmount(w.Amount)
 	}
 
-	return valAddrAmts, coin, nil
+	return valAddrAmts, coin
 }
 
 func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) ([]ValAddressAmount, error) {
@@ -91,10 +86,7 @@ func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, co
 	_, nonZeroWeighted := types.GetZeroNonZeroWightedAddrAmts(sortedValDiff)
 	sort.Sort(sort.Reverse(nonZeroWeighted))
 
-	valAmounts, remainderCoin, err := distributeCoinsAmongstValSet(nonZeroWeighted, coin)
-	if err != nil {
-		return nil, err
-	}
+	valAmounts, remainderCoin := distributeCoinsAmongstValSet(nonZeroWeighted, coin)
 
 	// If the remaining amount is not possitive, return early
 	if !remainderCoin.IsPositive() {
@@ -121,10 +113,7 @@ func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressA
 	sort.Sort(sort.Reverse(nonZeroWeighted))
 	valWeighted := append(zeroWeighted, nonZeroWeighted...)
 
-	valAmounts, remainderCoin, err := distributeCoinsAmongstValSet(valWeighted, coin)
-	if err != nil {
-		return nil, err
-	}
+	valAmounts, remainderCoin := distributeCoinsAmongstValSet(valWeighted, coin)
 
 	// If the remaining amount is not possitive, return early
 	if !remainderCoin.IsPositive() {
@@ -139,7 +128,7 @@ func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressA
 	return valAmounts, nil
 }
 
-// gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
+// FetchValidatorsToDelegate gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
 func (k Keeper) FetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) ([]ValAddressAmount, error) {
 	params := k.GetParams(ctx)
 
@@ -156,7 +145,7 @@ func (k Keeper) FetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) ([]V
 	return DivideAmountIntoValidatorSet(curDiffDistribution, amount)
 }
 
-// gives a list of validators having weighted amount for few validators
+// FetchValidatorsToUndelegate gives a list of validators having weighted amount for few validators
 func (k Keeper) FetchValidatorsToUndelegate(ctx sdk.Context, amount sdk.Coin) ([]ValAddressAmount, error) {
 	params := k.GetParams(ctx)
 

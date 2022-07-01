@@ -10,7 +10,8 @@ import (
 )
 
 // NewMintTokenStoreValue returns MintTokenStoreValue struct
-func NewMintTokenStoreValue(msg MsgMintTokensForAccount, ratio sdkTypes.Dec, valAddress sdkTypes.ValAddress, activeBlockHeight int64) MintTokenStoreValue {
+func NewMintTokenStoreValue(msg MsgMintTokensForAccount, ratio sdkTypes.Dec, valAddress sdkTypes.ValAddress,
+	activeBlockHeight int64) MintTokenStoreValue {
 	return MintTokenStoreValue{
 		MintTokens:         msg,
 		Ratio:              ratio,
@@ -41,7 +42,8 @@ func NewProposalKey(chainID string, blockHeight int64, proposalID uint64) Propos
 }
 
 // NewProposalValue returns ProposalValue struct
-func NewProposalValue(msg MsgMakeProposal, valAddress sdkTypes.ValAddress, ratio sdkTypes.Dec, blockHeight int64) ProposalValue {
+func NewProposalValue(msg MsgMakeProposal, valAddress sdkTypes.ValAddress, ratio sdkTypes.Dec,
+	blockHeight int64) ProposalValue {
 	return ProposalValue{
 		ProposalDetails:    msg,
 		ValidatorAddresses: []string{valAddress.String()},
@@ -53,7 +55,8 @@ func NewProposalValue(msg MsgMakeProposal, valAddress sdkTypes.ValAddress, ratio
 }
 
 // NewTxHashValue returns TxHashValue struct
-func NewTxHashValue(msg MsgTxStatus, ratio sdkTypes.Dec, activeBlockHeight int64, valAddress sdkTypes.ValAddress) TxHashValue {
+func NewTxHashValue(msg MsgTxStatus, ratio sdkTypes.Dec, activeBlockHeight int64,
+	valAddress sdkTypes.ValAddress) TxHashValue {
 	return TxHashValue{
 		TxStatus:           msg,
 		ValidatorAddresses: []string{valAddress.String()},
@@ -74,10 +77,12 @@ func NewWithdrawStoreValue(msg MsgWithdrawStkAsset) WithdrawStoreValue {
 }
 
 // NewValueOutgoingUnbondStore returns ValueOutgoingUnbondStore struct
-func NewValueOutgoingUnbondStore(undelegateMessage []stakingTypes.MsgUndelegate, epochNumber int64) ValueOutgoingUnbondStore {
+func NewValueOutgoingUnbondStore(undelegateMessage []stakingTypes.MsgUndelegate,
+	epochNumber int64, cValue sdkTypes.Dec) ValueOutgoingUnbondStore {
 	return ValueOutgoingUnbondStore{
 		EpochNumber:        epochNumber,
 		UndelegateMessages: undelegateMessage,
+		CValue:             cValue,
 	}
 }
 
@@ -93,19 +98,6 @@ func NewValueUndelegateSuccessStore(msg MsgUndelegateSuccess, valAddress sdkType
 	}
 }
 
-// NewRewardsClaimedValue returns RewardsClaimedValue struct
-func NewRewardsClaimedValue(msg MsgRewardsClaimedOnCosmosChain, valAddress sdkTypes.ValAddress, ratio sdkTypes.Dec,
-	activeBlockHeight int64) RewardsClaimedValue {
-	return RewardsClaimedValue{
-		RewardsClaimed:      msg,
-		ValidatorAddresses:  []string{valAddress.String()},
-		Ratio:               ratio,
-		Counter:             1,
-		AddedToCurrentEpoch: false,
-		ActiveBlockHeight:   activeBlockHeight,
-	}
-}
-
 // NewValidatorStoreValue returns ValidatorStoreValue struct
 func NewValidatorStoreValue(orchAddress sdkTypes.AccAddress) ValidatorStoreValue {
 	return ValidatorStoreValue{
@@ -114,12 +106,22 @@ func NewValidatorStoreValue(orchAddress sdkTypes.AccAddress) ValidatorStoreValue
 }
 
 // NewOutgoingSignaturePoolValue returns OutgoingSignaturePoolValue struct
-func NewOutgoingSignaturePoolValue(singleSignature SingleSignatureDataForOutgoingPool, valAddress sdkTypes.ValAddress, orchestratorAddress sdkTypes.AccAddress) OutgoingSignaturePoolValue {
+func NewOutgoingSignaturePoolValue(singleSignature SingleSignatureDataForOutgoingPool, valAddress sdkTypes.ValAddress,
+	orchestratorAddress sdkTypes.AccAddress, activeBlockHeight int64) OutgoingSignaturePoolValue {
 	return OutgoingSignaturePoolValue{
 		SingleSignatures:      []SingleSignatureDataForOutgoingPool{singleSignature},
 		ValidatorAddresses:    []string{valAddress.String()},
 		Counter:               1,
 		OrchestratorAddresses: []string{orchestratorAddress.String()},
+		SignedEventEmitted:    false,
+		ActiveBlockHeight:     activeBlockHeight,
+	}
+}
+
+func NewEpochWithdrawSuccessStoreValue(cValue sdkTypes.Dec) EpochWithdrawSuccessStoreValue {
+	return EpochWithdrawSuccessStoreValue{
+		Status: false,
+		CValue: cValue,
 	}
 }
 
@@ -148,7 +150,8 @@ func NewOutgoingQueueValue(active bool, retryCounter uint64) OutgoingQueueValue 
 }
 
 // NewSlashingStoreValue returns SlashingStoreValue struct
-func NewSlashingStoreValue(msg MsgSlashingEventOnCosmosChain, ratio sdkTypes.Dec, valAddress sdkTypes.ValAddress, blockHeight int64) SlashingStoreValue {
+func NewSlashingStoreValue(msg MsgSlashingEventOnCosmosChain, ratio sdkTypes.Dec, valAddress sdkTypes.ValAddress,
+	blockHeight int64) SlashingStoreValue {
 	return SlashingStoreValue{
 		SlashingDetails:    msg,
 		Ratio:              ratio,

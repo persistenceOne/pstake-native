@@ -419,6 +419,10 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 	}
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
+	if diff := msg.SequenceNumber - k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetSequence(); diff != 1 {
+		return nil, fmt.Errorf("sequence difference is not one or oracle is late to send status")
+	}
+
 	//Accept transaction if module is enabled
 	if !k.GetParams(ctx).ModuleEnabled {
 		return nil, cosmosTypes.ErrModuleNotEnabled
@@ -451,7 +455,8 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 
 	//TODO : add failure type for proposal transactions. (in case of chain upgrade on cosmos chain)
 	if msg.Status == cosmosTypes.Success || msg.Status == cosmosTypes.GasFailure ||
-		msg.Status == cosmosTypes.SequenceMismatch || msg.Status == cosmosTypes.KeeperFailure {
+		msg.Status == cosmosTypes.SequenceMismatch || msg.Status == cosmosTypes.KeeperFailure ||
+		msg.Status == cosmosTypes.NotSuccess {
 		k.setTxHashAndDetails(ctx, *msg, validatorAddress)
 	} else {
 		return nil, cosmosTypes.ErrInvalidStatus
@@ -465,55 +470,6 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 		),
 	)
 	return &cosmosTypes.MsgTxStatusResponse{}, nil
-}
-
-// RewardsClaimed sets a rewards claimed entry in rewards claimed store as sent by the oracles
-func (k msgServer) RewardsClaimed(c context.Context, msg *cosmosTypes.MsgRewardsClaimedOnCosmosChain) (*cosmosTypes.MsgRewardsClaimedOnCosmosChainResponse, error) {
-	ctx := sdkTypes.UnwrapSDKContext(c)
-
-	//Accept transaction if module is enabled
-	if !k.GetParams(ctx).ModuleEnabled {
-		return nil, cosmosTypes.ErrModuleNotEnabled
-	}
-
-	orchestratorAddress, orchErr := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
-	if orchErr != nil {
-		return nil, orchErr
-	}
-
-	//check if orchestrator address is present in a validator orchestrator mapping
-	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
-	if err != nil {
-		return nil, err
-	}
-	if !found {
-		return nil, fmt.Errorf("orchestrator not found")
-	}
-
-	//check if validator exists on the network
-	validatorAddress, found := k.CheckValidator(ctx, val)
-	if !found {
-		return nil, cosmosTypes.ErrInvalidProposal
-	}
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to send rewards claimed amount")
-	}
-
-	// update oracle height for both sides
-	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
-	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
-
-	k.addToRewardsClaimedPool(ctx, *msg, validatorAddress)
-
-	ctx.EventManager().EmitEvent(
-		sdkTypes.NewEvent(
-			sdkTypes.EventTypeMessage,
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
-			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchestratorAddress.String()),
-		),
-	)
-
-	return &cosmosTypes.MsgRewardsClaimedOnCosmosChainResponse{}, nil
 }
 
 // UndelegateSuccess sets undelegate success entry in the undelegate success store as sent by the oracles
@@ -646,10 +602,10 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 		return nil, cosmosTypes.ErrOrchAddressNotFound
 	}
 
-	err = outgoingTx.CosmosTxDetails.Tx.UnpackInterfaces(k.cdc)
-	if err != nil {
-		return nil, err
-	}
+	//err = outgoingTx.CosmosTxDetails.Tx.UnpackInterfaces(k.cdc)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	err = cosmosTypes.VerifySignature(account.GetPubKey(), signerData, signatureData, outgoingTx.CosmosTxDetails.Tx)
 	if err != nil {

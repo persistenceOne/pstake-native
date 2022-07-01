@@ -265,7 +265,7 @@ func (p Params) Equal(other Params) bool {
 		p.MaxIncomingAndOutgoingTxns == other.MaxIncomingAndOutgoingTxns &&
 		p.CosmosProposalParams == other.CosmosProposalParams &&
 		p.CustodialAddress == other.CustodialAddress &&
-		p.ModuleEnabled == p.ModuleEnabled &&
+		p.ModuleEnabled == other.ModuleEnabled &&
 		p.StakingEpochIdentifier == other.StakingEpochIdentifier &&
 		p.ChunkSize == other.ChunkSize &&
 		p.UndelegateEpochIdentifier == other.UndelegateEpochIdentifier &&

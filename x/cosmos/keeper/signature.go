@@ -11,7 +11,7 @@ import (
 )
 
 type OutgoingSignaturePoolKeyAndValue struct {
-	txID                       uint64
+	TxID                       uint64
 	OutgoingSignaturePoolValue cosmosTypes.OutgoingSignaturePoolValue
 }
 
@@ -21,7 +21,9 @@ Performs the following actions :
   1. Checks if the store has the key, if it has the key then it appends the signature.
   2. If not present in the store then creates a new entry.
 */
-func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context, singleSignature cosmosTypes.SingleSignatureDataForOutgoingPool, txID uint64, orchestratorAddress sdk.AccAddress, validatorAddress sdk.ValAddress) error {
+func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context,
+	singleSignature cosmosTypes.SingleSignatureDataForOutgoingPool, txID uint64, orchestratorAddress sdk.AccAddress,
+	validatorAddress sdk.ValAddress) error {
 	outgoingSignaturePoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingSignaturePoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	if outgoingSignaturePoolStore.Has(key) {
@@ -33,35 +35,49 @@ func (k Keeper) addToOutgoingSignaturePool(ctx sdk.Context, singleSignature cosm
 		}
 		outgoingSignaturePoolValue.SingleSignatures = append(outgoingSignaturePoolValue.SingleSignatures, singleSignature)
 		outgoingSignaturePoolValue.UpdateValues(validatorAddress.String(), k.GetTotalValidatorOrchestratorCount(ctx))
-		outgoingSignaturePoolValue.OrchestratorAddresses = append(outgoingSignaturePoolValue.OrchestratorAddresses, orchestratorAddress.String())
+		outgoingSignaturePoolValue.OrchestratorAddresses = append(
+			outgoingSignaturePoolValue.OrchestratorAddresses, orchestratorAddress.String())
 
 		outgoingSignaturePoolStore.Set(key, k.cdc.MustMarshal(&outgoingSignaturePoolValue))
 		return nil
 	}
-	outgoingSignaturePoolValue := cosmosTypes.NewOutgoingSignaturePoolValue(singleSignature, validatorAddress, orchestratorAddress)
+	outgoingSignaturePoolValue := cosmosTypes.NewOutgoingSignaturePoolValue(singleSignature, validatorAddress,
+		orchestratorAddress, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 	outgoingSignaturePoolStore.Set(key, k.cdc.MustMarshal(&outgoingSignaturePoolValue))
 	return nil
 }
 
-// Gets all the entries from the outgoing signature pool
-func (k Keeper) getAllFromOutgoingSignaturePool(ctx sdk.Context) (list []OutgoingSignaturePoolKeyAndValue, err error) {
+// GetAllFromOutgoingSignaturePool Gets all the entries from the outgoing signature pool
+func (k Keeper) GetAllFromOutgoingSignaturePool(ctx sdk.Context) (list []OutgoingSignaturePoolKeyAndValue) {
 	outgoingSignaturePoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingSignaturePoolKey)
 	iterator := outgoingSignaturePoolStore.Iterator(nil, nil)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var outgoingSignaturePoolValue cosmosTypes.OutgoingSignaturePoolValue
-		err = k.cdc.Unmarshal(iterator.Value(), &outgoingSignaturePoolValue)
-		if err != nil {
-			return list, err
-		}
+		k.cdc.MustUnmarshal(iterator.Value(), &outgoingSignaturePoolValue)
 		txID := cosmosTypes.UInt64FromBytes(iterator.Key())
 		list = append(list, OutgoingSignaturePoolKeyAndValue{txID, outgoingSignaturePoolValue})
 	}
-	return list, err
+	return list
 }
 
-// Removes the entry corresponding to the given txID from the outgoing signature pool
-func (k Keeper) removeFromOutgoingSignaturePool(ctx sdk.Context, txID uint64) {
+// Sets the signed event emitted flag to true
+func (k Keeper) setEventEmittedForSignedTxn(ctx sdk.Context, txID uint64) {
+	outgoingSignaturePoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingSignaturePoolKey)
+	key := cosmosTypes.UInt64Bytes(txID)
+
+	// get the stored value and unmarshal it
+	var outgoingSignaturePoolValue cosmosTypes.OutgoingSignaturePoolValue
+	k.cdc.MustUnmarshal(outgoingSignaturePoolStore.Get(key), &outgoingSignaturePoolValue)
+
+	// set event emitted flag true
+	outgoingSignaturePoolValue.SignedEventEmitted = true
+
+	outgoingSignaturePoolStore.Set(key, k.cdc.MustMarshal(&outgoingSignaturePoolValue))
+}
+
+// RemoveFromOutgoingSignaturePool Removes the entry corresponding to the given txID from the outgoing signature pool
+func (k Keeper) RemoveFromOutgoingSignaturePool(ctx sdk.Context, txID uint64) {
 	outgoingSignaturePoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingSignaturePoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	outgoingSignaturePoolStore.Delete(key)
@@ -74,19 +90,18 @@ This function is called every EndBlocker to perform the defined set of actions a
    2. Checks if the signatures sent have crossed the threshold.
    3. If majority is reached and other conditions match then the signature is added to the transaction.
    4. Once the signature is added, a signed outgoing txn event is generated.
+   5. Remove transaction signature once the event emitted is true and active block height is reached
 */
 func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
-	outgoingSignaturePool, err := k.getAllFromOutgoingSignaturePool(ctx)
-	if err != nil {
-		panic(err)
-	}
+	outgoingSignaturePool := k.GetAllFromOutgoingSignaturePool(ctx)
 
 	for _, os := range outgoingSignaturePool {
 		ka, ok := k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetPubKey().(multisig.PubKey)
 		if !ok {
 			panic("not able to convert to pubkey")
 		}
-		if os.OutgoingSignaturePoolValue.Counter >= uint64(ka.GetThreshold()) {
+		if os.OutgoingSignaturePoolValue.Counter >= uint64(ka.GetThreshold()) &&
+			!os.OutgoingSignaturePoolValue.SignedEventEmitted {
 			multisigAcc := k.GetAccountState(ctx, k.GetCurrentAddress(ctx))
 			multisigPub := multisigAcc.GetPubKey().(*multisig2.LegacyAminoPubKey)
 			multisigSig := multisig.NewMultisig(len(multisigPub.PubKeys))
@@ -98,7 +113,8 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 					panic(err)
 				}
 				account := k.AuthKeeper.GetAccount(ctx, orchAddress)
-				if err := multisig.AddSignatureFromPubKey(multisigSig, &externalSig, account.GetPubKey(), multisigPub.GetPubKeys()); err != nil {
+				if err := multisig.AddSignatureFromPubKey(multisigSig, &externalSig,
+					account.GetPubKey(), multisigPub.GetPubKeys()); err != nil {
 					panic(err)
 				}
 			}
@@ -109,7 +125,7 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 				Sequence: multisigAcc.GetSequence(),
 			}
 
-			cosmosTx, err := k.GetTxnFromOutgoingPoolByID(ctx, os.txID)
+			cosmosTx, err := k.GetTxnFromOutgoingPoolByID(ctx, os.TxID)
 			if err != nil {
 				panic(err)
 			}
@@ -119,12 +135,17 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 				panic(err)
 			}
 
-			err = k.SetOutgoingTxnSignaturesAndEmitEvent(ctx, cosmosTx.CosmosTxDetails, os.txID)
+			err = k.SetOutgoingTxnSignaturesAndEmitEvent(ctx, cosmosTx.CosmosTxDetails, os.TxID)
 			if err != nil {
 				panic(err)
 			}
 
-			k.removeFromOutgoingSignaturePool(ctx, os.txID)
+			k.setEventEmittedForSignedTxn(ctx, os.TxID)
+		}
+
+		if os.OutgoingSignaturePoolValue.ActiveBlockHeight >= ctx.BlockHeight() &&
+			os.OutgoingSignaturePoolValue.SignedEventEmitted {
+			k.RemoveFromOutgoingSignaturePool(ctx, os.TxID)
 		}
 	}
 }

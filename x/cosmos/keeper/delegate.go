@@ -11,7 +11,7 @@ import (
 )
 
 // Generate an event for delegating on cosmos chain once staking epoch is called
-func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []ValAddressAmount, epochNumber int64) error {
+func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []ValAddressAmount) error {
 	params := k.GetParams(ctx)
 
 	//create chunks for delegation on cosmos chain
@@ -35,6 +35,9 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 		}
 
 		cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
+		if err != nil {
+			return err
+		}
 		execMsg := authz.MsgExec{
 			Grantee: cosmosAddrr,
 			Msgs:    delegateMsgsAny,

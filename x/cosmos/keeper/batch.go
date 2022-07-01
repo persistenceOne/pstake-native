@@ -67,6 +67,12 @@ func (k Keeper) GetTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmos
 	}
 	var cosmosTx cosmosTypes.CosmosTx
 	k.cdc.MustUnmarshal(bz, &cosmosTx)
+
+	err := cosmosTx.Tx.UnpackInterfaces(k.cdc)
+	if err != nil {
+		panic(err)
+	}
+
 	return cosmosTypes.QueryOutgoingTxByIDResponse{
 		CosmosTxDetails: cosmosTx,
 	}, nil
@@ -104,7 +110,6 @@ func (k Keeper) SetOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosT
 		),
 	)
 
-	k.removeFromOutgoingSignaturePool(ctx, txID)
 	return nil
 }
 
@@ -376,6 +381,9 @@ func (k Keeper) retryTransactionWithFailure(ctx sdk.Context, txDetails cosmosTyp
 
 	//remove txHash and mapping
 	k.removeTxHashAndDetails(ctx, txHash)
+
+	// remove from outgoing signature pool
+	k.RemoveFromOutgoingSignaturePool(ctx, txID)
 }
 
 func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
@@ -419,12 +427,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 			panic(err)
 		}
 
-		custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
-		if err != nil {
-			panic(err)
-		}
-
-		multisigAccount := k.GetAccountState(ctx, custodialAddress)
+		multisigAccount := k.GetAccountState(ctx, k.GetCurrentAddress(ctx))
 		if multisigAccount == nil {
 			panic(cosmosTypes.ErrMultiSigAddressNotFound)
 		}
@@ -436,7 +439,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 
 		// process tx if majority status is present
 		if tx.Details.Ratio.LT(cosmosTypes.MinimumRatioForMajority) {
-			panic(err)
+			return
 		}
 
 		// TODO : deal with keeper failure and insufficient balance
@@ -471,16 +474,33 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 			// retry txn with the given failure
 			k.retryTransactionWithFailure(ctx, cosmosTx, txID, tx.TxHash, majorityStatus)
 			k.emitEventForActiveTransaction(ctx, txID)
+		case cosmosTypes.KeeperFailure:
+			k.disableModule(ctx)
+		case cosmosTypes.NotSuccess:
+			// retry txn with the given failure
+			k.retryTransactionWithFailure(ctx, cosmosTx, txID, tx.TxHash, majorityStatus)
+			k.emitEventForActiveTransaction(ctx, txID)
 		}
 
 		// TODO : handle balance, bonded tokens and unbonding tokens value
+		bondDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
+		if err != nil {
+			panic(err)
+		}
+		rewardsAmount := sdk.NewCoin(bondDenom, sdk.NewInt(0))
 		k.setCosmosBalance(ctx, tx.Details.TxStatus.Balance)
-		for _, delegation := range tx.Details.TxStatus.ValidatorDetails {
-			valAddress, err := cosmosTypes.ValAddressFromBech32(delegation.ValidatorAddress, cosmosTypes.Bech32PrefixValAddr)
+		for _, vd := range tx.Details.TxStatus.ValidatorDetails {
+			valAddress, err := cosmosTypes.ValAddressFromBech32(vd.ValidatorAddress, cosmosTypes.Bech32PrefixValAddr)
 			if err != nil {
 				panic(err)
 			}
-			k.UpdateDelegationCosmosValidator(ctx, valAddress, delegation.BondedTokens, delegation.UnbondingTokens)
+			k.UpdateDelegationCosmosValidator(ctx, valAddress, vd.BondedTokens, vd.UnbondingTokens)
+			rewardsAmount = rewardsAmount.Add(vd.RewardsCollected)
+		}
+
+		// add rewards amount collected to the reward epoch pool if amount is not zero
+		if !rewardsAmount.IsZero() {
+			k.addToRewardsInCurrentEpoch(ctx, rewardsAmount)
 		}
 
 		// set sequence number in any case of status, so it stays up to date
@@ -494,6 +514,8 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 		if err != nil {
 			panic(err)
 		}
+
+		k.SetAccountState(ctx, multisigAccount)
 	}
 
 	txDetailsList, err := k.getAllTxInOutgoingPool(ctx)
@@ -504,7 +526,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 		//remove transaction if active block limit is reached and status is set to success
 		if tx.txDetails.ActiveBlockHeight <= ctx.BlockHeight() && tx.txDetails.Status == "success" {
 			k.removeTxnDetailsByID(ctx, tx.txID)
-			k.removeFromOutgoingSignaturePool(ctx, tx.txID)
+			k.RemoveFromOutgoingSignaturePool(ctx, tx.txID)
 			k.removeTxHashAndDetails(ctx, tx.txDetails.TxHash)
 			k.removeFromTransactionQueue(ctx, tx.txID)
 		}

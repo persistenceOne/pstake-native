@@ -65,13 +65,13 @@ func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdraw
 }
 
 // Gets withdraw transaction mapped to current epoch number
-func (k Keeper) fetchWithdrawTxnsWithCurrentEpochInfo(ctx sdk.Context, currentEpoch int64) (withdrawStoreValue cosmosTypes.WithdrawStoreValue, err error) {
+func (k Keeper) fetchWithdrawTxnsWithCurrentEpochInfo(ctx sdk.Context, currentEpoch int64) (withdrawStoreValue cosmosTypes.WithdrawStoreValue) {
 	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
 	if !withdrawStore.Has(cosmosTypes.Int64Bytes(currentEpoch)) {
-		return cosmosTypes.WithdrawStoreValue{WithdrawDetails: []cosmosTypes.MsgWithdrawStkAsset{{Amount: sdk.NewInt64Coin("stake", 0)}}}, nil
+		return cosmosTypes.WithdrawStoreValue{WithdrawDetails: []cosmosTypes.MsgWithdrawStkAsset{{Amount: sdk.NewInt64Coin(k.GetParams(ctx).MintDenom, 0)}}}
 	}
 	k.cdc.MustUnmarshal(withdrawStore.Get(cosmosTypes.Int64Bytes(currentEpoch)), &withdrawStoreValue)
-	return withdrawStoreValue, nil
+	return withdrawStoreValue
 }
 
 // Remove the details mapped to the current epoch number
@@ -90,21 +90,23 @@ func (k Keeper) totalAmountToBeUnbonded(value cosmosTypes.WithdrawStoreValue, de
 }
 
 // Generates send transaction for the withdrawals and add it to the outgoing pool with the given txID
-func (k Keeper) generateSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumber int64) error {
-	withdrawStoreValue, err := k.fetchWithdrawTxnsWithCurrentEpochInfo(ctx, epochNumber)
+func (k Keeper) generateSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumber int64, cValue sdk.Dec) error {
+	withdrawStoreValue := k.fetchWithdrawTxnsWithCurrentEpochInfo(ctx, epochNumber)
+	params := k.GetParams(ctx)
+	bondDenom, err := params.GetBondDenomOf("uatom")
 	if err != nil {
 		return err
 	}
-	params := k.GetParams(ctx)
 	chunkSlice := ChunkWithdrawSlice(withdrawStoreValue.WithdrawDetails, params.ChunkSize)
 	for _, chunk := range chunkSlice {
 		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 		var sendMsgsAny []*codecTypes.Any
 		for _, element := range chunk {
+			withdrawalAmount, _ := sdk.NewDecCoinFromDec(bondDenom, element.Amount.Amount.ToDec().Mul(sdk.NewDec(1).Quo(cValue))).TruncateDecimal()
 			msg := types.MsgSend{
 				FromAddress: params.CustodialAddress,
 				ToAddress:   element.ToAddress,
-				Amount:      sdk.NewCoins(element.Amount), // TODO Multiply by Ratio
+				Amount:      sdk.NewCoins(withdrawalAmount),
 			}
 			anyMsg, err := codecTypes.NewAnyWithValue(&msg)
 			if err != nil {
@@ -114,6 +116,9 @@ func (k Keeper) generateSendTransactionForAllWithdrawals(ctx sdk.Context, epochN
 		}
 
 		cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
+		if err != nil {
+			return err
+		}
 		execMsg := authz.MsgExec{
 			Grantee: cosmosAddrr,
 			Msgs:    sendMsgsAny,
@@ -153,7 +158,11 @@ func (k Keeper) generateSendTransactionForAllWithdrawals(ctx sdk.Context, epochN
 
 		k.setNewInTransactionQueue(ctx, nextID)
 	}
+
+	// delete from all the stores
 	k.deleteEpochWithdrawSuccessStore(ctx, epochNumber)
+	k.deleteWithdrawTxnWithCurrentEpochInfo(ctx, epochNumber)
+	k.deleteEpochNumberAndUndelegateDetailsOfValidators(ctx, epochNumber)
 	return nil
 }
 

@@ -4,7 +4,6 @@ import sdk "github.com/cosmos/cosmos-sdk/types"
 
 var _ DBHelper = &ProposalValue{}
 var _ DBHelper = &TxHashValue{}
-var _ DBHelper = &RewardsClaimedValue{}
 var _ DBHelper = &ValueUndelegateSuccessStore{}
 var _ DBHelper = &OutgoingSignaturePoolValue{}
 var _ DBHelper = &SlashingStoreValue{}
@@ -39,23 +38,6 @@ func (m *TxHashValue) Find(valAddress string) bool {
 
 // UpdateValues updates validator addresses array and total validator count
 func (m *TxHashValue) UpdateValues(valAddress string, totalValidatorCount int64) {
-	m.ValidatorAddresses = append(m.ValidatorAddresses, valAddress)
-	m.Counter++
-	m.Ratio = sdk.NewDec(m.Counter).Quo(sdk.NewDec(totalValidatorCount))
-}
-
-// Find returns if the valAddress passed is present or not
-func (m *RewardsClaimedValue) Find(valAddress string) bool {
-	for _, address := range m.ValidatorAddresses {
-		if address == valAddress {
-			return true
-		}
-	}
-	return false
-}
-
-// UpdateValues updates validator addresses array and total validator count
-func (m *RewardsClaimedValue) UpdateValues(valAddress string, totalValidatorCount int64) {
 	m.ValidatorAddresses = append(m.ValidatorAddresses, valAddress)
 	m.Counter++
 	m.Ratio = sdk.NewDec(m.Counter).Quo(sdk.NewDec(totalValidatorCount))

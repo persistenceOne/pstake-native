@@ -2,9 +2,9 @@ package types
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
@@ -70,10 +70,6 @@ func (m *ChangeMultisigProposal) ValidateBasic() error {
 		return fmt.Errorf("threshold cannot be greated than the number of addresses")
 	}
 
-	if m.AccountNumber < 0 {
-		return fmt.Errorf("account number must be non-negative")
-	}
-
 	return nil
 }
 
@@ -90,13 +86,15 @@ func (m *ChangeMultisigProposal) String() string {
 }
 
 // NewEnableModuleProposal returns a new module enable proposal
-func NewEnableModuleProposal(title, description string, threshold uint64, accountNumber uint64, orchestratorAddresses []string) *EnableModuleProposal {
+func NewEnableModuleProposal(title, description string, threshold, accountNumber,
+	sequenceNumber uint64, orchestratorAddresses []string) *EnableModuleProposal {
 	return &EnableModuleProposal{
 		Title:                 title,
 		Description:           description,
 		Threshold:             threshold,
 		AccountNumber:         accountNumber,
 		OrchestratorAddresses: orchestratorAddresses,
+		SequenceNumber:        sequenceNumber,
 	}
 }
 
@@ -129,10 +127,6 @@ func (m *EnableModuleProposal) ValidateBasic() error {
 
 	if m.Threshold > uint64(len(m.OrchestratorAddresses)) {
 		return fmt.Errorf("threshold cannot be greater than the number of addresses")
-	}
-
-	if m.AccountNumber < 0 {
-		return fmt.Errorf("account number must be non-negative")
 	}
 
 	return nil

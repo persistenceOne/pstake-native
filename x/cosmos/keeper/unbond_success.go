@@ -1,9 +1,10 @@
 package keeper
 
 import (
+	"math"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"math"
 
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
@@ -86,7 +87,7 @@ This function is called every EndBlocker to perform the defined set of actions a
 */
 func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) {
 	list := k.getAllUndelegateSuccessDetails(ctx)
-	epochNumber := k.getLeastEpochNumberWithWithdrawStatusFalse(ctx)
+	epochNumber, cValue := k.getLeastEpochNumberWithWithdrawStatusFalse(ctx)
 	if epochNumber == int64(math.MaxInt64) {
 		return
 	}
@@ -105,7 +106,7 @@ func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) {
 
 	flagForWithdrawSuccess := k.getEpochNumberAndUndelegateDetailsOfValidators(ctx, epochNumber)
 	if flagForWithdrawSuccess {
-		err := k.generateSendTransactionForAllWithdrawals(ctx, epochNumber)
+		err := k.generateSendTransactionForAllWithdrawals(ctx, epochNumber, cValue)
 		if err != nil {
 			panic(err)
 		}

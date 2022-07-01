@@ -50,7 +50,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 			if err != nil {
 				panic(err)
 			}
-			err = k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake, epochNumber)
+			err = k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake)
 			if err != nil {
 				panic(err)
 			}
@@ -74,7 +74,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 
 			// if the list of validator is not empty then generate a list to delegate and mint the rewards
 			if len(listOfValidatorsToStake) != 0 {
-				err = k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake, epochNumber)
+				err = k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake)
 				if err != nil {
 					panic(err)
 				}
@@ -92,10 +92,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	}
 
 	if epochIdentifier == params.UndelegateEpochIdentifier {
-		withdrawTxns, err := k.fetchWithdrawTxnsWithCurrentEpochInfo(ctx, epochNumber)
-		if err != nil {
-			panic(err)
-		}
+		withdrawTxns := k.fetchWithdrawTxnsWithCurrentEpochInfo(ctx, epochNumber)
 		unbondDenom, err := params.GetBondDenomOf("stake")
 		if err != nil {
 			panic(err)
@@ -103,14 +100,15 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		totalWithdrawal := k.totalAmountToBeUnbonded(withdrawTxns, unbondDenom)
 
 		// calculate uatoms to be unbonded after incorporating C value
-		toBeUnbondedAmount, _ := sdk.NewDecCoinFromDec(totalWithdrawal.Denom, totalWithdrawal.Amount.ToDec().Mul(sdk.NewDec(1).Quo(k.GetCValue(ctx)))).TruncateDecimal()
+		cValue := k.GetCValue(ctx)
+		toBeUnbondedAmount, _ := sdk.NewDecCoinFromDec(totalWithdrawal.Denom, totalWithdrawal.Amount.ToDec().Mul(sdk.NewDec(1).Quo(cValue))).TruncateDecimal()
 		//check if amount is zero then do not emit event
 		if !toBeUnbondedAmount.IsZero() {
 			listOfValidatorsAndUnbondingAmount, err := k.FetchValidatorsToUndelegate(ctx, toBeUnbondedAmount)
 			if err != nil {
 				panic(err)
 			}
-			k.generateUnbondingOutgoingTxn(ctx, listOfValidatorsAndUnbondingAmount, epochNumber)
+			k.generateUnbondingOutgoingTxn(ctx, listOfValidatorsAndUnbondingAmount, epochNumber, cValue)
 
 			// convert the total withdrawal back to mint denom to burn the same amount as the unbonding transaction has been added to the queue
 			burnCoin := sdk.NewCoin(k.GetParams(ctx).MintDenom, totalWithdrawal.Amount)
@@ -126,9 +124,6 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 
 			// subtract from staked amount as the transaction has been added to the queue
 			k.AddToVirtuallyUnbonded(ctx, toBeUnbondedAmount)
-
-			// delete the entry for withdrawal from current epoch info once processed
-			k.deleteWithdrawTxnWithCurrentEpochInfo(ctx, epochNumber)
 		}
 	}
 }

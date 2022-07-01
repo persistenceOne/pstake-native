@@ -1,10 +1,12 @@
 package keeper
 
 import (
+	"sync"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/hashicorp/golang-lru/simplelru"
+
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	"sync"
 )
 
 const (
@@ -67,6 +69,19 @@ func (k Keeper) SubFromMinted(ctx sdk.Context, burntAmount sdk.Coin) {
 	store.Set(cosmosTypes.KeyMintedAmount, k.cdc.MustMarshal(&newMintedAmount))
 }
 
+// GetMintedAmount gets minted amount
+func (k Keeper) GetMintedAmount(ctx sdk.Context) sdk.Coin {
+	store := ctx.KVStore(k.storeKey)
+	if store.Has(cosmosTypes.KeyMintedAmount) {
+		var mintedAmount sdk.Coin
+		k.cdc.MustUnmarshal(store.Get(cosmosTypes.KeyMintedAmount), &mintedAmount)
+		return mintedAmount
+	}
+	return sdk.NewInt64Coin(k.GetParams(ctx).MintDenom, 0)
+}
+
+//______________________________________________________________________________________________________________________
+
 // AddToVirtuallyStaked adds to the total virtually staked amount
 // used in case when the tokens have been minted but not yet staked
 func (k Keeper) AddToVirtuallyStaked(ctx sdk.Context, notStakedAmount sdk.Coin) {
@@ -104,6 +119,23 @@ func (k Keeper) SubFromVirtuallyStaked(ctx sdk.Context, notStakedAmount sdk.Coin
 	}
 	store.Set(cosmosTypes.KeyVirtuallyStakedAmount, k.cdc.MustMarshal(&newVirtuallyStakedAmount))
 }
+
+// GetVirtuallyStakedAmount gets virtually staked amount
+func (k Keeper) GetVirtuallyStakedAmount(ctx sdk.Context) sdk.Coin {
+	store := ctx.KVStore(k.storeKey)
+	if store.Has(cosmosTypes.KeyVirtuallyStakedAmount) {
+		var mintedAmount sdk.Coin
+		k.cdc.MustUnmarshal(store.Get(cosmosTypes.KeyVirtuallyStakedAmount), &mintedAmount)
+		return mintedAmount
+	}
+	bondDenom, err := k.GetParams(ctx).GetBondDenomOf("stake")
+	if err != nil {
+		panic(err)
+	}
+	return sdk.NewInt64Coin(bondDenom, 0)
+}
+
+//______________________________________________________________________________________________________________________
 
 // AddToStaked adds to total staked amount
 // used in case when the tokens have been successfully staked
@@ -143,70 +175,6 @@ func (k Keeper) SubFromStaked(ctx sdk.Context, stakedAmount sdk.Coin) {
 	store.Set(cosmosTypes.KeyStakedAmount, k.cdc.MustMarshal(&newStakedAmount))
 }
 
-// AddToVirtuallyUnbonded adds to virtually unbonded amount
-// used in case when the token have been withdrawn but not yet unbonded
-func (k Keeper) AddToVirtuallyUnbonded(ctx sdk.Context, virtuallyUnbonded sdk.Coin) {
-	cValueMu.Lock()
-	defer cValueMu.Unlock()
-	cValueCache.Remove(cValueCacheKey)
-
-	store := ctx.KVStore(k.storeKey)
-	if !store.Has(cosmosTypes.KeyVirtuallyUnbonded) {
-		store.Set(cosmosTypes.KeyVirtuallyUnbonded, k.cdc.MustMarshal(&virtuallyUnbonded))
-	}
-
-	var newVirtuallyUnbonded sdk.Coin
-	k.cdc.MustUnmarshal(store.Get(cosmosTypes.KeyStakedAmount), &newVirtuallyUnbonded)
-	newVirtuallyUnbonded = newVirtuallyUnbonded.Add(virtuallyUnbonded)
-	store.Set(cosmosTypes.KeyStakedAmount, k.cdc.MustMarshal(&newVirtuallyUnbonded))
-
-}
-
-// SubFromVirtuallyUnbonded subtracts from the total staked amount
-// used in case when the unbond has been successfully exectued and is being subtracted from total staked
-func (k Keeper) SubFromVirtuallyUnbonded(ctx sdk.Context, virtuallyUnbonded sdk.Coin) {
-	cValueMu.Lock()
-	defer cValueMu.Unlock()
-	cValueCache.Remove(cValueCacheKey)
-
-	store := ctx.KVStore(k.storeKey)
-
-	var newVirtuallyUnbonded sdk.Coin
-	k.cdc.MustUnmarshal(store.Get(cosmosTypes.KeyStakedAmount), &newVirtuallyUnbonded)
-	newVirtuallyUnbonded = newVirtuallyUnbonded.Sub(virtuallyUnbonded)
-	if newVirtuallyUnbonded.IsNegative() {
-		k.disableModule(ctx)
-		panic("virtual unbonded amount is negative")
-	}
-	store.Set(cosmosTypes.KeyStakedAmount, k.cdc.MustMarshal(&newVirtuallyUnbonded))
-}
-
-// GetMintedAmount gets minted amount
-func (k Keeper) GetMintedAmount(ctx sdk.Context) sdk.Coin {
-	store := ctx.KVStore(k.storeKey)
-	if store.Has(cosmosTypes.KeyMintedAmount) {
-		var mintedAmount sdk.Coin
-		k.cdc.MustUnmarshal(store.Get(cosmosTypes.KeyMintedAmount), &mintedAmount)
-		return mintedAmount
-	}
-	return sdk.NewInt64Coin(k.GetParams(ctx).MintDenom, 0)
-}
-
-// GetVirtuallyStakedAmount gets virtually staked amount
-func (k Keeper) GetVirtuallyStakedAmount(ctx sdk.Context) sdk.Coin {
-	store := ctx.KVStore(k.storeKey)
-	if store.Has(cosmosTypes.KeyVirtuallyStakedAmount) {
-		var mintedAmount sdk.Coin
-		k.cdc.MustUnmarshal(store.Get(cosmosTypes.KeyVirtuallyStakedAmount), &mintedAmount)
-		return mintedAmount
-	}
-	bondDenom, err := k.GetParams(ctx).GetBondDenomOf("stake")
-	if err != nil {
-		panic(err)
-	}
-	return sdk.NewInt64Coin(bondDenom, 0)
-}
-
 // GetStakedAmount gets staked amount
 func (k Keeper) GetStakedAmount(ctx sdk.Context) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
@@ -220,6 +188,46 @@ func (k Keeper) GetStakedAmount(ctx sdk.Context) sdk.Coin {
 		panic(err)
 	}
 	return sdk.NewInt64Coin(bondDenom, 0)
+}
+
+//______________________________________________________________________________________________________________________
+
+// AddToVirtuallyUnbonded adds to virtually unbonded amount
+// used in case when the token have been withdrawn but not yet unbonded
+func (k Keeper) AddToVirtuallyUnbonded(ctx sdk.Context, virtuallyUnbonded sdk.Coin) {
+	cValueMu.Lock()
+	defer cValueMu.Unlock()
+	cValueCache.Remove(cValueCacheKey)
+
+	store := ctx.KVStore(k.storeKey)
+	if !store.Has(cosmosTypes.KeyVirtuallyUnbonded) {
+		store.Set(cosmosTypes.KeyVirtuallyUnbonded, k.cdc.MustMarshal(&virtuallyUnbonded))
+	}
+
+	var newVirtuallyUnbonded sdk.Coin
+	k.cdc.MustUnmarshal(store.Get(cosmosTypes.KeyVirtuallyUnbonded), &newVirtuallyUnbonded)
+	newVirtuallyUnbonded = newVirtuallyUnbonded.Add(virtuallyUnbonded)
+	store.Set(cosmosTypes.KeyVirtuallyUnbonded, k.cdc.MustMarshal(&newVirtuallyUnbonded))
+
+}
+
+// SubFromVirtuallyUnbonded subtracts from the total staked amount
+// used in case when the unbond has been successfully executed and is being subtracted from total staked
+func (k Keeper) SubFromVirtuallyUnbonded(ctx sdk.Context, virtuallyUnbonded sdk.Coin) {
+	cValueMu.Lock()
+	defer cValueMu.Unlock()
+	cValueCache.Remove(cValueCacheKey)
+
+	store := ctx.KVStore(k.storeKey)
+
+	var newVirtuallyUnbonded sdk.Coin
+	k.cdc.MustUnmarshal(store.Get(cosmosTypes.KeyVirtuallyUnbonded), &newVirtuallyUnbonded)
+	newVirtuallyUnbonded = newVirtuallyUnbonded.Sub(virtuallyUnbonded)
+	if newVirtuallyUnbonded.IsNegative() {
+		k.disableModule(ctx)
+		panic("virtual unbonded amount is negative")
+	}
+	store.Set(cosmosTypes.KeyVirtuallyUnbonded, k.cdc.MustMarshal(&newVirtuallyUnbonded))
 }
 
 // GetVirtuallyUnbonded gets virtually unbonded amount
@@ -236,6 +244,8 @@ func (k Keeper) GetVirtuallyUnbonded(ctx sdk.Context) sdk.Coin {
 	}
 	return sdk.NewInt64Coin(bondDenom, 0)
 }
+
+//______________________________________________________________________________________________________________________
 
 // GetCValue gets the C cached C value if cache is valid or re-calculates if expired
 // returns 1 in case where total staked amount is 0
@@ -271,6 +281,8 @@ func (k Keeper) GetCValue(ctx sdk.Context) sdk.Dec {
 	cValueCache.Add(cValueCacheKey, CValue{cValue: calculatedCValue, blockHeight: ctx.BlockHeight()})
 	return calculatedCValue
 }
+
+//______________________________________________________________________________________________________________________
 
 // SlashingEvent resets the C value and subtracts the staked amount with the given slashed amount
 func (k Keeper) SlashingEvent(ctx sdk.Context, slashedAmount sdk.Coin) {

@@ -11,6 +11,7 @@ const (
 	GasFailure       = "gas failure"
 	SequenceMismatch = "sequence mismatch"
 	KeeperFailure    = "keeper failure"
+	NotSuccess       = "not success"
 )
 
 // UInt64FromBytes create uint from binary big endian representation

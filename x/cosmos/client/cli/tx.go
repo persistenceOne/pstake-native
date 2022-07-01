@@ -40,7 +40,6 @@ func NewTxCmd() *cobra.Command {
 		NewCmdWeightedVote(),
 		NewCmdTxStatusCmd(),
 		NewWithdrawCmd(),
-		NewRewardsClaimedCmd(),
 		NewSlashinEventCmd(),
 	)
 
@@ -353,47 +352,6 @@ func NewWithdrawCmd() *cobra.Command {
 	return cmd
 }
 
-func NewRewardsClaimedCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "rewards-claimed [orchestrator-address] [amount_claimed] [chainID] [block-height]",
-		Args:  cobra.ExactArgs(4),
-		Short: "Rewards claimed transaction",
-		Long: strings.TrimSpace(
-			`Submit amount claimed on other chain to be re staked`,
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			orchAddr, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-
-			amount, err := sdk.ParseCoinNormalized(args[1])
-			if err != nil {
-				return err
-			}
-
-			chainID := args[2]
-
-			blockHeight, err := strconv.ParseInt(args[3], 10, 64)
-			if err != nil {
-				return err
-			}
-
-			msg := cosmosTypes.NewMsgRewardsClaimedOnCosmosChain(orchAddr, amount, chainID, blockHeight)
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
 func NewEnableModuleCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "enable-module [proposal-file]",
@@ -414,7 +372,8 @@ func NewEnableModuleCmd() *cobra.Command {
 			}
 
 			from := clientCtx.GetFromAddress()
-			content := cosmosTypes.NewEnableModuleProposal(proposal.Title, proposal.Description, proposal.Threshold, proposal.AccountNumber, proposal.OrchestratorAddresses)
+			content := cosmosTypes.NewEnableModuleProposal(proposal.Title, proposal.Description, proposal.Threshold,
+				proposal.AccountNumber, proposal.SequenceNumber, proposal.OrchestratorAddresses)
 
 			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
 			if err != nil {

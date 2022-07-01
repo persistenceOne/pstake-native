@@ -14,7 +14,8 @@ import (
 )
 
 // Generate unbonding outgoing transaction and set in outoging pool with given txID
-func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAndUnbondingAmount []ValAddressAmount, epochNumber int64) {
+func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAndUnbondingAmount []ValAddressAmount,
+	epochNumber int64, cValue sdk.Dec) {
 	params := k.GetParams(ctx)
 
 	chunkMsgs := ChunkDelegateAndUndelegateSlice(listOfValidatorsAndUnbondingAmount, params.ChunkSize)
@@ -39,6 +40,9 @@ func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAn
 		}
 
 		cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
+		if err != nil {
+			panic(err)
+		}
 		execMsg := authz.MsgExec{
 			Grantee: cosmosAddrr,
 			Msgs:    undelegateMsgsAny,
@@ -73,7 +77,7 @@ func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAn
 			SignerAddress:     cosmosAddrr,
 		}
 
-		err = k.setIDInEpochPoolForWithdrawals(ctx, nextID, undelegategMsgs, epochNumber)
+		err = k.setIDInEpochPoolForWithdrawals(ctx, nextID, undelegategMsgs, epochNumber, cValue)
 		if err != nil {
 			panic(err)
 		}
@@ -85,10 +89,11 @@ func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAn
 }
 
 // Sets ID in epoch pool for withdrawals for the given aaray of undelegate messages
-func (k Keeper) setIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64, undelegateMsgs []stakingTypes.MsgUndelegate, epochNumber int64) error {
+func (k Keeper) setIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64,
+	undelegateMsgs []stakingTypes.MsgUndelegate, epochNumber int64, cValue sdk.Dec) error {
 	unbondingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingUnbondStore)
 	key := cosmosTypes.UInt64Bytes(txID)
-	value := cosmosTypes.NewValueOutgoingUnbondStore(undelegateMsgs, epochNumber)
+	value := cosmosTypes.NewValueOutgoingUnbondStore(undelegateMsgs, epochNumber, cValue)
 	bz, err := k.cdc.Marshal(&value)
 	if err != nil {
 		return err
@@ -115,29 +120,33 @@ func (k Keeper) deleteIDInEpochPoolForWithdrawals(ctx sdk.Context, txID uint64) 
 //_____________________________________________________________________________________
 
 // Set given epoch number with status "false" in epoch withdraw success store
-func (k Keeper) setEpochWithdrawSuccessStore(ctx sdk.Context, epochNumber int64) {
+func (k Keeper) setEpochWithdrawSuccessStore(ctx sdk.Context, epochNumber int64, cValue sdk.Dec) {
 	epochWithdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyEpochStoreForWithdrawSuccess)
 	key := cosmosTypes.Int64Bytes(epochNumber)
 	if !epochWithdrawStore.Has(key) {
-		epochWithdrawStore.Set(key, []byte("false"))
+		value := cosmosTypes.NewEpochWithdrawSuccessStoreValue(cValue)
+		epochWithdrawStore.Set(key, k.cdc.MustMarshal(&value))
 	}
 }
 
 // Gets the least epoch number with withdraw status false from withdraw success store
-func (k Keeper) getLeastEpochNumberWithWithdrawStatusFalse(ctx sdk.Context) int64 {
+func (k Keeper) getLeastEpochNumberWithWithdrawStatusFalse(ctx sdk.Context) (epochNumber int64, cValue sdk.Dec) {
 	epochWithdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyEpochStoreForWithdrawSuccess)
 	iterator := epochWithdrawStore.Iterator(nil, nil)
 	defer iterator.Close()
 	min := int64(math.MaxInt64)
 	for ; iterator.Valid(); iterator.Next() {
-		if string(iterator.Value()) == "false" {
-			epochNumber := cosmosTypes.Int64FromBytes(iterator.Key())
+		var storeValue cosmosTypes.EpochWithdrawSuccessStoreValue
+		k.cdc.MustUnmarshal(iterator.Value(), &storeValue)
+		if !storeValue.Status {
+			epochNumber = cosmosTypes.Int64FromBytes(iterator.Key())
 			if min > epochNumber {
 				min = epochNumber
+				cValue = storeValue.CValue
 			}
 		}
 	}
-	return min
+	return min, cValue
 }
 
 // Removes the given epoch number entry from the epoch withdraw success store
@@ -158,7 +167,7 @@ func (k Keeper) setEpochNumberAndUndelegateDetailsOfValidators(ctx sdk.Context, 
 	}
 }
 
-// Set epoch number and undelefate details of validator in the epoch number store
+// Set epoch number and undelegate details of validator in the epoch number store
 func (k Keeper) setEpochNumberAndUndelegateDetailsOfIndividualValidator(ctx sdk.Context, validatorAddress string, epochNumber int64, amount sdk.Coin) {
 	epochNumberStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.GetEpochStoreForUndelegationKey(epochNumber))
 	a := append([]byte(validatorAddress), []byte(amount.String())...)
@@ -177,10 +186,13 @@ func (k Keeper) getEpochNumberAndUndelegateDetailsOfValidators(ctx sdk.Context, 
 			return false
 		}
 	}
-	if counter > 0 {
-		return true
-	}
-	return false
+	return true
+}
+
+func (k Keeper) deleteEpochNumberAndUndelegateDetailsOfValidators(ctx sdk.Context, epochNumber int64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(cosmosTypes.GetEpochStoreForUndelegationKey(epochNumber))
+
 }
 
 // set the validator details for all MsgUndelegate success entries
@@ -188,7 +200,7 @@ func (k Keeper) setEpochAndValidatorDetailsForAllUndelegations(ctx sdk.Context, 
 	details := k.getIDInEpochPoolForWithdrawals(ctx, txID)
 	k.setEpochNumberAndUndelegateDetailsOfValidators(ctx, details) //sets undelegations txns for future verifications
 	k.deleteIDInEpochPoolForWithdrawals(ctx, txID)
-	k.setEpochWithdrawSuccessStore(ctx, details.EpochNumber) //sets withdraw batch success as false
+	k.setEpochWithdrawSuccessStore(ctx, details.EpochNumber, details.CValue) //sets withdraw batch success as false
 }
 
 // ChunkDelegateAndUndelegateSlice divides 1D slice of ValAddressAmount into chunks of given size and
