@@ -18,9 +18,6 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 	}
 
 	grpcConn, err := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
-	if err != nil {
-		return err
-	}
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
@@ -34,24 +31,19 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 	TxResult, err := LiquidStakingModuleClient.QueryTxByID(context.Background(),
 		&cosmosTypes.QueryOutgoingTxByIDRequest{TxID: uint64(txId)},
 	)
-	if err != nil {
-		return err
-	}
 
 	OutgoingTx := TxResult.CosmosTxDetails.GetTx()
 
 	signerAddress := TxResult.CosmosTxDetails.SignerAddress
 
 	signature, err := GetSignBytesForCosmos(orcSeeds[0], chain, clientCtx, OutgoingTx, signerAddress)
-	if err != nil {
-		return err
-	}
-	_, addr := GetPivKeyAddress(native.AccountPrefix, native.CoinType, orcSeeds[0])
+	_, addr := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
-	grpcConnCos, err := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
+
+	grpcConnCos, _ := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
 	defer func(grpcConnCos *grpc.ClientConn) {
 		err := grpcConnCos.Close()
 		if err != nil {
@@ -71,9 +63,6 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 	}
 
 	txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
-	if err != nil {
-		return err
-	}
 
 	res, err := txClient.BroadcastTx(context.Background(),
 		&txD.BroadcastTxRequest{
@@ -85,5 +74,10 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 		return err
 	}
 	logg.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

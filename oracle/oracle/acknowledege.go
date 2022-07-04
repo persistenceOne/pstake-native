@@ -12,7 +12,7 @@ import (
 
 func SendMsgAcknowledgement(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string, TxHash string, status string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context) error {
 
-	_, addr := GetPivKeyAddress(native.AccountPrefix, native.CoinType, orcSeeds[0])
+	_, addr := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
 	ValDetails := GetValidatorDetails(cosmosChain)
 
@@ -51,11 +51,7 @@ func SendMsgAcknowledgement(native *NativeChain, cosmosChain *CosmosChain, orcSe
 			return err
 		}
 
-		grpcConn, err := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
-
-		if err != nil {
-			panic(err)
-		}
+		grpcConn, _ := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
 		defer func(grpcConn *grpc.ClientConn) {
 			err := grpcConn.Close()
 			if err != nil {
@@ -92,9 +88,6 @@ func GetMultiSigAddress(chain *NativeChain, chainC *CosmosChain) (types.AccAddre
 	var txId uint64
 
 	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
-	if err != nil {
-		return nil, err, "fail"
-	}
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
@@ -114,9 +107,6 @@ func GetMultiSigAddress(chain *NativeChain, chainC *CosmosChain) (types.AccAddre
 	ActiveTxID, err := cosmosQueryClient.ActiveTxn(context.Background(),
 		&cosmosTypes.QueryActiveTxnRequest{},
 	)
-	if err != nil {
-		return nil, err, "fail"
-	}
 
 	txId = ActiveTxID.GetTxID()
 	if txId != 0 {

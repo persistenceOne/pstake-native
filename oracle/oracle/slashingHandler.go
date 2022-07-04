@@ -14,20 +14,17 @@ func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr s
 	custodialAddr, err := Bech32ifyAddressBytes(chain.AccountPrefix, chain.CustodialAddress)
 	if err != nil {
 		logg.Println(err)
-		return err
+		panic(err)
 	}
 	SetSDKConfigPrefix(chain.AccountPrefix)
 	slashedValAddress, err := AccAddressFromBech32(slash, chain.AccountPrefix)
 
 	if err != nil {
 		logg.Println(err)
-		return err
+		panic(err)
 	}
 
 	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
-	if err != nil {
-		return err
-	}
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
@@ -37,7 +34,7 @@ func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr s
 
 	if err != nil {
 		logg.Println("GRPC Connection failed")
-		return err
+		panic(err)
 	}
 
 	stakingQueryClient := stakingTypes.NewQueryClient(grpcConn)
@@ -51,13 +48,9 @@ func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr s
 		},
 	)
 
-	if err != nil {
-		return err
-	}
-
 	BondedDelegations := BondedTokensQueryResult.DelegationResponse.Balance
 
-	_, addr := GetPivKeyAddress(native.AccountPrefix, native.CoinType, orcSeeds[0])
+	_, addr := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, orcSeeds[0])
 	msg := &cosmosTypes.MsgSlashingEventOnCosmosChain{
 		ValidatorAddress:    valAddr,
 		CurrentDelegation:   BondedDelegations,
@@ -73,10 +66,7 @@ func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr s
 		return err
 	}
 
-	grpcConnN, err := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
-	if err != nil {
-		return err
-	}
+	grpcConnN, _ := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
 	defer func(grpcConnN *grpc.ClientConn) {
 		err := grpcConnN.Close()
 		if err != nil {
