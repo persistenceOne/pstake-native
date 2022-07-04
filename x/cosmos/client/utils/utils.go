@@ -41,6 +41,8 @@ type EnableModuleProposalJSON struct {
 	OrchestratorAddresses []string `json:"orchestrator_addresses" yaml:"orchestrator_addresses"`
 	Depositor             string   `json:"depositor" yaml:"depositor"`
 	Deposit               string   `json:"deposit" yaml:"deposit"`
+	CustodialAddress      string   `json:"custodial_address" yaml:"custodial_address"`
+	ChainID               string   `json:"chain_id" yaml:"chain_id"`
 }
 
 type ChangeMultisigPropsoalJSON struct {

@@ -1,0 +1,13 @@
+{
+  "type" : "/cosmos.gov.v1beta1.MsgSubmitProposal",
+  "title": "Disable cosmos module",
+  "description": "Disable cosmos module",
+  "changes": [
+    {
+      "subspace": "cosmos",
+      "key": "ModuleEnabled",
+      "value": false
+    }
+  ],
+  "deposit": "512stake"
+}

@@ -34,6 +34,8 @@ message EnableModuleProposal {
   uint64 account_number = 4;
   uint64 sequence_number = 5;
   repeated string orchestrator_addresses = 6;
+  string custodial_address = 7;
+  string chain_i_d = 8;
 }
 
 message ChangeCosmosValidatorWeightsProposal {

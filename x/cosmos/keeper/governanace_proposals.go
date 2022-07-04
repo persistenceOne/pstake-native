@@ -179,12 +179,34 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 	}
 	k.SetAccountState(ctx, multisigAcc)
 
-	logger := k.Logger(ctx)
-	logger.Info(cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, multisigAccAddress))
 	// set new multisig address as the current address for transaction signing
 	k.SetCurrentAddress(ctx, multisigAccAddress)
 
+	custodialAccAddress, err := cosmosTypes.AccAddressFromBech32(p.CustodialAddress, cosmosTypes.Bech32PrefixAccAddr)
+	if err != nil {
+		return err
+	}
+	custodialAddressString, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, custodialAccAddress)
+	if err != nil {
+		return err
+	}
+
+	// set custodial address, chainID and enable the module.
+	k.setCustodialAddress(ctx, custodialAddressString)
+	k.setCosmosChainID(ctx, p.ChainID)
 	k.enableModule(ctx)
+
+	multisigAddress, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, multisigAccAddress)
+	if err != nil {
+		return err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			cosmosTypes.EventModuleEnableProposal,
+			sdk.NewAttribute(cosmosTypes.AttributeMultisigAddress, multisigAddress),
+		),
+	)
 
 	return nil
 }

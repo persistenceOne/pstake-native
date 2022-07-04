@@ -76,11 +76,11 @@ func DefaultParams() Params {
 		Epochs:                     0,
 		MaxIncomingAndOutgoingTxns: 10000,
 		CosmosProposalParams: CosmosChainProposalParams{
-			ChainID:              "cosmoshub-4", //TODO use these as conditions for proposals
+			ChainID:              "cosmoshub-4",
 			ReduceVotingPeriodBy: DefaultPeriod,
 		},
-		ModuleEnabled:             false, //TODO : Make false before launch
-		CustodialAddress:          "cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2",
+		ModuleEnabled:             false,
+		CustodialAddress:          "",
 		StakingEpochIdentifier:    "uatom",
 		UndelegateEpochIdentifier: "undelegate",
 		RewardEpochIdentifier:     "reward",
