@@ -128,7 +128,7 @@ func (k Keeper) GetVirtuallyStakedAmount(ctx sdk.Context) sdk.Coin {
 		k.cdc.MustUnmarshal(store.Get(cosmosTypes.KeyVirtuallyStakedAmount), &mintedAmount)
 		return mintedAmount
 	}
-	bondDenom, err := k.GetParams(ctx).GetBondDenomOf("stake")
+	bondDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
 	if err != nil {
 		panic(err)
 	}
@@ -183,7 +183,7 @@ func (k Keeper) GetStakedAmount(ctx sdk.Context) sdk.Coin {
 		k.cdc.MustUnmarshal(store.Get(cosmosTypes.KeyStakedAmount), &mintedAmount)
 		return mintedAmount
 	}
-	bondDenom, err := k.GetParams(ctx).GetBondDenomOf("stake")
+	bondDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
 	if err != nil {
 		panic(err)
 	}
@@ -238,7 +238,7 @@ func (k Keeper) GetVirtuallyUnbonded(ctx sdk.Context) sdk.Coin {
 		k.cdc.MustUnmarshal(store.Get(cosmosTypes.KeyVirtuallyUnbonded), &virtuallyUnbonded)
 		return virtuallyUnbonded
 	}
-	bondDenom, err := k.GetParams(ctx).GetBondDenomOf("stake")
+	bondDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
 	if err != nil {
 		panic(err)
 	}

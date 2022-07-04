@@ -111,10 +111,9 @@ message Params {
   string undelegate_epoch_identifier = 18;
   repeated string bond_denoms = 19;
   string staking_denom = 20;
-  uint64 multisig_threshold = 21;
-  uint64 retry_limit = 22;
-  string reward_epoch_identifier = 23;
-  cosmos.base.v1beta1.Coin min_reward = 24 [
+  uint64 retry_limit = 21;
+  string reward_epoch_identifier = 22;
+  cosmos.base.v1beta1.Coin min_reward = 23 [
     (gogoproto.moretags) = "yaml:\"min_minting_amount\"",
     (gogoproto.nullable) = false
   ];

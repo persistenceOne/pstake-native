@@ -16,12 +16,12 @@ import (
 const (
 	DefaultPeriod       = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
 	DefaultMintDenom    = "ustkatom"
-	DefaultStakingDenom = "stake"
+	DefaultStakingDenom = "uatom"
 )
 
 // DefaultBondDenom is a default bond denom param
 var (
-	DefaultBondDenom = []string{"stake"}
+	DefaultBondDenom = []string{"uatom"}
 )
 
 // Parameter store key
@@ -55,47 +55,14 @@ func ParamKeyTable() paramsTypes.KeyTable {
 	return paramsTypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// NewParams creates a new Params object
-func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningAmount sdk.Coin, maxBurningAmount sdk.Coin,
-	maxValidatorToDelegate uint64, weightedDeveloperRewardsReceivers []WeightedAddress,
-	distributionProportion DistributionProportions, epochs int64, maxIncomingAndOutgoingTxns int64,
-	cosmosProposalParams CosmosChainProposalParams, stakingEpochIdentifier string, custodialAddress string,
-	undelegateEpochIdentifier string, chunkSize int64, bondDenom []string, stakingDenom string, mintDenom string,
-	multiSigThreshold uint64, retryLimit uint64, rewardEpochIdentifier string, minReward sdk.Coin) Params {
-	return Params{
-		MinMintingAmount:                  minMintingAmount,
-		MaxMintingAmount:                  maxMintingAmount,
-		MinBurningAmount:                  minBurningAmount,
-		MaxBurningAmount:                  maxBurningAmount,
-		MinReward:                         minReward,
-		MaxValidatorToDelegate:            maxValidatorToDelegate,
-		WeightedDeveloperRewardsReceivers: weightedDeveloperRewardsReceivers,
-		DistributionProportion:            distributionProportion,
-		Epochs:                            epochs,
-		MaxIncomingAndOutgoingTxns:        maxIncomingAndOutgoingTxns,
-		CosmosProposalParams:              cosmosProposalParams,
-		ModuleEnabled:                     false,
-		StakingEpochIdentifier:            stakingEpochIdentifier,
-		CustodialAddress:                  custodialAddress,
-		UndelegateEpochIdentifier:         undelegateEpochIdentifier,
-		RewardEpochIdentifier:             rewardEpochIdentifier,
-		ChunkSize:                         chunkSize,
-		BondDenoms:                        bondDenom,
-		StakingDenom:                      stakingDenom,
-		MintDenom:                         mintDenom,
-		MultisigThreshold:                 multiSigThreshold,
-		RetryLimit:                        retryLimit,
-	}
-}
-
 // DefaultParams default parameters for deposits
 func DefaultParams() Params {
 	return Params{
-		MinMintingAmount:       sdk.NewInt64Coin("stake", 5000000),
-		MaxMintingAmount:       sdk.NewInt64Coin("stake", 100000000000),
-		MinBurningAmount:       sdk.NewInt64Coin("stake", 5000000),
-		MaxBurningAmount:       sdk.NewInt64Coin("stake", 100000000000),
-		MinReward:              sdk.NewInt64Coin("stake", 1000),
+		MinMintingAmount:       sdk.NewInt64Coin("uatom", 5000000),
+		MaxMintingAmount:       sdk.NewInt64Coin("uatom", 100000000000),
+		MinBurningAmount:       sdk.NewInt64Coin("uatom", 5000000),
+		MaxBurningAmount:       sdk.NewInt64Coin("uatom", 100000000000),
+		MinReward:              sdk.NewInt64Coin("uatom", 1000),
 		MaxValidatorToDelegate: 3,
 		WeightedDeveloperRewardsReceivers: []WeightedAddress{
 			{
@@ -110,24 +77,23 @@ func DefaultParams() Params {
 		Epochs:                     0,
 		MaxIncomingAndOutgoingTxns: 10000,
 		CosmosProposalParams: CosmosChainProposalParams{
-			ChainID:              "test", //TODO use these as conditions for proposals
+			ChainID:              "cosmoshub-4", //TODO use these as conditions for proposals
 			ReduceVotingPeriodBy: DefaultPeriod,
 		},
 		ModuleEnabled:             false, //TODO : Make false before launch
 		CustodialAddress:          "cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2",
-		StakingEpochIdentifier:    "stake",
+		StakingEpochIdentifier:    "uatom",
 		UndelegateEpochIdentifier: "undelegate",
 		RewardEpochIdentifier:     "reward",
 		ChunkSize:                 5,
 		BondDenoms:                []string{DefaultStakingDenom},
 		StakingDenom:              DefaultStakingDenom,
 		MintDenom:                 DefaultMintDenom,
-		MultisigThreshold:         3,
 		RetryLimit:                10,
 	}
 }
 
-// ValidateBasic runs basic stateless validity checks
+// Validate runs basic stateless validity checks
 func (p Params) Validate() error {
 	if err := validateAmount(p.MinMintingAmount); err != nil {
 		return err
@@ -183,9 +149,6 @@ func (p Params) Validate() error {
 	if err := validateMintDenom(p.MintDenom); err != nil {
 		return err
 	}
-	if err := validateMultisigThreshold(p.MultisigThreshold); err != nil {
-		return err
-	}
 	if err := validateRetryLimit(p.RetryLimit); err != nil {
 		return err
 	}
@@ -224,7 +187,6 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyBondDenom, &p.BondDenoms, validateBondDenom),
 		paramsTypes.NewParamSetPair(KeyStakingDenom, &p.StakingDenom, validateStakingDenom),
 		paramsTypes.NewParamSetPair(KeyMintDenom, &p.MintDenom, validateMintDenom),
-		paramsTypes.NewParamSetPair(KeyMultisigThreshold, &p.MultisigThreshold, validateMultisigThreshold),
 		paramsTypes.NewParamSetPair(KeyRetryLimit, &p.RetryLimit, validateRetryLimit),
 		paramsTypes.NewParamSetPair(KeyRewardEpochIdentifier, &p.RewardEpochIdentifier, epochsTypes.ValidateEpochIdentifierInterface),
 	}
@@ -269,7 +231,6 @@ func (p Params) Equal(other Params) bool {
 		p.StakingEpochIdentifier == other.StakingEpochIdentifier &&
 		p.ChunkSize == other.ChunkSize &&
 		p.UndelegateEpochIdentifier == other.UndelegateEpochIdentifier &&
-		p.MultisigThreshold == other.MultisigThreshold &&
 		p.RetryLimit == other.RetryLimit &&
 		p.RewardEpochIdentifier == other.RewardEpochIdentifier
 }
@@ -537,18 +498,6 @@ func validateMintDenom(i interface{}) error {
 
 	if v == "" {
 		return fmt.Errorf("mint denom cannot be empty")
-	}
-	return nil
-}
-
-func validateMultisigThreshold(i interface{}) error {
-	v, ok := i.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v <= 0 {
-		return fmt.Errorf("multisig threshold must be non negative")
 	}
 	return nil
 }
