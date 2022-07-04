@@ -420,10 +420,6 @@ func validateCosmosProposalParams(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v.ChainID != "test" {
-		return fmt.Errorf("invalid chain-id for cosmos %T", i)
-	}
-
 	if v.ReduceVotingPeriodBy <= 0 {
 		return fmt.Errorf("incorrect voting Period %T", i)
 	}
