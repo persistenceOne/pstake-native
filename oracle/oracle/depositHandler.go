@@ -88,7 +88,7 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 				if txMsg.ToAddress == chain.CustodialAddress.String() {
 					for _, coin := range txMsg.Amount {
 						//TODO: handle multiple keys for signing
-						_, addr := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, orcSeeds[0])
+						_, addr := GetPivKeyAddress(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
 						logg.Println("orchestrator address, ", addr)
 						msg = &cosmosTypes.MsgMintTokensForAccount{
@@ -108,6 +108,9 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 							return err
 						}
 						grpcConn, _ := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
+						if err != nil {
+							return err
+						}
 						defer func(grpcConn *grpc.ClientConn) {
 							err := grpcConn.Close()
 							if err != nil {

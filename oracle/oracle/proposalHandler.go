@@ -20,6 +20,10 @@ func (c *CosmosChain) ProposalHandler(propId string, orcSeeds []string, nativeCl
 	}
 
 	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
+	if err != nil {
+		return err
+	}
+
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
@@ -34,6 +38,10 @@ func (c *CosmosChain) ProposalHandler(propId string, orcSeeds []string, nativeCl
 	PropResult, err := GovClient.Proposal(context.Background(),
 		&govtypes.QueryProposalRequest{ProposalId: propID},
 	)
+
+	if err != nil {
+		return err
+	}
 
 	Proposal := PropResult.Proposal
 
@@ -54,7 +62,11 @@ func (c *CosmosChain) ProposalHandler(propId string, orcSeeds []string, nativeCl
 	if err != nil {
 		return err
 	}
+
 	grpcConnN, err := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
+	if err != nil {
+		return err
+	}
 	defer func(grpcConnN *grpc.ClientConn) {
 		err := grpcConnN.Close()
 		if err != nil {
