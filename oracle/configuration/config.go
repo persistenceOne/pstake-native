@@ -203,10 +203,7 @@ func newConfig() Config {
 
 func InitializeConfigFromToml(homepath string) Config {
 	var config = newConfig()
-	_, err := toml.DecodeFile(filepath.Join(homepath, "config.toml"), &config)
-	if err != nil {
-		panic(err)
-	}
+	_, _ = toml.DecodeFile(filepath.Join(homepath, "config.toml"), &config)
 	//log.Fatalf("Error Decoding oracle config: %v\n", err.Error())
 	log.Println(config)
 	return config
