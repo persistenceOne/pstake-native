@@ -9,6 +9,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
+// RegisterLegacyAminoCodec registers all the necessary types and interfaces for the
+// cosmos module.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgSetOrchestrator{}, "cosmos/MsgSetOrchestrator", nil)
 	cdc.RegisterConcrete(&MsgWithdrawStkAsset{}, "cosmos/MsgWithdrawStkAsset", nil)
@@ -18,8 +20,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgVoteWeighted{}, "cosmos/MsgVoteWeighted", nil)
 	cdc.RegisterConcrete(&MsgSignedTx{}, "cosmos/MsgSignedTx", nil)
 	cdc.RegisterConcrete(&MsgTxStatus{}, "cosmos/MsgTxStatus", nil)
-	cdc.RegisterConcrete(&MsgRewardsClaimedOnCosmosChain{}, "cosmos/MsgRewardsClaimedOnCosmosChain", nil)
 	cdc.RegisterConcrete(&MsgUndelegateSuccess{}, "cosmos/MsgUndelegateSuccess", nil)
+	cdc.RegisterConcrete(&MsgSetSignature{}, "cosmos/MsgSetSignature", nil)
 	cdc.RegisterConcrete(&EnableModuleProposal{}, "cosmos/EnableModuleProposal", nil)
 	cdc.RegisterConcrete(&ChangeMultisigProposal{}, "cosmos/ChangeMultisigProposal", nil)
 	cdc.RegisterConcrete(&ChangeCosmosValidatorWeightsProposal{}, "cosmos/ChangeCosmosValidatorWeightsProposal", nil)
@@ -36,7 +38,7 @@ func RegisterInterfaces(registry codecTypes.InterfaceRegistry) {
 		&MsgVoteWeighted{},
 		&MsgSignedTx{},
 		&MsgTxStatus{},
-		&MsgRewardsClaimedOnCosmosChain{},
+		&MsgSetSignature{},
 		&MsgUndelegateSuccess{},
 	)
 

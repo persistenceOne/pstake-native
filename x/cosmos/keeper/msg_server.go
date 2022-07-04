@@ -26,6 +26,7 @@ func NewMsgServerImpl(k Keeper) cosmosTypes.MsgServer {
 	return &msgServer{Keeper: k}
 }
 
+// SetOrchestrator adds the oracle address corresponding to the validator sending the request to set address
 func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrchestrator) (*cosmosTypes.MsgSetOrchestratorResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -54,7 +55,7 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	}
 
 	//check if orchestrator public key exist or not
-	orchAccI := k.authKeeper.GetAccount(ctx, orchestrator)
+	orchAccI := k.AuthKeeper.GetAccount(ctx, orchestrator)
 	if orchAccI.GetPubKey() == nil {
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrPubKeyNotFound, orchestrator.String())
 	}
@@ -81,6 +82,7 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	return &cosmosTypes.MsgSetOrchestratorResponse{}, nil
 }
 
+// RemoveOrchestrator removes the given oracle address in request corresponding to the sender validator address
 func (k msgServer) RemoveOrchestrator(c context.Context, msg *cosmosTypes.MsgRemoveOrchestrator) (*cosmosTypes.MsgRemoveOrchestratorResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -111,7 +113,7 @@ func (k msgServer) RemoveOrchestrator(c context.Context, msg *cosmosTypes.MsgRem
 	return &cosmosTypes.MsgRemoveOrchestratorResponse{}, nil
 }
 
-// Send TODO Modify outgoing pool
+// Withdraw sets a withdrawal entry in "undelegate" epoch for the user wanting to withdraw stk assets
 func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAsset) (*cosmosTypes.MsgWithdrawStkAssetResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -142,6 +144,12 @@ func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAs
 		return nil, cosmosTypes.ErrInvalidWithdrawDenom
 	}
 
+	withdrawalAmount := msg.Amount.Amount.ToDec().Mul(sdkTypes.NewDec(1).Quo(k.GetCValue(ctx)))
+	if !withdrawalAmount.GT(k.GetParams(ctx).MaxBurningAmount.Amount.ToDec()) && !withdrawalAmount.LT(k.GetParams(ctx).MinBurningAmount.Amount.ToDec()) {
+		return nil, fmt.Errorf("withdrawal is out of range for withdrawals")
+	}
+
+	// send amount from account to module
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, cosmosTypes.ModuleName, sdkTypes.NewCoins(msg.Amount)); err != nil {
 		return nil, err
 	}
@@ -160,6 +168,7 @@ func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAs
 	return &cosmosTypes.MsgWithdrawStkAssetResponse{}, nil
 }
 
+// MintTokensForAccount sets a minting request entry in mint token store as sent by the oracles
 func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgMintTokensForAccount) (*cosmosTypes.MsgMintTokensForAccountResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -188,6 +197,11 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrInvalid, "arguments")
 	}
 
+	tentativeMintAmount := msg.Amount.Amount.ToDec().Mul(k.GetCValue(ctx))
+	if !tentativeMintAmount.GT(k.GetParams(ctx).MinMintingAmount.Amount.ToDec()) && !tentativeMintAmount.LT(k.GetParams(ctx).MaxMintingAmount.Amount.ToDec()) {
+		return nil, fmt.Errorf("amount is out of range for minting stk tokens")
+	}
+
 	// check if the denom for staking matches or not
 	uatomDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
 	if err != nil {
@@ -197,27 +211,27 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 		return nil, cosmosTypes.ErrInvalidBondDenom
 	}
 
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
-	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to make proposal")
-	}
+	validatorAddress, found := k.CheckValidator(ctx, val)
 	if !found {
 		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to mint tokens")
 	}
 
 	// update oracle height for both sides
 	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
 	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
 
-	k.addToMintTokenStore(ctx, *msg)
+	k.addToMintTokenStore(ctx, *msg, validatorAddress)
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
@@ -229,6 +243,7 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 	return &cosmosTypes.MsgMintTokensForAccountResponse{}, nil
 }
 
+// MakeProposal sets a proposal entry in the proposal store as sent by the oracles
 func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakeProposal) (*cosmosTypes.MsgMakeProposalResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -246,27 +261,27 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 		return nil, err
 	}
 
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
-	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to make proposal")
-	}
+	validatorAddress, found := k.CheckValidator(ctx, val)
 	if !found {
 		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to make proposal")
 	}
 
 	// update oracle height for both sides
 	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
 	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
 
-	k.setProposalDetails(ctx, *msg)
+	k.setProposalDetails(ctx, *msg, validatorAddress)
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
@@ -278,6 +293,7 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 	return &cosmosTypes.MsgMakeProposalResponse{}, nil
 }
 
+// Vote sets a vote as sent by the given address. Only oracle votes are accepted
 func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTypes.MsgVoteResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -295,19 +311,20 @@ func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTyp
 		return nil, accErr
 	}
 
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, accAddr)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, accAddr)
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
-	}
-	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to vote")
-	}
 	if !found {
-		return nil, cosmosTypes.ErrInvalidVote
+		return nil, fmt.Errorf("orchestrator not found")
+	}
+
+	validatorAddress, found := k.CheckValidator(ctx, val)
+	if !found {
+		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to vote on proposal")
 	}
 
 	err = k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, cosmosTypes.NewNonSplitVoteOption(msg.Option))
@@ -333,6 +350,7 @@ func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTyp
 	return &cosmosTypes.MsgVoteResponse{}, nil
 }
 
+// VoteWeighted sets a weighted vote as sent by the given address. Only oracle votes are accepted
 func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeighted) (*cosmosTypes.MsgVoteWeightedResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -350,20 +368,20 @@ func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeigh
 		return nil, accErr
 	}
 
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, accAddr)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, accAddr)
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
-	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to vote")
-	}
+	validatorAddress, found := k.CheckValidator(ctx, val)
 	if !found {
-		return nil, cosmosTypes.ErrInvalidVote
+		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to weight vote on prposal")
 	}
 
 	err = k.Keeper.AddVote(ctx, msg.ProposalId, accAddr, msg.Options)
@@ -390,14 +408,20 @@ func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeigh
 	return &cosmosTypes.MsgVoteWeightedResponse{}, nil
 }
 
-// TxStatus Accepts status as : "success" or "gas failure" or "sequence mismatch"
-// Failure only to be sent when transaction fails due to insufficient fees
+/*
+TxStatus Accepts status as : "success" or "gas failure" or "sequence mismatch"
+Failure only to be sent when transaction fails due to insufficient fees
+*/
 func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*cosmosTypes.MsgTxStatusResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, sdkErrors.Wrap(err, "Key not valid")
 	}
 	ctx := sdkTypes.UnwrapSDKContext(c)
+
+	if diff := msg.SequenceNumber - k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetSequence(); diff != 1 {
+		return nil, fmt.Errorf("sequence difference is not one or oracle is late to send status")
+	}
 
 	//Accept transaction if module is enabled
 	if !k.GetParams(ctx).ModuleEnabled {
@@ -409,20 +433,20 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 		return nil, orchErr
 	}
 
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
-	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
+	validatorAddress, found := k.CheckValidator(ctx, val)
+	if !found {
+		return nil, cosmosTypes.ErrInvalidProposal
+	}
 	if validatorAddress == nil {
 		return nil, fmt.Errorf("unauthorized to send tx status")
-	}
-	if !found {
-		return nil, fmt.Errorf("validator address does not exit")
 	}
 
 	// update oracle height for both sides
@@ -431,8 +455,9 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 
 	//TODO : add failure type for proposal transactions. (in case of chain upgrade on cosmos chain)
 	if msg.Status == cosmosTypes.Success || msg.Status == cosmosTypes.GasFailure ||
-		msg.Status == cosmosTypes.SequenceMismatch || msg.Status == cosmosTypes.KeeperFailure {
-		k.setTxHashAndDetails(ctx, *msg)
+		msg.Status == cosmosTypes.SequenceMismatch || msg.Status == cosmosTypes.KeeperFailure ||
+		msg.Status == cosmosTypes.NotSuccess {
+		k.setTxHashAndDetails(ctx, *msg, validatorAddress)
 	} else {
 		return nil, cosmosTypes.ErrInvalidStatus
 	}
@@ -447,55 +472,7 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 	return &cosmosTypes.MsgTxStatusResponse{}, nil
 }
 
-func (k msgServer) RewardsClaimed(c context.Context, msg *cosmosTypes.MsgRewardsClaimedOnCosmosChain) (*cosmosTypes.MsgRewardsClaimedOnCosmosChainResponse, error) {
-	ctx := sdkTypes.UnwrapSDKContext(c)
-
-	//Accept transaction if module is enabled
-	if !k.GetParams(ctx).ModuleEnabled {
-		return nil, cosmosTypes.ErrModuleNotEnabled
-	}
-
-	orchestratorAddress, orchErr := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
-	if orchErr != nil {
-		return nil, orchErr
-	}
-
-	//check if orchestrator address is present in a validator orchestrator mapping
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
-	if err != nil {
-		return nil, err
-	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
-	}
-
-	//check if validator exists on the network
-	validatorAddress, found := k.GetValidatorOrchestrator(ctx, val)
-	if validatorAddress == nil {
-		return nil, fmt.Errorf("unauthorized to send tx status")
-	}
-
-	if !found {
-		return nil, fmt.Errorf("validator address does not exit")
-	}
-
-	// update oracle height for both sides
-	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
-	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
-
-	k.addToRewardsClaimedPool(ctx, *msg)
-
-	ctx.EventManager().EmitEvent(
-		sdkTypes.NewEvent(
-			sdkTypes.EventTypeMessage,
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, cosmosTypes.AttributeValueCategory),
-			sdkTypes.NewAttribute(cosmosTypes.AttributeSender, orchestratorAddress.String()),
-		),
-	)
-
-	return &cosmosTypes.MsgRewardsClaimedOnCosmosChainResponse{}, nil
-}
-
+// UndelegateSuccess sets undelegate success entry in the undelegate success store as sent by the oracles
 func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUndelegateSuccess) (*cosmosTypes.MsgUndelegateSuccessResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -530,24 +507,28 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 	}
 
 	//check if orchestrator address is present in a validator orchestrator mapping
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
-	_, found := k.GetValidatorOrchestrator(ctx, val)
+	//check if validator exists on the network
+	validatorAddress, found := k.CheckValidator(ctx, val)
 	if !found {
-		return nil, cosmosTypes.ErrInvalid
+		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to send slashing event details")
 	}
 
 	// update oracle height for both sides
 	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
 	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
 
-	k.setUndelegateSuccessDetails(ctx, *msg)
+	k.setUndelegateSuccessDetails(ctx, *msg, validatorAddress)
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
@@ -560,6 +541,7 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 	return &cosmosTypes.MsgUndelegateSuccessResponse{}, nil
 }
 
+// SetSignature sets signature in the signature store as sent by the oracles
 func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignature) (*cosmosTypes.MsgSetSignatureResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 	orchestratorAddress, err := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
@@ -567,26 +549,30 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 		return nil, err
 	}
 
-	outgoingTx, err := k.getTxnFromOutgoingPoolByID(ctx, msg.OutgoingTxID)
+	outgoingTx, err := k.GetTxnFromOutgoingPoolByID(ctx, msg.OutgoingTxID)
 	if err != nil {
 		return nil, err
 	}
-	if len(outgoingTx.CosmosTxDetails.Tx.AuthInfo.SignerInfos) != 1 {
-		return nil, sdkErrors.Wrap(sdkErrors.ErrorInvalidSigner, "there should be exactly one signer info.")
-	}
+	//if len(outgoingTx.CosmosTxDetails.Tx.AuthInfo.SignerInfos) != 1 {
+	//	return nil, sdkErrors.Wrap(sdkErrors.ErrorInvalidSigner, "there should be exactly one signer info.")
+	//}
 
 	//check if orchestrator address is present in a validator orchestrator mapping
-	val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
-		return nil, fmt.Errorf("validator address not found")
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
 	}
 
-	_, found := k.GetValidatorOrchestrator(ctx, val)
+	//check if validator exists on the network
+	validatorAddress, found := k.CheckValidator(ctx, val)
 	if !found {
-		return nil, cosmosTypes.ErrInvalid
+		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to set signature")
 	}
 
 	//verify signature
@@ -596,7 +582,7 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	}
 
 	// get account state from module db
-	multisigAccount := k.getAccountState(ctx, custodialAddress)
+	multisigAccount := k.GetAccountState(ctx, custodialAddress)
 	if multisigAccount == nil {
 		return nil, cosmosTypes.ErrMultiSigAddressNotFound
 	}
@@ -604,17 +590,22 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	signerData := signing.SignerData{
 		ChainID:       k.GetParams(ctx).CosmosProposalParams.ChainID,
 		AccountNumber: multisigAccount.GetAccountNumber(),
-		Sequence:      multisigAccount.GetSequence() + 1, // increment by 1 as it is the current sequence number is stored in the db
+		Sequence:      multisigAccount.GetSequence(),
 	}
 	signatureData := signing2.SingleSignatureData{
 		SignMode:  signing2.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
 		Signature: msg.Signature,
 	}
 
-	account := k.authKeeper.GetAccount(ctx, orchestratorAddress)
+	account := k.AuthKeeper.GetAccount(ctx, orchestratorAddress)
 	if account == nil {
 		return nil, cosmosTypes.ErrOrchAddressNotFound
 	}
+
+	//err = outgoingTx.CosmosTxDetails.Tx.UnpackInterfaces(k.cdc)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	err = cosmosTypes.VerifySignature(account.GetPubKey(), signerData, signatureData, outgoingTx.CosmosTxDetails.Tx)
 	if err != nil {
@@ -626,7 +617,7 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
 
 	singleSignatureDataForOutgoingPool := cosmosTypes.ConvertSingleSignatureDataToSingleSignatureDataForOutgoingPool(signatureData)
-	err = k.addToOutgoingSignaturePool(ctx, singleSignatureDataForOutgoingPool, msg.OutgoingTxID, orchestratorAddress)
+	err = k.addToOutgoingSignaturePool(ctx, singleSignatureDataForOutgoingPool, msg.OutgoingTxID, orchestratorAddress, validatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -640,7 +631,8 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	return &cosmosTypes.MsgSetSignatureResponse{}, nil
 }
 
-func (k msgServer) SlashingEvent(c context.Context, msg *cosmosTypes.MsgSlashingEventOnCosmosChain) (*cosmosTypes.MsgSlashingEventOnCosmosChainResposne, error) {
+// SlashingEvent sets the slashing event entry in the slashing store as sent by the oracles
+func (k msgServer) SlashingEvent(c context.Context, msg *cosmosTypes.MsgSlashingEventOnCosmosChain) (*cosmosTypes.MsgSlashingEventOnCosmosChainResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, sdkErrors.Wrap(err, "Key not valid")
@@ -665,11 +657,29 @@ func (k msgServer) SlashingEvent(c context.Context, msg *cosmosTypes.MsgSlashing
 		return nil, err
 	}
 
+	//check if orchestrator address is present in a validator orchestrator mapping
+	val, found, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, orchestratorAddress)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, fmt.Errorf("orchestrator not found")
+	}
+
+	//check if validator exists on the network
+	validatorAddress, found := k.CheckValidator(ctx, val)
+	if !found {
+		return nil, cosmosTypes.ErrInvalidProposal
+	}
+	if validatorAddress == nil {
+		return nil, fmt.Errorf("unauthorized to make proposal")
+	}
+
 	// update oracle height for both sides
 	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
 	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
 
-	k.setSlashingEventDetails(ctx, *msg)
+	k.setSlashingEventDetails(ctx, *msg, validatorAddress)
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
@@ -679,5 +689,5 @@ func (k msgServer) SlashingEvent(c context.Context, msg *cosmosTypes.MsgSlashing
 		),
 	)
 
-	return &cosmosTypes.MsgSlashingEventOnCosmosChainResposne{}, nil
+	return &cosmosTypes.MsgSlashingEventOnCosmosChainResponse{}, nil
 }

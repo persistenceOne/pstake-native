@@ -32,7 +32,8 @@ message EnableModuleProposal {
   string description = 2;
   uint64 threshold = 3;
   uint64 account_number = 4;
-  repeated string orchestrator_addresses = 5;
+  uint64 sequence_number = 5;
+  repeated string orchestrator_addresses = 6;
 }
 
 message ChangeCosmosValidatorWeightsProposal {

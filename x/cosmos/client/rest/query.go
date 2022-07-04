@@ -7,13 +7,14 @@ package rest
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"net/http"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
+
 	"github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
@@ -39,13 +40,18 @@ func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 	).Methods("GET")
 
 	r.HandleFunc(
-		"/cosmos/{oracleValidatorSet}",
+		"/cosmos/oracleValidatorSet",
 		queryOracleValidatorMappingHandlerFn(cliCtx),
 	).Methods("GET")
 
 	r.HandleFunc(
-		"/cosmos/{cosmosValidatorSet}",
+		"/cosmos/cosmosValidatorSet",
 		queryCosmosValidatorMappingHandlerFn(cliCtx),
+	).Methods("GET")
+
+	r.HandleFunc(
+		"/cosmos/cosmosBalances",
+		queryCosmosBalancesHandlerFn(cliCtx),
 	).Methods("GET")
 }
 
@@ -194,6 +200,30 @@ func queryCosmosValidatorMappingHandlerFn(clientCtx client.Context) http.Handler
 			return
 		}
 		query := &types.QueryCosmosValidatorSetRequest{}
+		bz, err := clientCtx.LegacyAmino.MarshalJSON(query)
+		if rest.CheckBadRequestError(w, err) {
+			return
+		}
+
+		res, height, err := clientCtx.QueryWithData(endpoint, bz)
+		if rest.CheckInternalServerError(w, err) {
+			return
+		}
+
+		clientCtx = clientCtx.WithHeight(height)
+		rest.PostProcessResponse(w, clientCtx, res)
+	}
+}
+
+func queryCosmosBalancesHandlerFn(clientCtx client.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		endpoint := fmt.Sprintf("custom/%s", types.QuerierRoute)
+
+		clientCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+		query := &types.QueryCosmosBalanceRequest{}
 		bz, err := clientCtx.LegacyAmino.MarshalJSON(query)
 		if rest.CheckBadRequestError(w, err) {
 			return

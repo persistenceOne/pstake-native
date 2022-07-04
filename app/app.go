@@ -375,6 +375,7 @@ func NewGaiaApp(
 		&app.MintKeeper,
 		&app.StakingKeeper,
 		app.EpochsKeeper,
+		&app.DistrKeeper,
 	)
 	app.UpgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,

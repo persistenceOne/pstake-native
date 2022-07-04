@@ -12,6 +12,7 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
+// adds grant transactions to the outgoing pool and returns txID for reference
 func (k Keeper) addGrantTransactions(ctx sdk.Context, oldAccount authTypes.AccountI) uint64 {
 	// generate ID for Grant Transaction
 	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
@@ -53,6 +54,7 @@ func (k Keeper) addGrantTransactions(ctx sdk.Context, oldAccount authTypes.Accou
 	// generate a grant msg of type any for granting "send" to new account
 	voteGrantMsgAny := k.generateGrantMsgAny(ctx, custodialAddress, voteGenereicAuthorization)
 
+	// append all messages to the Any type array
 	accessMsgsAny = append(
 		accessMsgsAny,
 		grantGrantMsgAny,
@@ -64,11 +66,13 @@ func (k Keeper) addGrantTransactions(ctx sdk.Context, oldAccount authTypes.Accou
 		voteGrantMsgAny,
 	)
 
+	// add the above grant messages to the execMsg and generate execMsg
 	execMsg := authz.MsgExec{
 		Grantee: oldAccount.GetAddress().String(),
 		Msgs:    accessMsgsAny,
 	}
 
+	// convert execMsg to Any type to embed in transaction
 	execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
 	if err != nil {
 		panic(err)
@@ -85,7 +89,7 @@ func (k Keeper) addGrantTransactions(ctx sdk.Context, oldAccount authTypes.Accou
 				SignerInfos: nil,
 				Fee: &sdkTx.Fee{
 					Amount:   nil,
-					GasLimit: 200000,
+					GasLimit: 400000,
 					Payer:    "",
 				},
 			},
@@ -98,16 +102,18 @@ func (k Keeper) addGrantTransactions(ctx sdk.Context, oldAccount authTypes.Accou
 		SignerAddress:     oldAccount.GetAddress().String(),
 	}
 
-	k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+	// sets transaction in outgoing pool with the given tx ID
+	k.SetNewTxnInOutgoingPool(ctx, nextID, tx)
 
 	return nextID
 }
 
+// generates grant messages with given authorization and then convert to type Any
 func (k Keeper) generateGrantMsgAny(ctx sdk.Context, custodialAddress sdk.AccAddress, authorization authz.Authorization) *codecTypes.Any {
 	// generate a grant msg of type any for granting given authorization to new account
 	grantMsgAny, err := authz.NewMsgGrant(
 		custodialAddress,
-		k.getAccountState(ctx, k.getCurrentAddress(ctx)).GetAddress(),
+		k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(), // todo : fix acc address issue as it converts to persistence address
 		authorization,
 		time.Unix(0, 0),
 	)
@@ -124,12 +130,14 @@ func (k Keeper) generateGrantMsgAny(ctx sdk.Context, custodialAddress sdk.AccAdd
 	return any
 }
 
+// adds feegrant transaction to the outgoing pool and returns txID for reference
 func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.AccountI) uint64 {
 	// generate ID for Feegrant Transaction
 	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 
 	var feegrantMsgsAny []*codecTypes.Any
 
+	// generate a BasicAllowance message with no limit on spend
 	basic := feegrant.BasicAllowance{
 		SpendLimit: nil,
 	}
@@ -141,15 +149,17 @@ func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 		panic(err)
 	}
 
+	// generate a MsgGrantAllowance with the given grant and allowance
 	feegrantMsg, err := feegrant.NewMsgGrantAllowance(
 		grant,
 		custodialAddress,
-		k.getAccountState(ctx, k.getCurrentAddress(ctx)).GetAddress(),
+		k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(), // todo : fix acc address issue as it converts to persistence address
 	)
 	if err != nil {
 		panic(err)
 	}
 
+	// generate Any type value from the above generated MsgGrantAllowance to set in MsgExec transaction
 	feegrantMsgAny, err := codecTypes.NewAnyWithValue(feegrantMsg)
 	if err != nil {
 		panic(err)
@@ -157,11 +167,13 @@ func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 
 	feegrantMsgsAny = append(feegrantMsgsAny, feegrantMsgAny)
 
+	// generate a MsgExec to be sent out in transaction
 	execMsg := authz.MsgExec{
 		Grantee: oldAccount.GetAddress().String(),
 		Msgs:    feegrantMsgsAny,
 	}
 
+	// convert execMsg to Any type to set in outgoing transaction
 	execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
 	if err != nil {
 		panic(err)
@@ -178,7 +190,7 @@ func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 				SignerInfos: nil,
 				Fee: &sdkTx.Fee{
 					Amount:   nil,
-					GasLimit: 200000,
+					GasLimit: 400000,
 					Payer:    "",
 				},
 			},
@@ -191,12 +203,14 @@ func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 		SignerAddress:     oldAccount.GetAddress().String(),
 	}
 
-	k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+	// set new transaction in outgoing pool with the given tx ID
+	k.SetNewTxnInOutgoingPool(ctx, nextID, tx)
 
 	return nextID
 }
 
 // todo check logic for revoke as oldAccount is not involved
+// adds revoke transaction to outgoing pool and returns txID for reference
 func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uint64 {
 	// generate ID for Revoke Transaction
 	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
@@ -237,11 +251,16 @@ func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 		revokeVoteAuthorizationAny,
 	)
 
+	cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
+	if err != nil {
+		panic(err)
+	}
 	execMsg := authz.MsgExec{
-		Grantee: k.getCurrentAddress(ctx).String(),
+		Grantee: cosmosAddrr,
 		Msgs:    revokeMsgsAny,
 	}
 
+	// convert msgExec to type Any to be set in outgoing transaction
 	execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
 	if err != nil {
 		panic(err)
@@ -258,7 +277,7 @@ func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 				SignerInfos: nil,
 				Fee: &sdkTx.Fee{
 					Amount:   nil,
-					GasLimit: 200000,
+					GasLimit: 400000,
 					Payer:    "",
 				},
 			},
@@ -268,18 +287,20 @@ func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 		Status:            "",
 		TxHash:            "",
 		ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
-		SignerAddress:     k.getCurrentAddress(ctx).String(),
+		SignerAddress:     cosmosAddrr,
 	}
 
-	k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+	// set new transaction in outgoing pool with the given tx ID
+	k.SetNewTxnInOutgoingPool(ctx, nextID, tx)
 
 	return nextID
 }
 
+// generates revoke messages with given msgAuthorized and then convert to type Any
 func (k Keeper) generateRevokeMsgAny(ctx sdk.Context, custodialAddress sdk.AccAddress, msgAuthorized string) *codecTypes.Any {
 	// generate revoke message with given msgAuthorized
 	revokeMsg := authz.NewMsgRevoke(
-		k.getAccountState(ctx, k.getCurrentAddress(ctx)).GetAddress(),
+		k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(),
 		custodialAddress,
 		msgAuthorized,
 	)
@@ -293,17 +314,23 @@ func (k Keeper) generateRevokeMsgAny(ctx sdk.Context, custodialAddress sdk.AccAd
 	return revokeMsgAny
 }
 
+// helper function to be used in case of shifting the existing list of transactions before proposal to an ID after
+// the authorization change transaction
 func (k Keeper) shiftListOfTransactionsToNewIDs(ctx sdk.Context, transactionQueue []TransactionQueue) {
 	for _, tq := range transactionQueue {
 		// generate ID for regenerating Transaction
 		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 
 		// fetch tx details from db for the given txID
-		txDetails, err := k.getTxnFromOutgoingPoolByID(ctx, tq.txID)
+		txDetails, err := k.GetTxnFromOutgoingPoolByID(ctx, tq.txID)
 		if err != nil {
 			panic(err)
 		}
 
+		cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
+		if err != nil {
+			panic(err)
+		}
 		// reset few details of the outgoing transaction for accepting new signatures
 		txDetails.CosmosTxDetails.Tx.AuthInfo.SignerInfos = nil
 		txDetails.CosmosTxDetails.Tx.Signatures = nil
@@ -311,10 +338,10 @@ func (k Keeper) shiftListOfTransactionsToNewIDs(ctx sdk.Context, transactionQueu
 		txDetails.CosmosTxDetails.TxHash = ""
 		txDetails.CosmosTxDetails.EventEmitted = false
 		txDetails.CosmosTxDetails.ActiveBlockHeight = ctx.BlockHeight() + cosmosTypes.StorageWindow
-		txDetails.CosmosTxDetails.SignerAddress = k.getCurrentAddress(ctx).String()
+		txDetails.CosmosTxDetails.SignerAddress = cosmosAddrr
 
 		// set this transaction in outgoing pool with new ID
-		k.setNewTxnInOutgoingPool(ctx, nextID, txDetails.CosmosTxDetails)
+		k.SetNewTxnInOutgoingPool(ctx, nextID, txDetails.CosmosTxDetails)
 		k.setNewInTransactionQueue(ctx, nextID)
 
 		// remove old transaction from outgoing pool

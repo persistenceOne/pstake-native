@@ -153,12 +153,12 @@ func (m *ProposalKey) GetProposalID() uint64 {
 }
 
 type ProposalValue struct {
-	ProposalDetails       MsgMakeProposal                        `protobuf:"bytes,1,opt,name=proposalDetails,proto3" json:"proposalDetails"`
-	ProposalPosted        bool                                   `protobuf:"varint,2,opt,name=proposal_posted,json=proposalPosted,proto3" json:"proposal_posted,omitempty"`
-	OrchestratorAddresses []string                               `protobuf:"bytes,3,rep,name=orchestrator_addresses,json=orchestratorAddresses,proto3" json:"orchestrator_addresses,omitempty"`
-	Ratio                 github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=ratio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"ratio"`
-	Counter               int64                                  `protobuf:"varint,5,opt,name=counter,proto3" json:"counter,omitempty"`
-	ActiveBlockHeight     int64                                  `protobuf:"varint,6,opt,name=active_block_height,json=activeBlockHeight,proto3" json:"active_block_height,omitempty"`
+	ProposalDetails    MsgMakeProposal                        `protobuf:"bytes,1,opt,name=proposal_details,json=proposalDetails,proto3" json:"proposal_details"`
+	ProposalPosted     bool                                   `protobuf:"varint,2,opt,name=proposal_posted,json=proposalPosted,proto3" json:"proposal_posted,omitempty"`
+	ValidatorAddresses []string                               `protobuf:"bytes,3,rep,name=validator_addresses,json=validatorAddresses,proto3" json:"validator_addresses,omitempty"`
+	Ratio              github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=ratio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"ratio"`
+	Counter            int64                                  `protobuf:"varint,5,opt,name=counter,proto3" json:"counter,omitempty"`
+	ActiveBlockHeight  int64                                  `protobuf:"varint,6,opt,name=active_block_height,json=activeBlockHeight,proto3" json:"active_block_height,omitempty"`
 }
 
 func (m *ProposalValue) Reset()         { *m = ProposalValue{} }
@@ -208,9 +208,9 @@ func (m *ProposalValue) GetProposalPosted() bool {
 	return false
 }
 
-func (m *ProposalValue) GetOrchestratorAddresses() []string {
+func (m *ProposalValue) GetValidatorAddresses() []string {
 	if m != nil {
-		return m.OrchestratorAddresses
+		return m.ValidatorAddresses
 	}
 	return nil
 }
@@ -314,13 +314,13 @@ func (m *CosmosTx) GetSignerAddress() string {
 }
 
 type TxHashValue struct {
-	TxStatus              MsgTxStatus                            `protobuf:"bytes,1,opt,name=tx_status,json=txStatus,proto3" json:"tx_status"`
-	OrchestratorAddresses []string                               `protobuf:"bytes,2,rep,name=orchestrator_addresses,json=orchestratorAddresses,proto3" json:"orchestrator_addresses,omitempty"`
-	Status                []string                               `protobuf:"bytes,3,rep,name=status,proto3" json:"status,omitempty"`
-	Ratio                 github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=ratio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"ratio"`
-	TxCleared             bool                                   `protobuf:"varint,5,opt,name=tx_cleared,json=txCleared,proto3" json:"tx_cleared,omitempty"`
-	Counter               int64                                  `protobuf:"varint,6,opt,name=counter,proto3" json:"counter,omitempty"`
-	ActiveBlockHeight     int64                                  `protobuf:"varint,7,opt,name=active_block_height,json=activeBlockHeight,proto3" json:"active_block_height,omitempty"`
+	TxStatus           MsgTxStatus                            `protobuf:"bytes,1,opt,name=tx_status,json=txStatus,proto3" json:"tx_status"`
+	ValidatorAddresses []string                               `protobuf:"bytes,2,rep,name=validator_addresses,json=validatorAddresses,proto3" json:"validator_addresses,omitempty"`
+	Status             []string                               `protobuf:"bytes,3,rep,name=status,proto3" json:"status,omitempty"`
+	Ratio              github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=ratio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"ratio"`
+	TxCleared          bool                                   `protobuf:"varint,5,opt,name=tx_cleared,json=txCleared,proto3" json:"tx_cleared,omitempty"`
+	Counter            int64                                  `protobuf:"varint,6,opt,name=counter,proto3" json:"counter,omitempty"`
+	ActiveBlockHeight  int64                                  `protobuf:"varint,7,opt,name=active_block_height,json=activeBlockHeight,proto3" json:"active_block_height,omitempty"`
 }
 
 func (m *TxHashValue) Reset()         { *m = TxHashValue{} }
@@ -363,9 +363,9 @@ func (m *TxHashValue) GetTxStatus() MsgTxStatus {
 	return MsgTxStatus{}
 }
 
-func (m *TxHashValue) GetOrchestratorAddresses() []string {
+func (m *TxHashValue) GetValidatorAddresses() []string {
 	if m != nil {
-		return m.OrchestratorAddresses
+		return m.ValidatorAddresses
 	}
 	return nil
 }
@@ -451,8 +451,9 @@ func (m *WithdrawStoreValue) GetUnbondEmitFlag() []bool {
 }
 
 type ValueOutgoingUnbondStore struct {
-	EpochNumber        int64                 `protobuf:"varint,1,opt,name=epoch_number,json=epochNumber,proto3" json:"epoch_number,omitempty"`
-	UndelegateMessages []types.MsgUndelegate `protobuf:"bytes,2,rep,name=undelegate_messages,json=undelegateMessages,proto3" json:"undelegate_messages"`
+	EpochNumber        int64                                  `protobuf:"varint,1,opt,name=epoch_number,json=epochNumber,proto3" json:"epoch_number,omitempty"`
+	UndelegateMessages []types.MsgUndelegate                  `protobuf:"bytes,2,rep,name=undelegate_messages,json=undelegateMessages,proto3" json:"undelegate_messages"`
+	CValue             github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=c_value,json=cValue,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"c_value"`
 }
 
 func (m *ValueOutgoingUnbondStore) Reset()         { *m = ValueOutgoingUnbondStore{} }
@@ -598,140 +599,19 @@ func (m *MintingEpochValueMember) GetStatus() bool {
 	return false
 }
 
-type MintingEpochValue struct {
-	TxIDAndStatus []MintingEpochValueMember `protobuf:"bytes,1,rep,name=tx_i_d_and_status,json=txIDAndStatus,proto3" json:"tx_i_d_and_status"`
-}
-
-func (m *MintingEpochValue) Reset()         { *m = MintingEpochValue{} }
-func (m *MintingEpochValue) String() string { return proto.CompactTextString(m) }
-func (*MintingEpochValue) ProtoMessage()    {}
-func (*MintingEpochValue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cbd4e547303b7d7c, []int{9}
-}
-func (m *MintingEpochValue) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MintingEpochValue) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MintingEpochValue.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MintingEpochValue) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MintingEpochValue.Merge(m, src)
-}
-func (m *MintingEpochValue) XXX_Size() int {
-	return m.Size()
-}
-func (m *MintingEpochValue) XXX_DiscardUnknown() {
-	xxx_messageInfo_MintingEpochValue.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MintingEpochValue proto.InternalMessageInfo
-
-func (m *MintingEpochValue) GetTxIDAndStatus() []MintingEpochValueMember {
-	if m != nil {
-		return m.TxIDAndStatus
-	}
-	return nil
-}
-
-type RewardsClaimedValue struct {
-	RewardsClaimed        MsgRewardsClaimedOnCosmosChain         `protobuf:"bytes,1,opt,name=rewards_claimed,json=rewardsClaimed,proto3" json:"rewards_claimed"`
-	OrchestratorAddresses []string                               `protobuf:"bytes,2,rep,name=orchestrator_addresses,json=orchestratorAddresses,proto3" json:"orchestrator_addresses,omitempty"`
-	Ratio                 github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=ratio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"ratio"`
-	Counter               int64                                  `protobuf:"varint,4,opt,name=counter,proto3" json:"counter,omitempty"`
-	AddedToCurrentEpoch   bool                                   `protobuf:"varint,5,opt,name=added_to_current_epoch,json=addedToCurrentEpoch,proto3" json:"added_to_current_epoch,omitempty"`
-	ActiveBlockHeight     int64                                  `protobuf:"varint,6,opt,name=active_block_height,json=activeBlockHeight,proto3" json:"active_block_height,omitempty"`
-}
-
-func (m *RewardsClaimedValue) Reset()         { *m = RewardsClaimedValue{} }
-func (m *RewardsClaimedValue) String() string { return proto.CompactTextString(m) }
-func (*RewardsClaimedValue) ProtoMessage()    {}
-func (*RewardsClaimedValue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cbd4e547303b7d7c, []int{10}
-}
-func (m *RewardsClaimedValue) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *RewardsClaimedValue) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_RewardsClaimedValue.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *RewardsClaimedValue) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RewardsClaimedValue.Merge(m, src)
-}
-func (m *RewardsClaimedValue) XXX_Size() int {
-	return m.Size()
-}
-func (m *RewardsClaimedValue) XXX_DiscardUnknown() {
-	xxx_messageInfo_RewardsClaimedValue.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_RewardsClaimedValue proto.InternalMessageInfo
-
-func (m *RewardsClaimedValue) GetRewardsClaimed() MsgRewardsClaimedOnCosmosChain {
-	if m != nil {
-		return m.RewardsClaimed
-	}
-	return MsgRewardsClaimedOnCosmosChain{}
-}
-
-func (m *RewardsClaimedValue) GetOrchestratorAddresses() []string {
-	if m != nil {
-		return m.OrchestratorAddresses
-	}
-	return nil
-}
-
-func (m *RewardsClaimedValue) GetCounter() int64 {
-	if m != nil {
-		return m.Counter
-	}
-	return 0
-}
-
-func (m *RewardsClaimedValue) GetAddedToCurrentEpoch() bool {
-	if m != nil {
-		return m.AddedToCurrentEpoch
-	}
-	return false
-}
-
-func (m *RewardsClaimedValue) GetActiveBlockHeight() int64 {
-	if m != nil {
-		return m.ActiveBlockHeight
-	}
-	return 0
-}
-
 type ValueUndelegateSuccessStore struct {
-	UndelegateSuccess     MsgUndelegateSuccess                   `protobuf:"bytes,1,opt,name=undelegate_success,json=undelegateSuccess,proto3" json:"undelegate_success"`
-	OrchestratorAddresses []string                               `protobuf:"bytes,2,rep,name=orchestrator_addresses,json=orchestratorAddresses,proto3" json:"orchestrator_addresses,omitempty"`
-	Ratio                 github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=ratio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"ratio"`
-	Counter               int64                                  `protobuf:"varint,4,opt,name=counter,proto3" json:"counter,omitempty"`
-	ActiveBlockHeight     int64                                  `protobuf:"varint,5,opt,name=active_block_height,json=activeBlockHeight,proto3" json:"active_block_height,omitempty"`
+	UndelegateSuccess  MsgUndelegateSuccess                   `protobuf:"bytes,1,opt,name=undelegate_success,json=undelegateSuccess,proto3" json:"undelegate_success"`
+	ValidatorAddresses []string                               `protobuf:"bytes,2,rep,name=validator_addresses,json=validatorAddresses,proto3" json:"validator_addresses,omitempty"`
+	Ratio              github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=ratio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"ratio"`
+	Counter            int64                                  `protobuf:"varint,4,opt,name=counter,proto3" json:"counter,omitempty"`
+	ActiveBlockHeight  int64                                  `protobuf:"varint,5,opt,name=active_block_height,json=activeBlockHeight,proto3" json:"active_block_height,omitempty"`
 }
 
 func (m *ValueUndelegateSuccessStore) Reset()         { *m = ValueUndelegateSuccessStore{} }
 func (m *ValueUndelegateSuccessStore) String() string { return proto.CompactTextString(m) }
 func (*ValueUndelegateSuccessStore) ProtoMessage()    {}
 func (*ValueUndelegateSuccessStore) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cbd4e547303b7d7c, []int{11}
+	return fileDescriptor_cbd4e547303b7d7c, []int{9}
 }
 func (m *ValueUndelegateSuccessStore) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -767,9 +647,9 @@ func (m *ValueUndelegateSuccessStore) GetUndelegateSuccess() MsgUndelegateSucces
 	return MsgUndelegateSuccess{}
 }
 
-func (m *ValueUndelegateSuccessStore) GetOrchestratorAddresses() []string {
+func (m *ValueUndelegateSuccessStore) GetValidatorAddresses() []string {
 	if m != nil {
-		return m.OrchestratorAddresses
+		return m.ValidatorAddresses
 	}
 	return nil
 }
@@ -797,7 +677,7 @@ func (m *SingleSignatureDataForOutgoingPool) Reset()         { *m = SingleSignat
 func (m *SingleSignatureDataForOutgoingPool) String() string { return proto.CompactTextString(m) }
 func (*SingleSignatureDataForOutgoingPool) ProtoMessage()    {}
 func (*SingleSignatureDataForOutgoingPool) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cbd4e547303b7d7c, []int{12}
+	return fileDescriptor_cbd4e547303b7d7c, []int{10}
 }
 func (m *SingleSignatureDataForOutgoingPool) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -843,15 +723,18 @@ func (m *SingleSignatureDataForOutgoingPool) GetSignature() []byte {
 type OutgoingSignaturePoolValue struct {
 	SingleSignatures      []SingleSignatureDataForOutgoingPool   `protobuf:"bytes,1,rep,name=single_signatures,json=singleSignatures,proto3" json:"single_signatures"`
 	Ratio                 github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=ratio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"ratio"`
-	OrchestratorAddresses []string                               `protobuf:"bytes,3,rep,name=orchestratorAddresses,proto3" json:"orchestratorAddresses,omitempty"`
-	Counter               uint64                                 `protobuf:"varint,4,opt,name=counter,proto3" json:"counter,omitempty"`
+	ValidatorAddresses    []string                               `protobuf:"bytes,3,rep,name=validator_addresses,json=validatorAddresses,proto3" json:"validator_addresses,omitempty"`
+	OrchestratorAddresses []string                               `protobuf:"bytes,4,rep,name=orchestrator_addresses,json=orchestratorAddresses,proto3" json:"orchestrator_addresses,omitempty"`
+	Counter               uint64                                 `protobuf:"varint,5,opt,name=counter,proto3" json:"counter,omitempty"`
+	ActiveBlockHeight     int64                                  `protobuf:"varint,6,opt,name=active_block_height,json=activeBlockHeight,proto3" json:"active_block_height,omitempty"`
+	SignedEventEmitted    bool                                   `protobuf:"varint,7,opt,name=signed_event_emitted,json=signedEventEmitted,proto3" json:"signed_event_emitted,omitempty"`
 }
 
 func (m *OutgoingSignaturePoolValue) Reset()         { *m = OutgoingSignaturePoolValue{} }
 func (m *OutgoingSignaturePoolValue) String() string { return proto.CompactTextString(m) }
 func (*OutgoingSignaturePoolValue) ProtoMessage()    {}
 func (*OutgoingSignaturePoolValue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cbd4e547303b7d7c, []int{13}
+	return fileDescriptor_cbd4e547303b7d7c, []int{11}
 }
 func (m *OutgoingSignaturePoolValue) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -887,6 +770,13 @@ func (m *OutgoingSignaturePoolValue) GetSingleSignatures() []SingleSignatureData
 	return nil
 }
 
+func (m *OutgoingSignaturePoolValue) GetValidatorAddresses() []string {
+	if m != nil {
+		return m.ValidatorAddresses
+	}
+	return nil
+}
+
 func (m *OutgoingSignaturePoolValue) GetOrchestratorAddresses() []string {
 	if m != nil {
 		return m.OrchestratorAddresses
@@ -901,6 +791,20 @@ func (m *OutgoingSignaturePoolValue) GetCounter() uint64 {
 	return 0
 }
 
+func (m *OutgoingSignaturePoolValue) GetActiveBlockHeight() int64 {
+	if m != nil {
+		return m.ActiveBlockHeight
+	}
+	return 0
+}
+
+func (m *OutgoingSignaturePoolValue) GetSignedEventEmitted() bool {
+	if m != nil {
+		return m.SignedEventEmitted
+	}
+	return false
+}
+
 type OutgoingQueueValue struct {
 	Active       bool   `protobuf:"varint,1,opt,name=active,proto3" json:"active,omitempty"`
 	RetryCounter uint64 `protobuf:"varint,2,opt,name=retry_counter,json=retryCounter,proto3" json:"retry_counter,omitempty"`
@@ -910,7 +814,7 @@ func (m *OutgoingQueueValue) Reset()         { *m = OutgoingQueueValue{} }
 func (m *OutgoingQueueValue) String() string { return proto.CompactTextString(m) }
 func (*OutgoingQueueValue) ProtoMessage()    {}
 func (*OutgoingQueueValue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cbd4e547303b7d7c, []int{14}
+	return fileDescriptor_cbd4e547303b7d7c, []int{12}
 }
 func (m *OutgoingQueueValue) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -954,19 +858,19 @@ func (m *OutgoingQueueValue) GetRetryCounter() uint64 {
 }
 
 type SlashingStoreValue struct {
-	SlashingDetails       MsgSlashingEventOnCosmosChain          `protobuf:"bytes,1,opt,name=slashing_details,json=slashingDetails,proto3" json:"slashing_details"`
-	Ratio                 github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=ratio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"ratio"`
-	OrchestratorAddresses []string                               `protobuf:"bytes,3,rep,name=orchestrator_addresses,json=orchestratorAddresses,proto3" json:"orchestrator_addresses,omitempty"`
-	Counter               int64                                  `protobuf:"varint,4,opt,name=counter,proto3" json:"counter,omitempty"`
-	AddedToCValue         bool                                   `protobuf:"varint,5,opt,name=added_to_c_value,json=addedToCValue,proto3" json:"added_to_c_value,omitempty"`
-	ActiveBlockHeight     int64                                  `protobuf:"varint,6,opt,name=active_block_height,json=activeBlockHeight,proto3" json:"active_block_height,omitempty"`
+	SlashingDetails    MsgSlashingEventOnCosmosChain          `protobuf:"bytes,1,opt,name=slashing_details,json=slashingDetails,proto3" json:"slashing_details"`
+	Ratio              github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=ratio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"ratio"`
+	ValidatorAddresses []string                               `protobuf:"bytes,3,rep,name=validator_addresses,json=validatorAddresses,proto3" json:"validator_addresses,omitempty"`
+	Counter            int64                                  `protobuf:"varint,4,opt,name=counter,proto3" json:"counter,omitempty"`
+	AddedToCValue      bool                                   `protobuf:"varint,5,opt,name=added_to_c_value,json=addedToCValue,proto3" json:"added_to_c_value,omitempty"`
+	ActiveBlockHeight  int64                                  `protobuf:"varint,6,opt,name=active_block_height,json=activeBlockHeight,proto3" json:"active_block_height,omitempty"`
 }
 
 func (m *SlashingStoreValue) Reset()         { *m = SlashingStoreValue{} }
 func (m *SlashingStoreValue) String() string { return proto.CompactTextString(m) }
 func (*SlashingStoreValue) ProtoMessage()    {}
 func (*SlashingStoreValue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cbd4e547303b7d7c, []int{15}
+	return fileDescriptor_cbd4e547303b7d7c, []int{13}
 }
 func (m *SlashingStoreValue) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1002,9 +906,9 @@ func (m *SlashingStoreValue) GetSlashingDetails() MsgSlashingEventOnCosmosChain 
 	return MsgSlashingEventOnCosmosChain{}
 }
 
-func (m *SlashingStoreValue) GetOrchestratorAddresses() []string {
+func (m *SlashingStoreValue) GetValidatorAddresses() []string {
 	if m != nil {
-		return m.OrchestratorAddresses
+		return m.ValidatorAddresses
 	}
 	return nil
 }
@@ -1031,20 +935,20 @@ func (m *SlashingStoreValue) GetActiveBlockHeight() int64 {
 }
 
 type MintTokenStoreValue struct {
-	MintTokens            MsgMintTokensForAccount                `protobuf:"bytes,1,opt,name=mint_tokens,json=mintTokens,proto3" json:"mint_tokens"`
-	Ratio                 github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=ratio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"ratio"`
-	OrchestratorAddresses []string                               `protobuf:"bytes,3,rep,name=orchestratorAddresses,proto3" json:"orchestratorAddresses,omitempty"`
-	Counter               int64                                  `protobuf:"varint,4,opt,name=counter,proto3" json:"counter,omitempty"`
-	Minted                bool                                   `protobuf:"varint,5,opt,name=minted,proto3" json:"minted,omitempty"`
-	AddedToEpoch          bool                                   `protobuf:"varint,6,opt,name=added_to_epoch,json=addedToEpoch,proto3" json:"added_to_epoch,omitempty"`
-	ActiveBlockHeight     int64                                  `protobuf:"varint,7,opt,name=active_block_height,json=activeBlockHeight,proto3" json:"active_block_height,omitempty"`
+	MintTokens         MsgMintTokensForAccount                `protobuf:"bytes,1,opt,name=mint_tokens,json=mintTokens,proto3" json:"mint_tokens"`
+	Ratio              github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=ratio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"ratio"`
+	ValidatorAddresses []string                               `protobuf:"bytes,3,rep,name=validator_addresses,json=validatorAddresses,proto3" json:"validator_addresses,omitempty"`
+	Counter            int64                                  `protobuf:"varint,4,opt,name=counter,proto3" json:"counter,omitempty"`
+	Minted             bool                                   `protobuf:"varint,5,opt,name=minted,proto3" json:"minted,omitempty"`
+	AddedToEpoch       bool                                   `protobuf:"varint,6,opt,name=added_to_epoch,json=addedToEpoch,proto3" json:"added_to_epoch,omitempty"`
+	ActiveBlockHeight  int64                                  `protobuf:"varint,7,opt,name=active_block_height,json=activeBlockHeight,proto3" json:"active_block_height,omitempty"`
 }
 
 func (m *MintTokenStoreValue) Reset()         { *m = MintTokenStoreValue{} }
 func (m *MintTokenStoreValue) String() string { return proto.CompactTextString(m) }
 func (*MintTokenStoreValue) ProtoMessage()    {}
 func (*MintTokenStoreValue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cbd4e547303b7d7c, []int{16}
+	return fileDescriptor_cbd4e547303b7d7c, []int{14}
 }
 func (m *MintTokenStoreValue) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1080,9 +984,9 @@ func (m *MintTokenStoreValue) GetMintTokens() MsgMintTokensForAccount {
 	return MsgMintTokensForAccount{}
 }
 
-func (m *MintTokenStoreValue) GetOrchestratorAddresses() []string {
+func (m *MintTokenStoreValue) GetValidatorAddresses() []string {
 	if m != nil {
-		return m.OrchestratorAddresses
+		return m.ValidatorAddresses
 	}
 	return nil
 }
@@ -1115,6 +1019,51 @@ func (m *MintTokenStoreValue) GetActiveBlockHeight() int64 {
 	return 0
 }
 
+type EpochWithdrawSuccessStoreValue struct {
+	Status bool                                   `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	CValue github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=cValue,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"cValue"`
+}
+
+func (m *EpochWithdrawSuccessStoreValue) Reset()         { *m = EpochWithdrawSuccessStoreValue{} }
+func (m *EpochWithdrawSuccessStoreValue) String() string { return proto.CompactTextString(m) }
+func (*EpochWithdrawSuccessStoreValue) ProtoMessage()    {}
+func (*EpochWithdrawSuccessStoreValue) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cbd4e547303b7d7c, []int{15}
+}
+func (m *EpochWithdrawSuccessStoreValue) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EpochWithdrawSuccessStoreValue) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EpochWithdrawSuccessStoreValue.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EpochWithdrawSuccessStoreValue) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EpochWithdrawSuccessStoreValue.Merge(m, src)
+}
+func (m *EpochWithdrawSuccessStoreValue) XXX_Size() int {
+	return m.Size()
+}
+func (m *EpochWithdrawSuccessStoreValue) XXX_DiscardUnknown() {
+	xxx_messageInfo_EpochWithdrawSuccessStoreValue.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EpochWithdrawSuccessStoreValue proto.InternalMessageInfo
+
+func (m *EpochWithdrawSuccessStoreValue) GetStatus() bool {
+	if m != nil {
+		return m.Status
+	}
+	return false
+}
+
 func init() {
 	proto.RegisterType((*ChainIDHeightAndTxHashKey)(nil), "cosmos.v1beta1.ChainIDHeightAndTxHashKey")
 	proto.RegisterType((*ProposalKey)(nil), "cosmos.v1beta1.ProposalKey")
@@ -1125,107 +1074,104 @@ func init() {
 	proto.RegisterType((*ValueOutgoingUnbondStore)(nil), "cosmos.v1beta1.ValueOutgoingUnbondStore")
 	proto.RegisterType((*ValidatorStoreValue)(nil), "cosmos.v1beta1.ValidatorStoreValue")
 	proto.RegisterType((*MintingEpochValueMember)(nil), "cosmos.v1beta1.MintingEpochValueMember")
-	proto.RegisterType((*MintingEpochValue)(nil), "cosmos.v1beta1.MintingEpochValue")
-	proto.RegisterType((*RewardsClaimedValue)(nil), "cosmos.v1beta1.RewardsClaimedValue")
 	proto.RegisterType((*ValueUndelegateSuccessStore)(nil), "cosmos.v1beta1.ValueUndelegateSuccessStore")
 	proto.RegisterType((*SingleSignatureDataForOutgoingPool)(nil), "cosmos.v1beta1.SingleSignatureDataForOutgoingPool")
 	proto.RegisterType((*OutgoingSignaturePoolValue)(nil), "cosmos.v1beta1.OutgoingSignaturePoolValue")
 	proto.RegisterType((*OutgoingQueueValue)(nil), "cosmos.v1beta1.OutgoingQueueValue")
 	proto.RegisterType((*SlashingStoreValue)(nil), "cosmos.v1beta1.SlashingStoreValue")
 	proto.RegisterType((*MintTokenStoreValue)(nil), "cosmos.v1beta1.MintTokenStoreValue")
+	proto.RegisterType((*EpochWithdrawSuccessStoreValue)(nil), "cosmos.v1beta1.EpochWithdrawSuccessStoreValue")
 }
 
 func init() { proto.RegisterFile("cosmos/v1beta1/batch.proto", fileDescriptor_cbd4e547303b7d7c) }
 
 var fileDescriptor_cbd4e547303b7d7c = []byte{
-	// 1387 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x57, 0x4d, 0x6f, 0xdb, 0x46,
-	0x13, 0xb6, 0x3e, 0x22, 0x4b, 0x23, 0x5b, 0xb1, 0xe9, 0x37, 0x8e, 0xe2, 0xe4, 0x95, 0xfd, 0x2a,
-	0xc9, 0x6b, 0x03, 0x45, 0x24, 0xc4, 0x69, 0x7b, 0x2c, 0x6a, 0x5b, 0x0e, 0x12, 0xb4, 0x8e, 0x1d,
-	0x4a, 0x49, 0xd0, 0xa2, 0x2d, 0xb1, 0x22, 0x37, 0x14, 0x21, 0x6a, 0x57, 0xe0, 0x2e, 0x1d, 0xfa,
-	0xde, 0x1f, 0xd0, 0x43, 0x2f, 0x45, 0x7f, 0x4c, 0xaf, 0x01, 0x7a, 0xc9, 0xb1, 0xe8, 0x21, 0x28,
-	0xe2, 0x5e, 0x7a, 0xeb, 0x4f, 0x28, 0xf6, 0x4b, 0xa2, 0x6c, 0xd9, 0x6d, 0x52, 0x1f, 0x72, 0x12,
-	0x77, 0x66, 0xf7, 0x99, 0x99, 0x67, 0x3e, 0x76, 0x05, 0x2b, 0x2e, 0x65, 0x03, 0xca, 0x9a, 0x87,
-	0x77, 0xbb, 0x98, 0xa3, 0xbb, 0xcd, 0x2e, 0xe2, 0x6e, 0xaf, 0x31, 0x8c, 0x28, 0xa7, 0x56, 0x45,
-	0xe9, 0x1a, 0x5a, 0xb7, 0xf2, 0x1f, 0x9f, 0xfa, 0x54, 0xaa, 0x9a, 0xe2, 0x4b, 0xed, 0x5a, 0xb9,
-	0xe1, 0x53, 0xea, 0x87, 0xb8, 0x89, 0x86, 0x41, 0x13, 0x11, 0x42, 0x39, 0xe2, 0x01, 0x25, 0x4c,
-	0x6b, 0xaf, 0x69, 0xad, 0x5c, 0x75, 0xe3, 0xe7, 0x4d, 0x44, 0x8e, 0xb4, 0x6a, 0xf5, 0xa4, 0x8a,
-	0x07, 0x03, 0xcc, 0x38, 0x1a, 0x0c, 0xcd, 0xd9, 0x13, 0xbe, 0x0d, 0x98, 0x6f, 0x60, 0x6b, 0x5a,
-	0xd5, 0x45, 0x0c, 0x8f, 0xf4, 0x2e, 0x0d, 0x88, 0xd6, 0x9b, 0xb0, 0x78, 0x32, 0xd2, 0xf2, 0x64,
-	0x12, 0xd6, 0x51, 0x91, 0xe8, 0x18, 0xb5, 0x4b, 0xfa, 0x18, 0xe3, 0xa8, 0x1f, 0x10, 0xff, 0xf4,
-	0xd9, 0xf5, 0x31, 0x2e, 0x0b, 0x7c, 0x92, 0xde, 0xa3, 0xd7, 0x6a, 0x63, 0x9d, 0xc1, 0xb5, 0x9d,
-	0x1e, 0x0a, 0xc8, 0xc3, 0xd6, 0x03, 0x1c, 0xf8, 0x3d, 0xbe, 0x45, 0xbc, 0x4e, 0xf2, 0x00, 0xb1,
-	0xde, 0x67, 0xf8, 0xc8, 0x5a, 0x81, 0x92, 0x2b, 0x94, 0x4e, 0xe0, 0x78, 0xd5, 0xcc, 0x5a, 0x66,
-	0xa3, 0x64, 0xcf, 0xba, 0x6a, 0xb7, 0xf5, 0x3f, 0x98, 0xeb, 0x86, 0xd4, 0xed, 0x3b, 0x3d, 0x79,
-	0xae, 0x9a, 0x5d, 0xcb, 0x6c, 0xe4, 0xec, 0xb2, 0x94, 0x29, 0x28, 0xeb, 0x2a, 0xcc, 0xf2, 0xc4,
-	0xe9, 0x21, 0xd6, 0xab, 0xe6, 0xe4, 0xe1, 0x02, 0x97, 0xd0, 0x75, 0x02, 0xe5, 0x83, 0x88, 0x0e,
-	0x29, 0x43, 0xe1, 0x05, 0x98, 0x59, 0x83, 0xb9, 0xa1, 0x46, 0x93, 0x08, 0xc2, 0x56, 0xde, 0x06,
-	0x23, 0x7b, 0xd8, 0xaa, 0xbf, 0xca, 0xc2, 0xbc, 0x31, 0xf8, 0x14, 0x85, 0x31, 0xb6, 0xf6, 0xe1,
-	0xb2, 0xd1, 0xb7, 0x30, 0x47, 0x41, 0xc8, 0xa4, 0xe1, 0xf2, 0xe6, 0x6a, 0x63, 0xb2, 0x98, 0x1a,
-	0x7b, 0xcc, 0xdf, 0x43, 0x7d, 0x6c, 0x8e, 0x6f, 0xe7, 0x5f, 0xbe, 0x5e, 0x9d, 0xb1, 0x4f, 0x9e,
-	0xb6, 0xd6, 0xc7, 0x80, 0xce, 0x90, 0x32, 0x8e, 0x3d, 0xe9, 0x6a, 0xd1, 0xae, 0x18, 0xf1, 0x81,
-	0x94, 0x5a, 0x1f, 0xc1, 0x32, 0x8d, 0xdc, 0x1e, 0x66, 0x3c, 0x42, 0x9c, 0x46, 0x0e, 0xf2, 0xbc,
-	0x08, 0x33, 0x86, 0x59, 0x35, 0xb7, 0x96, 0xdb, 0x28, 0xd9, 0x57, 0xd2, 0xda, 0x2d, 0xa3, 0xb4,
-	0x5a, 0x70, 0x29, 0x12, 0x05, 0x5b, 0xcd, 0x0b, 0x7e, 0xb6, 0x1b, 0xc2, 0x8b, 0x5f, 0x5f, 0xaf,
-	0xfe, 0xdf, 0x0f, 0x78, 0x2f, 0xee, 0x36, 0x5c, 0x3a, 0xd0, 0x15, 0xa2, 0x7f, 0xee, 0x30, 0xaf,
-	0xdf, 0xe4, 0x47, 0x43, 0xcc, 0x1a, 0x2d, 0xec, 0xda, 0xea, 0xb0, 0x55, 0x85, 0x59, 0x97, 0xc6,
-	0x84, 0xe3, 0xa8, 0x7a, 0x49, 0x12, 0x69, 0x96, 0x56, 0x03, 0x96, 0x90, 0xcb, 0x83, 0x43, 0xec,
-	0x4c, 0xd0, 0x5d, 0x90, 0xbb, 0x16, 0x95, 0x6a, 0x7b, 0x4c, 0x7a, 0xfd, 0x38, 0x03, 0xc5, 0x1d,
-	0x69, 0xa9, 0x93, 0x58, 0x1f, 0x40, 0x96, 0x27, 0x9a, 0xc0, 0x2b, 0x86, 0x40, 0x9e, 0x8c, 0x38,
-	0xec, 0x24, 0x9a, 0xb6, 0x2c, 0x4f, 0xac, 0x9b, 0x30, 0x8f, 0x0f, 0x31, 0xe1, 0x0e, 0x1e, 0x04,
-	0x7c, 0xcc, 0xd3, 0x9c, 0x14, 0xee, 0x2a, 0x99, 0xb5, 0x0c, 0x05, 0xc6, 0x11, 0x8f, 0x99, 0xa9,
-	0x1c, 0xb5, 0x12, 0x72, 0x55, 0x43, 0x8a, 0x07, 0x53, 0x51, 0x67, 0xb9, 0x7f, 0xe9, 0x0c, 0xf7,
-	0xad, 0xdb, 0x50, 0x11, 0x7d, 0x80, 0x47, 0xfc, 0xcb, 0x48, 0x4b, 0xf6, 0xbc, 0x92, 0x6a, 0xde,
-	0xeb, 0x3f, 0x67, 0xa1, 0xac, 0xda, 0x41, 0x95, 0xcd, 0x27, 0x50, 0xe2, 0x89, 0xa3, 0x3d, 0x53,
-	0xf1, 0x5e, 0x9f, 0x52, 0x30, 0x9d, 0xa4, 0x2d, 0xb7, 0xe8, 0xa8, 0x8b, 0x5c, 0xaf, 0xcf, 0x49,
-	0x7e, 0xf6, 0xbc, 0xe4, 0xa7, 0xd9, 0xc8, 0xa5, 0xd8, 0xb8, 0x98, 0xa2, 0xf8, 0x2f, 0x00, 0x4f,
-	0x1c, 0x37, 0xc4, 0x28, 0xc2, 0x9e, 0xa4, 0xac, 0x68, 0x97, 0x78, 0xb2, 0xa3, 0x04, 0xe9, 0x9a,
-	0x29, 0xfc, 0xa3, 0x9a, 0x99, 0x3d, 0xab, 0x66, 0xbe, 0xcf, 0x80, 0xf5, 0x2c, 0xe0, 0x3d, 0x2f,
-	0x42, 0x2f, 0xda, 0x9c, 0x46, 0x58, 0x91, 0xda, 0x81, 0x85, 0x17, 0x5a, 0xea, 0x78, 0xa3, 0x66,
-	0xcc, 0x6d, 0x94, 0x37, 0x6f, 0x4e, 0xe1, 0x76, 0x0c, 0xd0, 0xdf, 0x62, 0x0c, 0x73, 0xd3, 0x90,
-	0x06, 0xc2, 0x34, 0xe4, 0x06, 0x2c, 0xc4, 0xa4, 0x4b, 0x89, 0x27, 0xeb, 0xcc, 0x79, 0x1e, 0x22,
-	0x5f, 0x92, 0x5c, 0xb4, 0x2b, 0x4a, 0x2e, 0x4a, 0xed, 0x7e, 0x88, 0xfc, 0xfa, 0x8f, 0x19, 0xa8,
-	0x4a, 0x4f, 0xf6, 0x63, 0xee, 0xd3, 0x80, 0xf8, 0x4f, 0xa4, 0x5e, 0x7a, 0x28, 0xe6, 0x0f, 0x1e,
-	0x52, 0xb7, 0xe7, 0x90, 0x78, 0xd0, 0xc5, 0x91, 0x4c, 0x7a, 0xce, 0x2e, 0x4b, 0xd9, 0x23, 0x29,
-	0xb2, 0xbe, 0x82, 0xa5, 0x98, 0x78, 0x38, 0xc4, 0x3e, 0xe2, 0xd8, 0x19, 0x60, 0xc6, 0x90, 0xaf,
-	0x33, 0x5a, 0xde, 0xbc, 0x6d, 0x42, 0xd0, 0xa3, 0x3a, 0x1d, 0xca, 0x93, 0xd1, 0x29, 0x1d, 0x84,
-	0x35, 0xc6, 0xd9, 0xd3, 0x30, 0xf5, 0xcf, 0x61, 0xe9, 0x29, 0x0a, 0x03, 0x4f, 0x54, 0x44, 0x8a,
-	0xb4, 0xb3, 0x2b, 0x29, 0x73, 0x4e, 0x25, 0xd5, 0x77, 0xe1, 0xea, 0x5e, 0x40, 0x78, 0x40, 0xfc,
-	0x5d, 0x11, 0x81, 0xc4, 0xda, 0xc3, 0x32, 0x0c, 0x0b, 0xf2, 0x3c, 0x79, 0xd8, 0x92, 0x11, 0xe6,
-	0x6d, 0xf9, 0x9d, 0x2a, 0x3c, 0xd5, 0xa4, 0x7a, 0x55, 0x0f, 0x61, 0xf1, 0x14, 0x8c, 0xf5, 0x0c,
-	0x16, 0x79, 0x22, 0x26, 0xb0, 0x83, 0x88, 0x37, 0x6e, 0x12, 0xc1, 0xc2, 0xfa, 0xa9, 0x44, 0x4e,
-	0x77, 0x42, 0xf3, 0x30, 0x2f, 0x8c, 0x6f, 0x89, 0x14, 0x48, 0x6b, 0x7f, 0x66, 0x61, 0xc9, 0xc6,
-	0x2f, 0x50, 0xe4, 0xb1, 0x9d, 0x10, 0x05, 0x03, 0xec, 0x29, 0x83, 0x5f, 0xc3, 0xe5, 0x48, 0x89,
-	0x1d, 0x57, 0xc9, 0x75, 0x4f, 0x36, 0xa6, 0xd4, 0xcd, 0x24, 0xc0, 0x3e, 0x51, 0xc3, 0x4b, 0xde,
-	0x7d, 0xda, 0x6a, 0x25, 0x9a, 0xd8, 0xf2, 0xae, 0xcd, 0x3a, 0x6a, 0xca, 0xdc, 0x05, 0x4d, 0xea,
-	0xfc, 0x64, 0xd7, 0xdd, 0x83, 0x65, 0xe4, 0x79, 0xd8, 0x73, 0x38, 0x75, 0xdc, 0x38, 0x8a, 0xe4,
-	0x28, 0x15, 0x3c, 0xea, 0xd6, 0x5d, 0x92, 0xda, 0x0e, 0xdd, 0x51, 0x3a, 0x49, 0xf1, 0x5b, 0x8f,
-	0xf7, 0x9f, 0xb2, 0x70, 0x5d, 0x92, 0x3c, 0xae, 0xd1, 0x76, 0xec, 0xba, 0x98, 0x31, 0xd5, 0x16,
-	0x5f, 0x40, 0xaa, 0x56, 0x1d, 0xa6, 0x54, 0x9a, 0xfd, 0x5b, 0x53, 0xd8, 0x3f, 0x05, 0xa3, 0x39,
-	0x5f, 0x8c, 0x4f, 0x2a, 0xde, 0x57, 0xda, 0xdf, 0xf2, 0x86, 0xa9, 0x7f, 0x9b, 0x81, 0x7a, 0x3b,
-	0x20, 0x7e, 0x88, 0xdb, 0x81, 0x4f, 0x10, 0x8f, 0x23, 0xdc, 0x42, 0x1c, 0xdd, 0xa7, 0x91, 0x19,
-	0x33, 0x07, 0x94, 0x86, 0xd6, 0xa7, 0x50, 0x12, 0x57, 0x8e, 0x33, 0xa0, 0x1e, 0x96, 0xfc, 0x55,
-	0xc6, 0x53, 0x8f, 0x27, 0x0d, 0xf3, 0x58, 0x33, 0x54, 0x0a, 0xac, 0x3d, 0xea, 0x61, 0xbb, 0xc8,
-	0xf4, 0x97, 0x75, 0x43, 0x21, 0x48, 0x0b, 0xb2, 0x4d, 0xe7, 0xec, 0xb1, 0xa0, 0xfe, 0x43, 0x16,
-	0x56, 0x8c, 0xc1, 0x91, 0x23, 0xc2, 0xb2, 0x6a, 0x21, 0x0c, 0x8b, 0x4c, 0x3a, 0xe9, 0x8c, 0x8e,
-	0x98, 0x9e, 0xdd, 0x3c, 0x99, 0xc6, 0xbf, 0x8f, 0x46, 0x27, 0x75, 0x81, 0x4d, 0xee, 0x4c, 0x25,
-	0x27, 0xfb, 0x6f, 0x92, 0xf3, 0x21, 0x4c, 0xcf, 0xfd, 0xf9, 0x2f, 0xa7, 0x13, 0x29, 0xcd, 0x8f,
-	0x52, 0x5a, 0x7f, 0x0c, 0x96, 0xf1, 0xfe, 0x71, 0x8c, 0x63, 0x3d, 0x59, 0x97, 0xa1, 0xa0, 0xb2,
-	0x29, 0xd3, 0x51, 0xb4, 0xf5, 0x4a, 0xbc, 0x5b, 0x22, 0xcc, 0xa3, 0x23, 0xc7, 0xa0, 0x65, 0x25,
-	0xda, 0x9c, 0x14, 0xee, 0x68, 0xc8, 0xdf, 0xb3, 0x60, 0xb5, 0x43, 0xc4, 0x7a, 0x82, 0xee, 0xf1,
-	0xb4, 0xfe, 0x06, 0x16, 0x98, 0x96, 0xa6, 0xae, 0x38, 0xd1, 0x2c, 0x77, 0xa6, 0x34, 0x8b, 0x01,
-	0xd8, 0x15, 0x2f, 0xa2, 0x69, 0x93, 0xea, 0xb2, 0x01, 0x33, 0x97, 0xdd, 0xc5, 0xf0, 0xfb, 0x8e,
-	0x4f, 0xd3, 0xb3, 0x7b, 0x66, 0x1d, 0x16, 0xc6, 0xa3, 0xca, 0x39, 0x14, 0x54, 0xe8, 0x21, 0x35,
-	0x6f, 0x86, 0x94, 0xe2, 0xe7, 0x6d, 0xc7, 0xd3, 0x1f, 0x59, 0x58, 0x12, 0x57, 0x48, 0x87, 0xf6,
-	0x31, 0x49, 0xf1, 0xfc, 0x08, 0xca, 0x83, 0x80, 0x70, 0x87, 0x0b, 0xb9, 0xa1, 0x78, 0x7d, 0xda,
-	0x93, 0xde, 0x1c, 0x66, 0xf7, 0x69, 0xb4, 0xe5, 0x4a, 0x87, 0x35, 0xb9, 0x30, 0x18, 0xe9, 0xde,
-	0xa7, 0xba, 0x4d, 0xd1, 0xba, 0x0c, 0x05, 0xe1, 0xe3, 0xe8, 0xb1, 0xa6, 0x57, 0xd6, 0x2d, 0xa8,
-	0x8c, 0xe8, 0x56, 0x37, 0x42, 0x41, 0x3d, 0xad, 0x35, 0xd9, 0xe7, 0x5e, 0x05, 0x67, 0xbd, 0xda,
-	0xb6, 0x0f, 0x5e, 0xbe, 0xa9, 0x65, 0x5e, 0xbd, 0xa9, 0x65, 0x7e, 0x7b, 0x53, 0xcb, 0x7c, 0x77,
-	0x5c, 0x9b, 0x79, 0x75, 0x5c, 0x9b, 0xf9, 0xe5, 0xb8, 0x36, 0xf3, 0xe5, 0xc7, 0x29, 0x1a, 0x86,
-	0x38, 0x62, 0x01, 0xe3, 0x98, 0xb8, 0x78, 0x9f, 0xe0, 0xe6, 0xb0, 0xcd, 0x51, 0x1f, 0xdf, 0x21,
-	0x48, 0xa0, 0x35, 0x13, 0xc3, 0x92, 0xa4, 0xa6, 0x5b, 0x90, 0x7f, 0x3d, 0xef, 0xfd, 0x15, 0x00,
-	0x00, 0xff, 0xff, 0xb8, 0xcc, 0x2e, 0xf0, 0xd4, 0x0f, 0x00, 0x00,
+	// 1350 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x57, 0x5f, 0x6f, 0x1b, 0x45,
+	0x10, 0x8f, 0xff, 0xd4, 0xb1, 0xc7, 0x49, 0x48, 0x37, 0x6d, 0xea, 0xa6, 0xc5, 0x09, 0xd7, 0x96,
+	0x44, 0x42, 0xb5, 0x69, 0x10, 0x3c, 0x22, 0x92, 0x38, 0xa1, 0x15, 0xa4, 0x4d, 0xcf, 0x6e, 0x11,
+	0x08, 0x71, 0x5a, 0xdf, 0x6d, 0xcf, 0x27, 0xdb, 0xbb, 0xd6, 0xed, 0x5e, 0x7a, 0x79, 0xe3, 0x81,
+	0x0f, 0xc0, 0x03, 0x5f, 0x83, 0x0f, 0xc0, 0x07, 0x40, 0xaa, 0xc4, 0x4b, 0x1f, 0x11, 0x0f, 0x15,
+	0x6a, 0xfa, 0x41, 0xd0, 0xed, 0x9f, 0xf3, 0xc5, 0x8d, 0xa1, 0x29, 0x91, 0xe0, 0xc9, 0xb7, 0x33,
+	0x3b, 0xb3, 0x33, 0xbf, 0xfd, 0xcd, 0xcc, 0x1a, 0x56, 0x5c, 0xc6, 0x87, 0x8c, 0x37, 0x0f, 0xef,
+	0x74, 0x89, 0xc0, 0x77, 0x9a, 0x5d, 0x2c, 0xdc, 0x5e, 0x63, 0x14, 0x32, 0xc1, 0xd0, 0x82, 0xd2,
+	0x35, 0xb4, 0x6e, 0xe5, 0x92, 0xcf, 0x7c, 0x26, 0x55, 0xcd, 0xe4, 0x4b, 0xed, 0x5a, 0xb9, 0xee,
+	0x33, 0xe6, 0x0f, 0x48, 0x13, 0x8f, 0x82, 0x26, 0xa6, 0x94, 0x09, 0x2c, 0x02, 0x46, 0xb9, 0xd6,
+	0x5e, 0xd5, 0x5a, 0xb9, 0xea, 0x46, 0x4f, 0x9a, 0x98, 0x1e, 0x69, 0xd5, 0xea, 0xa4, 0x4a, 0x04,
+	0x43, 0xc2, 0x05, 0x1e, 0x8e, 0x8c, 0xed, 0x44, 0x6c, 0x43, 0xee, 0x1b, 0xb7, 0x75, 0xad, 0xea,
+	0x62, 0x4e, 0x52, 0xbd, 0xcb, 0x02, 0xaa, 0xf5, 0x26, 0x2d, 0x11, 0xa7, 0x5a, 0x11, 0x9f, 0x74,
+	0xeb, 0xa8, 0x4c, 0x74, 0x8e, 0x3a, 0x24, 0x6d, 0xc6, 0x05, 0xee, 0x07, 0xd4, 0x7f, 0xdd, 0x76,
+	0x7d, 0xec, 0x97, 0x07, 0x3e, 0xcd, 0xee, 0xd1, 0x6b, 0xb5, 0xd1, 0xe2, 0x70, 0x75, 0xa7, 0x87,
+	0x03, 0x7a, 0xaf, 0x75, 0x97, 0x04, 0x7e, 0x4f, 0x6c, 0x51, 0xaf, 0x13, 0xdf, 0xc5, 0xbc, 0xf7,
+	0x05, 0x39, 0x42, 0x2b, 0x50, 0x71, 0x13, 0xa5, 0x13, 0x38, 0x5e, 0x2d, 0xb7, 0x96, 0xdb, 0xa8,
+	0xd8, 0xb3, 0xae, 0xda, 0x8d, 0xde, 0x83, 0xb9, 0xee, 0x80, 0xb9, 0x7d, 0xa7, 0x27, 0xed, 0x6a,
+	0xf9, 0xb5, 0xdc, 0x46, 0xc1, 0xae, 0x4a, 0x99, 0x72, 0x85, 0xae, 0xc0, 0xac, 0x88, 0x9d, 0x1e,
+	0xe6, 0xbd, 0x5a, 0x41, 0x1a, 0x97, 0x84, 0x74, 0x6d, 0x51, 0xa8, 0x1e, 0x84, 0x6c, 0xc4, 0x38,
+	0x1e, 0x9c, 0xc3, 0x31, 0x6b, 0x30, 0x37, 0xd2, 0xde, 0xa4, 0x87, 0xe4, 0xac, 0xa2, 0x0d, 0x46,
+	0x76, 0xaf, 0x65, 0xfd, 0x96, 0x87, 0x79, 0x73, 0xe0, 0x63, 0x3c, 0x88, 0x08, 0x3a, 0x80, 0xc5,
+	0xd4, 0xc6, 0x23, 0x02, 0x07, 0x03, 0x2e, 0x4f, 0xae, 0x6e, 0xae, 0x36, 0x4e, 0xb2, 0xa9, 0xb1,
+	0xcf, 0xfd, 0x7d, 0xdc, 0x27, 0xc6, 0x7e, 0xbb, 0xf8, 0xec, 0xc5, 0xea, 0x8c, 0xfd, 0x8e, 0x31,
+	0x6f, 0x29, 0x6b, 0xb4, 0x0e, 0xa9, 0xc8, 0x19, 0x31, 0x2e, 0x88, 0x27, 0x63, 0x2d, 0xdb, 0x0b,
+	0x46, 0x7c, 0x20, 0xa5, 0xa8, 0x09, 0x4b, 0x87, 0x78, 0x10, 0x78, 0x58, 0xb0, 0xd0, 0xc1, 0x9e,
+	0x17, 0x12, 0xce, 0x09, 0xaf, 0x15, 0xd6, 0x0a, 0x1b, 0x15, 0x1b, 0xa5, 0xaa, 0x2d, 0xa3, 0x41,
+	0x2d, 0xb8, 0x10, 0x26, 0x5c, 0xad, 0x15, 0x13, 0x68, 0xb6, 0x1b, 0xc9, 0xf9, 0x7f, 0xbc, 0x58,
+	0x7d, 0xdf, 0x0f, 0x44, 0x2f, 0xea, 0x36, 0x5c, 0x36, 0xd4, 0xe4, 0xd0, 0x3f, 0xb7, 0xb9, 0xd7,
+	0x6f, 0x8a, 0xa3, 0x11, 0xe1, 0x8d, 0x16, 0x71, 0x6d, 0x65, 0x8c, 0x6a, 0x30, 0xeb, 0xb2, 0x88,
+	0x0a, 0x12, 0xd6, 0x2e, 0x48, 0x0c, 0xcd, 0x12, 0x35, 0x60, 0x09, 0xbb, 0x22, 0x38, 0x24, 0xce,
+	0x09, 0xa4, 0x4b, 0x72, 0xd7, 0x45, 0xa5, 0xda, 0x1e, 0xe3, 0x6d, 0x1d, 0xe7, 0xa0, 0xbc, 0x23,
+	0x4f, 0xea, 0xc4, 0xe8, 0x03, 0xc8, 0x8b, 0x58, 0x43, 0x77, 0xd9, 0x40, 0x27, 0xe2, 0x14, 0xbd,
+	0x4e, 0xac, 0x01, 0xcb, 0x8b, 0x18, 0xdd, 0x80, 0x79, 0x72, 0x48, 0xa8, 0x70, 0xc8, 0x30, 0x10,
+	0x63, 0x84, 0xe6, 0xa4, 0x70, 0x57, 0xc9, 0xd0, 0x32, 0x94, 0xb8, 0xc0, 0x22, 0xe2, 0x86, 0x34,
+	0x6a, 0x95, 0xc8, 0x15, 0x7d, 0x14, 0x0e, 0x86, 0x4c, 0xd3, 0xc2, 0xbf, 0x30, 0x25, 0x7c, 0x74,
+	0x0b, 0x16, 0x92, 0x12, 0x20, 0x29, 0xf8, 0x32, 0xd3, 0x8a, 0x3d, 0xaf, 0xa4, 0x1a, 0x77, 0xeb,
+	0xd7, 0x3c, 0x54, 0x55, 0x25, 0x28, 0xc6, 0x7c, 0x0a, 0x15, 0x11, 0x3b, 0x3a, 0x32, 0x95, 0xef,
+	0xb5, 0x53, 0xa8, 0xd2, 0x89, 0xdb, 0x72, 0x8b, 0xce, 0xba, 0x2c, 0xf4, 0x7a, 0xda, 0xb5, 0xe7,
+	0xa7, 0x5e, 0x7b, 0x16, 0x87, 0x42, 0x06, 0x87, 0xf3, 0xa1, 0xc3, 0xbb, 0x00, 0x22, 0x76, 0xdc,
+	0x01, 0xc1, 0x21, 0xf1, 0x24, 0x58, 0x65, 0xbb, 0x22, 0xe2, 0x1d, 0x25, 0xc8, 0xb2, 0xa5, 0xf4,
+	0x46, 0x6c, 0x99, 0x9d, 0xc6, 0x96, 0x9f, 0x72, 0x80, 0xbe, 0x0a, 0x44, 0xcf, 0x0b, 0xf1, 0xd3,
+	0xb6, 0x60, 0x21, 0x51, 0x70, 0x76, 0x60, 0xf1, 0xa9, 0x96, 0x66, 0x0a, 0xb0, 0xb0, 0x51, 0xdd,
+	0xbc, 0x71, 0x0a, 0xaa, 0x63, 0x07, 0xfd, 0x2d, 0xce, 0x89, 0x30, 0x45, 0x68, 0x5c, 0x98, 0x22,
+	0xdc, 0x80, 0xc5, 0x88, 0x76, 0x19, 0xf5, 0x24, 0xc3, 0x9c, 0x27, 0x03, 0xec, 0x4b, 0x84, 0xcb,
+	0xf6, 0x82, 0x92, 0x27, 0x24, 0xdb, 0x1b, 0x60, 0xdf, 0x7a, 0x95, 0x83, 0x9a, 0x8c, 0xe4, 0x41,
+	0x24, 0x7c, 0x16, 0x50, 0xff, 0x91, 0xd4, 0xcb, 0x08, 0x93, 0xa6, 0x43, 0x46, 0xcc, 0xed, 0x39,
+	0x34, 0x1a, 0x76, 0x49, 0x28, 0xaf, 0xbb, 0x60, 0x57, 0xa5, 0xec, 0xbe, 0x14, 0xa1, 0x6f, 0x61,
+	0x29, 0xa2, 0x1e, 0x19, 0x10, 0x1f, 0x0b, 0xe2, 0x0c, 0x09, 0xe7, 0xd8, 0xd7, 0xd7, 0x59, 0xdd,
+	0xbc, 0x65, 0x52, 0xd0, 0xfd, 0x39, 0x9b, 0xca, 0xa3, 0xd4, 0x4a, 0x27, 0x81, 0xc6, 0x7e, 0xf6,
+	0xb5, 0x1b, 0xf4, 0x39, 0xcc, 0xba, 0xce, 0x61, 0x12, 0x9e, 0x2a, 0x82, 0x33, 0xdf, 0x72, 0xc9,
+	0x95, 0xc9, 0x59, 0x5f, 0xc2, 0xd2, 0x63, 0x43, 0xad, 0x0c, 0xfa, 0x1f, 0xc3, 0x32, 0x0b, 0xdd,
+	0x1e, 0xe1, 0x22, 0x9c, 0xe0, 0x63, 0x4e, 0x72, 0xed, 0x72, 0x56, 0x9b, 0x52, 0xd2, 0xda, 0x85,
+	0x2b, 0xfb, 0x01, 0x15, 0x01, 0xf5, 0x77, 0x13, 0x28, 0xa4, 0xaf, 0x7d, 0x22, 0xf1, 0x40, 0x50,
+	0x14, 0xf1, 0xbd, 0x96, 0x84, 0xaa, 0x68, 0xcb, 0xef, 0x0c, 0x83, 0x55, 0x9d, 0xeb, 0x95, 0xf5,
+	0x4b, 0x1e, 0xae, 0x49, 0xdb, 0x31, 0x16, 0xed, 0xc8, 0x75, 0x09, 0xe7, 0x0a, 0xfe, 0xaf, 0x21,
+	0x83, 0x89, 0xc3, 0x95, 0x4a, 0xd7, 0xdc, 0xcd, 0x53, 0xd8, 0xf1, 0x9a, 0x1b, 0x8d, 0xec, 0xc5,
+	0x68, 0x52, 0x71, 0xf6, 0x2a, 0x4c, 0xab, 0xad, 0x70, 0x4e, 0xcd, 0xb7, 0xf8, 0x46, 0xe5, 0x34,
+	0xad, 0x7b, 0x59, 0x3f, 0xe4, 0xc0, 0x6a, 0x07, 0xd4, 0x1f, 0x90, 0x76, 0xe0, 0x53, 0x2c, 0xa2,
+	0x90, 0xb4, 0xb0, 0xc0, 0x7b, 0x2c, 0x34, 0x44, 0x3e, 0x60, 0x6c, 0x80, 0x3e, 0x83, 0x4a, 0xd2,
+	0xce, 0x9c, 0x21, 0xf3, 0x88, 0x44, 0x6e, 0x61, 0x5c, 0x57, 0x22, 0x6e, 0x98, 0x37, 0x80, 0x01,
+	0x31, 0xf1, 0xb5, 0xcf, 0x3c, 0x62, 0x97, 0xb9, 0xfe, 0x42, 0xd7, 0x95, 0x07, 0x79, 0x82, 0xbc,
+	0xbf, 0x39, 0x7b, 0x2c, 0xb0, 0x7e, 0x2e, 0xc0, 0x8a, 0x39, 0x30, 0x0d, 0x24, 0x39, 0x59, 0xf1,
+	0x8b, 0xc0, 0x45, 0x2e, 0x83, 0x74, 0x52, 0x13, 0x53, 0xde, 0x9b, 0x93, 0x17, 0xf8, 0xcf, 0xd9,
+	0xe8, 0xeb, 0x5c, 0xe4, 0x27, 0x77, 0x66, 0x2e, 0x27, 0xff, 0x6f, 0x2e, 0xe7, 0xcc, 0x03, 0x79,
+	0x7a, 0xf5, 0x14, 0xff, 0xa6, 0x7a, 0x26, 0x27, 0x70, 0xf1, 0xad, 0x27, 0x30, 0xfa, 0x10, 0x2e,
+	0xc9, 0x61, 0xe5, 0x39, 0x27, 0xc7, 0xe9, 0xac, 0x2c, 0x33, 0xa4, 0x74, 0xbb, 0x99, 0xa1, 0x6a,
+	0x3d, 0x04, 0x64, 0x10, 0x7d, 0x18, 0x91, 0x48, 0xb7, 0x81, 0x65, 0x28, 0x29, 0xe7, 0x92, 0x22,
+	0x65, 0x5b, 0xaf, 0x92, 0x39, 0x1d, 0x12, 0x11, 0x1e, 0x39, 0x26, 0xde, 0xbc, 0x8c, 0x77, 0x4e,
+	0x0a, 0x77, 0x94, 0xcc, 0x7a, 0x91, 0x07, 0xd4, 0x1e, 0x60, 0xde, 0x4b, 0x28, 0x30, 0x6e, 0x2d,
+	0xdf, 0xc1, 0x22, 0xd7, 0xd2, 0x89, 0x97, 0xd5, 0xed, 0x53, 0x4a, 0xd7, 0x38, 0x90, 0xc1, 0x3e,
+	0xa0, 0xea, 0x59, 0x21, 0x1f, 0xa4, 0xa6, 0xc5, 0x1b, 0x67, 0xa6, 0xc5, 0xff, 0x47, 0x77, 0x3e,
+	0xbd, 0x82, 0xd7, 0x61, 0x11, 0x7b, 0x1e, 0xf1, 0x1c, 0xc1, 0x1c, 0xd3, 0xb4, 0xd5, 0x3c, 0x9d,
+	0x97, 0xf2, 0x0e, 0xdb, 0x51, 0xc8, 0x9c, 0xf5, 0x9d, 0xf5, 0x2a, 0x0f, 0x4b, 0x49, 0xbb, 0xed,
+	0xb0, 0x3e, 0xa1, 0x19, 0x84, 0xef, 0x43, 0x75, 0x18, 0x50, 0xe1, 0x88, 0x44, 0x6e, 0xc0, 0x5d,
+	0x3f, 0xed, 0xd9, 0x6a, 0x8c, 0xf9, 0x1e, 0x0b, 0xb7, 0x5c, 0x19, 0xb0, 0x86, 0x15, 0x86, 0xa9,
+	0xee, 0xff, 0x87, 0xe8, 0x32, 0x94, 0x92, 0xf0, 0xd2, 0x77, 0x89, 0x5e, 0xa1, 0x9b, 0xb0, 0x90,
+	0x22, 0x2d, 0x67, 0xb1, 0xc4, 0xae, 0x6c, 0xcf, 0x69, 0x9c, 0xe5, 0x50, 0x3a, 0xf3, 0x03, 0xe5,
+	0xfb, 0x1c, 0xd4, 0xa5, 0x65, 0xfa, 0xc8, 0xc8, 0xcc, 0xa2, 0xb4, 0x4e, 0x32, 0x0f, 0xbf, 0x74,
+	0x90, 0xa1, 0x3d, 0xd0, 0x73, 0xf6, 0x2d, 0xa1, 0xd3, 0xd6, 0xdb, 0x07, 0xcf, 0x5e, 0xd6, 0x73,
+	0xcf, 0x5f, 0xd6, 0x73, 0x7f, 0xbe, 0xac, 0xe7, 0x7e, 0x3c, 0xae, 0xcf, 0x3c, 0x3f, 0xae, 0xcf,
+	0xfc, 0x7e, 0x5c, 0x9f, 0xf9, 0xe6, 0x93, 0x8c, 0xa7, 0x11, 0x09, 0x79, 0xc0, 0x05, 0xa1, 0x2e,
+	0x79, 0x40, 0x49, 0x73, 0xd4, 0x16, 0xb8, 0x4f, 0x6e, 0x53, 0x9c, 0x24, 0xd4, 0x8c, 0xcd, 0x41,
+	0xd2, 0x7b, 0xb7, 0x24, 0xff, 0xdd, 0x7d, 0xf4, 0x57, 0x00, 0x00, 0x00, 0xff, 0xff, 0x94, 0xd0,
+	0x7f, 0x7d, 0x37, 0x0f, 0x00, 0x00,
 }
 
 func (m *ChainIDHeightAndTxHashKey) Marshal() (dAtA []byte, err error) {
@@ -1350,11 +1296,11 @@ func (m *ProposalValue) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x22
-	if len(m.OrchestratorAddresses) > 0 {
-		for iNdEx := len(m.OrchestratorAddresses) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.OrchestratorAddresses[iNdEx])
-			copy(dAtA[i:], m.OrchestratorAddresses[iNdEx])
-			i = encodeVarintBatch(dAtA, i, uint64(len(m.OrchestratorAddresses[iNdEx])))
+	if len(m.ValidatorAddresses) > 0 {
+		for iNdEx := len(m.ValidatorAddresses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.ValidatorAddresses[iNdEx])
+			copy(dAtA[i:], m.ValidatorAddresses[iNdEx])
+			i = encodeVarintBatch(dAtA, i, uint64(len(m.ValidatorAddresses[iNdEx])))
 			i--
 			dAtA[i] = 0x1a
 		}
@@ -1510,11 +1456,11 @@ func (m *TxHashValue) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0x1a
 		}
 	}
-	if len(m.OrchestratorAddresses) > 0 {
-		for iNdEx := len(m.OrchestratorAddresses) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.OrchestratorAddresses[iNdEx])
-			copy(dAtA[i:], m.OrchestratorAddresses[iNdEx])
-			i = encodeVarintBatch(dAtA, i, uint64(len(m.OrchestratorAddresses[iNdEx])))
+	if len(m.ValidatorAddresses) > 0 {
+		for iNdEx := len(m.ValidatorAddresses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.ValidatorAddresses[iNdEx])
+			copy(dAtA[i:], m.ValidatorAddresses[iNdEx])
+			i = encodeVarintBatch(dAtA, i, uint64(len(m.ValidatorAddresses[iNdEx])))
 			i--
 			dAtA[i] = 0x12
 		}
@@ -1602,6 +1548,16 @@ func (m *ValueOutgoingUnbondStore) MarshalToSizedBuffer(dAtA []byte) (int, error
 	_ = i
 	var l int
 	_ = l
+	{
+		size := m.CValue.Size()
+		i -= size
+		if _, err := m.CValue.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintBatch(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
 	if len(m.UndelegateMessages) > 0 {
 		for iNdEx := len(m.UndelegateMessages) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -1694,115 +1650,6 @@ func (m *MintingEpochValueMember) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
-func (m *MintingEpochValue) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MintingEpochValue) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MintingEpochValue) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.TxIDAndStatus) > 0 {
-		for iNdEx := len(m.TxIDAndStatus) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.TxIDAndStatus[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintBatch(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *RewardsClaimedValue) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *RewardsClaimedValue) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *RewardsClaimedValue) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.ActiveBlockHeight != 0 {
-		i = encodeVarintBatch(dAtA, i, uint64(m.ActiveBlockHeight))
-		i--
-		dAtA[i] = 0x30
-	}
-	if m.AddedToCurrentEpoch {
-		i--
-		if m.AddedToCurrentEpoch {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i--
-		dAtA[i] = 0x28
-	}
-	if m.Counter != 0 {
-		i = encodeVarintBatch(dAtA, i, uint64(m.Counter))
-		i--
-		dAtA[i] = 0x20
-	}
-	{
-		size := m.Ratio.Size()
-		i -= size
-		if _, err := m.Ratio.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintBatch(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x1a
-	if len(m.OrchestratorAddresses) > 0 {
-		for iNdEx := len(m.OrchestratorAddresses) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.OrchestratorAddresses[iNdEx])
-			copy(dAtA[i:], m.OrchestratorAddresses[iNdEx])
-			i = encodeVarintBatch(dAtA, i, uint64(len(m.OrchestratorAddresses[iNdEx])))
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	{
-		size, err := m.RewardsClaimed.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintBatch(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0xa
-	return len(dAtA) - i, nil
-}
-
 func (m *ValueUndelegateSuccessStore) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1843,11 +1690,11 @@ func (m *ValueUndelegateSuccessStore) MarshalToSizedBuffer(dAtA []byte) (int, er
 	}
 	i--
 	dAtA[i] = 0x1a
-	if len(m.OrchestratorAddresses) > 0 {
-		for iNdEx := len(m.OrchestratorAddresses) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.OrchestratorAddresses[iNdEx])
-			copy(dAtA[i:], m.OrchestratorAddresses[iNdEx])
-			i = encodeVarintBatch(dAtA, i, uint64(len(m.OrchestratorAddresses[iNdEx])))
+	if len(m.ValidatorAddresses) > 0 {
+		for iNdEx := len(m.ValidatorAddresses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.ValidatorAddresses[iNdEx])
+			copy(dAtA[i:], m.ValidatorAddresses[iNdEx])
+			i = encodeVarintBatch(dAtA, i, uint64(len(m.ValidatorAddresses[iNdEx])))
 			i--
 			dAtA[i] = 0x12
 		}
@@ -1920,16 +1767,40 @@ func (m *OutgoingSignaturePoolValue) MarshalToSizedBuffer(dAtA []byte) (int, err
 	_ = i
 	var l int
 	_ = l
+	if m.SignedEventEmitted {
+		i--
+		if m.SignedEventEmitted {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x38
+	}
+	if m.ActiveBlockHeight != 0 {
+		i = encodeVarintBatch(dAtA, i, uint64(m.ActiveBlockHeight))
+		i--
+		dAtA[i] = 0x30
+	}
 	if m.Counter != 0 {
 		i = encodeVarintBatch(dAtA, i, uint64(m.Counter))
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x28
 	}
 	if len(m.OrchestratorAddresses) > 0 {
 		for iNdEx := len(m.OrchestratorAddresses) - 1; iNdEx >= 0; iNdEx-- {
 			i -= len(m.OrchestratorAddresses[iNdEx])
 			copy(dAtA[i:], m.OrchestratorAddresses[iNdEx])
 			i = encodeVarintBatch(dAtA, i, uint64(len(m.OrchestratorAddresses[iNdEx])))
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if len(m.ValidatorAddresses) > 0 {
+		for iNdEx := len(m.ValidatorAddresses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.ValidatorAddresses[iNdEx])
+			copy(dAtA[i:], m.ValidatorAddresses[iNdEx])
+			i = encodeVarintBatch(dAtA, i, uint64(len(m.ValidatorAddresses[iNdEx])))
 			i--
 			dAtA[i] = 0x1a
 		}
@@ -2039,11 +1910,11 @@ func (m *SlashingStoreValue) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x20
 	}
-	if len(m.OrchestratorAddresses) > 0 {
-		for iNdEx := len(m.OrchestratorAddresses) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.OrchestratorAddresses[iNdEx])
-			copy(dAtA[i:], m.OrchestratorAddresses[iNdEx])
-			i = encodeVarintBatch(dAtA, i, uint64(len(m.OrchestratorAddresses[iNdEx])))
+	if len(m.ValidatorAddresses) > 0 {
+		for iNdEx := len(m.ValidatorAddresses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.ValidatorAddresses[iNdEx])
+			copy(dAtA[i:], m.ValidatorAddresses[iNdEx])
+			i = encodeVarintBatch(dAtA, i, uint64(len(m.ValidatorAddresses[iNdEx])))
 			i--
 			dAtA[i] = 0x1a
 		}
@@ -2121,11 +1992,11 @@ func (m *MintTokenStoreValue) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x20
 	}
-	if len(m.OrchestratorAddresses) > 0 {
-		for iNdEx := len(m.OrchestratorAddresses) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.OrchestratorAddresses[iNdEx])
-			copy(dAtA[i:], m.OrchestratorAddresses[iNdEx])
-			i = encodeVarintBatch(dAtA, i, uint64(len(m.OrchestratorAddresses[iNdEx])))
+	if len(m.ValidatorAddresses) > 0 {
+		for iNdEx := len(m.ValidatorAddresses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.ValidatorAddresses[iNdEx])
+			copy(dAtA[i:], m.ValidatorAddresses[iNdEx])
+			i = encodeVarintBatch(dAtA, i, uint64(len(m.ValidatorAddresses[iNdEx])))
 			i--
 			dAtA[i] = 0x1a
 		}
@@ -2150,6 +2021,49 @@ func (m *MintTokenStoreValue) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *EpochWithdrawSuccessStoreValue) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EpochWithdrawSuccessStoreValue) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EpochWithdrawSuccessStoreValue) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.CValue.Size()
+		i -= size
+		if _, err := m.CValue.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintBatch(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if m.Status {
+		i--
+		if m.Status {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x8
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -2214,8 +2128,8 @@ func (m *ProposalValue) Size() (n int) {
 	if m.ProposalPosted {
 		n += 2
 	}
-	if len(m.OrchestratorAddresses) > 0 {
-		for _, s := range m.OrchestratorAddresses {
+	if len(m.ValidatorAddresses) > 0 {
+		for _, s := range m.ValidatorAddresses {
 			l = len(s)
 			n += 1 + l + sovBatch(uint64(l))
 		}
@@ -2268,8 +2182,8 @@ func (m *TxHashValue) Size() (n int) {
 	_ = l
 	l = m.TxStatus.Size()
 	n += 1 + l + sovBatch(uint64(l))
-	if len(m.OrchestratorAddresses) > 0 {
-		for _, s := range m.OrchestratorAddresses {
+	if len(m.ValidatorAddresses) > 0 {
+		for _, s := range m.ValidatorAddresses {
 			l = len(s)
 			n += 1 + l + sovBatch(uint64(l))
 		}
@@ -2327,6 +2241,8 @@ func (m *ValueOutgoingUnbondStore) Size() (n int) {
 			n += 1 + l + sovBatch(uint64(l))
 		}
 	}
+	l = m.CValue.Size()
+	n += 1 + l + sovBatch(uint64(l))
 	return n
 }
 
@@ -2360,49 +2276,6 @@ func (m *MintingEpochValueMember) Size() (n int) {
 	return n
 }
 
-func (m *MintingEpochValue) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.TxIDAndStatus) > 0 {
-		for _, e := range m.TxIDAndStatus {
-			l = e.Size()
-			n += 1 + l + sovBatch(uint64(l))
-		}
-	}
-	return n
-}
-
-func (m *RewardsClaimedValue) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = m.RewardsClaimed.Size()
-	n += 1 + l + sovBatch(uint64(l))
-	if len(m.OrchestratorAddresses) > 0 {
-		for _, s := range m.OrchestratorAddresses {
-			l = len(s)
-			n += 1 + l + sovBatch(uint64(l))
-		}
-	}
-	l = m.Ratio.Size()
-	n += 1 + l + sovBatch(uint64(l))
-	if m.Counter != 0 {
-		n += 1 + sovBatch(uint64(m.Counter))
-	}
-	if m.AddedToCurrentEpoch {
-		n += 2
-	}
-	if m.ActiveBlockHeight != 0 {
-		n += 1 + sovBatch(uint64(m.ActiveBlockHeight))
-	}
-	return n
-}
-
 func (m *ValueUndelegateSuccessStore) Size() (n int) {
 	if m == nil {
 		return 0
@@ -2411,8 +2284,8 @@ func (m *ValueUndelegateSuccessStore) Size() (n int) {
 	_ = l
 	l = m.UndelegateSuccess.Size()
 	n += 1 + l + sovBatch(uint64(l))
-	if len(m.OrchestratorAddresses) > 0 {
-		for _, s := range m.OrchestratorAddresses {
+	if len(m.ValidatorAddresses) > 0 {
+		for _, s := range m.ValidatorAddresses {
 			l = len(s)
 			n += 1 + l + sovBatch(uint64(l))
 		}
@@ -2458,6 +2331,12 @@ func (m *OutgoingSignaturePoolValue) Size() (n int) {
 	}
 	l = m.Ratio.Size()
 	n += 1 + l + sovBatch(uint64(l))
+	if len(m.ValidatorAddresses) > 0 {
+		for _, s := range m.ValidatorAddresses {
+			l = len(s)
+			n += 1 + l + sovBatch(uint64(l))
+		}
+	}
 	if len(m.OrchestratorAddresses) > 0 {
 		for _, s := range m.OrchestratorAddresses {
 			l = len(s)
@@ -2466,6 +2345,12 @@ func (m *OutgoingSignaturePoolValue) Size() (n int) {
 	}
 	if m.Counter != 0 {
 		n += 1 + sovBatch(uint64(m.Counter))
+	}
+	if m.ActiveBlockHeight != 0 {
+		n += 1 + sovBatch(uint64(m.ActiveBlockHeight))
+	}
+	if m.SignedEventEmitted {
+		n += 2
 	}
 	return n
 }
@@ -2495,8 +2380,8 @@ func (m *SlashingStoreValue) Size() (n int) {
 	n += 1 + l + sovBatch(uint64(l))
 	l = m.Ratio.Size()
 	n += 1 + l + sovBatch(uint64(l))
-	if len(m.OrchestratorAddresses) > 0 {
-		for _, s := range m.OrchestratorAddresses {
+	if len(m.ValidatorAddresses) > 0 {
+		for _, s := range m.ValidatorAddresses {
 			l = len(s)
 			n += 1 + l + sovBatch(uint64(l))
 		}
@@ -2523,8 +2408,8 @@ func (m *MintTokenStoreValue) Size() (n int) {
 	n += 1 + l + sovBatch(uint64(l))
 	l = m.Ratio.Size()
 	n += 1 + l + sovBatch(uint64(l))
-	if len(m.OrchestratorAddresses) > 0 {
-		for _, s := range m.OrchestratorAddresses {
+	if len(m.ValidatorAddresses) > 0 {
+		for _, s := range m.ValidatorAddresses {
 			l = len(s)
 			n += 1 + l + sovBatch(uint64(l))
 		}
@@ -2541,6 +2426,20 @@ func (m *MintTokenStoreValue) Size() (n int) {
 	if m.ActiveBlockHeight != 0 {
 		n += 1 + sovBatch(uint64(m.ActiveBlockHeight))
 	}
+	return n
+}
+
+func (m *EpochWithdrawSuccessStoreValue) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status {
+		n += 2
+	}
+	l = m.CValue.Size()
+	n += 1 + l + sovBatch(uint64(l))
 	return n
 }
 
@@ -2887,7 +2786,7 @@ func (m *ProposalValue) Unmarshal(dAtA []byte) error {
 			m.ProposalPosted = bool(v != 0)
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrchestratorAddresses", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddresses", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2915,7 +2814,7 @@ func (m *ProposalValue) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OrchestratorAddresses = append(m.OrchestratorAddresses, string(dAtA[iNdEx:postIndex]))
+			m.ValidatorAddresses = append(m.ValidatorAddresses, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
@@ -3292,7 +3191,7 @@ func (m *TxHashValue) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrchestratorAddresses", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddresses", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3320,7 +3219,7 @@ func (m *TxHashValue) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OrchestratorAddresses = append(m.OrchestratorAddresses, string(dAtA[iNdEx:postIndex]))
+			m.ValidatorAddresses = append(m.ValidatorAddresses, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -3703,6 +3602,40 @@ func (m *ValueOutgoingUnbondStore) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CValue", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBatch
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthBatch
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBatch
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.CValue.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipBatch(dAtA[iNdEx:])
@@ -3895,297 +3828,6 @@ func (m *MintingEpochValueMember) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MintingEpochValue) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBatch
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MintingEpochValue: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MintingEpochValue: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TxIDAndStatus", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBatch
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBatch
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBatch
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.TxIDAndStatus = append(m.TxIDAndStatus, MintingEpochValueMember{})
-			if err := m.TxIDAndStatus[len(m.TxIDAndStatus)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBatch(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBatch
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *RewardsClaimedValue) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowBatch
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: RewardsClaimedValue: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: RewardsClaimedValue: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RewardsClaimed", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBatch
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthBatch
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthBatch
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.RewardsClaimed.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrchestratorAddresses", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBatch
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthBatch
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBatch
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.OrchestratorAddresses = append(m.OrchestratorAddresses, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Ratio", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBatch
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthBatch
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthBatch
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.Ratio.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Counter", wireType)
-			}
-			m.Counter = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBatch
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Counter |= int64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AddedToCurrentEpoch", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBatch
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.AddedToCurrentEpoch = bool(v != 0)
-		case 6:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ActiveBlockHeight", wireType)
-			}
-			m.ActiveBlockHeight = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowBatch
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ActiveBlockHeight |= int64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipBatch(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthBatch
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *ValueUndelegateSuccessStore) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -4250,7 +3892,7 @@ func (m *ValueUndelegateSuccessStore) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrchestratorAddresses", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddresses", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4278,7 +3920,7 @@ func (m *ValueUndelegateSuccessStore) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OrchestratorAddresses = append(m.OrchestratorAddresses, string(dAtA[iNdEx:postIndex]))
+			m.ValidatorAddresses = append(m.ValidatorAddresses, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -4575,6 +4217,38 @@ func (m *OutgoingSignaturePoolValue) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddresses", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBatch
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthBatch
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBatch
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ValidatorAddresses = append(m.ValidatorAddresses, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field OrchestratorAddresses", wireType)
 			}
 			var stringLen uint64
@@ -4605,7 +4279,7 @@ func (m *OutgoingSignaturePoolValue) Unmarshal(dAtA []byte) error {
 			}
 			m.OrchestratorAddresses = append(m.OrchestratorAddresses, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Counter", wireType)
 			}
@@ -4624,6 +4298,45 @@ func (m *OutgoingSignaturePoolValue) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ActiveBlockHeight", wireType)
+			}
+			m.ActiveBlockHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBatch
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ActiveBlockHeight |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SignedEventEmitted", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBatch
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.SignedEventEmitted = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipBatch(dAtA[iNdEx:])
@@ -4832,7 +4545,7 @@ func (m *SlashingStoreValue) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrchestratorAddresses", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddresses", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4860,7 +4573,7 @@ func (m *SlashingStoreValue) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OrchestratorAddresses = append(m.OrchestratorAddresses, string(dAtA[iNdEx:postIndex]))
+			m.ValidatorAddresses = append(m.ValidatorAddresses, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		case 4:
 			if wireType != 0 {
@@ -5039,7 +4752,7 @@ func (m *MintTokenStoreValue) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrchestratorAddresses", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddresses", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5067,7 +4780,7 @@ func (m *MintTokenStoreValue) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OrchestratorAddresses = append(m.OrchestratorAddresses, string(dAtA[iNdEx:postIndex]))
+			m.ValidatorAddresses = append(m.ValidatorAddresses, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		case 4:
 			if wireType != 0 {
@@ -5147,6 +4860,110 @@ func (m *MintTokenStoreValue) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipBatch(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthBatch
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EpochWithdrawSuccessStoreValue) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowBatch
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EpochWithdrawSuccessStoreValue: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EpochWithdrawSuccessStoreValue: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBatch
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Status = bool(v != 0)
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CValue", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBatch
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthBatch
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthBatch
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.CValue.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipBatch(dAtA[iNdEx:])

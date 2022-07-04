@@ -6,6 +6,7 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
+// Adds the given amount to the current "uatom" epoch
 func (k Keeper) addToStakingEpoch(ctx sdk.Context, amount sdk.Coin) {
 	stakingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyStakingEpochStore)
 	currentEpoch := k.epochsKeeper.GetEpochInfo(ctx, k.GetParams(ctx).StakingEpochIdentifier).CurrentEpoch
@@ -23,6 +24,7 @@ func (k Keeper) addToStakingEpoch(ctx sdk.Context, amount sdk.Coin) {
 	stakingEpochStore.Set(key, k.cdc.MustMarshal(&newAmount))
 }
 
+// Gets the amount from the "uatom" epoch store with the given epoch number
 func (k Keeper) getAmountFromStakingEpoch(ctx sdk.Context, epochNumber int64) (amount sdk.Coin) {
 	stakingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyStakingEpochStore)
 	if !stakingEpochStore.Has(cosmosTypes.Int64Bytes(epochNumber)) {
@@ -32,6 +34,7 @@ func (k Keeper) getAmountFromStakingEpoch(ctx sdk.Context, epochNumber int64) (a
 	return amount
 }
 
+// Removes the entry from the "uatom" epoch store
 func (k Keeper) deleteFromStakingEpoch(ctx sdk.Context, epochNumber int64) {
 	stakingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyStakingEpochStore)
 	key := cosmosTypes.Int64Bytes(epochNumber)

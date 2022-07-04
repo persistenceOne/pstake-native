@@ -3,22 +3,10 @@
   "description": "change oracle weights",
   "weighted_addresses": [
     {
-      "val_address": "persistencevaloper1pqzzhm4mqz42mglmamvlqywc5rj3yy780cngwr",
-      "weight": "0.5"
-    },
-    {
-      "val_address": "persistencevaloper1fesq066gljs4pezu4hgm55g8yqe4yp3swcyw8k",
-      "weight": "0.2"
-    },
-    {
-      "val_address": "persistencevaloper1fu3vvf2vuukkwdwmezxul4cefhjr73ut7sgm4m",
-      "weight": "0.1"
-    },
-    {
-      "val_address": "persistencevaloper1ut9qyskm5vzykagpglzdjs6lr9e5tapaszxlng",
-      "weight": "0.2"
+      "val_address": "persistencevaloper1hcqg5wj9t42zawqkqucs7la85ffyv08lmnhye9",
+      "weight": "1"
     }
   ],
-  "depositor": "persistence1pqzzhm4mqz42mglmamvlqywc5rj3yy78xun486",
+  "depositor": "persistence1hcqg5wj9t42zawqkqucs7la85ffyv08ljhhesu",
   "deposit": "512stake"
 }

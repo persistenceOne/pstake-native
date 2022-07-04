@@ -18,7 +18,6 @@ var (
 	_ sdk.Msg = &MsgVoteWeighted{}
 	_ sdk.Msg = &MsgSignedTx{}
 	_ sdk.Msg = &MsgTxStatus{}
-	_ sdk.Msg = &MsgRewardsClaimedOnCosmosChain{}
 	_ sdk.Msg = &MsgUndelegateSuccess{}
 	_ sdk.Msg = &MsgSetSignature{}
 	_ sdk.Msg = &MsgRemoveOrchestrator{}
@@ -105,9 +104,13 @@ func (m *MsgRemoveOrchestrator) GetSigners() []sdk.AccAddress {
 
 // NewMsgWithdrawStkAsset returns a new MsgWithdrawStkAsset
 func NewMsgWithdrawStkAsset(from, to sdk.AccAddress, amount sdk.Coin) *MsgWithdrawStkAsset {
+	toAddress, err := Bech32ifyAddressBytes(Bech32PrefixAccAddr, to)
+	if err != nil {
+		panic(err)
+	}
 	return &MsgWithdrawStkAsset{
 		FromAddress: from.String(),
-		ToAddress:   to.String(),
+		ToAddress:   toAddress,
 		Amount:      amount,
 	}
 }
@@ -488,56 +491,7 @@ func (m *MsgUndelegateSuccess) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
-// NewMsgRewardsClaimedOnCosmosChain returns a new MsgRewardsClaimedOnCosmosChain
-func NewMsgRewardsClaimedOnCosmosChain(operator sdk.AccAddress, amount sdk.Coin, chainID string, blockHeight int64) *MsgRewardsClaimedOnCosmosChain {
-	return &MsgRewardsClaimedOnCosmosChain{
-		OrchestratorAddress: operator.String(),
-		AmountClaimed:       amount,
-		ChainID:             chainID,
-		BlockHeight:         blockHeight,
-	}
-}
-
-// Route should return the name of the module
-func (m *MsgRewardsClaimedOnCosmosChain) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgRewardsClaimedOnCosmosChain) Type() string { return "msg_rewards_claimed" }
-
-// ValidateBasic performs stateless checks
-func (m *MsgRewardsClaimedOnCosmosChain) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
-	}
-
-	if !m.AmountClaimed.IsValid() {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.AmountClaimed.String())
-	}
-
-	if !m.AmountClaimed.IsPositive() {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.AmountClaimed.String())
-	}
-
-	if m.BlockHeight <= 0 {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidHeight, "BlockHeight should be greater than zero")
-	}
-	return nil
-}
-
-// GetSignBytes encodes the message for signing
-func (m *MsgRewardsClaimedOnCosmosChain) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgRewardsClaimedOnCosmosChain) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
-}
-
+// NewMsgSetSignature returns a MsgSetSignature
 func NewMsgSetSignature(orchAddress sdk.AccAddress, outgoingTxID uint64, signatures []byte, blockHeight int64) *MsgSetSignature {
 	return &MsgSetSignature{
 		OrchestratorAddress: orchAddress.String(),
@@ -555,7 +509,7 @@ func (m *MsgSetSignature) Type() string { return "msg_set_signature" }
 
 // ValidateBasic performs stateless checks
 func (m *MsgSetSignature) ValidateBasic() error {
-	if _, err := sdk.ValAddressFromBech32(m.OrchestratorAddress); err != nil {
+	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
 	}
 	//TODO see how to add signature verification.
@@ -569,20 +523,24 @@ func (m *MsgSetSignature) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgSetSignature) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.ValAddressFromBech32(m.OrchestratorAddress)
+	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{sdk.AccAddress(acc)}
+	return []sdk.AccAddress{acc}
 }
 
 // NewMsgSlashingEventOnCosmosChain returns a new MsgSlashingEventOnCosmosChain
-func NewMsgSlashingEventOnCosmosChain(val sdk.ValAddress, amount sdk.Coin, orchAddress sdk.AccAddress, txHash string, chainID string, blockHeight int64) *MsgSlashingEventOnCosmosChain {
+func NewMsgSlashingEventOnCosmosChain(val sdk.ValAddress, amount sdk.Coin, orchAddress sdk.AccAddress, slashType string, chainID string, blockHeight int64) *MsgSlashingEventOnCosmosChain {
+	valAddress, err := Bech32ifyValAddressBytes(Bech32PrefixValAddr, val)
+	if err != nil {
+		panic(err)
+	}
 	return &MsgSlashingEventOnCosmosChain{
-		ValidatorAddress:    val.String(),
-		Amount:              amount,
+		ValidatorAddress:    valAddress,
+		CurrentDelegation:   amount,
 		OrchestratorAddress: orchAddress.String(),
-		TxHash:              txHash,
+		SlashType:           slashType,
 		ChainID:             chainID,
 		BlockHeight:         blockHeight,
 	}
@@ -602,10 +560,7 @@ func (m *MsgSlashingEventOnCosmosChain) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
 	}
-	if _, err := AccAddressFromBech32(m.OrchestratorAddress, Bech32Prefix); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
-	}
-	if !m.Amount.IsValid() || !m.Amount.Amount.IsPositive() {
+	if !m.CurrentDelegation.IsValid() || !m.CurrentDelegation.Amount.IsPositive() {
 		return sdkErrors.Wrap(
 			sdkErrors.ErrInvalidRequest,
 			"invalid delegation amount",
@@ -626,117 +581,4 @@ func (m *MsgSlashingEventOnCosmosChain) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{acc}
-}
-
-// TODO find a better place for this.
-var _ DBHelper = &ProposalValue{}
-var _ DBHelper = &TxHashValue{}
-var _ DBHelper = &RewardsClaimedValue{}
-var _ DBHelper = &ValueUndelegateSuccessStore{}
-var _ DBHelper = &OutgoingSignaturePoolValue{}
-var _ DBHelper = &SlashingStoreValue{}
-var _ DBHelper = &MintTokenStoreValue{}
-
-func (m *ProposalValue) Find(orchAddress string) bool {
-	for _, address := range m.OrchestratorAddresses {
-		if address == orchAddress {
-			return true
-		}
-	}
-	return false
-}
-
-func (m *ProposalValue) UpdateValues(orchAddress string, totalValidatorCount int64) {
-	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
-	m.Counter++
-	m.Ratio = sdk.NewDec(m.Counter).Quo(sdk.NewDec(totalValidatorCount))
-}
-
-func (m *TxHashValue) Find(orchAddress string) bool {
-	for _, address := range m.OrchestratorAddresses {
-		if address == orchAddress {
-			return true
-		}
-	}
-	return false
-}
-
-func (m *TxHashValue) UpdateValues(orchAddress string, totalValidatorCount int64) {
-	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
-	m.Counter++
-	m.Ratio = sdk.NewDec(m.Counter).Quo(sdk.NewDec(totalValidatorCount))
-}
-
-func (m *RewardsClaimedValue) Find(orchAddress string) bool {
-	for _, address := range m.OrchestratorAddresses {
-		if address == orchAddress {
-			return true
-		}
-	}
-	return false
-}
-
-func (m *RewardsClaimedValue) UpdateValues(orchAddress string, totalValidatorCount int64) {
-	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
-	m.Counter++
-	m.Ratio = sdk.NewDec(m.Counter).Quo(sdk.NewDec(totalValidatorCount))
-}
-
-func (m *ValueUndelegateSuccessStore) Find(orchAddress string) bool {
-	for _, address := range m.OrchestratorAddresses {
-		if address == orchAddress {
-			return true
-		}
-	}
-	return false
-}
-
-func (m *ValueUndelegateSuccessStore) UpdateValues(orchAddress string, totalValidatorCount int64) {
-	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
-	m.Counter++
-	m.Ratio = sdk.NewDec(m.Counter).Quo(sdk.NewDec(totalValidatorCount))
-}
-
-func (m *OutgoingSignaturePoolValue) Find(orchAddress string) bool {
-	for _, address := range m.OrchestratorAddresses {
-		if address == orchAddress {
-			return true
-		}
-	}
-	return false
-}
-
-func (m *OutgoingSignaturePoolValue) UpdateValues(orchAddress string, _ int64) {
-	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
-	m.Counter++
-}
-
-func (m *SlashingStoreValue) Find(orchAddress string) bool {
-	for _, address := range m.OrchestratorAddresses {
-		if address == orchAddress {
-			return true
-		}
-	}
-	return false
-}
-
-func (m *SlashingStoreValue) UpdateValues(orchAddress string, totalValidatorCount int64) {
-	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
-	m.Counter++
-	m.Ratio = sdk.NewDec(m.Counter).Quo(sdk.NewDec(totalValidatorCount))
-}
-
-func (m *MintTokenStoreValue) Find(orchAddress string) bool {
-	for _, address := range m.OrchestratorAddresses {
-		if address == orchAddress {
-			return true
-		}
-	}
-	return false
-}
-
-func (m *MintTokenStoreValue) UpdateValues(orchAddress string, totalValidatorCount int64) {
-	m.OrchestratorAddresses = append(m.OrchestratorAddresses, orchAddress)
-	m.Counter++
-	m.Ratio = sdk.NewDec(m.Counter).Quo(sdk.NewDec(totalValidatorCount))
 }

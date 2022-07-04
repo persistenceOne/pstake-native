@@ -2,27 +2,28 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	"github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"reflect"
+	"strings"
 
+	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
 //______________________________________________________________________________________________
-/*
-TODO : Add Key and value structure as comment
-*/
 
 type txIDAndDetailsInOutgoingPool struct {
 	txID      uint64
 	txDetails cosmosTypes.CosmosTx
 }
 
-func (k Keeper) setNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosTypes.CosmosTx) {
+// SetNewTxnInOutgoingPool sets new transaction in outgoing pool with the given transaction details
+func (k Keeper) SetNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosTypes.CosmosTx) {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	bz, err := k.cdc.Marshal(&tx)
@@ -32,6 +33,7 @@ func (k Keeper) setNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosT
 	outgoingStore.Set(key, bz)
 }
 
+// updateStatusOnceProcessed updates the status of the transactions once they are done with processing and successful
 func (k Keeper) updateStatusOnceProcessed(ctx sdk.Context, txID uint64, status string) {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
@@ -55,8 +57,8 @@ func (k Keeper) setEventEmittedFlag(ctx sdk.Context, txID uint64, flag bool) {
 	outgoingStore.Set(key, k.cdc.MustMarshal(&cosmosTx))
 }
 
-//gets txn details by ID
-func (k Keeper) getTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmosTypes.QueryOutgoingTxByIDResponse, error) {
+// GetTxnFromOutgoingPoolByID gets txn details corresponding to the given ID
+func (k Keeper) GetTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmosTypes.QueryOutgoingTxByIDResponse, error) {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	bz := outgoingStore.Get(key)
@@ -65,6 +67,12 @@ func (k Keeper) getTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmos
 	}
 	var cosmosTx cosmosTypes.CosmosTx
 	k.cdc.MustUnmarshal(bz, &cosmosTx)
+
+	err := cosmosTx.Tx.UnpackInterfaces(k.cdc)
+	if err != nil {
+		panic(err)
+	}
+
 	return cosmosTypes.QueryOutgoingTxByIDResponse{
 		CosmosTxDetails: cosmosTx,
 	}, nil
@@ -77,7 +85,7 @@ func (k Keeper) removeTxnDetailsByID(ctx sdk.Context, txID uint64) {
 	outgoingStore.Delete(key)
 }
 
-func (k Keeper) setOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosTypes.CosmosTx, txID uint64) error {
+func (k Keeper) SetOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosTypes.CosmosTx, txID uint64) error {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 
@@ -86,7 +94,7 @@ func (k Keeper) setOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosT
 	if err != nil {
 		return err
 	}
-	txHash := cosmosTypes.BytesToHexUpper(txBytes)
+	txHash := strings.ToUpper(cosmosTypes.BytesToHexUpper(txBytes))
 	tx.TxHash = txHash
 
 	bz, err := k.cdc.Marshal(&tx)
@@ -102,7 +110,6 @@ func (k Keeper) setOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosT
 		),
 	)
 
-	k.removeFromOutgoingSignaturePool(ctx, txID)
 	return nil
 }
 
@@ -126,9 +133,6 @@ func (k Keeper) getAllTxInOutgoingPool(ctx sdk.Context) (details []txIDAndDetail
 }
 
 //______________________________________________________________________________________________
-/*
-TODO : Add key and value structure
-*/
 
 type TxHashAndDetails struct {
 	TxHash  string
@@ -136,14 +140,14 @@ type TxHashAndDetails struct {
 }
 
 // Set details corresponding to a particular txHash and update details if already present
-func (k Keeper) setTxHashAndDetails(ctx sdk.Context, msg cosmosTypes.MsgTxStatus) {
+func (k Keeper) setTxHashAndDetails(ctx sdk.Context, msg cosmosTypes.MsgTxStatus, validatorAddress sdk.ValAddress) {
 	txHashStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
 	key := []byte(msg.TxHash)
 	totalValidatorCount := k.GetTotalValidatorOrchestratorCount(ctx)
 
 	if !txHashStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow, validatorAddress)
 		txHashStore.Set(key, k.cdc.MustMarshal(&newTxHashValue))
 		return
 	}
@@ -155,13 +159,13 @@ func (k Keeper) setTxHashAndDetails(ctx sdk.Context, msg cosmosTypes.MsgTxStatus
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotTxStatus(txHashValue, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newTxHashValue := cosmosTypes.NewTxHashValue(msg, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow, validatorAddress)
 		txHashStore.Set(key, k.cdc.MustMarshal(&newTxHashValue))
 		return
 	}
 
-	if !txHashValue.Find(msg.OrchestratorAddress) {
-		txHashValue.UpdateValues(msg.OrchestratorAddress, totalValidatorCount)
+	if !txHashValue.Find(validatorAddress.String()) {
+		txHashValue.UpdateValues(validatorAddress.String(), totalValidatorCount)
 		txHashStore.Set(key, k.cdc.MustMarshal(&txHashValue))
 		return
 	}
@@ -304,7 +308,7 @@ func (k Keeper) getNextFromTransactionQueue(ctx sdk.Context) uint64 {
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		key := cosmosTypes.UInt64FromBytes(iterator.Key())
-		value := cosmosTypes.NewOutgoingQueueValue(false, 0)
+		value := cosmosTypes.NewOutgoingQueueValue(true, 0)
 		bz := k.cdc.MustMarshal(&value)
 		transactionQueueStore.Set(iterator.Key(), bz)
 		return key
@@ -363,8 +367,9 @@ func (k Keeper) retryTransactionWithFailure(ctx sdk.Context, txDetails cosmosTyp
 	cosmosTxDetails.Tx.Signatures = nil
 	cosmosTxDetails.TxHash = ""
 
+	newGas := cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit * 2
 	// double gas in case of gas failure
-	if failure == "gas failure" {
+	if failure == "gas failure" && newGas <= 4000000 { // todo move to params
 		//cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit == cosmosTypes.GasLimit &&
 		//2*cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit < cosmosTypes.GasLimit // TODO
 		// TODO : test case when transaction fails even after reaching max_gas limit
@@ -372,10 +377,13 @@ func (k Keeper) retryTransactionWithFailure(ctx sdk.Context, txDetails cosmosTyp
 	}
 
 	//set it back again in outgoing txn
-	k.setNewTxnInOutgoingPool(ctx, txID, cosmosTxDetails)
+	k.SetNewTxnInOutgoingPool(ctx, txID, cosmosTxDetails)
 
 	//remove txHash and mapping
 	k.removeTxHashAndDetails(ctx, txHash)
+
+	// remove from outgoing signature pool
+	k.RemoveFromOutgoingSignaturePool(ctx, txID)
 }
 
 func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
@@ -398,7 +406,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 		panic(err)
 	}
 
-	queryResponse, err := k.getTxnFromOutgoingPoolByID(ctx, txID)
+	queryResponse, err := k.GetTxnFromOutgoingPoolByID(ctx, txID)
 	if err != nil {
 		panic(err)
 	}
@@ -414,17 +422,12 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 		majorityStatus := FindMajority(tx.Details.Status)
 
 		// get tx from outgoing pool
-		cosmosTx, err := k.getTxnFromOutgoingPoolByID(ctx, txID)
+		cosmosTx, err := k.GetTxnFromOutgoingPoolByID(ctx, txID)
 		if err != nil {
 			panic(err)
 		}
 
-		custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
-		if err != nil {
-			panic(err)
-		}
-
-		multisigAccount := k.getAccountState(ctx, custodialAddress)
+		multisigAccount := k.GetAccountState(ctx, k.GetCurrentAddress(ctx))
 		if multisigAccount == nil {
 			panic(cosmosTypes.ErrMultiSigAddressNotFound)
 		}
@@ -436,7 +439,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 
 		// process tx if majority status is present
 		if tx.Details.Ratio.LT(cosmosTypes.MinimumRatioForMajority) {
-			panic(err)
+			return
 		}
 
 		// TODO : deal with keeper failure and insufficient balance
@@ -446,7 +449,6 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 			k.retryTransactionWithFailure(ctx, cosmosTx, txID, tx.TxHash, majorityStatus)
 			k.emitEventForActiveTransaction(ctx, txID)
 		case cosmosTypes.Success:
-			// TODO : handle balance, bonded tokens and unbonding tokens value
 			// process txn success and perform success actions
 			msgs := cosmosTx.CosmosTxDetails.Tx.GetMsgs()
 			for _, msg := range msgs {
@@ -455,18 +457,14 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 					//Only first element is checked as event transactions will always be grouped as one type of message
 					switch im.GetCachedValue().(type) {
 					case *stakingTypes.MsgDelegate:
-						//TODO : update C value
 						k.updateStatusOnceProcessed(ctx, txID, "success")
+						k.SubFromVirtuallyStaked(ctx, GetAmountFromMessage(execMsgs))
+						k.AddToStaked(ctx, GetAmountFromMessage(execMsgs))
 					case *stakingTypes.MsgUndelegate:
-						//TODO : update C value
 						k.setEpochAndValidatorDetailsForAllUndelegations(ctx, txID)
 						k.updateStatusOnceProcessed(ctx, txID, "success")
-						//TODO : update total delegated amount
-						if err != nil {
-							panic(err)
-						}
-					case *types.MsgSend:
-						// TODO : update C value
+						k.SubFromVirtuallyUnbonded(ctx, GetAmountFromMessage(execMsgs))
+						k.SubFromStaked(ctx, GetAmountFromMessage(execMsgs))
 					}
 					break
 				}
@@ -476,6 +474,33 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 			// retry txn with the given failure
 			k.retryTransactionWithFailure(ctx, cosmosTx, txID, tx.TxHash, majorityStatus)
 			k.emitEventForActiveTransaction(ctx, txID)
+		case cosmosTypes.KeeperFailure:
+			k.disableModule(ctx)
+		case cosmosTypes.NotSuccess:
+			// retry txn with the given failure
+			k.retryTransactionWithFailure(ctx, cosmosTx, txID, tx.TxHash, majorityStatus)
+			k.emitEventForActiveTransaction(ctx, txID)
+		}
+
+		// TODO : handle balance, bonded tokens and unbonding tokens value
+		bondDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
+		if err != nil {
+			panic(err)
+		}
+		rewardsAmount := sdk.NewCoin(bondDenom, sdk.NewInt(0))
+		k.setCosmosBalance(ctx, tx.Details.TxStatus.Balance)
+		for _, vd := range tx.Details.TxStatus.ValidatorDetails {
+			valAddress, err := cosmosTypes.ValAddressFromBech32(vd.ValidatorAddress, cosmosTypes.Bech32PrefixValAddr)
+			if err != nil {
+				panic(err)
+			}
+			k.UpdateDelegationCosmosValidator(ctx, valAddress, vd.BondedTokens, vd.UnbondingTokens)
+			rewardsAmount = rewardsAmount.Add(vd.RewardsCollected)
+		}
+
+		// add rewards amount collected to the reward epoch pool if amount is not zero
+		if !rewardsAmount.IsZero() {
+			k.addToRewardsInCurrentEpoch(ctx, rewardsAmount)
 		}
 
 		// set sequence number in any case of status, so it stays up to date
@@ -489,6 +514,8 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 		if err != nil {
 			panic(err)
 		}
+
+		k.SetAccountState(ctx, multisigAccount)
 	}
 
 	txDetailsList, err := k.getAllTxInOutgoingPool(ctx)
@@ -499,7 +526,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 		//remove transaction if active block limit is reached and status is set to success
 		if tx.txDetails.ActiveBlockHeight <= ctx.BlockHeight() && tx.txDetails.Status == "success" {
 			k.removeTxnDetailsByID(ctx, tx.txID)
-			k.removeFromOutgoingSignaturePool(ctx, tx.txID)
+			k.RemoveFromOutgoingSignaturePool(ctx, tx.txID)
 			k.removeTxHashAndDetails(ctx, tx.txDetails.TxHash)
 			k.removeFromTransactionQueue(ctx, tx.txID)
 		}
@@ -529,4 +556,19 @@ func FindMajority(inputArr []string) string {
 		}
 	}
 	return m //return majority element
+}
+
+func GetAmountFromMessage(execMsgs []*codecTypes.Any) sdk.Coin {
+	tempAmnt := sdk.NewInt64Coin("uatom", 0)
+	for _, m := range execMsgs {
+		switch m.GetCachedValue().(type) {
+		case *stakingTypes.MsgDelegate:
+			tempAmnt = tempAmnt.Add(m.GetCachedValue().(*stakingTypes.MsgDelegate).Amount)
+		case *stakingTypes.MsgUndelegate:
+			tempAmnt = tempAmnt.Add(m.GetCachedValue().(*stakingTypes.MsgDelegate).Amount)
+		case *bankTypes.MsgSend:
+			tempAmnt = tempAmnt.Add(m.GetCachedValue().(*stakingTypes.MsgDelegate).Amount)
+		}
+	}
+	return tempAmnt
 }

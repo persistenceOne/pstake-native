@@ -34,13 +34,13 @@ func NewTxCmd() *cobra.Command {
 
 	txCmd.AddCommand(
 		NewIncomingTxnCmd(),
-		CmdSetOrchestratorAddress(),
-		CmdSendNewProposal(),
+		NewSetOrchestratorAddressCmd(),
+		NewSendNewProposalCmd(),
 		NewCmdVote(),
 		NewCmdWeightedVote(),
 		NewCmdTxStatusCmd(),
 		NewWithdrawCmd(),
-		NewRewardsClaimedCmd(),
+		NewSlashinEventCmd(),
 	)
 
 	return txCmd
@@ -93,7 +93,7 @@ func NewIncomingTxnCmd() *cobra.Command {
 	return cmd
 }
 
-func CmdSetOrchestratorAddress() *cobra.Command {
+func NewSetOrchestratorAddressCmd() *cobra.Command {
 	//nolint: exhaustivestruct
 	cmd := &cobra.Command{
 		Use:   "set-orchestrator-address [validator-address] [orchestrator-address]",
@@ -116,7 +116,7 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 	return cmd
 }
 
-func CmdSendNewProposal() *cobra.Command {
+func NewSendNewProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "send-proposal [title] [description] [orchestrator-address] [proposal-id] [chain-id] [block-height]",
 		Short: "Allows orchestrator to send any proposal created on cosmos chain.",
@@ -352,47 +352,6 @@ func NewWithdrawCmd() *cobra.Command {
 	return cmd
 }
 
-func NewRewardsClaimedCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "rewards-claimed [orchestrator-address] [amount_claimed] [chainID] [block-height]",
-		Args:  cobra.ExactArgs(4),
-		Short: "Rewards claimed transaction",
-		Long: strings.TrimSpace(
-			`Submit amount claimed on other chain to be re staked`,
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			orchAddr, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-
-			amount, err := sdk.ParseCoinNormalized(args[1])
-			if err != nil {
-				return err
-			}
-
-			chainID := args[2]
-
-			blockHeight, err := strconv.ParseInt(args[3], 10, 64)
-			if err != nil {
-				return err
-			}
-
-			msg := cosmosTypes.NewMsgRewardsClaimedOnCosmosChain(orchAddr, amount, chainID, blockHeight)
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
 func NewEnableModuleCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "enable-module [proposal-file]",
@@ -413,7 +372,8 @@ func NewEnableModuleCmd() *cobra.Command {
 			}
 
 			from := clientCtx.GetFromAddress()
-			content := cosmosTypes.NewEnableModuleProposal(proposal.Title, proposal.Description, proposal.Threshold, proposal.AccountNumber, proposal.OrchestratorAddresses)
+			content := cosmosTypes.NewEnableModuleProposal(proposal.Title, proposal.Description, proposal.Threshold,
+				proposal.AccountNumber, proposal.SequenceNumber, proposal.OrchestratorAddresses)
 
 			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
 			if err != nil {
@@ -569,4 +529,52 @@ func NewChangeOracleValidatorWeightsCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
+}
+
+func NewSlashinEventCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "slashing-event [validator-address] [current-delegation] [orchestrator-address] [slash-type] [chain-id] [block-height]",
+		Args:  cobra.ExactArgs(6),
+		Short: "Submit a slashing event captured on cosmos side",
+		Long: strings.TrimSpace(
+			`Oracles submits a slashing event captured on cosmos chain`,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			valAddress, err := cosmosTypes.ValAddressFromBech32(args[0], cosmosTypes.Bech32PrefixValAddr)
+			if err != nil {
+				return err
+			}
+
+			currentDelegation, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			orchestratorAddress, err := sdk.AccAddressFromBech32(args[2])
+			if err != nil {
+				return err
+			}
+
+			slashType := args[3]
+
+			chainID := args[4]
+
+			blockHeight, err := strconv.ParseInt(args[5], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			msg := cosmosTypes.NewMsgSlashingEventOnCosmosChain(valAddress, currentDelegation, orchestratorAddress, slashType, chainID, blockHeight)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }

@@ -3,7 +3,7 @@ package helpers
 import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/relayer/relayer"
-	relayer2 "github.com/persistenceOne/pStake-native/oracle/oracle"
+	relayer2 "github.com/persistenceOne/pstake-native/oracle/oracle"
 )
 
 // KeyOutput contains mnemonic and address of key

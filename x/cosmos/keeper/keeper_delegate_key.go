@@ -10,7 +10,10 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-// SetValidatorOrchestrator sets the Orchestrator key for a given validator
+/*
+SetValidatorOrchestrator sets the oracle address for the given validator address.
+Address corresponding to one validator can be multiple given that it is not already mapped to another validator
+*/
 func (k Keeper) SetValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.ValAddress, orch sdkTypes.AccAddress) error {
 	if err := sdkTypes.VerifyAddressFormat(val); err != nil {
 		panic(sdkErrors.Wrap(err, "invalid val address"))
@@ -53,6 +56,11 @@ func (k Keeper) SetValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.ValA
 	return nil
 }
 
+/*
+RemoveValidatorOrchestrator removes the oracle address mapped to the given validator.
+Addresses mapped to one validator can be multiple, but not all can be removed. Only the ones that are not present in
+multisig account address can be removed
+*/
 func (k Keeper) RemoveValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.ValAddress, orch sdkTypes.AccAddress) error {
 	if err := sdkTypes.VerifyAddressFormat(val); err != nil {
 		return sdkErrors.Wrap(err, "invalid val address")
@@ -107,7 +115,8 @@ func (k Keeper) RemoveValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.V
 	return fmt.Errorf("validator address not present in kv store")
 }
 
-func (k Keeper) GetValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.ValAddress) (validator sdkTypes.ValAddress, found bool) {
+// CheckValidator checks if the validator exists on chain or not. Returns address and found bool.
+func (k Keeper) CheckValidator(ctx sdkTypes.Context, val sdkTypes.ValAddress) (validator sdkTypes.ValAddress, found bool) {
 	if err := sdkTypes.VerifyAddressFormat(val); err != nil {
 		ctx.Logger().Error("invalid orch address")
 		return validator, false
@@ -133,6 +142,7 @@ func (k Keeper) GetTotalValidatorOrchestratorCount(ctx sdkTypes.Context) int64 {
 	return int64(counter)
 }
 
+// gets the validator mapping currently present in DB
 func (k Keeper) getValidatorMapping(ctx sdkTypes.Context, valAddress sdkTypes.ValAddress) cosmosTypes.ValidatorStoreValue {
 	orchestratorValidatorStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ValidatorOrchestratorStoreKey)
 	iterator := orchestratorValidatorStore.Iterator(nil, nil)
@@ -148,6 +158,7 @@ func (k Keeper) getValidatorMapping(ctx sdkTypes.Context, valAddress sdkTypes.Va
 	return cosmosTypes.ValidatorStoreValue{}
 }
 
+// gets all validator mapping  and checks if the given oracle address is present in it.
 func (k Keeper) getAllValidatorOrchestratorMappingAndFindIfExist(ctx sdkTypes.Context,
 	orch sdkTypes.AccAddress) (valAddress sdkTypes.ValAddress, found bool, err error) {
 	found = false
@@ -171,6 +182,7 @@ func (k Keeper) getAllValidatorOrchestratorMappingAndFindIfExist(ctx sdkTypes.Co
 	return valAddress, found, err
 }
 
+// checks if all the validators have oracle mapping. Used in HandleEnableModuleProposal.
 func (k Keeper) checkAllValidatorsHaveOrchestrators(ctx sdkTypes.Context) ([]string, error) {
 	orchestratorValidatorStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ValidatorOrchestratorStoreKey)
 	validatorOrchestratorMap := make(map[string][]string)
@@ -207,15 +219,14 @@ func (k Keeper) checkAllValidatorsHaveOrchestrators(ctx sdkTypes.Context) ([]str
 		delete(validatorOrchestratorMap, val.Address)
 	}
 
-	for key := range validatorOrchestratorMap {
-		if len(key) > 0 {
-			return []string{}, fmt.Errorf("more than expected valdiator orchestrator mapping present")
-		}
+	if len(validatorOrchestratorMap) > 0 {
+		return []string{}, fmt.Errorf("more than expected valdiator orchestrator mapping present")
 	}
 
 	return orchestratorList, nil
 }
 
+// RemoveIndex Remove the given index from the given slice of string
 func RemoveIndex(s []string, index int) []string {
 	return append(s[:index], s[index+1:]...)
 }

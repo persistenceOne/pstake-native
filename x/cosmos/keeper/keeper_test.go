@@ -25,7 +25,6 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	// Set weighted developer address to empty to not conflict with sdk addr prefix
 	params.WeightedDeveloperRewardsReceivers = []types.WeightedAddress{}
 	// Set DelegationThreshold to 10 unit
-	params.DelegationThreshold = sdk.NewInt64Coin("uatom", 10)
 	app.CosmosKeeper.SetParams(ctx, params)
 
 	suite.app = &app
@@ -36,7 +35,7 @@ func (suite *IntegrationTestSuite) SetupValWeightedAmounts(ws types.WeightedAddr
 	suite.app.CosmosKeeper.SetCosmosValidatorSet(suite.ctx, ws)
 	for _, w := range ws {
 		valAddr, _ := types.ValAddressFromBech32(w.Address, types.Bech32PrefixValAddr)
-		suite.app.CosmosKeeper.UpdateCurrentDelegatedAmountOfCosmosValidator(suite.ctx, valAddr, w.Coin())
+		suite.app.CosmosKeeper.UpdateDelegationCosmosValidator(suite.ctx, valAddr, w.Coin(), sdk.NewCoin("test", sdk.NewInt(0)))
 	}
 }
 

@@ -8,7 +8,6 @@ package types
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"strconv"
 	"time"
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
@@ -59,73 +58,69 @@ var (
 
 	KeyLastTXPoolID = SequenceKeyPrefix + "lastTxPoolId"
 
-	KeyTotalDelegationTillDate = []byte{0x02}
-
-	OutgoingTXPoolKey = []byte{0x03}
-
-	ValidatorOrchestratorStoreKey = []byte{0x07}
-
-	ProposalStoreKey = []byte{0x08}
-
-	ProposalIDKey = []byte{0x09}
-
-	VotingParams = []byte{0xA}
-
-	ProposalsKeyPrefix = []byte{0xB}
-
-	ActiveProposalQueuePrefix = []byte{0xC}
-
-	VotesKeyPrefix = []byte{0xD}
-
-	HashAndIDStore = []byte{0xE}
-
-	KeyOutgoingUnbondStore = []byte{0xF}
-
-	KeyStakingEpochStore = []byte{0x10}
-
-	KeyMintingEpochStore = []byte{0x12}
-
-	KeyRewardsStore = []byte{0x13}
-
-	KeyCurrentEpochRewardsStore = []byte{0x14}
-
 	KeyEpochStoreForUndelegation = "EpochStoreForUndelegation"
 
-	KeyEpochStoreForWithdrawSuccess = []byte{0x15}
+	OutgoingTXPoolKey = []byte{0x01}
 
-	KeyUndelegateSuccessStore = []byte{0x16}
+	ValidatorOrchestratorStoreKey = []byte{0x02}
 
-	KeyWithdrawStore = []byte{0x17}
+	ProposalStoreKey = []byte{0x03}
 
-	KeyOutgoingTxSignature = []byte{0x18}
+	ProposalIDKey = []byte{0x04}
 
-	KeyOutgoingSignaturePoolKey = []byte{0x19}
+	ProposalsKeyPrefix = []byte{0x05}
 
-	KeyMultisigAccountStore = []byte{0x20}
+	ActiveProposalQueuePrefix = []byte{0x06}
 
-	KeyCurrentMultisigAddress = []byte{0x21}
+	VotesKeyPrefix = []byte{0x07}
 
-	KeyTransactionQueue = []byte{0x22}
+	HashAndIDStore = []byte{0x08}
 
-	KeyCosmosValidatorWeights = []byte{0x23}
+	KeyOutgoingUnbondStore = []byte{0x9}
 
-	KeyNativeValidatorWeights = []byte{0x24}
+	KeyStakingEpochStore = []byte{0xA}
 
-	KeySlashingStore = []byte{0x25}
+	KeyCurrentEpochRewardsStore = []byte{0xB}
 
-	KeyMintTokenStore = []byte{0x26}
+	KeyEpochStoreForWithdrawSuccess = []byte{0xC}
 
-	KeyOracleLastUpdateHeightNative = []byte{0x27}
+	KeyUndelegateSuccessStore = []byte{0xD}
 
-	KeyOracleLastUpdateHeightCosmos = []byte{0x28}
+	KeyWithdrawStore = []byte{0xE}
+
+	KeyOutgoingSignaturePoolKey = []byte{0xF}
+
+	KeyMultisigAccountStore = []byte{0x11}
+
+	KeyCurrentMultisigAddress = []byte{0x12}
+
+	KeyTransactionQueue = []byte{0x13}
+
+	KeyCosmosValidatorWeights = []byte{0x14}
+
+	KeyNativeValidatorWeights = []byte{0x15}
+
+	KeySlashingStore = []byte{0x16}
+
+	KeyMintTokenStore = []byte{0x17}
+
+	KeyOracleLastUpdateHeightNative = []byte{0x18}
+
+	KeyOracleLastUpdateHeightCosmos = []byte{0x19}
+
+	KeyMintedAmount = []byte{0x1A}
+
+	KeyVirtuallyStakedAmount = []byte{0x1B}
+
+	KeyStakedAmount = []byte{0x1C}
+
+	KeyVirtuallyUnbonded = []byte{0x1D}
+
+	KeyCosmosBalances = []byte{0x1E}
 )
 
 func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {
 	return append([]byte(KeyEpochStoreForUndelegation), Int64Bytes(epochNumber)...)
-}
-
-func GetChainIDAndBlockHeightKey(chainID string, blockHeight int64) string {
-	return chainID + strconv.FormatInt(blockHeight, 10)
 }
 
 // GetProposalIDFromBytes returns proposalID in uint64 format from a byte array
@@ -163,11 +158,6 @@ func VoteKey(proposalID uint64, voterAddr sdkTypes.AccAddress) []byte {
 // VotesKey gets the first part of the votes key based on the proposalID
 func VotesKey(proposalID uint64) []byte {
 	return append(VotesKeyPrefix, GetProposalIDBytes(proposalID)...)
-}
-
-// OutgoingTxSignatureKey forms a key from txID to the substore
-func OutgoingTxSignatureKey(txID uint64) []byte {
-	return append(KeyOutgoingTxSignature, GetProposalIDBytes(txID)...)
 }
 
 // MultisigAccountStoreKey turn an address to key used to get it from the account store

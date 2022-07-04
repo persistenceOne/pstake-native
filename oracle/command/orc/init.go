@@ -2,10 +2,9 @@ package orc
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/BurntSushi/toml"
-	"github.com/persistenceOne/pStake-native/oracle/configuration"
-	"github.com/persistenceOne/pStake-native/oracle/constants"
+	"github.com/persistenceOne/pstake-native/oracle/configuration"
+	"github.com/persistenceOne/pstake-native/oracle/constants"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"log"
@@ -16,11 +15,11 @@ import (
 func InitCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init",
-		Short: "initialise orchestorator configuration in config.toml",
+		Short: "initialise oracle configuration in config.toml",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config := configuration.SetConfig(cmd)
 			var buf bytes.Buffer
-			fmt.Println("init ")
+			log.Println("init ")
 			encoder := toml.NewEncoder(&buf)
 			if err := encoder.Encode(config); err != nil {
 				return err
@@ -48,19 +47,23 @@ func InitCommand() *cobra.Command {
 	cmd.Flags().String(constants.FlagCosmosChainID, constants.CosmosChainID, "cosmos chain id")
 	cmd.Flags().String(constants.FlagCosmosCustodialAddr, constants.CosmosCustodialAddr, "cosmos custodial address")
 	cmd.Flags().String(constants.FlagCosmosDenom, constants.CosmosDenom, "cosmos denom")
+	cmd.Flags().String(constants.FlagCosmosGRPCAddr, constants.CosmosGRPCAddr, "cosmos grpc address")
 	cmd.Flags().String(constants.FlagCosmosRPCAddr, constants.CosmosRPCAddr, "cosmos rpc address")
 	cmd.Flags().String(constants.FlagCosmosAccountPrefix, constants.CosmosAccountPrefix, "cosmos account prefix")
 	cmd.Flags().Float64(constants.FlagCosmosGasAdjustment, constants.CosmosGasAdjustment, "cosmos fee")
 	cmd.Flags().String(constants.FlagCosmosGasPrice, constants.CosmosGasPrice, "cosmos gas price")
+	cmd.Flags().Uint32(constants.FlagCosmosCoinType, constants.CosmosCoinType, "cosmos coin type")
 
 	// Native Flag
 	cmd.Flags().String(constants.FlagNativeChainID, constants.NativeChainID, "")
 	cmd.Flags().String(constants.FlagNativeDenom, constants.NativeDenom, "")
+	cmd.Flags().String(constants.FlagNativeGRPCAddr, constants.NativeGRPCAddr, "")
 	cmd.Flags().String(constants.FlagNativeRPCAddr, constants.NativeRPCAddr, "")
 	cmd.Flags().String(constants.FlagNativeAccountPrefix, constants.NativeAccountPrefix, "")
 	cmd.Flags().Float64(constants.FlagNativeGasAdjustment, constants.NativeGasAdjustment, "")
 	cmd.Flags().String(constants.FlagNativeGasPrice, constants.NativeGasPrice, "")
 	cmd.Flags().String(constants.FlagNativeModuleName, constants.ModuleName, "")
+	cmd.Flags().Uint32(constants.FlagNativeCoinType, constants.NativeCoinType, "native coin type")
 
 	return cmd
 }
