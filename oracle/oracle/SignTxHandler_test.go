@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	tx2 "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -15,14 +16,18 @@ import (
 	logg "log"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
 
 func TestC(t *testing.T) {
 
-	seed := "april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel"
-	_, addr := GetSDKPivKeyAndAddressR("persistence", 118, seed)
+	seed := []string{"bomb sand fashion torch return coconut color captain vapor inhale lyrics lady grant ordinary lazy decrease quit devote paddle impulse prize equip hip ball",
+		"april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel",
+		"soft brown armed regret hip few ancient control steel bright basic swamp sentence present immune napkin orbit giggle year another crowd essence noble dice",
+		"road gallery tooth script volcano deputy summer acid bulk anger fatigue notable secret blood bean apology burger rookie rug bench away dutch secret upper"}
+	_, addr := GetSDKPivKeyAndAddressR("persistence", 118, seed[2])
 
 	rpcClient, _ := newRPCClient("http://13.229.64.99:26657", 1*time.Second)
 	liteprovider, _ := prov.New("native", "http://13.229.64.99:26657")
@@ -63,32 +68,33 @@ func TestC(t *testing.T) {
 		WithHomeDir("./").
 		WithViper("").
 		WithChainID(chain.ChainID)
-
+	custodialAdrr, err := AccAddressFromBech32("cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2", "cosmos")
 	rpcClientC, _ := newRPCClient("http://13.212.166.231:26657", 1*time.Second)
 	liteproviderC, _ := prov.New("test", "http://13.212.166.231:26657")
 	chainC := &CosmosChain{
-		Key:           "unusedKey",
-		ChainID:       "test",
-		RPCAddr:       "http://13.212.166.231:26657",
-		AccountPrefix: "cosmos",
-		GasAdjustment: 1.0,
-		GasPrices:     "0.025stake",
-		GRPCAddr:      "13.212.166.231:9090",
-		CoinType:      118,
-		HomePath:      "",
-		KeyBase:       nil,
-		Client:        rpcClientC,
-		Encoding:      params.EncodingConfig{},
-		Provider:      liteproviderC,
-		address:       nil,
-		logger:        nil,
-		timeout:       0,
-		debug:         false,
+		Key:              "unusedKey",
+		ChainID:          "test",
+		CustodialAddress: custodialAdrr,
+		RPCAddr:          "http://13.212.166.231:26657",
+		AccountPrefix:    "cosmos",
+		GasAdjustment:    1.0,
+		GasPrices:        "0.025stake",
+		GRPCAddr:         "13.212.166.231:9090",
+		CoinType:         118,
+		HomePath:         "",
+		KeyBase:          nil,
+		Client:           rpcClientC,
+		Encoding:         params.EncodingConfig{},
+		Provider:         liteproviderC,
+		address:          nil,
+		logger:           nil,
+		timeout:          0,
+		debug:            false,
 	}
 
 	cosmosEncodingConfig := chainC.MakeEncodingConfig()
-	chain.Encoding = cosmosEncodingConfig
-	chain.logger = defaultChainLogger()
+	chainC.Encoding = cosmosEncodingConfig
+	chainC.logger = defaultChainLogger()
 
 	clientContextCosmos := client.Context{}.
 		WithCodec(cosmosEncodingConfig.Marshaler).
@@ -103,7 +109,7 @@ func TestC(t *testing.T) {
 		WithViper("").
 		WithChainID(chainC.ChainID)
 
-	txId, err := strconv.ParseUint("1", 10, 64)
+	txId, err := strconv.ParseUint("2", 10, 64)
 
 	if err != nil {
 		panic(err)
@@ -141,13 +147,13 @@ func TestC(t *testing.T) {
 	defer func(grpcConnCosmos *grpc.ClientConn) {
 		err := grpcConnCosmos.Close()
 		if err != nil {
-
+			panic(err)
 		}
 	}(grpcConnCosmos)
 
 	txClient := txD.NewServiceClient(grpcConnCosmos)
 
-	fmt.Println("client created")
+	fmt.Println("service client created")
 	res, err := txClient.BroadcastTx(context.Background(),
 		&txD.BroadcastTxRequest{
 			Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
@@ -158,12 +164,67 @@ func TestC(t *testing.T) {
 		panic(err)
 	}
 	fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
-	status := "success"
+	var status string
+	var height int64
 	cosmosTxHash := res.TxResponse.TxHash
-	if res.TxResponse.Code == 0 {
-		status = "keeper failure"
+
+loop:
+	for timeout := time.After(20 * time.Second); ; {
+
+		select {
+		case <-timeout:
+			status = "not success"
+			break loop
+		default:
+		}
+
+		res2, err := txClient.GetTx(context.Background(),
+			&txD.GetTxRequest{
+				Hash: cosmosTxHash,
+			},
+		)
+		if err != nil {
+			errorS := err.Error()
+			ok := strings.Contains(errorS, "not found")
+			if ok {
+				continue loop
+			} else {
+				status = "not success"
+			}
+
+		}
+
+		txCode := res2.TxResponse.Code
+
+		if txCode == sdkErrors.SuccessABCICode {
+			status = "success"
+			height = res2.TxResponse.Height
+			break loop
+		} else if txCode == sdkErrors.ErrInvalidSequence.ABCICode() {
+			status = "sequence mismatch"
+			break loop
+		} else if txCode == sdkErrors.ErrOutOfGas.ABCICode() {
+			status = "gas failure"
+			break
+		} else {
+			status = "not success"
+
+			break loop
+		}
+
 	}
-	err = SendMsgAcknowledgement(chain, chainC, []string{seed}, cosmosTxHash, status, clientContextNative, clientContextNative)
+
+	if status == "success" && height != 0 {
+
+		//BlockResults, _ := rpcClient.BlockResults(context.Background(), &height)
+
+		//txResults:= BlockResults.TxsResults
+
+		//events := txResults(*abci.)
+
+	}
+
+	err = SendMsgAcknowledgement(chain, chainC, []string{seed[2]}, cosmosTxHash, status, clientContextNative, clientContextCosmos)
 	if err != nil {
 		panic(err)
 	}

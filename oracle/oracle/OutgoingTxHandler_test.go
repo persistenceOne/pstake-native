@@ -19,8 +19,8 @@ import (
 )
 
 func TestB(t *testing.T) {
-	rpcaddr := "http://13.229.64.99:26657"
-	grpcaddr := "13.229.64.99:9090"
+	rpcaddr := "http://18.139.224.127:26657"
+	grpcaddr := "18.139.224.127:9090"
 	seed := "bomb sand fashion torch return coconut color captain vapor inhale lyrics lady grant ordinary lazy decrease quit devote paddle impulse prize equip hip ball"
 	_, addr := GetSDKPivKeyAndAddressR("persistence", 118, seed)
 
@@ -64,28 +64,30 @@ func TestB(t *testing.T) {
 		WithViper("").
 		WithChainID(chain.ChainID)
 
+	custodialAdrr, err := AccAddressFromBech32("cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2", "cosmos")
 	cosmosrpc := "http://13.212.166.231:26657"
 	cosmosgrpc := "13.212.166.231:9090"
 	rpcClientC, _ := newRPCClient(cosmosrpc, 1*time.Second)
 	liteproviderC, _ := prov.New("test", cosmosrpc)
 	chainC := &CosmosChain{
-		Key:           "unusedNativeKey",
-		ChainID:       "test",
-		RPCAddr:       cosmosrpc,
-		AccountPrefix: "cosmos",
-		GasAdjustment: 1.0,
-		GasPrices:     "0.025stake",
-		GRPCAddr:      cosmosgrpc,
-		CoinType:      118,
-		HomePath:      "",
-		KeyBase:       nil,
-		Client:        rpcClientC,
-		Encoding:      params.EncodingConfig{},
-		Provider:      liteproviderC,
-		address:       nil,
-		logger:        nil,
-		timeout:       0,
-		debug:         false,
+		Key:              "unusedNativeKey",
+		ChainID:          "test",
+		RPCAddr:          cosmosrpc,
+		AccountPrefix:    "cosmos",
+		CustodialAddress: custodialAdrr,
+		GasAdjustment:    1.0,
+		GasPrices:        "0.025stake",
+		GRPCAddr:         cosmosgrpc,
+		CoinType:         118,
+		HomePath:         "",
+		KeyBase:          nil,
+		Client:           rpcClientC,
+		Encoding:         params.EncodingConfig{},
+		Provider:         liteproviderC,
+		address:          nil,
+		logger:           nil,
+		timeout:          0,
+		debug:            false,
 	}
 
 	cosmosEncodingConfig := chainC.MakeEncodingConfig()

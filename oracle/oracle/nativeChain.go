@@ -157,30 +157,29 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 		logg.Println("listening to events on native side")
 		txIdSlice := e.Events["outgoing_txn.outgoing_tx_id"]
 
-		if txIdSlice == nil {
-			continue
-		}
-		for _, txId := range txIdSlice {
+		if txIdSlice != nil {
 
-			err := native.OutgoingTxHandler(txId, valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, chain, cHeight)
-			if err != nil {
-				panic(err)
+			for _, txId := range txIdSlice {
 
+				err := native.OutgoingTxHandler(txId, valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, chain, cHeight)
+				if err != nil {
+					panic(err)
+
+				}
 			}
 		}
 
 		txSignIdSlice := e.Events["signed_tx.outgoing_tx_id"]
-		if txIdSlice == nil {
-			continue
-		}
+		fmt.Println(txSignIdSlice)
+		if txSignIdSlice != nil {
+			for _, txID := range txSignIdSlice {
+				err := native.SignedOutgoingTxHandler(txID, valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, chain)
+				if err != nil {
+					logg.Println("signed outgoing tx handling error")
+					panic(err)
+					return
 
-		for _, txID := range txSignIdSlice {
-			err := native.SignedOutgoingTxHandler(txID, valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, chain)
-			if err != nil {
-				logg.Println("signed outgoing tx handling error")
-				panic(err)
-				return
-
+				}
 			}
 		}
 

@@ -17,59 +17,74 @@ func SendMsgAcknowledgement(native *NativeChain, cosmosChain *CosmosChain, orcSe
 	ValDetails := GetValidatorDetails(cosmosChain)
 
 	SetSDKConfigPrefix(cosmosChain.ChainID)
-	address, err := GetMultiSigAddress(native, cosmosChain)
-	acc, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, address)
+	address, err, flag := GetMultiSigAddress(native, cosmosChain)
 
 	if err != nil {
 		return err
 	}
 
-	msg := &cosmosTypes.MsgTxStatus{
-		OrchestratorAddress: addr,
-		TxHash:              TxHash,
-		Status:              status,
-		SequenceNumber:      seq,
-		AccountNumber:       acc,
-		ValidatorDetails:    ValDetails,
-	}
-
-	txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
-
-	if err != nil {
-		return err
-	}
-
-	grpcConn, _ := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
-	defer func(grpcConn *grpc.ClientConn) {
-		err := grpcConn.Close()
+	if flag == "pass" {
+		acc, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, address)
 		if err != nil {
-
+			return err
 		}
-	}(grpcConn)
 
-	txClient := txD.NewServiceClient(grpcConn)
+		msg := &cosmosTypes.MsgTxStatus{
+			OrchestratorAddress: addr,
+			TxHash:              TxHash,
+			Status:              status,
+			SequenceNumber:      seq,
+			AccountNumber:       acc,
+			ValidatorDetails:    ValDetails,
+		}
 
-	res, err := txClient.BroadcastTx(context.Background(),
-		&txD.BroadcastTxRequest{
-			Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
-			TxBytes: txBytes,
-		},
-	)
-	if err != nil {
-		return err
-	}
+		//msg2 := &cosmosTypes.MsgRewardsClaimedOnCosmosChain{
+		//	OrchestratorAddress: "",
+		//	AmountClaimed:       types.Coin{},
+		//	ChainID:             "",
+		//	BlockHeight:         0,
+		//}
 
-	logg.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+		txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
 
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
+
+		grpcConn, _ := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
+		defer func(grpcConn *grpc.ClientConn) {
+			err := grpcConn.Close()
+			if err != nil {
+
+			}
+		}(grpcConn)
+
+		txClient := txD.NewServiceClient(grpcConn)
+
+		res, err := txClient.BroadcastTx(context.Background(),
+			&txD.BroadcastTxRequest{
+				Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
+				TxBytes: txBytes,
+			},
+		)
+		if err != nil {
+			return err
+		}
+
+		logg.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 
 	return nil
 
 }
 
-func GetMultiSigAddress(chain *NativeChain, chainC *CosmosChain) (types.AccAddress, error) {
+func GetMultiSigAddress(chain *NativeChain, chainC *CosmosChain) (types.AccAddress, error, string) {
 	var txId uint64
 
 	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
@@ -94,19 +109,23 @@ func GetMultiSigAddress(chain *NativeChain, chainC *CosmosChain) (types.AccAddre
 	)
 
 	txId = ActiveTxID.GetTxID()
+	if txId != 0 {
+		TxResult, err := cosmosQueryClient.QueryTxByID(context.Background(),
+			&cosmosTypes.QueryOutgoingTxByIDRequest{TxID: uint64(txId)},
+		)
 
-	TxResult, err := cosmosQueryClient.QueryTxByID(context.Background(),
-		&cosmosTypes.QueryOutgoingTxByIDRequest{TxID: uint64(txId)},
-	)
+		signerAddress := TxResult.CosmosTxDetails.SignerAddress
+		SetSDKConfigPrefix(chainC.AccountPrefix)
 
-	signerAddress := TxResult.CosmosTxDetails.SignerAddress
-	SetSDKConfigPrefix(chainC.AccountPrefix)
+		signerAddr, err := AccAddressFromBech32(signerAddress, chainC.AccountPrefix)
+		if err != nil {
+			return nil, err, "fail"
+		}
 
-	signerAddr, err := AccAddressFromBech32(signerAddress, chainC.AccountPrefix)
-	if err != nil {
-		return nil, err
+		return signerAddr, nil, "pass"
+
 	}
 
-	return signerAddr, nil
+	return nil, nil, "fail"
 
 }

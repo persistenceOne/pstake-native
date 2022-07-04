@@ -3,12 +3,15 @@ package oracle
 import (
 	"context"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
+	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	tx2 "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"google.golang.org/grpc"
 	logg "log"
 	"strconv"
+	"strings"
+	"time"
 )
 
 func (n *NativeChain) SignedOutgoingTxHandler(txIdStr, valAddr string, orcSeeds []string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, native *NativeChain, chain *CosmosChain) error {
@@ -65,10 +68,50 @@ func (n *NativeChain) SignedOutgoingTxHandler(txIdStr, valAddr string, orcSeeds 
 		return err
 	}
 	logg.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
-	status := "success"
+	var status string
 	cosmosTxHash := res.TxResponse.TxHash
-	if res.TxResponse.Code == 0 {
-		status = "keeper failure"
+loop:
+	for timeout := time.After(20 * time.Second); ; {
+
+		select {
+		case <-timeout:
+			status = "not success"
+			break loop
+		default:
+		}
+
+		res2, err := txClient.GetTx(context.Background(),
+			&txD.GetTxRequest{
+				Hash: cosmosTxHash,
+			},
+		)
+		if err != nil {
+			errorS := err.Error()
+			ok := strings.Contains(errorS, "not found")
+			if ok {
+				continue loop
+			} else {
+				status = "not success"
+			}
+
+		}
+
+		txCode := res2.TxResponse.Code
+
+		if txCode == sdkErrors.SuccessABCICode {
+			status = "success"
+			break loop
+		} else if txCode == sdkErrors.ErrInvalidSequence.ABCICode() {
+			status = "sequence mismatch"
+			break loop
+		} else if txCode == sdkErrors.ErrOutOfGas.ABCICode() {
+			status = "gas failure"
+			break
+		} else {
+			status = "not success"
+
+			break loop
+		}
 	}
 
 	err = SendMsgAcknowledgement(native, chain, orcSeeds, cosmosTxHash, status, nativeCliCtx, clientCtx)

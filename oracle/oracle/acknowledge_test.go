@@ -109,56 +109,59 @@ func TestM(t *testing.T) {
 	ValDetails := GetValidatorDetails(chainC)
 
 	SetSDKConfigPrefix(chainC.AccountPrefix)
-	address, err := GetMultiSigAddress(chain, chainC)
-	if err != nil {
-		panic(err)
-	}
-	acc, seq, err := clientContextCosmos.AccountRetriever.GetAccountNumberSequence(clientContextCosmos, address)
-
+	address, err, flag := GetMultiSigAddress(chain, chainC)
 	if err != nil {
 		panic(err)
 	}
 
-	msg := &cosmosTypes.MsgTxStatus{
-		OrchestratorAddress: addr,
-		TxHash:              "2309DBA86D984925C45DE6C3A697E114303C948556E38EDBE1ED338CEC878A06",
-		Status:              "success",
-		SequenceNumber:      seq,
-		AccountNumber:       acc,
-		ValidatorDetails:    ValDetails,
-	}
+	if flag == "pass" {
+		acc, seq, err := clientContextCosmos.AccountRetriever.GetAccountNumberSequence(clientContextCosmos, address)
 
-	txBytes, err := SignNativeTx(seed, chain, clientContextNative, msg)
-
-	if err != nil {
-		panic(err)
-	}
-
-	grpcConn, _ := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
-	defer func(grpcConn *grpc.ClientConn) {
-		err := grpcConn.Close()
 		if err != nil {
+			panic(err)
+		}
+
+		msg := &cosmosTypes.MsgTxStatus{
+			OrchestratorAddress: addr,
+			TxHash:              "2309DBA86D984925C45DE6C3A697E114303C948556E38EDBE1ED338CEC878A06",
+			Status:              "success",
+			SequenceNumber:      seq,
+			AccountNumber:       acc,
+			ValidatorDetails:    ValDetails,
+		}
+
+		txBytes, err := SignNativeTx(seed, chain, clientContextNative, msg)
+
+		if err != nil {
+			panic(err)
+		}
+
+		grpcConn, _ := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
+		defer func(grpcConn *grpc.ClientConn) {
+			err := grpcConn.Close()
+			if err != nil {
+
+			}
+		}(grpcConn)
+
+		txClient := txD.NewServiceClient(grpcConn)
+
+		res, err := txClient.BroadcastTx(context.Background(),
+			&txD.BroadcastTxRequest{
+				Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
+				TxBytes: txBytes,
+			},
+		)
+		if err != nil {
+			panic(err)
 
 		}
-	}(grpcConn)
 
-	txClient := txD.NewServiceClient(grpcConn)
+		logg.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
 
-	res, err := txClient.BroadcastTx(context.Background(),
-		&txD.BroadcastTxRequest{
-			Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
-			TxBytes: txBytes,
-		},
-	)
-	if err != nil {
-		panic(err)
-
-	}
-
-	logg.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
-
-	if err != nil {
-		panic(err)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 }
