@@ -20,7 +20,7 @@ func TestM(t *testing.T) {
 	rpcaddr := "http://13.229.64.99:26657"
 	grpcaddr := "13.229.64.99:9090"
 	seed := "april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel"
-	_, addr := GetSDKPivKeyAndAddressR("persistence", 118, seed)
+	_, addr := GetPivKeyAddress("persistence", 118, seed)
 
 	rpcClient, _ := newRPCClient(rpcaddr, 1*time.Second)
 	liteprovider, _ := prov.New("native", rpcaddr)

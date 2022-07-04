@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	tx2 "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	"github.com/cosmos/cosmos-sdk/x/authz"
 	logg "log"
 	"strings"
 
@@ -33,64 +32,6 @@ func SetSDKConfigPrefix(prefix string) {
 
 }
 
-func SignCosmosTx(seed string, chain *CosmosChain, clientCtx client.Context, msg sdk.Msg) ([]byte, error) {
-	// Build the factory CLI
-	// Create a new TxBuilder.
-
-	txBuilder := clientCtx.TxConfig.NewTxBuilder()
-
-	txBuilder.SetGasLimit(400000)
-
-	privKey, _ := GetSDKPivKeyAndAddressR(chain.AccountPrefix, chain.CoinType, seed)
-	//accSeqs := []uint64{0}
-
-	err := txBuilder.SetMsgs(msg)
-	if err != nil {
-		return nil, err
-	}
-	SetSDKConfigPrefix(chain.AccountPrefix)
-	ac, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, msg.GetSigners()[0])
-	logg.Println(ac, seq, err)
-
-	sig := signing.SignatureV2{PubKey: privKey.PubKey(),
-		Data: &signing.SingleSignatureData{
-			SignMode:  clientCtx.TxConfig.SignModeHandler().DefaultMode(),
-			Signature: nil,
-		},
-		Sequence: seq,
-	}
-
-	err = txBuilder.SetSignatures(sig)
-	if err != nil {
-		return nil, err
-	}
-
-	signerData := xauthsigning.SignerData{
-		ChainID:       chain.ChainID,
-		AccountNumber: ac,
-		Sequence:      seq,
-	}
-	sigv2, err := tx.SignWithPrivKey(
-		clientCtx.TxConfig.SignModeHandler().DefaultMode(), signerData, txBuilder, privKey, clientCtx.TxConfig, seq)
-	if err != nil {
-		return nil, err
-	}
-
-	err = txBuilder.SetSignatures(sigv2)
-	if err != nil {
-		return nil, err
-	}
-
-	logg.Println(txBuilder.GetTx(), "Signed Tx")
-	txBytes, err := clientCtx.TxConfig.TxEncoder()(txBuilder.GetTx())
-	if err != nil {
-		return nil, err
-	}
-
-	return txBytes, nil
-
-}
-
 func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, msg sdk.Msg) ([]byte, error) {
 	// Build the factory CLI
 	// Create a new TxBuilder.
@@ -99,7 +40,7 @@ func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, ms
 
 	txBuilder.SetGasLimit(400000)
 
-	privKey, _ := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, seed)
+	privKey, _ := GetPivKeyAddress(native.AccountPrefix, native.CoinType, seed)
 
 	err := txBuilder.SetMsgs(msg)
 	if err != nil {
@@ -107,6 +48,9 @@ func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, ms
 	}
 	SetSDKConfigPrefix(native.AccountPrefix)
 	ac, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, msg.GetSigners()[0])
+	if err != nil {
+		return nil, err
+	}
 	logg.Println(ac, seq, err)
 
 	sig := signing.SignatureV2{PubKey: privKey.PubKey(),
@@ -162,7 +106,7 @@ func GetSDKPivKeyAndAddress(Seed string) (sdkcryptotypes.PrivKey, sdk.AccAddress
 	return privKey, address
 }
 
-func GetSDKPivKeyAndAddressR(prefix string, cointype uint32, mnemonic string) (sdkcryptotypes.PrivKey, string) {
+func GetPivKeyAddress(prefix string, cointype uint32, mnemonic string) (sdkcryptotypes.PrivKey, string) {
 
 	kb, err := keyring.New("pstake", keyring.BackendMemory, "", nil)
 
@@ -199,10 +143,13 @@ func Bech32ifyAddressBytes(prefix string, address sdkTypes.AccAddress) (string, 
 }
 
 func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Context, OutgoingTx txD.Tx, signerAddress string) ([]byte, error) {
-	privkey, _ := GetSDKPivKeyAndAddressR(chain.AccountPrefix, chain.CoinType, seed)
+	privkey, _ := GetPivKeyAddress(chain.AccountPrefix, chain.CoinType, seed)
 
 	SetSDKConfigPrefix(chain.AccountPrefix)
 	signerAddr, err := AccAddressFromBech32(signerAddress, chain.AccountPrefix)
+	if err != nil {
+		return nil, err
+	}
 
 	ac, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, signerAddr)
 
@@ -217,8 +164,6 @@ func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Con
 		panic(err)
 	}
 
-	exec := OutgoingTx.GetMsgs()[0].(*authz.MsgExec)
-	logg.Println(exec.Msgs[0].GetCachedValue())
 	txBuilder := tx2.WrapTx(&OutgoingTx)
 
 	SignBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
@@ -229,18 +174,15 @@ func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Con
 		}, txBuilder.GetTx())
 
 	if err != nil {
-		panic(err)
 		return nil, err
 	}
 
 	signature, err := privkey.Sign(SignBytes)
 	if err != nil {
-		panic(err)
 		return nil, err
 	}
 
 	if !privkey.PubKey().VerifySignature(SignBytes, signature) {
-
 		panic(fmt.Sprintf("signature verification failed err: %v", err))
 	}
 

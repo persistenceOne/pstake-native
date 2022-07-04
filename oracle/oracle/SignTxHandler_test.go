@@ -27,7 +27,7 @@ func TestC(t *testing.T) {
 		"april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel",
 		"soft brown armed regret hip few ancient control steel bright basic swamp sentence present immune napkin orbit giggle year another crowd essence noble dice",
 		"road gallery tooth script volcano deputy summer acid bulk anger fatigue notable secret blood bean apology burger rookie rug bench away dutch secret upper"}
-	_, addr := GetSDKPivKeyAndAddressR("persistence", 118, seed[2])
+	_, addr := GetPivKeyAddress("persistence", 118, seed[2])
 
 	rpcClient, _ := newRPCClient("http://13.229.64.99:26657", 1*time.Second)
 	liteprovider, _ := prov.New("native", "http://13.229.64.99:26657")
