@@ -45,7 +45,6 @@ var (
 	KeyBondDenom                         = []byte("BondDenom")
 	KeyStakingDenom                      = []byte("StakingDenom")
 	KeyMintDenom                         = []byte("MintDenom")
-	KeyMultisigThreshold                 = []byte("MultisigThreshold")
 	KeyRetryLimit                        = []byte("RetryLimit")
 	KeyRewardEpochIdentifier             = []byte("RewardEpochIdentifier")
 )
