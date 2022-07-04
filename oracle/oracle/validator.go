@@ -24,6 +24,9 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 
 	}
 	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
+	if err != nil {
+		panic(err)
+	}
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
@@ -48,7 +51,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 	)
 
 	if err != nil {
-		logg.Println("cannot get total delegations")
+		panic(err)
 	}
 	flag := true
 	for _, Delegations := range BondedTokensQueryResult.DelegationResponses {

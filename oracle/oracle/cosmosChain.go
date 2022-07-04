@@ -218,7 +218,7 @@ func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx
 			logg.Println("error getting cosmos abci info", err)
 		}
 		cHeight = uint64(abciInfoCosmos.Response.LastBlockHeight)
-		cHeight = cHeight - 3
+		cHeight = cHeight - 1
 		fmt.Println("cosmos Block height- ", cHeight)
 
 		abciInfoNative, err := native.Client.ABCIInfo(ctx)
@@ -229,7 +229,7 @@ func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx
 		nHeight = uint64(abciInfoNative.Response.LastBlockHeight)
 		fmt.Println("native Block height- ", cHeight)
 
-		NewStatusJSON(chain.HomePath, cHeight, nHeight)
+		SetStatus(chain.HomePath, cHeight, nHeight)
 
 	}
 	for cHeight > 0 && nHeight > 0 {
@@ -249,7 +249,7 @@ func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx
 		time.Sleep(6 * time.Second)
 		cHeight = cHeight + 1
 
-		NewStatusJSON(chain.HomePath, cHeight, nHeight)
+		SetStatus(chain.HomePath, cHeight, nHeight)
 
 	}
 }
