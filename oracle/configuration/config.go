@@ -1,109 +1,99 @@
 package configuration
 
 import (
-	"github.com/persistenceOne/pStake-native/oracle/constants"
+	"github.com/BurntSushi/toml"
+	"github.com/persistenceOne/pstake-native/oracle/constants"
 	"github.com/spf13/cobra"
+	"log"
+	"path/filepath"
 )
 
 type Config struct {
 	ValAddress   string       `json:"val_address"`
+	OrcSeeds     []string     `json:"seeds"`
 	CosmosConfig CosmosConfig `json:"cosmos_config"`
 	NativeConfig NativeConfig `json:"native_config"`
 }
 
-var config = Default()
+var orcConfig = newConfig()
 
 func GetConfig() Config {
-	return config
+	return orcConfig
 }
 
 func SetConfig(cmd *cobra.Command) Config {
 	//  val flag
-	valAddress, err := cmd.Flags().GetString(constants.FlagValAddress)
-	//	cosmos Config
-	cosmosChainID, err := cmd.Flags().GetString(constants.FlagCosmosChainID)
-	if err != nil {
-		panic(err)
-	}
-	cosmosCustodialAddr, err := cmd.Flags().GetString(constants.FlagCosmosCustodialAddr)
-	if err != nil {
-		panic(err)
-	}
-	cosmosDenom, err := cmd.Flags().GetString(constants.FlagCosmosDenom)
-	if err != nil {
-		panic(err)
-	}
-	cosmosRPCAddr, err := cmd.Flags().GetString(constants.FlagCosmosRPCAddr)
-	if err != nil {
-		panic(err)
-	}
-	cosmosAccountPrefix, err := cmd.Flags().GetString(constants.FlagCosmosAccountPrefix)
-	if err != nil {
-		panic(err)
-	}
-	cosmosGasAdjustment, err := cmd.Flags().GetFloat64(constants.FlagCosmosGasAdjustment)
-	if err != nil {
-		panic(err)
-	}
-	cosmosGasPrice, err := cmd.Flags().GetString(constants.FlagCosmosGasPrice)
-	if err != nil {
-		panic(err)
-	}
 
-	cosmosConfig := NewCosmosConfig(
-		cosmosChainID,
-		cosmosCustodialAddr,
-		cosmosDenom,
-		cosmosRPCAddr,
-		cosmosAccountPrefix,
-		cosmosGasAdjustment,
-		cosmosGasPrice,
-	)
+	ValAddress, err := cmd.Flags().GetString(constants.FlagValAddress)
+	orcConfig.ValAddress = ValAddress
+	//	cosmos Config
+	orcConfig.CosmosConfig.ChainID, err = cmd.Flags().GetString(constants.FlagCosmosChainID)
+	if err != nil {
+		panic(err)
+	}
+	orcConfig.CosmosConfig.CustodialAddr, err = cmd.Flags().GetString(constants.FlagCosmosCustodialAddr)
+	if err != nil {
+		panic(err)
+	}
+	orcConfig.CosmosConfig.Denom, err = cmd.Flags().GetString(constants.FlagCosmosDenom)
+	if err != nil {
+		panic(err)
+	}
+	orcConfig.CosmosConfig.GRPCAddr, err = cmd.Flags().GetString(constants.FlagCosmosGRPCAddr)
+	if err != nil {
+		panic(err)
+	}
+	orcConfig.CosmosConfig.RPCAddr, err = cmd.Flags().GetString(constants.FlagCosmosRPCAddr)
+	if err != nil {
+		panic(err)
+	}
+	orcConfig.CosmosConfig.AccountPrefix, err = cmd.Flags().GetString(constants.FlagCosmosAccountPrefix)
+	if err != nil {
+		panic(err)
+	}
+	orcConfig.CosmosConfig.GasAdjustment, err = cmd.Flags().GetFloat64(constants.FlagCosmosGasAdjustment)
+	if err != nil {
+		panic(err)
+	}
+	orcConfig.CosmosConfig.GasPrice, err = cmd.Flags().GetString(constants.FlagCosmosGasPrice)
+	if err != nil {
+		panic(err)
+	}
+	orcConfig.CosmosConfig.CoinType, err = cmd.Flags().GetUint32(constants.FlagCosmosCoinType)
+
 	//	native Config
 
-	nativeChainID, err := cmd.Flags().GetString(constants.FlagNativeChainID)
+	orcConfig.NativeConfig.ChainID, err = cmd.Flags().GetString(constants.FlagNativeChainID)
 	if err != nil {
 		panic(err)
 	}
-	nativeModuleName, err := cmd.Flags().GetString(constants.FlagNativeModuleName)
+	orcConfig.NativeConfig.Denom, err = cmd.Flags().GetString(constants.FlagNativeDenom)
 	if err != nil {
 		panic(err)
 	}
-	nativeDenom, err := cmd.Flags().GetString(constants.FlagNativeDenom)
+	orcConfig.NativeConfig.GRPCAddr, err = cmd.Flags().GetString(constants.FlagNativeGRPCAddr)
 	if err != nil {
 		panic(err)
 	}
-	nativeRPCAddr, err := cmd.Flags().GetString(constants.FlagNativeRPCAddr)
+	orcConfig.NativeConfig.RPCAddr, err = cmd.Flags().GetString(constants.FlagNativeRPCAddr)
 	if err != nil {
 		panic(err)
 	}
-	nativeAccountPrefix, err := cmd.Flags().GetString(constants.FlagNativeAccountPrefix)
+	orcConfig.NativeConfig.AccountPrefix, err = cmd.Flags().GetString(constants.FlagNativeAccountPrefix)
 	if err != nil {
 		panic(err)
 	}
-	nativeGasAdjustment, err := cmd.Flags().GetFloat64(constants.FlagNativeGasAdjustment)
+	orcConfig.NativeConfig.GasAdjustment, err = cmd.Flags().GetFloat64(constants.FlagNativeGasAdjustment)
 	if err != nil {
 		panic(err)
 	}
-	nativeGasPrice, err := cmd.Flags().GetString(constants.FlagNativeGasPrice)
+	orcConfig.NativeConfig.GasPrices, err = cmd.Flags().GetString(constants.FlagNativeGasPrice)
 	if err != nil {
 		panic(err)
 	}
+	orcConfig.NativeConfig.CoinType, err = cmd.Flags().GetUint32(constants.FlagNativeCoinType)
 
-	nativeConfig := NewNativeConfig(
-		nativeChainID,
-		nativeModuleName,
-		nativeDenom,
-		nativeRPCAddr,
-		nativeAccountPrefix,
-		nativeGasAdjustment,
-		nativeGasPrice,
-	)
-	return NewConfig(
-		valAddress,
-		*cosmosConfig,
-		*nativeConfig,
-	)
+	return orcConfig
 
 }
 
@@ -133,20 +123,23 @@ type CosmosConfig struct {
 	ChainID       string  `json:"chain_id"`
 	CustodialAddr string  `json:"custodial_addr"`
 	Denom         string  `json:"denom"`
+	GRPCAddr      string  `json:"grpc_addr"`
 	RPCAddr       string  `json:"rpc_addr"`
 	AccountPrefix string  `json:"account_prefix"`
 	GasAdjustment float64 `json:"gas_adjustment"`
-	GasPrices     string  `json:"gas_price"`
+	GasPrice      string  `json:"gas_price"`
+	CoinType      uint32  `json:"coin_type"`
 }
 
 type NativeConfig struct {
 	ChainID       string  `json:"chain_id"`
-	ModuleName    string  `json:"module_name"`
 	Denom         string  `json:"denom"`
 	RPCAddr       string  `json:"rpc_addr"`
+	GRPCAddr      string  `json:"grpc_addr"`
 	AccountPrefix string  `json:"account_prefix"`
 	GasAdjustment float64 `json:"gas_adjustment"`
 	GasPrices     string  `json:"gas_price"`
+	CoinType      uint32  `json:"coin_type"`
 }
 
 func DefaultCosmosConfig() *CosmosConfig {
@@ -154,17 +147,17 @@ func DefaultCosmosConfig() *CosmosConfig {
 		ChainID:       constants.CosmosChainID,
 		CustodialAddr: constants.CosmosCustodialAddr,
 		Denom:         constants.CosmosDenom,
+		GRPCAddr:      constants.CosmosGRPCAddr,
 		RPCAddr:       constants.CosmosRPCAddr,
 		AccountPrefix: constants.CosmosAccountPrefix,
 		GasAdjustment: constants.CosmosGasAdjustment,
-		GasPrices:     constants.CosmosGasPrice,
+		GasPrice:      constants.CosmosGasPrice,
 	}
 }
 
 func DefaultNativeConfig() *NativeConfig {
 	return &NativeConfig{
 		ChainID:       constants.NativeChainID,
-		ModuleName:    constants.ModuleName,
 		Denom:         constants.NativeDenom,
 		RPCAddr:       constants.NativeRPCAddr,
 		AccountPrefix: constants.NativeAccountPrefix,
@@ -173,26 +166,45 @@ func DefaultNativeConfig() *NativeConfig {
 	}
 }
 
-func NewCosmosConfig(chainID string, custodial_addr string, denom string, rpcaddr string, accountPrefix string, gasAdjustment float64, gasPrice string) *CosmosConfig {
-	return &CosmosConfig{
-		ChainID:       chainID,
-		CustodialAddr: custodial_addr,
-		Denom:         denom,
-		RPCAddr:       rpcaddr,
-		AccountPrefix: accountPrefix,
-		GasAdjustment: gasAdjustment,
-		GasPrices:     gasPrice,
+func NewCosmosConfig() CosmosConfig {
+	return CosmosConfig{
+		ChainID:       constants.CosmosChainID,
+		CustodialAddr: constants.CosmosCustodialAddr,
+		Denom:         constants.CosmosDenom,
+		RPCAddr:       constants.CosmosRPCAddr,
+		AccountPrefix: constants.CosmosAccountPrefix,
+		GasAdjustment: constants.CosmosGasAdjustment,
+		GasPrice:      constants.CosmosGasPrice,
+		CoinType:      constants.CosmosCoinType,
 	}
 }
 
-func NewNativeConfig(chainID string, moduleName string, denom string, rpcaddr string, accountPrefix string, gasAdjustment float64, gasPrice string) *NativeConfig {
-	return &NativeConfig{
-		ChainID:       chainID,
-		ModuleName:    moduleName,
-		Denom:         denom,
-		RPCAddr:       rpcaddr,
-		AccountPrefix: accountPrefix,
-		GasAdjustment: gasAdjustment,
-		GasPrices:     gasPrice,
+func NewNativeConfig() NativeConfig {
+	return NativeConfig{
+		ChainID:       constants.NativeChainID,
+		Denom:         constants.NativeDenom,
+		RPCAddr:       constants.NativeRPCAddr,
+		GRPCAddr:      constants.NativeGRPCAddr,
+		AccountPrefix: constants.NativeAccountPrefix,
+		GasAdjustment: constants.NativeGasAdjustment,
+		GasPrices:     constants.NativeGasPrice,
+		CoinType:      constants.NativeCoinType,
 	}
+}
+
+func newConfig() Config {
+	return Config{
+		ValAddress:   constants.ValAddress,
+		OrcSeeds:     constants.Seed,
+		CosmosConfig: NewCosmosConfig(),
+		NativeConfig: NewNativeConfig(),
+	}
+}
+
+func InitializeConfigFromToml(homepath string) Config {
+	var config = newConfig()
+	_, _ = toml.DecodeFile(filepath.Join(homepath, "config.toml"), &config)
+	//log.Fatalf("Error Decoding oracle config: %v\n", err.Error())
+	log.Println(config)
+	return config
 }

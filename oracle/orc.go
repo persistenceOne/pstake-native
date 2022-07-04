@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/persistenceOne/pStake-native/oracle/command/orc"
+	"github.com/persistenceOne/pstake-native/oracle/command/orc"
 	"github.com/spf13/cobra"
 )
 

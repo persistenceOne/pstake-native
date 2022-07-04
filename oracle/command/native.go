@@ -1,31 +1,32 @@
 package orc
 
 import (
-	"fmt"
-	"github.com/persistenceOne/pStake-native/oracle/configuration"
-	"github.com/persistenceOne/pStake-native/oracle/constants"
-	"github.com/persistenceOne/pStake-native/oracle/helpers"
-	"github.com/persistenceOne/pStake-native/oracle/oracle"
+	"github.com/persistenceOne/pstake-native/oracle/configuration"
+	"github.com/persistenceOne/pstake-native/oracle/constants"
+	"github.com/persistenceOne/pstake-native/oracle/helpers"
+	"github.com/persistenceOne/pstake-native/oracle/oracle"
 	tendermintService "github.com/tendermint/tendermint/libs/service"
+	"log"
 	"time"
 )
 
-func InitNativeChain(homePath string) (*oracle.NativeChain, error) {
+func InitNativeChain(homePath string, config configuration.NativeConfig) (*oracle.NativeChain, error) {
 	chain := &oracle.NativeChain{}
 	chain.Key = "unusedNativeKey"
-	chain.ChainID = configuration.GetConfig().NativeConfig.ChainID
-	chain.RPCAddr = configuration.GetConfig().NativeConfig.RPCAddr
-	chain.AccountPrefix = configuration.GetConfig().NativeConfig.AccountPrefix
-	chain.GasAdjustment = configuration.GetConfig().NativeConfig.GasAdjustment
-	chain.GasPrices = configuration.GetConfig().NativeConfig.GasPrices
-	//= sdk.AccAddress(configuration.GetConfig().CosmosConfig.CustodialAddr)
+	chain.ChainID = config.ChainID
+	chain.RPCAddr = config.RPCAddr
+	chain.GRPCAddr = config.GRPCAddr
+	chain.AccountPrefix = config.AccountPrefix
+	chain.GasAdjustment = config.GasAdjustment
+	chain.GasPrices = config.GasPrices
+	chain.CoinType = config.CoinType
 
 	err := chain.Init(homePath, 1*time.Second, nil, true)
 	if err != nil {
 		return chain, err
 	}
 	if chain.KeyExists(chain.Key) {
-		fmt.Println("Key Exists")
+		log.Println("Key Exists")
 		err = chain.KeyBase.Delete(chain.Key)
 		if err != nil {
 			return chain, err
