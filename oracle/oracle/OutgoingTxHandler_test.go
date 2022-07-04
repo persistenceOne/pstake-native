@@ -22,7 +22,7 @@ func TestB(t *testing.T) {
 	rpcaddr := "http://18.139.224.127:26657"
 	grpcaddr := "18.139.224.127:9090"
 	seed := "bomb sand fashion torch return coconut color captain vapor inhale lyrics lady grant ordinary lazy decrease quit devote paddle impulse prize equip hip ball"
-	_, addr := GetSDKPivKeyAndAddressR("persistence", 118, seed)
+	_, addr := GetPivKeyAddress("persistence", 118, seed)
 
 	rpcClient, _ := newRPCClient(rpcaddr, 1*time.Second)
 	liteprovider, _ := prov.New("native", rpcaddr)
@@ -136,7 +136,7 @@ func TestB(t *testing.T) {
 	signerAddress := TxResult.CosmosTxDetails.SignerAddress
 
 	signature, err := GetSignBytesForCosmos(seed, chainC, clientContextCosmos, OutgoingTx, signerAddress)
-	_, addr = GetSDKPivKeyAndAddressR("persistence", 118, seed)
+	_, addr = GetPivKeyAddress("persistence", 118, seed)
 
 	if err != nil {
 		panic(err)

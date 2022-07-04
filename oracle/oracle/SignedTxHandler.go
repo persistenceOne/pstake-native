@@ -21,6 +21,9 @@ func (n *NativeChain) SignedOutgoingTxHandler(txIdStr, valAddr string, orcSeeds 
 		return err
 	}
 	grpcConn, err := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
+	if err != nil {
+		return err
+	}
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
@@ -34,6 +37,9 @@ func (n *NativeChain) SignedOutgoingTxHandler(txIdStr, valAddr string, orcSeeds 
 	TxResult, err := LiquidStakingModuleClient.QueryTxByID(context.Background(),
 		&cosmosTypes.QueryOutgoingTxByIDRequest{TxID: uint64(txId)},
 	)
+	if err != nil {
+		return err
+	}
 
 	SignedTx := TxResult.CosmosTxDetails.Tx
 	sigTx := tx2.WrapTx(&SignedTx)
@@ -47,7 +53,10 @@ func (n *NativeChain) SignedOutgoingTxHandler(txIdStr, valAddr string, orcSeeds 
 	if err != nil {
 		return err
 	}
-	grpcConnCosmos, _ := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
+	grpcConnCosmos, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
+	if err != nil {
+		return err
+	}
 	defer func(grpcConnCosmos *grpc.ClientConn) {
 		err := grpcConnCosmos.Close()
 		if err != nil {

@@ -13,7 +13,7 @@ type StatusJSON struct {
 	last_parsed_height_native uint64
 }
 
-func NewStatusJSON(homePath string, cosmos_height uint64, native_height uint64) {
+func SetStatus(homePath string, cosmos_height uint64, native_height uint64) {
 
 	jsonStruct := StatusJSON{}
 	jsonStruct.last_parsed_height_native = native_height
