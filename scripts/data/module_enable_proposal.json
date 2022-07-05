@@ -1,11 +1,13 @@
 {
   "title": "module enable proposal",
   "description": "set multisig and enable module",
-  "threshold" : "1",
-  "account_number" : "0",
-  "orchestrator_addresses" : [
+  "threshold": "1",
+  "account_number": "0",
+  "orchestrator_addresses": [
     "persistence1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jzkd4ea"
   ],
+  "custodial_address": "cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2",
+  "chain_id": "cosmoshub-4",
   "depositor": "persistence1hcqg5wj9t42zawqkqucs7la85ffyv08ljhhesu",
   "deposit": "512stake"
 }

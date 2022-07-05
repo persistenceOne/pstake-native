@@ -86,7 +86,7 @@ func (m *ChangeMultisigProposal) String() string {
 }
 
 // NewEnableModuleProposal returns a new module enable proposal
-func NewEnableModuleProposal(title, description string, threshold, accountNumber,
+func NewEnableModuleProposal(title, description, custodialAddress, chainID string, threshold, accountNumber,
 	sequenceNumber uint64, orchestratorAddresses []string) *EnableModuleProposal {
 	return &EnableModuleProposal{
 		Title:                 title,
@@ -95,6 +95,8 @@ func NewEnableModuleProposal(title, description string, threshold, accountNumber
 		AccountNumber:         accountNumber,
 		OrchestratorAddresses: orchestratorAddresses,
 		SequenceNumber:        sequenceNumber,
+		CustodialAddress:      custodialAddress,
+		ChainID:               chainID,
 	}
 }
 
@@ -123,6 +125,22 @@ func (m *EnableModuleProposal) ValidateBasic() error {
 	err := govTypes.ValidateAbstract(m)
 	if err != nil {
 		return err
+	}
+
+	for _, acc := range m.OrchestratorAddresses {
+		_, err = sdk.AccAddressFromBech32(acc)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = AccAddressFromBech32(m.CustodialAddress, Bech32PrefixAccAddr)
+	if err != nil {
+		return err
+	}
+
+	if m.ChainID == "" {
+		return fmt.Errorf("chain ID can not be empty")
 	}
 
 	if m.Threshold > uint64(len(m.OrchestratorAddresses)) {

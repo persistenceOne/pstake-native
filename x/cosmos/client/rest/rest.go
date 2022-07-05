@@ -27,7 +27,8 @@ func RegisterHandlers(clientCtx client.Context, rtr *mux.Router) {
 	r.HandleFunc("/cosmos/incoming/minting", NewMintRequestHandlerFn(clientCtx)).Methods("POST")
 }
 
-// EnableModuleProposalRESTHandler returns a EnableModuleProposalRESTHandler that exposes the community pool spend REST handler with a given sub-route.
+// EnableModuleProposalRESTHandler returns a EnableModuleProposalRESTHandler that exposes the
+// community pool spend REST handler with a given sub-route.
 func EnableModuleProposalRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
 	return govrest.ProposalRESTHandler{
 		SubRoute: "module_enable",
@@ -50,6 +51,8 @@ func postEnableModuleProposalHandlerFn(clientCtx client.Context) http.HandlerFun
 		content := cosmosTypes.NewEnableModuleProposal(
 			req.EnableModule.Title,
 			req.EnableModule.Description,
+			req.EnableModule.CustodialAddress,
+			req.EnableModule.ChainID,
 			req.EnableModule.Threshold,
 			req.EnableModule.AccountNumber,
 			req.EnableModule.SequenceNumber,
@@ -77,7 +80,8 @@ func postEnableModuleProposalHandlerFn(clientCtx client.Context) http.HandlerFun
 	}
 }
 
-// ChangeMultisigProposalRESTHandler returns a ChangeMultisigProposalRESTHandler that exposes the community pool spend REST handler with a given sub-route.
+// ChangeMultisigProposalRESTHandler returns a ChangeMultisigProposalRESTHandler that exposes the community
+// pool spend REST handler with a given sub-route.
 func ChangeMultisigProposalRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
 	return govrest.ProposalRESTHandler{
 		SubRoute: "change_multisig",
