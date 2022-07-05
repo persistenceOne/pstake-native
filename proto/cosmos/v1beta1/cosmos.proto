@@ -92,28 +92,22 @@ message Params {
     (gogoproto.moretags) = "yaml:\"weightedDeveloperRewardsReceivers\"",
     (gogoproto.nullable) = false
   ];
-  int64 epochs = 11 [
-    (gogoproto.moretags) = "yaml:\"epochs\""
-  ];
-  int64 max_incoming_and_outgoing_txns = 12 [
-    (gogoproto.moretags) = "yaml:\"maxIncomingAndOutgoingTxns\""
-  ];
-  CosmosChainProposalParams cosmos_proposal_params = 13 [
+  CosmosChainProposalParams cosmos_proposal_params = 11 [
     (gogoproto.moretags) = "yaml:\"cosmos_proposal_params\"",
     (gogoproto.nullable) = false
   ];
-  string custodial_address = 14 [
+  string custodial_address = 12 [
     (gogoproto.moretags) = "yaml:\"custodial_address\""
   ];
-  bool module_enabled = 15;
-  string staking_epoch_identifier = 16;
-  int64 chunk_size = 17;
-  string undelegate_epoch_identifier = 18;
-  repeated string bond_denoms = 19;
-  string staking_denom = 20;
-  uint64 retry_limit = 21;
-  string reward_epoch_identifier = 22;
-  cosmos.base.v1beta1.Coin min_reward = 23 [
+  bool module_enabled = 13;
+  string staking_epoch_identifier = 14;
+  int64 chunk_size = 15;
+  string undelegate_epoch_identifier = 16;
+  repeated string bond_denoms = 17;
+  string staking_denom = 18;
+  uint64 retry_limit = 19;
+  string reward_epoch_identifier = 20;
+  cosmos.base.v1beta1.Coin min_reward = 21 [
     (gogoproto.moretags) = "yaml:\"min_minting_amount\"",
     (gogoproto.nullable) = false
   ];

@@ -377,7 +377,7 @@ func (k Keeper) retryTransactionWithFailure(ctx sdk.Context, txDetails cosmosTyp
 
 	newGas := cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit * 2
 	// double gas in case of gas failure
-	if failure == "gas failure" && newGas <= 4000000 { // todo move to params
+	if failure == "gas failure" && newGas <= cosmosTypes.MaxGasFee { // todo move to params
 		//cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit == cosmosTypes.GasLimit &&
 		//2*cosmosTxDetails.Tx.AuthInfo.Fee.GasLimit < cosmosTypes.GasLimit // TODO
 		// TODO : test case when transaction fails even after reaching max_gas limit

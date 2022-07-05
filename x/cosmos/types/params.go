@@ -17,6 +17,9 @@ const (
 	DefaultPeriod       = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
 	DefaultMintDenom    = "ustkatom"
 	DefaultStakingDenom = "uatom"
+	MinAmount           = 5000000
+	MaxAmount           = 100000000000
+	MinReward           = 1000
 )
 
 // DefaultBondDenom is a default bond denom param
@@ -34,8 +37,6 @@ var (
 	KeyMaxValidatorToDelegate            = []byte("MaxValidatorToDelegate")
 	KeyWeightedDeveloperRewardsReceivers = []byte("WeightedDeveloperRewardsReceivers")
 	KeyDistributionProportion            = []byte("DistributionProportion")
-	KeyEpochs                            = []byte("Epochs")
-	KeyMaxIncomingAndOutgoingTxns        = []byte("MaxIncomingAndOutgoingTxns")
 	KeyCosmosProposalParams              = []byte("CosmosProposalParams")
 	KeyModuleEnabled                     = []byte("ModuleEnabled")
 	KeyStakingEpochIdentifier            = []byte("StakeEpochIdentifier")
@@ -57,11 +58,11 @@ func ParamKeyTable() paramsTypes.KeyTable {
 // DefaultParams default parameters for deposits
 func DefaultParams() Params {
 	return Params{
-		MinMintingAmount:       sdk.NewInt64Coin("uatom", 5000000),
-		MaxMintingAmount:       sdk.NewInt64Coin("uatom", 100000000000),
-		MinBurningAmount:       sdk.NewInt64Coin("uatom", 5000000),
-		MaxBurningAmount:       sdk.NewInt64Coin("uatom", 100000000000),
-		MinReward:              sdk.NewInt64Coin("uatom", 1000),
+		MinMintingAmount:       sdk.NewInt64Coin(DefaultStakingDenom, MinAmount),
+		MaxMintingAmount:       sdk.NewInt64Coin(DefaultStakingDenom, MaxAmount),
+		MinBurningAmount:       sdk.NewInt64Coin(DefaultStakingDenom, MinAmount),
+		MaxBurningAmount:       sdk.NewInt64Coin(DefaultStakingDenom, MaxAmount),
+		MinReward:              sdk.NewInt64Coin(DefaultStakingDenom, MinReward),
 		MaxValidatorToDelegate: 3,
 		WeightedDeveloperRewardsReceivers: []WeightedAddress{
 			{
@@ -73,8 +74,6 @@ func DefaultParams() Params {
 			ValidatorRewards: sdk.NewDecWithPrec(5, 2),
 			DeveloperRewards: sdk.NewDecWithPrec(5, 2),
 		},
-		Epochs:                     0,
-		MaxIncomingAndOutgoingTxns: 10000,
 		CosmosProposalParams: CosmosChainProposalParams{
 			ChainID:              "cosmoshub-4", //TODO use these as conditions for proposals
 			ReduceVotingPeriodBy: DefaultPeriod,
@@ -113,12 +112,6 @@ func (p Params) Validate() error {
 		return err
 	}
 	if err := validateDistributionProportion(p.DistributionProportion); err != nil {
-		return err
-	}
-	if err := validateEpochs(p.Epochs); err != nil {
-		return err
-	}
-	if err := validateMaxIncomingAndOutgoingTxns(p.MaxIncomingAndOutgoingTxns); err != nil {
 		return err
 	}
 	if err := validateCosmosProposalParams(p.CosmosProposalParams); err != nil {
@@ -175,8 +168,6 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyMaxValidatorToDelegate, &p.MaxValidatorToDelegate, validateMaxValidatorToDelegate),
 		paramsTypes.NewParamSetPair(KeyWeightedDeveloperRewardsReceivers, &p.WeightedDeveloperRewardsReceivers, validateWeightedDeveloperRewardsReceivers),
 		paramsTypes.NewParamSetPair(KeyDistributionProportion, &p.DistributionProportion, validateDistributionProportion),
-		paramsTypes.NewParamSetPair(KeyEpochs, &p.Epochs, validateEpochs),
-		paramsTypes.NewParamSetPair(KeyMaxIncomingAndOutgoingTxns, &p.MaxIncomingAndOutgoingTxns, validateMaxIncomingAndOutgoingTxns),
 		paramsTypes.NewParamSetPair(KeyCosmosProposalParams, &p.CosmosProposalParams, validateCosmosProposalParams),
 		paramsTypes.NewParamSetPair(KeyModuleEnabled, &p.ModuleEnabled, validateModuleEnabled),
 		paramsTypes.NewParamSetPair(KeyStakingEpochIdentifier, &p.StakingEpochIdentifier, epochsTypes.ValidateEpochIdentifierInterface),
@@ -222,8 +213,6 @@ func (p Params) Equal(other Params) bool {
 		p.MaxBurningAmount.IsEqual(other.MaxBurningAmount) &&
 		p.MaxValidatorToDelegate == other.MaxValidatorToDelegate &&
 		p.DistributionProportion == other.DistributionProportion &&
-		p.Epochs == other.Epochs &&
-		p.MaxIncomingAndOutgoingTxns == other.MaxIncomingAndOutgoingTxns &&
 		p.CosmosProposalParams == other.CosmosProposalParams &&
 		p.CustodialAddress == other.CustodialAddress &&
 		p.ModuleEnabled == other.ModuleEnabled &&
@@ -383,32 +372,6 @@ func validateDistributionProportion(i interface{}) error {
 
 	if !totalProportions.Equal(sdk.NewDecWithPrec(1, 1)) {
 		return errors.New("total distributions ratio should be 0.1")
-	}
-
-	return nil
-}
-
-func validateEpochs(i interface{}) error {
-	v, ok := i.(int64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v < 0 {
-		return fmt.Errorf("epoch must be non-negative")
-	}
-
-	return nil
-}
-
-func validateMaxIncomingAndOutgoingTxns(i interface{}) error {
-	v, ok := i.(int64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v < 0 {
-		return fmt.Errorf("total incoming or outgoing transaction must be non-negative")
 	}
 
 	return nil
