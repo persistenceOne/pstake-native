@@ -3,6 +3,7 @@
  SPDX-License-Identifier: Apache-2.0
 */
 
+// Package cosmos enables the liquid staking for CosmosHub's ATOM.
 package cosmos
 
 import (
@@ -38,8 +39,6 @@ var (
 type AppModuleBasic struct {
 	cdc codec.Codec
 }
-
-var _ module.AppModuleBasic = AppModuleBasic{}
 
 // Name returns the cosmos module's name.
 func (AppModuleBasic) Name() string {

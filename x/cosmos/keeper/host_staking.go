@@ -9,11 +9,13 @@ import (
 	"github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
+// ValAddressAmount :
 type ValAddressAmount struct {
 	Validator string
 	Amount    sdk.Coin
 }
 
+// GetIdealCurrentDelegations returns ideal amount of delegations to validators on host chain
 func GetIdealCurrentDelegations(validatorState types.WeightedAddressAmounts, amt sdk.Coin, reverse bool) types.WeightedAddressAmounts {
 	totalDelegations := validatorState.TotalAmount(amt.Denom)
 	curDiffDistribution := types.WeightedAddressAmounts{}
@@ -41,6 +43,7 @@ func GetIdealCurrentDelegations(validatorState types.WeightedAddressAmounts, amt
 	return curDiffDistribution
 }
 
+// divideAmountWeightedSet : divides amount to be delegated or undelegated w.r.t weights.
 func divideAmountWeightedSet(valAmounts []ValAddressAmount, coin sdk.Coin, valAddressWeightMap map[string]sdk.Dec) []ValAddressAmount {
 	newValAmounts := []ValAddressAmount{}
 
@@ -77,6 +80,7 @@ func distributeCoinsAmongstValSet(ws types.WeightedAddressAmounts, coin sdk.Coin
 	return valAddrAmts, coin
 }
 
+// DivideAmountIntoValidatorSet : divides amount into validator set
 func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) ([]ValAddressAmount, error) {
 	if coin.IsZero() {
 		return nil, nil
@@ -102,6 +106,7 @@ func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, co
 	return valAmounts, nil
 }
 
+// DivideUndelegateAmountIntoValidatorSet : divides undelegation amount into validator set
 func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) ([]ValAddressAmount, error) {
 	if coin.IsZero() {
 		return nil, nil

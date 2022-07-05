@@ -78,7 +78,7 @@ func (k Keeper) UpdateDelegationCosmosValidator(ctx sdk.Context, valAddress sdk.
 	cosmosValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&weightedAddress))
 }
 
-// Gets the delegation of given cosmos validator
+// getDelegationCosmosValidator Gets the delegation of given cosmos validator
 func (k Keeper) getDelegationCosmosValidator(ctx sdk.Context, valAddress sdk.ValAddress) sdk.Coin {
 	cosmosValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCosmosValidatorWeights)
 	if !cosmosValSetStore.Has(valAddress.Bytes()) {
@@ -89,7 +89,7 @@ func (k Keeper) getDelegationCosmosValidator(ctx sdk.Context, valAddress sdk.Val
 	return weightedAddress.Coin()
 }
 
-// removes the given validator from the cosmos validator set
+// removeCosmosValidatorWeight removes the given validator from the cosmos validator set
 func (k Keeper) removeCosmosValidatorWeight(ctx sdk.Context, valAddress sdk.ValAddress) {
 	cosmosValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCosmosValidatorWeights)
 	cosmosValSetStore.Delete(valAddress.Bytes())
@@ -97,7 +97,7 @@ func (k Keeper) removeCosmosValidatorWeight(ctx sdk.Context, valAddress sdk.ValA
 
 //______________________________________________________________________________________________________________________
 
-// put a check on length of validator set and val set weights to maintain equal mapping
+// setOracleValidatorSet put a check on length of validator set and val set weights to maintain equal mapping
 // sets the native validator address as key and weight details as value
 func (k Keeper) setOracleValidatorSet(ctx sdk.Context, valAddresses []sdk.ValAddress, nativeValSetWeights []cosmosTypes.WeightedAddress) {
 	nativeValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyNativeValidatorWeights)
@@ -107,7 +107,7 @@ func (k Keeper) setOracleValidatorSet(ctx sdk.Context, valAddresses []sdk.ValAdd
 	}
 }
 
-// sets given weight details if store already has val address in it or panics
+// setOracleValidatorWeight sets given weight details if store already has val address in it or panics
 func (k Keeper) setOracleValidatorWeight(ctx sdk.Context, valAddress sdk.ValAddress, weight cosmosTypes.WeightedAddress) {
 	nativeValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyNativeValidatorWeights)
 	if !nativeValSetStore.Has(valAddress.Bytes()) {
@@ -116,7 +116,7 @@ func (k Keeper) setOracleValidatorWeight(ctx sdk.Context, valAddress sdk.ValAddr
 	nativeValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&weight))
 }
 
-// gets the list of all oracle validator set
+// getAllOracleValidatorSet gets the list of all oracle validator set
 func (k Keeper) getAllOracleValidatorSet(ctx sdk.Context) (weightedAddresses []cosmosTypes.WeightedAddress) {
 	nativeValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyNativeValidatorWeights)
 	iterator := nativeValSetStore.Iterator(nil, nil)
@@ -129,7 +129,7 @@ func (k Keeper) getAllOracleValidatorSet(ctx sdk.Context) (weightedAddresses []c
 	return weightedAddresses
 }
 
-// removes the given validator from the native validator set
+// removeOracleValidatorWeight removes the given validator from the native validator set
 func (k Keeper) removeOracleValidatorWeight(ctx sdk.Context, valAddress sdk.ValAddress) {
 	nativeValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyNativeValidatorWeights)
 	nativeValSetStore.Delete(valAddress.Bytes())

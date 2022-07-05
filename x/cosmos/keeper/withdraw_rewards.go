@@ -7,7 +7,7 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-// Add the rewards claimed amount to the current epoch
+// addToRewardsInCurrentEpoch Add the rewards claimed amount to the current epoch
 func (k Keeper) addToRewardsInCurrentEpoch(ctx sdk.Context, amount sdk.Coin) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 	currentEpoch := k.epochsKeeper.GetEpochInfo(ctx, k.GetParams(ctx).StakingEpochIdentifier).CurrentEpoch
@@ -26,7 +26,7 @@ func (k Keeper) addToRewardsInCurrentEpoch(ctx sdk.Context, amount sdk.Coin) {
 	rewardsInCurrentEpochStore.Set(key, k.cdc.MustMarshal(&newAmount))
 }
 
-// Get the amount of rewards claimed mapped to the given epoch number
+// getFromRewardsInCurrentEpochAmount Get the amount of rewards claimed mapped to the given epoch number
 func (k Keeper) getFromRewardsInCurrentEpochAmount(ctx sdk.Context, epochNumber int64) (amount sdk.Coin) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 	if !rewardsInCurrentEpochStore.Has(cosmosTypes.Int64Bytes(epochNumber)) {
@@ -36,7 +36,7 @@ func (k Keeper) getFromRewardsInCurrentEpochAmount(ctx sdk.Context, epochNumber 
 	return amount
 }
 
-// shifts the rewards in the given epoch number to the next epoch number for rewards delegation
+// shiftRewardsToNextEpoch shifts the rewards in the given epoch number to the next epoch number for rewards delegation
 func (k Keeper) shiftRewardsToNextEpoch(ctx sdk.Context, epochNumber int64) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 
@@ -58,7 +58,7 @@ func (k Keeper) shiftRewardsToNextEpoch(ctx sdk.Context, epochNumber int64) {
 	rewardsInCurrentEpochStore.Set(newEpochKey, k.cdc.MustMarshal(&nextEpochAmount))
 }
 
-// Remove the given key from the rewards in current epoch store
+// deleteFromRewardsInCurrentEpoch Remove the given key from the rewards in current epoch store
 func (k Keeper) deleteFromRewardsInCurrentEpoch(ctx sdk.Context, epochNumber int64) {
 	rewardsInCurrentEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCurrentEpochRewardsStore)
 	rewardsInCurrentEpochStore.Delete(cosmosTypes.Int64Bytes(epochNumber))

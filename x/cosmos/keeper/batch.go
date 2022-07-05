@@ -17,6 +17,7 @@ import (
 
 //______________________________________________________________________________________________
 
+// txIDAndDetailsInOutgoingPool struct stored in db for outgoingTxs
 type txIDAndDetailsInOutgoingPool struct {
 	txID      uint64
 	txDetails cosmosTypes.CosmosTx
@@ -45,7 +46,7 @@ func (k Keeper) updateStatusOnceProcessed(ctx sdk.Context, txID uint64, status s
 	outgoingStore.Set(key, k.cdc.MustMarshal(&cosmosTx))
 }
 
-// sets event emitted to true once even is emitted
+// setEventEmittedFlag sets event emitted to true once even is emitted
 func (k Keeper) setEventEmittedFlag(ctx sdk.Context, txID uint64, flag bool) {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
@@ -78,13 +79,15 @@ func (k Keeper) GetTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmos
 	}, nil
 }
 
-// Deletes txn Details by ID
+// removeTxnDetailsByID Deletes txn Details by ID
 func (k Keeper) removeTxnDetailsByID(ctx sdk.Context, txID uint64) {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
 	outgoingStore.Delete(key)
 }
 
+// SetOutgoingTxnSignaturesAndEmitEvent sets outgoing txns signatures for multisig and emits event for oracle to pick
+//and broadcast to cosmosHub
 func (k Keeper) SetOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosTypes.CosmosTx, txID uint64) error {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
@@ -113,6 +116,7 @@ func (k Keeper) SetOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosT
 	return nil
 }
 
+// getAllTxInOutgoingPool Gets transactions from outgoing pool
 func (k Keeper) getAllTxInOutgoingPool(ctx sdk.Context) (details []txIDAndDetailsInOutgoingPool, err error) {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
 	iterator := outgoingStore.Iterator(nil, nil)
@@ -134,12 +138,13 @@ func (k Keeper) getAllTxInOutgoingPool(ctx sdk.Context) (details []txIDAndDetail
 
 //______________________________________________________________________________________________
 
+// TxHashAndDetails
 type TxHashAndDetails struct {
 	TxHash  string
 	Details cosmosTypes.TxHashValue
 }
 
-// Set details corresponding to a particular txHash and update details if already present
+// setTxHashAndDetails Set details corresponding to a particular txHash and update details if already present
 func (k Keeper) setTxHashAndDetails(ctx sdk.Context, msg cosmosTypes.MsgTxStatus, validatorAddress sdk.ValAddress) {
 	txHashStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
 	key := []byte(msg.TxHash)
@@ -171,7 +176,7 @@ func (k Keeper) setTxHashAndDetails(ctx sdk.Context, msg cosmosTypes.MsgTxStatus
 	}
 }
 
-//Fetch details mapped to particular hash
+//getTxHashAndDetails Fetch details mapped to particular hash
 func (k Keeper) getTxHashAndDetails(ctx sdk.Context, txHash string) (cosmosTypes.TxHashValue, error) {
 	hashAndIDStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
 	key := []byte(txHash)
@@ -186,14 +191,14 @@ func (k Keeper) getTxHashAndDetails(ctx sdk.Context, txHash string) (cosmosTypes
 	return cosmosTypes.TxHashValue{}, nil
 }
 
-// Removes all the details mapped to txHash
+// removeTxHashAndDetails Removes all the details mapped to txHash
 func (k Keeper) removeTxHashAndDetails(ctx sdk.Context, txHash string) {
 	hashAndIDStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
 	key := []byte(txHash)
 	hashAndIDStore.Delete(key)
 }
 
-// Fetches the list of all details mapped to txHash
+// getAllTxHashAndDetails Fetches the list of all details mapped to txHash
 func (k Keeper) getAllTxHashAndDetails(ctx sdk.Context) (list []TxHashAndDetails, returnErr error) {
 	hashAndIDStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.HashAndIDStore)
 	iterator := hashAndIDStore.Iterator(nil, nil)
@@ -209,6 +214,7 @@ func (k Keeper) getAllTxHashAndDetails(ctx sdk.Context) (list []TxHashAndDetails
 	return list, nil
 }
 
+// StoreValueEqualOrNotTxStatus checks if stored value is equal to txStatus
 func StoreValueEqualOrNotTxStatus(storeValue cosmosTypes.TxHashValue, msgValue cosmosTypes.MsgTxStatus) bool {
 	if storeValue.TxStatus.TxHash != msgValue.TxHash {
 		return false
@@ -238,12 +244,13 @@ func StoreValueEqualOrNotTxStatus(storeValue cosmosTypes.TxHashValue, msgValue c
 
 //______________________________________________________________________________________________
 
+// TransactionQueue txn queue to be set to outgoing queue.
 type TransactionQueue struct {
 	txID   uint64
 	status cosmosTypes.OutgoingQueueValue
 }
 
-// Set new transaction in transaction queue with value 0 (pending)
+// setNewInTransactionQueue Sets new transaction in transaction queue with value 0 (pending)
 func (k Keeper) setNewInTransactionQueue(ctx sdk.Context, txID uint64) {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 	key := cosmosTypes.UInt64Bytes(txID)
@@ -257,7 +264,7 @@ func (k Keeper) setNewInTransactionQueue(ctx sdk.Context, txID uint64) {
 	transactionQueueStore.Set(key, bz)
 }
 
-// Get active transaction from the tx queue : returns 0 if no active transaction in queue
+// getActiveFromTransactionQueue Gets active transaction from the tx queue : returns 0 if no active transaction in queue
 func (k Keeper) getActiveFromTransactionQueue(ctx sdk.Context) uint64 {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 
@@ -276,6 +283,7 @@ func (k Keeper) getActiveFromTransactionQueue(ctx sdk.Context) uint64 {
 	return 0
 }
 
+// incrementRetryCounterInTransactionQueue increases retry counter in case of failed txn
 func (k Keeper) incrementRetryCounterInTransactionQueue(ctx sdk.Context, txID uint64) {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 	key := cosmosTypes.UInt64Bytes(txID)
@@ -297,7 +305,7 @@ func (k Keeper) incrementRetryCounterInTransactionQueue(ctx sdk.Context, txID ui
 	}
 }
 
-// Fetches the next transaction to be sent out and mark it active
+// getNextFromTransactionQueue Fetches the next transaction to be sent out and mark it active
 // called after deleting the active transaction which has been successful
 func (k Keeper) getNextFromTransactionQueue(ctx sdk.Context) uint64 {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
@@ -318,14 +326,14 @@ func (k Keeper) getNextFromTransactionQueue(ctx sdk.Context) uint64 {
 	return 0
 }
 
-// Removes the transaction corresponding to the given txID
+// removeFromTransactionQueue Removes the transaction corresponding to the given txID
 // called once the transaction is successful and all action required after its success are complete
 func (k Keeper) removeFromTransactionQueue(ctx sdk.Context, txID uint64) {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 	transactionQueueStore.Delete(cosmosTypes.UInt64Bytes(txID))
 }
 
-// Gets the list of all transaction in the outgoing queue which are being sent out or yet to be sent out
+// getAllFromTransactionQueue Gets the list of all transaction in the outgoing queue which are being sent out or yet to be sent out
 func (k Keeper) getAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatus []TransactionQueue) {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 
@@ -343,7 +351,7 @@ func (k Keeper) getAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatus []Tra
 	return txIDAndStatus
 }
 
-// Emits event for transaction to be picked up by oracles to be signed
+// emitEventForActiveTransaction Emits event for transaction to be picked up by oracles to be signed
 func (k Keeper) emitEventForActiveTransaction(ctx sdk.Context, txID uint64) {
 	k.incrementRetryCounterInTransactionQueue(ctx, txID)
 	ctx.EventManager().EmitEvent(
@@ -357,7 +365,7 @@ func (k Keeper) emitEventForActiveTransaction(ctx sdk.Context, txID uint64) {
 
 //______________________________________________________________________________________________
 
-// RetryTransactionWithDoubleGas : retry txn with double gas
+// retryTransactionWithFailure : retry txn with double gas
 func (k Keeper) retryTransactionWithFailure(ctx sdk.Context, txDetails cosmosTypes.QueryOutgoingTxByIDResponse, txID uint64, txHash string, failure string) {
 
 	// doubles gas fees and emit a new event
@@ -386,6 +394,7 @@ func (k Keeper) retryTransactionWithFailure(ctx sdk.Context, txDetails cosmosTyp
 	k.RemoveFromOutgoingSignaturePool(ctx, txID)
 }
 
+// ProcessAllTxAndDetails processes any outgoing transaction's details
 func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 	// fetch active transaction in the queue
 	txID := k.getActiveFromTransactionQueue(ctx)

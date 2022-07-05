@@ -11,7 +11,7 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-// NewHandler returns a handler for "Gravity" type messages.
+// NewHandler returns a handler for "cosmos" type messages.
 func NewHandler(k keeper.Keeper) sdk.Handler {
 	msgServer := keeper.NewMsgServerImpl(k)
 
@@ -54,7 +54,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 	}
 }
 
-func NewCosmosLiquidStakingParametersHandler(k keeper.Keeper) govTypes.Handler {
+// NewCosmosLiquidStakingProposalHandler returns handler for governance proposals
+func NewCosmosLiquidStakingProposalHandler(k keeper.Keeper) govTypes.Handler {
 	return func(ctx sdk.Context, content govTypes.Content) error {
 		switch c := content.(type) {
 		case *cosmosTypes.ChangeMultisigProposal:

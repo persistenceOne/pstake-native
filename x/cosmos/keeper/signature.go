@@ -10,13 +10,14 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
+// OutgoingSignaturePoolKeyAndValue signatures for outgoingTxns
 type OutgoingSignaturePoolKeyAndValue struct {
 	TxID                       uint64
 	OutgoingSignaturePoolValue cosmosTypes.OutgoingSignaturePoolValue
 }
 
 /*
-Adds the signature entry to the signature pool store with the given validator address.
+addToOutgoingSignaturePool Adds the signature entry to the signature pool store with the given validator address.
 Performs the following actions :
   1. Checks if the store has the key, if it has the key then it appends the signature.
   2. If not present in the store then creates a new entry.
@@ -61,7 +62,7 @@ func (k Keeper) GetAllFromOutgoingSignaturePool(ctx sdk.Context) (list []Outgoin
 	return list
 }
 
-// Sets the signed event emitted flag to true
+// setEventEmittedForSignedTxn Sets the signed event emitted flag to true
 func (k Keeper) setEventEmittedForSignedTxn(ctx sdk.Context, txID uint64) {
 	outgoingSignaturePoolStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOutgoingSignaturePoolKey)
 	key := cosmosTypes.UInt64Bytes(txID)
