@@ -209,8 +209,8 @@ func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 	return nextID
 }
 
+// addRevokeTransactions adds revoke transaction to outgoing pool and returns txID for reference
 // todo check logic for revoke as oldAccount is not involved
-// adds revoke transaction to outgoing pool and returns txID for reference
 func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uint64 {
 	// generate ID for Revoke Transaction
 	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
@@ -314,7 +314,7 @@ func (k Keeper) generateRevokeMsgAny(ctx sdk.Context, custodialAddress sdk.AccAd
 	return revokeMsgAny
 }
 
-// helper function to be used in case of shifting the existing list of transactions before proposal to an ID after
+// shiftListOfTransactionsToNewIDs is a helper function to be used in case of shifting the existing list of transactions before proposal to an ID after
 // the authorization change transaction
 func (k Keeper) shiftListOfTransactionsToNewIDs(ctx sdk.Context, transactionQueue []TransactionQueue) {
 	for _, tq := range transactionQueue {

@@ -9,6 +9,7 @@ import (
 	abciTypes "github.com/tendermint/tendermint/abci/types"
 )
 
+// NewQuerier returns query handler for the module
 func NewQuerier(k Keeper, legacyQuerierCdc *sdkCodec.LegacyAmino) sdkTypes.Querier {
 	return func(ctx sdkTypes.Context, path []string, req abciTypes.RequestQuery) (res []byte, err error) {
 		switch path[0] {

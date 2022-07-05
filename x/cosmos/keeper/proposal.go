@@ -20,7 +20,7 @@ type KeyAndValueForProposal struct {
 	Value cosmosTypes.ProposalValue
 }
 
-// creates a new proposal with given voting period in genesis
+// createProposal creates a new proposal with given voting period in genesis
 func (k Keeper) createProposal(c sdk.Context, proposal KeyAndValueForProposal) error {
 	proposalID, err := k.GetProposalID(c)
 	if err != nil {
@@ -52,7 +52,7 @@ func (k Keeper) createProposal(c sdk.Context, proposal KeyAndValueForProposal) e
 	return nil
 }
 
-// Generates an outgoing weighted vote transaction with the given vote option and
+// generateOutgoingWeightedVoteTx Generates an outgoing weighted vote transaction with the given vote option and
 // add to it to outgoing pool with given txID
 func (k Keeper) generateOutgoingWeightedVoteTx(ctx sdk.Context, result map[cosmosTypes.VoteOption]sdk.Dec, cosmosProposalID uint64) {
 	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
@@ -262,7 +262,7 @@ func (k Keeper) GetProposalsFiltered(ctx sdk.Context, params cosmosTypes.QueryPr
 }
 
 /*
-Adds the minting message entry to the proposal store with the given validator address.
+setProposalDetails Adds the minting message entry to the proposal store with the given validator address.
 Performs the following actions :
   1. Checks if store has the key or not. If not then create new entry
   2. Checks if store has it and matches all the details present in the message. If not then create a new entry.
@@ -301,13 +301,13 @@ func (k Keeper) setProposalDetails(ctx sdk.Context, msg cosmosTypes.MsgMakePropo
 	}
 }
 
-// Removes the proposal details
+// deleteProposalDetails Removes the proposal details
 func (k Keeper) deleteProposalDetails(ctx sdk.Context, key cosmosTypes.ProposalKey) {
 	proposalStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ProposalStoreKey)
 	proposalStore.Delete(k.cdc.MustMarshal(&key))
 }
 
-// Set the proposal posted on native chain
+// setProposalPosted Set the proposal posted on native chain
 func (k Keeper) setProposalPosted(ctx sdk.Context, proposal KeyAndValueForProposal) {
 	store := ctx.KVStore(k.storeKey)
 	proposalStore := prefix.NewStore(store, cosmosTypes.ProposalStoreKey)
@@ -331,7 +331,7 @@ func (k Keeper) setProposalPosted(ctx sdk.Context, proposal KeyAndValueForPropos
 	}
 }
 
-// Get the complete list of proposals from the DB
+// getAllKeyAndValueForProposal Get the complete list of proposals from the DB
 func (k Keeper) getAllKeyAndValueForProposal(ctx sdk.Context) []KeyAndValueForProposal {
 	store := ctx.KVStore(k.storeKey)
 	proposalStore := prefix.NewStore(store, cosmosTypes.ProposalStoreKey)

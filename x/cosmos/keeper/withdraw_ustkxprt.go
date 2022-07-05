@@ -13,7 +13,7 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-// adds details to withdraw pool for ubonding epoch
+// addToWithdrawPool adds details to withdraw pool for ubonding epoch
 func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdrawStkAsset) error {
 	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
 
@@ -64,7 +64,7 @@ func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdraw
 	return nil
 }
 
-// Gets withdraw transaction mapped to current epoch number
+// fetchWithdrawTxnsWithCurrentEpochInfo Gets withdraw transaction mapped to current epoch number
 func (k Keeper) fetchWithdrawTxnsWithCurrentEpochInfo(ctx sdk.Context, currentEpoch int64) (withdrawStoreValue cosmosTypes.WithdrawStoreValue) {
 	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
 	if !withdrawStore.Has(cosmosTypes.Int64Bytes(currentEpoch)) {
@@ -74,13 +74,13 @@ func (k Keeper) fetchWithdrawTxnsWithCurrentEpochInfo(ctx sdk.Context, currentEp
 	return withdrawStoreValue
 }
 
-// Remove the details mapped to the current epoch number
+// deleteWithdrawTxnWithCurrentEpochInfo Remove the details mapped to the current epoch number
 func (k Keeper) deleteWithdrawTxnWithCurrentEpochInfo(ctx sdk.Context, currentEpoch int64) {
 	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
 	withdrawStore.Delete(cosmosTypes.Int64Bytes(currentEpoch))
 }
 
-// Get the total amount that is to be unbonded
+// totalAmountToBeUnbonded Get the total amount that is to be unbonded
 func (k Keeper) totalAmountToBeUnbonded(value cosmosTypes.WithdrawStoreValue, denom string) sdk.Coin {
 	amount := sdk.NewInt64Coin(denom, 0)
 	for _, element := range value.WithdrawDetails {
@@ -89,7 +89,7 @@ func (k Keeper) totalAmountToBeUnbonded(value cosmosTypes.WithdrawStoreValue, de
 	return amount
 }
 
-// Generates send transaction for the withdrawals and add it to the outgoing pool with the given txID
+// generateSendTransactionForAllWithdrawals Generates send transaction for the withdrawals and add it to the outgoing pool with the given txID
 func (k Keeper) generateSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumber int64, cValue sdk.Dec) error {
 	withdrawStoreValue := k.fetchWithdrawTxnsWithCurrentEpochInfo(ctx, epochNumber)
 	params := k.GetParams(ctx)

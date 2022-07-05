@@ -7,7 +7,7 @@ import (
 )
 
 /*
-Adds the slashing message entry to the slashing store with the given validator address.
+setSlashingEventDetails Adds the slashing message entry to the slashing store with the given validator address.
 Performs the following actions :
   1. Checks if store has the key or not. If not then create new entry
   2. Checks if store has it and matches all the details present in the message. If not then create a new entry.
@@ -46,7 +46,7 @@ func (k Keeper) setSlashingEventDetails(ctx sdk.Context, msg cosmosTypes.MsgSlas
 	}
 }
 
-// Sets the addedToCValue flag true for thw given slashing store value
+// setAddedToCValueTrue Sets the addedToCValue flag true for thw given slashing store value
 func (k Keeper) setAddedToCValueTrue(ctx sdk.Context, value cosmosTypes.SlashingStoreValue) {
 	slashingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeySlashingStore)
 	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(value.SlashingDetails.ChainID, value.SlashingDetails.BlockHeight, value.SlashingDetails.SlashType)
@@ -71,7 +71,7 @@ func (k Keeper) getAllSlashingEventDetails(ctx sdk.Context) (list []cosmosTypes.
 	return list
 }
 
-// Removes the slashing event details corresponding to the passed values
+// deleteSlashingEventDetails Removes the slashing event details corresponding to the passed values
 func (k Keeper) deleteSlashingEventDetails(ctx sdk.Context, value cosmosTypes.SlashingStoreValue) {
 	slashingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeySlashingStore)
 	chainIDHeightAndTxHash := cosmosTypes.NewChainIDHeightAndTxHash(value.SlashingDetails.ChainID, value.SlashingDetails.BlockHeight, value.SlashingDetails.SlashType)

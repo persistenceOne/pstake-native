@@ -58,7 +58,7 @@ func (k Keeper) getAllMintTokenStoreValue(ctx sdk.Context) (list []cosmosTypes.M
 	return list
 }
 
-// Set the minted flag true. Used when the minting is successful for the given request
+// setMintedFlagInMintTokenStore Set the minted flag true. Used when the minting is successful for the given request
 func (k Keeper) setMintedFlagInMintTokenStore(ctx sdk.Context, mv cosmosTypes.MintTokenStoreValue) {
 	mintTokenStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintTokenStore)
 	key := k.cdc.MustMarshal(&cosmosTypes.ChainIDHeightAndTxHashKey{ChainID: mv.MintTokens.ChainID, BlockHeight: mv.MintTokens.BlockHeight, TxHash: mv.MintTokens.TxHash})
@@ -70,7 +70,7 @@ func (k Keeper) setMintedFlagInMintTokenStore(ctx sdk.Context, mv cosmosTypes.Mi
 	mintTokenStore.Set(key, k.cdc.MustMarshal(&mintTokenStoreValue))
 }
 
-// Sets added to epoch flag true. Used when the amount has been added to epoch store for "uatom".
+// setAddedToEpochFlagInMintTokenStore Sets added to epoch flag true. Used when the amount has been added to epoch store for "uatom".
 func (k Keeper) setAddedToEpochFlagInMintTokenStore(ctx sdk.Context, mv cosmosTypes.MintTokenStoreValue) {
 	mintTokenStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintTokenStore)
 	key := k.cdc.MustMarshal(&cosmosTypes.ChainIDHeightAndTxHashKey{ChainID: mv.MintTokens.ChainID, BlockHeight: mv.MintTokens.BlockHeight, TxHash: mv.MintTokens.TxHash})
@@ -82,7 +82,7 @@ func (k Keeper) setAddedToEpochFlagInMintTokenStore(ctx sdk.Context, mv cosmosTy
 	mintTokenStore.Set(key, k.cdc.MustMarshal(&mintTokenStoreValue))
 }
 
-// removes the details set in the mint token store. Used when the active block height is reached
+// deleteFromMintTokenStore removes the details set in the mint token store. Used when the active block height is reached
 func (k Keeper) deleteFromMintTokenStore(ctx sdk.Context, mv cosmosTypes.MintTokenStoreValue) {
 	mintTokenStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintTokenStore)
 	key := k.cdc.MustMarshal(&cosmosTypes.ChainIDHeightAndTxHashKey{ChainID: mv.MintTokens.ChainID, BlockHeight: mv.MintTokens.BlockHeight, TxHash: mv.MintTokens.TxHash})
