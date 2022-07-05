@@ -89,7 +89,7 @@ func (k Keeper) addGrantTransactions(ctx sdk.Context, oldAccount authTypes.Accou
 				SignerInfos: nil,
 				Fee: &sdkTx.Fee{
 					Amount:   nil,
-					GasLimit: 400000,
+					GasLimit: cosmosTypes.MinGasFee,
 					Payer:    "",
 				},
 			},
@@ -190,7 +190,7 @@ func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 				SignerInfos: nil,
 				Fee: &sdkTx.Fee{
 					Amount:   nil,
-					GasLimit: 400000,
+					GasLimit: cosmosTypes.MinGasFee,
 					Payer:    "",
 				},
 			},
@@ -277,7 +277,7 @@ func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 				SignerInfos: nil,
 				Fee: &sdkTx.Fee{
 					Amount:   nil,
-					GasLimit: 400000,
+					GasLimit: cosmosTypes.MinGasFee,
 					Payer:    "",
 				},
 			},

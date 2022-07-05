@@ -12,7 +12,7 @@ func (k Keeper) SetAccountState(ctx sdk.Context, acc authTypes.AccountI) {
 	addr := sdk.AccAddress(acc.GetPubKey().Address())
 	store := ctx.KVStore(k.storeKey)
 
-	bz, err := k.AuthKeeper.MarshalAccount(acc)
+	bz, err := k.authKeeper.MarshalAccount(acc)
 	if err != nil {
 		panic(err)
 	}
@@ -28,7 +28,7 @@ func (k Keeper) GetAccountState(ctx sdk.Context, accAddress sdk.AccAddress) auth
 		return nil
 	}
 
-	acc, err := k.AuthKeeper.UnmarshalAccount(bz)
+	acc, err := k.authKeeper.UnmarshalAccount(bz)
 	if err != nil {
 		panic(err)
 	}
@@ -51,7 +51,7 @@ func (k Keeper) SetCurrentAddress(ctx sdk.Context, accAddress sdk.AccAddress) {
 // Checks if the orchestrator address is present in the current multisig address or not
 func (k Keeper) checkOrchestratorAddressPresentInMultisig(ctx sdk.Context, orch sdk.AccAddress) bool {
 	// fetch orch address pub key on chain
-	orchPubKey := k.AuthKeeper.GetAccount(ctx, orch).GetPubKey()
+	orchPubKey := k.authKeeper.GetAccount(ctx, orch).GetPubKey()
 	if orchPubKey == nil {
 		panic("pub key for orch address not found")
 	}

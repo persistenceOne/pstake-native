@@ -22,7 +22,7 @@ type Keeper struct {
 	cdc           codec.BinaryCodec
 	storeKey      sdkTypes.StoreKey
 	paramSpace    paramsTypes.Subspace
-	AuthKeeper    *authKeeper.AccountKeeper
+	authKeeper    *authKeeper.AccountKeeper
 	bankKeeper    *bankKeeper.BaseKeeper
 	mintKeeper    *mintKeeper.Keeper
 	stakingKeeper *stakingKeeper.Keeper
@@ -42,7 +42,7 @@ func NewKeeper(
 		cdc:           cdc,
 		storeKey:      key,
 		paramSpace:    paramSpace.WithKeyTable(cosmosTypes.ParamKeyTable()),
-		AuthKeeper:    authKeeper,
+		authKeeper:    authKeeper,
 		bankKeeper:    bankKeeper,
 		mintKeeper:    mintKeeper,
 		stakingKeeper: stakingKeeper,

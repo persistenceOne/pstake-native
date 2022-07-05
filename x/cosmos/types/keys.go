@@ -41,6 +41,9 @@ const (
 
 	StorageWindow = 20000
 
+	MinGasFee = 400000
+	MaxGasFee = 4000000
+
 	Bech32Prefix = "cosmos"
 
 	Bech32PrefixAccAddr  = Bech32Prefix

@@ -51,7 +51,7 @@ func multisig(OrcastratorAddresses []string, k keeper.Keeper, t *testing.T, ctx 
 		orchestratorAccAddress, err := sdk.AccAddressFromBech32(orcastratorAddress)
 		require.NoError(t, nil, err)
 
-		account := k.AuthKeeper.GetAccount(ctx, orchestratorAccAddress)
+		account := k.authKeeper.GetAccount(ctx, orchestratorAccAddress)
 		multisigPubkeys = append(multisigPubkeys, account.GetPubKey())
 	}
 
@@ -82,6 +82,7 @@ func multisig(OrcastratorAddresses []string, k keeper.Keeper, t *testing.T, ctx 
 func TestKeeper_SetAccountState(t *testing.T) {
 	_, app, ctx := helpers.CreateTestApp()
 	cosmosKeeper := app.CosmosKeeper
+
 	orcastratorAddress := "persistence1hcqg5wj9t42zawqkqucs7la85ffyv08ljhhesu"
 	prvKey, err := GetSDKPivKeyAndAddressR("persistence", 118, "together chief must vocal account off apart dinosaur move canvas spring whisper improve cruise idea earn reflect flash goat illegal mistake blood earn ridge")
 	require.NoError(t, nil, err)
@@ -92,7 +93,7 @@ func TestKeeper_SetAccountState(t *testing.T) {
 		Sequence:      0,
 	}
 	acc.SetPubKey(prvKey.PubKey())
-	cosmosKeeper.AuthKeeper.SetAccount(ctx, acc)
+	cosmosKeeper.authKeeper.SetAccount(ctx, acc)
 	baseAccount := multisig([]string{orcastratorAddress}, cosmosKeeper, t, ctx, 0, 1)
 
 	address, _ := cosmosTypes.AccAddressFromBech32(baseAccount.Address, "cosmos")
