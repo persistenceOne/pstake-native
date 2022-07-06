@@ -3,7 +3,7 @@ package helpers
 import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/relayer/relayer"
-	relayer2 "github.com/persistenceOne/pstake-native/oracle/oracle"
+	orchestrator "github.com/persistenceOne/pstake-native/oracle/orchestrator"
 )
 
 // KeyOutput contains mnemonic and address of key
@@ -13,7 +13,7 @@ type KeyOutput struct {
 }
 
 // KeyAddOrRestore is a helper function for add key and restores key when mnemonic is passed
-func KeyAddOrRestore(chain relayer2.CosmosChain, keyName string, coinType uint32, mnemonic ...string) (KeyOutput, error) {
+func KeyAddOrRestore(chain orchestrator.CosmosChain, keyName string, coinType uint32, mnemonic ...string) (KeyOutput, error) {
 	var mnemonicStr string
 	var err error
 
@@ -38,7 +38,7 @@ func KeyAddOrRestore(chain relayer2.CosmosChain, keyName string, coinType uint32
 	return ko, nil
 }
 
-func KeyAddOrRestoreNative(chain relayer2.NativeChain, keyName string, coinType uint32, mnemonic ...string) (KeyOutput, error) {
+func KeyAddOrRestoreNative(chain orchestrator.NativeChain, keyName string, coinType uint32, mnemonic ...string) (KeyOutput, error) {
 	var mnemonicStr string
 	var err error
 
