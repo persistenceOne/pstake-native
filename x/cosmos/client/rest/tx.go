@@ -15,13 +15,13 @@ type SendReq struct {
 	BaseReq             rest.BaseReq `json:"base_req" yaml:"base_req"`
 	AddressFromMemo     string       `json:"address_from_memo" yaml:"address_from_memo"`
 	OrchestratorAddress string       `json:"orchestrator_address" yaml:"orchestrator_address"`
-	Amount              sdk.Coins    `json:"amount" yaml:"amount"`
+	Amount              sdk.Coin     `json:"amount" yaml:"amount"`
 	TxHash              string       `json:"tx_hash" yaml:"tx_hash"`
 	ChainID             string       `json:"chain_id" yaml:"chain_id"`
 	BlockHeight         int64        `json:"block_height" yaml:"block_height"`
 }
 
-// NewSendRequestHandlerFn returns an HTTP REST handler for creating a MsgMint
+// NewMintRequestHandlerFn returns an HTTP REST handler for creating a MsgMint
 // transaction.
 func NewMintRequestHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

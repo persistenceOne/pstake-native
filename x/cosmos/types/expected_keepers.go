@@ -2,10 +2,11 @@ package types
 
 import (
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
-	mintTypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 )
 
+// BankKeeper defines the contract needed to be fulfilled for banking and supply
+// dependencies.
 type BankKeeper interface {
 	MintCoins(ctx sdkTypes.Context, name string, amt sdkTypes.Coins) error
 	BurnCoins(ctx sdkTypes.Context, name string, amt sdkTypes.Coins) error
@@ -15,14 +16,10 @@ type BankKeeper interface {
 	SendCoinsFromAccountToModule(ctx sdkTypes.Context, senderAddr sdkTypes.AccAddress, recipientModule string, amt sdkTypes.Coins) error
 }
 
-type MintKeeper interface {
-	GetParams(ctx sdkTypes.Context) (params mintTypes.Params)
-	SetParams(ctx sdkTypes.Context, params mintTypes.Params)
-}
-
+// DBHelper defines the contract needed to be fulfilled for structs with validator addresses array and ratios
 type DBHelper interface {
 	Find(address string) bool
-	AddAndIncrement(address string)
+	UpdateValues(address string, validatorCount int64)
 }
 
 // GovHooks event hooks for governance proposal object (noalias)

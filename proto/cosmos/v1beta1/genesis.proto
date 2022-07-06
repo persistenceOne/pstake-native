@@ -1,5 +1,5 @@
 syntax = "proto3";
-package comsos.v1beta1;
+package cosmos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -11,26 +11,6 @@ import "cosmos/tx/v1beta1/tx.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
-message StakeAmount {
-  string denom = 1;
-  repeated cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"amount\""];
-}
-message DelegationCosmos {
-  string address = 1;
-  StakeAmount stake = 2 [(gogoproto.moretags) = "yaml:\"stake\"", (gogoproto.nullable) = false];
-}
-
-message IncomingTx {
-  cosmos.base.abci.v1beta1.TxResponse tx_response = 1 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"tx_response\""];
-}
-
-message OutgoingTx {
-  cosmos.tx.v1beta1.TxBody tx_body = 1 [(gogoproto.moretags) = "yaml:\"tx_body\"", (gogoproto.nullable) = false];
-}
-
 message GenesisState {
   Params params = 1 [(gogoproto.moretags) = "yaml:\"params\"", (gogoproto.nullable) = false];
-  repeated DelegationCosmos cosmos_delegations = 2 [(gogoproto.moretags) = "yaml:\"cosmos_delegations\"", (gogoproto.nullable) = false];
-  repeated IncomingTx incoming_txn = 3 [(gogoproto.moretags) = "yaml:\"incoming_txn\"", (gogoproto.nullable) = false];
-  OutgoingTx outgoing_txn = 4 [(gogoproto.moretags) = "yaml:\"outgoing_txn\"", (gogoproto.nullable) = false];
 }

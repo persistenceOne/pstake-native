@@ -8,13 +8,10 @@ package types
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"strconv"
-	"strings"
 	"time"
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
-	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
@@ -38,108 +35,95 @@ const (
 	QueryParameters = "parameters"
 	QueryTxByID     = "txByID"
 	QueryProposal   = "proposal"
+	QueryProposals  = "proposals"
 	QueryVote       = "vote"
 	QueryVotes      = "votes"
 
-	MintDenom  = "pstake" //TODO shift to params
-	StakeDenom = "uatom"  //TODO shift to params
+	StorageWindow = 20000
 
-	MinimumRatioForMajority = 0.66
+	MinGasFee = 400000
+	MaxGasFee = 4000000
 
-	StorageWindow = 100 //TODO : Revert Back to 100
+	Bech32Prefix = "cosmos"
+
+	Bech32PrefixAccAddr  = Bech32Prefix
+	Bech32PrefixAccPub   = Bech32Prefix + sdkTypes.PrefixPublic
+	Bech32PrefixValAddr  = Bech32Prefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator
+	Bech32PrefixValPub   = Bech32Prefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator + sdkTypes.PrefixPublic
+	Bech32PrefixConsAddr = Bech32Prefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus
+	Bech32PrefixConsPub  = Bech32Prefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus + sdkTypes.PrefixPublic
 )
 
 var (
-	KeyValidatorAddress = "KeyValidatorAddress"
-	//KeyAccAddress          = "KeyAccAddress"
-	//OutgoingTxPrefix       = []byte{0x01}
-	//IncomingTxPrefix       = []byte{0x02}
+	MinimumRatioForMajority = sdkTypes.NewDec(66).Quo(sdkTypes.NewDec(100))
 
-	// SequenceKeyPrefix indexes different txids
 	SequenceKeyPrefix = "SequenceKeyPrefix"
 
-	// KeyLastTXPoolID indexes the lastTxPoolID
 	KeyLastTXPoolID = SequenceKeyPrefix + "lastTxPoolId"
 
-	//indexes the cosmos validator details
-	KeyCosmosValidatorSet = []byte{0x01}
+	KeyEpochStoreForUndelegation = "EpochStoreForUndelegation"
 
-	KeyTotalDelegationTillDate = []byte{0x02}
+	OutgoingTXPoolKey = []byte{0x01}
 
-	// OutgoingTXPoolKey indexes the last nonce for the outgoing tx pool
-	OutgoingTXPoolKey = []byte{0x03}
+	ValidatorOrchestratorStoreKey = []byte{0x02}
 
-	AddressAndAmountStoreKey = []byte{0x04}
+	ProposalStoreKey = []byte{0x03}
 
-	MintingPoolStoreKey = []byte{0x05}
+	ProposalIDKey = []byte{0x04}
 
-	OrchestratorValidatorStoreKey = []byte{0x06}
+	ProposalsKeyPrefix = []byte{0x05}
 
-	ValidatorOrchestratorStoreKey = []byte{0x07}
+	ActiveProposalQueuePrefix = []byte{0x06}
 
-	ProposalStoreKey = []byte{0x08}
+	VotesKeyPrefix = []byte{0x07}
 
-	ProposalIDKey = []byte{0x09}
+	HashAndIDStore = []byte{0x08}
 
-	VotingParams = []byte{0xA}
+	KeyOutgoingUnbondStore = []byte{0x9}
 
-	ProposalsKeyPrefix = []byte{0xB}
+	KeyStakingEpochStore = []byte{0xA}
 
-	ActiveProposalQueuePrefix = []byte{0xC}
+	KeyCurrentEpochRewardsStore = []byte{0xB}
 
-	VotesKeyPrefix = []byte{0xD}
+	KeyEpochStoreForWithdrawSuccess = []byte{0xC}
 
-	HashAndIDStore = []byte{0xE}
+	KeyUndelegateSuccessStore = []byte{0xD}
 
-	KeyWithdrawStore = []byte{0xF}
+	KeyWithdrawStore = []byte{0xE}
 
-	KeyOutgoingUnbondStore = []byte{0x10}
+	KeyOutgoingSignaturePoolKey = []byte{0xF}
+
+	KeyMultisigAccountStore = []byte{0x11}
+
+	KeyCurrentMultisigAddress = []byte{0x12}
+
+	KeyTransactionQueue = []byte{0x13}
+
+	KeyCosmosValidatorWeights = []byte{0x14}
+
+	KeyNativeValidatorWeights = []byte{0x15}
+
+	KeySlashingStore = []byte{0x16}
+
+	KeyMintTokenStore = []byte{0x17}
+
+	KeyOracleLastUpdateHeightNative = []byte{0x18}
+
+	KeyOracleLastUpdateHeightCosmos = []byte{0x19}
+
+	KeyMintedAmount = []byte{0x1A}
+
+	KeyVirtuallyStakedAmount = []byte{0x1B}
+
+	KeyStakedAmount = []byte{0x1C}
+
+	KeyVirtuallyUnbonded = []byte{0x1D}
+
+	KeyCosmosBalances = []byte{0x1E}
 )
 
-func ConvertByteArrToString(value []byte) string {
-	var ret strings.Builder
-	for i := 0; i < len(value); i++ {
-		ret.WriteString(string(value[i]))
-	}
-	return ret.String()
-}
-
-//func GetOrchestratorAddressKey(orc sdkTypes.AccAddress) string {
-//	if err := sdkTypes.VerifyAddressFormat(orc); err != nil {
-//		panic(sdkErrors.Wrap(err, "invalid orchestrator address"))
-//	}
-//	return KeyOrchestratorAddress + string(orc.Bytes())
-//}
-
-func GetValidatorAddressKey(val sdkTypes.ValAddress) string {
-	if err := sdkTypes.VerifyAddressFormat(val); err != nil {
-		panic(sdkErrors.Wrap(err, "invalid orchestrator address"))
-	}
-	return KeyValidatorAddress + string(val.Bytes())
-}
-
-func GetChainIDTxHashBlockHeightKey(chainID string, blockHeight int64, txHash string) string {
-	return chainID + strconv.FormatInt(blockHeight, 10) + txHash
-}
-
-func GetOutgoingTxPoolKey(fee sdkTypes.Coin, id uint64) string {
-	// sdkInts have a size limit of 255 bits or 32 bytes
-	// therefore this will never panic and is always safe
-	amount := make([]byte, 32)
-	amount = []byte(fee.Amount.String())
-
-	a := append(amount, UInt64Bytes(id)...)
-	b := append([]byte(OutgoingTXPoolKey), a...)
-	return ConvertByteArrToString(b)
-}
-
-func GetDestinationAddressAmountAndTxHashKey(destinationAddress sdkTypes.AccAddress, coins sdkTypes.Coins, txHash string) string {
-	amount := make([]byte, 32)
-	amount = []byte(coins[0].Amount.String())
-
-	a := append(destinationAddress.Bytes(), amount...)
-	b := append([]byte(txHash), a...)
-	return ConvertByteArrToString(b)
+func GetEpochStoreForUndelegationKey(epochNumber int64) []byte {
+	return append([]byte(KeyEpochStoreForUndelegation), Int64Bytes(epochNumber)...)
 }
 
 // GetProposalIDFromBytes returns proposalID in uint64 format from a byte array
@@ -177,6 +161,16 @@ func VoteKey(proposalID uint64, voterAddr sdkTypes.AccAddress) []byte {
 // VotesKey gets the first part of the votes key based on the proposalID
 func VotesKey(proposalID uint64) []byte {
 	return append(VotesKeyPrefix, GetProposalIDBytes(proposalID)...)
+}
+
+// MultisigAccountStoreKey turn an address to key used to get it from the account store
+func MultisigAccountStoreKey(addr sdkTypes.AccAddress) []byte {
+	return append(KeyMultisigAccountStore, addr.Bytes()...)
+}
+
+// CurrentMultisigAddressKey turn an address to that is expected to send current txns
+func CurrentMultisigAddressKey() []byte {
+	return KeyCurrentMultisigAddress
 }
 
 func BytesToHexUpper(bz []byte) string {

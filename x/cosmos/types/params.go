@@ -3,146 +3,109 @@ package types
 import (
 	"errors"
 	"fmt"
-	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ghodss/yaml"
+
+	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 )
 
+// Default constants for period, mint and staking denom
 const (
-	DefaultPeriod    time.Duration = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
-	DefaultMintDenom string        = "ustkxprt"
+	DefaultPeriod       = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
+	DefaultMintDenom    = "ustkatom"
+	DefaultStakingDenom = "uatom"
+	MinAmount           = 5000000
+	MaxAmount           = 100000000000
+	MinReward           = 1000
 )
 
+// DefaultBondDenom is a default bond denom param
 var (
 	DefaultBondDenom = []string{"uatom"}
 )
 
+// Parameter store key
 var (
 	KeyMinMintingAmount                  = []byte("MinMintingAmount")
 	KeyMaxMintingAmount                  = []byte("MaxMintingAmount")
 	KeyMinBurningAmount                  = []byte("MinBurningAmount")
 	KeyMaxBurningAmount                  = []byte("MaxBurningAmount")
+	KeyMinReward                         = []byte("MinReward")
 	KeyMaxValidatorToDelegate            = []byte("MaxValidatorToDelegate")
-	KeyValidatorSetCosmosChain           = []byte("ValidatorSetCosmosChain")
-	KeyValidatorSetNativeChain           = []byte("ValidatorSetNativeChain")
 	KeyWeightedDeveloperRewardsReceivers = []byte("WeightedDeveloperRewardsReceivers")
 	KeyDistributionProportion            = []byte("DistributionProportion")
-	KeyEpochs                            = []byte("Epochs")
-	KeyMaxIncomingAndOutgoingTxns        = []byte("MaxIncomingAndOutgoingTxns")
 	KeyCosmosProposalParams              = []byte("CosmosProposalParams")
-	KeyDelegationThreshold               = []byte("DelegationThreshold")
 	KeyModuleEnabled                     = []byte("ModuleEnabled")
-	KeyRewardsEpochIdentifier            = []byte("EpochIdentifier")
+	KeyStakingEpochIdentifier            = []byte("StakeEpochIdentifier")
 	KeyCustodialAddress                  = []byte("CustodialAddress")
-	KeyUnbondingEpochIdentifier          = []byte("UnbondingKeyIdentifier")
+	KeyUndelegateEpochIdentifier         = []byte("UndelegateEpochIdentifier")
 	KeyChunkSize                         = []byte("ChunkSize")
 	KeyBondDenom                         = []byte("BondDenom")
+	KeyStakingDenom                      = []byte("StakingDenom")
 	KeyMintDenom                         = []byte("MintDenom")
+	KeyRetryLimit                        = []byte("RetryLimit")
+	KeyRewardEpochIdentifier             = []byte("RewardEpochIdentifier")
 )
 
+// ParamKeyTable - Key declaration for parameters
 func ParamKeyTable() paramsTypes.KeyTable {
 	return paramsTypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-func NewParams(minMintingAmount sdk.Coin, maxMintingAmount sdk.Coin, minBurningAmount sdk.Coin, maxBurningAmount sdk.Coin,
-	maxValidatorToDelegate uint64, validatorSetCosmosChain []WeightedAddressCosmos, validatorSetNativeChain []WeightedAddress,
-	weightedDeveloperRewardsReceivers []WeightedAddress, distributionProportion DistributionProportions, epochs int64,
-	maxIncomingAndOutgoingTxns int64, cosmosProposalParams CosmosChainProposalParams, epochIdentifier string,
-	custodialAddress string, unbondingEpochIdentifier string, ChunkSize int64, bondDenom []string, mintDenom string) Params {
-	return Params{
-		MinMintingAmount:                  minMintingAmount,
-		MaxMintingAmount:                  maxMintingAmount,
-		MinBurningAmount:                  minBurningAmount,
-		MaxBurningAmount:                  maxBurningAmount,
-		MaxValidatorToDelegate:            maxValidatorToDelegate,
-		ValidatorSetCosmosChain:           validatorSetCosmosChain,
-		ValidatorSetNativeChain:           validatorSetNativeChain,
-		WeightedDeveloperRewardsReceivers: weightedDeveloperRewardsReceivers,
-		DistributionProportion:            distributionProportion,
-		Epochs:                            epochs,
-		MaxIncomingAndOutgoingTxns:        maxIncomingAndOutgoingTxns,
-		CosmosProposalParams:              cosmosProposalParams,
-		ModuleEnabled:                     false,
-		RewardsEpochIdentifier:            epochIdentifier,
-		CustodialAddress:                  custodialAddress,
-		UnbondingEpochIdentifier:          unbondingEpochIdentifier,
-		ChunkSize:                         ChunkSize,
-		BondDenoms:                        bondDenom,
-		MintDenom:                         mintDenom,
-	}
-}
-
+// DefaultParams default parameters for deposits
 func DefaultParams() Params {
 	return Params{
-		MinMintingAmount:       sdk.NewInt64Coin("uatom", 5000000),
-		MaxMintingAmount:       sdk.NewInt64Coin("uatom", 100000000000),
-		MinBurningAmount:       sdk.NewInt64Coin("uatom", 5000000),
-		MaxBurningAmount:       sdk.NewInt64Coin("uatom", 100000000000),
+		MinMintingAmount:       sdk.NewInt64Coin(DefaultStakingDenom, MinAmount),
+		MaxMintingAmount:       sdk.NewInt64Coin(DefaultStakingDenom, MaxAmount),
+		MinBurningAmount:       sdk.NewInt64Coin(DefaultStakingDenom, MinAmount),
+		MaxBurningAmount:       sdk.NewInt64Coin(DefaultStakingDenom, MaxAmount),
+		MinReward:              sdk.NewInt64Coin(DefaultStakingDenom, MinReward),
 		MaxValidatorToDelegate: 3,
-		ValidatorSetCosmosChain: []WeightedAddressCosmos{
-			{Address: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
-				Weight:                 sdk.NewDecWithPrec(5, 1),
-				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-			},
-			{Address: "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2",
-				Weight:                 sdk.NewDecWithPrec(2, 1),
-				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-			},
-			{Address: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
-				Weight:                 sdk.NewDecWithPrec(1, 1),
-				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
-			},
-			{Address: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2",
-				Weight:                 sdk.NewDecWithPrec(2, 1),
-				CurrentDelegatedAmount: sdk.NewInt64Coin("uatom", 0),
+		WeightedDeveloperRewardsReceivers: []WeightedAddress{
+			{
+				Address: "persistence1g5lz0gq98y8tav477dltxgpdft0wr9rmqt7mvu",
+				Weight:  sdk.NewDecWithPrec(10, 1),
 			},
 		},
-		ValidatorSetNativeChain:           []WeightedAddress{},
-		WeightedDeveloperRewardsReceivers: []WeightedAddress{},
 		DistributionProportion: DistributionProportions{
 			ValidatorRewards: sdk.NewDecWithPrec(5, 2),
 			DeveloperRewards: sdk.NewDecWithPrec(5, 2),
 		},
-		Epochs:                     0,
-		MaxIncomingAndOutgoingTxns: 10000,
 		CosmosProposalParams: CosmosChainProposalParams{
-			ChainID:              "cosmoshub-4", //TODO use these as conditions for proposals
+			ChainID:              "cosmoshub-4",
 			ReduceVotingPeriodBy: DefaultPeriod,
 		},
-		DelegationThreshold:      sdk.NewInt64Coin("uatom", 2000000000),
-		ModuleEnabled:            true, //TODO : Make false before launch
-		RewardsEpochIdentifier:   "3hour",
-		CustodialAddress:         "cosmos15vm0p2x990762txvsrpr26ya54p5qlz9xqlw5z",
-		UnbondingEpochIdentifier: "3.5day",
-		ChunkSize:                5,
-		BondDenoms:               DefaultBondDenom,
-		MintDenom:                DefaultMintDenom,
+		ModuleEnabled:             false,
+		CustodialAddress:          "",
+		StakingEpochIdentifier:    "uatom",
+		UndelegateEpochIdentifier: "undelegate",
+		RewardEpochIdentifier:     "reward",
+		ChunkSize:                 5,
+		BondDenoms:                []string{DefaultStakingDenom},
+		StakingDenom:              DefaultStakingDenom,
+		MintDenom:                 DefaultMintDenom,
+		RetryLimit:                10,
 	}
 }
 
+// Validate runs basic stateless validity checks
 func (p Params) Validate() error {
-	if err := validateMinMintingAmount(p.MinMintingAmount); err != nil {
+	if err := validateAmount(p.MinMintingAmount); err != nil {
 		return err
 	}
-	if err := validateMaxMintingAmount(p.MaxMintingAmount); err != nil {
+	if err := validateAmount(p.MaxMintingAmount); err != nil {
 		return err
 	}
-	if err := validateMinBurningAmount(p.MinBurningAmount); err != nil {
+	if err := validateAmount(p.MinBurningAmount); err != nil {
 		return err
 	}
-	if err := validateMaxBurningAmount(p.MaxBurningAmount); err != nil {
+	if err := validateAmount(p.MaxBurningAmount); err != nil {
 		return err
 	}
 	if err := validateMaxValidatorToDelegate(p.MaxValidatorToDelegate); err != nil {
-		return err
-	}
-	if err := validateValidatorSetCosmosChain(p.ValidatorSetCosmosChain); err != nil {
-		return err
-	}
-	if err := validateValidatorSetNativeChain(p.ValidatorSetNativeChain); err != nil {
 		return err
 	}
 	if err := validateWeightedDeveloperRewardsReceivers(p.WeightedDeveloperRewardsReceivers); err != nil {
@@ -151,28 +114,19 @@ func (p Params) Validate() error {
 	if err := validateDistributionProportion(p.DistributionProportion); err != nil {
 		return err
 	}
-	if err := validateEpochs(p.Epochs); err != nil {
-		return err
-	}
-	if err := validateMaxIncomingAndOutgoingTxns(p.MaxIncomingAndOutgoingTxns); err != nil {
-		return err
-	}
 	if err := validateCosmosProposalParams(p.CosmosProposalParams); err != nil {
-		return err
-	}
-	if err := validateDelegationThreshold(p.DelegationThreshold); err != nil {
 		return err
 	}
 	if err := validateModuleEnabled(p.ModuleEnabled); err != nil {
 		return err
 	}
-	if err := epochsTypes.ValidateEpochIdentifierInterface(p.RewardsEpochIdentifier); err != nil {
+	if err := epochsTypes.ValidateEpochIdentifierInterface(p.StakingEpochIdentifier); err != nil {
 		return err
 	}
 	if err := validateCustodialAddress(p.CustodialAddress); err != nil {
 		return err
 	}
-	if err := epochsTypes.ValidateEpochIdentifierInterface(p.UnbondingEpochIdentifier); err != nil {
+	if err := epochsTypes.ValidateEpochIdentifierInterface(p.UndelegateEpochIdentifier); err != nil {
 		return err
 	}
 	if err := validateWithdrawRewardsChunkSize(p.ChunkSize); err != nil {
@@ -181,42 +135,54 @@ func (p Params) Validate() error {
 	if err := validateBondDenom(p.BondDenoms); err != nil {
 		return err
 	}
+	if err := validateStakingDenom(p.MintDenom); err != nil {
+		return err
+	}
 	if err := validateMintDenom(p.MintDenom); err != nil {
+		return err
+	}
+	if err := validateRetryLimit(p.RetryLimit); err != nil {
+		return err
+	}
+	if err := epochsTypes.ValidateEpochIdentifierInterface(p.RewardEpochIdentifier); err != nil {
 		return err
 	}
 	return nil
 }
 
+// String implements stringer interface
 func (p Params) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)
 }
 
+// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
+// of cosmos module's parameters.
 func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 	return paramsTypes.ParamSetPairs{
-		paramsTypes.NewParamSetPair(KeyMinMintingAmount, &p.MinMintingAmount, validateMinMintingAmount),
-		paramsTypes.NewParamSetPair(KeyMaxMintingAmount, &p.MaxMintingAmount, validateMaxMintingAmount),
-		paramsTypes.NewParamSetPair(KeyMinBurningAmount, &p.MinBurningAmount, validateMinBurningAmount),
-		paramsTypes.NewParamSetPair(KeyMaxBurningAmount, &p.MaxBurningAmount, validateMaxBurningAmount),
+		paramsTypes.NewParamSetPair(KeyMinMintingAmount, &p.MinMintingAmount, validateAmount),
+		paramsTypes.NewParamSetPair(KeyMaxMintingAmount, &p.MaxMintingAmount, validateAmount),
+		paramsTypes.NewParamSetPair(KeyMinBurningAmount, &p.MinBurningAmount, validateAmount),
+		paramsTypes.NewParamSetPair(KeyMaxBurningAmount, &p.MaxBurningAmount, validateAmount),
+		paramsTypes.NewParamSetPair(KeyMinReward, &p.MinReward, validateAmount),
 		paramsTypes.NewParamSetPair(KeyMaxValidatorToDelegate, &p.MaxValidatorToDelegate, validateMaxValidatorToDelegate),
-		paramsTypes.NewParamSetPair(KeyValidatorSetCosmosChain, &p.ValidatorSetCosmosChain, validateValidatorSetCosmosChain),
-		paramsTypes.NewParamSetPair(KeyValidatorSetNativeChain, &p.ValidatorSetNativeChain, validateValidatorSetNativeChain),
 		paramsTypes.NewParamSetPair(KeyWeightedDeveloperRewardsReceivers, &p.WeightedDeveloperRewardsReceivers, validateWeightedDeveloperRewardsReceivers),
 		paramsTypes.NewParamSetPair(KeyDistributionProportion, &p.DistributionProportion, validateDistributionProportion),
-		paramsTypes.NewParamSetPair(KeyEpochs, &p.Epochs, validateEpochs),
-		paramsTypes.NewParamSetPair(KeyMaxIncomingAndOutgoingTxns, &p.MaxIncomingAndOutgoingTxns, validateMaxIncomingAndOutgoingTxns),
 		paramsTypes.NewParamSetPair(KeyCosmosProposalParams, &p.CosmosProposalParams, validateCosmosProposalParams),
-		paramsTypes.NewParamSetPair(KeyDelegationThreshold, &p.DelegationThreshold, validateDelegationThreshold),
 		paramsTypes.NewParamSetPair(KeyModuleEnabled, &p.ModuleEnabled, validateModuleEnabled),
-		paramsTypes.NewParamSetPair(KeyRewardsEpochIdentifier, &p.RewardsEpochIdentifier, epochsTypes.ValidateEpochIdentifierInterface),
+		paramsTypes.NewParamSetPair(KeyStakingEpochIdentifier, &p.StakingEpochIdentifier, epochsTypes.ValidateEpochIdentifierInterface),
 		paramsTypes.NewParamSetPair(KeyCustodialAddress, &p.CustodialAddress, validateCustodialAddress),
-		paramsTypes.NewParamSetPair(KeyUnbondingEpochIdentifier, &p.UnbondingEpochIdentifier, epochsTypes.ValidateEpochIdentifierInterface),
+		paramsTypes.NewParamSetPair(KeyUndelegateEpochIdentifier, &p.UndelegateEpochIdentifier, epochsTypes.ValidateEpochIdentifierInterface),
 		paramsTypes.NewParamSetPair(KeyChunkSize, &p.ChunkSize, validateWithdrawRewardsChunkSize),
 		paramsTypes.NewParamSetPair(KeyBondDenom, &p.BondDenoms, validateBondDenom),
+		paramsTypes.NewParamSetPair(KeyStakingDenom, &p.StakingDenom, validateStakingDenom),
 		paramsTypes.NewParamSetPair(KeyMintDenom, &p.MintDenom, validateMintDenom),
+		paramsTypes.NewParamSetPair(KeyRetryLimit, &p.RetryLimit, validateRetryLimit),
+		paramsTypes.NewParamSetPair(KeyRewardEpochIdentifier, &p.RewardEpochIdentifier, epochsTypes.ValidateEpochIdentifierInterface),
 	}
 }
 
+// GetBondDenomOf returns the bond denom if present
 func (p Params) GetBondDenomOf(s string) (string, error) {
 	for _, element := range p.BondDenoms {
 		if element == s {
@@ -226,50 +192,45 @@ func (p Params) GetBondDenomOf(s string) (string, error) {
 	return "", ErrInvalidBondDenom
 }
 
-func validateMinMintingAmount(i interface{}) error {
-	coin, ok := i.(sdk.Coin)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
+// Equal returns if the other param set matches or not
+func (p Params) Equal(other Params) bool {
+	for i := range p.WeightedDeveloperRewardsReceivers {
+		if p.WeightedDeveloperRewardsReceivers[i] != other.WeightedDeveloperRewardsReceivers[i] {
+			return false
+		}
 	}
 
-	if coin.IsNegative() {
-		return errors.New("min minting amount cannot be negative")
+	for i := range p.BondDenoms {
+		if p.BondDenoms[i] != other.BondDenoms[i] {
+			return false
+		}
 	}
-	return nil
+	return p.MintDenom == other.MintDenom &&
+		p.CustodialAddress == other.CustodialAddress &&
+		p.MinMintingAmount.IsEqual(other.MinMintingAmount) &&
+		p.MaxMintingAmount.IsEqual(other.MaxMintingAmount) &&
+		p.MinBurningAmount.IsEqual(other.MinBurningAmount) &&
+		p.MaxBurningAmount.IsEqual(other.MaxBurningAmount) &&
+		p.MaxValidatorToDelegate == other.MaxValidatorToDelegate &&
+		p.DistributionProportion == other.DistributionProportion &&
+		p.CosmosProposalParams == other.CosmosProposalParams &&
+		p.CustodialAddress == other.CustodialAddress &&
+		p.ModuleEnabled == other.ModuleEnabled &&
+		p.StakingEpochIdentifier == other.StakingEpochIdentifier &&
+		p.ChunkSize == other.ChunkSize &&
+		p.UndelegateEpochIdentifier == other.UndelegateEpochIdentifier &&
+		p.RetryLimit == other.RetryLimit &&
+		p.RewardEpochIdentifier == other.RewardEpochIdentifier
 }
 
-func validateMaxMintingAmount(i interface{}) error {
+func validateAmount(i interface{}) error {
 	coin, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
 	if coin.IsNegative() {
-		return errors.New("max minting amount cannot be negative")
-	}
-	return nil
-}
-
-func validateMinBurningAmount(i interface{}) error {
-	coin, ok := i.(sdk.Coin)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if coin.IsNegative() {
-		return errors.New("min burning amount cannot be negative")
-	}
-	return nil
-}
-
-func validateMaxBurningAmount(i interface{}) error {
-	coin, ok := i.(sdk.Coin)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if coin.IsNegative() {
-		return errors.New("max burning amount cannot be negative")
+		return fmt.Errorf("amount cannot be negative")
 	}
 	return nil
 }
@@ -282,8 +243,8 @@ func validateMaxValidatorToDelegate(i interface{}) error {
 	return nil
 }
 
-func validateValidatorSetCosmosChain(i interface{}) error {
-	v, ok := i.([]WeightedAddressCosmos)
+func ValidateValidatorSetCosmosChain(i interface{}) error {
+	v, ok := i.([]WeightedAddressAmount)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -297,7 +258,7 @@ func validateValidatorSetCosmosChain(i interface{}) error {
 	for i, w := range v {
 		// we allow address to be "" to go to community pool
 		if w.Address != "" {
-			_, err := sdk.ValAddressFromBech32(w.Address)
+			_, err := ValAddressFromBech32(w.Address, Bech32PrefixValAddr)
 			if err != nil {
 				return fmt.Errorf("invalid address at %dth", i)
 			}
@@ -309,7 +270,7 @@ func validateValidatorSetCosmosChain(i interface{}) error {
 			return fmt.Errorf("more than 1 weight at %dth", i)
 		}
 		weightSum = weightSum.Add(w.Weight)
-		if w.CurrentDelegatedAmount.IsNegative() {
+		if w.Amount.IsNegative() {
 			return fmt.Errorf("non-positive current delegation amount at %dth", i)
 		}
 	}
@@ -321,7 +282,7 @@ func validateValidatorSetCosmosChain(i interface{}) error {
 	return nil
 }
 
-func validateValidatorSetNativeChain(i interface{}) error {
+func ValidateValidatorSetNativeChain(i interface{}) error {
 	v, ok := i.([]WeightedAddress)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -336,7 +297,7 @@ func validateValidatorSetNativeChain(i interface{}) error {
 	for i, w := range v {
 		// we allow address to be "" to go to community pool
 		if w.Address != "" {
-			_, err := sdk.AccAddressFromBech32(w.Address)
+			_, err := sdk.ValAddressFromBech32(w.Address)
 			if err != nil {
 				return fmt.Errorf("invalid address at %dth", i)
 			}
@@ -380,13 +341,13 @@ func validateWeightedDeveloperRewardsReceivers(i interface{}) error {
 		if !w.Weight.IsPositive() {
 			return fmt.Errorf("non-positive weight at %dth", i)
 		}
-		if w.Weight.GT(sdk.NewDecWithPrec(1, 1)) {
+		if w.Weight.GT(sdk.NewDec(1)) {
 			return fmt.Errorf("more than 1 weight at %dth", i)
 		}
 		weightSum = weightSum.Add(w.Weight)
 	}
 
-	if !weightSum.Equal(sdk.NewDecWithPrec(1, 1)) {
+	if !weightSum.Equal(sdk.NewDec(1)) {
 		return fmt.Errorf("invalid weight sum: %s", weightSum.String())
 	}
 
@@ -416,59 +377,16 @@ func validateDistributionProportion(i interface{}) error {
 	return nil
 }
 
-func validateEpochs(i interface{}) error {
-	v, ok := i.(int64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v < 0 {
-		return fmt.Errorf("epoch must be non-negative")
-	}
-
-	return nil
-}
-
-func validateMaxIncomingAndOutgoingTxns(i interface{}) error {
-	v, ok := i.(int64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v < 0 {
-		return fmt.Errorf("total incoming or outgoing transaction must be non-negative")
-	}
-
-	return nil
-}
-
 func validateCosmosProposalParams(i interface{}) error {
 	v, ok := i.(CosmosChainProposalParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v.ChainID != "cosmoshub-4" {
-		return fmt.Errorf("invalid chain-id for cosmos %T", i)
-	}
-
 	if v.ReduceVotingPeriodBy <= 0 {
 		return fmt.Errorf("incorrect voting Period %T", i)
 	}
 
-	return nil
-}
-
-func validateDelegationThreshold(i interface{}) error {
-	v, ok := i.(sdk.Coin)
-
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v.IsNegative() {
-		return fmt.Errorf("delegation threshold cannot be negative")
-	}
 	return nil
 }
 
@@ -487,7 +405,7 @@ func validateCustodialAddress(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if v != "" {
-		_, err := sdk.AccAddressFromBech32(v)
+		_, err := AccAddressFromBech32(v, Bech32Prefix)
 		if err != nil {
 			return fmt.Errorf("invalid custodial address")
 		}
@@ -512,8 +430,20 @@ func validateBondDenom(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if len(v) <= 0 {
+	if len(v) == 0 {
 		return fmt.Errorf("bond denom cannot be empty")
+	}
+	return nil
+}
+
+func validateStakingDenom(i interface{}) error {
+	v, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v == "" {
+		return fmt.Errorf("staking denom cannot be empty")
 	}
 	return nil
 }
@@ -526,6 +456,18 @@ func validateMintDenom(i interface{}) error {
 
 	if v == "" {
 		return fmt.Errorf("mint denom cannot be empty")
+	}
+	return nil
+}
+
+func validateRetryLimit(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v <= 0 {
+		return fmt.Errorf("retry limit must be non negative")
 	}
 	return nil
 }

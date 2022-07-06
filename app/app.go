@@ -91,6 +91,8 @@ import (
 	liquiditykeeper "github.com/gravity-devs/liquidity/x/liquidity/keeper"
 	liquiditytypes "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"github.com/persistenceOne/pstake-native/x/cosmos"
+	cosmosClient "github.com/persistenceOne/pstake-native/x/cosmos/client"
+	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	epochs "github.com/persistenceOne/pstake-native/x/epochs"
 	epochsKeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
 	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
@@ -136,6 +138,10 @@ var (
 			upgradeclient.CancelProposalHandler,
 			ibcclientclient.UpdateClientProposalHandler,
 			ibcclientclient.UpgradeProposalHandler,
+			cosmosClient.EnableModuleProposalHandler,
+			cosmosClient.ChangeMultisigProposalHandler,
+			cosmosClient.ChangeCosmosValidatorWeightsProposalHandler,
+			cosmosClient.ChangeOracleValidatorWeightsProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -361,12 +367,15 @@ func NewGaiaApp(
 		keys[epochsTypes.StoreKey],
 	)
 	app.CosmosKeeper = cosmos.NewKeeper(
+		appCodec,
 		keys[cosmos.StoreKey],
 		app.ParamsKeeper.Subspace(cosmos.DefaultParamspace),
+		&app.AccountKeeper,
 		&app.BankKeeper,
 		&app.MintKeeper,
 		&app.StakingKeeper,
 		app.EpochsKeeper,
+		&app.DistrKeeper,
 	)
 	app.UpgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,
@@ -406,7 +415,8 @@ func NewGaiaApp(
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
+		AddRoute(cosmosTypes.RouterKey, cosmos.NewCosmosLiquidStakingProposalHandler(app.CosmosKeeper))
 
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,

@@ -2,11 +2,13 @@ package types
 
 import (
 	"fmt"
-	"github.com/ghodss/yaml"
 	"strings"
 	"time"
+
+	"github.com/ghodss/yaml"
 )
 
+// NewProposal creates a new Proposal instance
 func NewProposal(id uint64, title string, description string, submitTime time.Time, votingPeriod time.Duration, cosmosProposalID uint64) (Proposal, error) {
 	p := Proposal{
 		ProposalId:       id,
@@ -58,6 +60,7 @@ func (p Proposals) String() string {
 	return strings.TrimSpace(out)
 }
 
+// ProposalStatusFromString turns a string into a ProposalStatus
 func ProposalStatusFromString(str string) (ProposalStatus, error) {
 	num, ok := ProposalStatus_value[str]
 	if !ok {
@@ -66,6 +69,8 @@ func ProposalStatusFromString(str string) (ProposalStatus, error) {
 	return ProposalStatus(num), nil
 }
 
+// ValidProposalStatus returns true if the proposal status is valid and false
+// otherwise.
 func ValidProposalStatus(status ProposalStatus) bool {
 	if status == StatusVotingPeriod ||
 		status == StatusPassed ||

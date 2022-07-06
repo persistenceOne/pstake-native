@@ -1,3 +1,5 @@
 package constants
 
-const Seed = ""
+var Seed = []string{}
+
+const ValAddress = ""

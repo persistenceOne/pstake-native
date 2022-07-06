@@ -1,49 +1,55 @@
 package keeper
 
 import (
-	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	mintKeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	mintTypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingKeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	tmLog "github.com/tendermint/tendermint/libs/log"
+
+	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
+	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 )
 
+// Keeper of the cosmos store
 type Keeper struct {
 	cdc           codec.BinaryCodec
 	storeKey      sdkTypes.StoreKey
 	paramSpace    paramsTypes.Subspace
+	authKeeper    *authKeeper.AccountKeeper
 	bankKeeper    *bankKeeper.BaseKeeper
 	mintKeeper    *mintKeeper.Keeper
 	stakingKeeper *stakingKeeper.Keeper
 	hooks         cosmosTypes.GovHooks
 	epochsKeeper  cosmosTypes.EpochKeeper
+	distrKeeper   *distrkeeper.Keeper
 }
 
+// NewKeeper creates a new cosmos Keeper instance
 func NewKeeper(
-	key sdkTypes.StoreKey, paramSpace paramsTypes.Subspace,
+	cdc codec.BinaryCodec, key sdkTypes.StoreKey, paramSpace paramsTypes.Subspace, authKeeper *authKeeper.AccountKeeper,
 	bankKeeper *bankKeeper.BaseKeeper, mintKeeper *mintKeeper.Keeper, stakingKeeper *stakingKeeper.Keeper,
-	epochKeeper cosmosTypes.EpochKeeper,
+	epochKeeper cosmosTypes.EpochKeeper, distrKeeper *distrkeeper.Keeper,
 ) Keeper {
 
 	return Keeper{
+		cdc:           cdc,
 		storeKey:      key,
 		paramSpace:    paramSpace.WithKeyTable(cosmosTypes.ParamKeyTable()),
+		authKeeper:    authKeeper,
 		bankKeeper:    bankKeeper,
 		mintKeeper:    mintKeeper,
 		stakingKeeper: stakingKeeper,
 		epochsKeeper:  epochKeeper,
+		distrKeeper:   distrKeeper,
 	}
 }
-
-//TODO : Add hooks in app.go
-//TODO : Add epoch hooks
 
 // SetHooks sets the hooks for governance
 func (k *Keeper) SetHooks(gh cosmosTypes.GovHooks, eh epochsTypes.EpochHooks) *Keeper {
@@ -71,79 +77,73 @@ func (k Keeper) SetParams(ctx sdkTypes.Context, params cosmosTypes.Params) {
 
 //______________________________________________________________________
 
-// GetMintingParams returns the total set of cosmos parameters.
-func (k Keeper) GetMintingParams(ctx sdkTypes.Context) (params mintTypes.Params) {
-	return k.mintKeeper.GetParams(ctx)
-}
-
-// SetMintingParams sets the total set of cosmos parameters.
-func (k Keeper) SetMintingParams(ctx sdkTypes.Context, params mintTypes.Params) {
-	k.mintKeeper.SetParams(ctx, params)
-}
-
-func prefixRange(prefix []byte) ([]byte, []byte) {
-	if prefix == nil {
-		panic("nil key not allowed")
-	}
-	// special case: no prefix is whole range
-	if len(prefix) == 0 {
-		return nil, nil
+// mintTokens mints tokens in the given account after multiplying with the cValue
+func (k Keeper) mintTokens(ctx sdkTypes.Context, mintStoreValue cosmosTypes.MsgMintTokensForAccount) error {
+	destinationAddress, err := sdkTypes.AccAddressFromBech32(mintStoreValue.AddressFromMemo)
+	if err != nil {
+		return err
 	}
 
-	// copy the prefix and update last byte
-	end := make([]byte, len(prefix))
-	copy(end, prefix)
-	l := len(end) - 1
-	end[l]++
+	// convert the amount to minting amount and multiply by C value
+	toBeMinted := mintStoreValue.Amount.Amount.ToDec().Mul(k.GetCValue(ctx))
 
-	// wait, what if that overflowed?....
-	for end[l] == 0 && l > 0 {
-		l--
-		end[l]++
-	}
+	// remainder is not considered as they cannot be minted
+	mintingAmount, _ := sdkTypes.NewDecCoinFromDec(k.GetParams(ctx).MintDenom, toBeMinted).TruncateDecimal()
 
-	// okay, funny guy, you gave us FFF, no end to this range...
-	if l == 0 && end[0] == 0 {
-		end = nil
-	}
-	return prefix, end
-}
-
-func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, key cosmosTypes.ChainIDHeightAndTxHashKey, value cosmosTypes.AddressAndAmountKey) error {
-	//TODO incorporate minting_ratio
-	params := k.GetParams(ctx)
-	if value.Amount.AmountOf(params.MintDenom).GT(k.GetParams(ctx).MinMintingAmount.Amount) && value.Amount.AmountOf(params.MintDenom).LT(k.GetParams(ctx).MaxMintingAmount.Amount) {
-		destinationAddress, err := sdkTypes.AccAddressFromBech32(value.DestinationAddress)
+	if mintingAmount.Amount.GT(k.GetParams(ctx).MinMintingAmount.Amount) && mintingAmount.Amount.LT(k.GetParams(ctx).MaxMintingAmount.Amount) {
+		amnt := sdkTypes.NewCoins(mintingAmount)
+		err = k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, amnt)
 		if err != nil {
 			return err
 		}
-		err = k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, value.Amount)
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, cosmosTypes.ModuleName, destinationAddress, amnt)
 		if err != nil {
 			return err
 		}
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, cosmosTypes.ModuleName, destinationAddress, value.Amount)
-		if err != nil {
-			return err
-		}
+
+		// add the minted amount
+		k.AddToMinted(ctx, mintingAmount)
+
+		// add to virtually staked amount
+		k.AddToVirtuallyStaked(ctx, mintStoreValue.Amount)
 	}
-	k.setMintedFlagTrue(ctx, key)
+	return nil
+}
+
+// mintTokensForRewardReceivers mint tokens for the given rewards receiver account with the given amount
+func (k Keeper) mintTokensForRewardReceivers(ctx sdkTypes.Context, address sdkTypes.AccAddress, amount sdkTypes.Coin) error {
+	toBeMinted := sdkTypes.NewCoins(amount)
+
+	err := k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, toBeMinted)
+	if err != nil {
+		return err
+	}
+
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, cosmosTypes.ModuleName, address, toBeMinted)
+	if err != nil {
+		return err
+	}
+
+	// add the minted amount
+	k.AddToMinted(ctx, amount)
+
 	return nil
 }
 
 // InsertActiveProposalQueue inserts a ProposalID into the active proposal queue at endTime
-func (keeper Keeper) InsertActiveProposalQueue(ctx sdkTypes.Context, proposalID uint64, endTime time.Time) {
-	store := ctx.KVStore(keeper.storeKey)
+func (k Keeper) InsertActiveProposalQueue(ctx sdkTypes.Context, proposalID uint64, endTime time.Time) {
+	store := ctx.KVStore(k.storeKey)
 	bz := cosmosTypes.GetProposalIDBytes(proposalID)
 	store.Set(cosmosTypes.ActiveProposalQueueKey(proposalID, endTime), bz)
 }
 
 // RemoveFromActiveProposalQueue removes a proposalID from the Active Proposal Queue
-func (keeper Keeper) RemoveFromActiveProposalQueue(ctx sdkTypes.Context, proposalID uint64, endTime time.Time) {
-	store := ctx.KVStore(keeper.storeKey)
+func (k Keeper) RemoveFromActiveProposalQueue(ctx sdkTypes.Context, proposalID uint64, endTime time.Time) {
+	store := ctx.KVStore(k.storeKey)
 	store.Delete(cosmosTypes.ActiveProposalQueueKey(proposalID, endTime))
 }
 
 // Logger returns a module-specific logger.
-func (keeper Keeper) Logger(ctx sdkTypes.Context) tmLog.Logger {
+func (k Keeper) Logger(ctx sdkTypes.Context) tmLog.Logger {
 	return ctx.Logger().With("module", "x/"+cosmosTypes.ModuleName)
 }

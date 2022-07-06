@@ -13,21 +13,31 @@ func NewGenesisState(epochs []EpochInfo) *GenesisState {
 }
 
 // DefaultGenesis returns the default Capability genesis state
+// keep stake and rewards epoch time duration same to keep cosmos module code from breaking
 func DefaultGenesis() *GenesisState {
 	epochs := []EpochInfo{
 		{
-			Identifier:              "3.5day",
+			Identifier:              "stake",
 			StartTime:               time.Time{},
-			Duration:                time.Minute * 2, //TODO revert
+			Duration:                time.Minute * 1, //TODO revert
 			CurrentEpoch:            0,
 			CurrentEpochStartHeight: 0,
 			CurrentEpochStartTime:   time.Time{},
 			EpochCountingStarted:    false,
 		},
 		{
-			Identifier:              "3hour",
+			Identifier:              "reward",
 			StartTime:               time.Time{},
-			Duration:                time.Minute * 100, //TODO revert
+			Duration:                time.Minute * 1, //TODO revert
+			CurrentEpoch:            0,
+			CurrentEpochStartHeight: 0,
+			CurrentEpochStartTime:   time.Time{},
+			EpochCountingStarted:    false,
+		},
+		{
+			Identifier:              "undelegate",
+			StartTime:               time.Time{},
+			Duration:                time.Minute * 8, //TODO revert
 			CurrentEpoch:            0,
 			CurrentEpochStartHeight: 0,
 			CurrentEpochStartTime:   time.Time{},

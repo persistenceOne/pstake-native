@@ -9,6 +9,7 @@ import (
 	abciTypes "github.com/tendermint/tendermint/abci/types"
 )
 
+// NewQuerier returns query handler for the module
 func NewQuerier(k Keeper, legacyQuerierCdc *sdkCodec.LegacyAmino) sdkTypes.Querier {
 	return func(ctx sdkTypes.Context, path []string, req abciTypes.RequestQuery) (res []byte, err error) {
 		switch path[0] {
@@ -22,6 +23,8 @@ func NewQuerier(k Keeper, legacyQuerierCdc *sdkCodec.LegacyAmino) sdkTypes.Queri
 			return queryVote(ctx, req, k, legacyQuerierCdc)
 		case cosmosTypes.QueryVotes:
 			return queryVotes(ctx, req, k, legacyQuerierCdc)
+		case cosmosTypes.QueryProposals:
+			return queryProposals(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkErrors.Wrapf(sdkErrors.ErrUnknownRequest, "unknown %s query endpoint", cosmosTypes.ModuleName)
 		}
@@ -47,7 +50,7 @@ func queryTxByID(ctx sdkTypes.Context, req abciTypes.RequestQuery, k Keeper, leg
 		return nil, sdkErrors.Wrap(sdkErrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	tx, err := k.getTxnFromOutgoingPoolByID(ctx, txByIDRequest.TxID)
+	tx, err := k.GetTxnFromOutgoingPoolByID(ctx, txByIDRequest.TxID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +63,6 @@ func queryTxByID(ctx sdkTypes.Context, req abciTypes.RequestQuery, k Keeper, leg
 	return res, nil
 }
 
-// nolint: unparam
 func queryProposal(ctx sdkTypes.Context, req abciTypes.RequestQuery, keeper Keeper, legacyQuerierCdc *sdkCodec.LegacyAmino) ([]byte, error) {
 	var params cosmosTypes.QueryProposalRequest
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
@@ -133,7 +135,7 @@ func queryVotes(ctx sdkTypes.Context, req abciTypes.RequestQuery, keeper Keeper,
 	if votes == nil {
 		votes = cosmosTypes.Votes{}
 	} else {
-		start, end := sdkClient.Paginate(len(votes), 10, 10, 100) //TODO incorporate page limit and page
+		start, end := sdkClient.Paginate(len(votes), 10, 10, 100)
 		if start < 0 || end < 0 {
 			votes = cosmosTypes.Votes{}
 		} else {

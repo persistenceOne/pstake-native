@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/gogo/protobuf/proto"
 	"github.com/persistenceOne/pstake-native/x/epochs/types"
 )
 
@@ -16,7 +15,7 @@ func (k Keeper) GetEpochInfo(ctx sdk.Context, identifier string) types.EpochInfo
 	if b == nil {
 		return epoch
 	}
-	err := proto.Unmarshal(b, &epoch)
+	err := k.cdc.Unmarshal(b, &epoch)
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +25,7 @@ func (k Keeper) GetEpochInfo(ctx sdk.Context, identifier string) types.EpochInfo
 // SetEpochInfo set epoch info
 func (k Keeper) SetEpochInfo(ctx sdk.Context, epoch types.EpochInfo) {
 	store := ctx.KVStore(k.storeKey)
-	value, err := proto.Marshal(&epoch)
+	value, err := k.cdc.Marshal(&epoch)
 	if err != nil {
 		panic(err)
 	}
@@ -50,7 +49,7 @@ func (k Keeper) IterateEpochInfo(ctx sdk.Context, fn func(index int64, epochInfo
 
 	for ; iterator.Valid(); iterator.Next() {
 		epoch := types.EpochInfo{}
-		err := proto.Unmarshal(iterator.Value(), &epoch)
+		err := k.cdc.Unmarshal(iterator.Value(), &epoch)
 		if err != nil {
 			panic(err)
 		}

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package comsos.v1beta1;
+package cosmos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -7,6 +7,7 @@ import "cosmos/v1beta1/cosmos.proto";
 import "cosmos/v1beta1/batch.proto";
 import "cosmos/v1beta1/proposal.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
@@ -36,6 +37,29 @@ service Query {
     option (google.api.http).get = "/pstake/cosmos/v1beta1/proposals/{proposal_id}/votes";
   }
 
+  rpc CosmosValidatorSet(QueryCosmosValidatorSetRequest) returns (QueryCosmosValidatorSetResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/cosmos_validator_set";
+  };
+
+  rpc OracleValidatorSet(QueryOracleValidatorSetRequest) returns (QueryOracleValidatorSetResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/oracle_validator_set";
+  }
+
+  rpc ValidatorMapping(QueryValidatorMappingRequest) returns (QueryValidatorMappingResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/validator_mapping";
+  }
+
+  rpc OracleHeight(QueryOracleLastUpdateHeightRequest) returns (QueryOracleLastUpdateHeightResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/oracle_height";
+  }
+
+  rpc CosmosBalance(QueryCosmosBalanceRequest) returns (QueryCosmosBalanceResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/cosmos_balance";
+  }
+
+  rpc ActiveTxn(QueryActiveTxnRequest) returns (QueryActiveTxnResponse) {
+    option (google.api.http).get = "/pstake/cosmos/v1beta1/active_txn";
+  }
 }
 
 message QueryParamsRequest {}
@@ -91,4 +115,49 @@ message QueryVotesRequest {
 message QueryVotesResponse {
   repeated Vote votes = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryCosmosValidatorSetRequest {}
+
+message QueryCosmosValidatorSetResponse {
+  option (gogoproto.equal) = false;
+  repeated cosmos.v1beta1.WeightedAddressAmount weighted_addresses = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryOracleValidatorSetRequest {}
+
+message QueryOracleValidatorSetResponse {
+  option (gogoproto.equal) = false;
+  repeated cosmos.v1beta1.WeightedAddress weighted_addresses = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryValidatorMappingRequest {
+  string validator_address = 1;
+}
+
+message QueryValidatorMappingResponse {
+  string validator_address = 1;
+  repeated string orchestrator_address = 2;
+}
+
+message QueryOracleLastUpdateHeightRequest {
+  string oracle_address = 1;
+}
+
+message QueryOracleLastUpdateHeightResponse {
+  int64 block_height_cosmos = 1;
+  int64 block_height_native = 2;
+}
+
+message QueryCosmosBalanceRequest {}
+
+message QueryCosmosBalanceResponse {
+  repeated cosmos.base.v1beta1.Coin balance = 1
+  [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+}
+
+message QueryActiveTxnRequest {}
+
+message QueryActiveTxnResponse {
+  uint64 txID = 1;
 }

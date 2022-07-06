@@ -11,9 +11,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/spf13/cobra"
+
 	"github.com/persistenceOne/pstake-native/x/cosmos/client/utils"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	"github.com/spf13/cobra"
 )
 
 // Proposal flags
@@ -32,12 +34,13 @@ func NewTxCmd() *cobra.Command {
 
 	txCmd.AddCommand(
 		NewIncomingTxnCmd(),
-		CmdSetOrchestratorAddress(),
-		CmdSendNewProposal(),
+		NewSetOrchestratorAddressCmd(),
+		NewSendNewProposalCmd(),
 		NewCmdVote(),
 		NewCmdWeightedVote(),
 		NewCmdTxStatusCmd(),
 		NewWithdrawCmd(),
+		NewSlashinEventCmd(),
 	)
 
 	return txCmd
@@ -65,7 +68,7 @@ func NewIncomingTxnCmd() *cobra.Command {
 				return err
 			}
 
-			coins, err := sdk.ParseCoinsNormalized(args[2])
+			coins, err := sdk.ParseCoinNormalized(args[2])
 			if err != nil {
 				return err
 			}
@@ -90,7 +93,7 @@ func NewIncomingTxnCmd() *cobra.Command {
 	return cmd
 }
 
-func CmdSetOrchestratorAddress() *cobra.Command {
+func NewSetOrchestratorAddressCmd() *cobra.Command {
 	//nolint: exhaustivestruct
 	cmd := &cobra.Command{
 		Use:   "set-orchestrator-address [validator-address] [orchestrator-address]",
@@ -113,7 +116,7 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 	return cmd
 }
 
-func CmdSendNewProposal() *cobra.Command {
+func NewSendNewProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "send-proposal [title] [description] [orchestrator-address] [proposal-id] [chain-id] [block-height]",
 		Short: "Allows orchestrator to send any proposal created on cosmos chain.",
@@ -257,13 +260,12 @@ $ %s tx gov weighted-vote 1 yes=0.6,no=0.3,abstain=0.05,no_with_veto=0.05 --from
 
 func NewCmdTxStatusCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "tx-status [orchestrator-address] [tx-hash] [status]",
-		Args:  cobra.ExactArgs(3),
+		Use:   "tx-status [orchestrator-address] [tx-hash] [status] [account-number] [sequence-number] [balance] [block-height]",
+		Args:  cobra.ExactArgs(7),
 		Short: "Send status for transaction",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Submit status for transaction relayed to cosmos chain.
+			`Submit status for transaction relayed to cosmos chain.
 Only "success" or "failure" accepted as status.`,
-			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -280,7 +282,28 @@ Only "success" or "failure" accepted as status.`,
 
 			status := args[2]
 
-			msg := cosmosTypes.NewMsgTxStatus(orchAddress, status, txHash)
+			accountNumber, err := strconv.ParseUint(args[3], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			sequenceNumber, err := strconv.ParseUint(args[4], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			balance, err := sdk.ParseCoinsNormalized(args[5])
+			if err != nil {
+				return err
+			}
+
+			blockHeight, err := strconv.ParseUint(args[4], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			// todo parse validator details in json file
+			msg := cosmosTypes.NewMsgTxStatus(orchAddress, status, txHash, accountNumber, sequenceNumber, balance, []cosmosTypes.ValidatorDetails{}, int64(blockHeight))
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -296,7 +319,7 @@ func NewWithdrawCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		Short: "Withdraw transaction",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Submit destination address on cosmos chain for uatom withdrawal`),
+			`Submit destination address on cosmos chain for uatom withdrawal`,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -309,7 +332,7 @@ func NewWithdrawCmd() *cobra.Command {
 				return err
 			}
 
-			toAddress, err := sdk.AccAddressFromBech32(args[1])
+			toAddress, err := cosmosTypes.AccAddressFromBech32(args[1], cosmosTypes.Bech32Prefix)
 			if err != nil {
 				return err
 			}
@@ -320,6 +343,234 @@ func NewWithdrawCmd() *cobra.Command {
 			}
 
 			msg := cosmosTypes.NewMsgWithdrawStkAsset(fromAddress, toAddress, amount)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewEnableModuleCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "enable-module [proposal-file]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a module enable proposal",
+		Long: strings.TrimSpace(
+			`Submit a module-enable proposal along with an initial deposit.`,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := utils.ParseEnableModuleProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			from := clientCtx.GetFromAddress()
+			content := cosmosTypes.NewEnableModuleProposal(proposal.Title, proposal.Description,
+				proposal.CustodialAddress, proposal.ChainID, proposal.Threshold, proposal.AccountNumber,
+				proposal.SequenceNumber, proposal.OrchestratorAddresses)
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govTypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+}
+
+func NewChangeMultisigCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "change-multisig [proposal-file] ",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a multisig change proposal",
+		Long: strings.TrimSpace(
+			`Submit a change-multisig proposal along with an initial deposit.`,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := utils.ParseChangeMultisigProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			from := clientCtx.GetFromAddress()
+			content := cosmosTypes.NewChangeMultisigProposal(proposal.Title, proposal.Description, proposal.Threshold, proposal.OrchestratorAddresses, proposal.AccountNumber)
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govTypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+}
+
+func NewChangeCosmosValidatorWeightsCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "change-cosmos-validator-weights [proposal-file] ",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a cosmos validator weights change proposal",
+		Long: strings.TrimSpace(
+			`Submit a cosmos validator weights proposal along with an initial deposit.`,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := utils.ParseChangeCosmosValidatorWeightsProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			var weightedAddresses []cosmosTypes.WeightedAddressAmount
+
+			for _, weightedAddress := range proposal.WeightedAddresses {
+				weight, err := sdk.NewDecFromStr(weightedAddress.Weight)
+				if err != nil {
+					return err
+				}
+				weightedAddresses = append(
+					weightedAddresses,
+					cosmosTypes.WeightedAddressAmount{
+						Address: weightedAddress.ValAddress,
+						Weight:  weight,
+					})
+			}
+
+			from := clientCtx.GetFromAddress()
+			content := cosmosTypes.NewChangeCosmosValidatorWeightsProposal(proposal.Title, proposal.Description, weightedAddresses)
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govTypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+}
+
+func NewChangeOracleValidatorWeightsCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "change-oracle-validator-weights [proposal-file] ",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a oracle validator weights change proposal",
+		Long: strings.TrimSpace(
+			`Submit a oracle validator weights proposal along with an initial deposit.`,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := utils.ParseChangeOracleValidatorWeightsProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			var weightedAddresses []cosmosTypes.WeightedAddress
+
+			for _, weightedAddress := range proposal.WeightedAddresses {
+				weight, err := sdk.NewDecFromStr(weightedAddress.Weight)
+				if err != nil {
+					return err
+				}
+				weightedAddresses = append(
+					weightedAddresses,
+					cosmosTypes.WeightedAddress{
+						Address: weightedAddress.ValAddress,
+						Weight:  weight,
+					})
+			}
+
+			from := clientCtx.GetFromAddress()
+			content := cosmosTypes.NewChangeOracleValidatorWeightsProposal(proposal.Title, proposal.Description, weightedAddresses)
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govTypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+}
+
+func NewSlashinEventCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "slashing-event [validator-address] [current-delegation] [orchestrator-address] [slash-type] [chain-id] [block-height]",
+		Args:  cobra.ExactArgs(6),
+		Short: "Submit a slashing event captured on cosmos side",
+		Long: strings.TrimSpace(
+			`Oracles submits a slashing event captured on cosmos chain`,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			valAddress, err := cosmosTypes.ValAddressFromBech32(args[0], cosmosTypes.Bech32PrefixValAddr)
+			if err != nil {
+				return err
+			}
+
+			currentDelegation, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			orchestratorAddress, err := sdk.AccAddressFromBech32(args[2])
+			if err != nil {
+				return err
+			}
+
+			slashType := args[3]
+
+			chainID := args[4]
+
+			blockHeight, err := strconv.ParseInt(args[5], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			msg := cosmosTypes.NewMsgSlashingEventOnCosmosChain(valAddress, currentDelegation, orchestratorAddress, slashType, chainID, blockHeight)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
