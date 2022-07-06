@@ -5,13 +5,16 @@ import (
 	"fmt"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/types"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/persistenceOne/pstake-native/oracle/constants"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
+	abciTypes "github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 	stdlog "log"
+	"strings"
 )
 
 func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
@@ -95,6 +98,48 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 	}
 
 	return ValidatorDetailsArr
+}
+
+func PopulateRewards(chain *CosmosChain, valDetails []cosmosTypes.ValidatorDetails, blockRes []*abciTypes.ResponseDeliverTx) ([]cosmosTypes.ValidatorDetails, error) {
+	rewardMap := make(map[string]sdkTypes.Coin)
+	var valAddress string
+	var amountCoin sdkTypes.Coin
+
+	custodialAddr, err := Bech32ifyAddressBytes(chain.AccountPrefix, chain.CustodialAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, txLog := range blockRes {
+		eventList := txLog.Events
+		logString := txLog.Log
+		if strings.Contains(logString, "/cosmos.staking.v1beta1.MsgDelegate") {
+			for _, events := range eventList {
+				currEvent := events
+				if currEvent.Type == "transfer" && string(currEvent.Attributes[0].Value) == custodialAddr {
+					amountCoin, err = sdkTypes.ParseCoinNormalized(string(currEvent.Attributes[2].Value))
+					if err != nil {
+						return nil, err
+					}
+				}
+				if currEvent.Type == "delegate" {
+					valAddress = string(currEvent.Attributes[0].Value)
+					val, ok := rewardMap[valAddress]
+					if !ok {
+						rewardMap[valAddress] = amountCoin
+					} else {
+						rewardMap[valAddress] = val.Add(amountCoin)
+					}
+				}
+			}
+		}
+	}
+	for _, valDetails := range valDetails {
+		valAddr := valDetails.ValidatorAddress
+		valDetails.RewardsCollected = rewardMap[valAddr]
+	}
+
+	return valDetails, nil
 }
 
 func GetAccountDetails(cosmosClient cosmosClient.Context, chain *CosmosChain, addr string) (seqNum, accountNum uint64) {
