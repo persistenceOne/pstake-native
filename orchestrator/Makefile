@@ -1,6 +1,6 @@
 
 build:
-	go build -o bin/orc orc.go
+	go build -o bin/orchestrator main.go
 run:
-	go run orc.go
+	go run main.go
 all: build

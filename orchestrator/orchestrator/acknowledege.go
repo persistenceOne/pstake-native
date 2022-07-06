@@ -11,14 +11,19 @@ import (
 	stdlog "log"
 )
 
-func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string, TxHash string, status string,
-	nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, BlockResults []*abciTypes.ResponseDeliverTx) error {
+const (
+	FAIL = "fail"
+	PASS = "pass"
+)
+
+func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string, txHash string, status string,
+	nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, blockResults []*abciTypes.ResponseDeliverTx) error {
 
 	_, addr := GetPivKeyAddress(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
 	ValDetails := GetValidatorDetails(cosmosChain)
 
-	ValDetails, err := PopulateRewards(cosmosChain, ValDetails, BlockResults)
+	ValDetails, err := PopulateRewards(cosmosChain, ValDetails, blockResults)
 	if err != nil {
 		return err
 	}
@@ -28,7 +33,7 @@ func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string
 		return err
 	}
 
-	if flag == "pass" {
+	if flag == PASS {
 		acc, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, address)
 		if err != nil {
 			return err
@@ -36,7 +41,7 @@ func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string
 
 		msg := &cosmosTypes.MsgTxStatus{
 			OrchestratorAddress: addr,
-			TxHash:              TxHash,
+			TxHash:              txHash,
 			Status:              status,
 			SequenceNumber:      seq,
 			AccountNumber:       acc,
@@ -91,7 +96,7 @@ func GetMultiSigAddress(chain *NativeChain, chainC *CosmosChain) (types.AccAddre
 
 	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
 	if err != nil {
-		return nil, err, "fail"
+		return nil, err, FAIL
 	}
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
@@ -111,7 +116,7 @@ func GetMultiSigAddress(chain *NativeChain, chainC *CosmosChain) (types.AccAddre
 		&cosmosTypes.QueryActiveTxnRequest{},
 	)
 	if err != nil {
-		return nil, err, "fail"
+		return nil, err, FAIL
 	}
 
 	txId = ActiveTxID.GetTxID()
@@ -125,12 +130,12 @@ func GetMultiSigAddress(chain *NativeChain, chainC *CosmosChain) (types.AccAddre
 
 		signerAddr, err := AccAddressFromBech32(signerAddress, chainC.AccountPrefix)
 		if err != nil {
-			return nil, err, "fail"
+			return nil, err, FAIL
 		}
 
-		return signerAddr, nil, "pass"
+		return signerAddr, nil, PASS
 
 	}
 
-	return nil, nil, "fail"
+	return nil, nil, FAIL
 }

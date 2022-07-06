@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (c *CosmosChain) DepositTxEventForBlock(BlockHeight int64) error {
+func (c *CosmosChain) DepositTxEventForBlock(blockHeight int64) error {
 	client, err := rpchttp.New(c.RPCAddr, "/websocket")
 	if err != nil {
 		return err
@@ -22,7 +22,7 @@ func (c *CosmosChain) DepositTxEventForBlock(BlockHeight int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	query := "tm.event = 'Tx' AND transfer.recipient = '" + string(c.CustodialAddress) + "' AND tx.height = '" + strconv.FormatInt(BlockHeight, 10) + "'"
+	query := "tm.event = 'Tx' AND transfer.recipient = '" + string(c.CustodialAddress) + "' AND tx.height = '" + strconv.FormatInt(blockHeight, 10) + "'"
 	txs, err := client.Subscribe(ctx, "orchestrator", query)
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func (c *CosmosChain) DepositTxEventForBlock(BlockHeight int64) error {
 	return nil
 }
 
-func (c *CosmosChain) ActiveProposalEventHandler(BlockHeight int64) error {
+func (c *CosmosChain) ActiveProposalEventHandler(blockHeight int64) error {
 	client, err := rpchttp.New(c.RPCAddr, "/websocket")
 	if err != nil {
 		return err
