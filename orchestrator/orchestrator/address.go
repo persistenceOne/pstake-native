@@ -89,9 +89,9 @@ func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, ms
 
 }
 
-func GetSDKPivKeyAndAddress(Seed string) (sdkcryptotypes.PrivKey, sdkTypes.AccAddress) {
+func GetSDKPivKeyAndAddress(seed string) (sdkcryptotypes.PrivKey, sdkTypes.AccAddress) {
 
-	privKey := secp256k1.GenPrivKeyFromSecret([]byte(Seed))
+	privKey := secp256k1.GenPrivKeyFromSecret([]byte(seed))
 
 	pubkey := privKey.PubKey()
 
@@ -139,7 +139,7 @@ func Bech32ifyAddressBytes(prefix string, address sdkTypes.AccAddress) (string, 
 	return bech32.ConvertAndEncode(prefix, address.Bytes())
 }
 
-func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Context, OutgoingTx sdkTx.Tx, signerAddress string) ([]byte, error) {
+func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Context, outgoingTx sdkTx.Tx, signerAddress string) ([]byte, error) {
 	privkey, _ := GetPivKeyAddress(chain.AccountPrefix, chain.CoinType, seed)
 
 	SetSDKConfigPrefix(chain.AccountPrefix)
@@ -156,12 +156,12 @@ func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Con
 
 	nativeProtoCodec := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
 
-	err = OutgoingTx.UnpackInterfaces(nativeProtoCodec)
+	err = outgoingTx.UnpackInterfaces(nativeProtoCodec)
 	if err != nil {
 		panic(err)
 	}
 
-	txBuilder := authTx.WrapTx(&OutgoingTx)
+	txBuilder := authTx.WrapTx(&outgoingTx)
 
 	SignBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
 		xauthsigning.SignerData{

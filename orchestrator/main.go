@@ -1,7 +1,7 @@
 package main
 
 import (
-	orc2 "github.com/persistenceOne/pstake-native/oracle/cmd"
+	orc "github.com/persistenceOne/pstake-native/oracle/cmd"
 	"github.com/spf13/cobra"
 )
 
@@ -14,9 +14,9 @@ func main() {
 
 	//TODO: add commands
 
-	rootCmd.AddCommand(orc2.InitCommand())
+	rootCmd.AddCommand(orc.InitCommand())
 
-	rootCmd.AddCommand(orc2.StartCommand())
+	rootCmd.AddCommand(orc.StartCommand())
 
 	err := rootCmd.Execute()
 	if err != nil {

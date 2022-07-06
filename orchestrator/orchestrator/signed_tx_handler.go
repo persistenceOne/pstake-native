@@ -15,6 +15,13 @@ import (
 	"time"
 )
 
+const (
+	SUCCESS           = "success"
+	NOT_SUCCESS       = "not success"
+	GAS_FAILURE       = "gas failure"
+	SEQUENCE_MISMATCH = "sequence mismatch"
+)
+
 func (n *NativeChain) SignedOutgoingTxHandler(txIdStr, valAddr string, orcSeeds []string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, native *NativeChain, chain *CosmosChain) error {
 	txId, err := strconv.ParseUint(txIdStr, 10, 64)
 
@@ -90,7 +97,7 @@ loop:
 
 		select {
 		case <-timeout:
-			status = "not success"
+			status = NOT_SUCCESS
 			break loop
 		default:
 		}
@@ -106,7 +113,7 @@ loop:
 			if ok {
 				continue loop
 			} else {
-				status = "not success"
+				status = NOT_SUCCESS
 			}
 
 		}
@@ -114,23 +121,23 @@ loop:
 		txCode := res2.TxResponse.Code
 
 		if txCode == sdkErrors.SuccessABCICode {
-			status = "success"
+			status = SUCCESS
 			height = res2.TxResponse.Height
 			break loop
 		} else if txCode == sdkErrors.ErrInvalidSequence.ABCICode() {
-			status = "sequence mismatch"
+			status = SEQUENCE_MISMATCH
 			break loop
 		} else if txCode == sdkErrors.ErrOutOfGas.ABCICode() {
-			status = "gas failure"
+			status = GAS_FAILURE
 			break
 		} else {
-			status = "not success"
+			status = NOT_SUCCESS
 
 			break loop
 		}
 	}
 
-	if status == "success" {
+	if status == SUCCESS {
 		rpcClient, err := newRPCClient(chain.RPCAddr, 1*time.Second)
 		if err != nil {
 			return err
