@@ -6,16 +6,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
+	abciTypes "github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
 	stdlog "log"
 )
 
-func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string, TxHash string, status string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context) error {
+func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string, TxHash string, status string,
+	nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, BlockResults []*abciTypes.ResponseDeliverTx) error {
 
 	_, addr := GetPivKeyAddress(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
 	ValDetails := GetValidatorDetails(cosmosChain)
 
+	ValDetails, err := PopulateRewards(cosmosChain, ValDetails, BlockResults)
+	if err != nil {
+		return err
+	}
 	SetSDKConfigPrefix(cosmosChain.ChainID)
 	address, err, flag := GetMultiSigAddress(native, cosmosChain)
 	if err != nil {
@@ -36,13 +42,6 @@ func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string
 			AccountNumber:       acc,
 			ValidatorDetails:    ValDetails,
 		}
-
-		//msg2 := &cosmosTypes.MsgRewardsClaimedOnCosmosChain{
-		//	OrchestratorAddress: "",
-		//	AmountClaimed:       types.Coin{},
-		//	ChainID:             "",
-		//	BlockHeight:         0,
-		//}
 
 		txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
 

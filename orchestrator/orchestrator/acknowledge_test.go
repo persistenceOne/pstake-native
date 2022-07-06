@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func TestM(t *testing.T) {
+func TestE2EAck(t *testing.T) {
 	rpcaddr := "http://13.229.64.99:26657"
 	grpcaddr := "13.229.64.99:9090"
 	seed := "april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel"
