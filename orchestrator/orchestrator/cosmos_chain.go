@@ -141,7 +141,7 @@ func (c *CosmosChain) Start() error {
 
 var sdkContextMutex sync.Mutex
 
-func StartListeningCosmosEvent(valAddr string, orcSeeds []string, nativeCliCtx client.Context, ClientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
+func StartListeningCosmosEvent(valAddr string, orcSeeds []string, nativeCliCtx client.Context, clientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
 	ctx := context.Background()
 
 	var cHeight uint64
@@ -204,7 +204,7 @@ func StartListeningCosmosEvent(valAddr string, orcSeeds []string, nativeCliCtx c
 		}
 	}
 }
-func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx client.Context, ClientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
+func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx client.Context, clientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
 	ctx := context.Background()
 	var cHeight, nHeight uint64
 
@@ -217,7 +217,6 @@ func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx
 			stdlog.Println("error getting cosmos abci info", err)
 		}
 		cHeight = uint64(abciInfoCosmos.Response.LastBlockHeight)
-		cHeight = cHeight - 1
 		stdlog.Println("cosmos Block height- ", cHeight)
 
 		abciInfoNative, err := native.Client.ABCIInfo(ctx)
@@ -233,7 +232,7 @@ func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx
 	}
 	for cHeight > 0 && nHeight > 0 {
 		stdlog.Println("cosmos Block height ", cHeight)
-		err := chain.DepositHandler(valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, int64(cHeight), codec)
+		err := chain.DepositHandler(valAddr, orcSeeds, nativeCliCtx, clientCtx, native, int64(cHeight), codec)
 		if err != nil {
 			stdlog.Fatalln()
 		}
@@ -245,7 +244,7 @@ func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx
 		}
 
 		time.Sleep(3 * time.Second)
-		cHeight = cHeight + 1
+		cHeight++
 
 		SetStatus(chain.HomePath, cHeight, nHeight)
 
