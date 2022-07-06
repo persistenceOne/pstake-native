@@ -7,6 +7,7 @@ import (
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
+	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	"google.golang.org/grpc"
 	stdlog "log"
 	"strconv"
@@ -77,8 +78,13 @@ func (n *NativeChain) SignedOutgoingTxHandler(txIdStr, valAddr string, orcSeeds 
 		return err
 	}
 	stdlog.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+
 	var status string
+	var height int64
+	var blockRes *coretypes.ResultBlockResults
+
 	cosmosTxHash := res.TxResponse.TxHash
+
 loop:
 	for timeout := time.After(20 * time.Second); ; {
 
@@ -109,6 +115,7 @@ loop:
 
 		if txCode == sdkErrors.SuccessABCICode {
 			status = "success"
+			height = res2.TxResponse.Height
 			break loop
 		} else if txCode == sdkErrors.ErrInvalidSequence.ABCICode() {
 			status = "sequence mismatch"
@@ -123,7 +130,18 @@ loop:
 		}
 	}
 
-	err = SendMsgAck(native, chain, orcSeeds, cosmosTxHash, status, nativeCliCtx, clientCtx)
+	if status == "success" {
+		rpcClient, err := newRPCClient(chain.RPCAddr, 1*time.Second)
+		if err != nil {
+			return err
+		}
+		blockRes, err = rpcClient.BlockResults(context.Background(), &height)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = SendMsgAck(native, chain, orcSeeds, cosmosTxHash, status, nativeCliCtx, clientCtx, blockRes.TxsResults)
 	if err != nil {
 		return err
 	}

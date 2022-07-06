@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func TestV(t *testing.T) {
+func TestE2EValDetails(t *testing.T) {
 
 	custodialAdrr, err := AccAddressFromBech32("cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2", "cosmos")
 	if err != nil {

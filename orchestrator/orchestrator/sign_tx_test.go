@@ -12,6 +12,7 @@ import (
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	prov "github.com/tendermint/tendermint/light/provider/http"
+	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	"google.golang.org/grpc"
 	stdlog "log"
 	"os"
@@ -21,7 +22,7 @@ import (
 	"time"
 )
 
-func TestC(t *testing.T) {
+func TestE2ESignedTx(t *testing.T) {
 
 	seed := []string{"bomb sand fashion torch return coconut color captain vapor inhale lyrics lady grant ordinary lazy decrease quit devote paddle impulse prize equip hip ball",
 		"april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel",
@@ -166,6 +167,7 @@ func TestC(t *testing.T) {
 	fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
 	var status string
 	var height int64
+	var BlockResults *coretypes.ResultBlockResults
 	cosmosTxHash := res.TxResponse.TxHash
 
 loop:
@@ -216,7 +218,7 @@ loop:
 
 	if status == "success" && height != 0 {
 
-		//BlockResults, _ := rpcClient.BlockResults(context.Background(), &height)
+		BlockResults, _ = rpcClient.BlockResults(context.Background(), &height)
 
 		//txResults:= BlockResults.TxsResults
 
@@ -224,7 +226,7 @@ loop:
 
 	}
 
-	err = SendMsgAck(chain, chainC, []string{seed[2]}, cosmosTxHash, status, clientContextNative, clientContextCosmos)
+	err = SendMsgAck(chain, chainC, []string{seed[2]}, cosmosTxHash, status, clientContextNative, clientContextCosmos, BlockResults.TxsResults)
 	if err != nil {
 		panic(err)
 	}
