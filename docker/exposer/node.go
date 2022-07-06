@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	homeDirKey = "HOME_DIR"
+	homeDirKey     = "HOME_DIR"
 	genesisFileKey = "GENESIS_FILE"
-	portKey = "PORT"
+	portKey        = "PORT"
+	clientNameKey  = "CLIENT_NAME"
 )
 
 func executeCommand(name string, arg ...string) string {
@@ -36,12 +37,14 @@ func executeCommand(name string, arg ...string) string {
 
 func getNodeIDHandler(w http.ResponseWriter, r *http.Request) {
 	homeDir := os.Getenv(homeDirKey)
-	io.WriteString(w, executeCommand("pstaked", "tendermint", "show-node-id", "--home", homeDir))
+	clientName := os.Getenv(clientNameKey)
+	io.WriteString(w, executeCommand(clientName, "tendermint", "show-node-id", "--home", homeDir))
 }
 
 func getPubKeyHandler(w http.ResponseWriter, r *http.Request) {
 	homeDir := os.Getenv(homeDirKey)
-	io.WriteString(w, executeCommand("pstaked", "tendermint", "show-validator", "--home", homeDir))
+	clientName := os.Getenv(clientNameKey)
+	io.WriteString(w, executeCommand(clientName, "tendermint", "show-validator", "--home", homeDir))
 }
 
 func getGenesisHandler(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +56,7 @@ func getGenesisHandler(w http.ResponseWriter, r *http.Request) {
 	defer jsonFile.Close()
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
-	
+
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(byteValue)

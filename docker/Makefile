@@ -1,5 +1,5 @@
 PROCESS=pstake
-IMAGE_NAME=anmol1696/$(PROCESS)
+IMAGE_NAME=persistenceone/$(PROCESS)
 TAG_NAME=latest
 CONTAINER_NAME=container-$(PROCESS)
 FILE=Dockerfile
@@ -22,7 +22,7 @@ _DOCKER_ARGS=\
 
 # Command for dockerization
 docker-build:
-	docker build . -f docker/$(PROCESS)/$(FILE) -t $(IMAGE_NAME):$(TAG_NAME)
+	docker buildx build . --platform=linux/amd64 -f docker/$(PROCESS)/$(FILE) -t $(IMAGE_NAME):$(TAG_NAME)
 
 docker-run:
 	docker run --rm -it --name=$(CONTAINER_NAME) \

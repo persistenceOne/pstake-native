@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: pstake-validator
+  name: gaia-validator
   labels:
-    app.kubernetes.io/name: pstake-validator
+    app.kubernetes.io/name: gaia-validator
 spec:
   clusterIP: None
   ports:
@@ -21,22 +21,21 @@ spec:
       protocol: TCP
       targetPort: 8080
   selector:
-    app.kubernetes.io/name: pstake-validator
+    app.kubernetes.io/name: gaia-validator
 ---
 apiVersion: apps/v1
-# Todo : change kind to Deployment
 kind: StatefulSet
 metadata:
-  name: pstake-validator
+  name: gaia-validator
   namespace: dev-native
 spec:
-  serviceName: pstake-validator
-  replicas: 2
+  serviceName: gaia-validator
+  replicas: 3
   revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app.kubernetes.io/instance: pstake
-      app.kubernetes.io/name: pstake-validator
+      app.kubernetes.io/instance: gaia
+      app.kubernetes.io/name: gaia-validator
   template:
     metadata:
       annotations:
@@ -45,43 +44,43 @@ spec:
         sla: high
         tier: gateway
       labels:
-        app.kubernetes.io/instance: pstake
-        app.kubernetes.io/type: pstake-validator
-        app.kubernetes.io/name: pstake-validator
+        app.kubernetes.io/instance: gaia
+        app.kubernetes.io/type: gaia-validator
+        app.kubernetes.io/name: gaia-validator
         app.kubernetes.io/version: '0.1'
     spec:
       imagePullSecrets:
         - name: test-docker-creds
       initContainers:
         - name: wait-for-genesis
-          image: persistenceone/pstake
+          image: persistenceone/gaia
           imagePullPolicy: Always
           env:
             - name: GENESIS_HOST
-              value: pstake-genesis.dev-native
+              value: gaia-genesis.dev-native
             - name: GENESIS_PORT
               value: "8080"
           command:
             - bash
             - "-c"
             - |
-              while [ $(curl -sw '%{http_code}' http://pstake-genesis.dev-native.svc.cluster.local:8080/node_id -o /dev/null) -ne 200 ]; do
+              while [ $(curl -sw '%{http_code}' http://gaia-genesis.dev-native.svc.cluster.local:8080/node_id -o /dev/null) -ne 200 ]; do
                 echo "Genesis validator does not seem to be ready. Waiting for it to start..."
                 sleep 10;
               done
               echo "Ready to start"
               exit 0
         - name: init-validator
-          image: persistenceone/pstake
+          image: persistenceone/gaia
           imagePullPolicy: Always
           env:
             - name: CHAIN_ID
               valueFrom:
                 configMapKeyRef:
                   key: chain.id
-                  name: pstake
-            - name: PSTAKE_DIR
-              value: /pstaked
+                  name: gaia
+            - name: GAIA_DIR
+              value: /gaiad
           command:
             - bash
             - "-c"
@@ -89,38 +88,38 @@ spec:
               VAL_INDEX=${HOSTNAME##*-}
               echo "Validator Index: $VAL_INDEX"
 
-              rm -rf $PSTAKE_DIR
+              rm -rf $GAIA_DIR
 
               VAL_NAME=$(jq -r ".validators[$VAL_INDEX].name" /configs/validators.json)
               echo "Validator Index: $VAL_INDEX, Key name: $VAL_NAME"
 
               echo "Printing genesis file before init"
-              ls -lrht $PSTAKE_DIR/config
+              ls -lrht $GAIA_DIR/config
 
-              jq -r ".validators[$VAL_INDEX].mnemonic" /configs/validators.json | pstaked init pstake --chain-id $CHAIN_ID --home $PSTAKE_DIR --recover
-              jq -r ".validators[$VAL_INDEX].mnemonic" /configs/validators.json | pstaked keys add $VAL_NAME --recover --keyring-backend='test' --home $PSTAKE_DIR
+              jq -r ".validators[$VAL_INDEX].mnemonic" /configs/validators.json | gaiad init gaia --chain-id $CHAIN_ID --home $GAIA_DIR --recover
+              jq -r ".validators[$VAL_INDEX].mnemonic" /configs/validators.json | gaiad keys add $VAL_NAME --recover --keyring-backend='test' --home $GAIA_DIR
 
-              curl http://pstake-genesis.dev-native.svc.cluster.local:8080/genesis -o $PSTAKE_DIR/config/genesis.json
+              curl http://gaia-genesis.dev-native.svc.cluster.local:8080/genesis -o $GAIA_DIR/config/genesis.json
               echo "Genesis file that we got....."
-              cat $PSTAKE_DIR/config/genesis.json
+              cat $GAIA_DIR/config/genesis.json
 
               echo "All exports"
               export
 
               echo "Fetching genesis file"
 
-              GENESIS_NODE_P2P=$(curl -s http://pstake-genesis.dev-native.svc.cluster.local:8080/node_id)@pstake-genesis.dev-native.svc.cluster.local:26656
+              GENESIS_NODE_P2P=$(curl -s http://gaia-genesis.dev-native.svc.cluster.local:8080/node_id)@gaia-genesis.dev-native.svc.cluster.local:26656
               echo "Node P2P: $GENESIS_NODE_P2P"
-              sed -i "s/persistent_peers = \"\"/persistent_peers = \"$GENESIS_NODE_P2P\"/g" $PSTAKE_DIR/config/config.toml
-              sed -i 's#"tcp://127.0.0.1:26657"#"tcp://0.0.0.0:26657"#g' $PSTAKE_DIR/config/config.toml
-              sed -i 's/timeout_commit = "5s"/timeout_commit = "1s"/g' $PSTAKE_DIR/config/config.toml
-              sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' $PSTAKE_DIR/config/config.toml
-              sed -i 's/index_all_keys = false/index_all_keys = true/g' $PSTAKE_DIR/config/config.toml
+              sed -i "s/persistent_peers = \"\"/persistent_peers = \"$GENESIS_NODE_P2P\"/g" $GAIA_DIR/config/config.toml
+              sed -i 's#"tcp://127.0.0.1:26657"#"tcp://0.0.0.0:26657"#g' $GAIA_DIR/config/config.toml
+              sed -i 's/timeout_commit = "5s"/timeout_commit = "1s"/g' $GAIA_DIR/config/config.toml
+              sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' $GAIA_DIR/config/config.toml
+              sed -i 's/index_all_keys = false/index_all_keys = true/g' $GAIA_DIR/config/config.toml
 
               echo "Printing the whole config.toml file"
-              cat $PSTAKE_DIR/config/config.toml
+              cat $GAIA_DIR/config/config.toml
 
-              curl -s http://pstake-genesis.dev-native.svc.cluster.local:8080/pub_key
+              curl -s http://gaia-genesis.dev-native.svc.cluster.local:8080/pub_key
           resources:
             limits:
               cpu: "0.2"
@@ -129,28 +128,28 @@ spec:
               cpu: "0.1"
               memory: "0.1Gi"
           volumeMounts:
-            - mountPath: /pstaked
-              name: pstaked
+            - mountPath: /gaiad
+              name: gaiad
             - mountPath: /configs
               name: addresses
       containers:
         - name: validator
-          image: persistenceone/pstake
+          image: persistenceone/gaia
           imagePullPolicy: Always
           env:
             - name: CHAIN_ID
               valueFrom:
                 configMapKeyRef:
                   key: chain.id
-                  name: pstake
-            - name: PSTAKE_DIR
-              value: /pstaked
+                  name: gaia
+            - name: GAIA_DIR
+              value: /gaiad
           command:
             - bash
             - "-c"
             - |
               # Starting
-              pstaked start --home $PSTAKE_DIR
+              gaiad start --home $GAIA_DIR
           lifecycle:
             postStart:
               exec:
@@ -164,7 +163,7 @@ spec:
 
                     # Wait for the node to be synced
                     max_tries=10
-                    while [[ $(pstaked status --home $PSTAKE_DIR 2>&1 | jq ".SyncInfo.catching_up") == true ]]
+                    while [[ $(gaiad status --home $GAIA_DIR 2>&1 | jq ".SyncInfo.catching_up") == true ]]
                     do
                       if [[ max_tries -lt 0 ]]; then echo "Not able to sync with genesis node"; exit 1; fi
                       echo "Still syncing... Sleeping for 15 secs. Tries left $max_tries"
@@ -174,7 +173,7 @@ spec:
 
                     # Run create validator tx command
                     echo "Running txn for create-validator"
-                    pstaked tx staking create-validator --home $PSTAKE_DIR --pubkey=$(pstaked tendermint show-validator --home $PSTAKE_DIR) --moniker $VAL_NAME --amount 5000000000stake --keyring-backend="test" --chain-id $CHAIN_ID --from $VAL_NAME --commission-rate="0.10" --commission-max-rate="0.20" --commission-max-change-rate="0.01" --min-self-delegation="1000000" --gas="auto" --yes > /validator.log
+                    gaiad tx staking create-validator --home $GAIA_DIR --pubkey=$(gaiad tendermint show-validator --home $GAIA_DIR) --moniker $VAL_NAME --amount 5000000000stake --keyring-backend="test" --chain-id $CHAIN_ID --from $VAL_NAME --commission-rate="0.10" --commission-max-rate="0.20" --commission-max-change-rate="0.01" --min-self-delegation="1000000" --gas="auto" --yes > /validator.log
           resources:
             limits:
               cpu: "1"
@@ -183,22 +182,22 @@ spec:
               cpu: "0.5"
               memory: 0.5Gi
           volumeMounts:
-            - mountPath: /pstaked
-              name: pstaked
+            - mountPath: /gaiad
+              name: gaiad
             - mountPath: /configs
               name: addresses
         - name: exposer-app
-          image: persistenceone/exposer:pstake
+          image: persistenceone/exposer:gaia
           imagePullPolicy: Always
           env:
             - name: HOME_DIR
-              value: /pstaked
+              value: /gaiad
             - name: GENESIS_FILE
-              value: /pstaked/config/genesis.json
+              value: /gaiad/config/genesis.json
             - name: PORT
               value: "8080"
             - name: CLIENT_NAME
-              value: "pstaked"
+              value: "gaiad"
           command: [ "exposer" ]
           resources:
             limits:
@@ -208,12 +207,12 @@ spec:
               cpu: "0.1"
               memory: "0.1Gi"
           volumeMounts:
-            - mountPath: /pstaked
-              name: pstaked
+            - mountPath: /gaiad
+              name: gaiad
       volumes:
-        - name: pstaked
+        - name: gaiad
           emptyDir: { }
         - name: addresses
           configMap:
-            name: test-addresses-pstake
+            name: test-addresses-gaia
 ---

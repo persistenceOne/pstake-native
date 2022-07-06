@@ -1,0 +1,6 @@
+resources:
+- configmap.yaml
+- orchestrator.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true

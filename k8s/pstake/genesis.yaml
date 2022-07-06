@@ -53,7 +53,7 @@ spec:
         - name: test-docker-creds
       initContainers:
       - name: init-genesis
-        image: anmol1696/pstake
+        image: persistenceone/pstake
         imagePullPolicy: Always
         env:
         - name: COINS
@@ -116,7 +116,7 @@ spec:
           name: addresses
       containers:
       - name: validator
-        image: anmol1696/pstake
+        image: persistenceone/pstake
         imagePullPolicy: Always
         env:
         - name: CHAIN_ID
@@ -144,7 +144,7 @@ spec:
         - mountPath: /configs
           name: addresses
       - name: exposer-app
-        image: anmol1696/exposer
+        image: persistenceone/exposer:pstake
         imagePullPolicy: Always
         env:
         - name: HOME_DIR
@@ -153,6 +153,8 @@ spec:
           value: /pstaked/config/genesis.json
         - name: PORT
           value: "8080"
+        - name: CLIENT_NAME
+          value: "pstaked"
         command: ["exposer"]
         resources:
           limits:
@@ -169,5 +171,5 @@ spec:
         emptyDir: {}
       - name: addresses
         configMap:
-          name: test-addresses
+          name: test-addresses-pstake
 ---

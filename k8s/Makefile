@@ -1,4 +1,4 @@
-PROCESS=pstake
+PROCESS=gaia
 
 apply:
 	kubectl apply -k $(PROCESS)

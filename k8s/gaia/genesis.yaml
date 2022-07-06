@@ -1,0 +1,177 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gaia-genesis
+  labels:
+    app.kubernetes.io/name: gaia-genesis
+spec:
+  clusterIP: None
+  ports:
+  - name: p2p
+    port: 26656
+    protocol: TCP
+    targetPort: 26656
+  - name: rpc
+    port: 26657
+    protocol: TCP
+    targetPort: 26657
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app.kubernetes.io/name: gaia-genesis
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: gaia-genesis
+  namespace: dev-native
+spec:
+  serviceName: gaia-genesis
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: gaia
+      app.kubernetes.io/name: gaia-genesis
+  template:
+    metadata:
+      annotations:
+        quality: release
+        role: api-gateway
+        sla: high
+        tier: gateway
+      labels:
+        app.kubernetes.io/instance: gaia
+        app.kubernetes.io/type: gaia-validator
+        app.kubernetes.io/name: gaia-genesis
+        app.kubernetes.io/version: '0.1'
+    spec:
+      imagePullSecrets:
+        - name: test-docker-creds
+      initContainers:
+      - name: init-genesis
+        image: persistenceone/gaia
+        imagePullPolicy: Always
+        env:
+        - name: COINS
+          value: "100000000000000000stake"
+        - name: CHAIN_ID
+          valueFrom:
+            configMapKeyRef:
+              key: chain.id
+              name: gaia
+        - name: GAIA_DIR
+          value: /gaiad
+        command:
+        - bash
+        - "-c"
+        - |
+            VAL_INDEX=${HOSTNAME##*-}
+            echo "Validator Index: $VAL_INDEX"
+
+            jq -r ".genesis[0].mnemonic" /configs/validators.json | gaiad init gaia --chain-id $CHAIN_ID --home $GAIA_DIR --recover
+            jq -r ".genesis[0].mnemonic" /configs/validators.json | gaiad keys add $(jq -r ".genesis[0].name" /configs/validators.json) --recover --keyring-backend='test' --home $GAIA_DIR
+
+            # Provide genesis validator self deligations
+            gaiad add-genesis-account $(jq -r .genesis[$i].address /configs/validators.json) $COINS --keyring-backend='test' --home $GAIA_DIR
+
+            # Give Validator addresses initial coins
+            for ((i=0; i<$(jq -r '.validators | length' /configs/validators.json); i++))
+            do
+              jq -r ".validators[$i].mnemonic" /configs/validators.json | gaiad keys add $(jq -r ".validators[$i].name" /configs/validators.json) --recover --keyring-backend='test' --home $GAIA_DIR
+              gaiad add-genesis-account $(jq -r .validators[$i].address /configs/validators.json) $COINS --keyring-backend='test' --home $GAIA_DIR
+            done
+
+            for ((i=0; i<$(jq -r '.keys | length' /configs/keys.json); i++))
+            do
+              jq -r ".keys[$i].mnemonic" /configs/keys.json | gaiad keys add $(jq -r ".keys[$i].name" /configs/keys.json) --recover --keyring-backend='test' --home $GAIA_DIR
+              gaiad add-genesis-account $(jq -r .keys[$i].address /configs/keys.json) $COINS --keyring-backend='test' --home $GAIA_DIR
+            done
+
+            gaiad gentx $(jq -r ".genesis[0].name" /configs/validators.json) 5000000000stake --keyring-backend="test" --chain-id $CHAIN_ID --home $GAIA_DIR
+            echo "Output of gentx"
+            cat $GAIA_DIR/config/gentx/*.json | jq
+
+            echo "Running collect-gentxs"
+            gaiad collect-gentxs --home $GAIA_DIR
+
+            sed -i 's#"tcp://127.0.0.1:26657"#"tcp://0.0.0.0:26657"#g' $GAIA_DIR/config/config.toml
+            sed -i 's/timeout_commit = "5s"/timeout_commit = "1s"/g' $GAIA_DIR/config/config.toml
+            sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' $GAIA_DIR/config/config.toml
+            sed -i 's/index_all_keys = false/index_all_keys = true/g' $GAIA_DIR/config/config.toml
+
+            gaiad tendermint show-node-id --home $GAIA_DIR > /gaiad/genesis-node-id.txt
+        resources:
+          limits:
+            cpu: "0.2"
+            memory: "0.2Gi"
+          requests:
+            cpu: "0.1"
+            memory: "0.1Gi"
+        volumeMounts:
+        - mountPath: /gaiad
+          name: gaiad
+        - mountPath: /configs
+          name: addresses
+      containers:
+      - name: validator
+        image: persistenceone/gaia
+        imagePullPolicy: Always
+        env:
+        - name: CHAIN_ID
+          valueFrom:
+            configMapKeyRef:
+              key: chain.id
+              name: gaia
+        - name: GAIA_DIR
+          value: /gaiad
+        command:
+        - bash
+        - "-c"
+        - |
+            gaiad start --home $GAIA_DIR
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: "0.5"
+            memory: 0.5Gi
+        volumeMounts:
+        - mountPath: /gaiad
+          name: gaiad
+        - mountPath: /configs
+          name: addresses
+      - name: exposer-app
+        image: persistenceone/exposer:gaia
+        imagePullPolicy: Always
+        env:
+        - name: HOME_DIR
+          value: /gaiad
+        - name: GENESIS_FILE
+          value: /gaiad/config/genesis.json
+        - name: PORT
+          value: "8080"
+        - name: CLIENT_NAME
+          value: "gaiad"
+        command: ["exposer"]
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: "0.1Gi"
+          requests:
+            cpu: "0.1"
+            memory: "0.1Gi"
+        volumeMounts:
+        - mountPath: /gaiad
+          name: gaiad
+      volumes:
+      - name: gaiad
+        emptyDir: {}
+      - name: addresses
+        configMap:
+          name: test-addresses-gaia
+---
