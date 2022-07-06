@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/types"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -79,7 +78,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 
 		}
 
-		Unbondingtokens := types.ZeroInt()
+		Unbondingtokens := sdkTypes.ZeroInt()
 
 		if flag == true {
 			UnBondingEntries := UnbondingTokensQueryResult.Unbond.Entries
@@ -91,7 +90,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 		newEntry := cosmosTypes.ValidatorDetails{
 			ValidatorAddress: valAddr,
 			BondedTokens:     BondedTokens,
-			UnbondingTokens:  types.NewCoin(constants.CosmosDenom, Unbondingtokens),
+			UnbondingTokens:  sdkTypes.NewCoin(constants.CosmosDenom, Unbondingtokens),
 		}
 		ValidatorDetailsArr = append(ValidatorDetailsArr, newEntry)
 		flag = true
