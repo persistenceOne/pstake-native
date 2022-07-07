@@ -20,6 +20,7 @@ const (
 	NOT_SUCCESS       = "not success"
 	GAS_FAILURE       = "gas failure"
 	SEQUENCE_MISMATCH = "sequence mismatch"
+	TIMEOUT           = 120
 )
 
 func (n *NativeChain) SignedOutgoingTxHandler(txIdStr, valAddr string, orcSeeds []string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, native *NativeChain, chain *CosmosChain) error {
@@ -93,7 +94,7 @@ func (n *NativeChain) SignedOutgoingTxHandler(txIdStr, valAddr string, orcSeeds 
 	cosmosTxHash := res.TxResponse.TxHash
 
 loop:
-	for timeout := time.After(20 * time.Second); ; {
+	for timeout := time.After(TIMEOUT * time.Second); ; {
 
 		select {
 		case <-timeout:

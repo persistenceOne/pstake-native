@@ -46,7 +46,6 @@ func TestE2ESignedTx(t *testing.T) {
 		Client:        rpcClient,
 		Encoding:      params.EncodingConfig{},
 		Provider:      liteprovider,
-		address:       nil,
 		logger:        nil,
 		timeout:       0,
 		debug:         false,
@@ -217,13 +216,7 @@ loop:
 	}
 
 	if status == "success" && height != 0 {
-
 		BlockResults, _ = rpcClient.BlockResults(context.Background(), &height)
-
-		//txResults:= BlockResults.TxsResults
-
-		//events := txResults(*abci.)
-
 	}
 
 	err = SendMsgAck(chain, chainC, []string{seed[2]}, cosmosTxHash, status, clientContextNative, clientContextCosmos, BlockResults.TxsResults)

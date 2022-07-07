@@ -23,6 +23,10 @@ import (
 	"time"
 )
 
+const (
+	APPROX_BLOCK_TIME = 3
+)
+
 type CosmosChain struct {
 	Key              string         `json:"key" yaml:"key"`
 	ChainID          string         `json:"chain_id" yaml:"chain_id"`
@@ -97,15 +101,12 @@ func defaultChainLogger() log.Logger {
 }
 
 func (c *CosmosChain) UseSDKContext() func() {
-	//stdlog.Println("SDKCONTEXT LOCK")
-	//sdkContextMutex.Lock()
 
 	sdkConf := sdk.GetConfig()
 	sdkConf.SetBech32PrefixForAccount(c.AccountPrefix, c.AccountPrefix+"pub")
 	sdkConf.SetBech32PrefixForValidator(c.AccountPrefix+"valoper", c.AccountPrefix+"valoperpub")
 	sdkConf.SetBech32PrefixForConsensusNode(c.AccountPrefix+"valcons", c.AccountPrefix+"valconspub")
 
-	//return sdkContextMutex.Unlock
 	return func() {}
 }
 
@@ -225,7 +226,7 @@ func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx
 			stdlog.Println("error getting native abci info", err)
 		}
 		nHeight = uint64(abciInfoNative.Response.LastBlockHeight)
-		stdlog.Println("native Block height- ", cHeight)
+		stdlog.Println("native Block height- ", nHeight)
 
 		SetStatus(chain.HomePath, cHeight, nHeight)
 
@@ -243,7 +244,7 @@ func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx
 
 		}
 
-		time.Sleep(3 * time.Second)
+		time.Sleep(APPROX_BLOCK_TIME * time.Second)
 		cHeight++
 
 		SetStatus(chain.HomePath, cHeight, nHeight)
