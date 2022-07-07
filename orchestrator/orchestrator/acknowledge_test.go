@@ -38,7 +38,6 @@ func TestE2EAck(t *testing.T) {
 		Client:        rpcClient,
 		Encoding:      params.EncodingConfig{},
 		Provider:      liteprovider,
-		address:       nil,
 		logger:        nil,
 		timeout:       0,
 		debug:         false,
@@ -109,12 +108,12 @@ func TestE2EAck(t *testing.T) {
 	ValDetails := GetValidatorDetails(chainC)
 
 	SetSDKConfigPrefix(chainC.AccountPrefix)
-	address, err, flag := GetMultiSigAddress(chain, chainC)
+	address, err, ok := GetMultiSigAddress(chain, chainC)
 	if err != nil {
 		panic(err)
 	}
 
-	if flag == "pass" {
+	if ok {
 		acc, seq, err := clientContextCosmos.AccountRetriever.GetAccountNumberSequence(clientContextCosmos, address)
 
 		if err != nil {
@@ -158,10 +157,7 @@ func TestE2EAck(t *testing.T) {
 		}
 
 		stdlog.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
-
-		if err != nil {
-			panic(err)
-		}
+		
 	}
 
 }
