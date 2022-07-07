@@ -26,6 +26,7 @@ type NativeChain struct {
 	GasPrices     string  `json:"gas_prices" yaml:"gas_prices"`
 	GRPCAddr      string  `json:"grpc_addr" yaml:"grpc_addr"`
 	CoinType      uint32  `json:"coin_type" yaml:"coin_type"`
+	//CustodialAddress sdk.AccAddress `json:"custodial_address" yaml:"custodial_address"`
 
 	HomePath string                `json:"home_path" yaml:"home_path"`
 	KeyBase  keys.Keyring          `json:"-" yaml:""`
@@ -33,6 +34,7 @@ type NativeChain struct {
 	Encoding params.EncodingConfig `json:"-" yaml:""`
 	Provider provtypes.Provider    `json:"-" yaml:""`
 
+	address sdk.AccAddress
 	logger  log.Logger
 	timeout time.Duration
 	debug   bool
@@ -104,7 +106,7 @@ func (c *NativeChain) Start() error {
 	return c.Client.Start()
 }
 
-func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCliCtx client.Context, clientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
+func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCliCtx client.Context, ClientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
 	ctx := context.Background()
 
 	fmt.Println("Listening to native side events")
@@ -159,7 +161,7 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 
 			for _, txId := range txIdSlice {
 
-				err := native.OutgoingTxHandler(txId, valAddr, orcSeeds, nativeCliCtx, clientCtx, native, chain, cHeight)
+				err := native.OutgoingTxHandler(txId, valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, chain, cHeight)
 				if err != nil {
 					panic(err)
 
@@ -171,7 +173,7 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 		fmt.Println(txSignIdSlice)
 		if txSignIdSlice != nil {
 			for _, txID := range txSignIdSlice {
-				err := native.SignedOutgoingTxHandler(txID, valAddr, orcSeeds, nativeCliCtx, clientCtx, native, chain)
+				err := native.SignedOutgoingTxHandler(txID, valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, chain)
 				if err != nil {
 					stdlog.Println("signed outgoing tx handling error")
 					panic(err)

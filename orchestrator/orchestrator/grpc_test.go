@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func Test1(t *testing.T) {
+func TestE2Egrpc(t *testing.T) {
 	rpcClient, _ := newRPCClient("http://13.229.64.99:26657", 1*time.Second)
 	liteprovider, _ := prov.New("native", "http://13.229.64.99:26657")
 	chain := &NativeChain{
