@@ -1,4 +1,4 @@
-package orchestrator
+package oracle
 
 import (
 	"errors"
@@ -8,8 +8,8 @@ import (
 	"testing"
 )
 
-func TestE2EAddress(t *testing.T) {
-	privkey, _ := GetPivKeyAddress("persistence", 750, "bomb sand fashion torch return coconut color captain vapor inhale lyrics lady grant ordinary lazy decrease quit devote paddle impulse prize equip hip ball")
+func TestA(t *testing.T) {
+	privkey, _ := GetSDKPivKeyAndAddressR("persistence", 750, "bomb sand fashion torch return coconut color captain vapor inhale lyrics lady grant ordinary lazy decrease quit devote paddle impulse prize equip hip ball")
 	_, _ = Bech32ifyAddressBytes("persistence", sdkTypes.AccAddress(privkey.PubKey().Address()))
 	//addrStr2, _ := sdkTypes.Bech32ifyAddressBytes("persistence", addr)
 	//fmt.Println(len(addrStr2))

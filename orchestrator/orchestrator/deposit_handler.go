@@ -1,4 +1,4 @@
-package orchestrator
+package oracle
 
 import (
 	"context"
@@ -6,13 +6,13 @@ import (
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	tendermintTypes "github.com/tendermint/tendermint/rpc/core/types"
 	"google.golang.org/grpc"
-	stdlog "log"
+	logg "log"
 	"strings"
 	"time"
 )
@@ -88,9 +88,9 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 				if txMsg.ToAddress == chain.CustodialAddress.String() {
 					for _, coin := range txMsg.Amount {
 						//TODO: handle multiple keys for signing
-						_, addr := GetPivKeyAddress(native.AccountPrefix, native.CoinType, orcSeeds[0])
+						_, addr := GetSDKPivKeyAndAddressR(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
-						stdlog.Println("orchestrator address, ", addr)
+						logg.Println("orchestrator address, ", addr)
 						msg = &cosmosTypes.MsgMintTokensForAccount{
 							AddressFromMemo:     memo,
 							OrchestratorAddress: addr,
@@ -108,9 +108,6 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 							return err
 						}
 						grpcConn, _ := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
-						if err != nil {
-							return err
-						}
 						defer func(grpcConn *grpc.ClientConn) {
 							err := grpcConn.Close()
 							if err != nil {
@@ -118,13 +115,13 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 							}
 						}(grpcConn)
 
-						txClient := sdkTx.NewServiceClient(grpcConn)
+						txClient := txD.NewServiceClient(grpcConn)
 
 						fmt.Println("client created")
 
 						res, err := txClient.BroadcastTx(context.Background(),
-							&sdkTx.BroadcastTxRequest{
-								Mode:    sdkTx.BroadcastMode_BROADCAST_MODE_SYNC,
+							&txD.BroadcastTxRequest{
+								Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
 								TxBytes: txBytes,
 							},
 						)

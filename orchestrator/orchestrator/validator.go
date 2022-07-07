@@ -1,19 +1,17 @@
-package orchestrator
+package oracle
 
 import (
 	"context"
 	"fmt"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/persistenceOne/pstake-native/oracle/constants"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	abciTypes "github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
-	stdlog "log"
-	"strings"
+	logg "log"
 )
 
 func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
@@ -21,29 +19,26 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 
 	custodialAddr, err := Bech32ifyAddressBytes(chain.AccountPrefix, chain.CustodialAddress)
 	if err != nil {
-		stdlog.Println(err)
+		logg.Println(err)
 		panic(err)
 
 	}
 	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
-	if err != nil {
-		panic(err)
-	}
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
-			stdlog.Println("GRPC Connection error")
+			logg.Println("GRPC Connection error")
 		}
 	}(grpcConn)
 
 	if err != nil {
-		stdlog.Println("GRPC Connection failed")
+		logg.Println("GRPC Connection failed")
 		panic(err)
 	}
 
 	stakingQueryClient := stakingTypes.NewQueryClient(grpcConn)
 
-	stdlog.Println("staking query client connected")
+	logg.Println("staking query client connected")
 
 	BondedTokensQueryResult, err := stakingQueryClient.DelegatorDelegations(context.Background(),
 		&stakingTypes.QueryDelegatorDelegationsRequest{
@@ -53,7 +48,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 	)
 
 	if err != nil {
-		panic(err)
+		logg.Println("cannot get total delegations")
 	}
 	flag := true
 	for _, Delegations := range BondedTokensQueryResult.DelegationResponses {
@@ -72,13 +67,13 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 			if statusErr.Code() == 5 {
 				flag = false
 			} else {
-				stdlog.Println("cannot get unbonding delegations")
+				logg.Println("cannot get unbonding delegations")
 				panic(err)
 			}
 
 		}
 
-		Unbondingtokens := sdkTypes.ZeroInt()
+		Unbondingtokens := types.ZeroInt()
 
 		if flag == true {
 			UnBondingEntries := UnbondingTokensQueryResult.Unbond.Entries
@@ -90,7 +85,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 		newEntry := cosmosTypes.ValidatorDetails{
 			ValidatorAddress: valAddr,
 			BondedTokens:     BondedTokens,
-			UnbondingTokens:  sdkTypes.NewCoin(constants.CosmosDenom, Unbondingtokens),
+			UnbondingTokens:  types.NewCoin(constants.CosmosDenom, Unbondingtokens),
 		}
 		ValidatorDetailsArr = append(ValidatorDetailsArr, newEntry)
 		flag = true
@@ -99,59 +94,17 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 	return ValidatorDetailsArr
 }
 
-func PopulateRewards(chain *CosmosChain, valDetails []cosmosTypes.ValidatorDetails, blockRes []*abciTypes.ResponseDeliverTx) ([]cosmosTypes.ValidatorDetails, error) {
-	rewardMap := make(map[string]sdkTypes.Coin)
-	var valAddress string
-	var amountCoin sdkTypes.Coin
-
-	custodialAddr, err := Bech32ifyAddressBytes(chain.AccountPrefix, chain.CustodialAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, txLog := range blockRes {
-		eventList := txLog.Events
-		logString := txLog.Log
-		if strings.Contains(logString, "/cosmos.staking.v1beta1.MsgDelegate") {
-			for _, events := range eventList {
-				currEvent := events
-				if currEvent.Type == "transfer" && string(currEvent.Attributes[0].Value) == custodialAddr {
-					amountCoin, err = sdkTypes.ParseCoinNormalized(string(currEvent.Attributes[2].Value))
-					if err != nil {
-						return nil, err
-					}
-				}
-				if currEvent.Type == "delegate" {
-					valAddress = string(currEvent.Attributes[0].Value)
-					val, ok := rewardMap[valAddress]
-					if !ok {
-						rewardMap[valAddress] = amountCoin
-					} else {
-						rewardMap[valAddress] = val.Add(amountCoin)
-					}
-				}
-			}
-		}
-	}
-	for _, valDetails := range valDetails {
-		valAddr := valDetails.ValidatorAddress
-		valDetails.RewardsCollected = rewardMap[valAddr]
-	}
-
-	return valDetails, nil
-}
-
 func GetAccountDetails(cosmosClient cosmosClient.Context, chain *CosmosChain, addr string) (seqNum, accountNum uint64) {
 	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
-			stdlog.Println("GRPC Connection error")
+			logg.Println("GRPC Connection error")
 		}
 	}(grpcConn)
 
 	if err != nil {
-		stdlog.Println("GRPC Connection failed")
+		logg.Println("GRPC Connection failed")
 		panic(err)
 
 	}
@@ -164,7 +117,7 @@ func GetAccountDetails(cosmosClient cosmosClient.Context, chain *CosmosChain, ad
 	)
 
 	if err != nil {
-		stdlog.Println("cannot get accounts")
+		logg.Println("cannot get accounts")
 
 	}
 	var account authTypes.AccountI
@@ -174,7 +127,7 @@ func GetAccountDetails(cosmosClient cosmosClient.Context, chain *CosmosChain, ad
 
 	if err != nil {
 
-		stdlog.Println("err unmarshalling ANY account")
+		fmt.Println("err unmarshaling ANY account")
 
 	}
 

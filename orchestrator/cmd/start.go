@@ -5,9 +5,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/persistenceOne/pstake-native/oracle/config"
+	orc "github.com/persistenceOne/pstake-native/oracle/command"
+	"github.com/persistenceOne/pstake-native/oracle/configuration"
 	"github.com/persistenceOne/pstake-native/oracle/constants"
-	"github.com/persistenceOne/pstake-native/oracle/orchestrator"
+	"github.com/persistenceOne/pstake-native/oracle/oracle"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
@@ -32,12 +33,12 @@ func StartCommand() *cobra.Command {
 			orcSeeds := orcConfig.OrcSeeds
 			valAddr := orcConfig.ValAddress
 
-			cosmosChain, err := InitCosmosChain(homepath, orcConfig.CosmosConfig)
+			cosmosChain, err := orc.InitCosmosChain(homepath, orcConfig.CosmosConfig)
 			if err != nil {
 				panic(err)
 			}
 
-			nativeChain, err := InitNativeChain(homepath, orcConfig.NativeConfig)
+			nativeChain, err := orc.InitNativeChain(homepath, orcConfig.NativeConfig)
 			if err != nil {
 				panic(err)
 			}
@@ -76,17 +77,17 @@ func StartCommand() *cobra.Command {
 
 			log.Println("start to listen for txs cosmos side")
 
-			go orchestrator.StartListeningCosmosEvent(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
-			log.Println("started listening for deposits")
-			go orchestrator.StartListeningCosmosDeposit(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
+			go oracle.StartListeningCosmosEvent(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
+			log.Println("started liastening for deposits")
+			go oracle.StartListeningCosmosDeposit(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
 
 			log.Println("start to listen for txs native side")
-			go orchestrator.StartListeningNativeSideActions(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, nativeProtoCodec)
+			go oracle.StartListeningNativeSideActions(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, nativeProtoCodec)
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 			for sig := range signalChan {
-				_ = fmt.Sprintf("Stopping the orchestrator %v", sig.String())
+				_ = fmt.Sprintf("Stopping the oracle %v", sig.String())
 
 			}
 			return nil
@@ -96,7 +97,9 @@ func StartCommand() *cobra.Command {
 	return startCommand
 }
 
-func InitConfig(homepath string) config.Config {
-	cfg := config.InitializeConfigFromToml(homepath)
-	return cfg
+func InitConfig(homepath string) configuration.Config {
+	config := configuration.InitializeConfigFromToml(homepath)
+
+	return config
+
 }

@@ -2,6 +2,7 @@ package oracle
 
 import (
 	"context"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,14 +13,15 @@ import (
 	"google.golang.org/grpc"
 	logg "log"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 )
 
-func TestM(t *testing.T) {
-	rpcaddr := "http://13.229.64.99:26657"
-	grpcaddr := "13.229.64.99:9090"
-	seed := "april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel"
+func TestB(t *testing.T) {
+	rpcaddr := "http://18.139.224.127:26657"
+	grpcaddr := "18.139.224.127:9090"
+	seed := "bomb sand fashion torch return coconut color captain vapor inhale lyrics lady grant ordinary lazy decrease quit devote paddle impulse prize equip hip ball"
 	_, addr := GetSDKPivKeyAndAddressR("persistence", 118, seed)
 
 	rpcClient, _ := newRPCClient(rpcaddr, 1*time.Second)
@@ -62,18 +64,17 @@ func TestM(t *testing.T) {
 		WithViper("").
 		WithChainID(chain.ChainID)
 
+	custodialAdrr, err := AccAddressFromBech32("cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2", "cosmos")
 	cosmosrpc := "http://13.212.166.231:26657"
 	cosmosgrpc := "13.212.166.231:9090"
 	rpcClientC, _ := newRPCClient(cosmosrpc, 1*time.Second)
 	liteproviderC, _ := prov.New("test", cosmosrpc)
-
-	cusTodialAddress, _ := AccAddressFromBech32("cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2", "cosmos")
 	chainC := &CosmosChain{
 		Key:              "unusedNativeKey",
-		CustodialAddress: cusTodialAddress,
 		ChainID:          "test",
 		RPCAddr:          cosmosrpc,
 		AccountPrefix:    "cosmos",
+		CustodialAddress: custodialAdrr,
 		GasAdjustment:    1.0,
 		GasPrices:        "0.025stake",
 		GRPCAddr:         cosmosgrpc,
@@ -106,62 +107,77 @@ func TestM(t *testing.T) {
 		WithViper("").
 		WithChainID(chainC.ChainID)
 
-	ValDetails := GetValidatorDetails(chainC)
+	txId, err := strconv.ParseUint("1", 10, 64)
 
-	SetSDKConfigPrefix(chainC.AccountPrefix)
-	address, err, flag := GetMultiSigAddress(chain, chainC)
 	if err != nil {
 		panic(err)
 	}
 
-	if flag == "pass" {
-		acc, seq, err := clientContextCosmos.AccountRetriever.GetAccountNumberSequence(clientContextCosmos, address)
-
+	grpcConn, err := grpc.Dial(grpcaddr, grpc.WithInsecure())
+	defer func(grpcConn *grpc.ClientConn) {
+		err := grpcConn.Close()
 		if err != nil {
-			panic(err)
+			logg.Println("GRPC Connection error")
 		}
+	}(grpcConn)
+	LiquidStakingModuleClient := cosmosTypes.NewQueryClient(grpcConn)
 
-		msg := &cosmosTypes.MsgTxStatus{
-			OrchestratorAddress: addr,
-			TxHash:              "2309DBA86D984925C45DE6C3A697E114303C948556E38EDBE1ED338CEC878A06",
-			Status:              "success",
-			SequenceNumber:      seq,
-			AccountNumber:       acc,
-			ValidatorDetails:    ValDetails,
-		}
+	fmt.Println("query client connected")
 
-		txBytes, err := SignNativeTx(seed, chain, clientContextNative, msg)
+	TxResult, err := LiquidStakingModuleClient.QueryTxByID(context.Background(),
+		&cosmosTypes.QueryOutgoingTxByIDRequest{TxID: uint64(txId)},
+	)
 
+	//ac,seq,err := clientCtx.AccountRetriever.GetAccount()
+	OutgoingTx := TxResult.CosmosTxDetails.GetTx()
+
+	fmt.Println(OutgoingTx.Body.Messages)
+
+	signerAddress := TxResult.CosmosTxDetails.SignerAddress
+
+	signature, err := GetSignBytesForCosmos(seed, chainC, clientContextCosmos, OutgoingTx, signerAddress)
+	_, addr = GetSDKPivKeyAndAddressR("persistence", 118, seed)
+
+	if err != nil {
+		panic(err)
+	}
+
+	grpcConnCos, _ := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
+	defer func(grpcConnCos *grpc.ClientConn) {
+		err := grpcConnCos.Close()
 		if err != nil {
-			panic(err)
-		}
-
-		grpcConn, _ := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
-		defer func(grpcConn *grpc.ClientConn) {
-			err := grpcConn.Close()
-			if err != nil {
-
-			}
-		}(grpcConn)
-
-		txClient := txD.NewServiceClient(grpcConn)
-
-		res, err := txClient.BroadcastTx(context.Background(),
-			&txD.BroadcastTxRequest{
-				Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
-				TxBytes: txBytes,
-			},
-		)
-		if err != nil {
-			panic(err)
 
 		}
+	}(grpcConnCos)
 
-		logg.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+	txClient := txD.NewServiceClient(grpcConnCos)
 
-		if err != nil {
-			panic(err)
-		}
+	fmt.Println("client created")
+
+	msg := &cosmosTypes.MsgSetSignature{
+		OrchestratorAddress: addr,
+		OutgoingTxID:        txId,
+		Signature:           signature,
+		BlockHeight:         int64(120),
+	}
+
+	txBytes, err := SignNativeTx(seed, chain, clientContextNative, msg)
+
+	res, err := txClient.BroadcastTx(context.Background(),
+		&txD.BroadcastTxRequest{
+			Mode:    txD.BroadcastMode_BROADCAST_MODE_BLOCK,
+			TxBytes: txBytes,
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+
+	//err = SendMsgAcknowledgement(native, chain, orcSeeds, res.TxResponse.TxHash, valAddr, nativeCliCtx, clientCtx)
+
+	if err != nil {
+		panic(err)
 	}
 
 }

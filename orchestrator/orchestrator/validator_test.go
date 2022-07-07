@@ -1,4 +1,4 @@
-package orchestrator
+package oracle
 
 import (
 	"context"
@@ -11,12 +11,12 @@ import (
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
-	stdlog "log"
+	logg "log"
 	"testing"
 	"time"
 )
 
-func TestE2EValDetails(t *testing.T) {
+func TestV(t *testing.T) {
 
 	custodialAdrr, err := AccAddressFromBech32("cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2", "cosmos")
 	if err != nil {
@@ -70,12 +70,12 @@ func TestE2EValDetails(t *testing.T) {
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
-			stdlog.Println("GRPC Connection error")
+			logg.Println("GRPC Connection error")
 		}
 	}(grpcConn)
 
 	if err != nil {
-		stdlog.Println("GRPC Connection failed")
+		logg.Println("GRPC Connection failed")
 		panic(err)
 	}
 
@@ -89,7 +89,7 @@ func TestE2EValDetails(t *testing.T) {
 	)
 
 	if err != nil {
-		stdlog.Println("cannot get total delegations")
+		logg.Println("cannot get total delegations")
 	}
 	flag := true
 	for _, Delegations := range BondedTokensQueryResult.DelegationResponses {
@@ -109,7 +109,7 @@ func TestE2EValDetails(t *testing.T) {
 			if statusErr.Code() == 5 {
 				flag = false
 			} else {
-				stdlog.Println("cannot get unbonding delegations")
+				logg.Println("cannot get unbonding delegations")
 				panic(err)
 			}
 
@@ -131,7 +131,7 @@ func TestE2EValDetails(t *testing.T) {
 		}
 		ValidaDetailsArr = append(ValidaDetailsArr, newEntry)
 		flag = true
-
+		
 	}
 	fmt.Println(ValidaDetailsArr)
 }

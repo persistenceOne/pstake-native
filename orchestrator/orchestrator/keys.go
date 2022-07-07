@@ -1,4 +1,4 @@
-package orchestrator
+package oracle
 
 import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"

@@ -1,4 +1,4 @@
-package orchestrator
+package oracle
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	txD "github.com/cosmos/cosmos-sdk/types/tx"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	prov "github.com/tendermint/tendermint/light/provider/http"
@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func TestE2Egrpc(t *testing.T) {
+func Test1(t *testing.T) {
 	rpcClient, _ := newRPCClient("http://13.229.64.99:26657", 1*time.Second)
 	liteprovider, _ := prov.New("native", "http://13.229.64.99:26657")
 	chain := &NativeChain{
@@ -84,13 +84,13 @@ func TestE2Egrpc(t *testing.T) {
 		}
 	}(grpcConn)
 
-	txClient := sdkTx.NewServiceClient(grpcConn)
+	txClient := txD.NewServiceClient(grpcConn)
 	fmt.Println("client created")
 
 	res, err := txClient.BroadcastTx(context.Background(),
-		&sdkTx.BroadcastTxRequest{
+		&txD.BroadcastTxRequest{
 			TxBytes: txBytes,
-			Mode:    sdkTx.BroadcastMode_BROADCAST_MODE_SYNC,
+			Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
 		})
 
 	if err != nil {
