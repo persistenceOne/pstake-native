@@ -1,11 +1,11 @@
-package orc
+package cmd
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/pstake-native/oracle/config"
-	"github.com/persistenceOne/pstake-native/oracle/constants"
-	"github.com/persistenceOne/pstake-native/oracle/helpers"
-	"github.com/persistenceOne/pstake-native/oracle/orchestrator"
+	"github.com/persistenceOne/pstake-native/orchestrator/config"
+	"github.com/persistenceOne/pstake-native/orchestrator/constants"
+	"github.com/persistenceOne/pstake-native/orchestrator/helpers"
+	"github.com/persistenceOne/pstake-native/orchestrator/orchestrator"
 	tendermintService "github.com/tendermint/tendermint/libs/service"
 	stdlog "log"
 	"time"

@@ -1,7 +1,7 @@
 package main
 
 import (
-	orc "github.com/persistenceOne/pstake-native/oracle/cmd"
+	orc "github.com/persistenceOne/pstake-native/orchestrator/cmd"
 	"github.com/spf13/cobra"
 )
 

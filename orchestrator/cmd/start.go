@@ -1,13 +1,13 @@
-package orc
+package cmd
 
 import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/persistenceOne/pstake-native/oracle/config"
-	"github.com/persistenceOne/pstake-native/oracle/constants"
-	"github.com/persistenceOne/pstake-native/oracle/orchestrator"
+	"github.com/persistenceOne/pstake-native/orchestrator/config"
+	"github.com/persistenceOne/pstake-native/orchestrator/constants"
+	"github.com/persistenceOne/pstake-native/orchestrator/orchestrator"
 	"github.com/spf13/cobra"
 	"log"
 	"os"

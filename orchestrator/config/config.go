@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/persistenceOne/pstake-native/oracle/constants"
+	"github.com/persistenceOne/pstake-native/orchestrator/constants"
 	"github.com/spf13/cobra"
 	"log"
 	"path/filepath"
