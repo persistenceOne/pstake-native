@@ -53,7 +53,7 @@ func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Chan
 		}
 		valAddrMap[valAddr.String()] = orcastratorAddress
 
-		account := k.authKeeper.GetAccount(ctx, orchestratorAccAddress)
+		account := k.AuthKeeper.GetAccount(ctx, orchestratorAccAddress)
 		if account == nil {
 			return cosmosTypes.ErrOrchAddressNotFound
 		}
@@ -141,7 +141,7 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 		}
 		valAddrMap[valAddr.String()] = orcastratorAddress
 
-		account := k.authKeeper.GetAccount(ctx, orchestratorAccAddress)
+		account := k.AuthKeeper.GetAccount(ctx, orchestratorAccAddress)
 		if account == nil {
 			return cosmosTypes.ErrOrchAddressNotFound
 		}

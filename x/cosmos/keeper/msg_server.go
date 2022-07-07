@@ -55,7 +55,7 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	}
 
 	//check if orchestrator public key exist or not
-	orchAccI := k.authKeeper.GetAccount(ctx, orchestrator)
+	orchAccI := k.AuthKeeper.GetAccount(ctx, orchestrator)
 	if orchAccI.GetPubKey() == nil {
 		return nil, sdkErrors.Wrap(cosmosTypes.ErrPubKeyNotFound, orchestrator.String())
 	}
@@ -600,7 +600,7 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 		Signature: msg.Signature,
 	}
 
-	account := k.authKeeper.GetAccount(ctx, orchestratorAddress)
+	account := k.AuthKeeper.GetAccount(ctx, orchestratorAddress)
 	if account == nil {
 		return nil, cosmosTypes.ErrOrchAddressNotFound
 	}
