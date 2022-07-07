@@ -1,10 +1,10 @@
-package orc
+package cmd
 
 import (
 	"bytes"
 	"github.com/BurntSushi/toml"
-	"github.com/persistenceOne/pstake-native/oracle/config"
-	"github.com/persistenceOne/pstake-native/oracle/constants"
+	"github.com/persistenceOne/pstake-native/orchestrator/config"
+	"github.com/persistenceOne/pstake-native/orchestrator/constants"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"log"

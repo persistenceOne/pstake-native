@@ -26,7 +26,7 @@ func createMemoryKeyFromMnemonic(mnemonic string) (sdkcryptotypes.PrivKey, sdk.A
 
 	privKey := algo.Generate()(derivedPriv)
 
-	account, err := kb.NewAccount("oraclekey", mnemonic, "", "m/44'/750'/0'/0/0", algo)
+	account, err := kb.NewAccount("orchestratorkey", mnemonic, "", "m/44'/750'/0'/0/0", algo)
 
 	bytes, err := sdk.Bech32ifyAddressBytes("persistence", account.GetAddress())
 	if err != nil {

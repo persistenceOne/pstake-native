@@ -7,7 +7,7 @@ import (
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/persistenceOne/pstake-native/oracle/constants"
+	"github.com/persistenceOne/pstake-native/orchestrator/constants"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	abciTypes "github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"

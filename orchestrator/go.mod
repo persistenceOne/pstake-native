@@ -1,4 +1,4 @@
-module github.com/persistenceOne/pstake-native/oracle
+module github.com/persistenceOne/pstake-native/orchestrator
 
 go 1.17
 
