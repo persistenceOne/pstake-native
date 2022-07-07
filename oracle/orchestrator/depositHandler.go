@@ -1,4 +1,4 @@
-package oracle
+package orchestrator
 
 import (
 	"context"
@@ -6,13 +6,13 @@ import (
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	txD "github.com/cosmos/cosmos-sdk/types/tx"
+	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	tendermintTypes "github.com/tendermint/tendermint/rpc/core/types"
 	"google.golang.org/grpc"
-	logg "log"
+	stdlog "log"
 	"strings"
 	"time"
 )
@@ -90,7 +90,7 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 						//TODO: handle multiple keys for signing
 						_, addr := GetPivKeyAddress(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
-						logg.Println("orchestrator address, ", addr)
+						stdlog.Println("orchestrator address, ", addr)
 						msg = &cosmosTypes.MsgMintTokensForAccount{
 							AddressFromMemo:     memo,
 							OrchestratorAddress: addr,
@@ -118,13 +118,13 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 							}
 						}(grpcConn)
 
-						txClient := txD.NewServiceClient(grpcConn)
+						txClient := sdkTx.NewServiceClient(grpcConn)
 
 						fmt.Println("client created")
 
 						res, err := txClient.BroadcastTx(context.Background(),
-							&txD.BroadcastTxRequest{
-								Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
+							&sdkTx.BroadcastTxRequest{
+								Mode:    sdkTx.BroadcastMode_BROADCAST_MODE_SYNC,
 								TxBytes: txBytes,
 							},
 						)

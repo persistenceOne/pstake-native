@@ -1,4 +1,4 @@
-package oracle
+package orchestrator
 
 import (
 	"context"
@@ -7,13 +7,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
-	txD "github.com/cosmos/cosmos-sdk/types/tx"
-	tx2 "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	"google.golang.org/grpc"
-	logg "log"
+	stdlog "log"
 	"os"
 	"strconv"
 	"strings"
@@ -119,7 +119,7 @@ func TestC(t *testing.T) {
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
-			logg.Println("GRPC Connection error")
+			stdlog.Println("GRPC Connection error")
 		}
 	}(grpcConn)
 	LiquidStakingModuleClient := cosmosTypes.NewQueryClient(grpcConn)
@@ -131,7 +131,7 @@ func TestC(t *testing.T) {
 	)
 
 	SignedTx := TxResult.CosmosTxDetails.Tx
-	sigTx := tx2.WrapTx(&SignedTx)
+	sigTx := authTx.WrapTx(&SignedTx)
 
 	sigTx1 := sigTx.GetTx()
 
@@ -151,12 +151,12 @@ func TestC(t *testing.T) {
 		}
 	}(grpcConnCosmos)
 
-	txClient := txD.NewServiceClient(grpcConnCosmos)
+	txClient := sdkTx.NewServiceClient(grpcConnCosmos)
 
 	fmt.Println("service client created")
 	res, err := txClient.BroadcastTx(context.Background(),
-		&txD.BroadcastTxRequest{
-			Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
+		&sdkTx.BroadcastTxRequest{
+			Mode:    sdkTx.BroadcastMode_BROADCAST_MODE_SYNC,
 			TxBytes: signedTxBytes,
 		},
 	)
@@ -179,7 +179,7 @@ loop:
 		}
 
 		res2, err := txClient.GetTx(context.Background(),
-			&txD.GetTxRequest{
+			&sdkTx.GetTxRequest{
 				Hash: cosmosTxHash,
 			},
 		)
@@ -224,7 +224,7 @@ loop:
 
 	}
 
-	err = SendMsgAcknowledgement(chain, chainC, []string{seed[2]}, cosmosTxHash, status, clientContextNative, clientContextCosmos)
+	err = SendMsgAck(chain, chainC, []string{seed[2]}, cosmosTxHash, status, clientContextNative, clientContextCosmos)
 	if err != nil {
 		panic(err)
 	}

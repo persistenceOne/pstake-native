@@ -1,4 +1,4 @@
-package oracle
+package orchestrator
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	txD "github.com/cosmos/cosmos-sdk/types/tx"
+	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	prov "github.com/tendermint/tendermint/light/provider/http"
@@ -84,13 +84,13 @@ func Test1(t *testing.T) {
 		}
 	}(grpcConn)
 
-	txClient := txD.NewServiceClient(grpcConn)
+	txClient := sdkTx.NewServiceClient(grpcConn)
 	fmt.Println("client created")
 
 	res, err := txClient.BroadcastTx(context.Background(),
-		&txD.BroadcastTxRequest{
+		&sdkTx.BroadcastTxRequest{
 			TxBytes: txBytes,
-			Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
+			Mode:    sdkTx.BroadcastMode_BROADCAST_MODE_SYNC,
 		})
 
 	if err != nil {

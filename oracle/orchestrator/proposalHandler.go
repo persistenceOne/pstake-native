@@ -1,14 +1,14 @@
-package oracle
+package orchestrator
 
 import (
 	"context"
 	"fmt"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
-	txD "github.com/cosmos/cosmos-sdk/types/tx"
+	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"google.golang.org/grpc"
-	logg "log"
+	stdlog "log"
 	"strconv"
 )
 
@@ -27,7 +27,7 @@ func (c *CosmosChain) ProposalHandler(propId string, orcSeeds []string, nativeCl
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
-			logg.Println("GRPC Connection error")
+			stdlog.Println("GRPC Connection error")
 		}
 	}(grpcConn)
 
@@ -70,15 +70,15 @@ func (c *CosmosChain) ProposalHandler(propId string, orcSeeds []string, nativeCl
 	defer func(grpcConnN *grpc.ClientConn) {
 		err := grpcConnN.Close()
 		if err != nil {
-			logg.Println("GRPC Connection error")
+			stdlog.Println("GRPC Connection error")
 		}
 	}(grpcConnN)
 
-	txClient := txD.NewServiceClient(grpcConnN)
+	txClient := sdkTx.NewServiceClient(grpcConnN)
 
 	res, err := txClient.BroadcastTx(context.Background(),
-		&txD.BroadcastTxRequest{
-			Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
+		&sdkTx.BroadcastTxRequest{
+			Mode:    sdkTx.BroadcastMode_BROADCAST_MODE_SYNC,
 			TxBytes: txBytes,
 		},
 	)

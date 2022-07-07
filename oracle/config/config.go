@@ -1,4 +1,4 @@
-package configuration
+package config
 
 import (
 	"github.com/BurntSushi/toml"
@@ -15,11 +15,7 @@ type Config struct {
 	NativeConfig NativeConfig `json:"native_config"`
 }
 
-var orcConfig = newConfig()
-
-func GetConfig() Config {
-	return orcConfig
-}
+var orcConfig = NewConfig()
 
 func SetConfig(cmd *cobra.Command) Config {
 	//  val flag
@@ -104,13 +100,6 @@ func (c *Config) GetCosmosConfig() CosmosConfig {
 func (c *Config) GetNativeConfig() NativeConfig {
 	return c.NativeConfig
 }
-func NewConfig(val string, cosmosConfig CosmosConfig, nativeConfig NativeConfig) Config {
-	return Config{
-		ValAddress:   val,
-		CosmosConfig: cosmosConfig,
-		NativeConfig: nativeConfig,
-	}
-}
 
 func Default() Config {
 	return Config{
@@ -192,7 +181,7 @@ func NewNativeConfig() NativeConfig {
 	}
 }
 
-func newConfig() Config {
+func NewConfig() Config {
 	return Config{
 		ValAddress:   constants.ValAddress,
 		OrcSeeds:     constants.Seed,
@@ -202,12 +191,10 @@ func newConfig() Config {
 }
 
 func InitializeConfigFromToml(homepath string) Config {
-	var config = newConfig()
+	var config = NewConfig()
 	_, err := toml.DecodeFile(filepath.Join(homepath, "config.toml"), &config)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error Decoding orchestrator config: %v\n", err.Error())
 	}
-	//log.Fatalf("Error Decoding oracle config: %v\n", err.Error())
-	log.Println(config)
 	return config
 }

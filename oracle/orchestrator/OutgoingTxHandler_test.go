@@ -1,4 +1,4 @@
-package oracle
+package orchestrator
 
 import (
 	"context"
@@ -6,12 +6,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	txD "github.com/cosmos/cosmos-sdk/types/tx"
+	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	"google.golang.org/grpc"
-	logg "log"
+	stdlog "log"
 	"os"
 	"strconv"
 	"testing"
@@ -117,7 +117,7 @@ func TestB(t *testing.T) {
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
-			logg.Println("GRPC Connection error")
+			stdlog.Println("GRPC Connection error")
 		}
 	}(grpcConn)
 	LiquidStakingModuleClient := cosmosTypes.NewQueryClient(grpcConn)
@@ -150,7 +150,7 @@ func TestB(t *testing.T) {
 		}
 	}(grpcConnCos)
 
-	txClient := txD.NewServiceClient(grpcConnCos)
+	txClient := sdkTx.NewServiceClient(grpcConnCos)
 
 	fmt.Println("client created")
 
@@ -164,8 +164,8 @@ func TestB(t *testing.T) {
 	txBytes, err := SignNativeTx(seed, chain, clientContextNative, msg)
 
 	res, err := txClient.BroadcastTx(context.Background(),
-		&txD.BroadcastTxRequest{
-			Mode:    txD.BroadcastMode_BROADCAST_MODE_BLOCK,
+		&sdkTx.BroadcastTxRequest{
+			Mode:    sdkTx.BroadcastMode_BROADCAST_MODE_BLOCK,
 			TxBytes: txBytes,
 		},
 	)
@@ -174,7 +174,7 @@ func TestB(t *testing.T) {
 	}
 	fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
 
-	//err = SendMsgAcknowledgement(native, chain, orcSeeds, res.TxResponse.TxHash, valAddr, nativeCliCtx, clientCtx)
+	//err = SendMsgAck(native, chain, orcSeeds, res.TxResponse.TxHash, valAddr, nativeCliCtx, clientCtx)
 
 	if err != nil {
 		panic(err)

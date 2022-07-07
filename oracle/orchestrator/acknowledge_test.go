@@ -1,16 +1,16 @@
-package oracle
+package orchestrator
 
 import (
 	"context"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	txD "github.com/cosmos/cosmos-sdk/types/tx"
+	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	"google.golang.org/grpc"
-	logg "log"
+	stdlog "log"
 	"os"
 	"testing"
 	"time"
@@ -144,11 +144,11 @@ func TestM(t *testing.T) {
 			}
 		}(grpcConn)
 
-		txClient := txD.NewServiceClient(grpcConn)
+		txClient := sdkTx.NewServiceClient(grpcConn)
 
 		res, err := txClient.BroadcastTx(context.Background(),
-			&txD.BroadcastTxRequest{
-				Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
+			&sdkTx.BroadcastTxRequest{
+				Mode:    sdkTx.BroadcastMode_BROADCAST_MODE_SYNC,
 				TxBytes: txBytes,
 			},
 		)
@@ -157,7 +157,7 @@ func TestM(t *testing.T) {
 
 		}
 
-		logg.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+		stdlog.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
 
 		if err != nil {
 			panic(err)

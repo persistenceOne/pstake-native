@@ -1,4 +1,4 @@
-package oracle
+package orchestrator
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	libclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
-	logg "log"
+	stdlog "log"
 	"os"
 	"path"
 	"path/filepath"
@@ -63,13 +63,13 @@ func (c *CosmosChain) Init(custAddr string, homepath string, timeout time.Durati
 	if err != nil {
 		return fmt.Errorf("failed to parse gas prices (%s) for chain %s", c.GasPrices, c.ChainID)
 	}
-	fmt.Println("Here1")
+	stdlog.Println("Here1")
 	custodialAddress, err := AccAddressFromBech32(custAddr, c.AccountPrefix)
 	if err != nil {
-		fmt.Println("Here1.5")
+		stdlog.Println("Here1.5")
 		return err
 	}
-	fmt.Println("Here2")
+	stdlog.Println("Here2")
 	encodingConfig := c.MakeEncodingConfig()
 
 	c.KeyBase = keybase
@@ -82,7 +82,7 @@ func (c *CosmosChain) Init(custAddr string, homepath string, timeout time.Durati
 	c.Provider = liteprovider
 	c.CustodialAddress = custodialAddress
 
-	fmt.Println(rpcClient, "cosmos rpcClient")
+	stdlog.Println(rpcClient, "cosmos rpcClient")
 
 	if c.logger == nil {
 		c.logger = defaultChainLogger()
@@ -97,7 +97,7 @@ func defaultChainLogger() log.Logger {
 }
 
 func (c *CosmosChain) UseSDKContext() func() {
-	//fmt.Println("SDKCONTEXT LOCK")
+	//stdlog.Println("SDKCONTEXT LOCK")
 	//sdkContextMutex.Lock()
 
 	sdkConf := sdk.GetConfig()
@@ -145,11 +145,11 @@ func StartListeningCosmosEvent(valAddr string, orcSeeds []string, nativeCliCtx c
 	ctx := context.Background()
 
 	var cHeight uint64
-	fmt.Println(chain, "printing chain")
+	stdlog.Println(chain, "printing chain")
 	abciInfoCosmos, err := chain.Client.ABCIInfo(ctx)
 	if err != nil {
-		fmt.Println("error getting abci info", err)
-		logg.Println("error getting cosmos abci info", err)
+		stdlog.Println("error getting abci info", err)
+		stdlog.Println("error getting cosmos abci info", err)
 	}
 	cHeight = uint64(abciInfoCosmos.Response.LastBlockHeight)
 
@@ -170,13 +170,13 @@ func StartListeningCosmosEvent(valAddr string, orcSeeds []string, nativeCliCtx c
 
 	query := "tm.event = 'NewBlock'"
 
-	EventListForBlock, err := rpcClient.Subscribe(ctx, "oracle-client", query)
+	EventListForBlock, err := rpcClient.Subscribe(ctx, "orchestrator-client", query)
 	if err != nil {
-		logg.Println("error subscribing, to the Event", err)
+		stdlog.Println("error subscribing, to the Event", err)
 	}
-	logg.Println("listening to events on Cosmos side")
+	stdlog.Println("listening to events on Cosmos side")
 	for e := range EventListForBlock {
-		logg.Println("listening to events on Cosmos side")
+		stdlog.Println("listening to events on Cosmos side")
 
 		slashSlice := e.Events["slash.address"]
 
@@ -187,7 +187,7 @@ func StartListeningCosmosEvent(valAddr string, orcSeeds []string, nativeCliCtx c
 		for _, slashAddr := range slashSlice {
 			err := chain.SlashingHandler(slashAddr, orcSeeds, valAddr, nativeCliCtx, native, chain, int64(cHeight))
 			if err != nil {
-				logg.Println("proposal handling error")
+				stdlog.Println("proposal handling error")
 				return
 			}
 		}
@@ -198,7 +198,7 @@ func StartListeningCosmosEvent(valAddr string, orcSeeds []string, nativeCliCtx c
 		for _, propId := range propIDSlice {
 			err := chain.ProposalHandler(propId, orcSeeds, nativeCliCtx, native, chain, int64(cHeight))
 			if err != nil {
-				logg.Println("proposal handling error")
+				stdlog.Println("proposal handling error")
 				return
 			}
 		}
@@ -211,42 +211,40 @@ func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx
 	if _, err := os.Stat(filepath.Join(chain.HomePath, "status.json")); err == nil {
 		cHeight, nHeight = GetHeightStatus(chain.HomePath)
 	} else if errors.Is(err, os.ErrNotExist) {
-		fmt.Println(chain.Client, "sssp")
 		abciInfoCosmos, err := chain.Client.ABCIInfo(ctx)
 		if err != nil {
-			fmt.Println("error getting abci info", err)
-			logg.Println("error getting cosmos abci info", err)
+			stdlog.Println("error getting abci info", err)
+			stdlog.Println("error getting cosmos abci info", err)
 		}
 		cHeight = uint64(abciInfoCosmos.Response.LastBlockHeight)
 		cHeight = cHeight - 1
-		fmt.Println("cosmos Block height- ", cHeight)
+		stdlog.Println("cosmos Block height- ", cHeight)
 
 		abciInfoNative, err := native.Client.ABCIInfo(ctx)
 		if err != nil {
-			fmt.Println("error getting abci info", err)
-			logg.Println("error getting native abci info", err)
+			stdlog.Println("error getting abci info", err)
+			stdlog.Println("error getting native abci info", err)
 		}
 		nHeight = uint64(abciInfoNative.Response.LastBlockHeight)
-		fmt.Println("native Block height- ", cHeight)
+		stdlog.Println("native Block height- ", cHeight)
 
 		SetStatus(chain.HomePath, cHeight, nHeight)
 
 	}
 	for cHeight > 0 && nHeight > 0 {
-		fmt.Println("cosmos Block height- ", cHeight)
+		stdlog.Println("cosmos Block height ", cHeight)
 		err := chain.DepositHandler(valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, int64(cHeight), codec)
 		if err != nil {
-			logg.Fatalln()
+			stdlog.Fatalln()
 		}
 
 		_, err = chain.Client.ABCIInfo(ctx)
 		if err != nil {
-			fmt.Println("error getting abci info", err)
-			logg.Println("error getting cosmos abci info", err)
+			stdlog.Println("error getting cosmos abci info", err)
 
 		}
 
-		time.Sleep(6 * time.Second)
+		time.Sleep(3 * time.Second)
 		cHeight = cHeight + 1
 
 		SetStatus(chain.HomePath, cHeight, nHeight)

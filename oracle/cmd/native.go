@@ -1,41 +1,39 @@
 package orc
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/pstake-native/oracle/configuration"
+	"github.com/persistenceOne/pstake-native/oracle/config"
 	"github.com/persistenceOne/pstake-native/oracle/constants"
 	"github.com/persistenceOne/pstake-native/oracle/helpers"
-	"github.com/persistenceOne/pstake-native/oracle/oracle"
+	"github.com/persistenceOne/pstake-native/oracle/orchestrator"
 	tendermintService "github.com/tendermint/tendermint/libs/service"
-	logg "log"
+	"log"
 	"time"
 )
 
-func InitCosmosChain(homePath string, config configuration.CosmosConfig) (*oracle.CosmosChain, error) {
-	chain := &oracle.CosmosChain{}
-	chain.Key = "unusedKey"
+func InitNativeChain(homePath string, config config.NativeConfig) (*orchestrator.NativeChain, error) {
+	chain := &orchestrator.NativeChain{}
+	chain.Key = "unusedNativeKey"
 	chain.ChainID = config.ChainID
-	chain.GRPCAddr = config.GRPCAddr
 	chain.RPCAddr = config.RPCAddr
+	chain.GRPCAddr = config.GRPCAddr
 	chain.AccountPrefix = config.AccountPrefix
 	chain.GasAdjustment = config.GasAdjustment
-	chain.GasPrices = config.GasPrice
-	chain.CustodialAddress = sdk.AccAddress(config.CustodialAddr)
+	chain.GasPrices = config.GasPrices
 	chain.CoinType = config.CoinType
 
-	err := chain.Init(string(chain.CustodialAddress), homePath, 1*time.Second, nil, true)
+	err := chain.Init(homePath, 1*time.Second, nil, true)
 	if err != nil {
 		return chain, err
 	}
 	if chain.KeyExists(chain.Key) {
-		logg.Println("Key Exists")
+		log.Println("Key Exists")
 		err = chain.KeyBase.Delete(chain.Key)
 		if err != nil {
 			return chain, err
 		}
 	}
 
-	_, err = helpers.KeyAddOrRestore(*chain, chain.Key, constants.CosmosCoinType)
+	_, err = helpers.KeyAddOrRestoreNative(*chain, chain.Key, constants.NativeCoinType)
 	if err != nil {
 		return chain, err
 	}

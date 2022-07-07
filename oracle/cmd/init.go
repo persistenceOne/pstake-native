@@ -3,7 +3,7 @@ package orc
 import (
 	"bytes"
 	"github.com/BurntSushi/toml"
-	"github.com/persistenceOne/pstake-native/oracle/configuration"
+	"github.com/persistenceOne/pstake-native/oracle/config"
 	"github.com/persistenceOne/pstake-native/oracle/constants"
 	"github.com/spf13/cobra"
 	"io/ioutil"
@@ -15,13 +15,13 @@ import (
 func InitCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init",
-		Short: "initialise oracle configuration in config.toml",
+		Short: "initialise orchestrator config in config.toml",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			config := configuration.SetConfig(cmd)
+			cfg := config.SetConfig(cmd)
 			var buf bytes.Buffer
 			log.Println("init ")
 			encoder := toml.NewEncoder(&buf)
-			if err := encoder.Encode(config); err != nil {
+			if err := encoder.Encode(cfg); err != nil {
 				return err
 			}
 			homeDir, err := cmd.Flags().GetString(constants.FlagOrcHomeDir)
@@ -34,7 +34,7 @@ func InitCommand() *cobra.Command {
 			if err := ioutil.WriteFile(filepath.Join(homeDir, "config.toml"), buf.Bytes(), 0600); err != nil {
 				panic(err)
 			}
-			log.Println("generated config.toml ", filepath.Join(homeDir, "config.toml"))
+			log.Println("generated cfg.toml ", filepath.Join(homeDir, "config.toml"))
 
 			return nil
 

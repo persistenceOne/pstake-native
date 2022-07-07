@@ -1,12 +1,12 @@
-package oracle
+package orchestrator
 
 import (
 	"context"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
-	txD "github.com/cosmos/cosmos-sdk/types/tx"
+	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"google.golang.org/grpc"
-	logg "log"
+	stdlog "log"
 	"strconv"
 )
 
@@ -24,12 +24,12 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
-			logg.Println("GRPC Connection error")
+			stdlog.Println("GRPC Connection error")
 		}
 	}(grpcConn)
 	LiquidStakingModuleClient := cosmosTypes.NewQueryClient(grpcConn)
 
-	logg.Println("query client connected")
+	stdlog.Println("query client connected")
 
 	TxResult, err := LiquidStakingModuleClient.QueryTxByID(context.Background(),
 		&cosmosTypes.QueryOutgoingTxByIDRequest{TxID: uint64(txId)},
@@ -59,9 +59,9 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 		}
 	}(grpcConnCos)
 
-	txClient := txD.NewServiceClient(grpcConnCos)
+	txClient := sdkTx.NewServiceClient(grpcConnCos)
 
-	logg.Println("client created")
+	stdlog.Println("client created")
 
 	msg := &cosmosTypes.MsgSetSignature{
 		OrchestratorAddress: addr,
@@ -76,14 +76,14 @@ func (n *NativeChain) OutgoingTxHandler(txIdstr string, valAddr string, orcSeeds
 	}
 
 	res, err := txClient.BroadcastTx(context.Background(),
-		&txD.BroadcastTxRequest{
-			Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
+		&sdkTx.BroadcastTxRequest{
+			Mode:    sdkTx.BroadcastMode_BROADCAST_MODE_SYNC,
 			TxBytes: txBytes,
 		},
 	)
 	if err != nil {
 		return err
 	}
-	logg.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+	stdlog.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
 	return nil
 }

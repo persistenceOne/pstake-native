@@ -1,4 +1,4 @@
-package oracle
+package orchestrator
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
-	logg "log"
+	stdlog "log"
 	"testing"
 	"time"
 )
@@ -70,12 +70,12 @@ func TestV(t *testing.T) {
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
-			logg.Println("GRPC Connection error")
+			stdlog.Println("GRPC Connection error")
 		}
 	}(grpcConn)
 
 	if err != nil {
-		logg.Println("GRPC Connection failed")
+		stdlog.Println("GRPC Connection failed")
 		panic(err)
 	}
 
@@ -89,7 +89,7 @@ func TestV(t *testing.T) {
 	)
 
 	if err != nil {
-		logg.Println("cannot get total delegations")
+		stdlog.Println("cannot get total delegations")
 	}
 	flag := true
 	for _, Delegations := range BondedTokensQueryResult.DelegationResponses {
@@ -109,7 +109,7 @@ func TestV(t *testing.T) {
 			if statusErr.Code() == 5 {
 				flag = false
 			} else {
-				logg.Println("cannot get unbonding delegations")
+				stdlog.Println("cannot get unbonding delegations")
 				panic(err)
 			}
 
@@ -131,7 +131,7 @@ func TestV(t *testing.T) {
 		}
 		ValidaDetailsArr = append(ValidaDetailsArr, newEntry)
 		flag = true
-		
+
 	}
 	fmt.Println(ValidaDetailsArr)
 }

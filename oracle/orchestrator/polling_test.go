@@ -1,4 +1,4 @@
-package oracle
+package orchestrator
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
-	txD "github.com/cosmos/cosmos-sdk/types/tx"
+	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	"google.golang.org/grpc"
@@ -72,7 +72,7 @@ func TestZ(t *testing.T) {
 		}
 	}(grpcConnCosmos)
 
-	txClient := txD.NewServiceClient(grpcConnCosmos)
+	txClient := sdkTx.NewServiceClient(grpcConnCosmos)
 
 	fmt.Println("service client created")
 
@@ -90,7 +90,7 @@ loop:
 		}
 
 		res2, err := txClient.GetTx(context.Background(),
-			&txD.GetTxRequest{
+			&sdkTx.GetTxRequest{
 				Hash: TxHash,
 			},
 		)

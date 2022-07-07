@@ -1,4 +1,4 @@
-package oracle
+package orchestrator
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
-	logg "log"
+	stdlog "log"
 )
 
 func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
@@ -19,7 +19,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 
 	custodialAddr, err := Bech32ifyAddressBytes(chain.AccountPrefix, chain.CustodialAddress)
 	if err != nil {
-		logg.Println(err)
+		stdlog.Println(err)
 		panic(err)
 
 	}
@@ -30,18 +30,18 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
-			logg.Println("GRPC Connection error")
+			stdlog.Println("GRPC Connection error")
 		}
 	}(grpcConn)
 
 	if err != nil {
-		logg.Println("GRPC Connection failed")
+		stdlog.Println("GRPC Connection failed")
 		panic(err)
 	}
 
 	stakingQueryClient := stakingTypes.NewQueryClient(grpcConn)
 
-	logg.Println("staking query client connected")
+	stdlog.Println("staking query client connected")
 
 	BondedTokensQueryResult, err := stakingQueryClient.DelegatorDelegations(context.Background(),
 		&stakingTypes.QueryDelegatorDelegationsRequest{
@@ -70,7 +70,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 			if statusErr.Code() == 5 {
 				flag = false
 			} else {
-				logg.Println("cannot get unbonding delegations")
+				stdlog.Println("cannot get unbonding delegations")
 				panic(err)
 			}
 
@@ -102,12 +102,12 @@ func GetAccountDetails(cosmosClient cosmosClient.Context, chain *CosmosChain, ad
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
-			logg.Println("GRPC Connection error")
+			stdlog.Println("GRPC Connection error")
 		}
 	}(grpcConn)
 
 	if err != nil {
-		logg.Println("GRPC Connection failed")
+		stdlog.Println("GRPC Connection failed")
 		panic(err)
 
 	}
@@ -120,7 +120,7 @@ func GetAccountDetails(cosmosClient cosmosClient.Context, chain *CosmosChain, ad
 	)
 
 	if err != nil {
-		logg.Println("cannot get accounts")
+		stdlog.Println("cannot get accounts")
 
 	}
 	var account authTypes.AccountI
@@ -130,7 +130,7 @@ func GetAccountDetails(cosmosClient cosmosClient.Context, chain *CosmosChain, ad
 
 	if err != nil {
 
-		fmt.Println("err unmarshaling ANY account")
+		stdlog.Println("err unmarshalling ANY account")
 
 	}
 

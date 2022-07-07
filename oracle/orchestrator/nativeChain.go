@@ -1,4 +1,4 @@
-package oracle
+package orchestrator
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
-	logg "log"
+	stdlog "log"
 	"time"
 )
 
@@ -116,14 +116,14 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 	abciInfoNative, err := native.Client.ABCIInfo(ctx)
 	if err != nil {
 		fmt.Println("error getting abci info", err)
-		logg.Println("error getting cosmos abci info", err)
+		stdlog.Println("error getting cosmos abci info", err)
 	}
 	nHeight = uint64(abciInfoNative.Response.LastBlockHeight)
 
 	abciInfoCosmos, err := chain.Client.ABCIInfo(ctx)
 	if err != nil {
 		fmt.Println("error getting abci info", err)
-		logg.Println("error getting cosmos abci info", err)
+		stdlog.Println("error getting cosmos abci info", err)
 	}
 	cHeight := uint64(abciInfoCosmos.Response.LastBlockHeight)
 	nHeight = uint64(abciInfoNative.Response.LastBlockHeight)
@@ -148,13 +148,13 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 
 	query := "tm.event = 'NewBlock'"
 
-	EventListForBlock, err := rpcClient.Subscribe(ctx, "oracle-client", query)
+	EventListForBlock, err := rpcClient.Subscribe(ctx, "orchestrator-client", query)
 	if err != nil {
-		logg.Println("error subscribing, to the Event", err)
+		stdlog.Println("error subscribing, to the Event", err)
 	}
 
 	for e := range EventListForBlock {
-		logg.Println("listening to events on native side")
+		stdlog.Println("listening to events on native side")
 		txIdSlice := e.Events["outgoing_txn.outgoing_tx_id"]
 
 		if txIdSlice != nil {
@@ -175,7 +175,7 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 			for _, txID := range txSignIdSlice {
 				err := native.SignedOutgoingTxHandler(txID, valAddr, orcSeeds, nativeCliCtx, ClientCtx, native, chain)
 				if err != nil {
-					logg.Println("signed outgoing tx handling error")
+					stdlog.Println("signed outgoing tx handling error")
 					panic(err)
 					return
 

@@ -1,4 +1,4 @@
-package oracle
+package orchestrator
 
 import (
 	"errors"
@@ -8,18 +8,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	txD "github.com/cosmos/cosmos-sdk/types/tx"
-	tx2 "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	logg "log"
+	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
+	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	stdlog "log"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	//"github.com/cosmos/cosmos-sdk/crypto/hd"
-	//"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdkcryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 )
@@ -32,7 +29,7 @@ func SetSDKConfigPrefix(prefix string) {
 
 }
 
-func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, msg sdk.Msg) ([]byte, error) {
+func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, msg sdkTypes.Msg) ([]byte, error) {
 	// Build the factory CLI
 	// Create a new TxBuilder.
 
@@ -51,7 +48,7 @@ func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, ms
 	if err != nil {
 		return nil, err
 	}
-	logg.Println(ac, seq, err)
+	stdlog.Println(ac, seq, err)
 
 	sig := signing.SignatureV2{PubKey: privKey.PubKey(),
 		Data: &signing.SingleSignatureData{
@@ -82,7 +79,7 @@ func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, ms
 		return nil, err
 	}
 
-	logg.Println(txBuilder.GetTx(), "Signed Tx")
+	stdlog.Println(txBuilder.GetTx(), "Signed Tx")
 	txBytes, err := clientCtx.TxConfig.TxEncoder()(txBuilder.GetTx())
 	if err != nil {
 		return nil, err
@@ -92,14 +89,14 @@ func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, ms
 
 }
 
-func GetSDKPivKeyAndAddress(Seed string) (sdkcryptotypes.PrivKey, sdk.AccAddress) {
+func GetSDKPivKeyAndAddress(Seed string) (sdkcryptotypes.PrivKey, sdkTypes.AccAddress) {
 
 	privKey := secp256k1.GenPrivKeyFromSecret([]byte(Seed))
 
 	pubkey := privKey.PubKey()
 
-	address, err := sdk.AccAddressFromHex(pubkey.Address().String())
-	logg.Println(address.String())
+	address, err := sdkTypes.AccAddressFromHex(pubkey.Address().String())
+	stdlog.Println(address.String())
 	if err != nil {
 		panic(err)
 	}
@@ -120,7 +117,7 @@ func GetPivKeyAddress(prefix string, cointype uint32, mnemonic string) (sdkcrypt
 
 	privKey := algo.Generate()(derivedPriv)
 
-	//addrString, err := sdk.Bech32ifyAddressBytes(prefix, privKey.PubKey().Address())
+	//addrString, err := sdkTypes.Bech32ifyAddressBytes(prefix, privKey.PubKey().Address())
 	addrString, err := Bech32ifyAddressBytes(prefix, sdkTypes.AccAddress(privKey.PubKey().Address()))
 	if err != nil {
 		panic(err)
@@ -142,7 +139,7 @@ func Bech32ifyAddressBytes(prefix string, address sdkTypes.AccAddress) (string, 
 	return bech32.ConvertAndEncode(prefix, address.Bytes())
 }
 
-func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Context, OutgoingTx txD.Tx, signerAddress string) ([]byte, error) {
+func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Context, OutgoingTx sdkTx.Tx, signerAddress string) ([]byte, error) {
 	privkey, _ := GetPivKeyAddress(chain.AccountPrefix, chain.CoinType, seed)
 
 	SetSDKConfigPrefix(chain.AccountPrefix)
@@ -164,7 +161,7 @@ func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Con
 		panic(err)
 	}
 
-	txBuilder := tx2.WrapTx(&OutgoingTx)
+	txBuilder := authTx.WrapTx(&OutgoingTx)
 
 	SignBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
 		xauthsigning.SignerData{

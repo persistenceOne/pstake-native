@@ -1,26 +1,26 @@
-package oracle
+package orchestrator
 
 import (
 	"context"
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
-	txD "github.com/cosmos/cosmos-sdk/types/tx"
+	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"google.golang.org/grpc"
-	logg "log"
+	stdlog "log"
 )
 
 func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr string, nativeCliCtx cosmosClient.Context, native *NativeChain, chain *CosmosChain, cHeight int64) error {
 	custodialAddr, err := Bech32ifyAddressBytes(chain.AccountPrefix, chain.CustodialAddress)
 	if err != nil {
-		logg.Println(err)
+		stdlog.Println(err)
 		return err
 	}
 	SetSDKConfigPrefix(chain.AccountPrefix)
 	slashedValAddress, err := AccAddressFromBech32(slash, chain.AccountPrefix)
 
 	if err != nil {
-		logg.Println(err)
+		stdlog.Println(err)
 		return err
 	}
 
@@ -31,18 +31,18 @@ func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr s
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
-			logg.Println("GRPC Connection error")
+			stdlog.Println("GRPC Connection error")
 		}
 	}(grpcConn)
 
 	if err != nil {
-		logg.Println("GRPC Connection failed")
+		stdlog.Println("GRPC Connection failed")
 		return err
 	}
 
 	stakingQueryClient := stakingTypes.NewQueryClient(grpcConn)
 
-	logg.Println("staking query client connected")
+	stdlog.Println("staking query client connected")
 
 	BondedTokensQueryResult, err := stakingQueryClient.Delegation(context.Background(),
 		&stakingTypes.QueryDelegationRequest{
@@ -84,11 +84,11 @@ func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr s
 		}
 	}(grpcConnN)
 
-	txClient := txD.NewServiceClient(grpcConnN)
+	txClient := sdkTx.NewServiceClient(grpcConnN)
 
 	res, err := txClient.BroadcastTx(context.Background(),
-		&txD.BroadcastTxRequest{
-			Mode:    txD.BroadcastMode_BROADCAST_MODE_SYNC,
+		&sdkTx.BroadcastTxRequest{
+			Mode:    sdkTx.BroadcastMode_BROADCAST_MODE_SYNC,
 			TxBytes: txBytes,
 		},
 	)
@@ -96,7 +96,7 @@ func (c *CosmosChain) SlashingHandler(slash string, orcSeeds []string, valAddr s
 		return err
 	}
 
-	logg.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
+	stdlog.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
 
 	return nil
 
