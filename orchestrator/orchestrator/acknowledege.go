@@ -6,34 +6,23 @@ import (
 	"github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	abciTypes "github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
 	stdlog "log"
 )
 
-const (
-	FAIL = "fail"
-	PASS = "pass"
-)
-
-func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string, txHash string, status string,
-	nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, blockResults []*abciTypes.ResponseDeliverTx) error {
+func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string, TxHash string, status string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context) error {
 
 	_, addr := GetPivKeyAddress(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
 	ValDetails := GetValidatorDetails(cosmosChain)
 
-	ValDetails, err := PopulateRewards(cosmosChain, ValDetails, blockResults)
-	if err != nil {
-		return err
-	}
 	SetSDKConfigPrefix(cosmosChain.ChainID)
 	address, err, flag := GetMultiSigAddress(native, cosmosChain)
 	if err != nil {
 		return err
 	}
 
-	if flag == PASS {
+	if flag == "pass" {
 		acc, seq, err := clientCtx.AccountRetriever.GetAccountNumberSequence(clientCtx, address)
 		if err != nil {
 			return err
@@ -41,12 +30,19 @@ func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string
 
 		msg := &cosmosTypes.MsgTxStatus{
 			OrchestratorAddress: addr,
-			TxHash:              txHash,
+			TxHash:              TxHash,
 			Status:              status,
 			SequenceNumber:      seq,
 			AccountNumber:       acc,
 			ValidatorDetails:    ValDetails,
 		}
+
+		//msg2 := &cosmosTypes.MsgRewardsClaimedOnCosmosChain{
+		//	OrchestratorAddress: "",
+		//	AmountClaimed:       types.Coin{},
+		//	ChainID:             "",
+		//	BlockHeight:         0,
+		//}
 
 		txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)
 
@@ -96,7 +92,7 @@ func GetMultiSigAddress(chain *NativeChain, chainC *CosmosChain) (types.AccAddre
 
 	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
 	if err != nil {
-		return nil, err, FAIL
+		return nil, err, "fail"
 	}
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
@@ -116,7 +112,7 @@ func GetMultiSigAddress(chain *NativeChain, chainC *CosmosChain) (types.AccAddre
 		&cosmosTypes.QueryActiveTxnRequest{},
 	)
 	if err != nil {
-		return nil, err, FAIL
+		return nil, err, "fail"
 	}
 
 	txId = ActiveTxID.GetTxID()
@@ -130,12 +126,12 @@ func GetMultiSigAddress(chain *NativeChain, chainC *CosmosChain) (types.AccAddre
 
 		signerAddr, err := AccAddressFromBech32(signerAddress, chainC.AccountPrefix)
 		if err != nil {
-			return nil, err, FAIL
+			return nil, err, "fail"
 		}
 
-		return signerAddr, nil, PASS
+		return signerAddr, nil, "pass"
 
 	}
 
-	return nil, nil, FAIL
+	return nil, nil, "fail"
 }
