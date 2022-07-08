@@ -1,0 +1,114 @@
+syntax = "proto3";
+package cosmos.v1beta1;
+
+option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
+
+// TODO: Do no use in proposals, use WeightedAddress for proposals
+message WeightedAddressAmount {
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+  string weight = 2 [
+    (gogoproto.moretags) = "yaml:\"weight\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string denom  = 3;
+  string amount = 4 [
+    (gogoproto.moretags) = "yaml:\"amount\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  cosmos.base.v1beta1.Coin unbonding_tokens = 5 [(gogoproto.nullable) = false];
+}
+
+message WeightedAddress {
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
+  string weight = 2 [
+    (gogoproto.moretags) = "yaml:\"weight\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message DistributionProportions {
+  string validator_rewards = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags) = "yaml:\"validator_rewards\"",
+    (gogoproto.nullable) = false
+  ];
+  string developer_rewards = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags) = "yaml:\"developer_rewards\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message CosmosChainProposalParams {
+  string chain_i_d = 1;
+  google.protobuf.Duration reduce_voting_period_by = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.jsontag) = "voting_period,omitempty",
+    (gogoproto.moretags) = "yaml:\"voting_period\""
+  ];
+}
+
+//Params hold the parameters for cosmos module
+//TODO : check correct moretags naming convention
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+
+  string mint_denom = 1 [
+    (gogoproto.moretags) = "yaml:\"mint_denom\""
+  ];
+  cosmos.base.v1beta1.Coin min_minting_amount = 2 [
+    (gogoproto.moretags) = "yaml:\"min_minting_amount\"",
+    (gogoproto.nullable) = false
+  ];
+  cosmos.base.v1beta1.Coin max_minting_amount = 3 [
+    (gogoproto.moretags) = "yaml:\"max_minting_amount\"",
+    (gogoproto.nullable) = false
+  ];
+  cosmos.base.v1beta1.Coin min_burning_amount = 4 [
+    (gogoproto.moretags) = "yaml:\"min_burning_amount\"",
+    (gogoproto.nullable) = false
+  ];
+  cosmos.base.v1beta1.Coin max_burning_amount = 5 [
+    (gogoproto.moretags) = "yaml:\"max_burning_amount\"",
+    (gogoproto.nullable) = false
+  ];
+  uint64 max_validator_to_delegate = 6 [
+    (gogoproto.moretags) = "yaml:\"max_validator_to_delegate\""]
+  ;
+  repeated WeightedAddress weighted_developer_rewards_receivers = 9 [
+    (gogoproto.moretags) = "yaml:\"weightedDeveloperRewardsReceivers\"",
+    (gogoproto.nullable) = false
+  ];
+  DistributionProportions distribution_proportion = 10 [
+    (gogoproto.moretags) = "yaml:\"weightedDeveloperRewardsReceivers\"",
+    (gogoproto.nullable) = false
+  ];
+  CosmosChainProposalParams cosmos_proposal_params = 11 [
+    (gogoproto.moretags) = "yaml:\"cosmos_proposal_params\"",
+    (gogoproto.nullable) = false
+  ];
+  string custodial_address = 12 [
+    (gogoproto.moretags) = "yaml:\"custodial_address\""
+  ];
+  bool module_enabled = 13;
+  string staking_epoch_identifier = 14;
+  int64 chunk_size = 15;
+  string undelegate_epoch_identifier = 16;
+  repeated string bond_denoms = 17;
+  string staking_denom = 18;
+  uint64 retry_limit = 19;
+  string reward_epoch_identifier = 20;
+  cosmos.base.v1beta1.Coin min_reward = 21 [
+    (gogoproto.moretags) = "yaml:\"min_minting_amount\"",
+    (gogoproto.nullable) = false
+  ];
+}

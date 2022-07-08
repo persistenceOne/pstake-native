@@ -106,6 +106,12 @@ import (
 	"github.com/gravity-devs/liquidity/v2/x/liquidity"
 	liquiditykeeper "github.com/gravity-devs/liquidity/v2/x/liquidity/keeper"
 	liquiditytypes "github.com/gravity-devs/liquidity/v2/x/liquidity/types"
+	"github.com/persistenceOne/pstake-native/x/cosmos"
+	cosmosClient "github.com/persistenceOne/pstake-native/x/cosmos/client"
+	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
+	epochs "github.com/persistenceOne/pstake-native/x/epochs"
+	epochsKeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
+	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -124,6 +130,7 @@ import (
 	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
 )
+
 
 var (
 	// DefaultNodeHome default home directories for the application daemon
@@ -149,6 +156,10 @@ var (
 				ibcclientclient.UpdateClientProposalHandler,
 				ibcclientclient.UpgradeProposalHandler,
 			},
+			cosmosClient.EnableModuleProposalHandler,
+			cosmosClient.ChangeMultisigProposalHandler,
+			cosmosClient.ChangeCosmosValidatorWeightsProposalHandler,
+			cosmosClient.ChangeOracleValidatorWeightsProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -164,6 +175,8 @@ var (
 		liquidity.AppModuleBasic{},
 		// router.AppModuleBasic{},
 		ica.AppModuleBasic{},
+		cosmos.AppModuleBasic{},
+		epochs.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -177,6 +190,7 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 		liquiditytypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		cosmos.ModuleName:              {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -202,7 +216,7 @@ type PstakeApp struct {
 
 	// keepers
 	AccountKeeper    authkeeper.AccountKeeper
-	BankKeeper       bankkeeper.Keeper
+	BankKeeper       bankkeeper.BaseKeeper
 	CapabilityKeeper *capabilitykeeper.Keeper
 	StakingKeeper    stakingkeeper.Keeper
 	SlashingKeeper   slashingkeeper.Keeper
@@ -221,8 +235,9 @@ type PstakeApp struct {
 	GroupKeeper     groupkeeper.Keeper
 	AuthzKeeper     authzkeeper.Keeper
 	LiquidityKeeper liquiditykeeper.Keeper
-
 	// RouterKeeper    routerkeeper.Keeper
+	CosmosKeeper     cosmos.Keeper
+	EpochsKeeper     epochsKeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -279,6 +294,7 @@ func NewGaiaApp(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, liquiditytypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey /*routertypes.StoreKey,*/, icahosttypes.StoreKey, group.StoreKey,
+		cosmos.StoreKey, epochsTypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -396,6 +412,22 @@ func NewGaiaApp(
 		app.BankKeeper,
 		authtypes.FeeCollectorName,
 	)
+	app.EpochsKeeper = epochsKeeper.NewKeeper(
+		appCodec,
+		keys[epochsTypes.StoreKey],
+	)
+	app.CosmosKeeper = cosmos.NewKeeper(
+		appCodec,
+		keys[cosmos.StoreKey],
+		app.ParamsKeeper.Subspace(cosmos.DefaultParamspace),
+		&app.AccountKeeper,
+		&app.BankKeeper,
+		&app.MintKeeper,
+		&app.StakingKeeper,
+		app.EpochsKeeper,
+		&app.DistrKeeper,
+	)
+
 	app.LiquidityKeeper = liquiditykeeper.NewKeeper(
 		appCodec,
 		keys[liquiditytypes.StoreKey],
@@ -440,11 +472,14 @@ func NewGaiaApp(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+    AddRoute(cosmosTypes.RouterKey, cosmos.NewCosmosLiquidStakingProposalHandler(app.CosmosKeeper))
 	govConfig := govtypes.DefaultConfig()
 	/*
 		Example of setting gov params:
 		govConfig.MaxMetadataLen = 10000
 	*/
+
+
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,
 		keys[govtypes.StoreKey],
@@ -513,6 +548,12 @@ func NewGaiaApp(
 
 	app.EvidenceKeeper = *evidenceKeeper
 
+	app.EpochsKeeper.SetHooks(
+		epochsTypes.NewMultiEpochHooks(
+			app.CosmosKeeper.Hooks(),
+		),
+	)
+
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
 	// NOTE: Any module instantiated in the module manager that is later modified
@@ -542,6 +583,8 @@ func NewGaiaApp(
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
+		cosmos.NewAppModule(appCodec, app.CosmosKeeper),
+		epochs.NewAppModule(appCodec, app.EpochsKeeper),
 		transferModule,
 		icaModule,
 		// routerModule,
@@ -576,6 +619,8 @@ func NewGaiaApp(
 		group.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
+		cosmos.ModuleName,
+		epochsTypes.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
@@ -600,6 +645,9 @@ func NewGaiaApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
+		cosmos.ModuleName,
+		epochsTypes.ModuleName,
+
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -631,6 +679,8 @@ func NewGaiaApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
+		cosmos.ModuleName,
+		epochsTypes.ModuleName,
 	)
 
 	// Uncomment if you want to set a custom migration order here.
@@ -665,6 +715,7 @@ func NewGaiaApp(
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
+		cosmos.NewAppModule(appCodec, app.CosmosKeeper),
 		transferModule,
 	)
 

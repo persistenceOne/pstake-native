@@ -3,23 +3,25 @@ package helpers
 import (
 	"encoding/json"
 	"testing"
-	 "time"
+	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/simapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
-
 	"github.com/cosmos/cosmos-sdk/server/types"
-	gaiaapp "github.com/persistenceOne/pstake-native/app"
 	"github.com/persistenceOne/pstake-native/app/params"
+	tmdb "github.com/tendermint/tm-db"
+	"github.com/persistenceOne/pstake-native/app"
 )
 
 // SimAppChainID hardcoded chainID for simulation
 const (
-	SimAppChainID = "gaia-app"
+	SimAppChainID = "pstake-app"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used
@@ -41,21 +43,57 @@ var DefaultConsensusParams = &tmproto.ConsensusParams{
 	},
 }
 
+func newTestApp(isCheckTx bool, withGenesis bool) app.PstakeApp {
+	db := tmdb.NewMemDB()
+	// encCdc := app.MakeTestEncodingConfig()
+
+	encoding := app.MakeEncodingConfig()
+	testApp := app.NewGaiaApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encoding, simapp.EmptyAppOptions{})
+	genesis := app.GenesisState{}
+	if withGenesis {
+		genesis = app.NewDefaultGenesisState()
+	}
+
+	if !isCheckTx {
+		// InitChain must be called to stop deliverState from being nil
+		stateBytes, err := json.MarshalIndent(genesis, "", " ")
+		if err != nil {
+			panic(err)
+		}
+		// Initialize the chain
+		testApp.InitChain(
+			abci.RequestInitChain{
+				Validators:      []abci.ValidatorUpdate{},
+				ConsensusParams: DefaultConsensusParams,
+				AppStateBytes:   stateBytes,
+			},
+		)
+	}
+	return *testApp
+}
+
+func CreateTestApp() (*codec.LegacyAmino, app.PstakeApp, sdk.Context) {
+	testApp := newTestApp(false, false)
+	ctx := testApp.BaseApp.NewContext(false, tmproto.Header{})
+
+	return testApp.LegacyAmino(), testApp, ctx
+}
+
 type EmptyAppOptions struct{}
 
 func (EmptyAppOptions) Get(o string) interface{} { return nil }
 
-func Setup(t *testing.T, isCheckTx bool, invCheckPeriod uint) *gaiaapp.PstakeApp {
+func Setup(t *testing.T, isCheckTx bool, invCheckPeriod uint) *app.PstakeApp {
 	t.Helper()
 
-	app, genesisState := setup(!isCheckTx, invCheckPeriod)
+	testApp, genesisState := setup(!isCheckTx, invCheckPeriod)
 	if !isCheckTx {
 		// InitChain must be called to stop deliverState from being nil
 		stateBytes, err := json.MarshalIndent(genesisState, "", " ")
 		require.NoError(t, err)
 
 		// Initialize the chain
-		app.InitChain(
+		testApp.InitChain(
 			abci.RequestInitChain{
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: DefaultConsensusParams,
@@ -64,8 +102,6 @@ func Setup(t *testing.T, isCheckTx bool, invCheckPeriod uint) *gaiaapp.PstakeApp
 		)
 	}
 
-	return app
-}
 
 // SetupOptions defines arguments that are passed into `Simapp` constructor.
 type SetupOptions struct {
@@ -77,24 +113,26 @@ type SetupOptions struct {
 	EncConfig          params.EncodingConfig
 	AppOpts            types.AppOptions
 }
+	return testApp
+}
 
-func setup(withGenesis bool, invCheckPeriod uint) (*gaiaapp.PstakeApp, gaiaapp.GenesisState) {
-	db := dbm.NewMemDB()
-	encCdc := gaiaapp.MakeTestEncodingConfig()
-	app := gaiaapp.NewGaiaApp(
+func setup(withGenesis bool, invCheckPeriod uint) (*app.PstakeApp, app.GenesisState) {
+	db := tmdb.NewMemDB()
+	encCdc := app.MakeEncodingConfig()
+	testApp := app.NewGaiaApp(
 		log.NewNopLogger(),
 		db,
 		nil,
 		true,
 		map[int64]bool{},
-		gaiaapp.DefaultNodeHome,
+		app.DefaultNodeHome,
 		invCheckPeriod,
 		encCdc,
 		EmptyAppOptions{},
 	)
 	if withGenesis {
-		return app, gaiaapp.NewDefaultGenesisState()
+		return testApp, app.NewDefaultGenesisState()
 	}
 
-	return app, gaiaapp.GenesisState{}
+	return testApp, app.GenesisState{}
 }
