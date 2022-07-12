@@ -121,6 +121,15 @@ spec:
             jq '.app_state.gov.deposit_params.min_deposit[0].amount |= "10"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
             mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
 
+            jq '.consensus_params.block.max_bytes |= "42020096"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesisNew
+            mv $PSTAKE_DIR/config/genesisNew $PSTAKE_DIR/config/genesis.json
+            jq '.app_state.gov.voting_params.voting_period |= "900s"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesisNew
+            mv $PSTAKE_DIR/config/genesisNew $PSTAKE_DIR/config/genesis.json
+            jq '.app_state.gov.tally_params.quorum |= "0.0"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesisNew
+            mv $PSTAKE_DIR/config/genesisNew $PSTAKE_DIR/config/genesis.json
+            jq '.app_state.gov.deposit_params.min_deposit[0].amount |= "10"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesisNew
+            mv $PSTAKE_DIR/config/genesisNew $PSTAKE_DIR/config/genesis.json
+
             gaiad tendermint show-node-id --home $GAIA_DIR > /gaiad/genesis-node-id.txt
         resources:
           limits:
