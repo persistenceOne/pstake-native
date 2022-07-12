@@ -93,7 +93,7 @@ func (k Keeper) totalAmountToBeUnbonded(value cosmosTypes.WithdrawStoreValue, de
 func (k Keeper) generateSendTransactionForAllWithdrawals(ctx sdk.Context, epochNumber int64, cValue sdk.Dec) error {
 	withdrawStoreValue := k.fetchWithdrawTxnsWithCurrentEpochInfo(ctx, epochNumber)
 	params := k.GetParams(ctx)
-	bondDenom, err := params.GetBondDenomOf("uatom")
+	bondDenom, err := params.GetBondDenomOf(cosmosTypes.DefaultStakingDenom)
 	if err != nil {
 		return err
 	}

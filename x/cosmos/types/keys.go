@@ -39,9 +39,9 @@ const (
 	QueryVote       = "vote"
 	QueryVotes      = "votes"
 
-	StorageWindow = 20000
+	StorageWindow = 40000
 
-	MinGasFee = 400000
+	MinGasFee = 800000
 	MaxGasFee = 4000000
 
 	Bech32Prefix = "cosmos"

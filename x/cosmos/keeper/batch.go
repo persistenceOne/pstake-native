@@ -492,7 +492,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 		}
 
 		// TODO : handle balance, bonded tokens and unbonding tokens value
-		bondDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
+		bondDenom, err := k.GetParams(ctx).GetBondDenomOf(cosmosTypes.DefaultStakingDenom)
 		if err != nil {
 			panic(err)
 		}
@@ -568,7 +568,7 @@ func FindMajority(inputArr []string) string {
 }
 
 func GetAmountFromMessage(execMsgs []*codecTypes.Any) sdk.Coin {
-	tempAmnt := sdk.NewInt64Coin("uatom", 0)
+	tempAmnt := sdk.NewInt64Coin(cosmosTypes.DefaultStakingDenom, 0)
 	for _, m := range execMsgs {
 		switch m.GetCachedValue().(type) {
 		case *stakingTypes.MsgDelegate:

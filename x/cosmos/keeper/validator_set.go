@@ -25,7 +25,7 @@ func (k Keeper) SetCosmosValidatorSet(ctx sdk.Context, cosmosValSetWeights []cos
 			weightedAddress.Weight = newSortedCosmosValSetWeights[i].Weight
 			cosmosValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&weightedAddress))
 		} else {
-			bondDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
+			bondDenom, err := k.GetParams(ctx).GetBondDenomOf(cosmosTypes.DefaultStakingDenom)
 			if err != nil {
 				panic(err)
 			}

@@ -8,7 +8,7 @@ OrcSeeds = ["soft brown armed regret hip few ancient control steel bright basic 
   GRPCAddr = "gaia-genesis.dev-native.svc.cluster.local:9090"
   RPCAddr = "http://gaia-genesis.dev-native.svc.cluster.local:26657"
   AccountPrefix = "cosmos"
-  GasAdjustment = 1.0
+  GasAdjustment = 1.5
   GasPrice = "0.025stake"
   CoinType = 118
 
@@ -18,6 +18,6 @@ OrcSeeds = ["soft brown armed regret hip few ancient control steel bright basic 
   RPCAddr = "http://pstake-genesis.dev-native.svc.cluster.local:26657"
   GRPCAddr = "pstake-genesis.dev-native.svc.cluster.local:9090"
   AccountPrefix = "persistence"
-  GasAdjustment = 1.0
+  GasAdjustment = 1.5
   GasPrices = "0.025stake"
   CoinType = 118

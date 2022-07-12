@@ -15,8 +15,8 @@ import (
 // Default constants for period, mint and staking denom
 const (
 	DefaultPeriod       = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
-	DefaultMintDenom    = "ustkatom"
-	DefaultStakingDenom = "uatom"
+	DefaultMintDenom    = "ustk" + DefaultStakingDenom
+	DefaultStakingDenom = "stake"
 	MinAmount           = 5000000
 	MaxAmount           = 100000000000
 	MinReward           = 1000
@@ -24,7 +24,7 @@ const (
 
 // DefaultBondDenom is a default bond denom param
 var (
-	DefaultBondDenom = []string{"uatom"}
+	DefaultBondDenom = []string{DefaultStakingDenom}
 )
 
 // Parameter store key
@@ -80,7 +80,7 @@ func DefaultParams() Params {
 		},
 		ModuleEnabled:             false,
 		CustodialAddress:          "",
-		StakingEpochIdentifier:    "uatom",
+		StakingEpochIdentifier:    "stake",
 		UndelegateEpochIdentifier: "undelegate",
 		RewardEpochIdentifier:     "reward",
 		ChunkSize:                 5,

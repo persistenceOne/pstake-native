@@ -35,9 +35,9 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 }
 
 /*
-AfterEpochEnd handle the "uatom", "reward" and "undelegate" epoch and their respective actions
-1. "uatom" generates delegate transaction for delegating the amount of uatom accumulated over the "uatom" epoch
-2. "reward" generates delegate transaction for delegating the amount of uatom accumulated over the "reward" epochs
+AfterEpochEnd handle the "stake", "reward" and "undelegate" epoch and their respective actions
+1. "stake" generates delegate transaction for delegating the amount of stake accumulated over the "stake" epoch
+2. "reward" generates delegate transaction for delegating the amount of stake accumulated over the "reward" epochs
 and shift the amount to next epoch if the min amount is not reached
 3. "undelegate" generated the undelegate transaction for undelegating the amount accumulated over the "undelegate" epoch
 */
@@ -94,7 +94,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 
 	if epochIdentifier == params.UndelegateEpochIdentifier {
 		withdrawTxns := k.fetchWithdrawTxnsWithCurrentEpochInfo(ctx, epochNumber)
-		unbondDenom, err := params.GetBondDenomOf("uatom")
+		unbondDenom, err := params.GetBondDenomOf(cosmosTypes.DefaultStakingDenom)
 		if err != nil {
 			panic(err)
 		}

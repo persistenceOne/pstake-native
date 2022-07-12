@@ -86,7 +86,7 @@ func (m *ChangeMultisigProposal) String() string {
 }
 
 // NewEnableModuleProposal returns a new module enable proposal
-func NewEnableModuleProposal(title, description, custodialAddress, chainID string, threshold, accountNumber,
+func NewEnableModuleProposal(title, description, custodialAddress, chainID, denom string, threshold, accountNumber,
 	sequenceNumber uint64, orchestratorAddresses []string) *EnableModuleProposal {
 	return &EnableModuleProposal{
 		Title:                 title,
@@ -97,6 +97,7 @@ func NewEnableModuleProposal(title, description, custodialAddress, chainID strin
 		SequenceNumber:        sequenceNumber,
 		CustodialAddress:      custodialAddress,
 		ChainID:               chainID,
+		Denom:                 denom,
 	}
 }
 
@@ -141,6 +142,10 @@ func (m *EnableModuleProposal) ValidateBasic() error {
 
 	if m.ChainID == "" {
 		return fmt.Errorf("chain ID can not be empty")
+	}
+
+	if DefaultStakingDenom != m.Denom {
+		return fmt.Errorf("denom does not match default staking denom")
 	}
 
 	if m.Threshold > uint64(len(m.OrchestratorAddresses)) {

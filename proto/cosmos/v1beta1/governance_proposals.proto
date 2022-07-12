@@ -36,6 +36,7 @@ message EnableModuleProposal {
   repeated string orchestrator_addresses = 6;
   string custodial_address = 7;
   string chain_i_d = 8;
+  string denom = 9;
 }
 
 message ChangeCosmosValidatorWeightsProposal {

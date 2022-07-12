@@ -194,6 +194,7 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 	// set custodial address, chainID and enable the module.
 	k.setCustodialAddress(ctx, custodialAddressString)
 	k.setCosmosChainID(ctx, p.ChainID)
+	k.setBondDenom(ctx, p.Denom)
 	k.enableModule(ctx)
 
 	multisigAddress, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, multisigAccAddress)

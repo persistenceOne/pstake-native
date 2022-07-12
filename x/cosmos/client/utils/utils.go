@@ -43,6 +43,7 @@ type EnableModuleProposalJSON struct {
 	Deposit               string   `json:"deposit" yaml:"deposit"`
 	CustodialAddress      string   `json:"custodial_address" yaml:"custodial_address"`
 	ChainID               string   `json:"chain_id" yaml:"chain_id"`
+	Denom                 string   `json:"denom" yaml:"denom"`
 }
 
 type ChangeMultisigPropsoalJSON struct {

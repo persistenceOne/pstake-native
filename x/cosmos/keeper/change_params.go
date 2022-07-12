@@ -30,3 +30,7 @@ func (k Keeper) setCosmosChainID(ctx sdk.Context, chainID string) {
 		},
 	)
 }
+
+func (k Keeper) setBondDenom(ctx sdk.Context, denom string) {
+	k.paramSpace.Set(ctx, cosmosTypes.KeyBondDenom, []string{denom})
+}

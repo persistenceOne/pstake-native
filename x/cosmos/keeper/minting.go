@@ -70,7 +70,7 @@ func (k Keeper) setMintedFlagInMintTokenStore(ctx sdk.Context, mv cosmosTypes.Mi
 	mintTokenStore.Set(key, k.cdc.MustMarshal(&mintTokenStoreValue))
 }
 
-// setAddedToEpochFlagInMintTokenStore Sets added to epoch flag true. Used when the amount has been added to epoch store for "uatom".
+// setAddedToEpochFlagInMintTokenStore Sets added to epoch flag true. Used when the amount has been added to epoch store for "stake".
 func (k Keeper) setAddedToEpochFlagInMintTokenStore(ctx sdk.Context, mv cosmosTypes.MintTokenStoreValue) {
 	mintTokenStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyMintTokenStore)
 	key := k.cdc.MustMarshal(&cosmosTypes.ChainIDHeightAndTxHashKey{ChainID: mv.MintTokens.ChainID, BlockHeight: mv.MintTokens.BlockHeight, TxHash: mv.MintTokens.TxHash})
