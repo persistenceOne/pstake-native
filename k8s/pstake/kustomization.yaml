@@ -12,3 +12,4 @@ configMapGenerator:
   files:
   - configs/keys.json
   - configs/validators.json
+  - configs/oracle.json

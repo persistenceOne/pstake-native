@@ -20,6 +20,10 @@ spec:
     port: 8080
     protocol: TCP
     targetPort: 8080
+  - name: grpc
+    port: 9090
+    protocol: TCP
+    targetPort: 9090
   selector:
     app.kubernetes.io/name: pstake-genesis
 ---
@@ -72,7 +76,7 @@ spec:
             VAL_INDEX=${HOSTNAME##*-}
             echo "Validator Index: $VAL_INDEX"
 
-            jq -r ".genesis[0].mnemonic" /configs/validators.json | pstaked init pstake --chain-id $CHAIN_ID --home $PSTAKE_DIR --recover
+            pstaked init pstake --chain-id $CHAIN_ID --home $PSTAKE_DIR
             jq -r ".genesis[0].mnemonic" /configs/validators.json | pstaked keys add $(jq -r ".genesis[0].name" /configs/validators.json) --recover --keyring-backend='test' --home $PSTAKE_DIR
 
             # Provide genesis validator self deligations
@@ -81,12 +85,13 @@ spec:
             # Give Validator addresses initial coins
             for ((i=0; i<$(jq -r '.validators | length' /configs/validators.json); i++))
             do
+              jq -r ".validators[$i].mnemonic" /configs/validators.json | pstaked keys add $(jq -r ".validators[$i].name" /configs/validators.json) --recover --keyring-backend='test' --home $PSTAKE_DIR
               pstaked add-genesis-account $(jq -r .validators[$i].address /configs/validators.json) $COINS --keyring-backend='test' --home $PSTAKE_DIR
             done
 
             for ((i=0; i<$(jq -r '.keys | length' /configs/keys.json); i++))
             do
-              pstaked add-genesis-account $(jq -r .keys[$i].address /configs/keys.json) $COINS --keyring-backend='test' --home $PSTAKE_DIR
+              jq -r ".keys[$i].mnemonic" /configs/oracle.json | pstaked keys add $(jq -r ".keys[$i].name" /configs/oracle.json) --recover --keyring-backend='test' --home $PSTAKE_DIR
             done
 
             pstaked gentx $(jq -r ".genesis[0].name" /configs/validators.json) 5000000000stake --keyring-backend="test" --chain-id $CHAIN_ID --home $PSTAKE_DIR
@@ -100,6 +105,22 @@ spec:
             sed -i 's/timeout_commit = "5s"/timeout_commit = "1s"/g' $PSTAKE_DIR/config/config.toml
             sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' $PSTAKE_DIR/config/config.toml
             sed -i 's/index_all_keys = false/index_all_keys = true/g' $PSTAKE_DIR/config/config.toml
+            sed -i 's/unsafe = false/unsafe = true/g' $PSTAKE_DIR/config/config.toml
+
+            sed -i 's/minimum-gas-prices = ""/minimum-gas-prices = "0.00stake"/g' $PSTAKE_DIR/config/config.toml
+
+            jq '.consensus_params.block.max_bytes |= "42020096"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesisNew
+            mv $PSTAKE_DIR/config/genesisNew $PSTAKE_DIR/config/genesis.json
+            jq '.app_state.gov.voting_params.voting_period |= "30s"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesisNew
+            mv $PSTAKE_DIR/config/genesisNew $PSTAKE_DIR/config/genesis.json
+            jq '.app_state.gov.tally_params.quorum |= "0.0"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesisNew
+            mv $PSTAKE_DIR/config/genesisNew $PSTAKE_DIR/config/genesis.json
+            jq '.app_state.gov.deposit_params.min_deposit[0].amount |= "10"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesisNew
+            mv $PSTAKE_DIR/config/genesisNew $PSTAKE_DIR/config/genesis.json
+
+            echo "TRYING TO PRINT GENESIS JSON"
+            cat $PSTAKE_DIR/config/genesis.json | jq
+
 
             pstaked tendermint show-node-id --home $PSTAKE_DIR > /pstaked/genesis-node-id.txt
         resources:

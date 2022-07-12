@@ -1,0 +1,44 @@
+{
+  "keys": [
+    {
+      "name": "oracle1",
+      "type": "local",
+      "address": "persistence1826wkxx8wv7mfnank8l6xu9rxm7kg8rvvk4e0a",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "A7z3y2BknPQMh4j2lGYePxFUJajYONuVI1Xp9xOu6AOL"
+      },
+      "mnemonic": "april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel"
+    },
+    {
+      "name": "oracle2",
+      "type": "local",
+      "address": "persistence1vqj54g2w7tyvpzwr5pgh9pt4v6zflp6c392znw",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "AqVWzq+zJpMrXQmLYDC8ZRrbiT4S+5/elbVK6WKlafPL"
+      },
+      "mnemonic": "soft brown armed regret hip few ancient control steel bright basic swamp sentence present immune napkin orbit giggle year another crowd essence noble dice"
+    },
+    {
+      "name": "oracle3",
+      "type": "local",
+      "address": "persistence1dpmtqt74ux4e46nmznku8q7dzu62qtj46je46y",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "A2y3VAYgM0Zi2do7q8D8GY1vel+5jl1AFl96i6z2EP2p"
+      },
+      "mnemonic": "bomb sand fashion torch return coconut color captain vapor inhale lyrics lady grant ordinary lazy decrease quit devote paddle impulse prize equip hip ball"
+    },
+    {
+      "name": "oracle4",
+      "type": "local",
+      "address": "persistence1kszhtg25k2p55mr8l7zxcs2v4vv44xq49qh9p4",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "A8swdXGHeQeJOyWUZ9du5pPGv5G8AQb3tULOIvw0qEfj"
+      },
+      "mnemonic": "road gallery tooth script volcano deputy summer acid bulk anger fatigue notable secret blood bean apology burger rookie rug bench away dutch secret upper"
+    }
+  ]
+}

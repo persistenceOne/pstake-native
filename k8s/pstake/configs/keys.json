@@ -3,52 +3,42 @@
     {
       "name": "test1",
       "type": "local",
-      "address": "persistence152nvc6f096v6n6tr5lg50xq22ak0chsr0ru7xc",
+      "address": "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
       "pubkey": {
         "@type": "/cosmos.crypto.secp256k1.PubKey",
-        "key": "AoC0SFBrAyiHrtJ+uGFuxP9CyTK8zSppylBhB+KBONNq"
+        "key": "Aw57xBfOrMyTep3ULDevI1R9/RpoNu3VvKM/w+D0hp7z"
       },
-      "mnemonic": "obtain door word season wealth inspire tobacco shallow thumb tip walk forum someone verb pistol bright mutual nest fog valley tiny section sauce typical"
+      "mnemonic": "opinion knife other balcony surge more bamboo canoe romance ask argue teach anxiety adjust spike mystery wolf alone torch tail six decide wash alley"
     },
     {
       "name": "test2",
       "type": "local",
-      "address": "persistence12m6ll675k83skhd2qkkp2fdv77erd7xw7j0udp",
+      "address": "persistence16e0p4vwufmsn0lucwsnfmjfx67ry84y47edfwq",
       "pubkey": {
         "@type": "/cosmos.crypto.secp256k1.PubKey",
-        "key": "Ap9sXO3v1RkIrkUauL8V4aGScZ4bbeCMcZLKBHAp9C2c"
+        "key": "AvRaiAePcKIgKibm9d7LO/2DLd1p7FaDeua+ilvf4p+A"
       },
-      "mnemonic": "hungry foil sort arrest lizard sing acquire traffic veteran entire empty humble coach melody avoid gospel pair above chuckle hip list cage vessel zebra"
+      "mnemonic": "logic help only text door wealth hurt always remove glory viable income agent olive trial female couch old offer crash menu zero pencil thrive"
     },
     {
       "name": "test3",
       "type": "local",
-      "address": "persistence1xh096pfn6hyf9vp6aplammfdx24kj8ztudwy5c",
+      "address": "persistence1pn45c2jdwfwrwva0cknfdlnfst28ucpurteeqt",
       "pubkey": {
         "@type": "/cosmos.crypto.secp256k1.PubKey",
-        "key": "Am0491WPc8uCuzMwgJPMRwGv2nmuFmDJW+M+ELWIIZKU"
+        "key": "A2eBCH+BVDXjVkJDZQE5RhKL3jN3apLqCTIjzXzWbMxJ"
       },
-      "mnemonic": "trip deliver device army resource toe stem unhappy employ vendor talent vapor little pole pottery side domain wealth bleak top diary card rose agree"
+      "mnemonic": "middle weather hip ghost quick oxygen awful library broken chicken tackle animal crunch appear fee indoor fitness enough orphan trend tackle faint eyebrow all"
     },
     {
       "name": "test4",
       "type": "local",
-      "address": "persistence1lhr66nenzpzs6t9tv7l52njpc5gl9depd5zzd4",
+      "address": "persistence1y3x3uaqnnlhulway8g5dvm4erpd5r4f0d29hn5",
       "pubkey": {
         "@type": "/cosmos.crypto.secp256k1.PubKey",
-        "key": "Ah4C0zoez6M6ex2zSxLguO9bRgII0BZw6IIBjUUJ1Iep"
+        "key": "Agn5q1U2vLjdAhg4dcKuUKm3ZwdmrrFmVnlnqsqkXoIA"
       },
-      "mnemonic": "today stumble easy ordinary ball pelican priority anchor sort bind island scout soap angle recipe release brown bamboo glove drink drill manage monkey spice"
-    },
-    {
-      "name": "test5",
-      "type": "local",
-      "address": "persistence1t5ahj0q7j5vatrkenffev390ggth8knurvs7gg",
-      "pubkey": {
-        "@type": "/cosmos.crypto.secp256k1.PubKey",
-        "key": "AkpRghwKAStaB1KozioOKOJdoaNXo7fWP8A30rG+9mND"
-      },
-      "mnemonic": "delay final sketch giant spy hand hip improve grape fat ethics arrange federal flee poet inmate humble tornado tower access core never pull father"
+      "mnemonic": "tag apart multiply food bleak isolate describe stand guide field session design cable combine excess shrug abuse pause course ketchup umbrella program labor ripple"
     }
   ]
 }

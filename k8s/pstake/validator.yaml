@@ -31,7 +31,7 @@ metadata:
   namespace: dev-native
 spec:
   serviceName: pstake-validator
-  replicas: 2
+  replicas: 3
   revisionHistoryLimit: 3
   selector:
     matchLabels:
