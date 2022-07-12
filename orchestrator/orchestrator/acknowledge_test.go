@@ -2,32 +2,29 @@ package orchestrator
 
 import (
 	"context"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	prov "github.com/tendermint/tendermint/light/provider/http"
-	"google.golang.org/grpc"
-	stdlog "log"
 	"os"
 	"testing"
 	"time"
 )
 
 func TestE2EAck(t *testing.T) {
-	rpcaddr := "http://13.229.64.99:26657"
-	grpcaddr := "13.229.64.99:9090"
+	rpcaddr := "http://localhost:36657"
+	grpcaddr := "localhost:9010"
 	seed := "april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel"
 	_, addr := GetPivKeyAddress("persistence", 118, seed)
 
 	rpcClient, _ := newRPCClient(rpcaddr, 1*time.Second)
-	liteprovider, _ := prov.New("native", rpcaddr)
+	liteprovider, _ := prov.New("pstaked", rpcaddr)
 	chain := &NativeChain{
 		Key:           "unusedNativeKey",
-		ChainID:       "native",
-		RPCAddr:       grpcaddr,
+		ChainID:       "pstaked",
+		RPCAddr:       rpcaddr,
 		AccountPrefix: "persistence",
 		GasAdjustment: 1.0,
 		GasPrices:     "0.025stake",
@@ -61,16 +58,16 @@ func TestE2EAck(t *testing.T) {
 		WithViper("").
 		WithChainID(chain.ChainID)
 
-	cosmosrpc := "http://13.212.166.231:26657"
-	cosmosgrpc := "13.212.166.231:9090"
+	cosmosrpc := "http://localhost:12003"
+	cosmosgrpc := "localhost:12344"
 	rpcClientC, _ := newRPCClient(cosmosrpc, 1*time.Second)
 	liteproviderC, _ := prov.New("test", cosmosrpc)
 
 	cusTodialAddress, _ := AccAddressFromBech32("cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2", "cosmos")
 	chainC := &CosmosChain{
-		Key:              "unusedNativeKey",
+		Key:              "unusedKey",
 		CustodialAddress: cusTodialAddress,
-		ChainID:          "test",
+		ChainID:          "gaiad",
 		RPCAddr:          cosmosrpc,
 		AccountPrefix:    "cosmos",
 		GasAdjustment:    1.0,
@@ -105,59 +102,18 @@ func TestE2EAck(t *testing.T) {
 		WithViper("").
 		WithChainID(chainC.ChainID)
 
-	ValDetails := GetValidatorDetails(chainC)
+	rpcClientC, _ = newRPCClient("http://localhost:12003", 1*time.Second)
+	height := int64(3657)
 
-	SetSDKConfigPrefix(chainC.AccountPrefix)
-	address, err, ok := GetMultiSigAddress(chain, chainC)
+	blockResults, err := rpcClientC.BlockResults(context.Background(), &height)
+
+	blockRes := blockResults.TxsResults
+
+	TxhAsh := "3871A626178FDAE0863581E491A47437FBC1592F8783D83624D298E07CDCCB54"
+
+	err = SendMsgAck(chain, chainC, []string{seed}, TxhAsh, "success", clientContextNative, clientContextCosmos, blockRes)
 	if err != nil {
-		panic(err)
-	}
-
-	if ok {
-		acc, seq, err := clientContextCosmos.AccountRetriever.GetAccountNumberSequence(clientContextCosmos, address)
-
-		if err != nil {
-			panic(err)
-		}
-
-		msg := &cosmosTypes.MsgTxStatus{
-			OrchestratorAddress: addr,
-			TxHash:              "2309DBA86D984925C45DE6C3A697E114303C948556E38EDBE1ED338CEC878A06",
-			Status:              "success",
-			SequenceNumber:      seq,
-			AccountNumber:       acc,
-			ValidatorDetails:    ValDetails,
-		}
-
-		txBytes, err := SignNativeTx(seed, chain, clientContextNative, msg)
-
-		if err != nil {
-			panic(err)
-		}
-
-		grpcConn, _ := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
-		defer func(grpcConn *grpc.ClientConn) {
-			err := grpcConn.Close()
-			if err != nil {
-
-			}
-		}(grpcConn)
-
-		txClient := sdkTx.NewServiceClient(grpcConn)
-
-		res, err := txClient.BroadcastTx(context.Background(),
-			&sdkTx.BroadcastTxRequest{
-				Mode:    sdkTx.BroadcastMode_BROADCAST_MODE_SYNC,
-				TxBytes: txBytes,
-			},
-		)
-		if err != nil {
-			panic(err)
-
-		}
-
-		stdlog.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
-		
+		fmt.Println(err, "ddddd")
 	}
 
 }

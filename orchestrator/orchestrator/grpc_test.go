@@ -33,7 +33,6 @@ func TestE2Egrpc(t *testing.T) {
 		Client:        rpcClient,
 		Encoding:      params.EncodingConfig{},
 		Provider:      liteprovider,
-		address:       nil,
 		logger:        nil,
 		timeout:       0,
 		debug:         false,

@@ -102,7 +102,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 func PopulateRewards(chain *CosmosChain, valDetails []cosmosTypes.ValidatorDetails, blockRes []*abciTypes.ResponseDeliverTx) ([]cosmosTypes.ValidatorDetails, error) {
 	rewardMap := make(map[string]sdkTypes.Coin)
 	var valAddress string
-	var amountCoin sdkTypes.Coin
+	amountCoin := sdkTypes.NewInt64Coin(constants.CosmosDenom, 0)
 
 	custodialAddr, err := Bech32ifyAddressBytes(chain.AccountPrefix, chain.CustodialAddress)
 	if err != nil {
@@ -112,7 +112,7 @@ func PopulateRewards(chain *CosmosChain, valDetails []cosmosTypes.ValidatorDetai
 	for _, txLog := range blockRes {
 		eventList := txLog.Events
 		logString := txLog.Log
-		if strings.Contains(logString, "/cosmos.staking.v1beta1.MsgDelegate") {
+		if strings.Contains(logString, "/cosmos.authz.v1beta1.MsgExec") {
 			for _, events := range eventList {
 				currEvent := events
 				if currEvent.Type == "transfer" && string(currEvent.Attributes[0].Value) == custodialAddr {
@@ -121,7 +121,7 @@ func PopulateRewards(chain *CosmosChain, valDetails []cosmosTypes.ValidatorDetai
 						return nil, err
 					}
 				}
-				if currEvent.Type == "delegate" {
+				if currEvent.Type == "delegate" || currEvent.Type == "undelegate" {
 					valAddress = string(currEvent.Attributes[0].Value)
 					val, ok := rewardMap[valAddress]
 					if !ok {
@@ -133,9 +133,9 @@ func PopulateRewards(chain *CosmosChain, valDetails []cosmosTypes.ValidatorDetai
 			}
 		}
 	}
-	for _, valDetails := range valDetails {
-		valAddr := valDetails.ValidatorAddress
-		valDetails.RewardsCollected = rewardMap[valAddr]
+	for i, valDet := range valDetails {
+		valAddr := valDet.ValidatorAddress
+		valDetails[i].RewardsCollected = rewardMap[valAddr]
 	}
 
 	return valDetails, nil

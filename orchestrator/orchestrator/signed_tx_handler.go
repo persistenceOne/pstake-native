@@ -7,6 +7,7 @@ import (
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	"google.golang.org/grpc"
 	stdlog "log"
@@ -90,6 +91,7 @@ func (n *NativeChain) SignedOutgoingTxHandler(txIdStr, valAddr string, orcSeeds 
 	var status string
 	var height int64
 	var blockRes *coretypes.ResultBlockResults
+	var dataRes []*abci.ResponseDeliverTx
 
 	cosmosTxHash := res.TxResponse.TxHash
 
@@ -147,9 +149,11 @@ loop:
 		if err != nil {
 			return err
 		}
+
+		dataRes = blockRes.TxsResults
 	}
 
-	err = SendMsgAck(native, chain, orcSeeds, cosmosTxHash, status, nativeCliCtx, clientCtx, blockRes.TxsResults)
+	err = SendMsgAck(native, chain, orcSeeds, cosmosTxHash, status, nativeCliCtx, clientCtx, dataRes)
 	if err != nil {
 		return err
 	}

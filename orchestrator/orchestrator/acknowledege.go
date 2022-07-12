@@ -13,15 +13,17 @@ import (
 
 func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string, txHash string, status string,
 	nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, blockResults []*abciTypes.ResponseDeliverTx) error {
-
 	_, addr := GetPivKeyAddress(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
 	ValDetails := GetValidatorDetails(cosmosChain)
-
-	ValDetails, err := PopulateRewards(cosmosChain, ValDetails, blockResults)
-	if err != nil {
-		return err
+	if status == SUCCESS {
+		Val, err := PopulateRewards(cosmosChain, ValDetails, blockResults)
+		if err != nil {
+			return err
+		}
+		ValDetails = Val
 	}
+
 	SetSDKConfigPrefix(cosmosChain.ChainID)
 	address, err, ok := GetMultiSigAddress(native, cosmosChain)
 	if err != nil {
