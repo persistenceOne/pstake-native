@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	NEXT_BLOCK_WAIT_TIME = 3
+	NEXT_BLOCK_WAIT_TIME = 1500
 )
 
 type CosmosChain struct {
@@ -244,7 +244,7 @@ func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx
 
 		}
 
-		time.Sleep(NEXT_BLOCK_WAIT_TIME * time.Second)
+		time.Sleep(NEXT_BLOCK_WAIT_TIME * time.Millisecond)
 		cHeight++
 
 		SetStatus(chain.HomePath, cHeight, nHeight)

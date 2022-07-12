@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	"github.com/persistenceOne/pstake-native/orchestrator/constants"
 	stdlog "log"
 	"strings"
 
@@ -19,6 +20,10 @@ import (
 	sdkcryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+)
+
+const (
+	NATIVE_FEE = 10
 )
 
 func SetSDKConfigPrefix(prefix string) {
@@ -34,8 +39,9 @@ func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, ms
 	// Create a new TxBuilder.
 
 	txBuilder := clientCtx.TxConfig.NewTxBuilder()
+	//TODO : to simulate and get
 
-	txBuilder.SetGasLimit(400000)
+	txBuilder.SetGasLimit(1000000)
 
 	privKey, _ := GetPivKeyAddress(native.AccountPrefix, native.CoinType, seed)
 
@@ -68,6 +74,7 @@ func SignNativeTx(seed string, native *NativeChain, clientCtx client.Context, ms
 		AccountNumber: ac,
 		Sequence:      seq,
 	}
+	txBuilder.SetFeeAmount(sdkTypes.NewCoins(sdkTypes.NewInt64Coin(constants.CosmosDenom, 10)))
 	sigv2, err := tx.SignWithPrivKey(
 		clientCtx.TxConfig.SignModeHandler().DefaultMode(), signerData, txBuilder, privKey, clientCtx.TxConfig, seq)
 	if err != nil {

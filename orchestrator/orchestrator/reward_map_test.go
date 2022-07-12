@@ -3,7 +3,9 @@ package orchestrator
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	prov "github.com/tendermint/tendermint/light/provider/http"
 	"strings"
 	"testing"
 	"time"
@@ -11,8 +13,8 @@ import (
 
 func TestLogicForRewardMap(t *testing.T) {
 
-	rpcClientC, _ := newRPCClient("https://rpc.cosmoshub-4.audit.one:443", 1*time.Second)
-	height := int64(11157228)
+	rpcClientC, _ := newRPCClient("http://13.229.229.141:12001", 1*time.Second)
+	height := int64(3657)
 
 	blockResults, err := rpcClientC.BlockResults(context.Background(), &height)
 
@@ -25,11 +27,11 @@ func TestLogicForRewardMap(t *testing.T) {
 		eventList := txLog.Events
 		logString := txLog.Log
 
-		if strings.Contains(logString, "/cosmos.staking.v1beta1.MsgDelegate") {
+		if strings.Contains(logString, "/cosmos.authz.v1beta1.MsgExec") {
 			for _, events := range eventList {
 				currEvent := events
 
-				if currEvent.Type == "transfer" && string(currEvent.Attributes[0].Value) == "cosmos1q4xrgp7uluenws5dflmy7y7wlwcnerwzx4numj" {
+				if currEvent.Type == "transfer" && string(currEvent.Attributes[0].Value) == "cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2" {
 
 					amountCoin, err = sdkTypes.ParseCoinNormalized(string(currEvent.Attributes[2].Value))
 					if err != nil {
@@ -37,7 +39,7 @@ func TestLogicForRewardMap(t *testing.T) {
 					}
 
 				}
-				if currEvent.Type == "delegate" {
+				if currEvent.Type == "delegate" || currEvent.Type == "undelegate" {
 					valAddress = string(currEvent.Attributes[0].Value)
 					val, ok := rewardMap[valAddress]
 					if !ok {
@@ -53,7 +55,57 @@ func TestLogicForRewardMap(t *testing.T) {
 
 	fmt.Println(rewardMap)
 
+	custodialAdrr, err := AccAddressFromBech32("cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2", "cosmos")
+
+	//rpcClientC, _ := newRPCClient("http://13.229.229.141:12001", 1*time.Second)
+	liteproviderC, _ := prov.New("native", "http://13.229.229.141:12001")
+	chainC := &CosmosChain{
+		Key:              "unusedNativeKey",
+		ChainID:          "test",
+		RPCAddr:          "http://13.229.229.141:12001",
+		CustodialAddress: custodialAdrr,
+		AccountPrefix:    "cosmos",
+		GasAdjustment:    1.0,
+		GasPrices:        "0.025stake",
+		GRPCAddr:         "13.229.229.141:12344",
+		CoinType:         118,
+		HomePath:         "",
+		KeyBase:          nil,
+		Client:           rpcClientC,
+		Encoding:         params.EncodingConfig{},
+		Provider:         liteproviderC,
+		address:          nil,
+		logger:           nil,
+		timeout:          0,
+		debug:            false,
+	}
+
+	cosmosEncodingConfig := chainC.MakeEncodingConfig()
+	chainC.Encoding = cosmosEncodingConfig
+	chainC.logger = defaultChainLogger()
+
+	//clientContextCosmos := client.Context{}.
+	//	WithCodec(cosmosEncodingConfig.Marshaler).
+	//	WithInterfaceRegistry(cosmosEncodingConfig.InterfaceRegistry).
+	//	WithTxConfig(cosmosEncodingConfig.TxConfig).
+	//	WithLegacyAmino(cosmosEncodingConfig.Amino).
+	//	WithInput(os.Stdin).
+	//	WithAccountRetriever(authTypes.AccountRetriever{}).
+	//	WithNodeURI(chainC.RPCAddr).
+	//	WithClient(chainC.Client).
+	//	WithHomeDir("./").
+	//	WithViper("").
+	//	WithChainID(chainC.ChainID)
 	//txSlice := events["tx"]
+
+	valDetails := GetValidatorDetails(chainC)
+
+	vaDetails, err := PopulateRewards(chainC, valDetails, blockRes)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(vaDetails)
 
 	if err != nil {
 		panic(err)
