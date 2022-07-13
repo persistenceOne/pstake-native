@@ -106,8 +106,10 @@ spec:
             sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' $PSTAKE_DIR/config/config.toml
             sed -i 's/index_all_keys = false/index_all_keys = true/g' $PSTAKE_DIR/config/config.toml
             sed -i 's/unsafe = false/unsafe = true/g' $PSTAKE_DIR/config/config.toml
-
             sed -i 's/minimum-gas-prices = ""/minimum-gas-prices = "0.00stake"/g' $PSTAKE_DIR/config/config.toml
+
+            sed -i 's/enable = false/enable = true/g' $$PSTAKE_DIR/config/app.toml
+            sed -i 's/swagger = false/swagger = true/g' $$PSTAKE_DIR/config/app.toml
 
             jq '.consensus_params.block.max_bytes |= "42020096"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesisNew
             mv $PSTAKE_DIR/config/genesisNew $PSTAKE_DIR/config/genesis.json

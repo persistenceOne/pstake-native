@@ -12,8 +12,8 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-// adds grant transactions to the outgoing pool and returns txID for reference
-func (k Keeper) addGrantTransactions(ctx sdk.Context, oldAccount authTypes.AccountI) uint64 {
+// AddGrantTransactions adds grant transactions to the outgoing pool and returns txID for reference
+func (k Keeper) AddGrantTransactions(ctx sdk.Context, oldAccount authTypes.AccountI) uint64 {
 	// generate ID for Grant Transaction
 	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 
@@ -131,7 +131,7 @@ func (k Keeper) generateGrantMsgAny(ctx sdk.Context, custodialAddress sdk.AccAdd
 }
 
 // adds feegrant transaction to the outgoing pool and returns txID for reference
-func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.AccountI) uint64 {
+func (k Keeper) AddFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.AccountI) uint64 {
 	// generate ID for Feegrant Transaction
 	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 
@@ -209,9 +209,9 @@ func (k Keeper) addFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 	return nextID
 }
 
-// addRevokeTransactions adds revoke transaction to outgoing pool and returns txID for reference
+// AddRevokeTransactions adds revoke transaction to outgoing pool and returns txID for reference
 // todo check logic for revoke as oldAccount is not involved
-func (k Keeper) addRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uint64 {
+func (k Keeper) AddRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uint64 {
 	// generate ID for Revoke Transaction
 	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 
@@ -342,10 +342,10 @@ func (k Keeper) shiftListOfTransactionsToNewIDs(ctx sdk.Context, transactionQueu
 
 		// set this transaction in outgoing pool with new ID
 		k.SetNewTxnInOutgoingPool(ctx, nextID, txDetails.CosmosTxDetails)
-		k.setNewInTransactionQueue(ctx, nextID)
+		k.SetNewInTransactionQueue(ctx, nextID)
 
 		// remove old transaction from outgoing pool
 		k.removeTxnDetailsByID(ctx, tq.txID)
-		k.removeFromTransactionQueue(ctx, tq.txID)
+		k.RemoveFromTransactionQueue(ctx, tq.txID)
 	}
 }

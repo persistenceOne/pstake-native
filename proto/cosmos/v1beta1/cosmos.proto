@@ -104,7 +104,6 @@ message Params {
   int64 chunk_size = 15;
   string undelegate_epoch_identifier = 16;
   repeated string bond_denoms = 17;
-  string staking_denom = 18;
   uint64 retry_limit = 19;
   string reward_epoch_identifier = 20;
   cosmos.base.v1beta1.Coin min_reward = 21 [

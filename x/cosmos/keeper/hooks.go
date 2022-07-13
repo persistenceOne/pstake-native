@@ -80,7 +80,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 					panic(err)
 				}
 
-				err = k.mintRewardsClaimed(ctx, rewardsToDelegate)
+				err = k.MintRewardsClaimed(ctx, rewardsToDelegate)
 				if err != nil {
 					panic(err)
 				}

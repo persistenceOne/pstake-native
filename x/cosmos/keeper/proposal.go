@@ -132,7 +132,7 @@ func (k Keeper) generateOutgoingWeightedVoteTx(ctx sdk.Context, result map[cosmo
 	//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
 	k.SetNewTxnInOutgoingPool(ctx, nextID, tx)
 
-	k.setNewInTransactionQueue(ctx, nextID)
+	k.SetNewInTransactionQueue(ctx, nextID)
 }
 
 // SetProposalID sets the new proposal ID to the store

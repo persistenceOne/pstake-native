@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
@@ -10,20 +11,25 @@ func (k Keeper) GetProportions(ctx sdk.Context, mintedCoin sdk.Coin, ratio sdk.D
 	return sdk.NewCoin(mintedCoin.Denom, mintedCoin.Amount.ToDec().Mul(ratio).TruncateInt())
 }
 
-// mintRewardsClaimed mints given rewards amount for the already set validators and developer rewards receivers with the given ratio as set in params
-func (k Keeper) mintRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin) error {
+// MintRewardsClaimed mints given rewards amount for the already set validators and developer rewards receivers with the given ratio as set in params
+func (k Keeper) MintRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin) error {
 	// get amount in Stk assets form
+
+	if rewardsAmount.IsZero() {
+		return fmt.Errorf("rewards amount should be greater than zero")
+	}
+
 	params := k.GetParams(ctx)
 	rewardAmountInUSTK, _ := sdk.NewDecCoinFromDec(params.MintDenom, rewardsAmount.Amount.ToDec().Mul(k.GetCValue(ctx))).TruncateDecimal()
 
 	// get distribution proportions for minting stk assets
 	distributionProportion := params.DistributionProportion
-	totalDistributionProportion := distributionProportion.ValidatorRewards.Add(distributionProportion.DeveloperRewards)
-	totalRewards := k.GetProportions(ctx, rewardAmountInUSTK, totalDistributionProportion)
+	//totalDistributionProportion := distributionProportion.ValidatorRewards.Add(distributionProportion.DeveloperRewards)
+	//totalRewards := k.GetProportions(ctx, rewardAmountInUSTK, totalDistributionProportion)
 
 	// calculate rewards for developers and validators
-	validatorRewards := k.GetProportions(ctx, totalRewards, distributionProportion.ValidatorRewards)
-	developerRewards := k.GetProportions(ctx, totalRewards, distributionProportion.DeveloperRewards)
+	validatorRewards := k.GetProportions(ctx, rewardAmountInUSTK, distributionProportion.ValidatorRewards)
+	developerRewards := k.GetProportions(ctx, rewardAmountInUSTK, distributionProportion.DeveloperRewards)
 
 	// iterate through the oracle validator set and mint rewards in their respective accounts
 	for _, wallet := range k.getAllOracleValidatorSet(ctx) {

@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"math"
 	"testing"
 
@@ -239,7 +240,9 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
 
 	// Set validator set weighted amount
 	params := app.CosmosKeeper.GetParams(ctx)
-	state := testStateData(params.StakingDenom)
+	bondDenom, err := params.GetBondDenomOf(types.DefaultStakingDenom)
+	require.NoError(suite.T(), err, nil)
+	state := testStateData(bondDenom)
 	suite.SetupValWeightedAmounts(state)
 
 	// Test data
@@ -247,15 +250,6 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
 		given    int64
 		expected map[string]int64
 	}{
-		{
-			given: 3,
-			expected: map[string]int64{
-				"cosmosvalidatorAddr1": 1,
-				"cosmosvalidatorAddr2": 1,
-				"cosmosvalidatorAddr3": 1,
-				"cosmosvalidatorAddr5": 1,
-			},
-		},
 		{
 			given: 1000,
 			expected: map[string]int64{
@@ -299,7 +293,9 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
 	// Create input parameters
 	for _, test := range testMatrix {
 		// Create state
-		givenCoin := sdk.NewInt64Coin(params.StakingDenom, test.given)
+		bondDenom, err = params.GetBondDenomOf(types.DefaultStakingDenom)
+		require.NoError(suite.T(), err, nil)
+		givenCoin := sdk.NewInt64Coin(bondDenom, test.given)
 		expectedMap := map[string]int64{}
 		for k, v := range test.expected {
 			valAddress, _ := types.Bech32ifyValAddressBytes(types.Bech32PrefixValAddr, sdk.ValAddress(k))
@@ -324,7 +320,9 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 
 	// Set validator set weighted amount
 	params := app.CosmosKeeper.GetParams(ctx)
-	state := testStateData(params.StakingDenom)
+	bondDenom, err := params.GetBondDenomOf(types.DefaultStakingDenom)
+	require.NoError(suite.T(), err, nil)
+	state := testStateData(bondDenom)
 	suite.SetupValWeightedAmounts(state)
 
 	// Test data
@@ -380,7 +378,9 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 	// Create input parameters
 	for _, test := range testMatrix {
 		// Create state
-		givenCoin := sdk.NewInt64Coin(params.StakingDenom, test.given)
+		bondDenom, err = params.GetBondDenomOf(types.DefaultStakingDenom)
+		require.NoError(suite.T(), err, nil)
+		givenCoin := sdk.NewInt64Coin(bondDenom, test.given)
 		expectedMap := map[string]int64{}
 		for k, v := range test.expected {
 			expectedMap[sdk.ValAddress(k).String()] = v

@@ -250,8 +250,8 @@ type TransactionQueue struct {
 	status cosmosTypes.OutgoingQueueValue
 }
 
-// setNewInTransactionQueue Sets new transaction in transaction queue with value 0 (pending)
-func (k Keeper) setNewInTransactionQueue(ctx sdk.Context, txID uint64) {
+// SetNewInTransactionQueue Sets new transaction in transaction queue with value 0 (pending)
+func (k Keeper) SetNewInTransactionQueue(ctx sdk.Context, txID uint64) {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 	key := cosmosTypes.UInt64Bytes(txID)
 	if transactionQueueStore.Has(key) {
@@ -264,8 +264,8 @@ func (k Keeper) setNewInTransactionQueue(ctx sdk.Context, txID uint64) {
 	transactionQueueStore.Set(key, bz)
 }
 
-// getActiveFromTransactionQueue Gets active transaction from the tx queue : returns 0 if no active transaction in queue
-func (k Keeper) getActiveFromTransactionQueue(ctx sdk.Context) uint64 {
+// GetActiveFromTransactionQueue Gets active transaction from the tx queue : returns 0 if no active transaction in queue
+func (k Keeper) GetActiveFromTransactionQueue(ctx sdk.Context) uint64 {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 
 	// returns the first transaction which is active : supposed to be the first transaction in the list
@@ -283,8 +283,8 @@ func (k Keeper) getActiveFromTransactionQueue(ctx sdk.Context) uint64 {
 	return 0
 }
 
-// incrementRetryCounterInTransactionQueue increases retry counter in case of failed txn
-func (k Keeper) incrementRetryCounterInTransactionQueue(ctx sdk.Context, txID uint64) {
+// IncrementRetryCounterInTransactionQueue increases retry counter in case of failed txn
+func (k Keeper) IncrementRetryCounterInTransactionQueue(ctx sdk.Context, txID uint64) {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 	key := cosmosTypes.UInt64Bytes(txID)
 
@@ -305,9 +305,9 @@ func (k Keeper) incrementRetryCounterInTransactionQueue(ctx sdk.Context, txID ui
 	}
 }
 
-// getNextFromTransactionQueue Fetches the next transaction to be sent out and mark it active
+// GetNextFromTransactionQueue Fetches the next transaction to be sent out and mark it active
 // called after deleting the active transaction which has been successful
-func (k Keeper) getNextFromTransactionQueue(ctx sdk.Context) uint64 {
+func (k Keeper) GetNextFromTransactionQueue(ctx sdk.Context) uint64 {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 
 	//start iteration through the store and return the first key found in the store
@@ -326,15 +326,15 @@ func (k Keeper) getNextFromTransactionQueue(ctx sdk.Context) uint64 {
 	return 0
 }
 
-// removeFromTransactionQueue Removes the transaction corresponding to the given txID
+// RemoveFromTransactionQueue Removes the transaction corresponding to the given txID
 // called once the transaction is successful and all action required after its success are complete
-func (k Keeper) removeFromTransactionQueue(ctx sdk.Context, txID uint64) {
+func (k Keeper) RemoveFromTransactionQueue(ctx sdk.Context, txID uint64) {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 	transactionQueueStore.Delete(cosmosTypes.UInt64Bytes(txID))
 }
 
-// getAllFromTransactionQueue Gets the list of all transaction in the outgoing queue which are being sent out or yet to be sent out
-func (k Keeper) getAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatus []TransactionQueue) {
+// GetAllFromTransactionQueue Gets the list of all transaction in the outgoing queue which are being sent out or yet to be sent out
+func (k Keeper) GetAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatus []TransactionQueue) {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 
 	//iterate through all the transactions present in queue and add to map
@@ -353,7 +353,7 @@ func (k Keeper) getAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatus []Tra
 
 // emitEventForActiveTransaction Emits event for transaction to be picked up by oracles to be signed
 func (k Keeper) emitEventForActiveTransaction(ctx sdk.Context, txID uint64) {
-	k.incrementRetryCounterInTransactionQueue(ctx, txID)
+	k.IncrementRetryCounterInTransactionQueue(ctx, txID)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			cosmosTypes.EventTypeOutgoing,
@@ -397,11 +397,11 @@ func (k Keeper) retryTransactionWithFailure(ctx sdk.Context, txDetails cosmosTyp
 // ProcessAllTxAndDetails processes any outgoing transaction's details
 func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 	// fetch active transaction in the queue
-	txID := k.getActiveFromTransactionQueue(ctx)
+	txID := k.GetActiveFromTransactionQueue(ctx)
 
 	//if txID returned is 0, then emit a new transaction
 	if txID == 0 {
-		nextID := k.getNextFromTransactionQueue(ctx)
+		nextID := k.GetNextFromTransactionQueue(ctx)
 		if nextID == 0 {
 			return
 		}
@@ -477,7 +477,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 					}
 					break
 				}
-				k.removeFromTransactionQueue(ctx, txID)
+				k.RemoveFromTransactionQueue(ctx, txID)
 			}
 		case cosmosTypes.SequenceMismatch:
 			// retry txn with the given failure
@@ -537,7 +537,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 			k.removeTxnDetailsByID(ctx, tx.txID)
 			k.RemoveFromOutgoingSignaturePool(ctx, tx.txID)
 			k.removeTxHashAndDetails(ctx, tx.txDetails.TxHash)
-			k.removeFromTransactionQueue(ctx, tx.txID)
+			k.RemoveFromTransactionQueue(ctx, tx.txID)
 		}
 	}
 }
