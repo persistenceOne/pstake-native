@@ -41,8 +41,10 @@ jobs:
 
       - name: test & coverage report creation
         run: |
-          go test ./... -mod=readonly -timeout 12m -race -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock'
+          make test TEST_ARGS="-timeout 12m -race -coverprofile=coverage.txt -covermode=atomic"
         if: "env.GIT_DIFF != ''"
+        env:
+          TEST_TARGET: "./x/cosmos/..."
 
       - name: filter out DONTCOVER
         run: |
