@@ -19,5 +19,5 @@ func (suite *IntegrationTestSuite) TestKeeper_MintRewardsClaimed() {
 	suite.NoError(err)
 
 	amount := app.BankKeeper.GetBalance(ctx, rewardAccount, cosmosTypes.DefaultMintDenom)
-	suite.Equal(sdk.NewInt(5000), amount.Amount)
+	suite.Equal(sdk.NewInt(5319), amount.Amount)
 }

@@ -12,11 +12,11 @@ func TestGetValidatorOrchestrator(t *testing.T) {
 	_, app, ctx := helpers.CreateTestApp()
 	keeper := app.CosmosKeeper
 
-	valAddr1 := sdkTypes.ValAddress("Val1")
-	valAddr2 := sdkTypes.ValAddress("Val2")
-	valAddrNotExists := sdkTypes.ValAddress("ValNotExists")
-	orchAddr1 := sdkTypes.AccAddress("orch1")
-	orchAddr2 := sdkTypes.AccAddress("orch2")
+	valAddr1 := sdkTypes.ValAddress("Val1_xxxxxxxxxxxxxxx")
+	valAddr2 := sdkTypes.ValAddress("Val2_xxxxxxxxxxxxxxx")
+	valAddrNotExists := sdkTypes.ValAddress("ValNotExists_xxxxxxx")
+	orchAddr1 := sdkTypes.AccAddress("orch1_xxxxxxxxxxxxxx")
+	orchAddr2 := sdkTypes.AccAddress("orch2_xxxxxxxxxxxxxx")
 	app.StakingKeeper.SetValidator(ctx, stakingTypes.Validator{
 		OperatorAddress: valAddr1.String(),
 	})
