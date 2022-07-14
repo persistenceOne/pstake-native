@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	gocontext "context"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,7 +10,7 @@ import (
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/persistenceOne/pstake-native/app/helpers"
 	"github.com/persistenceOne/pstake-native/x/cosmos/types"
-	"reflect"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -54,27 +53,23 @@ func TestKeeper_QueryTxByID(t *testing.T) {
 	keeper.SetNewTxnInOutgoingPool(ctx, 1, tx)
 	tx1, _ := keeper.GetTxnFromOutgoingPoolByID(ctx, 1)
 	err := tx1.CosmosTxDetails.Tx.UnpackInterfaces(app.AppCodec())
-	if err != nil {
-		return
-	}
+	require.NoError(t, err)
+
 	_ = tx1.CosmosTxDetails.GetTx()
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.CosmosKeeper)
 	queryClient := types.NewQueryClient(queryHelper)
 	res, err := queryClient.QueryTxByID(gocontext.Background(), &types.QueryOutgoingTxByIDRequest{TxID: 1})
-	fmt.Println(err)
+	require.NoError(t, err)
 
 	getTx := res.CosmosTxDetails.GetTx()
 	err = getTx.UnpackInterfaces(app.AppCodec())
-	if err != nil {
-		return
-	}
+	require.NoError(t, err)
 
 	exec := getTx.GetMsgs()[0].(*authz.MsgExec)
 
 	for _, im := range exec.Msgs {
-		fmt.Println(reflect.TypeOf(im.TypeUrl))
-		fmt.Println(im.GetCachedValue())
+		require.IsType(t, "string", im.TypeUrl)
 	}
 }

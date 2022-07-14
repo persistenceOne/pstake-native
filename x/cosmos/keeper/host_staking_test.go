@@ -31,7 +31,7 @@ func TestMulInt(t *testing.T) {
 }
 
 func TestGetIdealCurrentDelegations(t *testing.T) {
-	denom := "uatom"
+	denom := types.DefaultStakingDenom
 	type testValState struct {
 		name   string
 		weight string
@@ -195,29 +195,29 @@ func testStateData(denom string) types.WeightedAddressAmounts {
 	}{
 		{
 			name:   "cosmosvalidatorAddr1",
-			weight: "0.5",
-			amount: 0, // ideal: 14000000
+			weight: "0.4",
+			amount: 15000000, // ideal: 14000000
 		},
 		{
 			name:   "cosmosvalidatorAddr2",
 			weight: "0.2",
-			amount: 0, // ideal: 7000000
+			amount: 10000000, // ideal: 7000000
 		},
 		{
 			name:   "cosmosvalidatorAddr3",
-			weight: "0.2",
-			amount: 0, // ideal: 10500000
+			weight: "0.3",
+			amount: 5000000, // ideal: 10500000
 		},
 		{
 			name:   "cosmosvalidatorAddr4",
 			weight: "0.1",
 			amount: 0, // ideal: 3500000
 		},
-		//{
-		//	name:   "cosmosvalidatorAddr5",
-		//	weight: "0",
-		//	amount: 5000000, // ideal: 0
-		//},
+		{
+			name:   "cosmosvalidatorAddr5",
+			weight: "0",
+			amount: 5000000, // ideal: 0
+		},
 	}
 	// Create state
 	state := types.WeightedAddressAmounts{}
@@ -331,10 +331,8 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 		expected map[string]int64
 	}{
 		{
-			given: 1000,
-			expected: map[string]int64{
-				"cosmosvalidatorAddr5": 1000,
-			},
+			given:    1000,
+			expected: map[string]int64{},
 		},
 		{
 			given: 10000000,
@@ -383,7 +381,8 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 		givenCoin := sdk.NewInt64Coin(bondDenom, test.given)
 		expectedMap := map[string]int64{}
 		for k, v := range test.expected {
-			expectedMap[sdk.ValAddress(k).String()] = v
+			valAddress, _ := types.Bech32ifyValAddressBytes(types.Bech32PrefixValAddr, sdk.ValAddress(k))
+			expectedMap[valAddress] = v
 		}
 
 		// Run getIdealCurrentDelegations function with params
