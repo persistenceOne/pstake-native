@@ -194,6 +194,7 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 	// set custodial address, chainID and enable the module.
 	k.setCustodialAddress(ctx, custodialAddressString)
 	k.setCosmosChainID(ctx, p.ChainID)
+	k.setBondDenom(ctx, p.Denom)
 	k.enableModule(ctx)
 
 	multisigAddress, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, multisigAccAddress)
@@ -256,31 +257,31 @@ func HandleChangeOracleValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *co
 	if len(valAddresses) != len(p.WeightedAddresses) {
 		return fmt.Errorf("validator addresses and weight are not equally mapped")
 	}
-	k.setOracleValidatorSet(ctx, valAddresses, p.WeightedAddresses)
+	k.SetOracleValidatorSet(ctx, valAddresses, p.WeightedAddresses)
 	return nil
 }
 
 // handleTransactionQueue helper function for handling transaction queue in HandleChangeMultisigProposal
 func (k Keeper) handleTransactionQueue(ctx sdk.Context, oldAccount authTypes.AccountI) {
 	//step 1 : move all pending and active transactions to an array
-	list := k.getAllFromTransactionQueue(ctx) //gets a map of all transactions
+	list := k.GetAllFromTransactionQueue(ctx) //gets a map of all transactions
 
 	//add grant and revoke transactions in an order to queue
 	// for granting access to new multisig account and revoke from previous account
 
 	// grant from old account
-	grantTransactionID := k.addGrantTransactions(ctx, oldAccount)
+	grantTransactionID := k.AddGrantTransactions(ctx, oldAccount)
 
 	// feegrant transaction from old account
-	feegrantTransactionID := k.addFeegrantTransaction(ctx, oldAccount)
+	feegrantTransactionID := k.AddFeegrantTransaction(ctx, oldAccount)
 
 	// revoke transaction from new account
-	revokeTransactionID := k.addRevokeTransactions(ctx, oldAccount)
+	revokeTransactionID := k.AddRevokeTransactions(ctx, oldAccount)
 
 	// set the above transactions in order in transaction queue
-	k.setNewInTransactionQueue(ctx, grantTransactionID)
-	k.setNewInTransactionQueue(ctx, feegrantTransactionID)
-	k.setNewInTransactionQueue(ctx, revokeTransactionID)
+	k.SetNewInTransactionQueue(ctx, grantTransactionID)
+	k.SetNewInTransactionQueue(ctx, feegrantTransactionID)
+	k.SetNewInTransactionQueue(ctx, revokeTransactionID)
 
 	// append all the remaining transactions to the queue with modified txIDs and remove old from the transaction queue
 	k.shiftListOfTransactionsToNewIDs(ctx, list)

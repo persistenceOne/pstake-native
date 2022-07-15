@@ -1,20 +1,22 @@
-package types
+package types_test
 
 import (
 	"fmt"
+	"github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func TestProposalStatus_Format(t *testing.T) {
-	statusDepositPeriod, _ := ProposalStatusFromString("PROPOSAL_STATUS_DEPOSIT_PERIOD")
+	statusVotingPeriod, _ := types.ProposalStatusFromString("PROPOSAL_STATUS_VOTING_PERIOD")
+	statusProposalPassed, _ := types.ProposalStatusFromString("PROPOSAL_STATUS_PASSED")
 	tests := []struct {
-		pt                   ProposalStatus
+		pt                   types.ProposalStatus
 		sprintFArgs          string
 		expectedStringOutput string
 	}{
-		{statusDepositPeriod, "%s", "PROPOSAL_STATUS_DEPOSIT_PERIOD"},
-		{statusDepositPeriod, "%v", "1"},
+		{statusVotingPeriod, "%s", "PROPOSAL_STATUS_VOTING_PERIOD"},
+		{statusProposalPassed, "%v", "PROPOSAL_STATUS_PASSED"},
 	}
 	for _, tt := range tests {
 		got := fmt.Sprintf(tt.sprintFArgs, tt.pt)

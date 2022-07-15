@@ -15,8 +15,8 @@ import (
 // Default constants for period, mint and staking denom
 const (
 	DefaultPeriod       = time.Minute * 1 // 6 hours //TODO : Change back to 6 hours
-	DefaultMintDenom    = "ustkatom"
-	DefaultStakingDenom = "uatom"
+	DefaultMintDenom    = "ustk" + DefaultStakingDenom
+	DefaultStakingDenom = "stake"
 	MinAmount           = 5000000
 	MaxAmount           = 100000000000
 	MinReward           = 1000
@@ -24,7 +24,7 @@ const (
 
 // DefaultBondDenom is a default bond denom param
 var (
-	DefaultBondDenom = []string{"uatom"}
+	DefaultBondDenom = []string{DefaultStakingDenom}
 )
 
 // Parameter store key
@@ -75,17 +75,16 @@ func DefaultParams() Params {
 			DeveloperRewards: sdk.NewDecWithPrec(5, 2),
 		},
 		CosmosProposalParams: CosmosChainProposalParams{
-			ChainID:              "cosmoshub-4",
+			ChainID:              "",
 			ReduceVotingPeriodBy: DefaultPeriod,
 		},
 		ModuleEnabled:             false,
 		CustodialAddress:          "",
-		StakingEpochIdentifier:    "uatom",
+		StakingEpochIdentifier:    "stake",
 		UndelegateEpochIdentifier: "undelegate",
 		RewardEpochIdentifier:     "reward",
 		ChunkSize:                 5,
 		BondDenoms:                []string{DefaultStakingDenom},
-		StakingDenom:              DefaultStakingDenom,
 		MintDenom:                 DefaultMintDenom,
 		RetryLimit:                10,
 	}
@@ -132,10 +131,7 @@ func (p Params) Validate() error {
 	if err := validateWithdrawRewardsChunkSize(p.ChunkSize); err != nil {
 		return err
 	}
-	if err := validateBondDenom(p.BondDenoms); err != nil {
-		return err
-	}
-	if err := validateStakingDenom(p.MintDenom); err != nil {
+	if err := validateBondDenoms(p.BondDenoms); err != nil {
 		return err
 	}
 	if err := validateMintDenom(p.MintDenom); err != nil {
@@ -174,8 +170,7 @@ func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
 		paramsTypes.NewParamSetPair(KeyCustodialAddress, &p.CustodialAddress, validateCustodialAddress),
 		paramsTypes.NewParamSetPair(KeyUndelegateEpochIdentifier, &p.UndelegateEpochIdentifier, epochsTypes.ValidateEpochIdentifierInterface),
 		paramsTypes.NewParamSetPair(KeyChunkSize, &p.ChunkSize, validateWithdrawRewardsChunkSize),
-		paramsTypes.NewParamSetPair(KeyBondDenom, &p.BondDenoms, validateBondDenom),
-		paramsTypes.NewParamSetPair(KeyStakingDenom, &p.StakingDenom, validateStakingDenom),
+		paramsTypes.NewParamSetPair(KeyBondDenom, &p.BondDenoms, validateBondDenoms),
 		paramsTypes.NewParamSetPair(KeyMintDenom, &p.MintDenom, validateMintDenom),
 		paramsTypes.NewParamSetPair(KeyRetryLimit, &p.RetryLimit, validateRetryLimit),
 		paramsTypes.NewParamSetPair(KeyRewardEpochIdentifier, &p.RewardEpochIdentifier, epochsTypes.ValidateEpochIdentifierInterface),
@@ -424,7 +419,7 @@ func validateWithdrawRewardsChunkSize(i interface{}) error {
 	return nil
 }
 
-func validateBondDenom(i interface{}) error {
+func validateBondDenoms(i interface{}) error {
 	v, ok := i.([]string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -432,18 +427,6 @@ func validateBondDenom(i interface{}) error {
 
 	if len(v) == 0 {
 		return fmt.Errorf("bond denom cannot be empty")
-	}
-	return nil
-}
-
-func validateStakingDenom(i interface{}) error {
-	v, ok := i.(string)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v == "" {
-		return fmt.Errorf("staking denom cannot be empty")
 	}
 	return nil
 }

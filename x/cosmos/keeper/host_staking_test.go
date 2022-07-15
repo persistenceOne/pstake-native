@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"math"
 	"testing"
 
@@ -30,7 +31,7 @@ func TestMulInt(t *testing.T) {
 }
 
 func TestGetIdealCurrentDelegations(t *testing.T) {
-	denom := "uatom"
+	denom := types.DefaultStakingDenom
 	type testValState struct {
 		name   string
 		weight string
@@ -194,29 +195,29 @@ func testStateData(denom string) types.WeightedAddressAmounts {
 	}{
 		{
 			name:   "cosmosvalidatorAddr1",
-			weight: "0.5",
-			amount: 0, // ideal: 14000000
+			weight: "0.4",
+			amount: 15000000, // ideal: 14000000
 		},
 		{
 			name:   "cosmosvalidatorAddr2",
 			weight: "0.2",
-			amount: 0, // ideal: 7000000
+			amount: 10000000, // ideal: 7000000
 		},
 		{
 			name:   "cosmosvalidatorAddr3",
-			weight: "0.2",
-			amount: 0, // ideal: 10500000
+			weight: "0.3",
+			amount: 5000000, // ideal: 10500000
 		},
 		{
 			name:   "cosmosvalidatorAddr4",
 			weight: "0.1",
 			amount: 0, // ideal: 3500000
 		},
-		//{
-		//	name:   "cosmosvalidatorAddr5",
-		//	weight: "0",
-		//	amount: 5000000, // ideal: 0
-		//},
+		{
+			name:   "cosmosvalidatorAddr5",
+			weight: "0",
+			amount: 5000000, // ideal: 0
+		},
 	}
 	// Create state
 	state := types.WeightedAddressAmounts{}
@@ -239,7 +240,9 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
 
 	// Set validator set weighted amount
 	params := app.CosmosKeeper.GetParams(ctx)
-	state := testStateData(params.StakingDenom)
+	bondDenom, err := params.GetBondDenomOf(types.DefaultStakingDenom)
+	require.NoError(suite.T(), err, nil)
+	state := testStateData(bondDenom)
 	suite.SetupValWeightedAmounts(state)
 
 	// Test data
@@ -247,15 +250,6 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
 		given    int64
 		expected map[string]int64
 	}{
-		{
-			given: 3,
-			expected: map[string]int64{
-				"cosmosvalidatorAddr1": 1,
-				"cosmosvalidatorAddr2": 1,
-				"cosmosvalidatorAddr3": 1,
-				"cosmosvalidatorAddr5": 1,
-			},
-		},
 		{
 			given: 1000,
 			expected: map[string]int64{
@@ -299,7 +293,9 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
 	// Create input parameters
 	for _, test := range testMatrix {
 		// Create state
-		givenCoin := sdk.NewInt64Coin(params.StakingDenom, test.given)
+		bondDenom, err = params.GetBondDenomOf(types.DefaultStakingDenom)
+		require.NoError(suite.T(), err, nil)
+		givenCoin := sdk.NewInt64Coin(bondDenom, test.given)
 		expectedMap := map[string]int64{}
 		for k, v := range test.expected {
 			valAddress, _ := types.Bech32ifyValAddressBytes(types.Bech32PrefixValAddr, sdk.ValAddress(k))
@@ -324,7 +320,9 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 
 	// Set validator set weighted amount
 	params := app.CosmosKeeper.GetParams(ctx)
-	state := testStateData(params.StakingDenom)
+	bondDenom, err := params.GetBondDenomOf(types.DefaultStakingDenom)
+	require.NoError(suite.T(), err, nil)
+	state := testStateData(bondDenom)
 	suite.SetupValWeightedAmounts(state)
 
 	// Test data
@@ -333,10 +331,8 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 		expected map[string]int64
 	}{
 		{
-			given: 1000,
-			expected: map[string]int64{
-				"cosmosvalidatorAddr5": 1000,
-			},
+			given:    1000,
+			expected: map[string]int64{},
 		},
 		{
 			given: 10000000,
@@ -380,10 +376,13 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 	// Create input parameters
 	for _, test := range testMatrix {
 		// Create state
-		givenCoin := sdk.NewInt64Coin(params.StakingDenom, test.given)
+		bondDenom, err = params.GetBondDenomOf(types.DefaultStakingDenom)
+		require.NoError(suite.T(), err, nil)
+		givenCoin := sdk.NewInt64Coin(bondDenom, test.given)
 		expectedMap := map[string]int64{}
 		for k, v := range test.expected {
-			expectedMap[sdk.ValAddress(k).String()] = v
+			valAddress, _ := types.Bech32ifyValAddressBytes(types.Bech32PrefixValAddr, sdk.ValAddress(k))
+			expectedMap[valAddress] = v
 		}
 
 		// Run getIdealCurrentDelegations function with params

@@ -162,7 +162,11 @@ func (k Keeper) FetchValidatorsToUndelegate(ctx sdk.Context, amount sdk.Coin) ([
 	valWeightedAmt := k.GetAllCosmosValidatorSet(ctx)
 
 	// Check if amount asked to undelegate is more than total delegations
-	totalStaked := valWeightedAmt.TotalAmount(params.StakingDenom)
+	bondDenom, err := params.GetBondDenomOf(types.DefaultStakingDenom)
+	if err != nil {
+		return nil, err
+	}
+	totalStaked := valWeightedAmt.TotalAmount(bondDenom)
 	if totalStaked.Amount.LT(amount.Amount) {
 		return nil, fmt.Errorf("undelegate amount %d more than total staked %d", amount.Amount, totalStaked.Amount)
 	}

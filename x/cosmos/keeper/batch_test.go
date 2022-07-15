@@ -1,62 +1,84 @@
 package keeper_test
 
 import (
-	"fmt"
+	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	"strings"
-	"testing"
 )
 
-//status: ""
-//tx:
-//auth_info:
-//fee:
-//amount: []
-//gas_limit: "400000"
-//granter: ""
-//payer: ""
-//signer_infos: []
-//body:
-//extension_options: []
-//memo: ""
-//messages:
-//- '@type': /cosmos.authz.v1beta1.MsgExec
-//grantee: cosmos1g42ycjrd7dzu2r9af3xnjw09q3pfscffe73nnn
-//msgs:
-//- '@type': /cosmos.staking.v1beta1.MsgDelegate
-//amount:
-//amount: "5000000"
-//denom: stake
-//delegator_address: cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2
-//validator_address: cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt
-//- '@type': /cosmos.staking.v1beta1.MsgDelegate
-//amount:
-//amount: "2000000"
-//denom: stake
-//delegator_address: cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2
-//validator_address: cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2
-//- '@type': /cosmos.staking.v1beta1.MsgDelegate
-//amount:
-//amount: "2000000"
-//denom: stake
-//delegator_address: cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2
-//validator_address: cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2
-//- '@type': /cosmos.staking.v1beta1.MsgDelegate
-//amount:
-//amount: "1000000"
-//denom: stake
-//delegator_address: cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2
-//validator_address: cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5
-//non_critical_extension_options: []
-//timeout_height: "0"
-//signatures: []
-//txHash: ""
+var cosmosTx = cosmosTypes.CosmosTx{
+	Tx: sdkTx.Tx{
+		Body: &sdkTx.TxBody{
+			Messages:      []*codecTypes.Any{},
+			Memo:          "",
+			TimeoutHeight: 0,
+		},
+		AuthInfo: &sdkTx.AuthInfo{
+			SignerInfos: nil,
+			Fee: &sdkTx.Fee{
+				Amount:   nil,
+				GasLimit: cosmosTypes.MinGasFee,
+				Payer:    "",
+			},
+		},
+		Signatures: nil,
+	},
+	EventEmitted:      false,
+	Status:            "",
+	TxHash:            "",
+	ActiveBlockHeight: 10000000,
+	SignerAddress:     "address",
+}
 
-func TestKeeper_SetOutgoingTxnSignaturesAndEmitEvent(t *testing.T) {
+var txStatus = cosmosTypes.MsgTxStatus{
+	OrchestratorAddress: "address",
+	TxHash:              "ABCD",
+	Status:              "success",
+	AccountNumber:       1,
+	SequenceNumber:      1,
+	Balance:             sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(10))),
+	ValidatorDetails:    []cosmosTypes.ValidatorDetails{},
+	BlockHeight:         10,
+}
 
-	bytes := []byte("cosmos")
-	txHash := cosmosTypes.BytesToHexUpper(bytes)
-	txHash1 := strings.ToUpper(txHash)
-	fmt.Println(txHash1)
+func (suite *IntegrationTestSuite) TestKeeper_SetNewTxnInOutgoingPool() {
+	app, ctx := suite.app, suite.ctx
+	appCosmosKeeper := app.CosmosKeeper
 
+	// set new txID as 1
+	txID := uint64(1)
+
+	// set transaction in outgoing pool
+	appCosmosKeeper.SetNewTxnInOutgoingPool(ctx, txID, cosmosTx)
+
+	// get transaction from outgoing pool
+	response, err := appCosmosKeeper.GetTxnFromOutgoingPoolByID(ctx, txID)
+	suite.NoError(err)
+	// check certain fields only as the txBody and authInfo are pointers
+	suite.Equal(cosmosTx.EventEmitted, response.CosmosTxDetails.EventEmitted)
+	suite.Equal(cosmosTx.ActiveBlockHeight, response.CosmosTxDetails.ActiveBlockHeight)
+	suite.Equal(cosmosTx.SignerAddress, response.CosmosTxDetails.SignerAddress)
+}
+
+func (suite *IntegrationTestSuite) TestTransactionQueue() {
+	app, ctx := suite.app, suite.ctx
+	appCosmosKeeper := app.CosmosKeeper
+
+	moduleStatus := appCosmosKeeper.GetParams(ctx).ModuleEnabled
+	suite.Equal(true, moduleStatus)
+	txID := uint64(1)
+
+	appCosmosKeeper.SetNewInTransactionQueue(ctx, txID)
+	appCosmosKeeper.SetNewInTransactionQueue(ctx, txID+1)
+	appCosmosKeeper.SetNewInTransactionQueue(ctx, txID+2)
+
+	activeID := appCosmosKeeper.GetNextFromTransactionQueue(ctx)
+	suite.Equal(txID, activeID)
+
+	suite.Equal(activeID, appCosmosKeeper.GetActiveFromTransactionQueue(ctx))
+	for i := 0; i <= 10; i++ {
+		appCosmosKeeper.IncrementRetryCounterInTransactionQueue(ctx, activeID)
+	}
+	suite.Equal(false, appCosmosKeeper.GetParams(ctx).ModuleEnabled)
 }

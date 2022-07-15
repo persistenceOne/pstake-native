@@ -53,6 +53,7 @@ func postEnableModuleProposalHandlerFn(clientCtx client.Context) http.HandlerFun
 			req.EnableModule.Description,
 			req.EnableModule.CustodialAddress,
 			req.EnableModule.ChainID,
+			req.EnableModule.Denom,
 			req.EnableModule.Threshold,
 			req.EnableModule.AccountNumber,
 			req.EnableModule.SequenceNumber,

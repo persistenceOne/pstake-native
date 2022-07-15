@@ -37,6 +37,7 @@ var _ = time.Kitchen
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// MsgSetOrchestrator defines a SDK message for setting a new orchestrator for validator
 type MsgSetOrchestrator struct {
 	Validator    string `protobuf:"bytes,1,opt,name=validator,proto3" json:"validator,omitempty"`
 	Orchestrator string `protobuf:"bytes,2,opt,name=orchestrator,proto3" json:"orchestrator,omitempty"`
@@ -89,6 +90,7 @@ func (m *MsgSetOrchestrator) GetOrchestrator() string {
 	return ""
 }
 
+// MsgSetOrchestratorResponse defines the Msg/SetOrchestrator response type
 type MsgSetOrchestratorResponse struct {
 }
 
@@ -125,6 +127,7 @@ func (m *MsgSetOrchestratorResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSetOrchestratorResponse proto.InternalMessageInfo
 
+// MsgRemoveOrchestrator defines a SDK message for removing orchestrator for validator
 type MsgRemoveOrchestrator struct {
 	Validator    string `protobuf:"bytes,1,opt,name=validator,proto3" json:"validator,omitempty"`
 	Orchestrator string `protobuf:"bytes,2,opt,name=orchestrator,proto3" json:"orchestrator,omitempty"`
@@ -177,6 +180,7 @@ func (m *MsgRemoveOrchestrator) GetOrchestrator() string {
 	return ""
 }
 
+// MsgRemoveOrchestratorResponse defines the Msg/RemoveOrchestrator response type
 type MsgRemoveOrchestratorResponse struct {
 }
 
@@ -213,6 +217,7 @@ func (m *MsgRemoveOrchestratorResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRemoveOrchestratorResponse proto.InternalMessageInfo
 
+// MsgWithdrawStkAsset defines a SDK message for withdrawing stkAsset
 type MsgWithdrawStkAsset struct {
 	FromAddress string     `protobuf:"bytes,1,opt,name=from_address,json=fromAddress,proto3" json:"from_address,omitempty" yaml:"from_address"`
 	ToAddress   string     `protobuf:"bytes,2,opt,name=to_address,json=toAddress,proto3" json:"to_address,omitempty" yaml:"to_address"`
@@ -252,6 +257,7 @@ func (m *MsgWithdrawStkAsset) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgWithdrawStkAsset proto.InternalMessageInfo
 
+// MsgWithdrawStkAssetResponse defines a Msg/WithdrawStkAsset response type
 type MsgWithdrawStkAssetResponse struct {
 }
 
@@ -288,6 +294,7 @@ func (m *MsgWithdrawStkAssetResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgWithdrawStkAssetResponse proto.InternalMessageInfo
 
+// MsgVote defines a SDK message for voting on host-chain proposals
 type MsgVote struct {
 	ProposalId uint64     `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id" yaml:"proposal_id"`
 	Voter      string     `protobuf:"bytes,2,opt,name=voter,proto3" json:"voter,omitempty"`
@@ -326,6 +333,7 @@ func (m *MsgVote) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgVote proto.InternalMessageInfo
 
+// MsgVoteResponse defines a Msg/Vote response type
 type MsgVoteResponse struct {
 }
 
@@ -362,6 +370,7 @@ func (m *MsgVoteResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgVoteResponse proto.InternalMessageInfo
 
+// MsgVoteWeighted defines a SDK message for weighted votes of validator
 type MsgVoteWeighted struct {
 	ProposalId uint64               `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty" yaml:"proposal_id"`
 	Voter      string               `protobuf:"bytes,2,opt,name=voter,proto3" json:"voter,omitempty"`
@@ -400,6 +409,7 @@ func (m *MsgVoteWeighted) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgVoteWeighted proto.InternalMessageInfo
 
+// MsgVoteWeightedResponse defines a Msg/VoteWeighted response type
 type MsgVoteWeightedResponse struct {
 }
 
@@ -436,6 +446,7 @@ func (m *MsgVoteWeightedResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgVoteWeightedResponse proto.InternalMessageInfo
 
+// MsgMintTokensForAccount defines a SDK message for a vote that asks module to mint tokens for an account
 type MsgMintTokensForAccount struct {
 	AddressFromMemo     string     `protobuf:"bytes,1,opt,name=address_from_memo,json=addressFromMemo,proto3" json:"address_from_memo,omitempty"`
 	OrchestratorAddress string     `protobuf:"bytes,2,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
@@ -520,6 +531,7 @@ func (m *MsgMintTokensForAccount) GetBlockHeight() int64 {
 	return 0
 }
 
+// MsgMintTokensForAccountResponse defines a Msg/MintTokensForAccount response type
 type MsgMintTokensForAccountResponse struct {
 }
 
@@ -556,6 +568,7 @@ func (m *MsgMintTokensForAccountResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgMintTokensForAccountResponse proto.InternalMessageInfo
 
+// MsgMakeProposal defines a SDK message for a vote that asks module to replicate proposal on controller chain
 type MsgMakeProposal struct {
 	Title               string    `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty" yaml:"title"`
 	Description         string    `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty" yaml:"description"`
@@ -656,6 +669,7 @@ func (m *MsgMakeProposal) GetVotingEndTime() time.Time {
 	return time.Time{}
 }
 
+// MsgMakeProposalResponse defines a MsgMakeProposal response type
 type MsgMakeProposalResponse struct {
 }
 
@@ -692,6 +706,7 @@ func (m *MsgMakeProposalResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgMakeProposalResponse proto.InternalMessageInfo
 
+// MsgSignedTx defines a SDK message for signing a transaction generated by module
 type MsgSignedTx struct {
 	TxID                uint64 `protobuf:"varint,1,opt,name=tx_i_d,json=txID,proto3" json:"tx_i_d,omitempty"`
 	Tx                  tx.Tx  `protobuf:"bytes,2,opt,name=tx,proto3" json:"tx"`
@@ -752,6 +767,7 @@ func (m *MsgSignedTx) GetOrchestratorAddress() string {
 	return ""
 }
 
+// MsgSignedTxResponse defines a Msg/SignedTx response type
 type MsgSignedTxResponse struct {
 }
 
@@ -788,6 +804,7 @@ func (m *MsgSignedTxResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSignedTxResponse proto.InternalMessageInfo
 
+// MsgTxStatus defines a SDK message for acknowledging status of a broadcast message on host chain
 type MsgTxStatus struct {
 	OrchestratorAddress string `protobuf:"bytes,1,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
 	TxHash              string `protobuf:"bytes,2,opt,name=txHash,proto3" json:"txHash,omitempty"`
@@ -889,6 +906,7 @@ func (m *MsgTxStatus) GetBlockHeight() int64 {
 	return 0
 }
 
+// MsgTxStatusResponse defines a Msg/TxStatus response type
 type MsgTxStatusResponse struct {
 }
 
@@ -925,6 +943,7 @@ func (m *MsgTxStatusResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgTxStatusResponse proto.InternalMessageInfo
 
+// ValidatorDetails defines validator delegation state on host chain
 type ValidatorDetails struct {
 	ValidatorAddress string     `protobuf:"bytes,1,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
 	BondedTokens     types.Coin `protobuf:"bytes,2,opt,name=bonded_tokens,json=bondedTokens,proto3" json:"bonded_tokens"`
@@ -993,6 +1012,7 @@ func (m *ValidatorDetails) GetRewardsCollected() types.Coin {
 	return types.Coin{}
 }
 
+// MsgUndelegateSuccess defines a SDK message for successful delegation of tokens
 type MsgUndelegateSuccess struct {
 	DelegatorAddress    string     `protobuf:"bytes,1,opt,name=delegator_address,json=delegatorAddress,proto3" json:"delegator_address,omitempty"`
 	ValidatorAddress    string     `protobuf:"bytes,2,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
@@ -1085,6 +1105,7 @@ func (m *MsgUndelegateSuccess) GetBlockHeight() int64 {
 	return 0
 }
 
+// MsgUndelegateSuccessResponse defines a Msg/UndelegateSuccess response type
 type MsgUndelegateSuccessResponse struct {
 }
 
@@ -1121,6 +1142,7 @@ func (m *MsgUndelegateSuccessResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUndelegateSuccessResponse proto.InternalMessageInfo
 
+// MsgSetSignature defines a SDK message for setting a signature to a transaction
 type MsgSetSignature struct {
 	OrchestratorAddress string `protobuf:"bytes,1,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
 	OutgoingTxID        uint64 `protobuf:"varint,2,opt,name=outgoing_tx_i_d,json=outgoingTxID,proto3" json:"outgoing_tx_i_d,omitempty"`
@@ -1189,6 +1211,7 @@ func (m *MsgSetSignature) GetBlockHeight() int64 {
 	return 0
 }
 
+// MsgSetSignatureResponse defines a Msg/SetSignature response type
 type MsgSetSignatureResponse struct {
 }
 
@@ -1225,6 +1248,7 @@ func (m *MsgSetSignatureResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSetSignatureResponse proto.InternalMessageInfo
 
+// MsgSlashingEventOnCosmosChain defines a SDK message for a slashing event that has happened on host chain
 type MsgSlashingEventOnCosmosChain struct {
 	ValidatorAddress    string     `protobuf:"bytes,1,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
 	CurrentDelegation   types.Coin `protobuf:"bytes,2,opt,name=current_delegation,json=currentDelegation,proto3" json:"current_delegation"`
@@ -1309,6 +1333,7 @@ func (m *MsgSlashingEventOnCosmosChain) GetBlockHeight() int64 {
 	return 0
 }
 
+// MsgSlashingEventOnCosmosChainResposne defines a SDK message for Msg/SlashingEventOnCosmosChain resposne type
 type MsgSlashingEventOnCosmosChainResponse struct {
 }
 
@@ -1501,17 +1526,27 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
+	// SetOrchestrator defines a method for setting orchestrator for validator
 	SetOrchestrator(ctx context.Context, in *MsgSetOrchestrator, opts ...grpc.CallOption) (*MsgSetOrchestratorResponse, error)
+	// RemoveOrchestrator defines a method for removing orchestrator from validator
 	RemoveOrchestrator(ctx context.Context, in *MsgRemoveOrchestrator, opts ...grpc.CallOption) (*MsgRemoveOrchestratorResponse, error)
+	// Withdraw defines a method for withdawring stkAssets
 	Withdraw(ctx context.Context, in *MsgWithdrawStkAsset, opts ...grpc.CallOption) (*MsgWithdrawStkAssetResponse, error)
+	// MintTokensForAccount defines a method for minting tokens for an account
 	MintTokensForAccount(ctx context.Context, in *MsgMintTokensForAccount, opts ...grpc.CallOption) (*MsgMintTokensForAccountResponse, error)
+	// MakeProposal defines a method for duplicating a host chain proposal on controller chain
 	MakeProposal(ctx context.Context, in *MsgMakeProposal, opts ...grpc.CallOption) (*MsgMakeProposalResponse, error)
+	// Vote defines a method for voting on duplicate host chain proposal
 	Vote(ctx context.Context, in *MsgVote, opts ...grpc.CallOption) (*MsgVoteResponse, error)
+	// VoteWeighted defines a method for accepting weighted vote on duplicate host chain proposal
 	VoteWeighted(ctx context.Context, in *MsgVoteWeighted, opts ...grpc.CallOption) (*MsgVoteWeightedResponse, error)
-	//  rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
+	// TxStatus defines a method to receive host chain transaction acknowledgement
 	TxStatus(ctx context.Context, in *MsgTxStatus, opts ...grpc.CallOption) (*MsgTxStatusResponse, error)
+	// UndelegateSuccess defines a method for successful undelegation completion
 	UndelegateSuccess(ctx context.Context, in *MsgUndelegateSuccess, opts ...grpc.CallOption) (*MsgUndelegateSuccessResponse, error)
+	// SetSignature defines a method for setting multisig signatures
 	SetSignature(ctx context.Context, in *MsgSetSignature, opts ...grpc.CallOption) (*MsgSetSignatureResponse, error)
+	// SlashingEvent defines a method for slashing occurance on host chain
 	SlashingEvent(ctx context.Context, in *MsgSlashingEventOnCosmosChain, opts ...grpc.CallOption) (*MsgSlashingEventOnCosmosChainResponse, error)
 }
 
@@ -1624,17 +1659,27 @@ func (c *msgClient) SlashingEvent(ctx context.Context, in *MsgSlashingEventOnCos
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
+	// SetOrchestrator defines a method for setting orchestrator for validator
 	SetOrchestrator(context.Context, *MsgSetOrchestrator) (*MsgSetOrchestratorResponse, error)
+	// RemoveOrchestrator defines a method for removing orchestrator from validator
 	RemoveOrchestrator(context.Context, *MsgRemoveOrchestrator) (*MsgRemoveOrchestratorResponse, error)
+	// Withdraw defines a method for withdawring stkAssets
 	Withdraw(context.Context, *MsgWithdrawStkAsset) (*MsgWithdrawStkAssetResponse, error)
+	// MintTokensForAccount defines a method for minting tokens for an account
 	MintTokensForAccount(context.Context, *MsgMintTokensForAccount) (*MsgMintTokensForAccountResponse, error)
+	// MakeProposal defines a method for duplicating a host chain proposal on controller chain
 	MakeProposal(context.Context, *MsgMakeProposal) (*MsgMakeProposalResponse, error)
+	// Vote defines a method for voting on duplicate host chain proposal
 	Vote(context.Context, *MsgVote) (*MsgVoteResponse, error)
+	// VoteWeighted defines a method for accepting weighted vote on duplicate host chain proposal
 	VoteWeighted(context.Context, *MsgVoteWeighted) (*MsgVoteWeightedResponse, error)
-	//  rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
+	// TxStatus defines a method to receive host chain transaction acknowledgement
 	TxStatus(context.Context, *MsgTxStatus) (*MsgTxStatusResponse, error)
+	// UndelegateSuccess defines a method for successful undelegation completion
 	UndelegateSuccess(context.Context, *MsgUndelegateSuccess) (*MsgUndelegateSuccessResponse, error)
+	// SetSignature defines a method for setting multisig signatures
 	SetSignature(context.Context, *MsgSetSignature) (*MsgSetSignatureResponse, error)
+	// SlashingEvent defines a method for slashing occurance on host chain
 	SlashingEvent(context.Context, *MsgSlashingEventOnCosmosChain) (*MsgSlashingEventOnCosmosChainResponse, error)
 }
 

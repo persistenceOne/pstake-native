@@ -203,7 +203,7 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 	}
 
 	// check if the denom for staking matches or not
-	uatomDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
+	uatomDenom, err := k.GetParams(ctx).GetBondDenomOf(cosmosTypes.DefaultStakingDenom)
 	if err != nil {
 		return nil, err
 	}

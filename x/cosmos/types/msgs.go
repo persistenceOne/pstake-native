@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -423,6 +424,41 @@ func (m *MsgTxStatus) Type() string { return "msg_tx_status" }
 func (m *MsgTxStatus) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.OrchestratorAddress)
+	}
+
+	if m.TxHash == "" {
+		return fmt.Errorf("txHash cannot be empty")
+	}
+
+	if m.Status == "" {
+		return fmt.Errorf("status cannot be empty")
+	}
+
+	for i, vd := range m.ValidatorDetails {
+		if !vd.RewardsCollected.IsValid() {
+			return fmt.Errorf(" reward amount not valid at index %c, for validator %s", i, vd.ValidatorAddress)
+		}
+		if vd.RewardsCollected.Denom != DefaultStakingDenom {
+			return fmt.Errorf("invalid rewards denom at index %c, for %s", i, vd.ValidatorAddress)
+		}
+
+		if !vd.BondedTokens.IsValid() {
+			return fmt.Errorf(" bonded amount not valid at index %c, for validator %s", i, vd.ValidatorAddress)
+		}
+		if vd.BondedTokens.Denom != DefaultStakingDenom {
+			return fmt.Errorf("invalid bonded denom at index %c, for %s", i, vd.ValidatorAddress)
+		}
+
+		if !vd.UnbondingTokens.IsValid() {
+			return fmt.Errorf(" unbonding amount not valid at index %c, for validator %s", i, vd.ValidatorAddress)
+		}
+		if vd.UnbondingTokens.Denom != DefaultStakingDenom {
+			return fmt.Errorf("invalid unbonding denom at index %c, for %s", i, vd.ValidatorAddress)
+		}
+	}
+
+	if m.BlockHeight < 0 {
+		return fmt.Errorf("block height can not be negative")
 	}
 	return nil
 }
