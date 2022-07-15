@@ -61,7 +61,7 @@ message Proposal {
 }
 
 // ProposalStatus enumerates the valid statuses of a proposal.
-enum  ProposalStatus {
+enum ProposalStatus {
   option (gogoproto.goproto_enum_prefix) = false;
 
   // PROPOSAL_STATUS_UNSPECIFIED defines the default propopsal status.
