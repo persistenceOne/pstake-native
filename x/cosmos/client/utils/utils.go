@@ -118,8 +118,6 @@ func NormalizeProposalStatus(status string) string {
 		return cosmosTypes.StatusVotingPeriod.String()
 	case "Passed", "passed":
 		return cosmosTypes.StatusPassed.String()
-	case "Rejected", "rejected":
-		return cosmosTypes.StatusRejected.String()
 	default:
 		return status
 	}
