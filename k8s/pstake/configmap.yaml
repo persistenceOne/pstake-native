@@ -5,3 +5,4 @@ metadata:
   namespace: dev-native
 data:
   chain.id: pstaked
+  
