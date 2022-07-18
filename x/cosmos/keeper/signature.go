@@ -113,7 +113,7 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 				if err != nil {
 					panic(err)
 				}
-				account := k.AuthKeeper.GetAccount(ctx, orchAddress)
+				account := k.authKeeper.GetAccount(ctx, orchAddress)
 				if err := multisig.AddSignatureFromPubKey(multisigSig, &externalSig,
 					account.GetPubKey(), multisigPub.GetPubKeys()); err != nil {
 					panic(err)
