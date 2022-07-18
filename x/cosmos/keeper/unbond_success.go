@@ -82,7 +82,7 @@ func (k Keeper) deleteUndelegateSuccessDetails(ctx sdk.Context, key cosmosTypes.
 ProcessAllUndelegateSuccess processes all the undelegate success requests
 This function is called every EndBlocker to perform the defined set of actions as mentioned below :
    1. Get the list of all undelegate success requests and the last epoch with withdraw status false.
-   2. Checks if the majority of the validator oracle have sent the minting request.
+   2. Checks if the majority of the validator orchestrator have sent the minting request.
    3. If majority is reached, set the epch number and undelegate details if individual details of validator.
    4. Another check is present for setting send transaction in outgoing pool.
 */

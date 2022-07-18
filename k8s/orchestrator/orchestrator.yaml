@@ -1,5 +1,4 @@
 apiVersion: apps/v1
-# Todo : change kind to Deployment
 kind: StatefulSet
 metadata:
   name: orchestrator
@@ -28,7 +27,7 @@ spec:
       imagePullSecrets:
         - name: test-docker-creds
       containers:
-        - name: orchestrator-1
+        - name: orchestrator
           image: persistenceone/orc
           imagePullPolicy: Always
           env:
@@ -66,8 +65,3 @@ spec:
           configMap:
             name: test-orc-config
 ---
-
-
-# init containers not needed
-# single container : name : orchestrator, env vars : ports and bash
-#

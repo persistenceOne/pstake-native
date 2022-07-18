@@ -17,9 +17,9 @@ spec:
     protocol: TCP
     targetPort: 26657
   - name: http
-    port: 8080
+    port: 8081
     protocol: TCP
-    targetPort: 8080
+    targetPort: 8081
   - name: grpc
     port: 9090
     protocol: TCP
@@ -68,7 +68,7 @@ spec:
               key: chain.id
               name: pstake
         - name: PSTAKE_DIR
-          value: /pstaked
+          value: /psatked
         command:
         - bash
         - "-c"
@@ -148,7 +148,7 @@ spec:
               key: chain.id
               name: pstake
         - name: PSTAKE_DIR
-          value: /pstaked
+          value: /psatked
         command:
         - bash
         - "-c"
@@ -175,7 +175,7 @@ spec:
         - name: GENESIS_FILE
           value: /pstaked/config/genesis.json
         - name: PORT
-          value: "8080"
+          value: "8081"
         - name: CLIENT_NAME
           value: "pstaked"
         command: ["exposer"]

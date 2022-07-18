@@ -15,7 +15,7 @@ import (
 
 /*
 HandleChangeMultisigProposal handles the multisig change proposal
-Multisig change proposal is used to change the multsig account on cosmos side with the given oracle addresses in
+Multisig change proposal is used to change the multsig account on cosmos side with the given orchestrator addresses in
 the proposal and does the following actions :
 1. Aggregate all the keys and form a multisig address
 2. Handle the transaction queue (by making grant, feegrant and revoke transactions for changing authorizations)
@@ -235,10 +235,10 @@ func HandleChangeCosmosValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *co
 }
 
 /*
-HandleChangeOracleValidatorWeightsProposal handles the proposal for change of weights of oracle validator set
+HandleChangeOrchestratorValidatorWeightsProposal handles the proposal for change of weights of orchestrator validator set
 by verifying the supplied data and then setting it in DB
 */
-func HandleChangeOracleValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeOracleValidatorWeightsProposal) error {
+func HandleChangeOrchestratorValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeOrchestratorValidatorWeightsProposal) error {
 	// step 1 : check total sum of weights is 1
 	err := cosmosTypes.ValidateValidatorSetNativeChain(p.WeightedAddresses)
 	if err != nil {
@@ -257,7 +257,7 @@ func HandleChangeOracleValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *co
 	if len(valAddresses) != len(p.WeightedAddresses) {
 		return fmt.Errorf("validator addresses and weight are not equally mapped")
 	}
-	k.SetOracleValidatorSet(ctx, valAddresses, p.WeightedAddresses)
+	k.SetOrchestratorValidatorSet(ctx, valAddresses, p.WeightedAddresses)
 	return nil
 }
 

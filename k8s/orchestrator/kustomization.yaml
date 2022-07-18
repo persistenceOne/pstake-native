@@ -1,5 +1,4 @@
 resources:
-- configmap.yaml
 - orchestrator.yaml
 
 generatorOptions:
