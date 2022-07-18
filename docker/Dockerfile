@@ -4,13 +4,13 @@ FROM golang:1.17-alpine AS build-env
 ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3
 
 # Set working directory for the build
-WORKDIR /go/src/github.com/persistenceOne/pStake-native
+WORKDIR /go/src/github.com/peristenceOne/pStake-native
 
 # Add source files
 COPY . .
 
 # Install minimum necessary dependencies, build Cosmos SDK, remove packages
-RUN apk add --no-cache $PACKAGES && \
+RUN apk add --no-cache $PACKAGES && cd orchestrator && \
   make install
 
 # Final image
@@ -21,6 +21,6 @@ RUN apk add --update ca-certificates jq bash curl
 WORKDIR /root
 
 # Copy over binaries from the build-env
-COPY --from=build-env /go/bin/pstaked /usr/bin/pstaked
+COPY --from=build-env /go/bin/orchestrator /usr/bin/orchestrator
 
-EXPOSE 26657
+

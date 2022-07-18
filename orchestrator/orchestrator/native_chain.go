@@ -3,6 +3,9 @@ package orchestrator
 import (
 	"context"
 	"fmt"
+	stdlog "log"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	keys "github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -13,8 +16,6 @@ import (
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
-	stdlog "log"
-	"time"
 )
 
 type NativeChain struct {

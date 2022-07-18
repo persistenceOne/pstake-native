@@ -2,6 +2,11 @@ package orchestrator
 
 import (
 	"context"
+	stdlog "log"
+	"strconv"
+	"strings"
+	"time"
+
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
@@ -10,10 +15,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	"google.golang.org/grpc"
-	stdlog "log"
-	"strconv"
-	"strings"
-	"time"
 )
 
 const (

@@ -3,6 +3,13 @@ package orchestrator
 import (
 	"context"
 	"fmt"
+	stdlog "log"
+	"os"
+	"strconv"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,12 +21,6 @@ import (
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	"google.golang.org/grpc"
-	stdlog "log"
-	"os"
-	"strconv"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestE2ESignedTx(t *testing.T) {

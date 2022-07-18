@@ -3,6 +3,10 @@ package orchestrator
 import (
 	"context"
 	"fmt"
+	stdlog "log"
+	"testing"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -11,9 +15,6 @@ import (
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
-	stdlog "log"
-	"testing"
-	"time"
 )
 
 func TestE2EValDetails(t *testing.T) {

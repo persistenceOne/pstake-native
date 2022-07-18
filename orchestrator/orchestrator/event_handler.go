@@ -2,11 +2,12 @@ package orchestrator
 
 import (
 	"context"
-	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
-	"github.com/tendermint/tendermint/types"
 	stdlog "log"
 	"strconv"
 	"time"
+
+	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
+	"github.com/tendermint/tendermint/types"
 )
 
 func (c *CosmosChain) DepositTxEventForBlock(blockHeight int64) error {

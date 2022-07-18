@@ -3,6 +3,9 @@ package orchestrator
 import (
 	"context"
 	"fmt"
+	stdlog "log"
+	"strings"
+
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -12,8 +15,6 @@ import (
 	abciTypes "github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
-	stdlog "log"
-	"strings"
 )
 
 func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {

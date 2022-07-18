@@ -3,6 +3,12 @@ package orchestrator
 import (
 	"context"
 	"fmt"
+	stdlog "log"
+	"os"
+	"strconv"
+	"testing"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,11 +17,6 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	"google.golang.org/grpc"
-	stdlog "log"
-	"os"
-	"strconv"
-	"testing"
-	"time"
 )
 
 func TestB(t *testing.T) {

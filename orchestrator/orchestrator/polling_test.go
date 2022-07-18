@@ -3,6 +3,11 @@ package orchestrator
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -10,10 +15,6 @@ import (
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	"google.golang.org/grpc"
-	"os"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestZ(t *testing.T) {

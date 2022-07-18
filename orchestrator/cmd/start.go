@@ -2,6 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	stdlog "log"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -9,10 +14,6 @@ import (
 	"github.com/persistenceOne/pstake-native/orchestrator/constants"
 	"github.com/persistenceOne/pstake-native/orchestrator/orchestrator"
 	"github.com/spf13/cobra"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func StartCommand() *cobra.Command {
@@ -23,8 +24,8 @@ func StartCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			homepath, err := cmd.Flags().GetString(constants.FlagOrcHomeDir)
 			if err != nil {
-				log.Println(err)
-				log.Fatalln(err)
+				stdlog.Println(err)
+				stdlog.Fatalln(err)
 			}
 
 			orcConfig := InitConfig(homepath)
@@ -72,15 +73,15 @@ func StartCommand() *cobra.Command {
 
 			nativeProtoCodec := codec.NewProtoCodec(clientContextNative.InterfaceRegistry)
 
-			log.Println("start rpc server")
+			stdlog.Println("start rpc server")
 
-			log.Println("start to listen for txs cosmos side")
-
+			stdlog.Println("start to listen for txs cosmos side")
+			//TODO : use goroutines  implementation properly here
 			go orchestrator.StartListeningCosmosEvent(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
-			log.Println("started listening for deposits")
+			stdlog.Println("started listening for deposits")
 			go orchestrator.StartListeningCosmosDeposit(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, cosmosProtoCodec)
 
-			log.Println("start to listen for txs native side")
+			stdlog.Println("start to listen for txs native side")
 			go orchestrator.StartListeningNativeSideActions(valAddr, orcSeeds, clientContextNative, clientContextCosmos, cosmosChain, nativeChain, nativeProtoCodec)
 
 			signalChan := make(chan os.Signal, 1)

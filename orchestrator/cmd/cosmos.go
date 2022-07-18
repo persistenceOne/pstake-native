@@ -1,41 +1,41 @@
 package cmd
 
 import (
+	stdlog "log"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/pstake-native/orchestrator/config"
 	"github.com/persistenceOne/pstake-native/orchestrator/constants"
-	"github.com/persistenceOne/pstake-native/orchestrator/helpers"
 	"github.com/persistenceOne/pstake-native/orchestrator/orchestrator"
 	tendermintService "github.com/tendermint/tendermint/libs/service"
-	stdlog "log"
-	"time"
 )
 
-func InitCosmosChain(homePath string, config config.CosmosConfig) (*orchestrator.CosmosChain, error) {
+func InitCosmosChain(homePath string, cfg config.CosmosConfig) (*orchestrator.CosmosChain, error) {
 	chain := &orchestrator.CosmosChain{}
 	chain.Key = "unusedKey"
-	chain.ChainID = config.ChainID
-	chain.GRPCAddr = config.GRPCAddr
-	chain.RPCAddr = config.RPCAddr
-	chain.AccountPrefix = config.AccountPrefix
-	chain.GasAdjustment = config.GasAdjustment
-	chain.GasPrices = config.GasPrice
-	chain.CustodialAddress = sdk.AccAddress(config.CustodialAddr)
-	chain.CoinType = config.CoinType
+	chain.ChainID = cfg.ChainID
+	chain.GRPCAddr = cfg.GRPCAddr
+	chain.RPCAddr = cfg.RPCAddr
+	chain.AccountPrefix = cfg.AccountPrefix
+	chain.GasAdjustment = cfg.GasAdjustment
+	chain.GasPrices = cfg.GasPrice
+	chain.CustodialAddress = sdk.AccAddress(cfg.CustodialAddr)
+	chain.CoinType = cfg.CoinType
 
 	err := chain.Init(string(chain.CustodialAddress), homePath, 1*time.Second, nil, true)
 	if err != nil {
 		return chain, err
 	}
 	if chain.KeyExists(chain.Key) {
-		stdlog.Println("Key Exists")
+		stdlog.Println("Key Exists for Cosmos Chain")
 		err = chain.KeyBase.Delete(chain.Key)
 		if err != nil {
 			return chain, err
 		}
 	}
 
-	_, err = helpers.KeyAddOrRestore(*chain, chain.Key, constants.CosmosCoinType)
+	_, err = config.KeyAddOrRestore(*chain, chain.Key, constants.CosmosCoinType)
 	if err != nil {
 		return chain, err
 	}

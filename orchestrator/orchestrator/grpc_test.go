@@ -3,6 +3,10 @@ package orchestrator
 import (
 	"context"
 	"fmt"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,9 +15,6 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	prov "github.com/tendermint/tendermint/light/provider/http"
 	"google.golang.org/grpc"
-	"os"
-	"testing"
-	"time"
 )
 
 func TestE2Egrpc(t *testing.T) {

@@ -11,13 +11,10 @@ func main() {
 		Short: "pstake-orchestrator is a tool to relay pstake transactions to the Native network",
 		Long:  "pstake-orchestrator is a tool to relay pstake transactions to the Native network",
 	}
-
 	//TODO: add commands
 
 	rootCmd.AddCommand(orc.InitCommand())
-
 	rootCmd.AddCommand(orc.StartCommand())
-
 	err := rootCmd.Execute()
 	if err != nil {
 		panic(err)

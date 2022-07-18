@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/persistenceOne/pstake-native/app"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -16,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"
+	"github.com/persistenceOne/pstake-native/app"
 )
 
 func (n *NativeChain) MakeEncodingConfig() params.EncodingConfig {

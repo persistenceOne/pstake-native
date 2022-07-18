@@ -2,26 +2,27 @@ package orchestrator
 
 import (
 	"context"
+	stdlog "log"
+
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/types"
 	sdkTx "github.com/cosmos/cosmos-sdk/types/tx"
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	abciTypes "github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
-	stdlog "log"
 )
 
 func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string, txHash string, status string,
 	nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, blockResults []*abciTypes.ResponseDeliverTx) error {
 	_, addr := GetPivKeyAddress(native.AccountPrefix, native.CoinType, orcSeeds[0])
 
-	ValDetails := GetValidatorDetails(cosmosChain)
+	valDetails := GetValidatorDetails(cosmosChain)
 	if status == SUCCESS {
-		Val, err := PopulateRewards(cosmosChain, ValDetails, blockResults)
+		val, err := PopulateRewards(cosmosChain, valDetails, blockResults)
 		if err != nil {
 			return err
 		}
-		ValDetails = Val
+		valDetails = val
 	}
 
 	SetSDKConfigPrefix(cosmosChain.ChainID)
@@ -42,7 +43,7 @@ func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string
 			Status:              status,
 			SequenceNumber:      seq,
 			AccountNumber:       acc,
-			ValidatorDetails:    ValDetails,
+			ValidatorDetails:    valDetails,
 		}
 
 		txBytes, err := SignNativeTx(orcSeeds[0], native, nativeCliCtx, msg)

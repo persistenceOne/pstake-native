@@ -3,6 +3,10 @@ package orchestrator
 import (
 	"context"
 	"fmt"
+	stdlog "log"
+	"strings"
+	"time"
+
 	cosmosClient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,9 +16,6 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	tendermintTypes "github.com/tendermint/tendermint/rpc/core/types"
 	"google.golang.org/grpc"
-	stdlog "log"
-	"strings"
-	"time"
 )
 
 func (c *CosmosChain) DepositHandler(valAddr string, orcSeeds []string, nativeCliCtx cosmosClient.Context, clientCtx cosmosClient.Context, native *NativeChain, depositHeight int64, protoCodec *codec.ProtoCodec) error {

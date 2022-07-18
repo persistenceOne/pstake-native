@@ -3,12 +3,13 @@ package orchestrator
 import (
 	"context"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/simapp/params"
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
-	prov "github.com/tendermint/tendermint/light/provider/http"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/cosmos/cosmos-sdk/simapp/params"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	prov "github.com/tendermint/tendermint/light/provider/http"
 )
 
 func TestLogicForRewardMap(t *testing.T) {
@@ -56,8 +57,6 @@ func TestLogicForRewardMap(t *testing.T) {
 	fmt.Println(rewardMap)
 
 	custodialAdrr, err := AccAddressFromBech32("cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2", "cosmos")
-
-	//rpcClientC, _ := newRPCClient("http://13.229.229.141:12001", 1*time.Second)
 	liteproviderC, _ := prov.New("native", "http://13.229.229.141:12001")
 	chainC := &CosmosChain{
 		Key:              "unusedNativeKey",
@@ -83,20 +82,6 @@ func TestLogicForRewardMap(t *testing.T) {
 	cosmosEncodingConfig := chainC.MakeEncodingConfig()
 	chainC.Encoding = cosmosEncodingConfig
 	chainC.logger = defaultChainLogger()
-
-	//clientContextCosmos := client.Context{}.
-	//	WithCodec(cosmosEncodingConfig.Marshaler).
-	//	WithInterfaceRegistry(cosmosEncodingConfig.InterfaceRegistry).
-	//	WithTxConfig(cosmosEncodingConfig.TxConfig).
-	//	WithLegacyAmino(cosmosEncodingConfig.Amino).
-	//	WithInput(os.Stdin).
-	//	WithAccountRetriever(authTypes.AccountRetriever{}).
-	//	WithNodeURI(chainC.RPCAddr).
-	//	WithClient(chainC.Client).
-	//	WithHomeDir("./").
-	//	WithViper("").
-	//	WithChainID(chainC.ChainID)
-	//txSlice := events["tx"]
 
 	valDetails := GetValidatorDetails(chainC)
 

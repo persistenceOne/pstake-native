@@ -1,4 +1,4 @@
-package helpers
+package config
 
 import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"

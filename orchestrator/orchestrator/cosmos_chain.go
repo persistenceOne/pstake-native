@@ -4,6 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	stdlog "log"
+	"os"
+	"path"
+	"path/filepath"
+	"sync"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	keys "github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -15,12 +22,6 @@ import (
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	libclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
-	stdlog "log"
-	"os"
-	"path"
-	"path/filepath"
-	"sync"
-	"time"
 )
 
 const (

@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"bytes"
-	"github.com/BurntSushi/toml"
-	"github.com/persistenceOne/pstake-native/orchestrator/config"
-	"github.com/persistenceOne/pstake-native/orchestrator/constants"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/BurntSushi/toml"
+	"github.com/persistenceOne/pstake-native/orchestrator/config"
+	"github.com/persistenceOne/pstake-native/orchestrator/constants"
+	"github.com/spf13/cobra"
 )
 
 func InitCommand() *cobra.Command {
