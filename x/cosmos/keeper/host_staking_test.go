@@ -397,3 +397,72 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 		suite.Equal(expectedMap, actualMap, "Matching val distribution")
 	}
 }
+
+func createStateFromMap(stateMap map[string][]string, denom string) types.WeightedAddressAmounts {
+	// Create state
+	state := types.WeightedAddressAmounts{}
+	for addr, wa := range stateMap {
+		amt, _ := sdk.NewIntFromString(wa[0])
+		weight, _ := sdk.NewDecFromStr(wa[1])
+		valAddress, _ := types.Bech32ifyValAddressBytes(types.Bech32PrefixValAddr, sdk.ValAddress(addr))
+		state = append(state, types.WeightedAddressAmount{
+			Weight:  weight,
+			Amount:  amt,
+			Address: valAddress,
+			Denom:   denom,
+		})
+	}
+	return state
+}
+
+func (suite *IntegrationTestSuite) TestDivideAmountIntoStateValidatorSet() {
+	app, ctx := suite.app, suite.ctx
+
+	// Test data
+	testMatrix := []struct {
+		state    map[string][]string
+		given    int64
+		expected map[string]int64
+	}{
+		{
+			state: map[string][]string{
+				"cosmosvalidatorAddr1": {"4000000", "0.1"},
+				"cosmosvalidatorAddr2": {"8000000", "0.2"},
+				"cosmosvalidatorAddr3": {"8000000", "0.2"},
+				"cosmosvalidatorAddr4": {"20000000", "0.5"},
+			},
+			given: 13028679724,
+			expected: map[string]int64{
+				"cosmosvalidatorAddr1": 1302867972,
+				"cosmosvalidatorAddr2": 6514339864,
+				"cosmosvalidatorAddr3": 2605735944,
+				"cosmosvalidatorAddr4": 2605735944,
+			},
+		},
+	}
+
+	// Create input parameters
+	for _, test := range testMatrix {
+		// Set validator set weighted amount
+		state := createStateFromMap(test.state, types.DefaultStakingDenom)
+		suite.SetupValWeightedAmounts(state)
+
+		// Create state
+		givenCoin := sdk.NewInt64Coin(types.DefaultStakingDenom, test.given)
+		expectedMap := map[string]int64{}
+		for k, v := range test.expected {
+			valAddress, _ := types.Bech32ifyValAddressBytes(types.Bech32PrefixValAddr, sdk.ValAddress(k))
+			expectedMap[valAddress] = v
+		}
+
+		// Run getIdealCurrentDelegations function with params
+		valAmounts, err := app.CosmosKeeper.FetchValidatorsToDelegate(ctx, givenCoin)
+		suite.Nil(err, "Error is not nil for validator to delegate")
+		// Check outputs
+		actualMap := map[string]int64{}
+		for _, va := range valAmounts {
+			actualMap[va.Validator] = va.Amount.Amount.Int64()
+		}
+		suite.Equal(expectedMap, actualMap, "Matching val distribution")
+	}
+}

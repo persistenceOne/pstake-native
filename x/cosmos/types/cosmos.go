@@ -92,7 +92,7 @@ func (ws WeightedAddressAmounts) GetZeroWeighted() WeightedAddressAmounts {
 func (ws WeightedAddressAmounts) GetZeroValued() WeightedAddressAmounts {
 	zeroValuedAddrAmts := WeightedAddressAmounts{}
 	for _, w := range ws {
-		if w.Amount.IsNegative() {
+		if w.Amount.IsZero() {
 			zeroValuedAddrAmts = append(zeroValuedAddrAmts, w)
 		}
 	}
