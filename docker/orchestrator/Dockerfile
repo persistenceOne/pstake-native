@@ -7,7 +7,7 @@ ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3
 WORKDIR /go/src/github.com/peristenceOne/pStake-native
 
 # Add source files
-COPY . .
+COPY .. .
 
 # Install minimum necessary dependencies, build Cosmos SDK, remove packages
 RUN apk add --no-cache $PACKAGES && cd orchestrator && \
