@@ -25,3 +25,4 @@ jobs:
           push: true
           tags: persistenceone/pstake:latest
           file: docker/pstake/Dockerfile
+          
