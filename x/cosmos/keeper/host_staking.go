@@ -97,11 +97,10 @@ func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, co
 		return valAmounts, nil
 	}
 
-	// Divide the remaining amount amongst the validators a/c to weight
-	// Get zero valued val address to divide the remaing value a/c to weight
-	zeroValued := sortedValDiff.GetZeroValued()
-	valAddressMap := types.GetWeightedAddressMap(zeroValued)
-	valAmounts = divideAmountWeightedSet(valAmounts, remainderCoin, valAddressMap)
+	// Remaining token is the slippage from the multiplication with dec,
+	// Ideally this amount is not going to be alot, hence assigning to
+	// validator with index zero.
+	valAmounts[0].Amount = valAmounts[0].Amount.Add(remainderCoin)
 
 	return valAmounts, nil
 }
@@ -143,6 +142,8 @@ func (k Keeper) FetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) ([]V
 	}
 
 	valWeightedAmt := k.GetAllCosmosValidatorSet(ctx)
+	fmt.Println("amount: ", valWeightedAmt[0].Amount)
+
 	curDiffDistribution := GetIdealCurrentDelegations(valWeightedAmt, amount, false)
 
 	sort.Sort(sort.Reverse(curDiffDistribution))
