@@ -28,7 +28,7 @@ func (k Keeper) addToStakingEpoch(ctx sdk.Context, amount sdk.Coin) {
 func (k Keeper) getAmountFromStakingEpoch(ctx sdk.Context, epochNumber int64) (amount sdk.Coin) {
 	stakingEpochStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyStakingEpochStore)
 	if !stakingEpochStore.Has(cosmosTypes.Int64Bytes(epochNumber)) {
-		return sdk.NewInt64Coin("uatom", 0)
+		return sdk.NewInt64Coin("stake", 0)
 	}
 	k.cdc.MustUnmarshal(stakingEpochStore.Get(cosmosTypes.Int64Bytes(epochNumber)), &amount)
 	return amount
