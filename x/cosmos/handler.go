@@ -64,8 +64,8 @@ func NewCosmosLiquidStakingProposalHandler(k keeper.Keeper) govTypes.Handler {
 			return keeper.HandleEnableModuleProposal(ctx, k, c)
 		case *cosmosTypes.ChangeCosmosValidatorWeightsProposal:
 			return keeper.HandleChangeCosmosValidatorWeightsProposal(ctx, k, c)
-		case *cosmosTypes.ChangeOracleValidatorWeightsProposal:
-			return keeper.HandleChangeOracleValidatorWeightsProposal(ctx, k, c)
+		case *cosmosTypes.ChangeOrchestratorValidatorWeightsProposal:
+			return keeper.HandleChangeOrchestratorValidatorWeightsProposal(ctx, k, c)
 		default:
 			return sdkErrors.Wrapf(sdkErrors.ErrUnknownRequest, "unrecognized distr proposal content type: %T", c)
 		}

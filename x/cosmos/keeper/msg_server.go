@@ -26,7 +26,7 @@ func NewMsgServerImpl(k Keeper) cosmosTypes.MsgServer {
 	return &msgServer{Keeper: k}
 }
 
-// SetOrchestrator adds the oracle address corresponding to the validator sending the request to set address
+// SetOrchestrator adds the orchestrator address corresponding to the validator sending the request to set address
 func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrchestrator) (*cosmosTypes.MsgSetOrchestratorResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -41,7 +41,7 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	}
 
 	// check if that validator can set an orchestrator address
-	valset := k.getAllOracleValidatorSet(ctx)
+	valset := k.getAllOrchestratorValidatorSet(ctx)
 
 	found := false
 	for _, val := range valset {
@@ -82,7 +82,7 @@ func (k msgServer) SetOrchestrator(c context.Context, msg *cosmosTypes.MsgSetOrc
 	return &cosmosTypes.MsgSetOrchestratorResponse{}, nil
 }
 
-// RemoveOrchestrator removes the given oracle address in request corresponding to the sender validator address
+// RemoveOrchestrator removes the given orchestrator address in request corresponding to the sender validator address
 func (k msgServer) RemoveOrchestrator(c context.Context, msg *cosmosTypes.MsgRemoveOrchestrator) (*cosmosTypes.MsgRemoveOrchestratorResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -171,7 +171,7 @@ func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAs
 	return &cosmosTypes.MsgWithdrawStkAssetResponse{}, nil
 }
 
-// MintTokensForAccount sets a minting request entry in mint token store as sent by the oracles
+// MintTokensForAccount sets a minting request entry in mint token store as sent by the orchestrators
 func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgMintTokensForAccount) (*cosmosTypes.MsgMintTokensForAccountResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -230,9 +230,9 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 		return nil, fmt.Errorf("unauthorized to mint tokens")
 	}
 
-	// update oracle height for both sides
-	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
-	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
+	// update orchestrator height for both sides
+	k.setOrchestratorLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
+	k.setOrchestratorLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
 
 	k.addToMintTokenStore(ctx, *msg, validatorAddress)
 
@@ -246,7 +246,7 @@ func (k msgServer) MintTokensForAccount(c context.Context, msg *cosmosTypes.MsgM
 	return &cosmosTypes.MsgMintTokensForAccountResponse{}, nil
 }
 
-// MakeProposal sets a proposal entry in the proposal store as sent by the oracles
+// MakeProposal sets a proposal entry in the proposal store as sent by the orchestrators
 func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakeProposal) (*cosmosTypes.MsgMakeProposalResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -280,9 +280,9 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 		return nil, fmt.Errorf("unauthorized to make proposal")
 	}
 
-	// update oracle height for both sides
-	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
-	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
+	// update orchestrator height for both sides
+	k.setOrchestratorLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
+	k.setOrchestratorLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
 
 	k.setProposalDetails(ctx, *msg, validatorAddress)
 
@@ -296,7 +296,7 @@ func (k msgServer) MakeProposal(c context.Context, msg *cosmosTypes.MsgMakePropo
 	return &cosmosTypes.MsgMakeProposalResponse{}, nil
 }
 
-// Vote sets a vote as sent by the given address. Only oracle votes are accepted
+// Vote sets a vote as sent by the given address. Only orchestrator votes are accepted
 func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTypes.MsgVoteResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -353,7 +353,7 @@ func (k msgServer) Vote(c context.Context, msg *cosmosTypes.MsgVote) (*cosmosTyp
 	return &cosmosTypes.MsgVoteResponse{}, nil
 }
 
-// VoteWeighted sets a weighted vote as sent by the given address. Only oracle votes are accepted
+// VoteWeighted sets a weighted vote as sent by the given address. Only orchestrator votes are accepted
 func (k msgServer) VoteWeighted(c context.Context, msg *cosmosTypes.MsgVoteWeighted) (*cosmosTypes.MsgVoteWeightedResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -423,7 +423,7 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
 	if diff := msg.SequenceNumber - k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetSequence(); diff != 1 {
-		return nil, fmt.Errorf("sequence difference is not one or oracle is late to send status")
+		return nil, fmt.Errorf("sequence difference is not one or orchestrator is late to send status")
 	}
 
 	//Accept transaction if module is enabled
@@ -452,9 +452,9 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 		return nil, fmt.Errorf("unauthorized to send tx status")
 	}
 
-	// update oracle height for both sides
-	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
-	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
+	// update orchestrator height for both sides
+	k.setOrchestratorLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
+	k.setOrchestratorLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
 
 	//TODO : add failure type for proposal transactions. (in case of chain upgrade on cosmos chain)
 	if msg.Status == cosmosTypes.Success || msg.Status == cosmosTypes.GasFailure ||
@@ -475,7 +475,7 @@ func (k msgServer) TxStatus(c context.Context, msg *cosmosTypes.MsgTxStatus) (*c
 	return &cosmosTypes.MsgTxStatusResponse{}, nil
 }
 
-// UndelegateSuccess sets undelegate success entry in the undelegate success store as sent by the oracles
+// UndelegateSuccess sets undelegate success entry in the undelegate success store as sent by the orchestrators
 func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUndelegateSuccess) (*cosmosTypes.MsgUndelegateSuccessResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -527,9 +527,9 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 		return nil, fmt.Errorf("unauthorized to send slashing event details")
 	}
 
-	// update oracle height for both sides
-	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
-	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
+	// update orchestrator height for both sides
+	k.setOrchestratorLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
+	k.setOrchestratorLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
 
 	k.setUndelegateSuccessDetails(ctx, *msg, validatorAddress)
 
@@ -544,7 +544,7 @@ func (k msgServer) UndelegateSuccess(c context.Context, msg *cosmosTypes.MsgUnde
 	return &cosmosTypes.MsgUndelegateSuccessResponse{}, nil
 }
 
-// SetSignature sets signature in the signature store as sent by the oracles
+// SetSignature sets signature in the signature store as sent by the orchestrators
 func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignature) (*cosmosTypes.MsgSetSignatureResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 	orchestratorAddress, err := sdkTypes.AccAddressFromBech32(msg.OrchestratorAddress)
@@ -615,9 +615,9 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 		return nil, err
 	}
 
-	// update oracle height for both sides
-	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
-	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
+	// update orchestrator height for both sides
+	k.setOrchestratorLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
+	k.setOrchestratorLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
 
 	singleSignatureDataForOutgoingPool := cosmosTypes.ConvertSingleSignatureDataToSingleSignatureDataForOutgoingPool(signatureData)
 	err = k.addToOutgoingSignaturePool(ctx, singleSignatureDataForOutgoingPool, msg.OutgoingTxID, orchestratorAddress, validatorAddress)
@@ -634,7 +634,7 @@ func (k msgServer) SetSignature(c context.Context, msg *cosmosTypes.MsgSetSignat
 	return &cosmosTypes.MsgSetSignatureResponse{}, nil
 }
 
-// SlashingEvent sets the slashing event entry in the slashing store as sent by the oracles
+// SlashingEvent sets the slashing event entry in the slashing store as sent by the orchestrators
 func (k msgServer) SlashingEvent(c context.Context, msg *cosmosTypes.MsgSlashingEventOnCosmosChain) (*cosmosTypes.MsgSlashingEventOnCosmosChainResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -678,9 +678,9 @@ func (k msgServer) SlashingEvent(c context.Context, msg *cosmosTypes.MsgSlashing
 		return nil, fmt.Errorf("unauthorized to make proposal")
 	}
 
-	// update oracle height for both sides
-	k.setOracleLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
-	k.setOracleLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
+	// update orchestrator height for both sides
+	k.setOrchestratorLastUpdateHeightCosmos(ctx, orchestratorAddress, msg.BlockHeight)
+	k.setOrchestratorLastUpdateHeightNative(ctx, orchestratorAddress, ctx.BlockHeight())
 
 	k.setSlashingEventDetails(ctx, *msg, validatorAddress)
 

@@ -17,14 +17,13 @@ spec:
       protocol: TCP
       targetPort: 26657
     - name: http
-      port: 8080
+      port: 8081
       protocol: TCP
-      targetPort: 8080
+      targetPort: 8081
   selector:
     app.kubernetes.io/name: pstake-validator
 ---
 apiVersion: apps/v1
-# Todo : change kind to Deployment
 kind: StatefulSet
 metadata:
   name: pstake-validator
@@ -60,12 +59,12 @@ spec:
             - name: GENESIS_HOST
               value: pstake-genesis.dev-native
             - name: GENESIS_PORT
-              value: "8080"
+              value: "8081"
           command:
             - bash
             - "-c"
             - |
-              while [ $(curl -sw '%{http_code}' http://pstake-genesis.dev-native.svc.cluster.local:8080/node_id -o /dev/null) -ne 200 ]; do
+              while [ $(curl -sw '%{http_code}' http://pstake-genesis.dev-native.svc.cluster.local:8081/node_id -o /dev/null) -ne 200 ]; do
                 echo "Genesis validator does not seem to be ready. Waiting for it to start..."
                 sleep 10;
               done
@@ -81,7 +80,7 @@ spec:
                   key: chain.id
                   name: pstake
             - name: PSTAKE_DIR
-              value: /pstaked
+              value: /psatked
           command:
             - bash
             - "-c"
@@ -100,7 +99,7 @@ spec:
               jq -r ".validators[$VAL_INDEX].mnemonic" /configs/validators.json | pstaked init pstake --chain-id $CHAIN_ID --home $PSTAKE_DIR --recover
               jq -r ".validators[$VAL_INDEX].mnemonic" /configs/validators.json | pstaked keys add $VAL_NAME --recover --keyring-backend='test' --home $PSTAKE_DIR
 
-              curl http://pstake-genesis.dev-native.svc.cluster.local:8080/genesis -o $PSTAKE_DIR/config/genesis.json
+              curl http://pstake-genesis.dev-native.svc.cluster.local:8081/genesis -o $PSTAKE_DIR/config/genesis.json
               echo "Genesis file that we got....."
               cat $PSTAKE_DIR/config/genesis.json
 
@@ -109,7 +108,7 @@ spec:
 
               echo "Fetching genesis file"
 
-              GENESIS_NODE_P2P=$(curl -s http://pstake-genesis.dev-native.svc.cluster.local:8080/node_id)@pstake-genesis.dev-native.svc.cluster.local:26656
+              GENESIS_NODE_P2P=$(curl -s http://pstake-genesis.dev-native.svc.cluster.local:8081/node_id)@pstake-genesis.dev-native.svc.cluster.local:26656
               echo "Node P2P: $GENESIS_NODE_P2P"
               sed -i "s/persistent_peers = \"\"/persistent_peers = \"$GENESIS_NODE_P2P\"/g" $PSTAKE_DIR/config/config.toml
               sed -i 's#"tcp://127.0.0.1:26657"#"tcp://0.0.0.0:26657"#g' $PSTAKE_DIR/config/config.toml
@@ -120,7 +119,7 @@ spec:
               echo "Printing the whole config.toml file"
               cat $PSTAKE_DIR/config/config.toml
 
-              curl -s http://pstake-genesis.dev-native.svc.cluster.local:8080/pub_key
+              curl -s http://pstake-genesis.dev-native.svc.cluster.local:8081/pub_key
           resources:
             limits:
               cpu: "0.2"
@@ -144,7 +143,7 @@ spec:
                   key: chain.id
                   name: pstake
             - name: PSTAKE_DIR
-              value: /pstaked
+              value: /psatked
           command:
             - bash
             - "-c"
@@ -196,7 +195,7 @@ spec:
             - name: GENESIS_FILE
               value: /pstaked/config/genesis.json
             - name: PORT
-              value: "8080"
+              value: "8081"
             - name: CLIENT_NAME
               value: "pstaked"
           command: [ "exposer" ]

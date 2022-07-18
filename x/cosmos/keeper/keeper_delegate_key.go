@@ -11,7 +11,7 @@ import (
 )
 
 /*
-SetValidatorOrchestrator sets the oracle address for the given validator address.
+SetValidatorOrchestrator sets the orchestrator address for the given validator address.
 Address corresponding to one validator can be multiple given that it is not already mapped to another validator
 */
 func (k Keeper) SetValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.ValAddress, orch sdkTypes.AccAddress) error {
@@ -57,7 +57,7 @@ func (k Keeper) SetValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.ValA
 }
 
 /*
-RemoveValidatorOrchestrator removes the oracle address mapped to the given validator.
+RemoveValidatorOrchestrator removes the orchestrator address mapped to the given validator.
 Addresses mapped to one validator can be multiple, but not all can be removed. Only the ones that are not present in
 multisig account address can be removed
 */
@@ -158,7 +158,7 @@ func (k Keeper) getValidatorMapping(ctx sdkTypes.Context, valAddress sdkTypes.Va
 	return cosmosTypes.ValidatorStoreValue{}
 }
 
-// getAllValidatorOrchestratorMappingAndFindIfExist gets all validator mapping  and checks if the given oracle address is present in it.
+// getAllValidatorOrchestratorMappingAndFindIfExist gets all validator mapping  and checks if the given orchestrator address is present in it.
 func (k Keeper) getAllValidatorOrchestratorMappingAndFindIfExist(ctx sdkTypes.Context,
 	orch sdkTypes.AccAddress) (valAddress sdkTypes.ValAddress, found bool, err error) {
 	found = false
@@ -182,7 +182,7 @@ func (k Keeper) getAllValidatorOrchestratorMappingAndFindIfExist(ctx sdkTypes.Co
 	return valAddress, found, err
 }
 
-// checks if all the validators have oracle mapping. Used in HandleEnableModuleProposal.
+// checks if all the validators have orchestrator mapping. Used in HandleEnableModuleProposal.
 func (k Keeper) checkAllValidatorsHaveOrchestrators(ctx sdkTypes.Context) ([]string, error) {
 	orchestratorValidatorStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ValidatorOrchestratorStoreKey)
 	validatorOrchestratorMap := make(map[string][]string)
@@ -212,7 +212,7 @@ func (k Keeper) checkAllValidatorsHaveOrchestrators(ctx sdkTypes.Context) ([]str
 		validatorOrchestratorMap[val.String()] = validatorStoreValue.OrchestratorAddresses
 	}
 
-	for _, val := range k.getAllOracleValidatorSet(ctx) {
+	for _, val := range k.getAllOrchestratorValidatorSet(ctx) {
 		if validatorOrchestratorMap[val.Address] == nil {
 			return []string{}, fmt.Errorf("validator mapping not present in KV store")
 		}

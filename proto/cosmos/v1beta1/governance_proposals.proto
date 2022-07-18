@@ -47,7 +47,7 @@ message ChangeCosmosValidatorWeightsProposal {
   repeated cosmos.v1beta1.WeightedAddressAmount weighted_addresses = 4 [(gogoproto.nullable) = false];
 }
 
-message ChangeOracleValidatorWeightsProposal {
+message ChangeOrchestratorValidatorWeightsProposal {
   option (gogoproto.equal) = false;
 
   string title = 1;

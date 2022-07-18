@@ -141,7 +141,7 @@ var (
 			cosmosClient.EnableModuleProposalHandler,
 			cosmosClient.ChangeMultisigProposalHandler,
 			cosmosClient.ChangeCosmosValidatorWeightsProposalHandler,
-			cosmosClient.ChangeOracleValidatorWeightsProposalHandler,
+			cosmosClient.ChangeOrchestratorValidatorWeightsProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
