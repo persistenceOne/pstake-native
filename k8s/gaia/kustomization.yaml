@@ -1,0 +1,14 @@
+resources:
+  - service.yaml
+  - configmap.yaml
+  - genesis.yaml
+  - validator.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: test-addresses-gaia
+    files:
+      - configs/keys.json
+      - configs/validators.json

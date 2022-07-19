@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/persistenceOne/pstake-native/x/cosmos/keeper"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,10 +23,14 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	_, app, ctx := helpers.CreateTestApp()
 
 	params := types.DefaultParams()
-	// Set weighted developer address to empty to not conflict with sdk addr prefix
-	params.WeightedDeveloperRewardsReceivers = []types.WeightedAddress{}
-	// Set DelegationThreshold to 10 unit
-	app.CosmosKeeper.SetParams(ctx, params)
+
+	// Set some params required for testing
+	params.BondDenoms = []string{"stake"}
+	params.CosmosProposalParams.ChainID = "gaiad"
+	params.CustodialAddress = "cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2"
+	params.ModuleEnabled = true
+
+	keeper.InitGenesis(ctx, app.CosmosKeeper, &types.GenesisState{Params: params})
 
 	suite.app = &app
 	suite.ctx = ctx

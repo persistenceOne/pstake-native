@@ -1,0 +1,23 @@
+ValAddress = "persistencevaloper1pss7nxeh3f9md2vuxku8q99femnwdjtcga9tdu"
+OrcSeeds = ["april patch recipe debate remove hurdle concert gesture design near predict enough color tail business imitate twelve february punch cheap vanish december cool wheel"]
+
+[CosmosConfig]
+ChainID = "gaiad"
+CustodialAddr = "cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2"
+Denom = "stake"
+GRPCAddr = "gaia-genesis.dev-native.svc.cluster.local:9090"
+RPCAddr = "http://gaia-genesis.dev-native.svc.cluster.local:26657"
+AccountPrefix = "cosmos"
+GasAdjustment = 1.5
+GasPrice = "0.025stake"
+CoinType = 118
+
+[NativeConfig]
+ChainID = "pstaked"
+Denom = "stake"
+RPCAddr = "http://pstake-genesis.dev-native.svc.cluster.local:26657"
+GRPCAddr = "pstake-genesis.dev-native.svc.cluster.local:9090"
+AccountPrefix = "persistence"
+GasAdjustment = 1.5
+GasPrices = "0.025stake"
+CoinType = 118

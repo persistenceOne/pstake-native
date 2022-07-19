@@ -97,11 +97,10 @@ func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, co
 		return valAmounts, nil
 	}
 
-	// Divide the remaining amount amongst the validators a/c to weight
-	// Get zero valued val address to divide the remaing value a/c to weight
-	zeroValued := sortedValDiff.GetZeroValued()
-	valAddressMap := types.GetWeightedAddressMap(zeroValued)
-	valAmounts = divideAmountWeightedSet(valAmounts, remainderCoin, valAddressMap)
+	// Remaining token is the slippage from the multiplication with dec,
+	// Ideally this amount is not going to be alot, hence assigning to
+	// validator with index zero.
+	valAmounts[0].Amount = valAmounts[0].Amount.Add(remainderCoin)
 
 	return valAmounts, nil
 }
@@ -143,6 +142,8 @@ func (k Keeper) FetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) ([]V
 	}
 
 	valWeightedAmt := k.GetAllCosmosValidatorSet(ctx)
+	fmt.Println("amount: ", valWeightedAmt[0].Amount)
+
 	curDiffDistribution := GetIdealCurrentDelegations(valWeightedAmt, amount, false)
 
 	sort.Sort(sort.Reverse(curDiffDistribution))
@@ -162,7 +163,11 @@ func (k Keeper) FetchValidatorsToUndelegate(ctx sdk.Context, amount sdk.Coin) ([
 	valWeightedAmt := k.GetAllCosmosValidatorSet(ctx)
 
 	// Check if amount asked to undelegate is more than total delegations
-	totalStaked := valWeightedAmt.TotalAmount(params.StakingDenom)
+	bondDenom, err := params.GetBondDenomOf(types.DefaultStakingDenom)
+	if err != nil {
+		return nil, err
+	}
+	totalStaked := valWeightedAmt.TotalAmount(bondDenom)
 	if totalStaked.Amount.LT(amount.Amount) {
 		return nil, fmt.Errorf("undelegate amount %d more than total staked %d", amount.Amount, totalStaked.Amount)
 	}

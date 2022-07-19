@@ -78,7 +78,7 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 		k.SetNewTxnInOutgoingPool(ctx, nextID, tx)
 
 		// sets the transaction in transaction queue with the given tx ID
-		k.setNewInTransactionQueue(ctx, nextID)
+		k.SetNewInTransactionQueue(ctx, nextID)
 	}
 
 	return nil

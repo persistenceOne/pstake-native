@@ -73,9 +73,7 @@ func ProposalStatusFromString(str string) (ProposalStatus, error) {
 // otherwise.
 func ValidProposalStatus(status ProposalStatus) bool {
 	if status == StatusVotingPeriod ||
-		status == StatusPassed ||
-		status == StatusRejected ||
-		status == StatusFailed {
+		status == StatusPassed {
 		return true
 	}
 	return false

@@ -25,7 +25,7 @@ func (k Keeper) SetCosmosValidatorSet(ctx sdk.Context, cosmosValSetWeights []cos
 			weightedAddress.Weight = newSortedCosmosValSetWeights[i].Weight
 			cosmosValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&weightedAddress))
 		} else {
-			bondDenom, err := k.GetParams(ctx).GetBondDenomOf("uatom")
+			bondDenom, err := k.GetParams(ctx).GetBondDenomOf(cosmosTypes.DefaultStakingDenom)
 			if err != nil {
 				panic(err)
 			}
@@ -97,9 +97,9 @@ func (k Keeper) removeCosmosValidatorWeight(ctx sdk.Context, valAddress sdk.ValA
 
 //______________________________________________________________________________________________________________________
 
-// setOracleValidatorSet put a check on length of validator set and val set weights to maintain equal mapping
+// SetOracleValidatorSet put a check on length of validator set and val set weights to maintain equal mapping
 // sets the native validator address as key and weight details as value
-func (k Keeper) setOracleValidatorSet(ctx sdk.Context, valAddresses []sdk.ValAddress, nativeValSetWeights []cosmosTypes.WeightedAddress) {
+func (k Keeper) SetOracleValidatorSet(ctx sdk.Context, valAddresses []sdk.ValAddress, nativeValSetWeights []cosmosTypes.WeightedAddress) {
 	nativeValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyNativeValidatorWeights)
 
 	for i, va := range valAddresses {
