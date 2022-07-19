@@ -44,7 +44,7 @@ func SetupValidators(t *testing.T, app app.PstakeApp, ctx sdkTypes.Context) {
 	//valAddrNotExists := sdkTypes.ValAddress("ValNotExists_xxxxxxx")
 	orchAddr1 := sdkTypes.AccAddress("orch1_xxxxxxxxxxxxxx")
 	orchAddr2 := sdkTypes.AccAddress("orch2_xxxxxxxxxxxxxx")
-  
+
 	app.StakingKeeper.SetValidator(ctx, stakingTypes.Validator{
 		OperatorAddress: valAddr1.String(),
 	})
