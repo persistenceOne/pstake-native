@@ -148,7 +148,7 @@ func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAs
 	}
 
 	withdrawalAmount := msg.Amount.Amount.ToDec().Mul(sdkTypes.NewDec(1).Quo(k.GetCValue(ctx)))
-	if !withdrawalAmount.GT(k.GetParams(ctx).MaxBurningAmount.Amount.ToDec()) && !withdrawalAmount.LT(k.GetParams(ctx).MinBurningAmount.Amount.ToDec()) {
+	if withdrawalAmount.GT(k.GetParams(ctx).MaxBurningAmount.Amount.ToDec()) && withdrawalAmount.LT(k.GetParams(ctx).MinBurningAmount.Amount.ToDec()) {
 		return nil, fmt.Errorf("withdrawal is out of range for withdrawals")
 	}
 
