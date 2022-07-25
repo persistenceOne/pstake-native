@@ -68,7 +68,7 @@ spec:
               key: chain.id
               name: pstake
         - name: PSTAKE_DIR
-          value: /psatked
+          value: /pstaked
         command:
         - bash
         - "-c"
@@ -91,7 +91,7 @@ spec:
 
             for ((i=0; i<$(jq -r '.keys | length' /configs/keys.json); i++))
             do
-              jq -r ".keys[$i].mnemonic" /configs/oracle.json | pstaked keys add $(jq -r ".keys[$i].name" /configs/oracle.json) --recover --keyring-backend='test' --home $PSTAKE_DIR
+              jq -r ".keys[$i].mnemonic" /configs/orchestrator.json | pstaked keys add $(jq -r ".keys[$i].name" /configs/orchestrator.json) --recover --keyring-backend='test' --home $PSTAKE_DIR
             done
 
             pstaked gentx $(jq -r ".genesis[0].name" /configs/validators.json) 5000000000stake --keyring-backend="test" --chain-id $CHAIN_ID --home $PSTAKE_DIR
@@ -107,9 +107,11 @@ spec:
             sed -i 's/index_all_keys = false/index_all_keys = true/g' $PSTAKE_DIR/config/config.toml
             sed -i 's/unsafe = false/unsafe = true/g' $PSTAKE_DIR/config/config.toml
             sed -i 's/minimum-gas-prices = ""/minimum-gas-prices = "0.00stake"/g' $PSTAKE_DIR/config/config.toml
+            sed -i 's/cors_allowed_origins = []/cors_allowed_origins = ["*"]/g' $PSTAKE_DIR/config/config.toml
 
-            sed -i 's/enable = false/enable = true/g' $$PSTAKE_DIR/config/app.toml
-            sed -i 's/swagger = false/swagger = true/g' $$PSTAKE_DIR/config/app.toml
+            sed -i 's/enable = false/enable = true/g' $PSTAKE_DIR/config/app.toml
+            sed -i 's/swagger = false/swagger = true/g' $PSTAKE_DIR/config/app.toml
+            sed -i 's/enabled-unsafe-cors = false/enabled-unsafe-cors = true/g' $PSTAKE_DIR/config/app.toml
 
             jq '.consensus_params.block.max_bytes |= "42020096"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesisNew
             mv $PSTAKE_DIR/config/genesisNew $PSTAKE_DIR/config/genesis.json
@@ -148,7 +150,7 @@ spec:
               key: chain.id
               name: pstake
         - name: PSTAKE_DIR
-          value: /psatked
+          value: /pstaked
         command:
         - bash
         - "-c"

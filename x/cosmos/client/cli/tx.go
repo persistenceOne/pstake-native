@@ -150,7 +150,7 @@ func NewSendNewProposalCmd() *cobra.Command {
 			}
 
 			votingStartTime := time.Now()
-			votingEndTime := votingStartTime.Add(time.Minute * 2)
+			votingEndTime := votingStartTime.Add(time.Minute * 9)
 
 			msg := cosmosTypes.NewMsgMakeProposal(title, description, orchAddress, chainID, blockHeight, proposalID, votingStartTime, votingEndTime)
 

@@ -89,7 +89,7 @@ var (
 
 	KeyUndelegateSuccessStore = []byte{0xD}
 
-	KeyWithdrawStore = []byte{0xE}
+	KeyWithdrawStore = []byte{0x2F}
 
 	KeyOutgoingSignaturePoolKey = []byte{0xF}
 

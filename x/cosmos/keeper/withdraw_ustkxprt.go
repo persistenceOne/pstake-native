@@ -14,7 +14,7 @@ import (
 )
 
 // addToWithdrawPool adds details to withdraw pool for ubonding epoch
-func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdrawStkAsset) error {
+func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdrawStkAsset) {
 	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
 
 	//get module params
@@ -29,48 +29,40 @@ func (k Keeper) addToWithdrawPool(ctx sdk.Context, asset cosmosTypes.MsgWithdraw
 
 	//move withdraw transaction to next undelegating epoch if current block time is after the diffTime
 	currentEpoch := undelegateEpochInfo.CurrentEpoch
-	if ctx.BlockTime().Before(diffTime) {
+	if !ctx.BlockTime().Before(diffTime) {
 		currentEpoch++
 	}
 
 	//if store has the key then append new withdrawals to the existing array, else make a new key value pair
-	key := cosmosTypes.Int64Bytes(currentEpoch)
-	if withdrawStore.Has(key) {
-		bz := withdrawStore.Get(key)
+	if withdrawStore.Has(cosmosTypes.Int64Bytes(currentEpoch)) {
+		bz := withdrawStore.Get(cosmosTypes.Int64Bytes(currentEpoch))
 		if bz == nil {
-			return fmt.Errorf("withdraw store has key but nothing assigned to it")
+			panic(fmt.Errorf("withdraw store has key but nothing assigned to it"))
 		}
 		var withdrawStoreValue cosmosTypes.WithdrawStoreValue
-		err := k.cdc.Unmarshal(bz, &withdrawStoreValue)
-		if err != nil {
-			return err
-		}
+		k.cdc.MustUnmarshal(bz, &withdrawStoreValue)
 		withdrawStoreValue.WithdrawDetails = append(withdrawStoreValue.WithdrawDetails, asset)
 		withdrawStoreValue.UnbondEmitFlag = append(withdrawStoreValue.UnbondEmitFlag, false)
 
-		bz1, err := k.cdc.Marshal(&withdrawStoreValue)
-		if err != nil {
-			return err
-		}
-		withdrawStore.Set(key, bz1)
-	} else {
-		withdrawDetails := cosmosTypes.NewWithdrawStoreValue(asset)
-		bz, err := k.cdc.Marshal(&withdrawDetails)
-		if err != nil {
-			return err
-		}
-		withdrawStore.Set(key, bz)
+		withdrawStore.Set(cosmosTypes.Int64Bytes(currentEpoch), k.cdc.MustMarshal(&withdrawStoreValue))
+		return
 	}
-	return nil
+
+	withdrawDetails := cosmosTypes.NewWithdrawStoreValue(asset)
+	withdrawStore.Set(cosmosTypes.Int64Bytes(currentEpoch), k.cdc.MustMarshal(&withdrawDetails))
+
 }
 
 // fetchWithdrawTxnsWithCurrentEpochInfo Gets withdraw transaction mapped to current epoch number
 func (k Keeper) fetchWithdrawTxnsWithCurrentEpochInfo(ctx sdk.Context, currentEpoch int64) (withdrawStoreValue cosmosTypes.WithdrawStoreValue) {
 	withdrawStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyWithdrawStore)
-	if !withdrawStore.Has(cosmosTypes.Int64Bytes(currentEpoch)) {
-		return cosmosTypes.WithdrawStoreValue{WithdrawDetails: []cosmosTypes.MsgWithdrawStkAsset{{Amount: sdk.NewInt64Coin(k.GetParams(ctx).MintDenom, 0)}}}
-	}
+
 	k.cdc.MustUnmarshal(withdrawStore.Get(cosmosTypes.Int64Bytes(currentEpoch)), &withdrawStoreValue)
+	for _, wsv := range withdrawStoreValue.WithdrawDetails {
+		if wsv.Amount.IsZero() {
+			wsv.Amount = sdk.NewInt64Coin(k.GetParams(ctx).MintDenom, 0)
+		}
+	}
 	return withdrawStoreValue
 }
 

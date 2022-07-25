@@ -157,10 +157,7 @@ func (k msgServer) Withdraw(c context.Context, msg *cosmosTypes.MsgWithdrawStkAs
 		return nil, err
 	}
 
-	err = k.addToWithdrawPool(ctx, *msg)
-	if err != nil {
-		return nil, err
-	}
+	k.addToWithdrawPool(ctx, *msg)
 
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(

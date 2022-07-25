@@ -367,10 +367,12 @@ func (k Keeper) IterateProposalsForEmittingVotingTxn(ctx sdk.Context) {
 		if proposal.Status == cosmosTypes.StatusPassed && proposal.VotingEndTime.After(ctx.BlockTime()) {
 			continue
 		}
-		passes, tallyResults := k.Tally(ctx, proposal)
-		if passes {
-			k.SetProposalPassed(ctx, proposal.ProposalId, tallyResults)
-			k.generateOutgoingWeightedVoteTx(ctx, tallyResults, proposal.CosmosProposalId)
+		if proposal.Status == cosmosTypes.StatusVotingPeriod && ctx.BlockTime().After(proposal.VotingEndTime) {
+			passes, tallyResults := k.Tally(ctx, proposal)
+			if passes {
+				k.SetProposalPassed(ctx, proposal.ProposalId, tallyResults)
+				k.generateOutgoingWeightedVoteTx(ctx, tallyResults, proposal.CosmosProposalId)
+			}
 		}
 	}
 }

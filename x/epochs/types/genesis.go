@@ -37,7 +37,7 @@ func DefaultGenesis() *GenesisState {
 		{
 			Identifier:              "undelegate",
 			StartTime:               time.Time{},
-			Duration:                time.Minute * 8, //TODO revert
+			Duration:                time.Minute * 2, //TODO revert
 			CurrentEpoch:            0,
 			CurrentEpochStartHeight: 0,
 			CurrentEpochStartTime:   time.Time{},
