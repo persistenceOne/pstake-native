@@ -1,4 +1,4 @@
-package lscosmos
+package ls_cosmos
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 )
 
 // OnChanOpenInit implements the IBCModule interface

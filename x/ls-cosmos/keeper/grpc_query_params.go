@@ -4,7 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

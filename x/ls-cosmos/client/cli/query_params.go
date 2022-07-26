@@ -5,8 +5,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 	"github.com/spf13/cobra"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 func CmdQueryParams() *cobra.Command {

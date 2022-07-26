@@ -3,8 +3,8 @@ package keeper
 import (
 	"testing"
 
-	"github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos/keeper"
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -22,7 +22,7 @@ import (
 	tmdb "github.com/tendermint/tm-db"
 )
 
-// lscosmosChannelKeeper is a stub of cosmosibckeeper.ChannelKeeper.
+// ls-cosmosChannelKeeper is a stub of cosmosibckeeper.ChannelKeeper.
 type lscosmosChannelKeeper struct{}
 
 func (lscosmosChannelKeeper) GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool) {
@@ -44,8 +44,6 @@ type lscosmosPortKeeper struct{}
 func (lscosmosPortKeeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
 	return &capabilitytypes.Capability{}
 }
-
-
 
 func LscosmosKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	logger := log.NewNopLogger()
@@ -70,14 +68,14 @@ func LscosmosKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		"LscosmosParams",
 	)
 	k := keeper.NewKeeper(
-        appCodec,
-        storeKey,
-        memStoreKey,
-        paramsSubspace,
-        lscosmosChannelKeeper{},
-        lscosmosPortKeeper{},
-        capabilityKeeper.ScopeToModule("LscosmosScopedKeeper"),
-    )
+		appCodec,
+		storeKey,
+		memStoreKey,
+		paramsSubspace,
+		lscosmosChannelKeeper{},
+		lscosmosPortKeeper{},
+		capabilityKeeper.ScopeToModule("LscosmosScopedKeeper"),
+	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, logger)
 

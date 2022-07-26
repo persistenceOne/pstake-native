@@ -1,11 +1,11 @@
-package lscosmos_test
+package ls_cosmos_test
 
 import (
 	"testing"
 
 	keepertest "github.com/persistenceOne/pstake-native/testutil/keeper"
-	"github.com/persistenceOne/pstake-native/x/lscosmos"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos"
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,8 +17,8 @@ func TestGenesis(t *testing.T) {
 	}
 
 	k, ctx := keepertest.LscosmosKeeper(t)
-	lscosmos.InitGenesis(ctx, *k, genesisState)
-	got := lscosmos.ExportGenesis(ctx, *k)
+	ls_cosmos.InitGenesis(ctx, *k, genesisState)
+	got := ls_cosmos.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
 
 	require.Equal(t, genesisState.PortId, got.PortId)

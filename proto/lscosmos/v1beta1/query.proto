@@ -7,13 +7,13 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "lscosmos/v1beta1/params.proto";
 // this line is used by starport scaffolding # 1
 
-option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
+option go_package = "github.com/persistenceOne/pstake-native/x/ls-cosmos/types";
 
 // Query defines the gRPC querier service.
 service Query {
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/persistenceOne/pstake-native/lscosmos/params";
+    option (google.api.http).get = "/persistenceOne/pstake-native/ls-cosmos/params";
   }
   // this line is used by starport scaffolding # 2
 }

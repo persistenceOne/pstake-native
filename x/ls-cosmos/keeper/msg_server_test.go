@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-    "github.com/persistenceOne/pstake-native/x/lscosmos/types"
-    "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
-    keepertest "github.com/persistenceOne/pstake-native/testutil/keeper"
+	keepertest "github.com/persistenceOne/pstake-native/testutil/keeper"
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos/keeper"
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 )
 
 func setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {

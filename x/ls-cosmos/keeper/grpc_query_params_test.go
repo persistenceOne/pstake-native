@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	testkeeper "github.com/persistenceOne/pstake-native/testutil/keeper"
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 	"github.com/stretchr/testify/require"
-	testkeeper 	"github.com/persistenceOne/pstake-native/testutil/keeper"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 func TestParamsQuery(t *testing.T) {

@@ -1,4 +1,4 @@
-package lscosmos
+package ls_cosmos
 
 import (
 	"math/rand"
@@ -9,8 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	lscosmossimulation "github.com/persistenceOne/pstake-native/x/lscosmos/simulation"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	lscosmossimulation "github.com/persistenceOne/pstake-native/x/ls-cosmos/simulation"
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 )
 
 // avoid unused import issue
