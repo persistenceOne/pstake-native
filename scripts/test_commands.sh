@@ -19,5 +19,3 @@ pstaked tx gov vote 3 yes --from test -y -b block
 sleep 25
 pstaked tx cosmos incoming persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr persistence1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jzkd4ea 10000000stake cosmoshub-4 AE9ADDF593D45DDB09C8371F534AA773EB8CF288F63B09C160110338D362177B 100000 --from test1 -y -b block --gas 400000
 pstaked q bank balances persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr
-
-pstaked tx cosmos rewards-claimed persistence1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jzkd4ea 500stake cosmoshub-4 100000 --from test1

@@ -16,10 +16,10 @@ Address corresponding to one validator can be multiple given that it is not alre
 */
 func (k Keeper) SetValidatorOrchestrator(ctx sdkTypes.Context, val sdkTypes.ValAddress, orch sdkTypes.AccAddress) error {
 	if err := sdkTypes.VerifyAddressFormat(val); err != nil {
-		panic(sdkErrors.Wrap(err, "invalid val address"))
+		panic(any(sdkErrors.Wrap(err, "invalid val address")))
 	}
 	if err := sdkTypes.VerifyAddressFormat(orch); err != nil {
-		panic(sdkErrors.Wrap(err, "invalid orch address"))
+		panic(any(sdkErrors.Wrap(err, "invalid orch address")))
 	}
 	orchestratorValidatorStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ValidatorOrchestratorStoreKey)
 

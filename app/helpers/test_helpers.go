@@ -45,7 +45,7 @@ func newTestApp(isCheckTx bool, withGenesis bool) app.PstakeApp {
 	// encCdc := app.MakeTestEncodingConfig()
 
 	encoding := app.MakeEncodingConfig()
-	testApp := app.NewGaiaApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encoding, simapp.EmptyAppOptions{})
+	testApp := app.NewpStakeApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encoding, simapp.EmptyAppOptions{})
 	genesis := app.GenesisState{}
 	if withGenesis {
 		genesis = app.NewDefaultGenesisState()
@@ -55,7 +55,7 @@ func newTestApp(isCheckTx bool, withGenesis bool) app.PstakeApp {
 		// InitChain must be called to stop deliverState from being nil
 		stateBytes, err := json.MarshalIndent(genesis, "", " ")
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 		// Initialize the chain
 		testApp.InitChain(
@@ -105,7 +105,7 @@ func Setup(t *testing.T, isCheckTx bool, invCheckPeriod uint) *app.PstakeApp {
 func setup(withGenesis bool, invCheckPeriod uint) (*app.PstakeApp, app.GenesisState) {
 	db := tmdb.NewMemDB()
 	encCdc := app.MakeEncodingConfig()
-	testApp := app.NewGaiaApp(
+	testApp := app.NewpStakeApp(
 		log.NewNopLogger(),
 		db,
 		nil,

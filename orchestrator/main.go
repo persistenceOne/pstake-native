@@ -17,6 +17,6 @@ func main() {
 	rootCmd.AddCommand(orc.StartCommand())
 	err := rootCmd.Execute()
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 }

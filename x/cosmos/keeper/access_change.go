@@ -19,7 +19,7 @@ func (k Keeper) AddGrantTransactions(ctx sdk.Context, oldAccount authTypes.Accou
 
 	custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	var accessMsgsAny []*codecTypes.Any
@@ -75,7 +75,7 @@ func (k Keeper) AddGrantTransactions(ctx sdk.Context, oldAccount authTypes.Accou
 	// convert execMsg to Any type to embed in transaction
 	execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	tx := cosmosTypes.CosmosTx{
@@ -118,16 +118,16 @@ func (k Keeper) generateGrantMsgAny(ctx sdk.Context, custodialAddress sdk.AccAdd
 		time.Unix(0, 0),
 	)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	// generate any type for grant message
-	any, err := codecTypes.NewAnyWithValue(grantMsgAny)
+	anyValue, err := codecTypes.NewAnyWithValue(grantMsgAny)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
-	return any
+	return anyValue
 }
 
 // adds feegrant transaction to the outgoing pool and returns txID for reference
@@ -146,7 +146,7 @@ func (k Keeper) AddFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 
 	custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	// generate a MsgGrantAllowance with the given grant and allowance
@@ -156,13 +156,13 @@ func (k Keeper) AddFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 		k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetAddress(), // todo : fix acc address issue as it converts to persistence address
 	)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	// generate Any type value from the above generated MsgGrantAllowance to set in MsgExec transaction
 	feegrantMsgAny, err := codecTypes.NewAnyWithValue(feegrantMsg)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	feegrantMsgsAny = append(feegrantMsgsAny, feegrantMsgAny)
@@ -176,7 +176,7 @@ func (k Keeper) AddFeegrantTransaction(ctx sdk.Context, oldAccount authTypes.Acc
 	// convert execMsg to Any type to set in outgoing transaction
 	execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	tx := cosmosTypes.CosmosTx{
@@ -217,7 +217,7 @@ func (k Keeper) AddRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 
 	custodialAddress, err := cosmosTypes.AccAddressFromBech32(k.GetParams(ctx).CustodialAddress, cosmosTypes.Bech32Prefix)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	var revokeMsgsAny []*codecTypes.Any
@@ -253,7 +253,7 @@ func (k Keeper) AddRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 
 	cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	execMsg := authz.MsgExec{
 		Grantee: cosmosAddrr,
@@ -263,7 +263,7 @@ func (k Keeper) AddRevokeTransactions(ctx sdk.Context, _ authTypes.AccountI) uin
 	// convert msgExec to type Any to be set in outgoing transaction
 	execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	tx := cosmosTypes.CosmosTx{
@@ -308,7 +308,7 @@ func (k Keeper) generateRevokeMsgAny(ctx sdk.Context, custodialAddress sdk.AccAd
 	// generate Any type value for revoke message
 	revokeMsgAny, err := codecTypes.NewAnyWithValue(&revokeMsg)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	return revokeMsgAny
@@ -324,12 +324,12 @@ func (k Keeper) shiftListOfTransactionsToNewIDs(ctx sdk.Context, transactionQueu
 		// fetch tx details from db for the given txID
 		txDetails, err := k.GetTxnFromOutgoingPoolByID(ctx, tq.txID)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 
 		cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 		// reset few details of the outgoing transaction for accepting new signatures
 		txDetails.CosmosTxDetails.Tx.AuthInfo.SignerInfos = nil

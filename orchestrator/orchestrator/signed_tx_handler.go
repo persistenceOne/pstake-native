@@ -58,7 +58,7 @@ func (n *NativeChain) SignedOutgoingTxHandler(txIdStr, valAddr string, orcSeeds 
 	sigTx1 := sigTx.GetTx()
 	signedTxBytes, err := clientCtx.TxConfig.TxEncoder()(sigTx1)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	if err != nil {
