@@ -55,7 +55,7 @@ func newTestApp(isCheckTx bool, withGenesis bool) app.PstakeApp {
 		// InitChain must be called to stop deliverState from being nil
 		stateBytes, err := json.MarshalIndent(genesis, "", " ")
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 		// Initialize the chain
 		testApp.InitChain(

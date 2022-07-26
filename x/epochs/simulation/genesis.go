@@ -46,7 +46,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	bz, err := json.MarshalIndent(&epochGenesis, "", " ")
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	// TODO: Do some randomization later

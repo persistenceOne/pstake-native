@@ -203,17 +203,17 @@ func (ac appCreator) newApp(
 
 	pruningOpts, err := server.GetPruningOptionsFromFlags(appOpts)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots")
 	snapshotDB, err := sdk.NewLevelDB("metadata", snapshotDir)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	snapshotStore, err := snapshots.NewStore(snapshotDB, snapshotDir)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	return pstakeApp.NewpStakeApp(

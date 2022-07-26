@@ -27,7 +27,7 @@ func init() {
 	var err error
 
 	if cValueCache, err = simplelru.NewLRU(2, nil); err != nil {
-		panic(err)
+		panic(any(err))
 	}
 }
 
@@ -64,7 +64,7 @@ func (k Keeper) SubFromMinted(ctx sdk.Context, burntAmount sdk.Coin) {
 	newMintedAmount = newMintedAmount.Sub(burntAmount)
 	if newMintedAmount.IsNegative() {
 		k.disableModule(ctx)
-		panic("minted amount is negative")
+		panic(any("minted amount is negative"))
 	}
 	store.Set(cosmosTypes.KeyMintedAmount, k.cdc.MustMarshal(&newMintedAmount))
 }
@@ -115,7 +115,7 @@ func (k Keeper) SubFromVirtuallyStaked(ctx sdk.Context, notStakedAmount sdk.Coin
 	newVirtuallyStakedAmount = newVirtuallyStakedAmount.Sub(notStakedAmount)
 	if newVirtuallyStakedAmount.IsNegative() {
 		k.disableModule(ctx)
-		panic("virtually staked amount is negative")
+		panic(any("virtually staked amount is negative"))
 	}
 	store.Set(cosmosTypes.KeyVirtuallyStakedAmount, k.cdc.MustMarshal(&newVirtuallyStakedAmount))
 }
@@ -130,7 +130,7 @@ func (k Keeper) GetVirtuallyStakedAmount(ctx sdk.Context) sdk.Coin {
 	}
 	bondDenom, err := k.GetParams(ctx).GetBondDenomOf(cosmosTypes.DefaultStakingDenom)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return sdk.NewInt64Coin(bondDenom, 0)
 }
@@ -170,7 +170,7 @@ func (k Keeper) SubFromStaked(ctx sdk.Context, stakedAmount sdk.Coin) {
 	newStakedAmount = newStakedAmount.Sub(stakedAmount)
 	if newStakedAmount.IsNegative() {
 		k.disableModule(ctx)
-		panic("staked amount is negative")
+		panic(any("staked amount is negative"))
 	}
 	store.Set(cosmosTypes.KeyStakedAmount, k.cdc.MustMarshal(&newStakedAmount))
 }
@@ -185,7 +185,7 @@ func (k Keeper) GetStakedAmount(ctx sdk.Context) sdk.Coin {
 	}
 	bondDenom, err := k.GetParams(ctx).GetBondDenomOf(cosmosTypes.DefaultStakingDenom)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return sdk.NewInt64Coin(bondDenom, 0)
 }
@@ -225,7 +225,7 @@ func (k Keeper) SubFromVirtuallyUnbonded(ctx sdk.Context, virtuallyUnbonded sdk.
 	newVirtuallyUnbonded = newVirtuallyUnbonded.Sub(virtuallyUnbonded)
 	if newVirtuallyUnbonded.IsNegative() {
 		k.disableModule(ctx)
-		panic("virtual unbonded amount is negative")
+		panic(any("virtual unbonded amount is negative"))
 	}
 	store.Set(cosmosTypes.KeyVirtuallyUnbonded, k.cdc.MustMarshal(&newVirtuallyUnbonded))
 }
@@ -240,7 +240,7 @@ func (k Keeper) GetVirtuallyUnbonded(ctx sdk.Context) sdk.Coin {
 	}
 	bondDenom, err := k.GetParams(ctx).GetBondDenomOf(cosmosTypes.DefaultStakingDenom)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return sdk.NewInt64Coin(bondDenom, 0)
 }

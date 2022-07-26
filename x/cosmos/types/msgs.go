@@ -59,7 +59,7 @@ func (m *MsgSetOrchestrator) GetSignBytes() []byte {
 func (m *MsgSetOrchestrator) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.ValAddressFromBech32(m.Validator)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return []sdk.AccAddress{sdk.AccAddress(acc)}
 }
@@ -98,7 +98,7 @@ func (m *MsgRemoveOrchestrator) GetSignBytes() []byte {
 func (m *MsgRemoveOrchestrator) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.ValAddressFromBech32(m.Validator)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return []sdk.AccAddress{sdk.AccAddress(acc)}
 }
@@ -107,7 +107,7 @@ func (m *MsgRemoveOrchestrator) GetSigners() []sdk.AccAddress {
 func NewMsgWithdrawStkAsset(from, to sdk.AccAddress, amount sdk.Coin) *MsgWithdrawStkAsset {
 	toAddress, err := Bech32ifyAddressBytes(Bech32PrefixAccAddr, to)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return &MsgWithdrawStkAsset{
 		FromAddress: from.String(),
@@ -154,7 +154,7 @@ func (m *MsgWithdrawStkAsset) GetSignBytes() []byte {
 func (m *MsgWithdrawStkAsset) GetSigners() []sdk.AccAddress {
 	from, err := sdk.AccAddressFromBech32(m.FromAddress)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return []sdk.AccAddress{from}
 }
@@ -208,7 +208,7 @@ func (m *MsgMintTokensForAccount) GetSignBytes() []byte {
 func (m *MsgMintTokensForAccount) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return []sdk.AccAddress{acc}
 }
@@ -252,7 +252,7 @@ func (m *MsgMakeProposal) GetSignBytes() []byte {
 func (m *MsgMakeProposal) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return []sdk.AccAddress{acc}
 }
@@ -394,7 +394,7 @@ func (m *MsgSignedTx) GetSignBytes() []byte {
 func (m *MsgSignedTx) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return []sdk.AccAddress{acc}
 }
@@ -472,7 +472,7 @@ func (m *MsgTxStatus) GetSignBytes() []byte {
 func (m *MsgTxStatus) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return []sdk.AccAddress{acc}
 }
@@ -522,7 +522,7 @@ func (m *MsgUndelegateSuccess) GetSignBytes() []byte {
 func (m *MsgUndelegateSuccess) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return []sdk.AccAddress{acc}
 }
@@ -561,7 +561,7 @@ func (m *MsgSetSignature) GetSignBytes() []byte {
 func (m *MsgSetSignature) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return []sdk.AccAddress{acc}
 }
@@ -570,7 +570,7 @@ func (m *MsgSetSignature) GetSigners() []sdk.AccAddress {
 func NewMsgSlashingEventOnCosmosChain(val sdk.ValAddress, amount sdk.Coin, orchAddress sdk.AccAddress, slashType string, chainID string, blockHeight int64) *MsgSlashingEventOnCosmosChain {
 	valAddress, err := Bech32ifyValAddressBytes(Bech32PrefixValAddr, val)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return &MsgSlashingEventOnCosmosChain{
 		ValidatorAddress:    valAddress,
@@ -614,7 +614,7 @@ func (m *MsgSlashingEventOnCosmosChain) GetSignBytes() []byte {
 func (m *MsgSlashingEventOnCosmosChain) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OrchestratorAddress)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return []sdk.AccAddress{acc}
 }

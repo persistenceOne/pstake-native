@@ -26,35 +26,35 @@ func SetConfig(cmd *cobra.Command) Config {
 	//	cosmos Config
 	orcConfig.CosmosConfig.ChainID, err = cmd.Flags().GetString(constants.FlagCosmosChainID)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.CosmosConfig.CustodialAddr, err = cmd.Flags().GetString(constants.FlagCosmosCustodialAddr)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.CosmosConfig.Denom, err = cmd.Flags().GetString(constants.FlagCosmosDenom)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.CosmosConfig.GRPCAddr, err = cmd.Flags().GetString(constants.FlagCosmosGRPCAddr)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.CosmosConfig.RPCAddr, err = cmd.Flags().GetString(constants.FlagCosmosRPCAddr)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.CosmosConfig.AccountPrefix, err = cmd.Flags().GetString(constants.FlagCosmosAccountPrefix)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.CosmosConfig.GasAdjustment, err = cmd.Flags().GetFloat64(constants.FlagCosmosGasAdjustment)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.CosmosConfig.GasPrice, err = cmd.Flags().GetString(constants.FlagCosmosGasPrice)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.CosmosConfig.CoinType, err = cmd.Flags().GetUint32(constants.FlagCosmosCoinType)
 
@@ -62,31 +62,31 @@ func SetConfig(cmd *cobra.Command) Config {
 
 	orcConfig.NativeConfig.ChainID, err = cmd.Flags().GetString(constants.FlagNativeChainID)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.NativeConfig.Denom, err = cmd.Flags().GetString(constants.FlagNativeDenom)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.NativeConfig.GRPCAddr, err = cmd.Flags().GetString(constants.FlagNativeGRPCAddr)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.NativeConfig.RPCAddr, err = cmd.Flags().GetString(constants.FlagNativeRPCAddr)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.NativeConfig.AccountPrefix, err = cmd.Flags().GetString(constants.FlagNativeAccountPrefix)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.NativeConfig.GasAdjustment, err = cmd.Flags().GetFloat64(constants.FlagNativeGasAdjustment)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.NativeConfig.GasPrices, err = cmd.Flags().GetString(constants.FlagNativeGasPrice)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	orcConfig.NativeConfig.CoinType, err = cmd.Flags().GetUint32(constants.FlagNativeCoinType)
 
