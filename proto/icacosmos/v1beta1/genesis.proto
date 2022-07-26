@@ -1,0 +1,15 @@
+syntax = "proto3";
+package icacosmos.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "icacosmos/v1beta1/params.proto";
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/persistenceOne/pstake-native/x/icacosmos/types";
+
+// GenesisState defines the icacosmos module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  string port_id = 2;
+  // this line is used by starport scaffolding # genesis/proto/state
+}
