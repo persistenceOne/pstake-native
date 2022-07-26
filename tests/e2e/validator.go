@@ -24,7 +24,7 @@ import (
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
 
-	gaia "github.com/cosmos/gaia/v7/app"
+	pstake "github.com/persistenceOne/pstake-native/app"
 )
 
 type validator struct {
@@ -68,7 +68,7 @@ func (v *validator) init() error {
 		return err
 	}
 
-	appState, err := json.MarshalIndent(gaia.ModuleBasics.DefaultGenesis(cdc), "", " ")
+	appState, err := json.MarshalIndent(pstake.ModuleBasics.DefaultGenesis(cdc), "", " ")
 	if err != nil {
 		return fmt.Errorf("failed to JSON encode app genesis state: %w", err)
 	}

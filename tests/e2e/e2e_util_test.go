@@ -136,7 +136,7 @@ func queryGaiaTx(endpoint, txHash string) error {
 	return nil
 }
 
-func queryGaiaAllBalances(endpoint, addr string) (sdk.Coins, error) {
+func queryPstakeAllBalances(endpoint, addr string) (sdk.Coins, error) {
 	resp, err := http.Get(fmt.Sprintf("%s/cosmos/bank/v1beta1/balances/%s", endpoint, addr))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute HTTP request: %w", err)

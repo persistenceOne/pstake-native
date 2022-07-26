@@ -12,8 +12,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	gaia "github.com/cosmos/gaia/v7/app"
-	"github.com/cosmos/gaia/v7/app/params"
+	pstakeApp "github.com/persistenceOne/pstake-native/app"
+	"github.com/persistenceOne/pstake-native/app/params"
 )
 
 const (
@@ -27,7 +27,7 @@ var (
 )
 
 func init() {
-	encodingConfig = gaia.MakeEncodingConfig()
+	encodingConfig = pstakeApp.MakeEncodingConfig()
 
 	encodingConfig.InterfaceRegistry.RegisterImplementations(
 		(*sdk.Msg)(nil),

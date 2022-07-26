@@ -1,4 +1,4 @@
-package gaia
+package app
 
 import (
 	"fmt"
@@ -110,12 +110,12 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
-	gaiaappparams "github.com/persistenceOne/pstake-native/app/params"
+	pstakeappparams "github.com/persistenceOne/pstake-native/app/params"
 	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
 	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v2/router/keeper"
 	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v2/router/types"
 
-	gaiaante "github.com/persistenceOne/pstake-native/ante"
+	pstakeante "github.com/persistenceOne/pstake-native/ante"
 	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
 )
@@ -246,15 +246,15 @@ func init() {
 	DefaultNodeHome = filepath.Join(userHomeDir, ".pstaked")
 }
 
-// NewGaiaApp returns a reference to an initialized Gaia.
-func NewGaiaApp(
+// NewpStakeApp returns a reference to an initialized pStake.
+func NewpStakeApp(
 	logger log.Logger,
 	db dbm.DB, traceStore io.Writer,
 	loadLatest bool,
 	skipUpgradeHeights map[int64]bool,
 	homePath string,
 	invCheckPeriod uint,
-	encodingConfig gaiaappparams.EncodingConfig,
+	encodingConfig pstakeappparams.EncodingConfig,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *PstakeApp {
@@ -651,8 +651,8 @@ func NewGaiaApp(
 	app.MountTransientStores(tkeys)
 	app.MountMemoryStores(memKeys)
 
-	anteHandler, err := gaiaante.NewAnteHandler(
-		gaiaante.HandlerOptions{
+	anteHandler, err := pstakeante.NewAnteHandler(
+		pstakeante.HandlerOptions{
 			HandlerOptions: ante.HandlerOptions{
 				AccountKeeper:   app.AccountKeeper,
 				BankKeeper:      app.BankKeeper,
@@ -661,7 +661,7 @@ func NewGaiaApp(
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
 			IBCkeeper:            app.IBCKeeper,
-			BypassMinFeeMsgTypes: cast.ToStringSlice(appOpts.Get(gaiaappparams.BypassMinFeeMsgTypesKey)),
+			BypassMinFeeMsgTypes: cast.ToStringSlice(appOpts.Get(pstakeappparams.BypassMinFeeMsgTypesKey)),
 		},
 	)
 	if err != nil {
@@ -797,7 +797,7 @@ func (app *PstakeApp) LegacyAmino() *codec.LegacyAmino {
 	return app.legacyAmino
 }
 
-// AppCodec returns Gaia's app codec.
+// AppCodec returns pStake's app codec.
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
@@ -805,7 +805,7 @@ func (app *PstakeApp) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
-// InterfaceRegistry returns Gaia's InterfaceRegistry
+// InterfaceRegistry returns pStake's InterfaceRegistry
 func (app *PstakeApp) InterfaceRegistry() types.InterfaceRegistry {
 	return app.interfaceRegistry
 }
