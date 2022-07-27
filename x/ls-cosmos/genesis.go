@@ -2,6 +2,7 @@ package ls_cosmos
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/persistenceOne/pstake-native/x/ls-cosmos/keeper"
 	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 )
@@ -18,7 +19,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		// and claims the returned capability
 		err := k.BindPort(ctx, genState.PortId)
 		if err != nil {
-			panic("could not claim port capability: " + err.Error())
+			panic(any("could not claim port capability: " + err.Error()))
 		}
 	}
 	k.SetParams(ctx, genState.Params)

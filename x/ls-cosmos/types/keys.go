@@ -25,7 +25,9 @@ const (
 
 var (
 	// PortKey defines the key to store the port ID in store
-	PortKey = KeyPrefix("lscosmos-port-")
+	PortKey = KeyPrefix("lscosmos-port")
+
+	CosmosIBCParams = []byte{0x01}
 )
 
 func KeyPrefix(p string) []byte {

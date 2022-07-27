@@ -1,14 +1,12 @@
 package cli
 
 import (
+	"context"
 	"fmt"
-	// "strings"
-
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	// "github.com/cosmos/cosmos-sdk/client/flags"
-	// sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cobra"
 
 	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 )
@@ -24,8 +22,35 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(CmdQueryParams())
+	cmd.AddCommand(
+		CmdQueryParams(),
+		CmdQueryCosmosIBCParams(),
+	)
 	// this line is used by starport scaffolding # 1
+
+	return cmd
+}
+
+func CmdQueryCosmosIBCParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "cosmos-params",
+		Short: "shows cosmos ibc parameters",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.CosmosIBCParams(context.Background(), &types.QueryCosmosIBCParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }

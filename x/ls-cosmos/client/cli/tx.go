@@ -2,12 +2,17 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	// "github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos/client/utils"
 	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 )
 
@@ -31,6 +36,65 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	// this line is used by starport scaffolding # 1
+	cmd.AddCommand(
+		NewRegisterCosmosChainCmd(),
+	)
 
 	return cmd
+}
+
+func NewRegisterCosmosChainCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "register-cosmos-chain [proposal-file]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a register cosmos chain proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a register cosmos chain proposal along with an initial deposit
+The proposal details must be supplied via a JSON file. For values that contains objects,
+only non-empty fields will be updated.
+
+IMPORTANT : The values for the fields in this proposal are not validated, so it is very
+important that any value change is valid.
+
+Example:
+$ %s tx gov submit-proposal register-cosmos-chain <path/to/proposal.json> --from <key_or_address>
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			proposal, err := utils.ParseRegisterCosmosChainProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			from := clientCtx.GetFromAddress()
+
+			content := types.NewRegisterCosmosChainProposal(
+				proposal.Title,
+				proposal.Description,
+				proposal.IBCConnection,
+				proposal.TokenTransferChannel,
+				proposal.TokenTransferPort,
+				proposal.BaseDenom,
+				proposal.MintDenom,
+			)
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
 }
