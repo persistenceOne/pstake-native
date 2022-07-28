@@ -21,7 +21,7 @@ func TestZ(t *testing.T) {
 
 	custodialAdrr, err := AccAddressFromBech32("cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2", "cosmos")
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	rpcClientC, _ := newRPCClient("http://13.212.166.231:26657", 1*time.Second)
 	liteproviderC, _ := prov.New("test", "http://13.212.166.231:26657")
@@ -69,7 +69,7 @@ func TestZ(t *testing.T) {
 	defer func(grpcConnCosmos *grpc.ClientConn) {
 		err := grpcConnCosmos.Close()
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 	}(grpcConnCosmos)
 

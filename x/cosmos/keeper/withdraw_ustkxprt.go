@@ -102,7 +102,7 @@ func (k Keeper) generateSendTransactionForAllWithdrawals(ctx sdk.Context, epochN
 			}
 			anyMsg, err := codecTypes.NewAnyWithValue(&msg)
 			if err != nil {
-				panic(err)
+				panic(any(err))
 			}
 			sendMsgsAny = append(sendMsgsAny, anyMsg)
 		}
@@ -118,7 +118,7 @@ func (k Keeper) generateSendTransactionForAllWithdrawals(ctx sdk.Context, epochN
 
 		execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 
 		tx := cosmosTypes.CosmosTx{

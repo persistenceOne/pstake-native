@@ -12,7 +12,7 @@ func (k Keeper) setCosmosBalance(ctx sdk.Context, balance sdk.Coins) {
 
 	bz, err := balance.MarshalJSON()
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	store.Set(cosmosTypes.KeyCosmosBalances, bz)
@@ -24,7 +24,7 @@ func (k Keeper) getCosmosBalances(ctx sdk.Context) (balance sdk.Coins) {
 	bz := store.Get(cosmosTypes.KeyCosmosBalances)
 	err := json.Unmarshal(bz, &balance)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	return balance

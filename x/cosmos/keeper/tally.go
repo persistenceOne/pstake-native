@@ -33,17 +33,17 @@ func (k Keeper) Tally(ctx sdkTypes.Context, proposal cosmosTypes.Proposal) (pass
 	k.IterateVotes(ctx, proposal.ProposalId, func(vote cosmosTypes.Vote) bool {
 		voter, err := sdkTypes.AccAddressFromBech32(vote.Voter)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 
 		val, _, err := k.getAllValidatorOrchestratorMappingAndFindIfExist(ctx, voter)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 
 		valAddress, found := k.CheckValidator(ctx, val)
 		if valAddress == nil {
-			panic("unauthorized vote present in db")
+			panic(any("unauthorized vote present in db"))
 		}
 
 		valAddressString := string(valAddress.Bytes())

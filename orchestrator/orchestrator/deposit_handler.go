@@ -74,7 +74,7 @@ func processCustodialDepositTxAndTranslateToNative(chain *CosmosChain, valAddr s
 
 		txInterface, err := clientCtx.TxConfig.TxDecoder()(txResult.Tx)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 			return err
 		}
 		tx, ok := txInterface.(signing.Tx)

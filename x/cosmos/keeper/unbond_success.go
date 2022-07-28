@@ -109,7 +109,7 @@ func (k Keeper) ProcessAllUndelegateSuccess(ctx sdk.Context) {
 	if flagForWithdrawSuccess {
 		err := k.generateSendTransactionForAllWithdrawals(ctx, epochNumber, cValue)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 	}
 }

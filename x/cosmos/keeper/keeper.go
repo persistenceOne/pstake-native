@@ -54,7 +54,7 @@ func NewKeeper(
 // SetHooks sets the hooks for governance
 func (k *Keeper) SetHooks(gh cosmosTypes.GovHooks, eh epochsTypes.EpochHooks) *Keeper {
 	if k.hooks != nil {
-		panic("cannot set governance hooks twice")
+		panic(any("cannot set governance hooks twice"))
 	}
 
 	k.hooks = gh

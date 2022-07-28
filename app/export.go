@@ -81,12 +81,12 @@ func (app *PstakeApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	for _, delegation := range dels {
 		valAddr, err := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 
 		delAddr, err := sdk.AccAddressFromBech32(delegation.DelegatorAddress)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 		_, _ = app.DistrKeeper.WithdrawDelegationRewards(ctx, delAddr, valAddr)
 	}
@@ -117,11 +117,11 @@ func (app *PstakeApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 	for _, del := range dels {
 		valAddr, err := sdk.ValAddressFromBech32(del.ValidatorAddress)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 		delAddr, err := sdk.AccAddressFromBech32(del.DelegatorAddress)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 		app.DistrKeeper.Hooks().BeforeDelegationCreated(ctx, delAddr, valAddr)
 		app.DistrKeeper.Hooks().AfterDelegationModified(ctx, delAddr, valAddr)
@@ -160,7 +160,7 @@ func (app *PstakeApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs
 		addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
 		validator, found := app.StakingKeeper.GetValidator(ctx, addr)
 		if !found {
-			panic("expected validator, not found")
+			panic(any("expected validator, not found"))
 		}
 
 		validator.UnbondingHeight = 0

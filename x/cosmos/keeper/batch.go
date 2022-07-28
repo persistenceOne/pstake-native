@@ -29,7 +29,7 @@ func (k Keeper) SetNewTxnInOutgoingPool(ctx sdk.Context, txID uint64, tx cosmosT
 	key := cosmosTypes.UInt64Bytes(txID)
 	bz, err := k.cdc.Marshal(&tx)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	outgoingStore.Set(key, bz)
 }
@@ -71,7 +71,7 @@ func (k Keeper) GetTxnFromOutgoingPoolByID(ctx sdk.Context, txID uint64) (cosmos
 
 	err := cosmosTx.Tx.UnpackInterfaces(k.cdc)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	return cosmosTypes.QueryOutgoingTxByIDResponse{
@@ -255,7 +255,7 @@ func (k Keeper) SetNewInTransactionQueue(ctx sdk.Context, txID uint64) {
 	transactionQueueStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyTransactionQueue)
 	key := cosmosTypes.UInt64Bytes(txID)
 	if transactionQueueStore.Has(key) {
-		panic(fmt.Errorf("transaction present in queue"))
+		panic(any(fmt.Errorf("transaction present in queue")))
 	}
 
 	// true : active transaction, false : inactive transaction
@@ -412,12 +412,12 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 	// get all txHash and details aggregated
 	txDetails, err := k.getAllTxHashAndDetails(ctx)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	queryResponse, err := k.GetTxnFromOutgoingPoolByID(ctx, txID)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 
 	for _, tx := range txDetails {
@@ -433,17 +433,17 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 		// get tx from outgoing pool
 		cosmosTx, err := k.GetTxnFromOutgoingPoolByID(ctx, txID)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 
 		multisigAccount := k.GetAccountState(ctx, k.GetCurrentAddress(ctx))
 		if multisigAccount == nil {
-			panic(cosmosTypes.ErrMultiSigAddressNotFound)
+			panic(any(cosmosTypes.ErrMultiSigAddressNotFound))
 		}
 
 		txHashValue, err := k.getTxHashAndDetails(ctx, tx.TxHash)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 
 		// process tx if majority status is present
@@ -494,14 +494,14 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 		// TODO : handle balance, bonded tokens and unbonding tokens value
 		bondDenom, err := k.GetParams(ctx).GetBondDenomOf(cosmosTypes.DefaultStakingDenom)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 		rewardsAmount := sdk.NewCoin(bondDenom, sdk.NewInt(0))
 		k.setCosmosBalance(ctx, tx.Details.TxStatus.Balance)
 		for _, vd := range tx.Details.TxStatus.ValidatorDetails {
 			valAddress, err := cosmosTypes.ValAddressFromBech32(vd.ValidatorAddress, cosmosTypes.Bech32PrefixValAddr)
 			if err != nil {
-				panic(err)
+				panic(any(err))
 			}
 			k.UpdateDelegationCosmosValidator(ctx, valAddress, vd.BondedTokens, vd.UnbondingTokens)
 			rewardsAmount = rewardsAmount.Add(vd.RewardsCollected)
@@ -515,13 +515,13 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 		// set sequence number in any case of status, so it stays up to date
 		err = multisigAccount.SetSequence(txHashValue.TxStatus.SequenceNumber)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 
 		//set account number in any case of status, so it stays up to date
 		err = multisigAccount.SetAccountNumber(txHashValue.TxStatus.AccountNumber)
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 
 		k.SetAccountState(ctx, multisigAccount)
@@ -529,7 +529,7 @@ func (k Keeper) ProcessAllTxAndDetails(ctx sdk.Context) {
 
 	txDetailsList, err := k.getAllTxInOutgoingPool(ctx)
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	for _, tx := range txDetailsList {
 		//remove transaction if active block limit is reached and status is set to success

@@ -30,10 +30,10 @@ func InitCommand() *cobra.Command {
 				return err
 			}
 			if err = os.MkdirAll(homeDir, os.ModePerm); err != nil {
-				panic(err)
+				panic(any(err))
 			}
 			if err := ioutil.WriteFile(filepath.Join(homeDir, "config.toml"), buf.Bytes(), 0600); err != nil {
-				panic(err)
+				panic(any(err))
 			}
 			log.Println("generated cfg.toml ", filepath.Join(homeDir, "config.toml"))
 

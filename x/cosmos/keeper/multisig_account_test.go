@@ -36,7 +36,7 @@ func GetSDKPivKeyAndAddressR(prefix string, cointype uint32, mnemonic string) (c
 	//addrString, err := sdk.Bech32ifyAddressBytes(prefix, privKey.PubKey().Address())
 	addrString, err := sdk.Bech32ifyAddressBytes(prefix, privKey.PubKey().Address())
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	return privKey, addrString
 }

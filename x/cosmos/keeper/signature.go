@@ -99,7 +99,7 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 	for _, os := range outgoingSignaturePool {
 		ka, ok := k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetPubKey().(multisig.PubKey)
 		if !ok {
-			panic("not able to convert to pubkey")
+			panic(any("not able to convert to pubkey"))
 		}
 		if os.OutgoingSignaturePoolValue.Counter >= uint64(ka.GetThreshold()) &&
 			!os.OutgoingSignaturePoolValue.SignedEventEmitted {
@@ -111,12 +111,12 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 				externalSig := cosmosTypes.ConvertSingleSignatureDataForOutgoingPoolToSingleSignatureData(sig)
 				orchAddress, err := sdk.AccAddressFromBech32(os.OutgoingSignaturePoolValue.OrchestratorAddresses[i])
 				if err != nil {
-					panic(err)
+					panic(any(err))
 				}
 				account := k.authKeeper.GetAccount(ctx, orchAddress)
 				if err := multisig.AddSignatureFromPubKey(multisigSig, &externalSig,
 					account.GetPubKey(), multisigPub.GetPubKeys()); err != nil {
-					panic(err)
+					panic(any(err))
 				}
 			}
 
@@ -128,17 +128,17 @@ func (k Keeper) ProcessAllSignature(ctx sdk.Context) {
 
 			cosmosTx, err := k.GetTxnFromOutgoingPoolByID(ctx, os.TxID)
 			if err != nil {
-				panic(err)
+				panic(any(err))
 			}
 
 			err = cosmosTx.CosmosTxDetails.SetSignatures(sigV2)
 			if err != nil {
-				panic(err)
+				panic(any(err))
 			}
 
 			err = k.SetOutgoingTxnSignaturesAndEmitEvent(ctx, cosmosTx.CosmosTxDetails, os.TxID)
 			if err != nil {
-				panic(err)
+				panic(any(err))
 			}
 
 			k.setEventEmittedForSignedTxn(ctx, os.TxID)
