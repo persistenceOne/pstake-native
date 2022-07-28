@@ -104,7 +104,7 @@ func (k Keeper) ProcessAllMintingStoreValue(ctx sdk.Context) {
 			// step 1 : mint tokens for account
 			err := k.mintTokens(ctx, mv.MintTokens)
 			if err != nil {
-				panic(err)
+				panic(any(err))
 			}
 			// step 2 : mark minted flag true
 			k.setMintedFlagInMintTokenStore(ctx, mv)

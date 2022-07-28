@@ -55,7 +55,7 @@ func SendMsgAck(native *NativeChain, cosmosChain *CosmosChain, orcSeeds []string
 		grpcConn, err := grpc.Dial(native.GRPCAddr, grpc.WithInsecure())
 
 		if err != nil {
-			panic(err)
+			panic(any(err))
 		}
 		defer func(grpcConn *grpc.ClientConn) {
 			err := grpcConn.Close()
@@ -105,7 +105,7 @@ func GetMultiSigAddress(chain *NativeChain, chainC *CosmosChain) (types.AccAddre
 
 	if err != nil {
 		stdlog.Println("GRPC Connection failed")
-		panic(err)
+		panic(any(err))
 	}
 	cosmosQueryClient := cosmosTypes.NewQueryClient(grpcConn)
 	stdlog.Println("staking query client connected")

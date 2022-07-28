@@ -77,7 +77,7 @@ func TestE2EValDetails(t *testing.T) {
 
 	if err != nil {
 		stdlog.Println("GRPC Connection failed")
-		panic(err)
+		panic(any(err))
 	}
 
 	stakingQueryClient := stakingTypes.NewQueryClient(grpcConn)
@@ -111,7 +111,7 @@ func TestE2EValDetails(t *testing.T) {
 				flag = false
 			} else {
 				stdlog.Println("cannot get unbonding delegations")
-				panic(err)
+				panic(any(err))
 			}
 
 		}

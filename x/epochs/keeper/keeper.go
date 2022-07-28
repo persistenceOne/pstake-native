@@ -27,7 +27,7 @@ func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey) Keeper {
 // Set the gamm hooks
 func (k *Keeper) SetHooks(eh types.EpochHooks) *Keeper {
 	if k.hooks != nil {
-		panic("cannot set epochs hooks twice")
+		panic(any("cannot set epochs hooks twice"))
 	}
 
 	k.hooks = eh

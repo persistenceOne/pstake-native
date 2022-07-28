@@ -23,12 +23,12 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 	custodialAddr, err := Bech32ifyAddressBytes(chain.AccountPrefix, chain.CustodialAddress)
 	if err != nil {
 		stdlog.Println(err)
-		panic(err)
+		panic(any(err))
 
 	}
 	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
@@ -39,7 +39,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 
 	if err != nil {
 		stdlog.Println("GRPC Connection failed")
-		panic(err)
+		panic(any(err))
 	}
 
 	stakingQueryClient := stakingTypes.NewQueryClient(grpcConn)
@@ -54,7 +54,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 	)
 
 	if err != nil {
-		panic(err)
+		panic(any(err))
 	}
 	flag := true
 	for _, Delegations := range BondedTokensQueryResult.DelegationResponses {
@@ -74,7 +74,7 @@ func GetValidatorDetails(chain *CosmosChain) []cosmosTypes.ValidatorDetails {
 				flag = false
 			} else {
 				stdlog.Println("cannot get unbonding delegations")
-				panic(err)
+				panic(any(err))
 			}
 
 		}
@@ -153,7 +153,7 @@ func GetAccountDetails(cosmosClient cosmosClient.Context, chain *CosmosChain, ad
 
 	if err != nil {
 		stdlog.Println("GRPC Connection failed")
-		panic(err)
+		panic(any(err))
 
 	}
 	authQueryClient := authTypes.NewQueryClient(grpcConn)
