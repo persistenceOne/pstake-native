@@ -1,6 +1,9 @@
 package rest
 
 import (
+	restClient "github.com/cosmos/cosmos-sdk/client/rest"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/gorilla/mux"
 	"net/http"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -12,6 +15,41 @@ import (
 	"github.com/persistenceOne/pstake-native/x/ls-cosmos/client/utils"
 	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 )
+
+type SendReq struct {
+	BaseReq     rest.BaseReq `json:"base_req" yaml:"base_req"`
+	MintAddress string       `json:"mint_address" yaml:"mint_address"`
+	Amount      sdk.Coin     `json:"amount" yaml:"amount"`
+}
+
+func RegisterHandlers(clientCtx client.Context, rtr *mux.Router) {
+	r := restClient.WithHTTPDeprecationHeaders(rtr)
+	r.HandleFunc("/ls-cosmos/incoming/minting", LiquidStakeHandlerFn(clientCtx)).Methods("POST")
+}
+
+//	LiquidStakeHandlreFn returnd an HTTP REST handler for creating a MsgLiquidStake
+func LiquidStakeHandlerFn(clientCtx client.Context) http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		var req SendReq
+		if !rest.ReadRESTReq(writer, request, clientCtx.LegacyAmino, &req) {
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(writer) {
+			return
+		}
+
+		mintAddr, err := sdk.AccAddressFromBech32(req.MintAddress)
+		if rest.CheckBadRequestError(writer, err) {
+			return
+		}
+
+		msg := types.NewMsgLiquidStake(req.Amount, mintAddr)
+		tx.WriteGeneratedTxResponse(clientCtx, writer, req.BaseReq, msg)
+
+	}
+}
 
 // RegisterChainRESTHandler returns a ProposalRESTHandler that exposes the param
 // change REST handler with a given sub-route.
