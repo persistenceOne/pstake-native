@@ -8,27 +8,8 @@ import (
 	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 )
 
-func testProposal(
-	title,
-	description,
-	connection,
-	channel,
-	transfer,
-	uatom,
-	ustkatom string) *types.RegisterCosmosChainProposal {
-	return types.NewRegisterCosmosChainProposal(
-		title,
-		description,
-		connection,
-		channel,
-		transfer,
-		uatom,
-		ustkatom,
-	)
-}
-
 func TestParameterChangeProposal(t *testing.T) {
-	pcp := testProposal(
+	pcp := types.NewRegisterCosmosChainProposal(
 		"title",
 		"description",
 		"connection",
