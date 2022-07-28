@@ -1,27 +1,31 @@
 package keeper_test
 
 import (
+	"testing"
+
 	multisig2 "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
+	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/require"
+
 	"github.com/persistenceOne/pstake-native/app"
 	"github.com/persistenceOne/pstake-native/app/helpers"
-	"github.com/stretchr/testify/require"
-	"testing"
+	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
 var (
-	valAddr1         = sdkTypes.ValAddress("Val1")
-	valAddr2         = sdkTypes.ValAddress("Val2")
-	valAddrNotExists = sdkTypes.ValAddress("ValNotExists")
+	valAddr1         = sdkTypes.ValAddress("Val1_xxxxxxxxxxxxxxx")
+	valAddr2         = sdkTypes.ValAddress("Val2_xxxxxxxxxxxxxxx")
+	valAddrNotExists = sdkTypes.ValAddress("ValidatorDoNotExists")
 	valAddrInvalid   = sdkTypes.ValAddress(make([]byte, address.MaxAddrLen+1))
 
-	orchAddr1       = sdkTypes.AccAddress("orch1")
-	orchAddr2       = sdkTypes.AccAddress("orch2,0")
-	orchAddr21      = sdkTypes.AccAddress("orch2,1")
+	orchAddr1       = sdkTypes.AccAddress("orch1_xxxxxxxxxxxxxx")
+	orchAddr2       = sdkTypes.AccAddress("orch2_xxxxxxxxxxxx,0")
+	orchAddr21      = sdkTypes.AccAddress("orch2_xxxxxxxxxxxx,1")
 	orchAddrInvalid = sdkTypes.AccAddress(make([]byte, address.MaxAddrLen+1))
 )
 
@@ -41,10 +45,10 @@ func SetupValidators(t *testing.T, app app.PstakeApp, ctx sdkTypes.Context) {
 
 	valAddr1 := sdkTypes.ValAddress("Val1_xxxxxxxxxxxxxxx")
 	valAddr2 := sdkTypes.ValAddress("Val2_xxxxxxxxxxxxxxx")
-	valAddrNotExists := sdkTypes.ValAddress("ValNotExists_xxxxxxx")
+	//valAddrNotExists := sdkTypes.ValAddress("ValNotExists_xxxxxxx")
 	orchAddr1 := sdkTypes.AccAddress("orch1_xxxxxxxxxxxxxx")
 	orchAddr2 := sdkTypes.AccAddress("orch2_xxxxxxxxxxxxxx")
-  
+
 	app.StakingKeeper.SetValidator(ctx, stakingTypes.Validator{
 		OperatorAddress: valAddr1.String(),
 	})
@@ -126,11 +130,18 @@ func TestRemoveValidatorOrchestrator(t *testing.T) {
 
 	pubkeyOrch1 := pstakeApp.AccountKeeper.GetAccount(ctx, orchAddr1).GetPubKey()
 	multisigPubkey := multisig2.NewLegacyAminoPubKey(int(1), []types.PubKey{pubkeyOrch1})
-	multisigAddr := sdkTypes.AccAddress("multisigAddr")
-	multiSigAcc := pstakeApp.AccountKeeper.NewAccountWithAddress(ctx, multisigAddr)
-	err := multiSigAcc.SetPubKey(multisigPubkey)
+	multisigAddr := multisigPubkey.Address().Bytes()
+
+	cosmosAddr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32Prefix, multisigAddr)
+	multisigAcc := &authTypes.BaseAccount{
+		Address:       cosmosAddr,
+		PubKey:        nil,
+		AccountNumber: 0,
+		Sequence:      0,
+	}
+	err = multisigAcc.SetPubKey(multisigPubkey)
 	require.Nil(t, err)
-	pstakeApp.CosmosKeeper.SetAccountState(ctx, multiSigAcc)
+	pstakeApp.CosmosKeeper.SetAccountState(ctx, multisigAcc)
 	pstakeApp.CosmosKeeper.SetCurrentAddress(ctx, multisigAddr)
 
 	require.Error(t, keeper.RemoveValidatorOrchestrator(ctx, valAddr1, orchAddr1), "OrchAddress present in multisig")

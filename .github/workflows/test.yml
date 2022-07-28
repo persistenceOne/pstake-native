@@ -26,13 +26,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/setup-go@v2.1.5
+      - uses: actions/setup-go@v3.2.1
         with:
-          go-version: 1.16
+          go-version: 1.18
 
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3.0.3
 
-      - uses: technote-space/get-diff-action@v5.0.2
+      - uses: technote-space/get-diff-action@v6.1.0
         with:
           PATTERNS: |
             **/**.go
@@ -48,7 +48,7 @@ jobs:
           make test TEST_ARGS="-timeout 12m -race -coverprofile=coverage.txt -covermode=atomic"
         if: "env.GIT_DIFF != ''"
         env:
-          TEST_TARGET: "./x/cosmos/..."
+          TEST_TARGET: "./x/..."
 
       - name: filter out DONTCOVER
         run: |
@@ -62,7 +62,7 @@ jobs:
           done
         if: "env.GIT_DIFF != ''"
 
-      - uses: codecov/codecov-action@v2.1.0
+      - uses: codecov/codecov-action@v3.1.0
         with:
           file: ./coverage.txt # optional
           fail_ci_if_error: true

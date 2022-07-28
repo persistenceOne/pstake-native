@@ -142,7 +142,6 @@ func (k Keeper) FetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) ([]V
 	}
 
 	valWeightedAmt := k.GetAllCosmosValidatorSet(ctx)
-	fmt.Println("amount: ", valWeightedAmt[0].Amount)
 
 	curDiffDistribution := GetIdealCurrentDelegations(valWeightedAmt, amount, false)
 

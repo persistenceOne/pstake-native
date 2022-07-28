@@ -2,12 +2,12 @@ package keeper_test
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"math"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/pstake-native/x/cosmos/keeper"
 	"github.com/persistenceOne/pstake-native/x/cosmos/types"
@@ -434,9 +434,9 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoStateValidatorSet() {
 			given: 13028679724,
 			expected: map[string]int64{
 				"cosmosvalidatorAddr1": 1302867972,
-				"cosmosvalidatorAddr2": 6514339864,
+				"cosmosvalidatorAddr2": 2605735944,
 				"cosmosvalidatorAddr3": 2605735944,
-				"cosmosvalidatorAddr4": 2605735944,
+				"cosmosvalidatorAddr4": 6514339864,
 			},
 		},
 	}
