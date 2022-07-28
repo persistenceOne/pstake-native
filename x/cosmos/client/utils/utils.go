@@ -27,9 +27,9 @@ type ChangeCosmosValidatorWeightsProposalReq struct {
 	CosmosValidatorSet ChangeCosmosValidatorWeightsProposalJSON `json:"cosmos_validator_set" yaml:"cosmos_validator_set"`
 }
 
-type ChangeOracleValidatorWeightsProposalReq struct {
-	BaseReq            rest.BaseReq                             `json:"base_req" yaml:"base_req"`
-	OracleValidatorSet ChangeOracleValidatorWeightsProposalJSON `json:"oracle_validator_set" yaml:"oracle_validator_set"`
+type ChangeOrchestratorValidatorWeightsProposalReq struct {
+	BaseReq                  rest.BaseReq                                   `json:"base_req" yaml:"base_req"`
+	OrchestratorValidatorSet ChangeOrchestratorValidatorWeightsProposalJSON `json:"orchestrator_validator_set" yaml:"orchestrator_validator_set"`
 }
 
 type EnableModuleProposalJSON struct {
@@ -64,7 +64,7 @@ type ChangeCosmosValidatorWeightsProposalJSON struct {
 	Deposit           string              `json:"deposit" yaml:"deposit"`
 }
 
-type ChangeOracleValidatorWeightsProposalJSON struct {
+type ChangeOrchestratorValidatorWeightsProposalJSON struct {
 	Title             string              `json:"title" yaml:"title"`
 	Description       string              `json:"description" yaml:"description"`
 	WeightedAddresses []WeightedAddresses `json:"weighted_addresses" yaml:"weighted_addresses"`
@@ -171,9 +171,9 @@ func ParseChangeCosmosValidatorWeightsProposalJSON(
 	return proposal, nil
 }
 
-func ParseChangeOracleValidatorWeightsProposalJSON(
-	cdc *codec.LegacyAmino, proposalFile string) (ChangeOracleValidatorWeightsProposalJSON, error) {
-	proposal := ChangeOracleValidatorWeightsProposalJSON{}
+func ParseChangeOrchestratorValidatorWeightsProposalJSON(
+	cdc *codec.LegacyAmino, proposalFile string) (ChangeOrchestratorValidatorWeightsProposalJSON, error) {
+	proposal := ChangeOrchestratorValidatorWeightsProposalJSON{}
 
 	contents, err := ioutil.ReadFile(proposalFile)
 	if err != nil {

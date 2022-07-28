@@ -149,7 +149,7 @@ var (
 			cosmosclient.EnableModuleProposalHandler,
 			cosmosclient.ChangeMultisigProposalHandler,
 			cosmosclient.ChangeCosmosValidatorWeightsProposalHandler,
-			cosmosclient.ChangeOracleValidatorWeightsProposalHandler,
+			cosmosclient.ChangeOrchestratorValidatorWeightsProposalHandler,
 			lscosmosclient.RegisterCosmosChainProposalHandler,
 		),
 		params.AppModuleBasic{},

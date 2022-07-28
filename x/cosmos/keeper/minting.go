@@ -93,7 +93,7 @@ func (k Keeper) deleteFromMintTokenStore(ctx sdk.Context, mv cosmosTypes.MintTok
 ProcessAllMintingStoreValue processes all the minting requests
 This function is called every EndBlocker to perform the defined set of actions as mentioned below :
    1. Get the list of all minting requests
-   2. Checks if the majority of the validator oracle have sent the minting request. Also checks the addedToEpoch and Minted flag.
+   2. Checks if the majority of the validator orchestrator have sent the minting request. Also checks the addedToEpoch and Minted flag.
    3. If majority is reached and other conditions match then tokens are minted and flags are set to true
    4. Another condition of ActiveBlockHeight is also checked whether to delete the entry or not.
 */

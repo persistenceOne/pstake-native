@@ -86,7 +86,7 @@ func (k Keeper) removeTxnDetailsByID(ctx sdk.Context, txID uint64) {
 	outgoingStore.Delete(key)
 }
 
-// SetOutgoingTxnSignaturesAndEmitEvent sets outgoing txns signatures for multisig and emits event for oracle to pick
+// SetOutgoingTxnSignaturesAndEmitEvent sets outgoing txns signatures for multisig and emits event for orchestrator to pick
 //and broadcast to cosmosHub
 func (k Keeper) SetOutgoingTxnSignaturesAndEmitEvent(ctx sdk.Context, tx cosmosTypes.CosmosTx, txID uint64) error {
 	outgoingStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.OutgoingTXPoolKey)
@@ -351,7 +351,7 @@ func (k Keeper) GetAllFromTransactionQueue(ctx sdk.Context) (txIDAndStatus []Tra
 	return txIDAndStatus
 }
 
-// emitEventForActiveTransaction Emits event for transaction to be picked up by oracles to be signed
+// emitEventForActiveTransaction Emits event for transaction to be picked up by orchestrators to be signed
 func (k Keeper) emitEventForActiveTransaction(ctx sdk.Context, txID uint64) {
 	k.IncrementRetryCounterInTransactionQueue(ctx, txID)
 	ctx.EventManager().EmitEvent(

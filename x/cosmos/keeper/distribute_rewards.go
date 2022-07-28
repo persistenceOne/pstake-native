@@ -31,8 +31,8 @@ func (k Keeper) MintRewardsClaimed(ctx sdk.Context, rewardsAmount sdk.Coin) erro
 	validatorRewards := k.GetProportions(ctx, rewardAmountInUSTK, distributionProportion.ValidatorRewards)
 	developerRewards := k.GetProportions(ctx, rewardAmountInUSTK, distributionProportion.DeveloperRewards)
 
-	// iterate through the oracle validator set and mint rewards in their respective accounts
-	for _, wallet := range k.getAllOracleValidatorSet(ctx) {
+	// iterate through the orchestrator validator set and mint rewards in their respective accounts
+	for _, wallet := range k.getAllOrchestratorValidatorSet(ctx) {
 		amount := k.GetProportions(ctx, validatorRewards, wallet.Weight)
 		accAddress, err := cosmosTypes.AccAddressFromBech32(wallet.Address, "persistencevaloper")
 		if err != nil {

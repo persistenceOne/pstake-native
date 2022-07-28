@@ -19,6 +19,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 	logger.Info(k.GetMintedAmount(ctx).String())
 	logger.Info(k.GetStakedAmount(ctx).String())
 	logger.Info(k.GetVirtuallyStakedAmount(ctx).String())
+	logger.Info(k.GetVirtuallyUnbonded(ctx).String())
 	logger.Info(cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx)))
 	logger.Info(fmt.Sprintf(strconv.FormatUint(k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetSequence(), 10)))
 	k.ProcessAllMintingStoreValue(ctx)

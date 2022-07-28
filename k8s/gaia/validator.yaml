@@ -17,9 +17,9 @@ spec:
       protocol: TCP
       targetPort: 26657
     - name: http
-      port: 8080
+      port: 8081
       protocol: TCP
-      targetPort: 8080
+      targetPort: 8081
   selector:
     app.kubernetes.io/name: gaia-validator
 ---
@@ -59,12 +59,12 @@ spec:
             - name: GENESIS_HOST
               value: gaia-genesis.dev-native
             - name: GENESIS_PORT
-              value: "8080"
+              value: "8081"
           command:
             - bash
             - "-c"
             - |
-              while [ $(curl -sw '%{http_code}' http://gaia-genesis.dev-native.svc.cluster.local:8080/node_id -o /dev/null) -ne 200 ]; do
+              while [ $(curl -sw '%{http_code}' http://gaia-genesis.dev-native.svc.cluster.local:8081/node_id -o /dev/null) -ne 200 ]; do
                 echo "Genesis validator does not seem to be ready. Waiting for it to start..."
                 sleep 10;
               done
@@ -99,7 +99,7 @@ spec:
               jq -r ".validators[$VAL_INDEX].mnemonic" /configs/validators.json | gaiad init gaia --chain-id $CHAIN_ID --home $GAIA_DIR --recover
               jq -r ".validators[$VAL_INDEX].mnemonic" /configs/validators.json | gaiad keys add $VAL_NAME --recover --keyring-backend='test' --home $GAIA_DIR
 
-              curl http://gaia-genesis.dev-native.svc.cluster.local:8080/genesis -o $GAIA_DIR/config/genesis.json
+              curl http://gaia-genesis.dev-native.svc.cluster.local:8081/genesis -o $GAIA_DIR/config/genesis.json
               echo "Genesis file that we got....."
               cat $GAIA_DIR/config/genesis.json
 
@@ -108,7 +108,7 @@ spec:
 
               echo "Fetching genesis file"
 
-              GENESIS_NODE_P2P=$(curl -s http://gaia-genesis.dev-native.svc.cluster.local:8080/node_id)@gaia-genesis.dev-native.svc.cluster.local:26656
+              GENESIS_NODE_P2P=$(curl -s http://gaia-genesis.dev-native.svc.cluster.local:8081/node_id)@gaia-genesis.dev-native.svc.cluster.local:26656
               echo "Node P2P: $GENESIS_NODE_P2P"
               sed -i "s/persistent_peers = \"\"/persistent_peers = \"$GENESIS_NODE_P2P\"/g" $GAIA_DIR/config/config.toml
               sed -i 's#"tcp://127.0.0.1:26657"#"tcp://0.0.0.0:26657"#g' $GAIA_DIR/config/config.toml
@@ -119,7 +119,7 @@ spec:
               echo "Printing the whole config.toml file"
               cat $GAIA_DIR/config/config.toml
 
-              curl -s http://gaia-genesis.dev-native.svc.cluster.local:8080/pub_key
+              curl -s http://gaia-genesis.dev-native.svc.cluster.local:8081/pub_key
           resources:
             limits:
               cpu: "0.2"
@@ -173,7 +173,7 @@ spec:
 
                     # Run create validator tx command
                     echo "Running txn for create-validator"
-                    gaiad tx staking create-validator --home $GAIA_DIR --pubkey=$(gaiad tendermint show-validator --home $GAIA_DIR) --moniker $VAL_NAME --amount 5000000000stake --keyring-backend="test" --chain-id $CHAIN_ID --from $VAL_NAME --commission-rate="0.10" --commission-max-rate="0.20" --commission-max-change-rate="0.01" --min-self-delegation="1000000" --gas="auto" --gas-adjustment 1.5 --yes > /validator.log
+                    gaiad tx staking create-validator --home $GAIA_DIR --pubkey=$(gaiad tendermint show-validator --home $GAIA_DIR) --moniker $VAL_NAME --amount 8000000000stake --keyring-backend="test" --chain-id $CHAIN_ID --from $VAL_NAME --commission-rate="0.10" --commission-max-rate="0.20" --commission-max-change-rate="0.01" --min-self-delegation="1000000" --gas="auto" --gas-adjustment 1.5 --yes > /validator.log
           resources:
             limits:
               cpu: "1"
@@ -195,7 +195,7 @@ spec:
             - name: GENESIS_FILE
               value: /gaiad/config/genesis.json
             - name: PORT
-              value: "8080"
+              value: "8081"
             - name: CLIENT_NAME
               value: "gaiad"
           command: [ "exposer" ]

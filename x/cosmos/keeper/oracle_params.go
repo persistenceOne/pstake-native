@@ -6,40 +6,40 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-// setOracleLastUpdateHeightNative Sets oracle last update height as the last block on which oracle sent a message on native side
-func (k Keeper) setOracleLastUpdateHeightNative(ctx sdk.Context, orchestratorAddress sdk.AccAddress, nativeBlockHeight int64) {
-	oracleLastUpdateStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOracleLastUpdateHeightNative)
-	oracleLastUpdateStore.Set(orchestratorAddress.Bytes(), cosmosTypes.Int64Bytes(nativeBlockHeight))
+// setOrchestratorLastUpdateHeightNative Sets orchestrator last update height as the last block on which orchestrator sent a message on native side
+func (k Keeper) setOrchestratorLastUpdateHeightNative(ctx sdk.Context, orchestratorAddress sdk.AccAddress, nativeBlockHeight int64) {
+	orchestratorLastUpdateStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOrchestratorLastUpdateHeightNative)
+	orchestratorLastUpdateStore.Set(orchestratorAddress.Bytes(), cosmosTypes.Int64Bytes(nativeBlockHeight))
 }
 
-// getOracleLastUpdateHeightNative Gets the last update height of oracle on native side
-func (k Keeper) getOracleLastUpdateHeightNative(ctx sdk.Context, orchestratorAddress sdk.AccAddress) int64 {
-	oracleLastUpdateStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOracleLastUpdateHeightNative)
-	return cosmosTypes.Int64FromBytes(oracleLastUpdateStore.Get(orchestratorAddress.Bytes()))
+// getOrchestratorLastUpdateHeightNative Gets the last update height of orchestrator on native side
+func (k Keeper) getOrchestratorLastUpdateHeightNative(ctx sdk.Context, orchestratorAddress sdk.AccAddress) int64 {
+	orchestratorLastUpdateStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOrchestratorLastUpdateHeightNative)
+	return cosmosTypes.Int64FromBytes(orchestratorLastUpdateStore.Get(orchestratorAddress.Bytes()))
 }
 
-// removeOracleLastUpdateHeightNative Removes the entry of oracle from the DB
-func (k Keeper) removeOracleLastUpdateHeightNative(ctx sdk.Context, orchestratorAddress sdk.AccAddress) {
-	oracleLastUpdateStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOracleLastUpdateHeightNative)
-	oracleLastUpdateStore.Delete(orchestratorAddress.Bytes())
+// removeOrchestratorLastUpdateHeightNative Removes the entry of orchestrator from the DB
+func (k Keeper) removeOrchestratorLastUpdateHeightNative(ctx sdk.Context, orchestratorAddress sdk.AccAddress) {
+	orchestratorLastUpdateStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOrchestratorLastUpdateHeightNative)
+	orchestratorLastUpdateStore.Delete(orchestratorAddress.Bytes())
 }
 
 //______________________________________________________________________________________________________________________
 
-// setOracleLastUpdateHeightCosmos Sets oracle last update height as the last block on which oracle sent a message on cosmos side
-func (k Keeper) setOracleLastUpdateHeightCosmos(ctx sdk.Context, orchestratorAddress sdk.AccAddress, cosmosBlockHeight int64) {
-	oracleLastUpdateStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOracleLastUpdateHeightCosmos)
-	oracleLastUpdateStore.Set(orchestratorAddress.Bytes(), cosmosTypes.Int64Bytes(cosmosBlockHeight))
+// setOrchestratorLastUpdateHeightCosmos Sets orchestrator last update height as the last block on which orchestrator sent a message on cosmos side
+func (k Keeper) setOrchestratorLastUpdateHeightCosmos(ctx sdk.Context, orchestratorAddress sdk.AccAddress, cosmosBlockHeight int64) {
+	orchestratorLastUpdateStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOrchestratorLastUpdateHeightCosmos)
+	orchestratorLastUpdateStore.Set(orchestratorAddress.Bytes(), cosmosTypes.Int64Bytes(cosmosBlockHeight))
 }
 
-// getOracleLastUpdateHeightCosmos Gets the last update height of oracle on cosmos side
-func (k Keeper) getOracleLastUpdateHeightCosmos(ctx sdk.Context, orchestratorAddress sdk.AccAddress) int64 {
-	oracleLastUpdateStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOracleLastUpdateHeightCosmos)
-	return cosmosTypes.Int64FromBytes(oracleLastUpdateStore.Get(orchestratorAddress.Bytes()))
+// getOrchestratorLastUpdateHeightCosmos Gets the last update height of orchestrator on cosmos side
+func (k Keeper) getOrchestratorLastUpdateHeightCosmos(ctx sdk.Context, orchestratorAddress sdk.AccAddress) int64 {
+	orchestratorLastUpdateStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOrchestratorLastUpdateHeightCosmos)
+	return cosmosTypes.Int64FromBytes(orchestratorLastUpdateStore.Get(orchestratorAddress.Bytes()))
 }
 
-// removeOracleLastUpdateHeightCosmos Removes the entry of oracle from the DB
-func (k Keeper) removeOracleLastUpdateHeightCosmos(ctx sdk.Context, orchestratorAddress sdk.AccAddress) {
-	oracleLastUpdateStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOracleLastUpdateHeightCosmos)
-	oracleLastUpdateStore.Delete(orchestratorAddress.Bytes())
+// removeOrchestratorLastUpdateHeightCosmos Removes the entry of orchestrator from the DB
+func (k Keeper) removeOrchestratorLastUpdateHeightCosmos(ctx sdk.Context, orchestratorAddress sdk.AccAddress) {
+	orchestratorLastUpdateStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyOrchestratorLastUpdateHeightCosmos)
+	orchestratorLastUpdateStore.Delete(orchestratorAddress.Bytes())
 }

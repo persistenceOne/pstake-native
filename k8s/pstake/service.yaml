@@ -15,8 +15,8 @@ spec:
     protocol: TCP
     targetPort: 26657
   - name: http
-    port: 8080
+    port: 8081
     protocol: TCP
-    targetPort: 8080
+    targetPort: 8081
   selector:
     app.kubernetes.io/type: pstake-validator
