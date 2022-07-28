@@ -83,3 +83,13 @@ MintDenom: 			 %s
 	)
 	return b.String()
 }
+
+func NewCosmosIBCParams(ibcConnection, channel, port, baseDenom, mintDenom string) CosmosIBCParams {
+	return CosmosIBCParams{
+		IBCConnection:        ibcConnection,
+		TokenTransferChannel: channel,
+		TokenTransferPort:    port,
+		BaseDenom:            baseDenom,
+		MintDenom:            mintDenom,
+	}
+}

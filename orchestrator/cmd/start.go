@@ -35,12 +35,12 @@ func StartCommand() *cobra.Command {
 
 			cosmosChain, err := InitCosmosChain(homepath, orcConfig.CosmosConfig)
 			if err != nil {
-				panic(any(err))
+				panic(err)
 			}
 
 			nativeChain, err := InitNativeChain(homepath, orcConfig.NativeConfig)
 			if err != nil {
-				panic(any(err))
+				panic(err)
 			}
 
 			cosmosEncodingConfig := cosmosChain.MakeEncodingConfig()

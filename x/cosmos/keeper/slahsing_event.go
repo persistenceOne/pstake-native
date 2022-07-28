@@ -92,7 +92,7 @@ func (k Keeper) ProcessAllSlashingEvents(ctx sdk.Context) {
 		if se.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !se.AddedToCValue {
 			valAddress, err := cosmosTypes.ValAddressFromBech32(se.SlashingDetails.ValidatorAddress, cosmosTypes.Bech32PrefixValAddr)
 			if err != nil {
-				panic(any(err))
+				panic(err)
 			}
 
 			// get current delegation of validator

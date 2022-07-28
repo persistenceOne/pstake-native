@@ -105,7 +105,7 @@ func GetSDKPivKeyAndAddress(seed string) (sdkcryptotypes.PrivKey, sdkTypes.AccAd
 	address, err := sdkTypes.AccAddressFromHex(pubkey.Address().String())
 	stdlog.Println(address.String())
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 	return privKey, address
 }
@@ -127,7 +127,7 @@ func GetPivKeyAddress(prefix string, cointype uint32, mnemonic string) (sdkcrypt
 	//addrString, err := sdkTypes.Bech32ifyAddressBytes(prefix, privKey.PubKey().Address())
 	addrString, err := Bech32ifyAddressBytes(prefix, sdkTypes.AccAddress(privKey.PubKey().Address()))
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 	return privKey, addrString
 
@@ -165,7 +165,7 @@ func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Con
 
 	err = outgoingTx.UnpackInterfaces(nativeProtoCodec)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	txBuilder := authTx.WrapTx(&outgoingTx)
@@ -187,7 +187,7 @@ func GetSignBytesForCosmos(seed string, chain *CosmosChain, clientCtx client.Con
 	}
 
 	if !privkey.PubKey().VerifySignature(SignBytes, signature) {
-		panic(any(fmt.Sprintf("signature verification failed err: %v", err)))
+		panic(fmt.Sprintf("signature verification failed err: %v", err))
 	}
 
 	return signature, nil

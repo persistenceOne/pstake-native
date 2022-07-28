@@ -162,7 +162,7 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 
 				err := native.OutgoingTxHandler(txId, valAddr, orcSeeds, nativeCliCtx, clientCtx, native, chain, cHeight)
 				if err != nil {
-					panic(any(err))
+					panic(err)
 
 				}
 			}
@@ -175,7 +175,9 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 				err := native.SignedOutgoingTxHandler(txID, valAddr, orcSeeds, nativeCliCtx, clientCtx, native, chain)
 				if err != nil {
 					stdlog.Println("signed outgoing tx handling error")
-					panic(any(err))
+					panic(err)
+					return
+
 				}
 			}
 		}

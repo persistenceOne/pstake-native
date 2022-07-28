@@ -19,7 +19,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		// and claims the returned capability
 		err := k.BindPort(ctx, genState.PortId)
 		if err != nil {
-			panic(any("could not claim port capability: " + err.Error()))
+			panic("could not claim port capability: " + err.Error())
 		}
 	}
 	k.SetParams(ctx, genState.Params)

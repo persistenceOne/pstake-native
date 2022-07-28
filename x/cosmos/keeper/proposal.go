@@ -87,13 +87,13 @@ func (k Keeper) generateOutgoingWeightedVoteTx(ctx sdk.Context, result map[cosmo
 	}
 	msgAny, err := codecTypes.NewAnyWithValue(&msg)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	voteMsgAny = append(voteMsgAny, msgAny)
 	cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 	execMsg := authz.MsgExec{
 		Grantee: cosmosAddrr,
@@ -102,7 +102,7 @@ func (k Keeper) generateOutgoingWeightedVoteTx(ctx sdk.Context, result map[cosmo
 
 	execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	tx := cosmosTypes.CosmosTx{
@@ -165,7 +165,7 @@ func (k Keeper) SetProposal(ctx sdk.Context, proposal cosmosTypes.Proposal) {
 
 	bz, err := k.cdc.Marshal(&proposal)
 	if err != nil {
-		panic(any("error in marshaling proposal" + err.Error()))
+		panic("error in marshaling proposal" + err.Error())
 	}
 
 	store.Set(cosmosTypes.ProposalKey1(proposal.ProposalId), bz)
@@ -220,7 +220,7 @@ func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal cosmosTypes.P
 		var proposal cosmosTypes.Proposal
 		err := k.cdc.Unmarshal(iterator.Value(), &proposal)
 		if err != nil {
-			panic(any(err))
+			panic(err)
 		}
 
 		if cb(proposal) {
@@ -314,18 +314,18 @@ func (k Keeper) setProposalPosted(ctx sdk.Context, proposal KeyAndValueForPropos
 	proposalKey := cosmosTypes.NewProposalKey(proposal.Key.ChainID, proposal.Key.BlockHeight, proposal.Key.ProposalID)
 	key, err := k.cdc.Marshal(&proposalKey)
 	if err != nil {
-		panic(any("error in marshaling proposalKey"))
+		panic("error in marshaling proposalKey")
 	}
 	if proposalStore.Has(key) {
 		var proposalValue cosmosTypes.ProposalValue
 		err := k.cdc.Unmarshal(proposalStore.Get(key), &proposalValue)
 		if err != nil {
-			panic(any("error in unmarshalling proposalValue"))
+			panic("error in unmarshalling proposalValue")
 		}
 		proposalValue.ProposalPosted = true
 		bz, err := k.cdc.Marshal(&proposalValue)
 		if err != nil {
-			panic(any("error in marshaling proposalValue"))
+			panic("error in marshaling proposalValue")
 		}
 		proposalStore.Set(key, bz)
 	}
@@ -342,12 +342,12 @@ func (k Keeper) getAllKeyAndValueForProposal(ctx sdk.Context) []KeyAndValueForPr
 		var key cosmosTypes.ProposalKey
 		err := k.cdc.Unmarshal(iterator.Key(), &key)
 		if err != nil {
-			panic(any("error in unmarshalling proposal key"))
+			panic("error in unmarshalling proposal key")
 		}
 		var value cosmosTypes.ProposalValue
 		err = k.cdc.Unmarshal(iterator.Value(), &value)
 		if err != nil {
-			panic(any("error in unmarshalling proposal value"))
+			panic("error in unmarshalling proposal value")
 		}
 		list = append(list, KeyAndValueForProposal{
 			Key:   key,
@@ -392,7 +392,7 @@ func (k Keeper) ProcessProposals(ctx sdk.Context) {
 		if element.Value.Ratio.GT(cosmosTypes.MinimumRatioForMajority) && !element.Value.ProposalPosted {
 			err := k.createProposal(ctx, element)
 			if err != nil {
-				panic(any(err))
+				panic(err)
 			}
 		}
 		if element.Value.ActiveBlockHeight < ctx.BlockHeight() && element.Value.ProposalPosted {

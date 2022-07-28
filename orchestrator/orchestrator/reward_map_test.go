@@ -36,7 +36,7 @@ func TestLogicForRewardMap(t *testing.T) {
 
 					amountCoin, err = sdkTypes.ParseCoinNormalized(string(currEvent.Attributes[2].Value))
 					if err != nil {
-						panic(any(err))
+						panic(err)
 					}
 
 				}
@@ -87,13 +87,13 @@ func TestLogicForRewardMap(t *testing.T) {
 
 	vaDetails, err := PopulateRewards(chainC, valDetails, blockRes)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	fmt.Println(vaDetails)
 
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 }

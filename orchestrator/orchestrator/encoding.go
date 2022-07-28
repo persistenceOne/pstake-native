@@ -84,7 +84,7 @@ func (pc *ProtoCodec) Marshal(o codec.ProtoMarshaler) ([]byte, error) {
 func (pc *ProtoCodec) MustMarshal(o codec.ProtoMarshaler) []byte {
 	bz, err := pc.Marshal(o)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	return bz
@@ -105,7 +105,7 @@ func (pc *ProtoCodec) MarshalLengthPrefixed(o codec.ProtoMarshaler) ([]byte, err
 func (pc *ProtoCodec) MustMarshalLengthPrefixed(o codec.ProtoMarshaler) []byte {
 	bz, err := pc.MarshalLengthPrefixed(o)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	return bz
@@ -126,7 +126,7 @@ func (pc *ProtoCodec) Unmarshal(bz []byte, ptr codec.ProtoMarshaler) error {
 
 func (pc *ProtoCodec) MustUnmarshal(bz []byte, ptr codec.ProtoMarshaler) {
 	if err := pc.Unmarshal(bz, ptr); err != nil {
-		panic(any(err))
+		panic(err)
 	}
 }
 
@@ -149,7 +149,7 @@ func (pc *ProtoCodec) UnmarshalLengthPrefixed(bz []byte, ptr codec.ProtoMarshale
 
 func (pc *ProtoCodec) MustUnmarshalLengthPrefixed(bz []byte, ptr codec.ProtoMarshaler) {
 	if err := pc.UnmarshalLengthPrefixed(bz, ptr); err != nil {
-		panic(any(err))
+		panic(err)
 	}
 }
 
@@ -170,7 +170,7 @@ func (pc *ProtoCodec) MarshalJSON(o proto.Message) ([]byte, error) {
 func (pc *ProtoCodec) MustMarshalJSON(o proto.Message) []byte {
 	bz, err := pc.MarshalJSON(o)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	return bz
@@ -193,7 +193,7 @@ func (pc *ProtoCodec) UnmarshalJSON(bz []byte, ptr proto.Message) error {
 
 func (pc *ProtoCodec) MustUnmarshalJSON(bz []byte, ptr proto.Message) {
 	if err := pc.UnmarshalJSON(bz, ptr); err != nil {
-		panic(any(err))
+		panic(err)
 	}
 }
 

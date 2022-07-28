@@ -14,7 +14,7 @@ func (k Keeper) SetAccountState(ctx sdk.Context, acc authTypes.AccountI) {
 
 	bz, err := k.authKeeper.MarshalAccount(acc)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	store.Set(cosmosTypes.MultisigAccountStoreKey(addr), bz)
@@ -30,7 +30,7 @@ func (k Keeper) GetAccountState(ctx sdk.Context, accAddress sdk.AccAddress) auth
 
 	acc, err := k.authKeeper.UnmarshalAccount(bz)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	return acc
@@ -53,7 +53,7 @@ func (k Keeper) checkOrchestratorAddressPresentInMultisig(ctx sdk.Context, orch 
 	// fetch orch address pub key on chain
 	orchPubKey := k.authKeeper.GetAccount(ctx, orch).GetPubKey()
 	if orchPubKey == nil {
-		panic(any("pub key for orch address not found"))
+		panic("pub key for orch address not found")
 	}
 
 	// fetch multisig pub key
