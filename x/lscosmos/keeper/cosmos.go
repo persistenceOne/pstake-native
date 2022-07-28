@@ -6,14 +6,6 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-type CosmosIBCParams struct {
-	IBCConnection        string
-	TokenTransferChannel string
-	TokenTransferPort    string
-	BaseDenom            string
-	MintDenom            string
-}
-
 // SetCosmosIBCParams sets the cosmos IBC params in store
 func (k Keeper) SetCosmosIBCParams(ctx sdk.Context, proposal types.RegisterCosmosChainProposal) {
 	ibcParams := types.NewCosmosIBCParams(
