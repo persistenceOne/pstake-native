@@ -176,8 +176,6 @@ func StartListeningNativeSideActions(valAddr string, orcSeeds []string, nativeCl
 				if err != nil {
 					stdlog.Println("signed outgoing tx handling error")
 					panic(any(err))
-					return
-
 				}
 			}
 		}
