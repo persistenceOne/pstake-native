@@ -176,34 +176,34 @@ func StartListeningCosmosEvent(valAddr string, orcSeeds []string, nativeCliCtx c
 	if err != nil {
 		stdlog.Println("error subscribing, to the Event", err)
 	}
-	stdlog.Println("listening to events on Cosmos side")
+
 	for e := range EventListForBlock {
 		stdlog.Println("listening to events on Cosmos side")
-
 		slashSlice := e.Events["slash.address"]
 
-		if slashSlice == nil {
-			continue
+		if slashSlice != nil {
+			for _, slashAddr := range slashSlice {
+				err := chain.SlashingHandler(slashAddr, orcSeeds, valAddr, nativeCliCtx, native, chain, int64(cHeight))
+				if err != nil {
+					stdlog.Println("proposal handling error")
+					panic(err)
+				}
+			}
 		}
 
-		for _, slashAddr := range slashSlice {
-			err := chain.SlashingHandler(slashAddr, orcSeeds, valAddr, nativeCliCtx, native, chain, int64(cHeight))
-			if err != nil {
-				stdlog.Println("proposal handling error")
-				return
-			}
-		}
 		propIDSlice := e.Events["active_proposal.proposal_id"]
-		if propIDSlice == nil {
-			continue
-		}
-		for _, propId := range propIDSlice {
-			err := chain.ProposalHandler(propId, orcSeeds, nativeCliCtx, native, chain, int64(cHeight))
-			if err != nil {
-				stdlog.Println("proposal handling error")
-				return
+		if propIDSlice != nil {
+			for _, propId := range propIDSlice {
+				err := chain.ProposalHandler(propId, orcSeeds, nativeCliCtx, native, chain, int64(cHeight))
+				if err != nil {
+					stdlog.Println("proposal handling error")
+					panic(err)
+				}
 			}
 		}
+
+		//TODO : Add undelegate success handler
+
 	}
 }
 func StartListeningCosmosDeposit(valAddr string, orcSeeds []string, nativeCliCtx client.Context, clientCtx client.Context, chain *CosmosChain, native *NativeChain, codec *codec.ProtoCodec) {
