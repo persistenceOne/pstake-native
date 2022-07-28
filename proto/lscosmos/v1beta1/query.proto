@@ -36,5 +36,5 @@ message QueryCosmosIBCParamsRequest {}
 
 // QueryCosmosIBCParamsResponse is response for the Ouery/CosmosIBCParams methods.
 message QueryCosmosIBCParamsResponse {
-  RegisterCosmosChainProposal cosmos_i_b_c_params = 1 [(gogoproto.nullable) = false];
+  CosmosIBCParams cosmos_i_b_c_params = 1 [(gogoproto.nullable) = false];
 }

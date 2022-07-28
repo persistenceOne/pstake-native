@@ -6,7 +6,6 @@ import "gogoproto/gogo.proto";
 option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
 
 option (gogoproto.equal_all) = true;
-option (gogoproto.goproto_stringer_all) = false;
 option (gogoproto.stringer_all) = false;
 option (gogoproto.goproto_getters_all) = false;
 
@@ -14,6 +13,7 @@ option (gogoproto.goproto_getters_all) = false;
 // liquid staking transactions through lscosmos module
 message RegisterCosmosChainProposal {
   option (gogoproto.equal) = false;
+  option (gogoproto.goproto_stringer) = false;
 
   string title = 1;
   string description = 2;
@@ -22,4 +22,14 @@ message RegisterCosmosChainProposal {
   string token_transfer_port = 5;
   string base_denom = 6;
   string mint_denom = 7;
+}
+
+message CosmosIBCParams {
+  option (gogoproto.goproto_stringer) = true;
+
+  string i_b_c_connection = 1;
+  string token_transfer_channel = 2;
+  string token_transfer_port = 3;
+  string base_denom = 4;
+  string mint_denom = 5;
 }

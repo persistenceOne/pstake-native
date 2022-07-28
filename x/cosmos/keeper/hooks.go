@@ -49,11 +49,11 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		if !amount.IsZero() {
 			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, amount)
 			if err != nil {
-				panic(any(err))
+				panic(err)
 			}
 			err = k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake)
 			if err != nil {
-				panic(any(err))
+				panic(err)
 			}
 		}
 		k.deleteFromStakingEpoch(ctx, epochNumber)
@@ -64,7 +64,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		if !rewardsToDelegate.IsZero() {
 			listOfValidatorsToStake, err := k.FetchValidatorsToDelegate(ctx, rewardsToDelegate)
 			if err != nil {
-				panic(any(err))
+				panic(err)
 			}
 
 			// if length of validators to delegate is 0 and amount already is non-zero
@@ -77,12 +77,12 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 			if len(listOfValidatorsToStake) != 0 {
 				err = k.generateDelegateOutgoingEvent(ctx, listOfValidatorsToStake)
 				if err != nil {
-					panic(any(err))
+					panic(err)
 				}
 
 				err = k.MintRewardsClaimed(ctx, rewardsToDelegate)
 				if err != nil {
-					panic(any(err))
+					panic(err)
 				}
 			}
 
@@ -96,7 +96,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		withdrawTxns := k.fetchWithdrawTxnsWithCurrentEpochInfo(ctx, epochNumber)
 		unbondDenom, err := params.GetBondDenomOf(cosmosTypes.DefaultStakingDenom)
 		if err != nil {
-			panic(any(err))
+			panic(err)
 		}
 		totalWithdrawal := k.totalAmountToBeUnbonded(withdrawTxns, unbondDenom)
 
@@ -107,7 +107,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		if !toBeUnbondedAmount.IsZero() {
 			listOfValidatorsAndUnbondingAmount, err := k.FetchValidatorsToUndelegate(ctx, toBeUnbondedAmount)
 			if err != nil {
-				panic(any(err))
+				panic(err)
 			}
 			k.generateUnbondingOutgoingTxn(ctx, listOfValidatorsAndUnbondingAmount, epochNumber, cValue)
 
@@ -117,7 +117,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 			// burn coins
 			err = k.bankKeeper.BurnCoins(ctx, cosmosTypes.ModuleName, sdk.NewCoins(burnCoin))
 			if err != nil {
-				panic(any(err))
+				panic(err)
 			}
 
 			// subtract from minted amount as the tokens have been burnt from module

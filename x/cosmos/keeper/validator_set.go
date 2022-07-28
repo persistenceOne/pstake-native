@@ -17,7 +17,7 @@ func (k Keeper) SetCosmosValidatorSet(ctx sdk.Context, cosmosValSetWeights []cos
 	for i := range newSortedCosmosValSetWeights {
 		valAddress, err := cosmosTypes.ValAddressFromBech32(newSortedCosmosValSetWeights[i].Address, cosmosTypes.Bech32PrefixValAddr)
 		if err != nil {
-			panic(any(err))
+			panic(err)
 		}
 		if cosmosValSetStore.Has(valAddress.Bytes()) {
 			var weightedAddress cosmosTypes.WeightedAddressAmount
@@ -27,7 +27,7 @@ func (k Keeper) SetCosmosValidatorSet(ctx sdk.Context, cosmosValSetWeights []cos
 		} else {
 			bondDenom, err := k.GetParams(ctx).GetBondDenomOf(cosmosTypes.DefaultStakingDenom)
 			if err != nil {
-				panic(any(err))
+				panic(err)
 			}
 			newSortedCosmosValSetWeights[i].Amount = sdk.ZeroInt()
 			newSortedCosmosValSetWeights[i].Denom = bondDenom
@@ -41,7 +41,7 @@ func (k Keeper) SetCosmosValidatorSet(ctx sdk.Context, cosmosValSetWeights []cos
 func (k Keeper) SetCosmosValidatorWeight(ctx sdk.Context, valAddress sdk.ValAddress, weight sdk.Dec) {
 	cosmosValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCosmosValidatorWeights)
 	if !cosmosValSetStore.Has(valAddress.Bytes()) {
-		panic(any(fmt.Errorf("valAddress not present in kv store")))
+		panic(fmt.Errorf("valAddress not present in kv store"))
 	}
 	var weightedAddress cosmosTypes.WeightedAddressAmount
 	k.cdc.MustUnmarshal(cosmosValSetStore.Get(valAddress.Bytes()), &weightedAddress)
@@ -66,7 +66,7 @@ func (k Keeper) GetAllCosmosValidatorSet(ctx sdk.Context) (weightedAddresses cos
 func (k Keeper) UpdateDelegationCosmosValidator(ctx sdk.Context, valAddress sdk.ValAddress, amount sdk.Coin, unbondingAmount sdk.Coin) {
 	cosmosValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCosmosValidatorWeights)
 	if !cosmosValSetStore.Has(valAddress.Bytes()) {
-		panic(any(fmt.Errorf("valAddress not present in kv store")))
+		panic(fmt.Errorf("valAddress not present in kv store"))
 	}
 	var weightedAddress cosmosTypes.WeightedAddressAmount
 	k.cdc.MustUnmarshal(cosmosValSetStore.Get(valAddress.Bytes()), &weightedAddress)
@@ -82,7 +82,7 @@ func (k Keeper) UpdateDelegationCosmosValidator(ctx sdk.Context, valAddress sdk.
 func (k Keeper) getDelegationCosmosValidator(ctx sdk.Context, valAddress sdk.ValAddress) sdk.Coin {
 	cosmosValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyCosmosValidatorWeights)
 	if !cosmosValSetStore.Has(valAddress.Bytes()) {
-		panic(any(fmt.Errorf("valAddress not present in kv store")))
+		panic(fmt.Errorf("valAddress not present in kv store"))
 	}
 	var weightedAddress cosmosTypes.WeightedAddressAmount
 	k.cdc.MustUnmarshal(cosmosValSetStore.Get(valAddress.Bytes()), &weightedAddress)
@@ -111,7 +111,7 @@ func (k Keeper) SetOrchestratorValidatorSet(ctx sdk.Context, valAddresses []sdk.
 func (k Keeper) setOrchestratorValidatorWeight(ctx sdk.Context, valAddress sdk.ValAddress, weight cosmosTypes.WeightedAddress) {
 	nativeValSetStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.KeyNativeValidatorWeights)
 	if !nativeValSetStore.Has(valAddress.Bytes()) {
-		panic(any(fmt.Errorf("valAddress not present in kv store")))
+		panic(fmt.Errorf("valAddress not present in kv store"))
 	}
 	nativeValSetStore.Set(valAddress.Bytes(), k.cdc.MustMarshal(&weight))
 }

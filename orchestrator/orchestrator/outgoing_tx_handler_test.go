@@ -110,7 +110,7 @@ func TestB(t *testing.T) {
 	txId, err := strconv.ParseUint("1", 10, 64)
 
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	grpcConn, err := grpc.Dial(grpcaddr, grpc.WithInsecure())
@@ -139,7 +139,7 @@ func TestB(t *testing.T) {
 	_, addr = GetPivKeyAddress("persistence", 118, seed)
 
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	grpcConnCos, _ := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
@@ -170,14 +170,14 @@ func TestB(t *testing.T) {
 		},
 	)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 	fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
 
 	//err = SendMsgAck(native, chain, orcSeeds, res.TxResponse.TxHash, valAddr, nativeCliCtx, clientCtx)
 
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 }

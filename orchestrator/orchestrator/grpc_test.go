@@ -73,14 +73,14 @@ func TestE2Egrpc(t *testing.T) {
 	//print(cfg)
 	txBytes, err := SignNativeTx(seed, chain, clientContextNative, msg)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	grpcConn, _ := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
 	defer func(grpcConn *grpc.ClientConn) {
 		err := grpcConn.Close()
 		if err != nil {
-			panic(any(err))
+			panic(err)
 		}
 	}(grpcConn)
 
@@ -94,7 +94,7 @@ func TestE2Egrpc(t *testing.T) {
 		})
 
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	fmt.Println(res.TxResponse.Code, res.TxResponse)

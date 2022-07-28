@@ -37,11 +37,11 @@ func init() {
 func RegisterDenoms() {
 	err := sdkTypes.RegisterDenom(HumanCoinUnit, sdkTypes.OneDec())
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 	err = sdkTypes.RegisterDenom(BaseCoinUnit, sdkTypes.NewDecWithPrec(1, XPRTExponent))
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 }
 

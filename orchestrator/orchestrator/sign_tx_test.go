@@ -113,7 +113,7 @@ func TestE2ESignedTx(t *testing.T) {
 	txId, err := strconv.ParseUint("2", 10, 64)
 
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	grpcConn, err := grpc.Dial(chain.GRPCAddr, grpc.WithInsecure())
@@ -138,17 +138,17 @@ func TestE2ESignedTx(t *testing.T) {
 
 	signedTxBytes, err := clientContextCosmos.TxConfig.TxEncoder()(sigTx1)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 	grpcConnCosmos, _ := grpc.Dial(chainC.GRPCAddr, grpc.WithInsecure())
 	defer func(grpcConnCosmos *grpc.ClientConn) {
 		err := grpcConnCosmos.Close()
 		if err != nil {
-			panic(any(err))
+			panic(err)
 		}
 	}(grpcConnCosmos)
 
@@ -162,7 +162,7 @@ func TestE2ESignedTx(t *testing.T) {
 		},
 	)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 	fmt.Println(res.TxResponse.Code, res.TxResponse.TxHash, res)
 	var status string
@@ -222,7 +222,7 @@ loop:
 
 	err = SendMsgAck(chain, chainC, []string{seed[2]}, cosmosTxHash, status, clientContextNative, clientContextCosmos, BlockResults.TxsResults)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 }
