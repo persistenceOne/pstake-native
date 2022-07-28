@@ -32,25 +32,6 @@ func TestHandlerTestSuite(t *testing.T) {
 	suite.Run(t, new(HandlerTestSuite))
 }
 
-func testProposal(
-	title,
-	description,
-	connection,
-	channel,
-	transfer,
-	uatom,
-	ustkatom string) *types.RegisterCosmosChainProposal {
-	return types.NewRegisterCosmosChainProposal(
-		title,
-		description,
-		connection,
-		channel,
-		transfer,
-		uatom,
-		ustkatom,
-	)
-}
-
 func (suite *HandlerTestSuite) TestProposalHandler() {
 	testCases := []struct {
 		name     string
@@ -59,7 +40,7 @@ func (suite *HandlerTestSuite) TestProposalHandler() {
 	}{
 		{
 			"all fields",
-			testProposal("title", "description", "connection", "channel-1", "transfer", "uatom", "ustkatom"),
+			types.NewRegisterCosmosChainProposal("title", "description", "connection", "channel-1", "transfer", "uatom", "ustkatom"),
 			false,
 		},
 	}
