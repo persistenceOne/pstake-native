@@ -3,7 +3,7 @@ package lscosmos.v1beta1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/persistenceOne/pstake-native/x/ls-cosmos/types";
+option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
 
 option (gogoproto.equal_all) = true;
 option (gogoproto.goproto_stringer_all) = false;
@@ -11,7 +11,7 @@ option (gogoproto.stringer_all) = false;
 option (gogoproto.goproto_getters_all) = false;
 
 // RegisterCosmosChainProposal defines the details needed to register cosmos chain for
-// liquid staking transactions through ls-cosmos module
+// liquid staking transactions through lscosmos module
 message RegisterCosmosChainProposal {
   option (gogoproto.equal) = false;
 

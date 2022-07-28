@@ -115,10 +115,10 @@ import (
 	epochs "github.com/persistenceOne/pstake-native/x/epochs"
 	epochskeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
 	epochstypes "github.com/persistenceOne/pstake-native/x/epochs/types"
-	lscosmos "github.com/persistenceOne/pstake-native/x/ls-cosmos"
-	lscosmosclient "github.com/persistenceOne/pstake-native/x/ls-cosmos/client"
-	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/ls-cosmos/keeper"
-	lscosmostypes "github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
+	lscosmos "github.com/persistenceOne/pstake-native/x/lscosmos"
+	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
+	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
+	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
 
 	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"

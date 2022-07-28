@@ -3,7 +3,7 @@ package lscosmos.v1beta1;
 
 // this line is used by starport scaffolding # proto/tx/import
 
-option go_package = "github.com/persistenceOne/pstake-native/x/ls-cosmos/types";
+option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
 
 // Msg defines the Msg service.
 service Msg {

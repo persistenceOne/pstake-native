@@ -21,11 +21,11 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 
-	"github.com/persistenceOne/pstake-native/x/ls-cosmos/keeper"
-	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
+	"github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
+	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-// ls-cosmosChannelKeeper is a stub of cosmosibckeeper.ChannelKeeper.
+// lscosmosChannelKeeper is a stub of cosmosibckeeper.ChannelKeeper.
 type lscosmosChannelKeeper struct{}
 
 func (lscosmosChannelKeeper) GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool) {
@@ -50,7 +50,7 @@ func (lscosmosPortKeeper) BindPort(ctx sdk.Context, portID string) *capabilityty
 
 // LscosmosKeeper
 // todo : either create test app or fix this (genesis test and msg server test depends on it)
-// Can totally get rid of this and create test suites for individual folder is ls-cosmos
+// Can totally get rid of this and create test suites for individual folder is lscosmos
 func LscosmosKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	logger := log.NewNopLogger()
 
