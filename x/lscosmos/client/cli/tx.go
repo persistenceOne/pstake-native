@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"strings"
 	"time"
 
@@ -38,6 +39,7 @@ func GetTxCmd() *cobra.Command {
 	// this line is used by starport scaffolding # 1
 	cmd.AddCommand(
 		NewRegisterCosmosChainCmd(),
+		NewLiquidStakeCmd(),
 	)
 
 	return cmd
@@ -109,4 +111,38 @@ $ %s tx gov submit-proposal register-cosmos-chain <path/to/proposal.json> --from
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
+}
+
+func NewLiquidStakeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "liquid-stake [amount(whitelisted-ibcDenom coin)] [mint-address] ",
+		Short: `Liquid Stake ibc/Atom to stkAtom`,
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			mintAddress, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgLiquidStake(amount, mintAddress)
+
+			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }

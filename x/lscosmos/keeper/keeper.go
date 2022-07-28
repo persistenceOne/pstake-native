@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,6 +10,7 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	ibcTransferKeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
@@ -19,12 +21,14 @@ import (
 
 type (
 	Keeper struct {
-		cdc          codec.BinaryCodec
-		storeKey     sdk.StoreKey
-		memKey       sdk.StoreKey
-		paramstore   paramtypes.Subspace
-		ibcKeeepr    ibckeeper.Keeper
-		scopedKeeper capabilitykeeper.ScopedKeeper
+		cdc            codec.BinaryCodec
+		storeKey       sdk.StoreKey
+		memKey         sdk.StoreKey
+		paramstore     paramtypes.Subspace
+		bankKeeper     bankKeeper.BaseKeeper
+		ibcTransKeeper ibcTransferKeeper.Keeper
+		ibcKeeepr      ibckeeper.Keeper
+		scopedKeeper   capabilitykeeper.ScopedKeeper
 	}
 )
 
@@ -33,7 +37,9 @@ func NewKeeper(
 	storeKey,
 	memKey sdk.StoreKey,
 	ps paramtypes.Subspace,
+	bankKeeper bankKeeper.BaseKeeper,
 	ibckeeper ibckeeper.Keeper,
+	ibcTransferKeeper ibcTransferKeeper.Keeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	// set KeyTable if it has not already been set
@@ -42,14 +48,20 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		ibcKeeepr:    ibckeeper,
-		scopedKeeper: scopedKeeper,
-		cdc:          cdc,
-		storeKey:     storeKey,
-		memKey:       memKey,
-		paramstore:   ps,
+		bankKeeper:     bankKeeper,
+		ibcKeeepr:      ibckeeper,
+		ibcTransKeeper: ibcTransferKeeper,
+		scopedKeeper:   scopedKeeper,
+		cdc:            cdc,
+		storeKey:       storeKey,
+		memKey:         memKey,
+		paramstore:     ps,
 	}
 }
+
+func (k Keeper) IbcTransferKeeper() ibcTransferKeeper.Keeper { return k.ibcTransKeeper }
+
+func (k Keeper) BankKeeper() bankKeeper.BaseKeeper { return k.bankKeeper }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
@@ -98,4 +110,20 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 // ClaimCapability allows the module that can claim a capability that IBC module passes to it
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+//mintTokens in the given account
+func (k Keeper) mintTokens(ctx sdk.Context, mintCoin sdk.Coin, mintAddress sdk.AccAddress) error {
+	if mintCoin.Amount.GT(sdk.NewInt(5)) {
+		err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(mintCoin))
+		if err != nil {
+			return err
+		}
+
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, mintAddress, sdk.NewCoins(mintCoin))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

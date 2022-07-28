@@ -149,7 +149,6 @@ var (
 			cosmosclient.EnableModuleProposalHandler,
 			cosmosclient.ChangeMultisigProposalHandler,
 			cosmosclient.ChangeCosmosValidatorWeightsProposalHandler,
-			cosmosclient.ChangeOrchestratorValidatorWeightsProposalHandler,
 			lscosmosclient.RegisterCosmosChainProposalHandler,
 		),
 		params.AppModuleBasic{},
@@ -427,15 +426,6 @@ func NewpStakeApp(
 		scopedIBCKeeper,
 	)
 
-	app.LSCosmosKeeper = lscosmoskeeper.NewKeeper(
-		appCodec,
-		keys[lscosmostypes.StoreKey],
-		memKeys[lscosmostypes.MemStoreKey],
-		app.GetSubspace(lscosmostypes.ModuleName),
-		*app.IBCKeeper,
-		scopedLSCosmosKeeper,
-	)
-
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
 	govRouter.
@@ -470,6 +460,17 @@ func NewpStakeApp(
 	)
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
 	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
+
+	app.LSCosmosKeeper = lscosmoskeeper.NewKeeper(
+		appCodec,
+		keys[lscosmostypes.StoreKey],
+		memKeys[lscosmostypes.MemStoreKey],
+		app.GetSubspace(lscosmostypes.ModuleName),
+		app.BankKeeper,
+		*app.IBCKeeper,
+		app.TransferKeeper,
+		scopedLSCosmosKeeper,
+	)
 
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec, keys[icahosttypes.StoreKey],
