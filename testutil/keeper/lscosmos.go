@@ -3,9 +3,6 @@ package keeper
 import (
 	"testing"
 
-	"github.com/persistenceOne/pstake-native/x/ls-cosmos/keeper"
-	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -14,12 +11,18 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
+
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos/keeper"
+	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 )
 
 // ls-cosmosChannelKeeper is a stub of cosmosibckeeper.ChannelKeeper.
@@ -38,13 +41,16 @@ func (lscosmosChannelKeeper) ChanCloseInit(ctx sdk.Context, portID, channelID st
 	return nil
 }
 
-// lscosmosportKeeper is a stub of cosmosibckeeper.PortKeeper
+// lscosmosPortKeeper is a stub of cosmosibckeeper.PortKeeper
 type lscosmosPortKeeper struct{}
 
 func (lscosmosPortKeeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
 	return &capabilitytypes.Capability{}
 }
 
+// LscosmosKeeper
+// todo : either create test app or fix this (genesis test and msg server test depends on it)
+// Can totally get rid of this and create test suites for individual folder is ls-cosmos
 func LscosmosKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	logger := log.NewNopLogger()
 
@@ -67,14 +73,21 @@ func LscosmosKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		memStoreKey,
 		"LscosmosParams",
 	)
+
+	ibcKeeper := ibckeeper.NewKeeper(appCodec,
+		storeKey,
+		paramsSubspace,
+		stakingkeeper.Keeper{},
+		upgradekeeper.Keeper{},
+		capabilityKeeper.ScopeToModule(types.ModuleName))
+
 	k := keeper.NewKeeper(
 		appCodec,
 		storeKey,
 		memStoreKey,
 		paramsSubspace,
-		lscosmosChannelKeeper{},
-		lscosmosPortKeeper{},
-		capabilityKeeper.ScopeToModule("LscosmosScopedKeeper"),
+		*ibcKeeper,
+		capabilityKeeper.ScopeToModule(types.ModuleName),
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, logger)
@@ -82,5 +95,5 @@ func LscosmosKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	// Initialize params
 	k.SetParams(ctx, types.DefaultParams())
 
-	return k, ctx
+	return &k, ctx
 }

@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "lscosmos/v1beta1/params.proto";
+import "lscosmos/v1beta1/governance_proposal.proto";
 // this line is used by starport scaffolding # 1
 
 option go_package = "github.com/persistenceOne/pstake-native/x/ls-cosmos/types";
@@ -15,7 +16,10 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/persistenceOne/pstake-native/ls-cosmos/params";
   }
-  // this line is used by starport scaffolding # 2
+
+  rpc CosmosIBCParams(QueryCosmosIBCParamsRequest) returns (QueryCosmosIBCParamsResponse) {
+    option (google.api.http).get = "/persistenceOne/pstake-native/ls-cosmos/cosmos_ibc_params";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -27,4 +31,10 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-// this line is used by starport scaffolding # 3
+// QueryCosmosIBCParamsRequest is request for the Ouery/CosmosIBCParams methods.
+message QueryCosmosIBCParamsRequest {}
+
+// QueryCosmosIBCParamsResponse is response for the Ouery/CosmosIBCParams methods.
+message QueryCosmosIBCParamsResponse {
+  RegisterCosmosChainProposal cosmos_i_b_c_params = 1 [(gogoproto.nullable) = false];
+}
