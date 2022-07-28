@@ -150,7 +150,7 @@ func NewSendNewProposalCmd() *cobra.Command {
 			}
 
 			votingStartTime := time.Now()
-			votingEndTime := votingStartTime.Add(time.Minute * 2)
+			votingEndTime := votingStartTime.Add(time.Minute * 9)
 
 			msg := cosmosTypes.NewMsgMakeProposal(title, description, orchAddress, chainID, blockHeight, proposalID, votingStartTime, votingEndTime)
 
@@ -480,13 +480,13 @@ func NewChangeCosmosValidatorWeightsCmd() *cobra.Command {
 	}
 }
 
-func NewChangeOracleValidatorWeightsCmd() *cobra.Command {
+func NewChangeOrchestratorValidatorWeightsCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "change-oracle-validator-weights [proposal-file] ",
+		Use:   "change-orchestrator-validator-weights [proposal-file] ",
 		Args:  cobra.ExactArgs(1),
-		Short: "Submit a oracle validator weights change proposal",
+		Short: "Submit a orchestrator validator weights change proposal",
 		Long: strings.TrimSpace(
-			`Submit a oracle validator weights proposal along with an initial deposit.`,
+			`Submit a orchestrator validator weights proposal along with an initial deposit.`,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -494,7 +494,7 @@ func NewChangeOracleValidatorWeightsCmd() *cobra.Command {
 				return err
 			}
 
-			proposal, err := utils.ParseChangeOracleValidatorWeightsProposalJSON(clientCtx.LegacyAmino, args[0])
+			proposal, err := utils.ParseChangeOrchestratorValidatorWeightsProposalJSON(clientCtx.LegacyAmino, args[0])
 			if err != nil {
 				return err
 			}
@@ -515,7 +515,7 @@ func NewChangeOracleValidatorWeightsCmd() *cobra.Command {
 			}
 
 			from := clientCtx.GetFromAddress()
-			content := cosmosTypes.NewChangeOracleValidatorWeightsProposal(proposal.Title, proposal.Description, weightedAddresses)
+			content := cosmosTypes.NewChangeOrchestratorValidatorWeightsProposal(proposal.Title, proposal.Description, weightedAddresses)
 
 			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
 			if err != nil {
@@ -538,7 +538,7 @@ func NewSlashinEventCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(6),
 		Short: "Submit a slashing event captured on cosmos side",
 		Long: strings.TrimSpace(
-			`Oracles submits a slashing event captured on cosmos chain`,
+			`Orchestrators submits a slashing event captured on cosmos chain`,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

@@ -82,7 +82,7 @@ func (k Keeper) deleteSlashingEventDetails(ctx sdk.Context, value cosmosTypes.Sl
 ProcessAllSlashingEvents processes all the slashing requests
 This function is called every EndBlocker to perform the defined set of actions as mentioned below :
    1. Get the list of all slashing requests
-   2. Checks if the majority of the validator oracle have sent the minting request. Also checks the addedToCValue flag.
+   2. Checks if the majority of the validator orchestrator have sent the minting request. Also checks the addedToCValue flag.
    3. If majority is reached and other conditions match then slashing event is accepted and C value is updated
    4. Another condition of ActiveBlockHeight is also checked whether to delete the entry or not.
 */

@@ -34,10 +34,11 @@ func GetIdealCurrentDelegations(validatorState types.WeightedAddressAmounts, amt
 			diffAmt = curTokens.Sub(idealTokens)
 		}
 		curDiffDistribution = append(curDiffDistribution, types.WeightedAddressAmount{
-			Address: valState.Address,
-			Weight:  valState.Weight,
-			Denom:   valState.Denom,
-			Amount:  diffAmt,
+			Address:         valState.Address,
+			Weight:          valState.Weight,
+			Denom:           valState.Denom,
+			Amount:          diffAmt,
+			UnbondingTokens: valState.UnbondingTokens,
 		})
 	}
 	return curDiffDistribution
@@ -142,7 +143,6 @@ func (k Keeper) FetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) ([]V
 	}
 
 	valWeightedAmt := k.GetAllCosmosValidatorSet(ctx)
-	fmt.Println("amount: ", valWeightedAmt[0].Amount)
 
 	curDiffDistribution := GetIdealCurrentDelegations(valWeightedAmt, amount, false)
 

@@ -89,7 +89,7 @@ var (
 
 	KeyUndelegateSuccessStore = []byte{0xD}
 
-	KeyWithdrawStore = []byte{0xE}
+	KeyWithdrawStore = []byte{0x2F}
 
 	KeyOutgoingSignaturePoolKey = []byte{0xF}
 
@@ -107,9 +107,9 @@ var (
 
 	KeyMintTokenStore = []byte{0x17}
 
-	KeyOracleLastUpdateHeightNative = []byte{0x18}
+	KeyOrchestratorLastUpdateHeightNative = []byte{0x18}
 
-	KeyOracleLastUpdateHeightCosmos = []byte{0x19}
+	KeyOrchestratorLastUpdateHeightCosmos = []byte{0x19}
 
 	KeyMintedAmount = []byte{0x1A}
 

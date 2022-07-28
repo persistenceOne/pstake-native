@@ -159,14 +159,14 @@ func (k Keeper) CosmosValidatorSet(c context.Context, _ *cosmosTypes.QueryCosmos
 	return &cosmosTypes.QueryCosmosValidatorSetResponse{WeightedAddresses: weihtedAddresses}, nil
 }
 
-// OracleValidatorSet returns the oracle validator set and their respective weights
-func (k Keeper) OracleValidatorSet(c context.Context, _ *cosmosTypes.QueryOracleValidatorSetRequest) (*cosmosTypes.QueryOracleValidatorSetResponse, error) {
+// OrchestratorValidatorSet returns the orchestrator validator set and their respective weights
+func (k Keeper) OrchestratorValidatorSet(c context.Context, _ *cosmosTypes.QueryOrchestratorValidatorSetRequest) (*cosmosTypes.QueryOrchestratorValidatorSetResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
-	weightedAddresses := k.getAllOracleValidatorSet(ctx)
-	return &cosmosTypes.QueryOracleValidatorSetResponse{WeightedAddresses: weightedAddresses}, nil
+	weightedAddresses := k.getAllOrchestratorValidatorSet(ctx)
+	return &cosmosTypes.QueryOrchestratorValidatorSetResponse{WeightedAddresses: weightedAddresses}, nil
 }
 
-// ValidatorMapping returns the oracle address mapped to the given validator address
+// ValidatorMapping returns the orchestrator address mapped to the given validator address
 func (k Keeper) ValidatorMapping(c context.Context, query *cosmosTypes.QueryValidatorMappingRequest) (*cosmosTypes.QueryValidatorMappingResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
@@ -183,21 +183,21 @@ func (k Keeper) ValidatorMapping(c context.Context, query *cosmosTypes.QueryVali
 	}, nil
 }
 
-// OracleHeight returns the last updated height of given oracle
-func (k Keeper) OracleHeight(c context.Context, query *cosmosTypes.QueryOracleLastUpdateHeightRequest) (*cosmosTypes.QueryOracleLastUpdateHeightResponse, error) {
+// OrchestratorHeight returns the last updated height of given orchestrator
+func (k Keeper) OrchestratorHeight(c context.Context, query *cosmosTypes.QueryOrchestratorLastUpdateHeightRequest) (*cosmosTypes.QueryOrchestratorLastUpdateHeightResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
-	oracleAddress, err := sdkTypes.AccAddressFromBech32(query.OracleAddress)
+	orchestratorAddress, err := sdkTypes.AccAddressFromBech32(query.OrchestratorAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	oracleLastUpadteHeightNative := k.getOracleLastUpdateHeightNative(ctx, oracleAddress)
-	oracleLastUpadteHeightCosmos := k.getOracleLastUpdateHeightCosmos(ctx, oracleAddress)
+	orchestratorLastUpadteHeightNative := k.getOrchestratorLastUpdateHeightNative(ctx, orchestratorAddress)
+	orchestratorLastUpadteHeightCosmos := k.getOrchestratorLastUpdateHeightCosmos(ctx, orchestratorAddress)
 
-	return &cosmosTypes.QueryOracleLastUpdateHeightResponse{
-		BlockHeightCosmos: oracleLastUpadteHeightCosmos,
-		BlockHeightNative: oracleLastUpadteHeightNative,
+	return &cosmosTypes.QueryOrchestratorLastUpdateHeightResponse{
+		BlockHeightCosmos: orchestratorLastUpadteHeightCosmos,
+		BlockHeightNative: orchestratorLastUpadteHeightNative,
 	}, nil
 }
 

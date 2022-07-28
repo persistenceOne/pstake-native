@@ -9,23 +9,23 @@ import (
 )
 
 const (
-	ProposalTypeChangeCosmosValidatorWeights = "ChangeCosmosValidatorWeights"
-	ProposalTypeChangeOracleValidatorWeights = "ChangeOracleValidatorWeights"
-	ProposalTypeChangeMultisig               = "ChangeMultisig" // unrelated to Changing cosmos validator weights.
-	ProposalTypeEnableModule                 = "EnableModule"
+	ProposalTypeChangeCosmosValidatorWeights       = "ChangeCosmosValidatorWeights"
+	ProposalTypeChangeOrchestratorValidatorWeights = "ChangeOrchestratorValidatorWeights"
+	ProposalTypeChangeMultisig                     = "ChangeMultisig" // unrelated to Changing cosmos validator weights.
+	ProposalTypeEnableModule                       = "EnableModule"
 )
 
-var _, _, _, _ govTypes.Content = &ChangeMultisigProposal{}, &EnableModuleProposal{}, &ChangeCosmosValidatorWeightsProposal{}, &ChangeOracleValidatorWeightsProposal{}
+var _, _, _, _ govTypes.Content = &ChangeMultisigProposal{}, &EnableModuleProposal{}, &ChangeCosmosValidatorWeightsProposal{}, &ChangeOrchestratorValidatorWeightsProposal{}
 
 func init() {
 	govTypes.RegisterProposalType(ProposalTypeChangeMultisig)
 	govTypes.RegisterProposalType(ProposalTypeEnableModule)
 	govTypes.RegisterProposalType(ProposalTypeChangeCosmosValidatorWeights)
-	govTypes.RegisterProposalType(ProposalTypeChangeOracleValidatorWeights)
+	govTypes.RegisterProposalType(ProposalTypeChangeOrchestratorValidatorWeights)
 	govTypes.RegisterProposalTypeCodec(&ChangeMultisigProposal{}, "persistenceCore/ChangeMultisigProposal")
 	govTypes.RegisterProposalTypeCodec(&EnableModuleProposal{}, "persistenceCore/EnableModuleProposal")
 	govTypes.RegisterProposalTypeCodec(&ChangeCosmosValidatorWeightsProposal{}, "persistenceCore/ChangeCosmosValidatorWeightsProposal")
-	govTypes.RegisterProposalTypeCodec(&ChangeOracleValidatorWeightsProposal{}, "persistenceCore/ChangeOracleValidatorWeightsProposal")
+	govTypes.RegisterProposalTypeCodec(&ChangeOrchestratorValidatorWeightsProposal{}, "persistenceCore/ChangeOrchestratorValidatorWeightsProposal")
 }
 
 // NewChangeMultisigProposal creates a new multisig change proposal.
@@ -239,37 +239,37 @@ func (m *ChangeCosmosValidatorWeightsProposal) String() string {
 	return b.String()
 }
 
-// NewChangeOracleValidatorWeightsProposal returns a new oracle validator weights change proposal
-func NewChangeOracleValidatorWeightsProposal(title, description string, weightedAddresses []WeightedAddress) *ChangeOracleValidatorWeightsProposal {
-	return &ChangeOracleValidatorWeightsProposal{
+// NewChangeOrchestratorValidatorWeightsProposal returns a new orchestrator validator weights change proposal
+func NewChangeOrchestratorValidatorWeightsProposal(title, description string, weightedAddresses []WeightedAddress) *ChangeOrchestratorValidatorWeightsProposal {
+	return &ChangeOrchestratorValidatorWeightsProposal{
 		Title:             title,
 		Description:       description,
 		WeightedAddresses: weightedAddresses,
 	}
 }
 
-// GetTitle returns the title of oracle validator weights change proposal
-func (m *ChangeOracleValidatorWeightsProposal) GetTitle() string {
+// GetTitle returns the title of orchestrator validator weights change proposal
+func (m *ChangeOrchestratorValidatorWeightsProposal) GetTitle() string {
 	return m.Title
 }
 
-// GetDescription returns the description of oracle validator weights change proposal
-func (m *ChangeOracleValidatorWeightsProposal) GetDescription() string {
+// GetDescription returns the description of orchestrator validator weights change proposal
+func (m *ChangeOrchestratorValidatorWeightsProposal) GetDescription() string {
 	return m.Description
 }
 
-// ProposalRoute returns the proposal route for the oracle validator weights change proposal
-func (m *ChangeOracleValidatorWeightsProposal) ProposalRoute() string {
+// ProposalRoute returns the proposal route for the orchestrator validator weights change proposal
+func (m *ChangeOrchestratorValidatorWeightsProposal) ProposalRoute() string {
 	return RouterKey
 }
 
-// ProposalType returns the proposal type for the oracle validator weights change proposal
-func (m *ChangeOracleValidatorWeightsProposal) ProposalType() string {
-	return ProposalTypeChangeOracleValidatorWeights
+// ProposalType returns the proposal type for the orchestrator validator weights change proposal
+func (m *ChangeOrchestratorValidatorWeightsProposal) ProposalType() string {
+	return ProposalTypeChangeOrchestratorValidatorWeights
 }
 
 // ValidateBasic runs basic stateless validity checks
-func (m *ChangeOracleValidatorWeightsProposal) ValidateBasic() error {
+func (m *ChangeOrchestratorValidatorWeightsProposal) ValidateBasic() error {
 	err := govTypes.ValidateAbstract(m)
 	if err != nil {
 		return err
@@ -304,7 +304,7 @@ func (m *ChangeOracleValidatorWeightsProposal) ValidateBasic() error {
 }
 
 // String returns the string of proposal details
-func (m *ChangeOracleValidatorWeightsProposal) String() string {
+func (m *ChangeOrchestratorValidatorWeightsProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Update Pool Incentives Proposal:
   Title:                 %s

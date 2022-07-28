@@ -367,10 +367,12 @@ func (k Keeper) IterateProposalsForEmittingVotingTxn(ctx sdk.Context) {
 		if proposal.Status == cosmosTypes.StatusPassed && proposal.VotingEndTime.After(ctx.BlockTime()) {
 			continue
 		}
-		passes, tallyResults := k.Tally(ctx, proposal)
-		if passes {
-			k.SetProposalPassed(ctx, proposal.ProposalId, tallyResults)
-			k.generateOutgoingWeightedVoteTx(ctx, tallyResults, proposal.CosmosProposalId)
+		if proposal.Status == cosmosTypes.StatusVotingPeriod && ctx.BlockTime().After(proposal.VotingEndTime) {
+			passes, tallyResults := k.Tally(ctx, proposal)
+			if passes {
+				k.SetProposalPassed(ctx, proposal.ProposalId, tallyResults)
+				k.generateOutgoingWeightedVoteTx(ctx, tallyResults, proposal.CosmosProposalId)
+			}
 		}
 	}
 }
@@ -379,7 +381,7 @@ func (k Keeper) IterateProposalsForEmittingVotingTxn(ctx sdk.Context) {
 ProcessProposals processes all the proposal requests
 This function is called every EndBlocker to perform the defined set of actions as mentioned below :
    1. Get the list of all proposal requests
-   2. Checks if the majority of the validator oracle have sent the proposal request. Also checks the proposal posted flag
+   2. Checks if the majority of the validator orchestrator have sent the proposal request. Also checks the proposal posted flag
    3. If majority is reached and other conditions match then proposal is posted on chain and voting period begins.
    4. Another condition of ActiveBlockHeight is also checked whether to delete the entry or not.
    5. Iterate over all the proposals to check if they have reached voting end period and then perform defined actions.

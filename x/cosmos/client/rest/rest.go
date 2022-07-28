@@ -192,17 +192,17 @@ func postChangeCosmosValidatorWeightsProposalHandlerFn(clientCtx client.Context)
 	}
 }
 
-// ChangeOracleValidatorWeightsProposalRESTHandler returns a ChangeOracleValidatorWeightsProposalRESTHandler that exposes the community pool spend REST handler with a given sub-route.
-func ChangeOracleValidatorWeightsProposalRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
+// ChangeOrchestratorValidatorWeightsProposalRESTHandler returns a ChangeOrchestratorValidatorWeightsProposalRESTHandler that exposes the community pool spend REST handler with a given sub-route.
+func ChangeOrchestratorValidatorWeightsProposalRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
 	return govrest.ProposalRESTHandler{
 		SubRoute: "change_cosmos_validator_weights",
-		Handler:  postChangeOracleValidatorWeightsProposalHandlerFn(clientCtx),
+		Handler:  postChangeOrchestratorValidatorWeightsProposalHandlerFn(clientCtx),
 	}
 }
 
-func postChangeOracleValidatorWeightsProposalHandlerFn(clientCtx client.Context) http.HandlerFunc {
+func postChangeOrchestratorValidatorWeightsProposalHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req utils.ChangeOracleValidatorWeightsProposalReq
+		var req utils.ChangeOrchestratorValidatorWeightsProposalReq
 		if !rest.ReadRESTReq(w, r, clientCtx.LegacyAmino, &req) {
 			return
 		}
@@ -214,7 +214,7 @@ func postChangeOracleValidatorWeightsProposalHandlerFn(clientCtx client.Context)
 
 		var weightedAddresses []cosmosTypes.WeightedAddress
 
-		for _, weightedAddress := range req.OracleValidatorSet.WeightedAddresses {
+		for _, weightedAddress := range req.OrchestratorValidatorSet.WeightedAddresses {
 			weight, err := sdkTypes.NewDecFromStr(weightedAddress.Weight)
 			if rest.CheckBadRequestError(w, err) {
 				return
@@ -227,17 +227,17 @@ func postChangeOracleValidatorWeightsProposalHandlerFn(clientCtx client.Context)
 				})
 		}
 
-		content := cosmosTypes.NewChangeOracleValidatorWeightsProposal(
-			req.OracleValidatorSet.Title,
-			req.OracleValidatorSet.Description,
+		content := cosmosTypes.NewChangeOrchestratorValidatorWeightsProposal(
+			req.OrchestratorValidatorSet.Title,
+			req.OrchestratorValidatorSet.Description,
 			weightedAddresses)
 
-		deposit, err := sdkTypes.ParseCoinsNormalized(req.OracleValidatorSet.Deposit)
+		deposit, err := sdkTypes.ParseCoinsNormalized(req.OrchestratorValidatorSet.Deposit)
 		if rest.CheckBadRequestError(w, err) {
 			return
 		}
 
-		depositor, err := sdkTypes.AccAddressFromBech32(req.OracleValidatorSet.Depositor)
+		depositor, err := sdkTypes.AccAddressFromBech32(req.OrchestratorValidatorSet.Depositor)
 		if rest.CheckBadRequestError(w, err) {
 			return
 		}

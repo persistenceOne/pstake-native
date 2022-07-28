@@ -261,6 +261,9 @@ func (k Keeper) GetCValue(ctx sdk.Context) sdk.Dec {
 			return sdk.NewDec(1)
 		}
 		calculatedCValue := sdk.NewDecFromInt(k.GetMintedAmount(ctx).Amount).Quo(sdk.NewDecFromInt(totalStaked))
+		if calculatedCValue.IsNegative() {
+			k.disableModule(ctx)
+		}
 		cValueCache.Add(cValueCacheKey, CValue{cValue: calculatedCValue, blockHeight: ctx.BlockHeight()})
 		return calculatedCValue
 	}
@@ -278,6 +281,9 @@ func (k Keeper) GetCValue(ctx sdk.Context) sdk.Dec {
 		return sdk.NewDec(1)
 	}
 	calculatedCValue := sdk.NewDecFromInt(k.GetMintedAmount(ctx).Amount).Quo(sdk.NewDecFromInt(totalStaked))
+	if calculatedCValue.IsNegative() {
+		k.disableModule(ctx)
+	}
 	cValueCache.Add(cValueCacheKey, CValue{cValue: calculatedCValue, blockHeight: ctx.BlockHeight()})
 	return calculatedCValue
 }
