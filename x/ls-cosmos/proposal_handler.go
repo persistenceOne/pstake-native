@@ -17,7 +17,7 @@ func NewLSCosmosProposalHandler(k keeper.Keeper) govtypes.Handler {
 			return HandleRegisterCosmosChainProposal(ctx, k, *c)
 
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized param proposal content type: %T", c)
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized proposal content type: %T", c)
 		}
 	}
 }
