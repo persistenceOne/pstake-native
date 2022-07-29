@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	accountKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -9,6 +10,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	ibcTransferKeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -21,14 +23,16 @@ import (
 
 type (
 	Keeper struct {
-		cdc            codec.BinaryCodec
-		storeKey       sdk.StoreKey
-		memKey         sdk.StoreKey
-		paramstore     paramtypes.Subspace
-		bankKeeper     bankKeeper.BaseKeeper
-		ibcTransKeeper ibcTransferKeeper.Keeper
-		ibcKeeepr      ibckeeper.Keeper
-		scopedKeeper   capabilitykeeper.ScopedKeeper
+		cdc                codec.BinaryCodec
+		storeKey           sdk.StoreKey
+		memKey             sdk.StoreKey
+		paramstore         paramtypes.Subspace
+		bankKeeper         bankKeeper.BaseKeeper
+		distributionKeeper distrkeeper.Keeper
+		accountKeeper      accountKeeper.AccountKeeper
+		ibcTransKeeper     ibcTransferKeeper.Keeper
+		ibcKeeepr          ibckeeper.Keeper
+		scopedKeeper       capabilitykeeper.ScopedKeeper
 	}
 )
 
@@ -38,6 +42,8 @@ func NewKeeper(
 	memKey sdk.StoreKey,
 	ps paramtypes.Subspace,
 	bankKeeper bankKeeper.BaseKeeper,
+	disributionKeeper distrkeeper.Keeper,
+	accKeeper accountKeeper.AccountKeeper,
 	ibckeeper ibckeeper.Keeper,
 	ibcTransferKeeper ibcTransferKeeper.Keeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper,
@@ -48,20 +54,24 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		bankKeeper:     bankKeeper,
-		ibcKeeepr:      ibckeeper,
-		ibcTransKeeper: ibcTransferKeeper,
-		scopedKeeper:   scopedKeeper,
-		cdc:            cdc,
-		storeKey:       storeKey,
-		memKey:         memKey,
-		paramstore:     ps,
+		bankKeeper:         bankKeeper,
+		distributionKeeper: disributionKeeper,
+		accountKeeper:      accKeeper,
+		ibcKeeepr:          ibckeeper,
+		ibcTransKeeper:     ibcTransferKeeper,
+		scopedKeeper:       scopedKeeper,
+		cdc:                cdc,
+		storeKey:           storeKey,
+		memKey:             memKey,
+		paramstore:         ps,
 	}
 }
 
 func (k Keeper) IbcTransferKeeper() ibcTransferKeeper.Keeper { return k.ibcTransKeeper }
 
 func (k Keeper) BankKeeper() bankKeeper.BaseKeeper { return k.bankKeeper }
+
+func (k Keeper) DistributionKeeper() distrkeeper.Keeper { return k.distributionKeeper }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
@@ -112,8 +122,8 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-//mintTokens in the given account
-func (k Keeper) mintTokens(ctx sdk.Context, mintCoin sdk.Coin, mintAddress sdk.AccAddress) error {
+//MintTokens in the given account
+func (k Keeper) MintTokens(ctx sdk.Context, mintCoin sdk.Coin, mintAddress sdk.AccAddress) error {
 	if mintCoin.Amount.GT(sdk.NewInt(5)) {
 		err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(mintCoin))
 		if err != nil {
@@ -126,4 +136,20 @@ func (k Keeper) mintTokens(ctx sdk.Context, mintCoin sdk.Coin, mintAddress sdk.A
 		}
 	}
 	return nil
+}
+
+//SendTokensToDepositAddress
+func (k Keeper) SendTokensToDepositAddress(ctx sdk.Context, depositCoin sdk.Coins, depositAddress sdk.AccAddress, senderAddress sdk.AccAddress) error {
+	err := k.bankKeeper.SendCoins(ctx, senderAddress, depositAddress, depositCoin)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//SendResidueToCommunityPool sends the residue stk token to community pool
+func (k Keeper) SendResidueToCommunityPool(ctx sdk.Context, residue []sdk.DecCoin) {
+	feePool := k.distributionKeeper.GetFeePool(ctx)
+	feePool.CommunityPool = feePool.CommunityPool.Add(residue...)
+	k.distributionKeeper.SetFeePool(ctx, feePool)
 }

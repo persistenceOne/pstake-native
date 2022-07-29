@@ -1,10 +1,12 @@
 package keeper_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/simapp"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	ibcTransferTypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/persistenceOne/pstake-native/app"
@@ -53,4 +55,34 @@ func testProposal(
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(IntegrationTestSuite))
+}
+
+func (suite *IntegrationTestSuite) TestMintToken() {
+	pstakeApp, ctx := suite.app, suite.ctx
+
+	testParams := types.RegisterCosmosChainProposal{
+		Title:                "register cosmos chain proposal",
+		Description:          "this proposal register cosmos chain params in the chain",
+		IBCConnection:        "test connection",
+		TokenTransferChannel: "test-channel-1",
+		TokenTransferPort:    "test-transfer",
+		BaseDenom:            "uatom",
+		MintDenom:            "ustkatom",
+	}
+
+	ibcDenom := ibcTransferTypes.GetPrefixedDenom(testParams.TokenTransferPort, testParams.TokenTransferChannel, testParams.BaseDenom)
+	balanceOfIbcToken := sdk.NewInt64Coin(ibcDenom, 100)
+	mintAmountDec := balanceOfIbcToken.Amount.ToDec().Mul(pstakeApp.LSCosmosKeeper.GetCValue(ctx))
+	toBeMintedTokens, _ := sdk.NewDecCoinFromDec(testParams.MintDenom, mintAmountDec).TruncateDecimal()
+
+	addr := sdk.AccAddress("addr_______________")
+	acc := pstakeApp.AccountKeeper.NewAccountWithAddress(ctx, addr)
+	pstakeApp.AccountKeeper.SetAccount(ctx, acc)
+	suite.Require().NoError(simapp.FundAccount(pstakeApp.BankKeeper, ctx, addr, sdk.NewCoins(balanceOfIbcToken)))
+
+	suite.Require().NoError(pstakeApp.LSCosmosKeeper.MintTokens(ctx, toBeMintedTokens, addr))
+
+	currBalance := pstakeApp.BankKeeper.GetBalance(ctx, addr, testParams.MintDenom)
+
+	suite.Require().Equal(toBeMintedTokens, currBalance)
 }

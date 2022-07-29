@@ -467,6 +467,8 @@ func NewpStakeApp(
 		memKeys[lscosmostypes.MemStoreKey],
 		app.GetSubspace(lscosmostypes.ModuleName),
 		app.BankKeeper,
+		app.DistrKeeper,
+		app.AccountKeeper,
 		*app.IBCKeeper,
 		app.TransferKeeper,
 		scopedLSCosmosKeeper,

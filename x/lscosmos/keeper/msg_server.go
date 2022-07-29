@@ -2,10 +2,10 @@ package keeper
 
 import (
 	"context"
-	"fmt"
+	ibcTransferTypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
-	ibcTransferTypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
 )
 
@@ -24,7 +24,7 @@ var _ types.MsgServer = msgServer{}
 func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake) (*types.MsgLiquidStakeResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
-		return nil, sdkErrors.Wrap(err, "invalid message")
+		return nil, types.ErrInvalidMessage
 	}
 
 	ctx := sdkTypes.UnwrapSDKContext(goCtx)
@@ -37,28 +37,45 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	givenDenom := msg.Amount.Denom
 
 	if givenDenom != expectedDenom {
-		return nil, sdkErrors.Wrap(err, "denom not whitelisted/ invalid denom")
+		return nil, types.ErrInvalidDenom
 	}
 
 	// check if address in message is correct or not
 	mintAddress, err := sdkTypes.AccAddressFromBech32(msg.MintAddress)
 	if err != nil {
-		return nil, err
+		return nil, sdkErrors.ErrInvalidAddress
 	}
 
 	// sanity check for the arguments of message
 
 	if ctx.IsZero() || !msg.Amount.IsValid() {
-		return nil, sdkErrors.Wrap(fmt.Errorf("invalid"), " arguments")
+		return nil, types.ErrInvalidArgs
 	}
+
+	//check if deposit address in message is correct or not
+	//TODO: take from params?
+	depositAddress, err := sdkTypes.AccAddressFromBech32(msg.DepositAddress)
+	if err != nil {
+		return nil, sdkErrors.ErrInvalidAddress
+	}
+
+	//send the deposit to the deposit address
+	depositAmount := sdkTypes.NewCoins(msg.Amount)
+	err = m.SendTokensToDepositAddress(ctx, depositAmount, depositAddress, mintAddress)
+	if err != nil {
+		return nil, types.ErrFailedDeposit
+	}
+
 	// amount of stk tokens to be minted
 	mintAmountDec := msg.Amount.Amount.ToDec().Mul(m.GetCValue(ctx))
 
-	mintToken, _ := sdkTypes.NewDecCoinFromDec(ibcParams.MintDenom, mintAmountDec).TruncateDecimal()
+	mintToken, residue := sdkTypes.NewDecCoinFromDec(ibcParams.MintDenom, mintAmountDec).TruncateDecimal()
 
-	err = m.mintTokens(ctx, mintToken, mintAddress)
+	m.SendResidueToCommunityPool(ctx, sdkTypes.NewDecCoins(residue))
+
+	err = m.MintTokens(ctx, mintToken, mintAddress)
 	if err != nil {
-		return nil, err
+		return nil, types.ErrMintFailed
 	}
 
 	ctx.EventManager().EmitEvent(
