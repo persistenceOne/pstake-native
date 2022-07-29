@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	// this line is used by starport scaffolding # 1
-	"github.com/persistenceOne/pstake-native/x/ls-cosmos/client/rest"
+	"github.com/persistenceOne/pstake-native/x/lscosmos/client/rest"
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"

@@ -6,7 +6,7 @@ import (
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
+	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 type msgServer struct {
