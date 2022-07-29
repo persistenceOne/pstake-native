@@ -17,9 +17,10 @@ import (
 )
 
 type SendReq struct {
-	BaseReq     rest.BaseReq `json:"base_req" yaml:"base_req"`
-	MintAddress string       `json:"mint_address" yaml:"mint_address"`
-	Amount      sdk.Coin     `json:"amount" yaml:"amount"`
+	BaseReq        rest.BaseReq `json:"base_req" yaml:"base_req"`
+	MintAddress    string       `json:"mint_address" yaml:"mint_address"`
+	Amount         sdk.Coin     `json:"amount" yaml:"amount"`
+	DepositAddress string       `json:"deposit_address" yaml:"deposit_address"`
 }
 
 func RegisterHandlers(clientCtx client.Context, rtr *mux.Router) {
@@ -45,7 +46,12 @@ func LiquidStakeHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgLiquidStake(req.Amount, mintAddr)
+		depositAddr, err := sdk.AccAddressFromBech32(req.DepositAddress)
+		if rest.CheckBadRequestError(writer, err) {
+			return
+		}
+
+		msg := types.NewMsgLiquidStake(req.Amount, mintAddr, depositAddr)
 		tx.WriteGeneratedTxResponse(clientCtx, writer, req.BaseReq, msg)
 
 	}
