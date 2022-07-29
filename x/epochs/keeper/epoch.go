@@ -17,7 +17,7 @@ func (k Keeper) GetEpochInfo(ctx sdk.Context, identifier string) types.EpochInfo
 	}
 	err := k.cdc.Unmarshal(b, &epoch)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 	return epoch
 }
@@ -27,7 +27,7 @@ func (k Keeper) SetEpochInfo(ctx sdk.Context, epoch types.EpochInfo) {
 	store := ctx.KVStore(k.storeKey)
 	value, err := k.cdc.Marshal(&epoch)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 	store.Set(append(types.KeyPrefixEpoch, []byte(epoch.Identifier)...), value)
 }
@@ -51,7 +51,7 @@ func (k Keeper) IterateEpochInfo(ctx sdk.Context, fn func(index int64, epochInfo
 		epoch := types.EpochInfo{}
 		err := k.cdc.Unmarshal(iterator.Value(), &epoch)
 		if err != nil {
-			panic(any(err))
+			panic(err)
 		}
 		stop := fn(i, epoch)
 

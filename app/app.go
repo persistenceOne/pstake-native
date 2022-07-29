@@ -115,10 +115,10 @@ import (
 	epochs "github.com/persistenceOne/pstake-native/x/epochs"
 	epochskeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
 	epochstypes "github.com/persistenceOne/pstake-native/x/epochs/types"
-	lscosmos "github.com/persistenceOne/pstake-native/x/ls-cosmos"
-	lscosmosclient "github.com/persistenceOne/pstake-native/x/ls-cosmos/client"
-	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/ls-cosmos/keeper"
-	lscosmostypes "github.com/persistenceOne/pstake-native/x/ls-cosmos/types"
+	lscosmos "github.com/persistenceOne/pstake-native/x/lscosmos"
+	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
+	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
+	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
 
 	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
@@ -689,7 +689,7 @@ func NewpStakeApp(
 		},
 	)
 	if err != nil {
-		panic(any(fmt.Errorf("failed to create AnteHandler: %s", err)))
+		panic(fmt.Errorf("failed to create AnteHandler: %s", err))
 	}
 
 	app.SetAnteHandler(anteHandler)
@@ -749,7 +749,7 @@ func NewpStakeApp(
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
-		panic(any(fmt.Sprintf("failed to read upgrade info from disk %s", err)))
+		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
 	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
@@ -790,7 +790,7 @@ func (app *PstakeApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci
 func (app *PstakeApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
@@ -904,7 +904,7 @@ func (app *PstakeApp) RegisterTendermintService(clientCtx client.Context) {
 func RegisterSwaggerAPI(rtr *mux.Router) {
 	statikFS, err := fs.New()
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 
 	staticServer := http.FileServer(statikFS)

@@ -176,7 +176,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 // GenerateGenesisState creates a randomized GenState of the cosmos module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	//simulation.RandomizedGenState(simState)
-	panic(any("implement me"))
+	panic("implement me")
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
@@ -187,7 +187,7 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simTypes.WeightedP
 // RandomizedParams creates randomized cosmos param changes for the simulator.
 func (AppModule) RandomizedParams(r *rand.Rand) []simTypes.ParamChange {
 	//return simulation.ParamChanges(r)
-	panic(any("implement me"))
+	panic("implement me")
 }
 
 // RegisterStoreDecoder registers a decoder for cosmos module's types.

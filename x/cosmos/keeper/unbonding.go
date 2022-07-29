@@ -33,7 +33,7 @@ func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAn
 			}
 			anyMsg, err := codecTypes.NewAnyWithValue(&msg)
 			if err != nil {
-				panic(any(err))
+				panic(err)
 			}
 			undelegateMsgsAny = append(undelegateMsgsAny, anyMsg)
 			undelegategMsgs = append(undelegategMsgs, msg)
@@ -41,7 +41,7 @@ func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAn
 
 		cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
 		if err != nil {
-			panic(any(err))
+			panic(err)
 		}
 		execMsg := authz.MsgExec{
 			Grantee: cosmosAddrr,
@@ -50,7 +50,7 @@ func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAn
 
 		execMsgAny, err := codecTypes.NewAnyWithValue(&execMsg)
 		if err != nil {
-			panic(any(err))
+			panic(err)
 		}
 
 		tx := cosmosTypes.CosmosTx{
@@ -79,7 +79,7 @@ func (k Keeper) generateUnbondingOutgoingTxn(ctx sdk.Context, listOfValidatorsAn
 
 		err = k.setIDInEpochPoolForWithdrawals(ctx, nextID, undelegategMsgs, epochNumber, cValue)
 		if err != nil {
-			panic(any(err))
+			panic(err)
 		}
 		//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
 		k.SetNewTxnInOutgoingPool(ctx, nextID, tx)

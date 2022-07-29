@@ -53,7 +53,7 @@ func (k Keeper) SetVote(ctx sdkTypes.Context, vote cosmosTypes.Vote) {
 	bz := k.cdc.MustMarshal(&vote)
 	addr, err := sdkTypes.AccAddressFromBech32(vote.Voter)
 	if err != nil {
-		panic(any(err))
+		panic(err)
 	}
 	store.Set(cosmosTypes.VoteKey(vote.ProposalId, addr), bz)
 }
