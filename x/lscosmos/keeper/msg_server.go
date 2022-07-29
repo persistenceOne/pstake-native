@@ -2,10 +2,9 @@ package keeper
 
 import (
 	"context"
-	ibcTransferTypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
+	ibcTransferTypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
@@ -33,7 +32,6 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	ibcParams := m.GetCosmosIBCParams(ctx)
 
 	expectedDenom := ibcTransferTypes.GetPrefixedDenom(ibcParams.TokenTransferPort, ibcParams.TokenTransferChannel, ibcParams.BaseDenom)
-
 	givenDenom := msg.Amount.Denom
 
 	if givenDenom != expectedDenom {
@@ -52,16 +50,9 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		return nil, types.ErrInvalidArgs
 	}
 
-	//check if deposit address in message is correct or not
-	//TODO: take from params?
-	depositAddress, err := sdkTypes.AccAddressFromBech32(msg.DepositAddress)
-	if err != nil {
-		return nil, sdkErrors.ErrInvalidAddress
-	}
-
-	//send the deposit to the deposit address
+	//send the deposit to the deposit-module account
 	depositAmount := sdkTypes.NewCoins(msg.Amount)
-	err = m.SendTokensToDepositAddress(ctx, depositAmount, depositAddress, mintAddress)
+	err = m.SendTokensToDepositModule(ctx, depositAmount, mintAddress)
 	if err != nil {
 		return nil, types.ErrFailedDeposit
 	}
@@ -70,8 +61,9 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	mintAmountDec := msg.Amount.Amount.ToDec().Mul(m.GetCValue(ctx))
 
 	mintToken, residue := sdkTypes.NewDecCoinFromDec(ibcParams.MintDenom, mintAmountDec).TruncateDecimal()
-
-	m.SendResidueToCommunityPool(ctx, sdkTypes.NewDecCoins(residue))
+	if residue.Amount.GT(sdkTypes.NewDec(0)) {
+		m.SendResidueToCommunityPool(ctx, sdkTypes.NewDecCoins(residue))
+	}
 
 	err = m.MintTokens(ctx, mintToken, mintAddress)
 	if err != nil {

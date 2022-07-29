@@ -139,8 +139,8 @@ func (k Keeper) MintTokens(ctx sdk.Context, mintCoin sdk.Coin, mintAddress sdk.A
 }
 
 //SendTokensToDepositAddress
-func (k Keeper) SendTokensToDepositAddress(ctx sdk.Context, depositCoin sdk.Coins, depositAddress sdk.AccAddress, senderAddress sdk.AccAddress) error {
-	err := k.bankKeeper.SendCoins(ctx, senderAddress, depositAddress, depositCoin)
+func (k Keeper) SendTokensToDepositModule(ctx sdk.Context, depositCoin sdk.Coins, senderAddress sdk.AccAddress) error {
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddress, types.DepositModuleAccount, depositCoin)
 	if err != nil {
 		return err
 	}

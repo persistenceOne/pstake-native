@@ -1,12 +1,5 @@
 package keeper_test
 
-import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	ls_cosmos "github.com/persistenceOne/pstake-native/x/lscosmos"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
-)
-
 func (suite *IntegrationTestSuite) TestCosmosIBCParamsQuery() {
 	app, ctx := suite.app, suite.ctx
 
