@@ -56,8 +56,20 @@ only non-empty fields will be updated.
 IMPORTANT : The values for the fields in this proposal are not validated, so it is very
 important that any value change is valid.
 
+Example Proposal :
+{
+  "title": "register cosmos chain proposal",
+  "description": "this proposal register cosmos chain params in the chain",
+  "ibc_connection": "test connection",
+  "token_transfer_channel": "test-channel-1",
+  "token_transfer_port": "test-transfer",
+  "base_denom": "uatom",
+  "mint_denom": "ustkatom",
+  "deposit": "100stake"
+}
+
 Example:
-$ %s tx gov submit-proposal register-cosmos-chain <path/to/proposal.json> --from <key_or_address>
+$ %s tx gov submit-proposal register-cosmos-chain <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
 `,
 				version.AppName,
 			),
