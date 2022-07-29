@@ -7,7 +7,7 @@ import "google/protobuf/any.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
 
-option go_package = "github.com/persistenceOne/pstake-native/x/ls-cosmos/types";
+option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
 
 //Msg defines the lsCosmos services.
 service Msg{
@@ -20,7 +20,6 @@ service Msg{
 message MsgLiquidStake {
   string mint_address = 1;
   cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
-  string deposit_address =3;
 }
 
 message MsgLiquidStakeResponse{}

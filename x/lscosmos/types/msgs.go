@@ -10,11 +10,10 @@ var (
 )
 
 // NewMsgLiquidStake returns a new MsgLiquidStake
-func NewMsgLiquidStake(amount sdk.Coin, address sdk.AccAddress, depositAddress sdk.AccAddress) *MsgLiquidStake {
+func NewMsgLiquidStake(amount sdk.Coin, address sdk.AccAddress) *MsgLiquidStake {
 	return &MsgLiquidStake{
-		MintAddress:    address.String(),
-		Amount:         amount,
-		DepositAddress: depositAddress.String(),
+		MintAddress: address.String(),
+		Amount:      amount,
 	}
 }
 
@@ -28,9 +27,6 @@ func (m *MsgLiquidStake) Type() string { return MsgTypeLiquidStake }
 func (m *MsgLiquidStake) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.MintAddress); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.MintAddress)
-	}
-	if _, err := sdk.AccAddressFromBech32(m.DepositAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DepositAddress)
 	}
 
 	if !m.Amount.IsValid() {

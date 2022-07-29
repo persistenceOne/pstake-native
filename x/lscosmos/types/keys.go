@@ -24,6 +24,9 @@ const (
 
 	// MsgTypeLiquidStake is the type of message to liquid stake
 	MsgTypeLiquidStake = "msg_liquid_stake"
+
+	// DepositModuleAccount DepositModuleAccountName
+	DepositModuleAccount = "deposit_account"
 )
 
 var (

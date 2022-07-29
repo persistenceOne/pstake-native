@@ -10,10 +10,13 @@ import (
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&RegisterCosmosChainProposal{}, "cosmos/RegisterCosmosChainProposal", nil)
+	cdc.RegisterConcrete(&MsgLiquidStake{}, "cosmos/MsgLiquidStake", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*sdk.Msg)(nil)) // add the structs that implements sdk.Msg interface
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgLiquidStake{},
+	) // add the structs that implements sdk.Msg interface
 
 	registry.RegisterImplementations((*govtypes.Content)(nil),
 		// add the stucts that implements govTypes.Content interface

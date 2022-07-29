@@ -10,8 +10,7 @@ import (
 func TestMsgLiquidStakeRoute(t *testing.T) {
 	mintaddr := sdk.AccAddress([]byte("mintAddress"))
 	mintToken := sdk.NewInt64Coin("ustktest", 10)
-	depAddress := sdk.AccAddress([]byte("depositAddress"))
-	var msg = NewMsgLiquidStake(mintToken, mintaddr, depAddress)
+	var msg = NewMsgLiquidStake(mintToken, mintaddr)
 
 	require.Equal(t, msg.Route(), RouterKey)
 	require.Equal(t, msg.Type(), "msg_liquid_stake")
@@ -19,7 +18,6 @@ func TestMsgLiquidStakeRoute(t *testing.T) {
 
 func TestMsgLiquidStakeValidation(t *testing.T) {
 	addr := sdk.AccAddress([]byte("mintAdd______________________"))
-	addr2 := sdk.AccAddress([]byte("depAdd______________________"))
 	addrEmpty := sdk.AccAddress([]byte(""))
 	addrLong := sdk.AccAddress([]byte("Purposefully long address"))
 
@@ -29,11 +27,11 @@ func TestMsgLiquidStakeValidation(t *testing.T) {
 		expectedErr string // empty means no error expected
 		msg         *MsgLiquidStake
 	}{
-		{"", NewMsgLiquidStake(atom123, addr, addr2)},                       // valid send
-		{"", NewMsgLiquidStake(atom123, addr, addr2)},                       // valid send with multiple coins
-		{"", NewMsgLiquidStake(atom123, addrLong, addr2)},                   // valid send with long addr sender
-		{"0atom: invalid coins", NewMsgLiquidStake(atom0, addr, addr2)},     // non positive coin
-		{": invalid address", NewMsgLiquidStake(atom123, addrEmpty, addr2)}, // non positive coin
+		{"", NewMsgLiquidStake(atom123, addr)},                       // valid send
+		{"", NewMsgLiquidStake(atom123, addr)},                       // valid send with multiple coins
+		{"", NewMsgLiquidStake(atom123, addrLong)},                   // valid send with long addr sender
+		{"0atom: invalid coins", NewMsgLiquidStake(atom0, addr)},     // non positive coin
+		{": invalid address", NewMsgLiquidStake(atom123, addrEmpty)}, // non positive coin
 
 	}
 
@@ -49,19 +47,18 @@ func TestMsgLiquidStakeValidation(t *testing.T) {
 
 func TestNewMsgLiquidStakeGetSignBytes(t *testing.T) {
 	addr := sdk.AccAddress([]byte("input"))
-	addr2 := sdk.AccAddress([]byte("output"))
 	coin := sdk.NewInt64Coin("stkstake", 10)
-	var msg = NewMsgLiquidStake(coin, addr, addr2)
+	var msg = NewMsgLiquidStake(coin, addr)
 	res := msg.GetSignBytes()
 	fmt.Println(res)
 
-	excepted := `{"amount":{"amount":"10","denom":"stkstake"},"deposit_address":"cosmos1da6hgur4wsmpnjyg","mint_address":"cosmos1d9h8qat57ljhcm"}`
+	excepted := `{"amount":{"amount":"10","denom":"stkstake"},"mint_address":"cosmos1d9h8qat57ljhcm"}`
 	require.Equal(t, excepted, string(res))
 
 }
 
 func TestMsgLiquidStakeGetSigners(t *testing.T) {
-	var msg = NewMsgLiquidStake(sdk.NewCoin("stktest", sdk.NewInt(10)), sdk.AccAddress([]byte("input111111111111111")), sdk.AccAddress([]byte("output111111111111111")))
+	var msg = NewMsgLiquidStake(sdk.NewCoin("stktest", sdk.NewInt(10)), sdk.AccAddress([]byte("input111111111111111")))
 	res := msg.GetSigners()
 	require.Equal(t, fmt.Sprintf("%v", res), "[696E707574313131313131313131313131313131]")
 
