@@ -12,8 +12,8 @@ var (
 // NewMsgLiquidStake returns a new MsgLiquidStake
 func NewMsgLiquidStake(amount sdk.Coin, address sdk.AccAddress) *MsgLiquidStake {
 	return &MsgLiquidStake{
-		MintAddress: address.String(),
-		Amount:      amount,
+		DelegatorAddress: address.String(),
+		Amount:           amount,
 	}
 }
 
@@ -25,8 +25,8 @@ func (m *MsgLiquidStake) Type() string { return MsgTypeLiquidStake }
 
 // ValidateBasic performs stateless checks
 func (m *MsgLiquidStake) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(m.MintAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.MintAddress)
+	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
 	}
 
 	if !m.Amount.IsValid() {
@@ -46,7 +46,7 @@ func (m *MsgLiquidStake) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgLiquidStake) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.MintAddress)
+	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
 	if err != nil {
 		panic(err)
 	}

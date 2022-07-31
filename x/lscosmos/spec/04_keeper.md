@@ -12,6 +12,6 @@ order: 4
 // Keeper is the interface for ls-cosmos module keeper
 type Keeper interface{
     // MintTokens for a given whitelisted IBC Token
-    mintTokens(ctx sdk.Context, mintCoin sdk.Coin, mintAddress sdk.AccAddress) error
+    mintTokens(ctx sdk.Context, mintCoin sdk.Coin, delegatorAddress sdk.AccAddress) error
 }
 ```

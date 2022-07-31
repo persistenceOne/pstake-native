@@ -17,14 +17,14 @@ import (
 )
 
 type SendReq struct {
-	BaseReq     rest.BaseReq `json:"base_req" yaml:"base_req"`
-	MintAddress string       `json:"mint_address" yaml:"mint_address"`
-	Amount      sdk.Coin     `json:"amount" yaml:"amount"`
+	BaseReq          rest.BaseReq `json:"base_req" yaml:"base_req"`
+	DelegatorAddress string       `json:"delegator_address" yaml:"delegator_address"`
+	Amount           sdk.Coin     `json:"amount" yaml:"amount"`
 }
 
 func RegisterHandlers(clientCtx client.Context, rtr *mux.Router) {
 	r := restClient.WithHTTPDeprecationHeaders(rtr)
-	r.HandleFunc("/ls-cosmos/incoming/minting", LiquidStakeHandlerFn(clientCtx)).Methods("POST")
+	r.HandleFunc("/lscosmos/liquidstake", LiquidStakeHandlerFn(clientCtx)).Methods("POST")
 }
 
 //	LiquidStakeHandlreFn returnd an HTTP REST handler for creating a MsgLiquidStake
@@ -40,12 +40,12 @@ func LiquidStakeHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		mintAddr, err := sdk.AccAddressFromBech32(req.MintAddress)
+		delegatorAddr, err := sdk.AccAddressFromBech32(req.DelegatorAddress)
 		if rest.CheckBadRequestError(writer, err) {
 			return
 		}
 
-		msg := types.NewMsgLiquidStake(req.Amount, mintAddr)
+		msg := types.NewMsgLiquidStake(req.Amount, delegatorAddr)
 		tx.WriteGeneratedTxResponse(clientCtx, writer, req.BaseReq, msg)
 
 	}

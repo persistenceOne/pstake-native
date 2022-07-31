@@ -67,12 +67,6 @@ func NewKeeper(
 	}
 }
 
-func (k Keeper) IbcTransferKeeper() ibcTransferKeeper.Keeper { return k.ibcTransKeeper }
-
-func (k Keeper) BankKeeper() bankKeeper.BaseKeeper { return k.bankKeeper }
-
-func (k Keeper) DistributionKeeper() distrkeeper.Keeper { return k.distributionKeeper }
-
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
@@ -123,14 +117,14 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 }
 
 //MintTokens in the given account
-func (k Keeper) MintTokens(ctx sdk.Context, mintCoin sdk.Coin, mintAddress sdk.AccAddress) error {
+func (k Keeper) MintTokens(ctx sdk.Context, mintCoin sdk.Coin, delegatorAddress sdk.AccAddress) error {
 	if mintCoin.Amount.GT(sdk.NewInt(5)) {
 		err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(mintCoin))
 		if err != nil {
 			return err
 		}
 
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, mintAddress, sdk.NewCoins(mintCoin))
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delegatorAddress, sdk.NewCoins(mintCoin))
 		if err != nil {
 			return err
 		}

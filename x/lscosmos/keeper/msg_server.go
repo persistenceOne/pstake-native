@@ -39,7 +39,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	}
 
 	// check if address in message is correct or not
-	mintAddress, err := sdkTypes.AccAddressFromBech32(msg.MintAddress)
+	delegatorAddress, err := sdkTypes.AccAddressFromBech32(msg.DelegatorAddress)
 	if err != nil {
 		return nil, sdkErrors.ErrInvalidAddress
 	}
@@ -52,7 +52,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 
 	//send the deposit to the deposit-module account
 	depositAmount := sdkTypes.NewCoins(msg.Amount)
-	err = m.SendTokensToDepositModule(ctx, depositAmount, mintAddress)
+	err = m.SendTokensToDepositModule(ctx, depositAmount, delegatorAddress)
 	if err != nil {
 		return nil, types.ErrFailedDeposit
 	}
@@ -65,7 +65,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		m.SendResidueToCommunityPool(ctx, sdkTypes.NewDecCoins(residue))
 	}
 
-	err = m.MintTokens(ctx, mintToken, mintAddress)
+	err = m.MintTokens(ctx, mintToken, delegatorAddress)
 	if err != nil {
 		return nil, types.ErrMintFailed
 	}
@@ -73,7 +73,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
 			types.EventTypeMint,
-			sdkTypes.NewAttribute(types.AttributeMintedAddress, mintAddress.String()),
+			sdkTypes.NewAttribute(types.AttributeMintedAddress, delegatorAddress.String()),
 			sdkTypes.NewAttribute(types.AttributeAmountMinted, mintAmountDec.String()),
 		),
 	)

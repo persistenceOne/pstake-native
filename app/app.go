@@ -182,7 +182,7 @@ var (
 		ibctransfertypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
 		cosmos.ModuleName:                  {authtypes.Minter, authtypes.Burner},
 		lscosmostypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
-		lscosmostypes.DepositModuleAccount: {authtypes.Minter, authtypes.Burner},
+		lscosmostypes.DepositModuleAccount: nil,
 	}
 )
 
