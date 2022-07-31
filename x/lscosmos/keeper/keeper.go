@@ -118,21 +118,21 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 
 //MintTokens in the given account
 func (k Keeper) MintTokens(ctx sdk.Context, mintCoin sdk.Coin, delegatorAddress sdk.AccAddress) error {
-	if mintCoin.Amount.GT(sdk.NewInt(5)) {
-		err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(mintCoin))
-		if err != nil {
-			return err
-		}
 
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delegatorAddress, sdk.NewCoins(mintCoin))
-		if err != nil {
-			return err
-		}
+	err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(mintCoin))
+	if err != nil {
+		return err
 	}
+
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delegatorAddress, sdk.NewCoins(mintCoin))
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-//SendTokensToDepositAddress
+// SendTokensToDepositModule sends the tokens to DepositModuleAccount
 func (k Keeper) SendTokensToDepositModule(ctx sdk.Context, depositCoin sdk.Coins, senderAddress sdk.AccAddress) error {
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddress, types.DepositModuleAccount, depositCoin)
 	if err != nil {

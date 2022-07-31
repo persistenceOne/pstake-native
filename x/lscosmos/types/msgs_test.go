@@ -8,16 +8,16 @@ import (
 )
 
 func TestMsgLiquidStakeRoute(t *testing.T) {
-	mintaddr := sdk.AccAddress([]byte("mintAddress"))
+	delegatorAddr := sdk.AccAddress([]byte("delegatorAddress"))
 	mintToken := sdk.NewInt64Coin("ustktest", 10)
-	var msg = NewMsgLiquidStake(mintToken, mintaddr)
+	var msg = NewMsgLiquidStake(mintToken, delegatorAddr)
 
 	require.Equal(t, msg.Route(), RouterKey)
 	require.Equal(t, msg.Type(), "msg_liquid_stake")
 }
 
 func TestMsgLiquidStakeValidation(t *testing.T) {
-	addr := sdk.AccAddress([]byte("mintAdd______________________"))
+	addr := sdk.AccAddress([]byte("delegatorAdd______________________"))
 	addrEmpty := sdk.AccAddress([]byte(""))
 	addrLong := sdk.AccAddress([]byte("Purposefully long address"))
 
@@ -52,7 +52,7 @@ func TestNewMsgLiquidStakeGetSignBytes(t *testing.T) {
 	res := msg.GetSignBytes()
 	fmt.Println(res)
 
-	excepted := `{"amount":{"amount":"10","denom":"stkstake"},"mint_address":"cosmos1d9h8qat57ljhcm"}`
+	excepted := `{"amount":{"amount":"10","denom":"stkstake"},"delagotor_address":"cosmos1d9h8qat57ljhcm"}`
 	require.Equal(t, excepted, string(res))
 
 }

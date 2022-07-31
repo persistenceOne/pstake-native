@@ -16,4 +16,5 @@ var (
 	ErrInvalidArgs          = sdkerrors.Register(ModuleName, 66, "invalid arguments")
 	ErrFailedDeposit        = sdkerrors.Register(ModuleName, 67, "deposit failed")
 	ErrMintFailed           = sdkerrors.Register(ModuleName, 68, "minting failed")
+	ErrMinDeposit           = sdkerrors.Register(ModuleName, 69, "deposit amount less than minimum deposit")
 )

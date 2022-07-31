@@ -30,10 +30,8 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 
 	// check if ibc-denom is whitelisted
 	ibcParams := m.GetCosmosIBCParams(ctx)
-
 	expectedDenom := ibcTransferTypes.GetPrefixedDenom(ibcParams.TokenTransferPort, ibcParams.TokenTransferChannel, ibcParams.BaseDenom)
 	givenDenom := msg.Amount.Denom
-
 	if givenDenom != expectedDenom {
 		return nil, types.ErrInvalidDenom
 	}
@@ -45,9 +43,13 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	}
 
 	// sanity check for the arguments of message
-
 	if ctx.IsZero() || !msg.Amount.IsValid() {
 		return nil, types.ErrInvalidArgs
+	}
+
+	//check for minimum deposit amount
+	if msg.Amount.Amount.LT(sdkTypes.NewInt(types.MinDeposit)) {
+		return nil, types.ErrMinDeposit
 	}
 
 	//send the deposit to the deposit-module account
@@ -59,7 +61,6 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 
 	// amount of stk tokens to be minted
 	mintAmountDec := msg.Amount.Amount.ToDec().Mul(m.GetCValue(ctx))
-
 	mintToken, residue := sdkTypes.NewDecCoinFromDec(ibcParams.MintDenom, mintAmountDec).TruncateDecimal()
 	if residue.Amount.GT(sdkTypes.NewDec(0)) {
 		m.SendResidueToCommunityPool(ctx, sdkTypes.NewDecCoins(residue))
@@ -73,7 +74,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	ctx.EventManager().EmitEvent(
 		sdkTypes.NewEvent(
 			types.EventTypeMint,
-			sdkTypes.NewAttribute(types.AttributeMintedAddress, delegatorAddress.String()),
+			sdkTypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
 			sdkTypes.NewAttribute(types.AttributeAmountMinted, mintAmountDec.String()),
 		),
 	)
