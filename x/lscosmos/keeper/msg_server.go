@@ -80,7 +80,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	}
 
 	//Calculate protocol fee
-	protocolFee := ibcParams.PStakeFee
+	protocolFee := ibcParams.PStakeDepositFee
 	protocolFeeAmount := protocolFee.MulInt(mintToken.Amount)
 	protocolCoins, residue := sdkTypes.NewDecCoinFromDec(ibcParams.MintDenom, protocolFeeAmount).TruncateDecimal()
 

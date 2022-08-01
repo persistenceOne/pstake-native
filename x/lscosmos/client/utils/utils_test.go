@@ -27,6 +27,6 @@ func TestNewParamChangeJSON(t *testing.T) {
 	require.Equal(t, "uatom", rcj.BaseDenom)
 	require.Equal(t, "ustkatom", rcj.MintDenom)
 	require.Equal(t, "5", rcj.MinDeposit)
-	require.Equal(t, "0", rcj.PStakeFee)
+	require.Equal(t, "0", rcj.PStakeDepositFee)
 	require.Equal(t, "1000stake", rcj.Deposit)
 }

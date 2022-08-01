@@ -23,9 +23,9 @@ func (suite *IntegrationTestSuite) TestCosmosIBCParamsQuery() {
 		err = sdkErrors.Wrap(err, "minimum deposit amount is invalid")
 	}
 	suite.NoError(err)
-	pStakeFee, err := sdk.NewDecFromStr(propsal.PStakeFee)
+	pStakeDepositFee, err := sdk.NewDecFromStr(propsal.PStakeDepositFee)
 	suite.NoError(err)
-	cosmoIBCparams := types.NewCosmosIBCParams(propsal.IBCConnection, propsal.TokenTransferChannel, propsal.TokenTransferPort, propsal.BaseDenom, propsal.MintDenom, minDeposit, pStakeFee)
+	cosmoIBCparams := types.NewCosmosIBCParams(propsal.IBCConnection, propsal.TokenTransferChannel, propsal.TokenTransferPort, propsal.BaseDenom, propsal.MintDenom, minDeposit, pStakeDepositFee)
 	suite.Equal(&types.QueryCosmosIBCParamsResponse{CosmosIBCParams: cosmoIBCparams}, response)
 
 }

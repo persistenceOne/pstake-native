@@ -19,7 +19,7 @@ type RegisterCosmosChainProposalReq struct {
 	BaseDenom            string         `json:"base_denom" yaml:"base_denom"`
 	MintDenom            string         `json:"mint_denom" yaml:"mint_denom"`
 	MinDeposit           string         `json:"min_deposit" yaml:"min_deposit"`
-	PStakeFee            string         `json:"p_stake_fee" yaml:"p_stake_fee"`
+	PStakeDepositFee     string         `json:"p_stake_deposit_fee" yaml:"p_stake_deposit_fee"`
 	Proposer             sdk.AccAddress `json:"proposer" yaml:"proposer"`
 	Deposit              sdk.Coins      `json:"deposit" yaml:"deposit"`
 }
@@ -34,11 +34,11 @@ type RegisterCosmosChainProposalJSON struct {
 	BaseDenom            string `json:"base_denom" yaml:"base_denom"`
 	MintDenom            string `json:"mint_denom" yaml:"mint_denom"`
 	MinDeposit           string `json:"min_deposit" yaml:"min_deposit"`
-	PStakeFee            string `json:"p_stake_fee" yaml:"p_stake_fee"`
+	PStakeDepositFee     string `json:"p_stake_deposit_fee" yaml:"p_stake_deposit_fee"`
 	Deposit              string `json:"deposit" yaml:"deposit"`
 }
 
-func NewRegisterChainJSON(Title, Description, IBCConnection, TokenTransferChannel, TokenTransferPort, BaseDenom, MintDenom, MinDeposit, PStakeFee, Deposit string) RegisterCosmosChainProposalJSON {
+func NewRegisterChainJSON(Title, Description, IBCConnection, TokenTransferChannel, TokenTransferPort, BaseDenom, MintDenom, MinDeposit, PStakeDepositFee, Deposit string) RegisterCosmosChainProposalJSON {
 	return RegisterCosmosChainProposalJSON{
 		Title:                Title,
 		Description:          Description,
@@ -48,7 +48,7 @@ func NewRegisterChainJSON(Title, Description, IBCConnection, TokenTransferChanne
 		BaseDenom:            BaseDenom,
 		MintDenom:            MintDenom,
 		MinDeposit:           MinDeposit,
-		PStakeFee:            PStakeFee,
+		PStakeDepositFee:     PStakeDepositFee,
 		Deposit:              Deposit,
 	}
 }

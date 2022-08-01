@@ -24,7 +24,7 @@ message RegisterCosmosChainProposal {
   string base_denom = 6;
   string mint_denom = 7;
   string min_deposit = 8;
-  string p_stake_fee = 9;  //protocol fee in percentage
+  string p_stake_deposit_fee = 9;  //protocol fee in percentage
 }
 
 message CosmosIBCParams {
@@ -36,5 +36,5 @@ message CosmosIBCParams {
   string base_denom = 4;
   string mint_denom = 5;
   string min_deposit = 6 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
-  string p_stake_fee = 7 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
+  string p_stake_deposit_fee = 7 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
 }

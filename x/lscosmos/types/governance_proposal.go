@@ -20,7 +20,7 @@ func init() {
 }
 
 // NewRegisterCosmosChainProposal creates a new multisig change proposal.
-func NewRegisterCosmosChainProposal(title, description, ibcConnection, tokenTransferChannel, tokenTransferPort, baseDenom, mintDenom string, minDeposit string, pStakeFee string) *RegisterCosmosChainProposal {
+func NewRegisterCosmosChainProposal(title, description, ibcConnection, tokenTransferChannel, tokenTransferPort, baseDenom, mintDenom string, minDeposit string, pStakeDepositFee string) *RegisterCosmosChainProposal {
 	return &RegisterCosmosChainProposal{
 		Title:                title,
 		Description:          description,
@@ -30,7 +30,7 @@ func NewRegisterCosmosChainProposal(title, description, ibcConnection, tokenTran
 		BaseDenom:            baseDenom,
 		MintDenom:            mintDenom,
 		MinDeposit:           minDeposit,
-		PStakeFee:            pStakeFee,
+		PStakeDepositFee:     pStakeDepositFee,
 	}
 }
 
@@ -87,7 +87,7 @@ MintDenom: 			 %s
 	return b.String()
 }
 
-func NewCosmosIBCParams(ibcConnection, channel, port, baseDenom, mintDenom string, minDeposit sdkTypes.Int, pStakeFee sdkTypes.Dec) CosmosIBCParams {
+func NewCosmosIBCParams(ibcConnection, channel, port, baseDenom, mintDenom string, minDeposit sdkTypes.Int, pStakeDepositFee sdkTypes.Dec) CosmosIBCParams {
 	return CosmosIBCParams{
 		IBCConnection:        ibcConnection,
 		TokenTransferChannel: channel,
@@ -95,6 +95,6 @@ func NewCosmosIBCParams(ibcConnection, channel, port, baseDenom, mintDenom strin
 		BaseDenom:            baseDenom,
 		MintDenom:            mintDenom,
 		MinDeposit:           minDeposit,
-		PStakeFee:            pStakeFee,
+		PStakeDepositFee:     pStakeDepositFee,
 	}
 }

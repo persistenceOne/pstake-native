@@ -27,12 +27,12 @@ func HandleRegisterCosmosChainProposal(ctx sdk.Context, k keeper.Keeper, content
 	if !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum deposit must be a positive integer")
 	}
-	pStakeFee, err := sdk.NewDecFromStr(content.PStakeFee)
+	pStakeDepositFee, err := sdk.NewDecFromStr(content.PStakeDepositFee)
 	if err != nil {
 		return err
 	}
 	paramsProposal := types.NewCosmosIBCParams(content.IBCConnection, content.TokenTransferChannel,
-		content.TokenTransferPort, content.BaseDenom, content.MintDenom, minDeposit, pStakeFee)
+		content.TokenTransferPort, content.BaseDenom, content.MintDenom, minDeposit, pStakeDepositFee)
 
 	k.SetCosmosIBCParams(ctx, paramsProposal)
 	return nil

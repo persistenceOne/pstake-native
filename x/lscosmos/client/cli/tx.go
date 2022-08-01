@@ -60,14 +60,16 @@ important that any value change is valid.
 
 Example Proposal :
 {
-  "title": "register cosmos chain proposal",
-  "description": "this proposal register cosmos chain params in the chain",
-  "ibc_connection": "test connection",
-  "token_transfer_channel": "test-channel-1",
-  "token_transfer_port": "test-transfer",
-  "base_denom": "uatom",
-  "mint_denom": "ustkatom",
-  "deposit": "100stake"
+	"title": "register cosmos chain proposal",
+	"description": "this proposal register cosmos chain params in the chain",
+	"ibc_connection": "test connection",
+	"token_transfer_channel": "test-channel-1",
+	"token_transfer_port": "test-transfer",
+	"base_denom": "uatom",
+	"mint_denom": "ustkatom",
+	"min_deposit": "5",
+	"p_stake_deposit_fee": "0.1",
+	"deposit": "100stake"
 }
 
 Example:
@@ -97,7 +99,7 @@ $ %s tx gov submit-proposal register-cosmos-chain <path/to/proposal.json> --from
 				proposal.BaseDenom,
 				proposal.MintDenom,
 				proposal.MinDeposit,
-				proposal.PStakeFee,
+				proposal.PStakeDepositFee,
 			)
 
 			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)

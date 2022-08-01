@@ -81,7 +81,7 @@ func postRegisterChainHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			req.BaseDenom,
 			req.MintDenom,
 			req.MinDeposit,
-			req.PStakeFee,
+			req.PStakeDepositFee,
 		)
 
 		msg, err := govtypes.NewMsgSubmitProposal(content, req.Deposit, req.Proposer)
