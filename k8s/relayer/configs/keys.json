@@ -1,0 +1,28 @@
+{
+  "keys": [
+    {
+      "name": "persistence",
+      "type": "local",
+      "chainid": "pstaked",
+      "address": "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "Aw57xBfOrMyTep3ULDevI1R9/RpoNu3VvKM/w+D0hp7z"
+      },
+      "mnemonic": "opinion knife other balcony surge more bamboo canoe romance ask argue teach anxiety adjust spike mystery wolf alone torch tail six decide wash alley"
+    },
+    {
+      "name": "cosmos",
+      "type": "local",
+      "chainid": "gaiad",
+      "address": "cosmos1hcqg5wj9t42zawqkqucs7la85ffyv08lum327c",
+      "pubkey": {
+        "@type": "/cosmos.crypto.secp256k1.PubKey",
+        "key": "A2L7bEp1Y89hBqXA/Bsbw2gPLxmFNj6SAVVoXZdT7YAd"
+      },
+      "mnemonic": "together chief must vocal account off apart dinosaur move canvas spring whisper improve cruise idea earn reflect flash goat illegal mistake blood earn ridge"
+    }
+  ]
+}
+
+

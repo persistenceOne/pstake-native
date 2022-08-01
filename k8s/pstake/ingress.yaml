@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-pstake-rest
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+spec:
+  tls:
+    - secretName: cloudflare-tls
+      hosts:
+        - rest.devnet.persistence.pstake.finance
+  rules:
+    - host: rest.devnet.persistence.pstake.finance
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pstake-genesis
+                port:
+                  number: 1317
+  ingressClassName: nginx

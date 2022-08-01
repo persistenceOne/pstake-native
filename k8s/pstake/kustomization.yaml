@@ -3,6 +3,7 @@ resources:
 - configmap.yaml
 - genesis.yaml
 - validator.yaml
+- ingress.yaml
 
 generatorOptions:
   disableNameSuffixHash: true

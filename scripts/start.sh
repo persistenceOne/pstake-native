@@ -18,8 +18,8 @@ echo "$mnemonic2" | pstaked keys add test2 --recover --keyring-backend=test
 
 echo "$mnemonic3" | pstaked keys add test3 --recover --keyring-backend=test
 
-pstaked add-genesis-account test 10000000000000000000stake,1000000000ustkstake  --keyring-backend=test
-pstaked gentx test 100000000stake --chain-id test --keyring-backend=test
+pstaked add-genesis-account test 10000000000000000000uxprt --keyring-backend=test
+pstaked gentx test 100000000uxprt --chain-id test --keyring-backend=test
 pstaked collect-gentxs
 
 

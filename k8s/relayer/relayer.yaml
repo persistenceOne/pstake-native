@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: relayer
+  namespace: dev-native
+spec:
+  serviceName: relayer
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: relayer
+      app.kubernetes.io/name: relayer
+  template:
+    metadata:
+      annotations:
+        quality: release
+        role: api-gateway
+        sla: high
+        tier: gateway
+      labels:
+        app.kubernetes.io/instance: relayer
+        app.kubernetes.io/type: relayer
+        app.kubernetes.io/name: relayer
+        app.kubernetes.io/version: '0.1'
+    spec:
+      imagePullSecrets:
+        - name: test-docker-creds
+      containers:
+        - name: relayer
+          image: informalsystems/hermes:0.15.0
+          imagePullPolicy: Always
+          env:
+            - name: RELAYER_DIR
+              value: /root/.hermes
+            - name: CONFIG
+              value: "config"
+          command:
+            - bash
+            - "-c"
+            - |
+              apt update
+              apt -y install jq
+              mkdir $RELAYER_DIR
+              CONFIG_FILE="$CONFIG.toml"
+              echo "$CONFIG_FILE"
+              cp /configs/$CONFIG_FILE $RELAYER_DIR/config.toml
+              # Starting
+              cat $RELAYER_DIR/config.toml
+              for ((i=0; i<$(jq -r '.keys | length' /configs/keys.json); i++))
+              do
+                hermes keys restore --mnemonic "$(jq -r ".keys[$i].mnemonic" /configs/keys.json)" $(jq -r ".keys[$i].chainid" /configs/keys.json) -n $(jq -r ".keys[$i].name" /configs/keys.json)
+              done
+              hermes start
+              sleep 5000000
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: "0.5"
+              memory: 0.5Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+          volumeMounts:
+            - mountPath: /relayer
+              name: relayer
+            - mountPath: /configs
+              name: relayer-config
+      volumes:
+        - name: relayer
+          emptyDir: { }
+        - name: relayer-config
+          configMap:
+            name: test-relayer-config
+---

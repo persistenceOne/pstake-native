@@ -61,7 +61,7 @@ spec:
         imagePullPolicy: Always
         env:
         - name: COINS
-          value: "10000000000stake"
+          value: "10000000000uatom"
         - name: CHAIN_ID
           valueFrom:
             configMapKeyRef:
@@ -94,7 +94,7 @@ spec:
               jq -r ".keys[$i].mnemonic" /configs/keys.json | gaiad keys add $(jq -r ".keys[$i].name" /configs/keys.json) --recover --keyring-backend='test' --home $GAIA_DIR
             done
 
-            gaiad gentx $(jq -r ".genesis[0].name" /configs/validators.json) 8000000000stake --keyring-backend="test" --chain-id $CHAIN_ID --home $GAIA_DIR
+            gaiad gentx $(jq -r ".genesis[0].name" /configs/validators.json) 8000000000uatom --keyring-backend="test" --chain-id $CHAIN_ID --home $GAIA_DIR
             echo "Output of gentx"
             cat $GAIA_DIR/config/gentx/*.json | jq
 
@@ -106,10 +106,11 @@ spec:
             sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' $GAIA_DIR/config/config.toml
             sed -i 's/index_all_keys = false/index_all_keys = true/g' $GAIA_DIR/config/config.toml
             sed -i 's/unsafe = false/unsafe = true/g' $GAIA_DIR/config/config.toml
-            sed -i 's/minimum-gas-prices = ""/minimum-gas-prices = "0.00stake"/g' $GAIA_DIR/config/config.toml
+            sed -i 's/minimum-gas-prices = ""/minimum-gas-prices = "0.00uatom"/g' $GAIA_DIR/config/config.toml
 
             sed -i 's/enable = false/enable = true/g' $GAIA_DIR/config/app.toml
             sed -i 's/swagger = false/swagger = true/g' $GAIA_DIR/config/app.toml
+            sed -i 's/enabled-unsafe-cors = false/enabled-unsafe-cors = true/g' $GAIA_DIR/config/app.toml
 
             jq '.consensus_params.block.max_bytes |= "42020096"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
             mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
@@ -118,6 +119,17 @@ spec:
             jq '.app_state.gov.tally_params.quorum |= "0.0"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
             mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
             jq '.app_state.gov.deposit_params.min_deposit[0].amount |= "10"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
+            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
+          
+            jq '.app_state.crisis.constant_fee.denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
+            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
+            jq '.app_state.gov.deposit_params.min_deposit[0].denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
+            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
+            jq '.app_state.liquidity.params.pool_creation_fee[0].denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
+            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
+            jq '.app_state.mint.params.mint_denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
+            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
+            jq '.app_state.staking.params.bond_denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
             mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
 
             gaiad tendermint show-node-id --home $GAIA_DIR > /gaiad/genesis-node-id.txt
