@@ -41,7 +41,9 @@ func testProposal(
 	channel,
 	transfer,
 	uatom,
-	ustkatom string) *types.RegisterCosmosChainProposal {
+	ustkatom,
+	minDeposit,
+	pStakeFee string) *types.RegisterCosmosChainProposal {
 	return types.NewRegisterCosmosChainProposal(
 		title,
 		description,
@@ -50,6 +52,8 @@ func testProposal(
 		transfer,
 		uatom,
 		ustkatom,
+		minDeposit,
+		pStakeFee,
 	)
 }
 
@@ -68,6 +72,8 @@ func (suite *IntegrationTestSuite) TestMintToken() {
 		TokenTransferPort:    "test-transfer",
 		BaseDenom:            "uatom",
 		MintDenom:            "ustkatom",
+		MinDeposit:           "5",
+		PStakeFee:            "0.1",
 	}
 
 	ibcDenom := ibcTransferTypes.GetPrefixedDenom(testParams.TokenTransferPort, testParams.TokenTransferChannel, testParams.BaseDenom)

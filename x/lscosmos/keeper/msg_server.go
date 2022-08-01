@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibcTransferTypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
@@ -28,8 +29,24 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 
 	ctx := sdkTypes.UnwrapSDKContext(goCtx)
 
-	// check if ibc-denom is whitelisted
+	// sanity check for the arguments of message
+	if ctx.IsZero() || !msg.Amount.IsValid() {
+		return nil, types.ErrInvalidArgs
+	}
+
+	//GetParams
 	ibcParams := m.GetCosmosIBCParams(ctx)
+
+	//check for minimum deposit amount
+	if msg.Amount.Amount.LT(ibcParams.MinDeposit) {
+		return nil, types.ErrMinDeposit
+	}
+
+	// check if ibc-denom is whitelisted
+	// TODO: Modify the check to a regex-based approach to accomodate staking of delegation vouchers
+	//	This approach will come handy if/ when we allow staking of liquid staking vouchers. As we might not be able to
+	//	allowlist all BaseDenoms and it will have to be done programatically.
+
 	expectedDenom := ibcTransferTypes.GetPrefixedDenom(ibcParams.TokenTransferPort, ibcParams.TokenTransferChannel, ibcParams.BaseDenom)
 	givenDenom := msg.Amount.Denom
 	if givenDenom != expectedDenom {
@@ -40,16 +57,6 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	delegatorAddress, err := sdkTypes.AccAddressFromBech32(msg.DelegatorAddress)
 	if err != nil {
 		return nil, sdkErrors.ErrInvalidAddress
-	}
-
-	// sanity check for the arguments of message
-	if ctx.IsZero() || !msg.Amount.IsValid() {
-		return nil, types.ErrInvalidArgs
-	}
-
-	//check for minimum deposit amount
-	if msg.Amount.Amount.LT(sdkTypes.NewInt(types.MinDeposit)) {
-		return nil, types.ErrMinDeposit
 	}
 
 	//send the deposit to the deposit-module account
@@ -66,17 +73,46 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		m.SendResidueToCommunityPool(ctx, sdkTypes.NewDecCoins(residue))
 	}
 
-	err = m.MintTokens(ctx, mintToken, delegatorAddress)
+	//Mint staked representative tokens in lscosmos module account
+	err = m.bankKeeper.MintCoins(ctx, types.ModuleName, sdkTypes.NewCoins(mintToken))
 	if err != nil {
 		return nil, types.ErrMintFailed
 	}
 
-	ctx.EventManager().EmitEvent(
+	//Calculate protocol fee
+	protocolFee := ibcParams.PStakeFee
+	protocolFeeAmount := protocolFee.MulInt(mintToken.Amount)
+	protocolCoins, residue := sdkTypes.NewDecCoinFromDec(ibcParams.MintDenom, protocolFeeAmount).TruncateDecimal()
+
+	if residue.Amount.GT(sdkTypes.NewDec(0)) {
+		m.SendResidueToCommunityPool(ctx, sdkTypes.NewDecCoins(residue))
+	}
+
+	//Send (mintedTokens - protocolTokens) to delegator address
+	err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delegatorAddress,
+		sdkTypes.NewCoins(mintToken))
+	if err != nil {
+		return nil, types.ErrMintFailed
+	}
+
+	//Send protocol fee to protocol pool
+	err = m.SendProtocolFee(ctx, sdkTypes.NewCoins(protocolCoins), delegatorAddress)
+	if err != nil {
+		return nil, types.ErrFailedDeposit
+	}
+
+	//TODO: emit ICA delegator module address?
+	ctx.EventManager().EmitEvents(sdkTypes.Events{
 		sdkTypes.NewEvent(
-			types.EventTypeMint,
+			types.EventTypeLiquidStake,
 			sdkTypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
 			sdkTypes.NewAttribute(types.AttributeAmountMinted, mintAmountDec.String()),
 		),
+		sdkTypes.NewEvent(
+			sdkTypes.EventTypeMessage,
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, types.AttributeKeyAck),
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeySender, msg.DelegatorAddress),
+		)},
 	)
 	return &types.MsgLiquidStakeResponse{}, nil
 }

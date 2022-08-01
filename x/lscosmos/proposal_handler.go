@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
 	"github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
@@ -24,6 +23,17 @@ func NewLSCosmosProposalHandler(k keeper.Keeper) govtypes.Handler {
 
 // HandleRegisterCosmosChainProposal performs the writes cosmos ICB params.
 func HandleRegisterCosmosChainProposal(ctx sdk.Context, k keeper.Keeper, content types.RegisterCosmosChainProposal) error {
-	k.SetCosmosIBCParams(ctx, content)
+	minDeposit, ok := sdk.NewIntFromString(content.MinDeposit)
+	if !ok {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum deposit must be a positive integer")
+	}
+	pStakeFee, err := sdk.NewDecFromStr(content.PStakeFee)
+	if err != nil {
+		return err
+	}
+	paramsProposal := types.NewCosmosIBCParams(content.IBCConnection, content.TokenTransferChannel,
+		content.TokenTransferPort, content.BaseDenom, content.MintDenom, minDeposit, pStakeFee)
+
+	k.SetCosmosIBCParams(ctx, paramsProposal)
 	return nil
 }

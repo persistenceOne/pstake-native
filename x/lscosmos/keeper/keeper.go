@@ -147,3 +147,13 @@ func (k Keeper) SendResidueToCommunityPool(ctx sdk.Context, residue []sdk.DecCoi
 	feePool.CommunityPool = feePool.CommunityPool.Add(residue...)
 	k.distributionKeeper.SetFeePool(ctx, feePool)
 }
+
+//SendProtocolFee to the community pool
+func (k Keeper) SendProtocolFee(ctx sdk.Context, protocolFee []sdk.Coin, delegatorAddr sdk.AccAddress) error {
+	//TODO : create pstake community pool
+	err := k.distributionKeeper.FundCommunityPool(ctx, protocolFee, delegatorAddr)
+	if err != nil {
+		return err
+	}
+	return nil
+}

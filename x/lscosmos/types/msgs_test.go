@@ -2,14 +2,15 @@ package types
 
 import (
 	"fmt"
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestMsgLiquidStakeRoute(t *testing.T) {
 	delegatorAddr := sdk.AccAddress([]byte("delegatorAddress"))
-	mintToken := sdk.NewInt64Coin("ustktest", 10)
+	mintToken := sdk.NewInt64Coin("atom", 10)
 	var msg = NewMsgLiquidStake(mintToken, delegatorAddr)
 
 	require.Equal(t, msg.Route(), RouterKey)
@@ -47,19 +48,21 @@ func TestMsgLiquidStakeValidation(t *testing.T) {
 
 func TestNewMsgLiquidStakeGetSignBytes(t *testing.T) {
 	addr := sdk.AccAddress([]byte("input"))
-	coin := sdk.NewInt64Coin("stkstake", 10)
+	coin := sdk.NewInt64Coin("atom", 10)
 	var msg = NewMsgLiquidStake(coin, addr)
 	res := msg.GetSignBytes()
 	fmt.Println(res)
 
-	excepted := `{"amount":{"amount":"10","denom":"stkstake"},"delagotor_address":"cosmos1d9h8qat57ljhcm"}`
+	excepted := `{"amount":{"amount":"10","denom":"atom"},"delagotor_address":"cosmos1d9h8qat57ljhcm"}`
 	require.Equal(t, excepted, string(res))
 
 }
 
 func TestMsgLiquidStakeGetSigners(t *testing.T) {
-	var msg = NewMsgLiquidStake(sdk.NewCoin("stktest", sdk.NewInt(10)), sdk.AccAddress([]byte("input111111111111111")))
+	var msg = NewMsgLiquidStake(sdk.NewCoin("atom", sdk.NewInt(10)), sdk.AccAddress([]byte("input111111111111111")))
 	res := msg.GetSigners()
+	err := fmt.Sprintf("%v", res)
+	fmt.Println(err)
 	require.Equal(t, fmt.Sprintf("%v", res), "[696E707574313131313131313131313131313131]")
 
 }

@@ -96,6 +96,8 @@ $ %s tx gov submit-proposal register-cosmos-chain <path/to/proposal.json> --from
 				proposal.TokenTransferPort,
 				proposal.BaseDenom,
 				proposal.MintDenom,
+				proposal.MinDeposit,
+				proposal.PStakeFee,
 			)
 
 			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)

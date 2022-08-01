@@ -5,12 +5,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/persistenceOne/pstake-native/app"
 	"github.com/persistenceOne/pstake-native/app/helpers"
 	ls_cosmos "github.com/persistenceOne/pstake-native/x/lscosmos"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/stretchr/testify/suite"
 )
 
 type HandlerTestSuite struct {
@@ -40,7 +39,7 @@ func (suite *HandlerTestSuite) TestProposalHandler() {
 	}{
 		{
 			"all fields",
-			types.NewRegisterCosmosChainProposal("title", "description", "connection", "channel-1", "transfer", "uatom", "ustkatom"),
+			types.NewRegisterCosmosChainProposal("title", "description", "connection", "channel-1", "transfer", "uatom", "ustkatom", "5", "0"),
 			false,
 		},
 	}

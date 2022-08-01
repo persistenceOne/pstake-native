@@ -11,7 +11,16 @@ order: 4
 ```go
 // Keeper is the interface for ls-cosmos module keeper
 type Keeper interface{
+	
     // MintTokens for a given whitelisted IBC Token
-    mintTokens(ctx sdk.Context, mintCoin sdk.Coin, delegatorAddress sdk.AccAddress) error
+    mintTokens(ctx sdk.Context, mintCoin sdk.Coin, delegatorAddress sdk.AccAddress) error 
+    //SendTokens to the DepositModuleAccount
+    SendTokensToDepositModule(ctx sdk.Context, depositCoin sdk.Coins, senderAddress sdk.AccAddress) 
+    //Send residue coins to CommunityPool
+    SendResidueToCommunityPool(ctx sdk.Context, residue []sdk.DecCoin)
+    //Send ProtocolFee to protocol community pool
+    SendProtocolFee(ctx sdk.Context, protocolFee []sdk.Coin, delegatorAddr sdk.AccAddress) error
 }
+
+
 ```

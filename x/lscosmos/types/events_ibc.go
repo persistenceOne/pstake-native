@@ -2,8 +2,8 @@ package types
 
 // IBC events
 const (
-	EventTypeTimeout = "timeout"
-	EventTypeMint    = "mint-tokens"
+	EventTypeTimeout     = "timeout"
+	EventTypeLiquidStake = "liquid-stake"
 	// this line is used by starport scaffolding # ibc/packet/event
 
 	AttributeKeyAckSuccess    = "success"
@@ -11,4 +11,5 @@ const (
 	AttributeKeyAckError      = "error"
 	AttributeAmountMinted     = "amount"
 	AttributeDelegatorAddress = "address"
+	AttributeValueCategory    = ModuleName
 )
