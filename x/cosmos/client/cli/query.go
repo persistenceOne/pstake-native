@@ -39,9 +39,11 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryVote(),
 		GetCmdQueryVotes(),
 		GetCmdQueryCosmosValidatorSet(),
-		GetCmdQueryOracleValidatorSet(),
+		GetCmdQueryOrchestratorValidatorSet(),
 		GetCmdQueryValidatorMapping(),
-		GetCmdQueryOracleHeight(),
+		GetCmdQueryOrchestratorHeight(),
+		GetCmdQueryCosmosBalance(),
+		GetCmdQueryActiveTxn(),
 	)
 
 	return cosmosQueryCmd
@@ -368,10 +370,10 @@ func GetCmdQueryCosmosValidatorSet() *cobra.Command {
 	return cmd
 }
 
-func GetCmdQueryOracleValidatorSet() *cobra.Command {
+func GetCmdQueryOrchestratorValidatorSet() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "oracle-validator-set",
-		Short: "Query oracle validator set",
+		Use:   "orchestrator-validator-set",
+		Short: "Query orchestrator validator set",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -380,8 +382,8 @@ func GetCmdQueryOracleValidatorSet() *cobra.Command {
 			}
 			queryClient := cosmosTypes.NewQueryClient(clientCtx)
 
-			params := &cosmosTypes.QueryOracleValidatorSetRequest{}
-			res, err := queryClient.OracleValidatorSet(context.Background(), params)
+			params := &cosmosTypes.QueryOrchestratorValidatorSetRequest{}
+			res, err := queryClient.OrchestratorValidatorSet(context.Background(), params)
 
 			if err != nil {
 				return err
@@ -424,10 +426,10 @@ func GetCmdQueryValidatorMapping() *cobra.Command {
 	return cmd
 }
 
-func GetCmdQueryOracleHeight() *cobra.Command {
+func GetCmdQueryOrchestratorHeight() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "oracle-height [oracle-address]",
-		Short: "Query oracle height",
+		Use:   "orchestrator-height [orchestrator-address]",
+		Short: "Query orchestrator height",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -436,8 +438,64 @@ func GetCmdQueryOracleHeight() *cobra.Command {
 			}
 			queryClient := cosmosTypes.NewQueryClient(clientCtx)
 
-			params := &cosmosTypes.QueryOracleLastUpdateHeightRequest{OracleAddress: args[0]}
-			res, err := queryClient.OracleHeight(context.Background(), params)
+			params := &cosmosTypes.QueryOrchestratorLastUpdateHeightRequest{OrchestratorAddress: args[0]}
+			res, err := queryClient.OrchestratorHeight(context.Background(), params)
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryCosmosBalance() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "cosmos-balances",
+		Short: "Query orchestrator height",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := cosmosTypes.NewQueryClient(clientCtx)
+
+			params := &cosmosTypes.QueryCosmosBalanceRequest{}
+			res, err := queryClient.CosmosBalance(context.Background(), params)
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryActiveTxn() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "active-transaction",
+		Short: "Query active transaction",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := cosmosTypes.NewQueryClient(clientCtx)
+
+			params := &cosmosTypes.QueryActiveTxnRequest{}
+			res, err := queryClient.ActiveTxn(context.Background(), params)
 
 			if err != nil {
 				return err

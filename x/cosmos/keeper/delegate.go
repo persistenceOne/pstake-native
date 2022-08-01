@@ -10,12 +10,12 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-// Generate an event for delegating on cosmos chain once staking epoch is called
-func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []ValAddressAmount, epochNumber int64) error {
+// generateDelegateOutgoingEvent Generate an event for delegating on cosmos chain once staking epoch is called
+func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []ValAddressAmount) error {
 	params := k.GetParams(ctx)
 
 	//create chunks for delegation on cosmos chain
-	chunkSlice := ChunkStakeAndUnStakeSlice(validatorSet, params.ChunkSize)
+	chunkSlice := ChunkDelegateAndUndelegateSlice(validatorSet, params.ChunkSize)
 
 	for _, chunk := range chunkSlice {
 		nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
@@ -24,7 +24,7 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 		for _, element := range chunk {
 			msg := stakingTypes.MsgDelegate{
 				DelegatorAddress: params.CustodialAddress,
-				ValidatorAddress: element.Validator.String(),
+				ValidatorAddress: element.Validator,
 				Amount:           element.Amount,
 			}
 			anyMsg, err := codecTypes.NewAnyWithValue(&msg)
@@ -34,8 +34,12 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 			delegateMsgsAny = append(delegateMsgsAny, anyMsg)
 		}
 
+		cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
+		if err != nil {
+			return err
+		}
 		execMsg := authz.MsgExec{
-			Grantee: k.getCurrentAddress(ctx).String(),
+			Grantee: cosmosAddrr,
 			Msgs:    delegateMsgsAny,
 		}
 
@@ -55,7 +59,7 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 					SignerInfos: nil,
 					Fee: &sdkTx.Fee{
 						Amount:   nil,
-						GasLimit: 200000,
+						GasLimit: cosmosTypes.MinGasFee,
 						Payer:    "",
 					},
 				},
@@ -65,37 +69,17 @@ func (k Keeper) generateDelegateOutgoingEvent(ctx sdk.Context, validatorSet []Va
 			Status:            "",
 			TxHash:            "",
 			ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
-			SignerAddress:     k.getCurrentAddress(ctx).String(),
+			SignerAddress:     cosmosAddrr,
 		}
 
 		// set acknowledgment flag true for future reference (not any yet)
 
-		//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
-		k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+		// Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
+		k.SetNewTxnInOutgoingPool(ctx, nextID, tx)
 
-		k.setNewInTransactionQueue(ctx, nextID)
+		// sets the transaction in transaction queue with the given tx ID
+		k.SetNewInTransactionQueue(ctx, nextID)
 	}
 
 	return nil
-}
-
-//______________________________________________________________________________________________________________________
-func (k Keeper) setTotalDelegatedAmountTillDate(ctx sdk.Context, addToTotal sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	bz, err := k.cdc.Marshal(&addToTotal)
-	if err != nil {
-		panic(err)
-	}
-	store.Set(cosmosTypes.KeyTotalDelegationTillDate, bz)
-}
-
-func (k Keeper) getTotalDelegatedAmountTillDate(ctx sdk.Context) sdk.Coin {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(cosmosTypes.KeyTotalDelegationTillDate)
-	var amount sdk.Coin
-	err := k.cdc.Unmarshal(bz, &amount)
-	if err != nil {
-		panic(err)
-	}
-	return amount
 }

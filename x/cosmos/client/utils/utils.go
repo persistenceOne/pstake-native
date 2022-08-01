@@ -27,9 +27,9 @@ type ChangeCosmosValidatorWeightsProposalReq struct {
 	CosmosValidatorSet ChangeCosmosValidatorWeightsProposalJSON `json:"cosmos_validator_set" yaml:"cosmos_validator_set"`
 }
 
-type ChangeOracleValidatorWeightsProposalReq struct {
-	BaseReq            rest.BaseReq                             `json:"base_req" yaml:"base_req"`
-	OracleValidatorSet ChangeOracleValidatorWeightsProposalJSON `json:"oracle_validator_set" yaml:"oracle_validator_set"`
+type ChangeOrchestratorValidatorWeightsProposalReq struct {
+	BaseReq                  rest.BaseReq                                   `json:"base_req" yaml:"base_req"`
+	OrchestratorValidatorSet ChangeOrchestratorValidatorWeightsProposalJSON `json:"orchestrator_validator_set" yaml:"orchestrator_validator_set"`
 }
 
 type EnableModuleProposalJSON struct {
@@ -37,9 +37,13 @@ type EnableModuleProposalJSON struct {
 	Description           string   `json:"description" yaml:"description"`
 	Threshold             uint64   `json:"threshold" yaml:"threshold"`
 	AccountNumber         uint64   `json:"account_number" yaml:"account_number"`
+	SequenceNumber        uint64   `json:"sequence_number" yaml:"sequence_number"`
 	OrchestratorAddresses []string `json:"orchestrator_addresses" yaml:"orchestrator_addresses"`
 	Depositor             string   `json:"depositor" yaml:"depositor"`
 	Deposit               string   `json:"deposit" yaml:"deposit"`
+	CustodialAddress      string   `json:"custodial_address" yaml:"custodial_address"`
+	ChainID               string   `json:"chain_id" yaml:"chain_id"`
+	Denom                 string   `json:"denom" yaml:"denom"`
 }
 
 type ChangeMultisigPropsoalJSON struct {
@@ -60,7 +64,7 @@ type ChangeCosmosValidatorWeightsProposalJSON struct {
 	Deposit           string              `json:"deposit" yaml:"deposit"`
 }
 
-type ChangeOracleValidatorWeightsProposalJSON struct {
+type ChangeOrchestratorValidatorWeightsProposalJSON struct {
 	Title             string              `json:"title" yaml:"title"`
 	Description       string              `json:"description" yaml:"description"`
 	WeightedAddresses []WeightedAddresses `json:"weighted_addresses" yaml:"weighted_addresses"`
@@ -114,8 +118,6 @@ func NormalizeProposalStatus(status string) string {
 		return cosmosTypes.StatusVotingPeriod.String()
 	case "Passed", "passed":
 		return cosmosTypes.StatusPassed.String()
-	case "Rejected", "rejected":
-		return cosmosTypes.StatusRejected.String()
 	default:
 		return status
 	}
@@ -169,9 +171,9 @@ func ParseChangeCosmosValidatorWeightsProposalJSON(
 	return proposal, nil
 }
 
-func ParseChangeOracleValidatorWeightsProposalJSON(
-	cdc *codec.LegacyAmino, proposalFile string) (ChangeOracleValidatorWeightsProposalJSON, error) {
-	proposal := ChangeOracleValidatorWeightsProposalJSON{}
+func ParseChangeOrchestratorValidatorWeightsProposalJSON(
+	cdc *codec.LegacyAmino, proposalFile string) (ChangeOrchestratorValidatorWeightsProposalJSON, error) {
+	proposal := ChangeOrchestratorValidatorWeightsProposalJSON{}
 
 	contents, err := ioutil.ReadFile(proposalFile)
 	if err != nil {

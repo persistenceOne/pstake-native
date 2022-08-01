@@ -6,6 +6,8 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
 	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
@@ -642,21 +644,21 @@ func (m *QueryCosmosValidatorSetResponse) GetWeightedAddresses() []WeightedAddre
 	return nil
 }
 
-type QueryOracleValidatorSetRequest struct {
+type QueryOrchestratorValidatorSetRequest struct {
 }
 
-func (m *QueryOracleValidatorSetRequest) Reset()         { *m = QueryOracleValidatorSetRequest{} }
-func (m *QueryOracleValidatorSetRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryOracleValidatorSetRequest) ProtoMessage()    {}
-func (*QueryOracleValidatorSetRequest) Descriptor() ([]byte, []int) {
+func (m *QueryOrchestratorValidatorSetRequest) Reset()         { *m = QueryOrchestratorValidatorSetRequest{} }
+func (m *QueryOrchestratorValidatorSetRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryOrchestratorValidatorSetRequest) ProtoMessage()    {}
+func (*QueryOrchestratorValidatorSetRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_30f44154155313ab, []int{14}
 }
-func (m *QueryOracleValidatorSetRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryOrchestratorValidatorSetRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryOracleValidatorSetRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryOrchestratorValidatorSetRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryOracleValidatorSetRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryOrchestratorValidatorSetRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -666,34 +668,34 @@ func (m *QueryOracleValidatorSetRequest) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *QueryOracleValidatorSetRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryOracleValidatorSetRequest.Merge(m, src)
+func (m *QueryOrchestratorValidatorSetRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryOrchestratorValidatorSetRequest.Merge(m, src)
 }
-func (m *QueryOracleValidatorSetRequest) XXX_Size() int {
+func (m *QueryOrchestratorValidatorSetRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryOracleValidatorSetRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryOracleValidatorSetRequest.DiscardUnknown(m)
+func (m *QueryOrchestratorValidatorSetRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryOrchestratorValidatorSetRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryOracleValidatorSetRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryOrchestratorValidatorSetRequest proto.InternalMessageInfo
 
-type QueryOracleValidatorSetResponse struct {
+type QueryOrchestratorValidatorSetResponse struct {
 	WeightedAddresses []WeightedAddress `protobuf:"bytes,1,rep,name=weighted_addresses,json=weightedAddresses,proto3" json:"weighted_addresses"`
 }
 
-func (m *QueryOracleValidatorSetResponse) Reset()         { *m = QueryOracleValidatorSetResponse{} }
-func (m *QueryOracleValidatorSetResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryOracleValidatorSetResponse) ProtoMessage()    {}
-func (*QueryOracleValidatorSetResponse) Descriptor() ([]byte, []int) {
+func (m *QueryOrchestratorValidatorSetResponse) Reset()         { *m = QueryOrchestratorValidatorSetResponse{} }
+func (m *QueryOrchestratorValidatorSetResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryOrchestratorValidatorSetResponse) ProtoMessage()    {}
+func (*QueryOrchestratorValidatorSetResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_30f44154155313ab, []int{15}
 }
-func (m *QueryOracleValidatorSetResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryOrchestratorValidatorSetResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryOracleValidatorSetResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryOrchestratorValidatorSetResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryOracleValidatorSetResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryOrchestratorValidatorSetResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -703,19 +705,19 @@ func (m *QueryOracleValidatorSetResponse) XXX_Marshal(b []byte, deterministic bo
 		return b[:n], nil
 	}
 }
-func (m *QueryOracleValidatorSetResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryOracleValidatorSetResponse.Merge(m, src)
+func (m *QueryOrchestratorValidatorSetResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryOrchestratorValidatorSetResponse.Merge(m, src)
 }
-func (m *QueryOracleValidatorSetResponse) XXX_Size() int {
+func (m *QueryOrchestratorValidatorSetResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryOracleValidatorSetResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryOracleValidatorSetResponse.DiscardUnknown(m)
+func (m *QueryOrchestratorValidatorSetResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryOrchestratorValidatorSetResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryOracleValidatorSetResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryOrchestratorValidatorSetResponse proto.InternalMessageInfo
 
-func (m *QueryOracleValidatorSetResponse) GetWeightedAddresses() []WeightedAddress {
+func (m *QueryOrchestratorValidatorSetResponse) GetWeightedAddresses() []WeightedAddress {
 	if m != nil {
 		return m.WeightedAddresses
 	}
@@ -818,22 +820,24 @@ func (m *QueryValidatorMappingResponse) GetOrchestratorAddress() []string {
 	return nil
 }
 
-type QueryOracleLastUpdateHeightRequest struct {
-	OracleAddress string `protobuf:"bytes,1,opt,name=oracle_address,json=oracleAddress,proto3" json:"oracle_address,omitempty"`
+type QueryOrchestratorLastUpdateHeightRequest struct {
+	OrchestratorAddress string `protobuf:"bytes,1,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
 }
 
-func (m *QueryOracleLastUpdateHeightRequest) Reset()         { *m = QueryOracleLastUpdateHeightRequest{} }
-func (m *QueryOracleLastUpdateHeightRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryOracleLastUpdateHeightRequest) ProtoMessage()    {}
-func (*QueryOracleLastUpdateHeightRequest) Descriptor() ([]byte, []int) {
+func (m *QueryOrchestratorLastUpdateHeightRequest) Reset() {
+	*m = QueryOrchestratorLastUpdateHeightRequest{}
+}
+func (m *QueryOrchestratorLastUpdateHeightRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryOrchestratorLastUpdateHeightRequest) ProtoMessage()    {}
+func (*QueryOrchestratorLastUpdateHeightRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_30f44154155313ab, []int{18}
 }
-func (m *QueryOracleLastUpdateHeightRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryOrchestratorLastUpdateHeightRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryOracleLastUpdateHeightRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryOrchestratorLastUpdateHeightRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryOracleLastUpdateHeightRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryOrchestratorLastUpdateHeightRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -843,42 +847,46 @@ func (m *QueryOracleLastUpdateHeightRequest) XXX_Marshal(b []byte, deterministic
 		return b[:n], nil
 	}
 }
-func (m *QueryOracleLastUpdateHeightRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryOracleLastUpdateHeightRequest.Merge(m, src)
+func (m *QueryOrchestratorLastUpdateHeightRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryOrchestratorLastUpdateHeightRequest.Merge(m, src)
 }
-func (m *QueryOracleLastUpdateHeightRequest) XXX_Size() int {
+func (m *QueryOrchestratorLastUpdateHeightRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryOracleLastUpdateHeightRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryOracleLastUpdateHeightRequest.DiscardUnknown(m)
+func (m *QueryOrchestratorLastUpdateHeightRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryOrchestratorLastUpdateHeightRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryOracleLastUpdateHeightRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryOrchestratorLastUpdateHeightRequest proto.InternalMessageInfo
 
-func (m *QueryOracleLastUpdateHeightRequest) GetOracleAddress() string {
+func (m *QueryOrchestratorLastUpdateHeightRequest) GetOrchestratorAddress() string {
 	if m != nil {
-		return m.OracleAddress
+		return m.OrchestratorAddress
 	}
 	return ""
 }
 
-type QueryOracleLastUpdateHeightResponse struct {
+type QueryOrchestratorLastUpdateHeightResponse struct {
 	BlockHeightCosmos int64 `protobuf:"varint,1,opt,name=block_height_cosmos,json=blockHeightCosmos,proto3" json:"block_height_cosmos,omitempty"`
 	BlockHeightNative int64 `protobuf:"varint,2,opt,name=block_height_native,json=blockHeightNative,proto3" json:"block_height_native,omitempty"`
 }
 
-func (m *QueryOracleLastUpdateHeightResponse) Reset()         { *m = QueryOracleLastUpdateHeightResponse{} }
-func (m *QueryOracleLastUpdateHeightResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryOracleLastUpdateHeightResponse) ProtoMessage()    {}
-func (*QueryOracleLastUpdateHeightResponse) Descriptor() ([]byte, []int) {
+func (m *QueryOrchestratorLastUpdateHeightResponse) Reset() {
+	*m = QueryOrchestratorLastUpdateHeightResponse{}
+}
+func (m *QueryOrchestratorLastUpdateHeightResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*QueryOrchestratorLastUpdateHeightResponse) ProtoMessage() {}
+func (*QueryOrchestratorLastUpdateHeightResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_30f44154155313ab, []int{19}
 }
-func (m *QueryOracleLastUpdateHeightResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryOrchestratorLastUpdateHeightResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryOracleLastUpdateHeightResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryOrchestratorLastUpdateHeightResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryOracleLastUpdateHeightResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryOrchestratorLastUpdateHeightResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -888,28 +896,188 @@ func (m *QueryOracleLastUpdateHeightResponse) XXX_Marshal(b []byte, deterministi
 		return b[:n], nil
 	}
 }
-func (m *QueryOracleLastUpdateHeightResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryOracleLastUpdateHeightResponse.Merge(m, src)
+func (m *QueryOrchestratorLastUpdateHeightResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryOrchestratorLastUpdateHeightResponse.Merge(m, src)
 }
-func (m *QueryOracleLastUpdateHeightResponse) XXX_Size() int {
+func (m *QueryOrchestratorLastUpdateHeightResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryOracleLastUpdateHeightResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryOracleLastUpdateHeightResponse.DiscardUnknown(m)
+func (m *QueryOrchestratorLastUpdateHeightResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryOrchestratorLastUpdateHeightResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryOracleLastUpdateHeightResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryOrchestratorLastUpdateHeightResponse proto.InternalMessageInfo
 
-func (m *QueryOracleLastUpdateHeightResponse) GetBlockHeightCosmos() int64 {
+func (m *QueryOrchestratorLastUpdateHeightResponse) GetBlockHeightCosmos() int64 {
 	if m != nil {
 		return m.BlockHeightCosmos
 	}
 	return 0
 }
 
-func (m *QueryOracleLastUpdateHeightResponse) GetBlockHeightNative() int64 {
+func (m *QueryOrchestratorLastUpdateHeightResponse) GetBlockHeightNative() int64 {
 	if m != nil {
 		return m.BlockHeightNative
+	}
+	return 0
+}
+
+type QueryCosmosBalanceRequest struct {
+}
+
+func (m *QueryCosmosBalanceRequest) Reset()         { *m = QueryCosmosBalanceRequest{} }
+func (m *QueryCosmosBalanceRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryCosmosBalanceRequest) ProtoMessage()    {}
+func (*QueryCosmosBalanceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_30f44154155313ab, []int{20}
+}
+func (m *QueryCosmosBalanceRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryCosmosBalanceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryCosmosBalanceRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryCosmosBalanceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryCosmosBalanceRequest.Merge(m, src)
+}
+func (m *QueryCosmosBalanceRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryCosmosBalanceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryCosmosBalanceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryCosmosBalanceRequest proto.InternalMessageInfo
+
+type QueryCosmosBalanceResponse struct {
+	Balance github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=balance,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"balance"`
+}
+
+func (m *QueryCosmosBalanceResponse) Reset()         { *m = QueryCosmosBalanceResponse{} }
+func (m *QueryCosmosBalanceResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryCosmosBalanceResponse) ProtoMessage()    {}
+func (*QueryCosmosBalanceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_30f44154155313ab, []int{21}
+}
+func (m *QueryCosmosBalanceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryCosmosBalanceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryCosmosBalanceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryCosmosBalanceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryCosmosBalanceResponse.Merge(m, src)
+}
+func (m *QueryCosmosBalanceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryCosmosBalanceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryCosmosBalanceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryCosmosBalanceResponse proto.InternalMessageInfo
+
+func (m *QueryCosmosBalanceResponse) GetBalance() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.Balance
+	}
+	return nil
+}
+
+type QueryActiveTxnRequest struct {
+}
+
+func (m *QueryActiveTxnRequest) Reset()         { *m = QueryActiveTxnRequest{} }
+func (m *QueryActiveTxnRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryActiveTxnRequest) ProtoMessage()    {}
+func (*QueryActiveTxnRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_30f44154155313ab, []int{22}
+}
+func (m *QueryActiveTxnRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryActiveTxnRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryActiveTxnRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryActiveTxnRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryActiveTxnRequest.Merge(m, src)
+}
+func (m *QueryActiveTxnRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryActiveTxnRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryActiveTxnRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryActiveTxnRequest proto.InternalMessageInfo
+
+type QueryActiveTxnResponse struct {
+	TxID uint64 `protobuf:"varint,1,opt,name=txID,proto3" json:"txID,omitempty"`
+}
+
+func (m *QueryActiveTxnResponse) Reset()         { *m = QueryActiveTxnResponse{} }
+func (m *QueryActiveTxnResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryActiveTxnResponse) ProtoMessage()    {}
+func (*QueryActiveTxnResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_30f44154155313ab, []int{23}
+}
+func (m *QueryActiveTxnResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryActiveTxnResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryActiveTxnResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryActiveTxnResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryActiveTxnResponse.Merge(m, src)
+}
+func (m *QueryActiveTxnResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryActiveTxnResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryActiveTxnResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryActiveTxnResponse proto.InternalMessageInfo
+
+func (m *QueryActiveTxnResponse) GetTxID() uint64 {
+	if m != nil {
+		return m.TxID
 	}
 	return 0
 }
@@ -929,89 +1097,103 @@ func init() {
 	proto.RegisterType((*QueryVotesResponse)(nil), "cosmos.v1beta1.QueryVotesResponse")
 	proto.RegisterType((*QueryCosmosValidatorSetRequest)(nil), "cosmos.v1beta1.QueryCosmosValidatorSetRequest")
 	proto.RegisterType((*QueryCosmosValidatorSetResponse)(nil), "cosmos.v1beta1.QueryCosmosValidatorSetResponse")
-	proto.RegisterType((*QueryOracleValidatorSetRequest)(nil), "cosmos.v1beta1.QueryOracleValidatorSetRequest")
-	proto.RegisterType((*QueryOracleValidatorSetResponse)(nil), "cosmos.v1beta1.QueryOracleValidatorSetResponse")
+	proto.RegisterType((*QueryOrchestratorValidatorSetRequest)(nil), "cosmos.v1beta1.QueryOrchestratorValidatorSetRequest")
+	proto.RegisterType((*QueryOrchestratorValidatorSetResponse)(nil), "cosmos.v1beta1.QueryOrchestratorValidatorSetResponse")
 	proto.RegisterType((*QueryValidatorMappingRequest)(nil), "cosmos.v1beta1.QueryValidatorMappingRequest")
 	proto.RegisterType((*QueryValidatorMappingResponse)(nil), "cosmos.v1beta1.QueryValidatorMappingResponse")
-	proto.RegisterType((*QueryOracleLastUpdateHeightRequest)(nil), "cosmos.v1beta1.QueryOracleLastUpdateHeightRequest")
-	proto.RegisterType((*QueryOracleLastUpdateHeightResponse)(nil), "cosmos.v1beta1.QueryOracleLastUpdateHeightResponse")
+	proto.RegisterType((*QueryOrchestratorLastUpdateHeightRequest)(nil), "cosmos.v1beta1.QueryOrchestratorLastUpdateHeightRequest")
+	proto.RegisterType((*QueryOrchestratorLastUpdateHeightResponse)(nil), "cosmos.v1beta1.QueryOrchestratorLastUpdateHeightResponse")
+	proto.RegisterType((*QueryCosmosBalanceRequest)(nil), "cosmos.v1beta1.QueryCosmosBalanceRequest")
+	proto.RegisterType((*QueryCosmosBalanceResponse)(nil), "cosmos.v1beta1.QueryCosmosBalanceResponse")
+	proto.RegisterType((*QueryActiveTxnRequest)(nil), "cosmos.v1beta1.QueryActiveTxnRequest")
+	proto.RegisterType((*QueryActiveTxnResponse)(nil), "cosmos.v1beta1.QueryActiveTxnResponse")
 }
 
 func init() { proto.RegisterFile("cosmos/v1beta1/query.proto", fileDescriptor_30f44154155313ab) }
 
 var fileDescriptor_30f44154155313ab = []byte{
-	// 1130 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x97, 0xcf, 0x4f, 0x1b, 0x47,
-	0x14, 0xc7, 0xbd, 0xc1, 0x44, 0xf0, 0x68, 0x09, 0x0c, 0x6e, 0x84, 0x36, 0xc1, 0xa6, 0x9b, 0x40,
-	0x11, 0x04, 0x2f, 0x3f, 0x22, 0x2a, 0x21, 0x54, 0x29, 0x04, 0x35, 0xa5, 0xb4, 0x25, 0x35, 0x34,
-	0x95, 0x72, 0xb1, 0xd6, 0xf6, 0x68, 0x59, 0xc5, 0x78, 0x36, 0x3b, 0x63, 0x62, 0x94, 0xa2, 0x4a,
-	0xfd, 0x21, 0xf5, 0xd0, 0x2a, 0xad, 0xfa, 0x07, 0x34, 0x3d, 0xf4, 0xd2, 0x63, 0xff, 0x8a, 0x1c,
-	0x23, 0xf5, 0xd2, 0x53, 0x55, 0x41, 0x0f, 0xfd, 0x13, 0x7a, 0xac, 0x3c, 0xf3, 0xc6, 0x5e, 0x2f,
-	0xbb, 0xb6, 0xa9, 0x72, 0x63, 0xf7, 0x7d, 0xe7, 0xbd, 0xcf, 0x9b, 0x37, 0x3b, 0x5f, 0x03, 0x66,
-	0x99, 0xf1, 0x43, 0xc6, 0xed, 0xa3, 0xe5, 0x12, 0x15, 0xce, 0xb2, 0xfd, 0xb8, 0x4e, 0x83, 0xe3,
-	0xbc, 0x1f, 0x30, 0xc1, 0xc8, 0xa8, 0x8a, 0xe5, 0x31, 0x66, 0x66, 0x5c, 0xe6, 0x32, 0x19, 0xb2,
-	0x9b, 0x7f, 0x29, 0x95, 0x79, 0xdd, 0x65, 0xcc, 0xad, 0x52, 0xdb, 0xf1, 0x3d, 0xdb, 0xa9, 0xd5,
-	0x98, 0x70, 0x84, 0xc7, 0x6a, 0x1c, 0xa3, 0xd7, 0x22, 0xf9, 0x31, 0xa5, 0x0a, 0x46, 0x8b, 0x97,
-	0x1c, 0x51, 0x3e, 0xc0, 0xd8, 0x54, 0x24, 0xe6, 0x07, 0xcc, 0x67, 0xdc, 0xa9, 0x62, 0x78, 0x1e,
-	0xc3, 0x25, 0x87, 0x53, 0x05, 0xdd, 0x56, 0x3a, 0xae, 0x57, 0x93, 0x10, 0x4a, 0x6b, 0x65, 0x80,
-	0x7c, 0xdc, 0x54, 0xdc, 0x77, 0x02, 0xe7, 0x90, 0x17, 0xe8, 0xe3, 0x3a, 0xe5, 0xc2, 0xda, 0x81,
-	0x89, 0x8e, 0xb7, 0xdc, 0x67, 0x35, 0x4e, 0xc9, 0x6d, 0xb8, 0xec, 0xcb, 0x37, 0x93, 0xc6, 0xb4,
-	0x31, 0x37, 0xb2, 0x72, 0x35, 0xdf, 0xb9, 0x0b, 0x79, 0xa5, 0xdf, 0x4c, 0xbf, 0xf8, 0x33, 0x97,
-	0x2a, 0xa0, 0xd6, 0x5a, 0x02, 0x53, 0x26, 0xdb, 0xad, 0x0b, 0x97, 0x79, 0x35, 0x77, 0xbf, 0xb1,
-	0x79, 0xbc, 0xbd, 0x85, 0xa5, 0x08, 0x81, 0xb4, 0x68, 0x6c, 0x6f, 0xc9, 0x8c, 0xe9, 0x82, 0xfc,
-	0xdb, 0xf2, 0xe0, 0x5a, 0xec, 0x0a, 0xc4, 0x78, 0x1f, 0xc6, 0x55, 0xdd, 0xa2, 0x68, 0x14, 0x2b,
-	0x54, 0x38, 0x5e, 0x55, 0x13, 0x4d, 0x46, 0x89, 0xee, 0xca, 0xc7, 0xfd, 0x06, 0x32, 0x5d, 0x29,
-	0xe3, 0xf3, 0x96, 0x5a, 0x66, 0xbd, 0x0d, 0x19, 0xd5, 0x29, 0x6e, 0xa1, 0xc6, 0xca, 0xc1, 0x88,
-	0xde, 0xd5, 0xa2, 0x57, 0x41, 0x3a, 0xd0, 0xaf, 0xb6, 0x2b, 0xd6, 0x1e, 0xbc, 0x11, 0x59, 0x88,
-	0x74, 0xeb, 0x30, 0xa4, 0x65, 0x49, 0x50, 0x7a, 0x0d, 0x42, 0xb5, 0xf4, 0xd6, 0x6f, 0x46, 0x24,
-	0xab, 0x9e, 0x08, 0xb9, 0x07, 0x57, 0x5a, 0x3c, 0x5c, 0x38, 0xa2, 0xae, 0x3a, 0x1e, 0x5d, 0xc9,
-	0x26, 0x25, 0xdf, 0x93, 0xaa, 0xc2, 0xa8, 0xdf, 0xf1, 0x4c, 0xde, 0x05, 0x68, 0x1f, 0x82, 0xc9,
-	0x4b, 0x12, 0x70, 0x56, 0xe7, 0x68, 0x9e, 0x98, 0xbc, 0x3a, 0xe6, 0xed, 0x91, 0xba, 0x14, 0x21,
-	0x0a, 0xa1, 0x95, 0xeb, 0x43, 0xdf, 0x3c, 0xcf, 0xa5, 0xfe, 0x79, 0x9e, 0x4b, 0x59, 0x3f, 0x19,
-	0x70, 0x35, 0x0a, 0x8d, 0x7b, 0xb1, 0x01, 0xc3, 0xba, 0x7c, 0x93, 0x77, 0xa0, 0x8f, 0xcd, 0x68,
-	0x2f, 0x20, 0xf7, 0x62, 0x50, 0xdf, 0xea, 0x89, 0xaa, 0x4a, 0x87, 0x59, 0xad, 0x3d, 0x18, 0x93,
-	0x80, 0x0f, 0x98, 0xa0, 0xfd, 0x0e, 0x98, 0x64, 0x60, 0xf0, 0x88, 0x09, 0x1a, 0xc8, 0xc2, 0xc3,
-	0x05, 0xf5, 0x10, 0x6a, 0xfb, 0x2e, 0x8c, 0x87, 0x92, 0x62, 0xc3, 0x79, 0x48, 0x37, 0x75, 0x38,
-	0xf8, 0x4c, 0xb4, 0xd7, 0xa6, 0x16, 0xfb, 0x94, 0x3a, 0xeb, 0xb3, 0x50, 0x12, 0xde, 0x37, 0xda,
-	0x2b, 0x9a, 0xa1, 0xf5, 0xcc, 0xc0, 0xaf, 0x1f, 0xcb, 0x63, 0x13, 0x4b, 0xaa, 0x73, 0x3d, 0xb1,
-	0x6e, 0x5d, 0x28, 0xe1, 0xab, 0x9b, 0xd4, 0x34, 0x64, 0x25, 0x90, 0xfa, 0x6c, 0x1f, 0x38, 0x55,
-	0xaf, 0xe2, 0x08, 0x16, 0xec, 0x51, 0xa1, 0xaf, 0xa6, 0x2f, 0x0d, 0xc8, 0x25, 0x4a, 0xb0, 0x81,
-	0x87, 0x40, 0x9e, 0x50, 0xcf, 0x3d, 0x10, 0xb4, 0x52, 0x74, 0x2a, 0x95, 0x80, 0x72, 0xde, 0xea,
-	0x66, 0x26, 0xda, 0xcd, 0xa7, 0xa8, 0xbc, 0xa3, 0x84, 0x77, 0x0e, 0x59, 0xbd, 0x26, 0xb0, 0xbd,
-	0xf1, 0x27, 0x9d, 0x41, 0xca, 0xd7, 0xd3, 0x72, 0xf8, 0x9a, 0x73, 0x37, 0x70, 0xca, 0x55, 0x1a,
-	0xc7, 0x79, 0x82, 0x98, 0x71, 0x0a, 0xc4, 0xdc, 0xef, 0x82, 0x99, 0xeb, 0x81, 0xd9, 0x0b, 0x70,
-	0x07, 0xae, 0xab, 0xc9, 0xea, 0xc2, 0x1f, 0x3a, 0xbe, 0xef, 0xd5, 0x5c, 0x7d, 0xc6, 0x16, 0x60,
-	0xfc, 0x48, 0x87, 0x74, 0x71, 0x79, 0xd2, 0x86, 0x0b, 0x63, 0xad, 0x00, 0x26, 0xb5, 0x3e, 0x87,
-	0xa9, 0x84, 0x64, 0xd8, 0xc9, 0x45, 0xb2, 0x91, 0x65, 0xc8, 0xb0, 0xa0, 0x7c, 0x40, 0xb9, 0x08,
-	0x3a, 0xf4, 0x97, 0xa6, 0x07, 0xe6, 0x86, 0x0b, 0x13, 0xe1, 0x98, 0x06, 0xd8, 0x01, 0x2b, 0xb4,
-	0x99, 0x1f, 0x38, 0x5c, 0x7c, 0xe2, 0x57, 0x1c, 0x41, 0xdf, 0x93, 0xdd, 0xeb, 0x9e, 0x66, 0x60,
-	0x94, 0x49, 0x41, 0x04, 0xe1, 0x75, 0xf5, 0x56, 0x27, 0xfb, 0xda, 0x80, 0x1b, 0x5d, 0xb3, 0xb5,
-	0xbe, 0xe5, 0x89, 0x52, 0x95, 0x95, 0x1f, 0x15, 0x0f, 0xe4, 0xfb, 0xa2, 0x1a, 0x88, 0xcc, 0x39,
-	0x50, 0x18, 0x97, 0x21, 0xb5, 0x42, 0x9d, 0xc4, 0x73, 0xfa, 0xe6, 0x91, 0x3e, 0xa2, 0xf2, 0x6b,
-	0xe8, 0xd4, 0x7f, 0x24, 0x03, 0x2b, 0xff, 0x8e, 0xc0, 0xa0, 0xe4, 0x20, 0x27, 0x30, 0x12, 0xb2,
-	0x5b, 0x62, 0x45, 0x67, 0x7f, 0xde, 0xa1, 0xcd, 0x1b, 0x5d, 0x35, 0xaa, 0x03, 0x6b, 0xe6, 0x8b,
-	0xdf, 0xff, 0xfe, 0xf1, 0x52, 0x8e, 0x4c, 0xd9, 0x3e, 0x17, 0xce, 0x23, 0x6a, 0x47, 0x7f, 0x37,
-	0xa8, 0x7a, 0xdf, 0x19, 0x58, 0x5f, 0xf9, 0x2c, 0x99, 0x8f, 0xcd, 0x1d, 0x6b, 0xdf, 0xe6, 0x42,
-	0x5f, 0xda, 0x3e, 0x79, 0x84, 0xaa, 0xff, 0xcc, 0x80, 0x21, 0xed, 0x0a, 0xe4, 0x66, 0x7c, 0xa3,
-	0x9d, 0x76, 0x6d, 0xce, 0xf4, 0x50, 0x21, 0xc0, 0x9a, 0x04, 0x58, 0x22, 0xf9, 0xa4, 0x0d, 0xd1,
-	0xde, 0x63, 0x3f, 0x0d, 0xdd, 0xc0, 0x27, 0xe4, 0x2b, 0x03, 0x86, 0x5b, 0xee, 0x46, 0xba, 0x17,
-	0x6b, 0x8d, 0x68, 0xb6, 0x97, 0x0c, 0xa1, 0xe6, 0x24, 0x94, 0x45, 0xa6, 0x7b, 0x41, 0x91, 0x1f,
-	0x0c, 0x48, 0x37, 0x2f, 0x5f, 0x32, 0x1d, 0x9b, 0x3a, 0x64, 0x6f, 0xe6, 0x9b, 0x5d, 0x14, 0x58,
-	0x77, 0x4b, 0xd6, 0x7d, 0x87, 0x6c, 0x5c, 0x6c, 0x33, 0x6c, 0x79, 0xe5, 0xdb, 0x4f, 0xa5, 0x1f,
-	0x9e, 0x90, 0x6f, 0x0d, 0x18, 0x94, 0xf6, 0x41, 0x92, 0x4b, 0xb6, 0xb6, 0xc4, 0xea, 0x26, 0x41,
-	0xac, 0x0d, 0x89, 0xb5, 0x46, 0x6e, 0xff, 0x1f, 0x2c, 0xf2, 0xab, 0x01, 0xe4, 0xbc, 0x33, 0x90,
-	0x7c, 0x6c, 0xe1, 0x44, 0x97, 0x31, 0xed, 0xbe, 0xf5, 0x48, 0xbd, 0x2a, 0xa9, 0x17, 0xc9, 0x42,
-	0x02, 0x35, 0xfe, 0x60, 0x6d, 0xdf, 0x92, 0x9c, 0x0a, 0x09, 0x7b, 0xde, 0x1f, 0x12, 0x60, 0x13,
-	0xad, 0x26, 0x01, 0x36, 0xd9, 0x78, 0x7a, 0xc2, 0xe2, 0x2d, 0xda, 0x09, 0xfb, 0xb3, 0x01, 0x63,
-	0x51, 0x03, 0x20, 0xb7, 0xe2, 0x07, 0x1a, 0x6f, 0x3a, 0xe6, 0x62, 0x9f, 0x6a, 0xc4, 0x5c, 0x92,
-	0x98, 0xf3, 0x64, 0x2e, 0x01, 0xb3, 0xcd, 0x77, 0x88, 0x38, 0xbf, 0x18, 0xf0, 0x9a, 0xea, 0x5b,
-	0xdd, 0xb4, 0x64, 0xa5, 0xcb, 0xd6, 0x24, 0xd8, 0x88, 0xb9, 0x7a, 0xa1, 0x35, 0xc8, 0x7a, 0x4b,
-	0xb2, 0xce, 0x92, 0x9b, 0xdd, 0xb7, 0x54, 0x59, 0xc3, 0xe6, 0xfd, 0x17, 0xa7, 0x59, 0xe3, 0xe5,
-	0x69, 0xd6, 0xf8, 0xeb, 0x34, 0x6b, 0x7c, 0x7f, 0x96, 0x4d, 0xbd, 0x3c, 0xcb, 0xa6, 0xfe, 0x38,
-	0xcb, 0xa6, 0x1e, 0xae, 0xb9, 0x9e, 0x38, 0xa8, 0x97, 0xf2, 0x65, 0x76, 0x68, 0xfb, 0x34, 0xe0,
-	0x1e, 0x17, 0xb4, 0x56, 0xa6, 0xbb, 0x35, 0x6a, 0xfb, 0x7b, 0xcd, 0xc4, 0x8b, 0xca, 0x56, 0xec,
-	0x86, 0xae, 0x20, 0x8e, 0x7d, 0xca, 0x4b, 0x97, 0xe5, 0xbf, 0x73, 0xab, 0xff, 0x05, 0x00, 0x00,
-	0xff, 0xff, 0xeb, 0xd4, 0xb7, 0x5b, 0xb4, 0x0e, 0x00, 0x00,
+	// 1291 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x98, 0xcb, 0x6f, 0x1b, 0xd5,
+	0x17, 0xc7, 0x3d, 0xad, 0xd3, 0x5f, 0x7c, 0xa2, 0x5f, 0x9a, 0xdc, 0x98, 0x92, 0x4e, 0x1a, 0x3b,
+	0x9d, 0x36, 0xa9, 0xf3, 0xf2, 0xe4, 0x45, 0xa0, 0x51, 0x84, 0x94, 0x34, 0xa2, 0x84, 0x02, 0x2d,
+	0x4e, 0x28, 0x52, 0x25, 0x64, 0x8d, 0xed, 0x2b, 0x67, 0x14, 0x67, 0x66, 0xea, 0x7b, 0x9d, 0x3a,
+	0x2a, 0x11, 0x12, 0x0f, 0x09, 0x09, 0x50, 0x41, 0x88, 0x35, 0x65, 0xdb, 0x25, 0x7b, 0x36, 0xac,
+	0xb2, 0xac, 0xc4, 0x86, 0x15, 0xa0, 0x84, 0x05, 0x7f, 0x06, 0x9a, 0x7b, 0xcf, 0xd8, 0xe3, 0xc9,
+	0x8c, 0xed, 0x54, 0x5d, 0xc5, 0x33, 0xe7, 0x7b, 0xcf, 0xf9, 0x9c, 0xfb, 0x98, 0xef, 0x55, 0x40,
+	0x2d, 0xda, 0x6c, 0xcf, 0x66, 0xfa, 0xfe, 0x7c, 0x81, 0x72, 0x63, 0x5e, 0x7f, 0x58, 0xa3, 0xd5,
+	0x83, 0xac, 0x53, 0xb5, 0xb9, 0x4d, 0xfa, 0x65, 0x2c, 0x8b, 0x31, 0x35, 0x59, 0xb6, 0xcb, 0xb6,
+	0x08, 0xe9, 0xee, 0x2f, 0xa9, 0x52, 0xaf, 0x94, 0x6d, 0xbb, 0x5c, 0xa1, 0xba, 0xe1, 0x98, 0xba,
+	0x61, 0x59, 0x36, 0x37, 0xb8, 0x69, 0x5b, 0x0c, 0xa3, 0x23, 0x81, 0xfc, 0x98, 0x52, 0x06, 0x83,
+	0xc5, 0x0b, 0x06, 0x2f, 0xee, 0x60, 0x6c, 0x34, 0x10, 0x73, 0xaa, 0xb6, 0x63, 0x33, 0xa3, 0x82,
+	0xe1, 0x29, 0x0c, 0x17, 0x0c, 0x46, 0x25, 0x74, 0x53, 0x69, 0x94, 0x4d, 0x4b, 0x40, 0xa0, 0x36,
+	0xe5, 0xd7, 0x36, 0x41, 0x4c, 0x8c, 0x6b, 0x49, 0x20, 0x1f, 0xb8, 0x19, 0xee, 0x19, 0x55, 0x63,
+	0x8f, 0xe5, 0xe8, 0xc3, 0x1a, 0x65, 0x5c, 0xbb, 0x03, 0x43, 0x2d, 0x6f, 0x99, 0x63, 0x5b, 0x8c,
+	0x92, 0x25, 0xb8, 0xe0, 0x88, 0x37, 0xc3, 0xca, 0x98, 0x92, 0xe9, 0x5b, 0xb8, 0x94, 0x6d, 0x9d,
+	0xa5, 0xac, 0xd4, 0xaf, 0xc7, 0x8f, 0xfe, 0x4c, 0xc7, 0x72, 0xa8, 0xd5, 0xe6, 0x40, 0x15, 0xc9,
+	0xee, 0xd6, 0x78, 0xd9, 0x36, 0xad, 0xf2, 0x76, 0x7d, 0xfd, 0x60, 0x73, 0x03, 0x4b, 0x11, 0x02,
+	0x71, 0x5e, 0xdf, 0xdc, 0x10, 0x19, 0xe3, 0x39, 0xf1, 0x5b, 0x33, 0x61, 0x24, 0x74, 0x04, 0x62,
+	0xbc, 0x03, 0x83, 0xb2, 0x6e, 0x9e, 0xd7, 0xf3, 0x25, 0xca, 0x0d, 0xb3, 0xe2, 0x11, 0x0d, 0x07,
+	0x89, 0x6e, 0x89, 0xc7, 0xed, 0x3a, 0x32, 0x5d, 0x2c, 0xe2, 0xf3, 0x86, 0x1c, 0xa6, 0xbd, 0x0e,
+	0x49, 0xd9, 0x29, 0x4e, 0xb1, 0x87, 0x95, 0x86, 0x3e, 0x6f, 0xd6, 0xf3, 0x66, 0x09, 0xe9, 0xc0,
+	0x7b, 0xb5, 0x59, 0xd2, 0xb6, 0xe0, 0x95, 0xc0, 0x40, 0xa4, 0x5b, 0x81, 0x5e, 0x4f, 0x16, 0x05,
+	0xe5, 0x8d, 0x41, 0xa8, 0x86, 0x5e, 0xfb, 0x45, 0x09, 0x64, 0xf5, 0x56, 0x84, 0xdc, 0x86, 0x8b,
+	0x0d, 0x1e, 0xc6, 0x0d, 0x5e, 0x93, 0x1d, 0xf7, 0x2f, 0xa4, 0xa2, 0x92, 0x6f, 0x09, 0x55, 0xae,
+	0xdf, 0x69, 0x79, 0x26, 0x6f, 0x01, 0x34, 0x37, 0xc9, 0xf0, 0x39, 0x01, 0x38, 0xe1, 0xe5, 0x70,
+	0x77, 0x49, 0x56, 0x1e, 0x83, 0xe6, 0x92, 0x96, 0x29, 0x42, 0xe4, 0x7c, 0x23, 0x57, 0x7a, 0xbf,
+	0x7a, 0x9a, 0x8e, 0xfd, 0xfb, 0x34, 0x1d, 0xd3, 0x7e, 0x52, 0xe0, 0x52, 0x10, 0x1a, 0xe7, 0x62,
+	0x15, 0x12, 0x5e, 0x79, 0x97, 0xf7, 0x7c, 0x17, 0x93, 0xd1, 0x1c, 0x40, 0x6e, 0x87, 0xa0, 0xde,
+	0xe8, 0x88, 0x2a, 0x4b, 0xfb, 0x59, 0xb5, 0x2d, 0x18, 0x10, 0x80, 0xf7, 0x6d, 0x4e, 0xbb, 0x5d,
+	0x60, 0x92, 0x84, 0x9e, 0x7d, 0x9b, 0xd3, 0xaa, 0x28, 0x9c, 0xc8, 0xc9, 0x07, 0x5f, 0xdb, 0xb7,
+	0x60, 0xd0, 0x97, 0x14, 0x1b, 0xce, 0x42, 0xdc, 0xd5, 0xe1, 0xc2, 0x27, 0x83, 0xbd, 0xba, 0x5a,
+	0xec, 0x53, 0xe8, 0xb4, 0x4f, 0x7c, 0x49, 0x58, 0xd7, 0x68, 0x2f, 0x69, 0x0d, 0xb5, 0x27, 0x0a,
+	0x9e, 0x7e, 0x2c, 0x8f, 0x4d, 0xcc, 0xc9, 0xce, 0xbd, 0x15, 0x6b, 0xd7, 0x85, 0x14, 0xbe, 0xbc,
+	0x95, 0x1a, 0x83, 0x94, 0x00, 0x92, 0xc7, 0xf6, 0xbe, 0x51, 0x31, 0x4b, 0x06, 0xb7, 0xab, 0x5b,
+	0x94, 0x7b, 0x9f, 0xa6, 0xcf, 0x15, 0x48, 0x47, 0x4a, 0xb0, 0x81, 0x07, 0x40, 0x1e, 0x51, 0xb3,
+	0xbc, 0xc3, 0x69, 0x29, 0x6f, 0x94, 0x4a, 0x55, 0xca, 0x58, 0xa3, 0x9b, 0xf1, 0x60, 0x37, 0x1f,
+	0xa1, 0x72, 0x4d, 0x0a, 0xd7, 0xf6, 0xec, 0x9a, 0xc5, 0xb1, 0xbd, 0xc1, 0x47, 0xad, 0x41, 0xca,
+	0x56, 0xe2, 0x62, 0xf1, 0x27, 0xe0, 0xba, 0xfc, 0x42, 0x55, 0x8b, 0x3b, 0x94, 0xf1, 0xaa, 0x4b,
+	0x10, 0x41, 0x3b, 0xde, 0x41, 0x88, 0xcc, 0xdb, 0x6d, 0x98, 0xd3, 0x1d, 0x98, 0x3b, 0xd1, 0xde,
+	0x81, 0x2b, 0x72, 0x99, 0xbd, 0xc2, 0xef, 0x19, 0x8e, 0x63, 0x5a, 0x65, 0x6f, 0xc3, 0x4d, 0xc3,
+	0xe0, 0xbe, 0x17, 0xf2, 0x8a, 0x8b, 0x6d, 0x97, 0xc8, 0x0d, 0x34, 0x02, 0x98, 0x54, 0xfb, 0x14,
+	0x46, 0x23, 0x92, 0x61, 0x27, 0x67, 0xc9, 0x46, 0xe6, 0x21, 0x69, 0xfb, 0xa6, 0xa6, 0xa1, 0x3f,
+	0x37, 0x76, 0x3e, 0x93, 0xc8, 0x0d, 0xf9, 0x63, 0x1e, 0xc0, 0xc7, 0x90, 0x39, 0x35, 0xa5, 0xef,
+	0x1a, 0x8c, 0x7f, 0xe8, 0x94, 0x0c, 0x4e, 0xdf, 0x16, 0x73, 0xe0, 0x75, 0x16, 0x95, 0x5e, 0xe2,
+	0x84, 0xa6, 0xff, 0x5a, 0x81, 0xc9, 0x2e, 0xf2, 0x37, 0x0e, 0xfc, 0x50, 0xa1, 0x62, 0x17, 0x77,
+	0xf3, 0x3b, 0xe2, 0x7d, 0x5e, 0x2e, 0x94, 0xc8, 0x7f, 0x3e, 0x37, 0x28, 0x42, 0x72, 0x84, 0xdc,
+	0xae, 0xa7, 0xf4, 0xee, 0xbe, 0xdf, 0xa7, 0xe2, 0xc8, 0xb4, 0xea, 0xdf, 0x17, 0x01, 0x6d, 0x04,
+	0x2e, 0xfb, 0x76, 0xfb, 0xba, 0x51, 0x31, 0xac, 0x22, 0xf5, 0xed, 0x2e, 0x35, 0x2c, 0x8a, 0x6c,
+	0x14, 0xfe, 0x57, 0x90, 0xaf, 0x70, 0x1f, 0x5d, 0x6e, 0x39, 0x92, 0x4d, 0x8b, 0x34, 0xad, 0xf5,
+	0x39, 0x77, 0x07, 0x3d, 0xfb, 0x2b, 0x9d, 0x29, 0x9b, 0x7c, 0xa7, 0x56, 0xc8, 0x16, 0xed, 0x3d,
+	0xbc, 0xaf, 0xe0, 0x9f, 0x59, 0x56, 0xda, 0xd5, 0xf9, 0x81, 0x43, 0x99, 0x18, 0xc0, 0x72, 0x5e,
+	0x6e, 0xed, 0x55, 0xf4, 0xac, 0xb5, 0xa2, 0x4b, 0xbc, 0x5d, 0xb7, 0x3c, 0xbc, 0x19, 0xf4, 0x05,
+	0x5f, 0x00, 0xc9, 0x42, 0x4c, 0x7f, 0xe1, 0xa8, 0x1f, 0x7a, 0x84, 0x9c, 0x1c, 0x42, 0x9f, 0xef,
+	0xf6, 0x41, 0xb4, 0xe0, 0xee, 0x3f, 0x7d, 0x61, 0x51, 0xaf, 0xb5, 0xd5, 0xc8, 0xaa, 0xda, 0xf8,
+	0x67, 0xbf, 0xff, 0xf3, 0xc3, 0xb9, 0x34, 0x19, 0xd5, 0x1d, 0xc6, 0x8d, 0x5d, 0xaa, 0x07, 0xaf,
+	0x59, 0xb2, 0xde, 0xb7, 0x0a, 0xd6, 0x97, 0xd7, 0x0e, 0x32, 0x15, 0x9a, 0x3b, 0xf4, 0x36, 0xa3,
+	0x4e, 0x77, 0xa5, 0xed, 0x92, 0x87, 0xcb, 0xfa, 0x4f, 0x14, 0xe8, 0xf5, 0x4c, 0x92, 0x5c, 0x0f,
+	0x6f, 0xb4, 0xf5, 0xf6, 0xa2, 0x8e, 0x77, 0x50, 0x21, 0xc0, 0xb2, 0x00, 0x98, 0x23, 0xd9, 0xa8,
+	0x09, 0xf1, 0xac, 0x58, 0x7f, 0xec, 0x33, 0xa4, 0x43, 0xf2, 0x85, 0x02, 0x89, 0x86, 0xd9, 0x93,
+	0xf6, 0xc5, 0x1a, 0x4b, 0x34, 0xd1, 0x49, 0x86, 0x50, 0x19, 0x01, 0xa5, 0x91, 0xb1, 0x4e, 0x50,
+	0xe4, 0x7b, 0x05, 0xe2, 0xae, 0x17, 0x91, 0xb1, 0xd0, 0xd4, 0x3e, 0xb7, 0x57, 0xaf, 0xb6, 0x51,
+	0x60, 0xdd, 0x0d, 0x51, 0xf7, 0x4d, 0xb2, 0x7a, 0xb6, 0xc9, 0xd0, 0x85, 0x03, 0xea, 0x8f, 0xc5,
+	0xf5, 0xe0, 0x90, 0x7c, 0xa3, 0x40, 0x8f, 0x70, 0x53, 0x12, 0x5d, 0xb2, 0x31, 0x25, 0x5a, 0x3b,
+	0x09, 0x62, 0xad, 0x0a, 0xac, 0x65, 0xb2, 0xf4, 0x22, 0x58, 0xe4, 0x99, 0x02, 0xe4, 0xb4, 0x51,
+	0x92, 0x6c, 0x68, 0xe1, 0x48, 0xd3, 0x55, 0xf5, 0xae, 0xf5, 0x48, 0xbd, 0x28, 0xa8, 0x67, 0xc9,
+	0x74, 0x04, 0x35, 0xde, 0xdf, 0x9b, 0x3e, 0xc1, 0x28, 0x27, 0xbf, 0x29, 0x30, 0x1c, 0xe5, 0x93,
+	0x64, 0x29, 0xfc, 0x64, 0xb5, 0xf7, 0x5f, 0xf5, 0xb5, 0x33, 0x8e, 0x42, 0xfc, 0x9b, 0x02, 0x7f,
+	0x91, 0xcc, 0x47, 0xe0, 0xb7, 0x78, 0x4a, 0x6b, 0x13, 0x3f, 0x2b, 0x30, 0x10, 0xb4, 0x46, 0x32,
+	0x13, 0xbe, 0xd0, 0xe1, 0x76, 0xac, 0xce, 0x76, 0xa9, 0x46, 0xd8, 0x39, 0x01, 0x3b, 0x45, 0x32,
+	0x11, 0xb0, 0x4d, 0xbe, 0x3d, 0xc4, 0xf9, 0x55, 0x01, 0xe2, 0x9f, 0x03, 0xe9, 0x38, 0xe4, 0x8d,
+	0x8e, 0x93, 0x15, 0x61, 0xb3, 0xea, 0xcd, 0x17, 0x18, 0x89, 0xf4, 0x0b, 0x82, 0x7e, 0x86, 0x4c,
+	0x75, 0x33, 0xd5, 0xd2, 0x34, 0xc9, 0x8f, 0x0a, 0xfc, 0xbf, 0xc5, 0xf2, 0xc8, 0x64, 0x9b, 0x0d,
+	0xda, 0x6a, 0x9a, 0xea, 0x54, 0x37, 0x52, 0x84, 0x9b, 0x15, 0x70, 0x37, 0xc8, 0x78, 0xfb, 0x6d,
+	0x8c, 0x4e, 0x48, 0xbe, 0x54, 0x20, 0xd1, 0x30, 0xbb, 0x88, 0xef, 0x62, 0xd0, 0x25, 0x23, 0xbe,
+	0x8b, 0xa7, 0x3c, 0x53, 0x9b, 0x14, 0x2c, 0xd7, 0xc8, 0xd5, 0x08, 0x16, 0x43, 0x8c, 0xc8, 0xf3,
+	0xba, 0xb5, 0x7e, 0xef, 0xe8, 0x38, 0xa5, 0x3c, 0x3f, 0x4e, 0x29, 0x7f, 0x1f, 0xa7, 0x94, 0xef,
+	0x4e, 0x52, 0xb1, 0xe7, 0x27, 0xa9, 0xd8, 0x1f, 0x27, 0xa9, 0xd8, 0x83, 0x65, 0x9f, 0xbd, 0x3b,
+	0xb4, 0xca, 0x4c, 0xc6, 0xa9, 0x55, 0xa4, 0x77, 0x2d, 0xaa, 0x3b, 0x5b, 0x6e, 0xd6, 0x59, 0x79,
+	0x21, 0xd1, 0xeb, 0x5e, 0x7a, 0x61, 0xf9, 0x85, 0x0b, 0xe2, 0xbf, 0x05, 0x8b, 0xff, 0x05, 0x00,
+	0x00, 0xff, 0xff, 0x4a, 0x7d, 0x7c, 0x32, 0x33, 0x11, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1036,9 +1218,11 @@ type QueryClient interface {
 	Vote(ctx context.Context, in *QueryVoteRequest, opts ...grpc.CallOption) (*QueryVoteResponse, error)
 	Votes(ctx context.Context, in *QueryVotesRequest, opts ...grpc.CallOption) (*QueryVotesResponse, error)
 	CosmosValidatorSet(ctx context.Context, in *QueryCosmosValidatorSetRequest, opts ...grpc.CallOption) (*QueryCosmosValidatorSetResponse, error)
-	OracleValidatorSet(ctx context.Context, in *QueryOracleValidatorSetRequest, opts ...grpc.CallOption) (*QueryOracleValidatorSetResponse, error)
+	OrchestratorValidatorSet(ctx context.Context, in *QueryOrchestratorValidatorSetRequest, opts ...grpc.CallOption) (*QueryOrchestratorValidatorSetResponse, error)
 	ValidatorMapping(ctx context.Context, in *QueryValidatorMappingRequest, opts ...grpc.CallOption) (*QueryValidatorMappingResponse, error)
-	OracleHeight(ctx context.Context, in *QueryOracleLastUpdateHeightRequest, opts ...grpc.CallOption) (*QueryOracleLastUpdateHeightResponse, error)
+	OrchestratorHeight(ctx context.Context, in *QueryOrchestratorLastUpdateHeightRequest, opts ...grpc.CallOption) (*QueryOrchestratorLastUpdateHeightResponse, error)
+	CosmosBalance(ctx context.Context, in *QueryCosmosBalanceRequest, opts ...grpc.CallOption) (*QueryCosmosBalanceResponse, error)
+	ActiveTxn(ctx context.Context, in *QueryActiveTxnRequest, opts ...grpc.CallOption) (*QueryActiveTxnResponse, error)
 }
 
 type queryClient struct {
@@ -1112,9 +1296,9 @@ func (c *queryClient) CosmosValidatorSet(ctx context.Context, in *QueryCosmosVal
 	return out, nil
 }
 
-func (c *queryClient) OracleValidatorSet(ctx context.Context, in *QueryOracleValidatorSetRequest, opts ...grpc.CallOption) (*QueryOracleValidatorSetResponse, error) {
-	out := new(QueryOracleValidatorSetResponse)
-	err := c.cc.Invoke(ctx, "/cosmos.v1beta1.Query/OracleValidatorSet", in, out, opts...)
+func (c *queryClient) OrchestratorValidatorSet(ctx context.Context, in *QueryOrchestratorValidatorSetRequest, opts ...grpc.CallOption) (*QueryOrchestratorValidatorSetResponse, error) {
+	out := new(QueryOrchestratorValidatorSetResponse)
+	err := c.cc.Invoke(ctx, "/cosmos.v1beta1.Query/OrchestratorValidatorSet", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1130,9 +1314,27 @@ func (c *queryClient) ValidatorMapping(ctx context.Context, in *QueryValidatorMa
 	return out, nil
 }
 
-func (c *queryClient) OracleHeight(ctx context.Context, in *QueryOracleLastUpdateHeightRequest, opts ...grpc.CallOption) (*QueryOracleLastUpdateHeightResponse, error) {
-	out := new(QueryOracleLastUpdateHeightResponse)
-	err := c.cc.Invoke(ctx, "/cosmos.v1beta1.Query/OracleHeight", in, out, opts...)
+func (c *queryClient) OrchestratorHeight(ctx context.Context, in *QueryOrchestratorLastUpdateHeightRequest, opts ...grpc.CallOption) (*QueryOrchestratorLastUpdateHeightResponse, error) {
+	out := new(QueryOrchestratorLastUpdateHeightResponse)
+	err := c.cc.Invoke(ctx, "/cosmos.v1beta1.Query/OrchestratorHeight", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) CosmosBalance(ctx context.Context, in *QueryCosmosBalanceRequest, opts ...grpc.CallOption) (*QueryCosmosBalanceResponse, error) {
+	out := new(QueryCosmosBalanceResponse)
+	err := c.cc.Invoke(ctx, "/cosmos.v1beta1.Query/CosmosBalance", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) ActiveTxn(ctx context.Context, in *QueryActiveTxnRequest, opts ...grpc.CallOption) (*QueryActiveTxnResponse, error) {
+	out := new(QueryActiveTxnResponse)
+	err := c.cc.Invoke(ctx, "/cosmos.v1beta1.Query/ActiveTxn", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1151,9 +1353,11 @@ type QueryServer interface {
 	Vote(context.Context, *QueryVoteRequest) (*QueryVoteResponse, error)
 	Votes(context.Context, *QueryVotesRequest) (*QueryVotesResponse, error)
 	CosmosValidatorSet(context.Context, *QueryCosmosValidatorSetRequest) (*QueryCosmosValidatorSetResponse, error)
-	OracleValidatorSet(context.Context, *QueryOracleValidatorSetRequest) (*QueryOracleValidatorSetResponse, error)
+	OrchestratorValidatorSet(context.Context, *QueryOrchestratorValidatorSetRequest) (*QueryOrchestratorValidatorSetResponse, error)
 	ValidatorMapping(context.Context, *QueryValidatorMappingRequest) (*QueryValidatorMappingResponse, error)
-	OracleHeight(context.Context, *QueryOracleLastUpdateHeightRequest) (*QueryOracleLastUpdateHeightResponse, error)
+	OrchestratorHeight(context.Context, *QueryOrchestratorLastUpdateHeightRequest) (*QueryOrchestratorLastUpdateHeightResponse, error)
+	CosmosBalance(context.Context, *QueryCosmosBalanceRequest) (*QueryCosmosBalanceResponse, error)
+	ActiveTxn(context.Context, *QueryActiveTxnRequest) (*QueryActiveTxnResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -1181,14 +1385,20 @@ func (*UnimplementedQueryServer) Votes(ctx context.Context, req *QueryVotesReque
 func (*UnimplementedQueryServer) CosmosValidatorSet(ctx context.Context, req *QueryCosmosValidatorSetRequest) (*QueryCosmosValidatorSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CosmosValidatorSet not implemented")
 }
-func (*UnimplementedQueryServer) OracleValidatorSet(ctx context.Context, req *QueryOracleValidatorSetRequest) (*QueryOracleValidatorSetResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OracleValidatorSet not implemented")
+func (*UnimplementedQueryServer) OrchestratorValidatorSet(ctx context.Context, req *QueryOrchestratorValidatorSetRequest) (*QueryOrchestratorValidatorSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrchestratorValidatorSet not implemented")
 }
 func (*UnimplementedQueryServer) ValidatorMapping(ctx context.Context, req *QueryValidatorMappingRequest) (*QueryValidatorMappingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidatorMapping not implemented")
 }
-func (*UnimplementedQueryServer) OracleHeight(ctx context.Context, req *QueryOracleLastUpdateHeightRequest) (*QueryOracleLastUpdateHeightResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OracleHeight not implemented")
+func (*UnimplementedQueryServer) OrchestratorHeight(ctx context.Context, req *QueryOrchestratorLastUpdateHeightRequest) (*QueryOrchestratorLastUpdateHeightResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrchestratorHeight not implemented")
+}
+func (*UnimplementedQueryServer) CosmosBalance(ctx context.Context, req *QueryCosmosBalanceRequest) (*QueryCosmosBalanceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CosmosBalance not implemented")
+}
+func (*UnimplementedQueryServer) ActiveTxn(ctx context.Context, req *QueryActiveTxnRequest) (*QueryActiveTxnResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ActiveTxn not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -1321,20 +1531,20 @@ func _Query_CosmosValidatorSet_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_OracleValidatorSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryOracleValidatorSetRequest)
+func _Query_OrchestratorValidatorSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryOrchestratorValidatorSetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).OracleValidatorSet(ctx, in)
+		return srv.(QueryServer).OrchestratorValidatorSet(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/cosmos.v1beta1.Query/OracleValidatorSet",
+		FullMethod: "/cosmos.v1beta1.Query/OrchestratorValidatorSet",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).OracleValidatorSet(ctx, req.(*QueryOracleValidatorSetRequest))
+		return srv.(QueryServer).OrchestratorValidatorSet(ctx, req.(*QueryOrchestratorValidatorSetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1357,20 +1567,56 @@ func _Query_ValidatorMapping_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_OracleHeight_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryOracleLastUpdateHeightRequest)
+func _Query_OrchestratorHeight_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryOrchestratorLastUpdateHeightRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).OracleHeight(ctx, in)
+		return srv.(QueryServer).OrchestratorHeight(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/cosmos.v1beta1.Query/OracleHeight",
+		FullMethod: "/cosmos.v1beta1.Query/OrchestratorHeight",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).OracleHeight(ctx, req.(*QueryOracleLastUpdateHeightRequest))
+		return srv.(QueryServer).OrchestratorHeight(ctx, req.(*QueryOrchestratorLastUpdateHeightRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_CosmosBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryCosmosBalanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).CosmosBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cosmos.v1beta1.Query/CosmosBalance",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).CosmosBalance(ctx, req.(*QueryCosmosBalanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_ActiveTxn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryActiveTxnRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).ActiveTxn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cosmos.v1beta1.Query/ActiveTxn",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).ActiveTxn(ctx, req.(*QueryActiveTxnRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1408,16 +1654,24 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_CosmosValidatorSet_Handler,
 		},
 		{
-			MethodName: "OracleValidatorSet",
-			Handler:    _Query_OracleValidatorSet_Handler,
+			MethodName: "OrchestratorValidatorSet",
+			Handler:    _Query_OrchestratorValidatorSet_Handler,
 		},
 		{
 			MethodName: "ValidatorMapping",
 			Handler:    _Query_ValidatorMapping_Handler,
 		},
 		{
-			MethodName: "OracleHeight",
-			Handler:    _Query_OracleHeight_Handler,
+			MethodName: "OrchestratorHeight",
+			Handler:    _Query_OrchestratorHeight_Handler,
+		},
+		{
+			MethodName: "CosmosBalance",
+			Handler:    _Query_CosmosBalance_Handler,
+		},
+		{
+			MethodName: "ActiveTxn",
+			Handler:    _Query_ActiveTxn_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1908,7 +2162,7 @@ func (m *QueryCosmosValidatorSetResponse) MarshalToSizedBuffer(dAtA []byte) (int
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryOracleValidatorSetRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryOrchestratorValidatorSetRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1918,12 +2172,12 @@ func (m *QueryOracleValidatorSetRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryOracleValidatorSetRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryOrchestratorValidatorSetRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryOracleValidatorSetRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryOrchestratorValidatorSetRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1931,7 +2185,7 @@ func (m *QueryOracleValidatorSetRequest) MarshalToSizedBuffer(dAtA []byte) (int,
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryOracleValidatorSetResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryOrchestratorValidatorSetResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1941,12 +2195,12 @@ func (m *QueryOracleValidatorSetResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryOracleValidatorSetResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryOrchestratorValidatorSetResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryOracleValidatorSetResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryOrchestratorValidatorSetResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2037,7 +2291,7 @@ func (m *QueryValidatorMappingResponse) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryOracleLastUpdateHeightRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryOrchestratorLastUpdateHeightRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2047,27 +2301,27 @@ func (m *QueryOracleLastUpdateHeightRequest) Marshal() (dAtA []byte, err error) 
 	return dAtA[:n], nil
 }
 
-func (m *QueryOracleLastUpdateHeightRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryOrchestratorLastUpdateHeightRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryOracleLastUpdateHeightRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryOrchestratorLastUpdateHeightRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.OracleAddress) > 0 {
-		i -= len(m.OracleAddress)
-		copy(dAtA[i:], m.OracleAddress)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.OracleAddress)))
+	if len(m.OrchestratorAddress) > 0 {
+		i -= len(m.OrchestratorAddress)
+		copy(dAtA[i:], m.OrchestratorAddress)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.OrchestratorAddress)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryOracleLastUpdateHeightResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryOrchestratorLastUpdateHeightResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2077,12 +2331,12 @@ func (m *QueryOracleLastUpdateHeightResponse) Marshal() (dAtA []byte, err error)
 	return dAtA[:n], nil
 }
 
-func (m *QueryOracleLastUpdateHeightResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryOrchestratorLastUpdateHeightResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryOracleLastUpdateHeightResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryOrchestratorLastUpdateHeightResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2094,6 +2348,117 @@ func (m *QueryOracleLastUpdateHeightResponse) MarshalToSizedBuffer(dAtA []byte) 
 	}
 	if m.BlockHeightCosmos != 0 {
 		i = encodeVarintQuery(dAtA, i, uint64(m.BlockHeightCosmos))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryCosmosBalanceRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryCosmosBalanceRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryCosmosBalanceRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryCosmosBalanceResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryCosmosBalanceResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryCosmosBalanceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Balance) > 0 {
+		for iNdEx := len(m.Balance) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Balance[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryActiveTxnRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryActiveTxnRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryActiveTxnRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryActiveTxnResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryActiveTxnResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryActiveTxnResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.TxID != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.TxID))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -2298,7 +2663,7 @@ func (m *QueryCosmosValidatorSetResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryOracleValidatorSetRequest) Size() (n int) {
+func (m *QueryOrchestratorValidatorSetRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2307,7 +2672,7 @@ func (m *QueryOracleValidatorSetRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryOracleValidatorSetResponse) Size() (n int) {
+func (m *QueryOrchestratorValidatorSetResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2354,20 +2719,20 @@ func (m *QueryValidatorMappingResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryOracleLastUpdateHeightRequest) Size() (n int) {
+func (m *QueryOrchestratorLastUpdateHeightRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.OracleAddress)
+	l = len(m.OrchestratorAddress)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
 }
 
-func (m *QueryOracleLastUpdateHeightResponse) Size() (n int) {
+func (m *QueryOrchestratorLastUpdateHeightResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2378,6 +2743,51 @@ func (m *QueryOracleLastUpdateHeightResponse) Size() (n int) {
 	}
 	if m.BlockHeightNative != 0 {
 		n += 1 + sovQuery(uint64(m.BlockHeightNative))
+	}
+	return n
+}
+
+func (m *QueryCosmosBalanceRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryCosmosBalanceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Balance) > 0 {
+		for _, e := range m.Balance {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryActiveTxnRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryActiveTxnResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.TxID != 0 {
+		n += 1 + sovQuery(uint64(m.TxID))
 	}
 	return n
 }
@@ -3593,7 +4003,7 @@ func (m *QueryCosmosValidatorSetResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryOracleValidatorSetRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryOrchestratorValidatorSetRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3616,10 +4026,10 @@ func (m *QueryOracleValidatorSetRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryOracleValidatorSetRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryOrchestratorValidatorSetRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryOracleValidatorSetRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryOrchestratorValidatorSetRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -3643,7 +4053,7 @@ func (m *QueryOracleValidatorSetRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryOracleValidatorSetResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryOrchestratorValidatorSetResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3666,10 +4076,10 @@ func (m *QueryOracleValidatorSetResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryOracleValidatorSetResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryOrchestratorValidatorSetResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryOracleValidatorSetResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryOrchestratorValidatorSetResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -3923,7 +4333,7 @@ func (m *QueryValidatorMappingResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryOracleLastUpdateHeightRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryOrchestratorLastUpdateHeightRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3946,15 +4356,15 @@ func (m *QueryOracleLastUpdateHeightRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryOracleLastUpdateHeightRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryOrchestratorLastUpdateHeightRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryOracleLastUpdateHeightRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryOrchestratorLastUpdateHeightRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OracleAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field OrchestratorAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3982,7 +4392,7 @@ func (m *QueryOracleLastUpdateHeightRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OracleAddress = string(dAtA[iNdEx:postIndex])
+			m.OrchestratorAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -4005,7 +4415,7 @@ func (m *QueryOracleLastUpdateHeightRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryOracleLastUpdateHeightResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryOrchestratorLastUpdateHeightResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4028,10 +4438,10 @@ func (m *QueryOracleLastUpdateHeightResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryOracleLastUpdateHeightResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryOrchestratorLastUpdateHeightResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryOracleLastUpdateHeightResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryOrchestratorLastUpdateHeightResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4068,6 +4478,259 @@ func (m *QueryOracleLastUpdateHeightResponse) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.BlockHeightNative |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryCosmosBalanceRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryCosmosBalanceRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryCosmosBalanceRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryCosmosBalanceResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryCosmosBalanceResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryCosmosBalanceResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Balance", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Balance = append(m.Balance, types.Coin{})
+			if err := m.Balance[len(m.Balance)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryActiveTxnRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryActiveTxnRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryActiveTxnRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryActiveTxnResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryActiveTxnResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryActiveTxnResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TxID", wireType)
+			}
+			m.TxID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TxID |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

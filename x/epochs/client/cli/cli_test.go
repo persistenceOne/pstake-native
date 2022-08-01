@@ -1,12 +1,11 @@
 package cli_test
 
 import (
+	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
+	"github.com/cosmos/cosmos-sdk/testutil/network"
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 
-	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
-	"github.com/cosmos/cosmos-sdk/testutil/network"
-	"github.com/persistenceOne/pstake-native/app"
 	"github.com/persistenceOne/pstake-native/x/epochs/client/cli"
 	"github.com/persistenceOne/pstake-native/x/epochs/types"
 )
@@ -21,7 +20,7 @@ type IntegrationTestSuite struct {
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.T().Log("setting up integration test suite")
 
-	s.cfg = app.DefaultConfig()
+	s.cfg = network.DefaultConfig()
 
 	s.network = network.New(s.T(), s.cfg)
 

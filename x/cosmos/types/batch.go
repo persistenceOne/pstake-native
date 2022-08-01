@@ -9,18 +9,21 @@ import (
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-func NewMintTokenStoreValue(msg MsgMintTokensForAccount, ratio sdkTypes.Dec, orch string, activeBlockHeight int64) MintTokenStoreValue {
+// NewMintTokenStoreValue returns MintTokenStoreValue struct
+func NewMintTokenStoreValue(msg MsgMintTokensForAccount, ratio sdkTypes.Dec, valAddress sdkTypes.ValAddress,
+	activeBlockHeight int64) MintTokenStoreValue {
 	return MintTokenStoreValue{
-		MintTokens:            msg,
-		Ratio:                 ratio,
-		OrchestratorAddresses: []string{orch},
-		Counter:               1,
-		Minted:                false,
-		AddedToEpoch:          false,
-		ActiveBlockHeight:     activeBlockHeight,
+		MintTokens:         msg,
+		Ratio:              ratio,
+		ValidatorAddresses: []string{valAddress.String()},
+		Counter:            1,
+		Minted:             false,
+		AddedToEpoch:       false,
+		ActiveBlockHeight:  activeBlockHeight,
 	}
 }
 
+// NewChainIDHeightAndTxHash returns ChainIDHeightAndTxHashKey struct
 func NewChainIDHeightAndTxHash(chainID string, blockHeight int64, txHash string) ChainIDHeightAndTxHashKey {
 	return ChainIDHeightAndTxHashKey{
 		ChainID:     chainID,
@@ -29,6 +32,7 @@ func NewChainIDHeightAndTxHash(chainID string, blockHeight int64, txHash string)
 	}
 }
 
+// NewProposalKey returns ProposalKey struct
 func NewProposalKey(chainID string, blockHeight int64, proposalID uint64) ProposalKey {
 	return ProposalKey{
 		ChainID:     chainID,
@@ -37,29 +41,34 @@ func NewProposalKey(chainID string, blockHeight int64, proposalID uint64) Propos
 	}
 }
 
-func NewProposalValue(msg MsgMakeProposal, orchAddress string, ratio sdkTypes.Dec, blockHeight int64) ProposalValue {
+// NewProposalValue returns ProposalValue struct
+func NewProposalValue(msg MsgMakeProposal, valAddress sdkTypes.ValAddress, ratio sdkTypes.Dec,
+	blockHeight int64) ProposalValue {
 	return ProposalValue{
-		ProposalDetails:       msg,
-		OrchestratorAddresses: []string{orchAddress},
-		ProposalPosted:        false,
-		Ratio:                 ratio,
-		Counter:               1,
-		ActiveBlockHeight:     blockHeight,
+		ProposalDetails:    msg,
+		ValidatorAddresses: []string{valAddress.String()},
+		ProposalPosted:     false,
+		Ratio:              ratio,
+		Counter:            1,
+		ActiveBlockHeight:  blockHeight,
 	}
 }
 
-func NewTxHashValue(msg MsgTxStatus, ratio sdkTypes.Dec, activeBlockHeight int64) TxHashValue {
+// NewTxHashValue returns TxHashValue struct
+func NewTxHashValue(msg MsgTxStatus, ratio sdkTypes.Dec, activeBlockHeight int64,
+	valAddress sdkTypes.ValAddress) TxHashValue {
 	return TxHashValue{
-		TxStatus:              msg,
-		OrchestratorAddresses: []string{msg.OrchestratorAddress},
-		Status:                []string{msg.Status},
-		Ratio:                 ratio,
-		TxCleared:             false,
-		Counter:               1,
-		ActiveBlockHeight:     activeBlockHeight,
+		TxStatus:           msg,
+		ValidatorAddresses: []string{valAddress.String()},
+		Status:             []string{msg.Status},
+		Ratio:              ratio,
+		TxCleared:          false,
+		Counter:            1,
+		ActiveBlockHeight:  activeBlockHeight,
 	}
 }
 
+// NewWithdrawStoreValue returns WithdrawStoreValue struct
 func NewWithdrawStoreValue(msg MsgWithdrawStkAsset) WithdrawStoreValue {
 	return WithdrawStoreValue{
 		WithdrawDetails: []MsgWithdrawStkAsset{msg},
@@ -67,56 +76,56 @@ func NewWithdrawStoreValue(msg MsgWithdrawStkAsset) WithdrawStoreValue {
 	}
 }
 
-func NewValueOutgoingUnbondStore(undelegateMessage []stakingTypes.MsgUndelegate, epochNumber int64) ValueOutgoingUnbondStore {
+// NewValueOutgoingUnbondStore returns ValueOutgoingUnbondStore struct
+func NewValueOutgoingUnbondStore(undelegateMessage []stakingTypes.MsgUndelegate,
+	epochNumber int64, cValue sdkTypes.Dec) ValueOutgoingUnbondStore {
 	return ValueOutgoingUnbondStore{
 		EpochNumber:        epochNumber,
 		UndelegateMessages: undelegateMessage,
+		CValue:             cValue,
 	}
 }
 
-func NewValueUndelegateSuccessStore(msg MsgUndelegateSuccess, orchestratorAddress string, ratio sdkTypes.Dec,
+// NewValueUndelegateSuccessStore returns ValueUndelegateSuccessStore struct
+func NewValueUndelegateSuccessStore(msg MsgUndelegateSuccess, valAddress sdkTypes.ValAddress, ratio sdkTypes.Dec,
 	activeBlockHeight int64) ValueUndelegateSuccessStore {
 	return ValueUndelegateSuccessStore{
-		UndelegateSuccess:     msg,
-		OrchestratorAddresses: []string{orchestratorAddress},
-		Ratio:                 ratio,
-		Counter:               1,
-		ActiveBlockHeight:     activeBlockHeight,
+		UndelegateSuccess:  msg,
+		ValidatorAddresses: []string{valAddress.String()},
+		Ratio:              ratio,
+		Counter:            1,
+		ActiveBlockHeight:  activeBlockHeight,
 	}
 }
 
-func NewMintingEpochValue(txIDAndStatus MintingEpochValueMember) MintingEpochValue {
-	return MintingEpochValue{
-		TxIDAndStatus: []MintingEpochValueMember{txIDAndStatus},
-	}
-}
-
-func NewRewardsClaimedValue(msg MsgRewardsClaimedOnCosmosChain, orchestratorAddress string, ratio sdkTypes.Dec,
-	activeBlockHeight int64) RewardsClaimedValue {
-	return RewardsClaimedValue{
-		RewardsClaimed:        msg,
-		OrchestratorAddresses: []string{orchestratorAddress},
-		Ratio:                 ratio,
-		Counter:               1,
-		AddedToCurrentEpoch:   false,
-		ActiveBlockHeight:     activeBlockHeight,
-	}
-}
-
+// NewValidatorStoreValue returns ValidatorStoreValue struct
 func NewValidatorStoreValue(orchAddress sdkTypes.AccAddress) ValidatorStoreValue {
 	return ValidatorStoreValue{
 		OrchestratorAddresses: []string{orchAddress.String()},
 	}
 }
 
-func NewOutgoingSignaturePoolValue(singleSignature SingleSignatureDataForOutgoingPool, orchestratorAddress sdkTypes.AccAddress) OutgoingSignaturePoolValue {
+// NewOutgoingSignaturePoolValue returns OutgoingSignaturePoolValue struct
+func NewOutgoingSignaturePoolValue(singleSignature SingleSignatureDataForOutgoingPool, valAddress sdkTypes.ValAddress,
+	orchestratorAddress sdkTypes.AccAddress, activeBlockHeight int64) OutgoingSignaturePoolValue {
 	return OutgoingSignaturePoolValue{
 		SingleSignatures:      []SingleSignatureDataForOutgoingPool{singleSignature},
-		OrchestratorAddresses: []string{orchestratorAddress.String()},
+		ValidatorAddresses:    []string{valAddress.String()},
 		Counter:               1,
+		OrchestratorAddresses: []string{orchestratorAddress.String()},
+		SignedEventEmitted:    false,
+		ActiveBlockHeight:     activeBlockHeight,
 	}
 }
 
+func NewEpochWithdrawSuccessStoreValue(cValue sdkTypes.Dec) EpochWithdrawSuccessStoreValue {
+	return EpochWithdrawSuccessStoreValue{
+		Status: false,
+		CValue: cValue,
+	}
+}
+
+// ConvertSingleSignatureDataToSingleSignatureDataForOutgoingPool returns SingleSignatureDataForOutgoingPool struct
 func ConvertSingleSignatureDataToSingleSignatureDataForOutgoingPool(data signing.SingleSignatureData) SingleSignatureDataForOutgoingPool {
 	return SingleSignatureDataForOutgoingPool{
 		SignMode:  data.SignMode,
@@ -124,6 +133,7 @@ func ConvertSingleSignatureDataToSingleSignatureDataForOutgoingPool(data signing
 	}
 }
 
+// ConvertSingleSignatureDataForOutgoingPoolToSingleSignatureData returns signing.SingleSignatureData struct
 func ConvertSingleSignatureDataForOutgoingPoolToSingleSignatureData(data SingleSignatureDataForOutgoingPool) signing.SingleSignatureData {
 	return signing.SingleSignatureData{
 		SignMode:  data.SignMode,
@@ -131,6 +141,7 @@ func ConvertSingleSignatureDataForOutgoingPoolToSingleSignatureData(data SingleS
 	}
 }
 
+// NewOutgoingQueueValue returns OutgoingQueueValue struct
 func NewOutgoingQueueValue(active bool, retryCounter uint64) OutgoingQueueValue {
 	return OutgoingQueueValue{
 		Active:       active,
@@ -138,17 +149,20 @@ func NewOutgoingQueueValue(active bool, retryCounter uint64) OutgoingQueueValue 
 	}
 }
 
-func NewSlashingStoreValue(msg MsgSlashingEventOnCosmosChain, ratio sdkTypes.Dec, orch string, blockHeight int64) SlashingStoreValue {
+// NewSlashingStoreValue returns SlashingStoreValue struct
+func NewSlashingStoreValue(msg MsgSlashingEventOnCosmosChain, ratio sdkTypes.Dec, valAddress sdkTypes.ValAddress,
+	blockHeight int64) SlashingStoreValue {
 	return SlashingStoreValue{
-		SlashingDetails:       msg,
-		Ratio:                 ratio,
-		OrchestratorAddresses: []string{orch},
-		Counter:               1,
-		AddedToCValue:         false,
-		ActiveBlockHeight:     blockHeight,
+		SlashingDetails:    msg,
+		Ratio:              ratio,
+		ValidatorAddresses: []string{valAddress.String()},
+		Counter:            1,
+		AddedToCValue:      false,
+		ActiveBlockHeight:  blockHeight,
 	}
 }
 
+// SetSignatures sets signatures for CosmosTx, takes array of signatures as input and aggregate them together
 func (c *CosmosTx) SetSignatures(signatures ...signing.SignatureV2) error {
 	n := len(signatures)
 	signerInfos := make([]*tx.SignerInfo, n)
@@ -174,10 +188,120 @@ func (c *CosmosTx) SetSignatures(signatures ...signing.SignatureV2) error {
 	return nil
 }
 
+// setSignerInfos Sets signer infos
 func (c *CosmosTx) setSignerInfos(infos []*tx.SignerInfo) {
 	c.Tx.AuthInfo.SignerInfos = infos
 }
 
+// setSignatures Sets signatures
 func (c *CosmosTx) setSignatures(sigs [][]byte) {
 	c.Tx.Signatures = sigs
+}
+
+var _ DBHelper = &ProposalValue{}
+var _ DBHelper = &TxHashValue{}
+var _ DBHelper = &ValueUndelegateSuccessStore{}
+var _ DBHelper = &OutgoingSignaturePoolValue{}
+var _ DBHelper = &SlashingStoreValue{}
+var _ DBHelper = &MintTokenStoreValue{}
+
+// Find returns if the valAddress passed is present or not
+func (m *ProposalValue) Find(valAddress string) bool {
+	for _, address := range m.ValidatorAddresses {
+		if address == valAddress {
+			return true
+		}
+	}
+	return false
+}
+
+// UpdateValues updates validator addresses array and total validator count
+func (m *ProposalValue) UpdateValues(valAddress string, totalValidatorCount int64) {
+	m.ValidatorAddresses = append(m.ValidatorAddresses, valAddress)
+	m.Counter++
+	m.Ratio = sdkTypes.NewDec(m.Counter).Quo(sdkTypes.NewDec(totalValidatorCount))
+}
+
+// Find returns if the valAddress passed is present or not
+func (m *TxHashValue) Find(valAddress string) bool {
+	for _, address := range m.ValidatorAddresses {
+		if address == valAddress {
+			return true
+		}
+	}
+	return false
+}
+
+// UpdateValues updates validator addresses array and total validator count
+func (m *TxHashValue) UpdateValues(valAddress string, totalValidatorCount int64) {
+	m.ValidatorAddresses = append(m.ValidatorAddresses, valAddress)
+	m.Counter++
+	m.Ratio = sdkTypes.NewDec(m.Counter).Quo(sdkTypes.NewDec(totalValidatorCount))
+}
+
+// Find returns if the valAddress passed is present or not
+func (m *ValueUndelegateSuccessStore) Find(valAddress string) bool {
+	for _, address := range m.ValidatorAddresses {
+		if address == valAddress {
+			return true
+		}
+	}
+	return false
+}
+
+// UpdateValues updates validator addresses array and total validator count
+func (m *ValueUndelegateSuccessStore) UpdateValues(valAddress string, totalValidatorCount int64) {
+	m.ValidatorAddresses = append(m.ValidatorAddresses, valAddress)
+	m.Counter++
+	m.Ratio = sdkTypes.NewDec(m.Counter).Quo(sdkTypes.NewDec(totalValidatorCount))
+}
+
+// Find returns if the valAddress passed is present or not
+func (m *OutgoingSignaturePoolValue) Find(valAddress string) bool {
+	for _, address := range m.ValidatorAddresses {
+		if address == valAddress {
+			return true
+		}
+	}
+	return false
+}
+
+// UpdateValues updates validator addresses array and total validator count
+func (m *OutgoingSignaturePoolValue) UpdateValues(valAddress string, _ int64) {
+	m.ValidatorAddresses = append(m.ValidatorAddresses, valAddress)
+	m.Counter++
+}
+
+// Find returns if the valAddress passed is present or not
+func (m *SlashingStoreValue) Find(valAddress string) bool {
+	for _, address := range m.ValidatorAddresses {
+		if address == valAddress {
+			return true
+		}
+	}
+	return false
+}
+
+// UpdateValues updates validator addresses array and total validator count
+func (m *SlashingStoreValue) UpdateValues(valAddress string, totalValidatorCount int64) {
+	m.ValidatorAddresses = append(m.ValidatorAddresses, valAddress)
+	m.Counter++
+	m.Ratio = sdkTypes.NewDec(m.Counter).Quo(sdkTypes.NewDec(totalValidatorCount))
+}
+
+// Find returns if the valAddress passed is present or not
+func (m *MintTokenStoreValue) Find(valAddress string) bool {
+	for _, address := range m.ValidatorAddresses {
+		if address == valAddress {
+			return true
+		}
+	}
+	return false
+}
+
+// UpdateValues updates validator addresses array and total validator count
+func (m *MintTokenStoreValue) UpdateValues(valAddress string, totalValidatorCount int64) {
+	m.ValidatorAddresses = append(m.ValidatorAddresses, valAddress)
+	m.Counter++
+	m.Ratio = sdkTypes.NewDec(m.Counter).Quo(sdkTypes.NewDec(totalValidatorCount))
 }

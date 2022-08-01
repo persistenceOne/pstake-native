@@ -4,43 +4,51 @@ import (
 	"testing"
 	"time"
 
-	simapp "github.com/persistenceOne/pstake-native/app"
+	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/pstake-native/app/helpers"
 	"github.com/persistenceOne/pstake-native/x/epochs"
 	"github.com/persistenceOne/pstake-native/x/epochs/types"
-	"github.com/stretchr/testify/require"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 func TestEpochsExportGenesis(t *testing.T) {
-	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	_, app, ctx := helpers.CreateTestApp()
+
+	epochs.InitGenesis(ctx, app.EpochsKeeper, *types.DefaultGenesis())
 
 	chainStartTime := ctx.BlockTime()
 	chainStartHeight := ctx.BlockHeight()
 
-	genesis := epochs.ExportGenesis(ctx, *app.EpochsKeeper)
-	require.Len(t, genesis.Epochs, 2)
+	genesis := epochs.ExportGenesis(ctx, app.EpochsKeeper)
+	require.Len(t, genesis.Epochs, 3)
 
-	require.Equal(t, genesis.Epochs[0].Identifier, "day")
+	require.Equal(t, genesis.Epochs[0].Identifier, "reward")
 	require.Equal(t, genesis.Epochs[0].StartTime, chainStartTime)
-	require.Equal(t, genesis.Epochs[0].Duration, time.Hour*24)
+	require.Equal(t, genesis.Epochs[0].Duration, time.Minute*1)
 	require.Equal(t, genesis.Epochs[0].CurrentEpoch, int64(0))
 	require.Equal(t, genesis.Epochs[0].CurrentEpochStartHeight, chainStartHeight)
 	require.Equal(t, genesis.Epochs[0].CurrentEpochStartTime, chainStartTime)
 	require.Equal(t, genesis.Epochs[0].EpochCountingStarted, false)
-	require.Equal(t, genesis.Epochs[1].Identifier, "week")
+	require.Equal(t, genesis.Epochs[1].Identifier, "stake")
 	require.Equal(t, genesis.Epochs[1].StartTime, chainStartTime)
-	require.Equal(t, genesis.Epochs[1].Duration, time.Hour*24*7)
+	require.Equal(t, genesis.Epochs[1].Duration, time.Minute*1)
 	require.Equal(t, genesis.Epochs[1].CurrentEpoch, int64(0))
 	require.Equal(t, genesis.Epochs[1].CurrentEpochStartHeight, chainStartHeight)
 	require.Equal(t, genesis.Epochs[1].CurrentEpochStartTime, chainStartTime)
 	require.Equal(t, genesis.Epochs[1].EpochCountingStarted, false)
+	require.Equal(t, genesis.Epochs[2].Identifier, "undelegate")
+	require.Equal(t, genesis.Epochs[2].StartTime, chainStartTime)
+	require.Equal(t, genesis.Epochs[2].Duration, time.Minute*8)
+	require.Equal(t, genesis.Epochs[2].CurrentEpoch, int64(0))
+	require.Equal(t, genesis.Epochs[2].CurrentEpochStartHeight, chainStartHeight)
+	require.Equal(t, genesis.Epochs[2].CurrentEpochStartTime, chainStartTime)
+	require.Equal(t, genesis.Epochs[2].EpochCountingStarted, false)
 }
 
 func TestEpochsInitGenesis(t *testing.T) {
-	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	_, app, ctx := helpers.CreateTestApp()
 
+	epochs.InitGenesis(ctx, app.EpochsKeeper, *types.DefaultGenesis())
 	// On init genesis, default epochs information is set
 	// To check init genesis again, should make it fresh status
 	epochInfos := app.EpochsKeeper.AllEpochInfos(ctx)
@@ -91,7 +99,7 @@ func TestEpochsInitGenesis(t *testing.T) {
 		},
 	}
 
-	epochs.InitGenesis(ctx, *app.EpochsKeeper, genesisState)
+	epochs.InitGenesis(ctx, app.EpochsKeeper, genesisState)
 	epochInfo := app.EpochsKeeper.GetEpochInfo(ctx, "monthly")
 	require.Equal(t, epochInfo.Identifier, "monthly")
 	require.Equal(t, epochInfo.StartTime.UTC().String(), now.UTC().String())

@@ -36,8 +36,6 @@ The upgrades aim to add features such as liquidity, economic security, usability
 - Gaia v7.0.x
 - Cosmos SDK v0.45
   - Minimal update with small fixes
-- Gravity DEX: Liquidity v1.4.5
-  - Adds a circuit breaker governance proposal type to disable adding new liquidity in order to make a migration possible.
 - IBC 3.0
   - Interchain Account Module
     - Allows the creation of accounts on a "Host" blockchain which are controlled by an authentication module on a "Controller" blockchain.
@@ -64,14 +62,18 @@ The upgrades aim to add features such as liquidity, economic security, usability
 - Liquid Staking
   - Frees secure and low-risk delegations for use in other parts of the Cosmos ecosystem
   - Features include enabling transfer of rewards and voting rights
-- Governance permissioned CosmWASM instance on the hub
-- Budget Module
+- Wasmd
+  - Governance permissioned CosmWASM instance on the hub
+- Budget Module (stretch-goal)
   - Inflation funding directed to arbitrary module and account addresses
+- Global Fee Module (stretch-goal)
+  - Allows denoms and min-fees to be governance parameters so gas can be paid in various denoms.
+  - Visible on [tgrade](https://github.com/confio/tgrade/tree/main/x/globalfee) already and enabled in [ante.go](https://github.com/confio/tgrade/blob/main/app/ante.go#L72-L92)
+- Bech32 Prefix forwarding (stretch-goal)
+  - https://github.com/osmosis-labs/bech32-ibc
 
 ## v9-Lambda Upgrade (expected Q3 2022)
 - Gaia v9.0.x
-- IBC 3.1.0
-  - Relayer Incentivisation so that IBC packets contain fees to pay for relayer costs.
 - Interchain Security v1 - Required Participation of Provider Chain Validators
   - The Cosmos solution to shared security that uses IBC Cross Chain Validation (CCV) to relay validator set composition from a Provider Chain (Cosmos Hub) to a Consumer Chain. This validator set is in charge of producing blocks on both networks using separate nodes. Misbehavior on the Consumer Chain results in slashing Provider Chain staking tokens (ATOM).
   - Allows independent modules like Gravity DEX or Bridge to live on separate chains with their own development cycles.

@@ -13,9 +13,16 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
+/*
+HandleChangeMultisigProposal handles the multisig change proposal
+Multisig change proposal is used to change the multsig account on cosmos side with the given orchestrator addresses in
+the proposal and does the following actions :
+1. Aggregate all the keys and form a multisig address
+2. Handle the transaction queue (by making grant, feegrant and revoke transactions for changing authorizations)
+*/
 func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeMultisigProposal) error {
-	oldAccountAddress := k.getCurrentAddress(ctx)
-	oldAccount := k.getAccountState(ctx, oldAccountAddress)
+	oldAccountAddress := k.GetCurrentAddress(ctx)
+	oldAccount := k.GetAccountState(ctx, oldAccountAddress)
 	_, ok := oldAccount.GetPubKey().(*multisig2.LegacyAminoPubKey)
 	if !ok {
 		return cosmosTypes.ErrInvalidMultisigPubkey
@@ -62,7 +69,7 @@ func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Chan
 	})
 	multisigPubkey := multisig2.NewLegacyAminoPubKey(int(p.Threshold), multisigPubkeys)
 	multisigAccAddress := sdk.AccAddress(multisigPubkey.Address().Bytes())
-	multisigAcc := k.getAccountState(ctx, multisigAccAddress)
+	multisigAcc := k.GetAccountState(ctx, multisigAccAddress)
 	if multisigAcc == nil {
 		//TODO add caching for this address string.
 		cosmosAddr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32Prefix, multisigAccAddress)
@@ -82,15 +89,20 @@ func HandleChangeMultisigProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Chan
 		if err != nil {
 			return err
 		}
-		k.setAccountState(ctx, multisigAcc)
+		k.SetAccountState(ctx, multisigAcc)
 	}
 
-	k.setCurrentAddress(ctx, multisigAccAddress)
+	k.SetCurrentAddress(ctx, multisigAccAddress)
 
 	k.handleTransactionQueue(ctx, oldAccount)
 	return nil
 }
 
+/*
+HandleEnableModuleProposal handles the proposal to enable module by setting the moduleEnable flag in params
+Initially checks if module is already enabled. After verifying the account addresses supplied with the proposal a new
+multisig address is formed and set. Post all these step the module is enabled by calling enableModule function
+*/
 func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.EnableModuleProposal) error {
 	// check if module already enabled
 	if k.GetParams(ctx).ModuleEnabled {
@@ -145,37 +157,65 @@ func HandleEnableModuleProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.Enable
 	})
 	multisigPubkey := multisig2.NewLegacyAminoPubKey(int(p.Threshold), multisigPubkeys)
 	multisigAccAddress := sdk.AccAddress(multisigPubkey.Address().Bytes())
-	multisigAcc := k.getAccountState(ctx, multisigAccAddress)
-	if multisigAcc == nil {
-		//TODO add caching for this address string.
-		cosmosAddr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32Prefix, multisigAccAddress)
-		if err != nil {
-			return err
-		}
-		if cosmosAddr == "" {
-			return cosmosTypes.ErrInvalidCustodialAddress
-		}
-		multisigAcc = &authTypes.BaseAccount{
-			Address:       cosmosAddr,
-			PubKey:        nil,
-			AccountNumber: p.AccountNumber,
-			Sequence:      0,
-		}
-		err = multisigAcc.SetPubKey(multisigPubkey)
-		if err != nil {
-			return err
-		}
-		k.setAccountState(ctx, multisigAcc)
+	multisigAcc := k.GetAccountState(ctx, multisigAccAddress)
+
+	//TODO add caching for this address string.
+	cosmosAddr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32Prefix, multisigAccAddress)
+	if err != nil {
+		return err
 	}
+	if cosmosAddr == "" {
+		return cosmosTypes.ErrInvalidCustodialAddress
+	}
+	multisigAcc = &authTypes.BaseAccount{
+		Address:       cosmosAddr,
+		PubKey:        nil,
+		AccountNumber: p.AccountNumber,
+		Sequence:      p.SequenceNumber,
+	}
+	err = multisigAcc.SetPubKey(multisigPubkey)
+	if err != nil {
+		return err
+	}
+	k.SetAccountState(ctx, multisigAcc)
 
 	// set new multisig address as the current address for transaction signing
-	k.setCurrentAddress(ctx, multisigAccAddress)
+	k.SetCurrentAddress(ctx, multisigAccAddress)
 
+	custodialAccAddress, err := cosmosTypes.AccAddressFromBech32(p.CustodialAddress, cosmosTypes.Bech32PrefixAccAddr)
+	if err != nil {
+		return err
+	}
+	custodialAddressString, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, custodialAccAddress)
+	if err != nil {
+		return err
+	}
+
+	// set custodial address, chainID and enable the module.
+	k.setCustodialAddress(ctx, custodialAddressString)
+	k.setCosmosChainID(ctx, p.ChainID)
+	k.setBondDenom(ctx, p.Denom)
 	k.enableModule(ctx)
+
+	multisigAddress, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, multisigAccAddress)
+	if err != nil {
+		return err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			cosmosTypes.EventModuleEnableProposal,
+			sdk.NewAttribute(cosmosTypes.AttributeMultisigAddress, multisigAddress),
+		),
+	)
 
 	return nil
 }
 
+/*
+HandleChangeCosmosValidatorWeightsProposal handles the proposal for change of weights of cosmos side validator set
+by verifying the supplied data and then setting it in DB
+*/
 func HandleChangeCosmosValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeCosmosValidatorWeightsProposal) error {
 	// step 1 : check total sum of weights is 1
 	err := cosmosTypes.ValidateValidatorSetCosmosChain(p.WeightedAddresses)
@@ -194,7 +234,11 @@ func HandleChangeCosmosValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *co
 	return nil
 }
 
-func HandleChangeOracleValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeOracleValidatorWeightsProposal) error {
+/*
+HandleChangeOrchestratorValidatorWeightsProposal handles the proposal for change of weights of orchestrator validator set
+by verifying the supplied data and then setting it in DB
+*/
+func HandleChangeOrchestratorValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *cosmosTypes.ChangeOrchestratorValidatorWeightsProposal) error {
 	// step 1 : check total sum of weights is 1
 	err := cosmosTypes.ValidateValidatorSetNativeChain(p.WeightedAddresses)
 	if err != nil {
@@ -213,30 +257,31 @@ func HandleChangeOracleValidatorWeightsProposal(ctx sdk.Context, k Keeper, p *co
 	if len(valAddresses) != len(p.WeightedAddresses) {
 		return fmt.Errorf("validator addresses and weight are not equally mapped")
 	}
-	k.setOracleValidatorSet(ctx, valAddresses, p.WeightedAddresses)
+	k.SetOrchestratorValidatorSet(ctx, valAddresses, p.WeightedAddresses)
 	return nil
 }
 
+// handleTransactionQueue helper function for handling transaction queue in HandleChangeMultisigProposal
 func (k Keeper) handleTransactionQueue(ctx sdk.Context, oldAccount authTypes.AccountI) {
 	//step 1 : move all pending and active transactions to an array
-	list := k.getAllFromTransactionQueue(ctx) //gets a map of all transactions
+	list := k.GetAllFromTransactionQueue(ctx) //gets a map of all transactions
 
 	//add grant and revoke transactions in an order to queue
 	// for granting access to new multisig account and revoke from previous account
 
 	// grant from old account
-	grantTransactionID := k.addGrantTransactions(ctx, oldAccount)
+	grantTransactionID := k.AddGrantTransactions(ctx, oldAccount)
 
 	// feegrant transaction from old account
-	feegrantTransactionID := k.addFeegrantTransaction(ctx, oldAccount)
+	feegrantTransactionID := k.AddFeegrantTransaction(ctx, oldAccount)
 
 	// revoke transaction from new account
-	revokeTransactionID := k.addRevokeTransactions(ctx, oldAccount)
+	revokeTransactionID := k.AddRevokeTransactions(ctx, oldAccount)
 
 	// set the above transactions in order in transaction queue
-	k.setNewInTransactionQueue(ctx, grantTransactionID)
-	k.setNewInTransactionQueue(ctx, feegrantTransactionID)
-	k.setNewInTransactionQueue(ctx, revokeTransactionID)
+	k.SetNewInTransactionQueue(ctx, grantTransactionID)
+	k.SetNewInTransactionQueue(ctx, feegrantTransactionID)
+	k.SetNewInTransactionQueue(ctx, revokeTransactionID)
 
 	// append all the remaining transactions to the queue with modified txIDs and remove old from the transaction queue
 	k.shiftListOfTransactionsToNewIDs(ctx, list)

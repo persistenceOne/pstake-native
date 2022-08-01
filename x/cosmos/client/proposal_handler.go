@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	EnableModuleProposalHandler                 = client.NewProposalHandler(cli.NewEnableModuleCmd, rest.EnableModuleProposalRESTHandler)
-	ChangeMultisigProposalHandler               = client.NewProposalHandler(cli.NewChangeMultisigCmd, rest.ChangeMultisigProposalRESTHandler)
-	ChangeCosmosValidatorWeightsProposalHandler = client.NewProposalHandler(cli.NewChangeCosmosValidatorWeightsCmd, rest.ChangeCosmosValidatorWeightsProposalRESTHandler)
-	ChangeOracleValidatorWeightsProposalHandler = client.NewProposalHandler(cli.NewChangeOracleValidatorWeightsCmd, rest.ChangeOracleValidatorWeightsProposalRESTHandler)
+	EnableModuleProposalHandler                       = client.NewProposalHandler(cli.NewEnableModuleCmd, rest.EnableModuleProposalRESTHandler)
+	ChangeMultisigProposalHandler                     = client.NewProposalHandler(cli.NewChangeMultisigCmd, rest.ChangeMultisigProposalRESTHandler)
+	ChangeCosmosValidatorWeightsProposalHandler       = client.NewProposalHandler(cli.NewChangeCosmosValidatorWeightsCmd, rest.ChangeCosmosValidatorWeightsProposalRESTHandler)
+	ChangeOrchestratorValidatorWeightsProposalHandler = client.NewProposalHandler(cli.NewChangeOrchestratorValidatorWeightsCmd, rest.ChangeOrchestratorValidatorWeightsProposalRESTHandler)
 )

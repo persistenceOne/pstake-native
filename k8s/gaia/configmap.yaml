@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gaia
+  namespace: dev-native
+data:
+  chain.id: gaiad

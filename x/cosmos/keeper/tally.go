@@ -7,6 +7,7 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
+// Tally tallies signatures from cosmos proposals
 func (k Keeper) Tally(ctx sdkTypes.Context, proposal cosmosTypes.Proposal) (passes bool, tallyResult map[cosmosTypes.VoteOption]sdkTypes.Dec) {
 	results := make(map[cosmosTypes.VoteOption]sdkTypes.Dec)
 	results[cosmosTypes.OptionYes] = sdkTypes.ZeroDec()
@@ -40,7 +41,7 @@ func (k Keeper) Tally(ctx sdkTypes.Context, proposal cosmosTypes.Proposal) (pass
 			panic(err)
 		}
 
-		valAddress, found := k.GetValidatorOrchestrator(ctx, val)
+		valAddress, found := k.CheckValidator(ctx, val)
 		if valAddress == nil {
 			panic("unauthorized vote present in db")
 		}

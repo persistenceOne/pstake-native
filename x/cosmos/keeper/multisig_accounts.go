@@ -7,9 +7,9 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-//TODO : Use this once module is enabled to set multisig account
-func (k Keeper) setAccountState(ctx sdk.Context, acc authTypes.AccountI) {
-	addr := acc.GetAddress()
+// SetAccountState sets account state from the given Account Interface
+func (k Keeper) SetAccountState(ctx sdk.Context, acc authTypes.AccountI) {
+	addr := sdk.AccAddress(acc.GetPubKey().Address())
 	store := ctx.KVStore(k.storeKey)
 
 	bz, err := k.authKeeper.MarshalAccount(acc)
@@ -20,7 +20,8 @@ func (k Keeper) setAccountState(ctx sdk.Context, acc authTypes.AccountI) {
 	store.Set(cosmosTypes.MultisigAccountStoreKey(addr), bz)
 }
 
-func (k Keeper) getAccountState(ctx sdk.Context, accAddress sdk.AccAddress) authTypes.AccountI {
+// GetAccountState gets account state of the given account address
+func (k Keeper) GetAccountState(ctx sdk.Context, accAddress sdk.AccAddress) authTypes.AccountI {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(cosmosTypes.MultisigAccountStoreKey(accAddress))
 	if bz == nil {
@@ -35,17 +36,19 @@ func (k Keeper) getAccountState(ctx sdk.Context, accAddress sdk.AccAddress) auth
 	return acc
 }
 
-func (k Keeper) getCurrentAddress(ctx sdk.Context) sdk.AccAddress {
+// GetCurrentAddress Gets the current multisig address
+func (k Keeper) GetCurrentAddress(ctx sdk.Context) sdk.AccAddress {
 	store := ctx.KVStore(k.storeKey)
 	return store.Get(cosmosTypes.CurrentMultisigAddressKey())
-
 }
 
-func (k Keeper) setCurrentAddress(ctx sdk.Context, accAddress sdk.AccAddress) {
+// SetCurrentAddress Sets a new given multsig address
+func (k Keeper) SetCurrentAddress(ctx sdk.Context, accAddress sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(cosmosTypes.CurrentMultisigAddressKey(), accAddress)
 }
 
+// Checks if the orchestrator address is present in the current multisig address or not
 func (k Keeper) checkOrchestratorAddressPresentInMultisig(ctx sdk.Context, orch sdk.AccAddress) bool {
 	// fetch orch address pub key on chain
 	orchPubKey := k.authKeeper.GetAccount(ctx, orch).GetPubKey()
@@ -54,10 +57,10 @@ func (k Keeper) checkOrchestratorAddressPresentInMultisig(ctx sdk.Context, orch 
 	}
 
 	// fetch multisig pub key
-	multsigPubKey := k.getAccountState(ctx, k.getCurrentAddress(ctx)).GetPubKey().(*multisig.LegacyAminoPubKey).GetPubKeys()
+	multsigPubKey := k.GetAccountState(ctx, k.GetCurrentAddress(ctx)).GetPubKey().(*multisig.LegacyAminoPubKey).GetPubKeys()
 
 	for _, pb := range multsigPubKey {
-		if pb == orchPubKey {
+		if pb.Equals(orchPubKey) {
 			return true
 		}
 	}

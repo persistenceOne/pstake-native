@@ -1,0 +1,23 @@
+ValAddress = "persistencevaloper1pn45c2jdwfwrwva0cknfdlnfst28ucpu20eyfj"
+OrcSeeds = ["bomb sand fashion torch return coconut color captain vapor inhale lyrics lady grant ordinary lazy decrease quit devote paddle impulse prize equip hip ball"]
+
+[CosmosConfig]
+  ChainID = "gaiad"
+  CustodialAddr = "cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2"
+  Denom = "stake"
+  GRPCAddr = "gaia-genesis.dev-native.svc.cluster.local:9090"
+  RPCAddr = "http://gaia-genesis.dev-native.svc.cluster.local:26657"
+  AccountPrefix = "cosmos"
+  GasAdjustment = 1.5
+  GasPrice = "0.025stake"
+  CoinType = 118
+
+[NativeConfig]
+  ChainID = "pstaked"
+  Denom = "stake"
+  RPCAddr = "http://pstake-genesis.dev-native.svc.cluster.local:26657"
+  GRPCAddr = "pstake-genesis.dev-native.svc.cluster.local:9090"
+  AccountPrefix = "persistence"
+  GasAdjustment = 1.5
+  GasPrices = "0.025stake"
+  CoinType = 118

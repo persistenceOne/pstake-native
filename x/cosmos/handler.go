@@ -11,7 +11,7 @@ import (
 	cosmosTypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
-// NewHandler returns a handler for "Gravity" type messages.
+// NewHandler returns a handler for "cosmos" type messages.
 func NewHandler(k keeper.Keeper) sdk.Handler {
 	msgServer := keeper.NewMsgServerImpl(k)
 
@@ -36,13 +36,26 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *cosmosTypes.MsgWithdrawStkAsset:
 			res, err := msgServer.Withdraw(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+		case *cosmosTypes.MsgSetSignature:
+			res, err := msgServer.SetSignature(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *cosmosTypes.MsgRemoveOrchestrator:
+			res, err := msgServer.RemoveOrchestrator(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *cosmosTypes.MsgTxStatus:
+			res, err := msgServer.TxStatus(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *cosmosTypes.MsgSlashingEventOnCosmosChain:
+			res, err := msgServer.SlashingEvent(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 		default:
 			return nil, sdkErrors.Wrap(sdkErrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized Cosmos Module Msg type: %v", sdk.MsgTypeURL(msg)))
 		}
 	}
 }
 
-func NewCosmosLiquidStakingParametersHandler(k keeper.Keeper) govTypes.Handler {
+// NewCosmosLiquidStakingProposalHandler returns handler for governance proposals
+func NewCosmosLiquidStakingProposalHandler(k keeper.Keeper) govTypes.Handler {
 	return func(ctx sdk.Context, content govTypes.Content) error {
 		switch c := content.(type) {
 		case *cosmosTypes.ChangeMultisigProposal:
@@ -51,8 +64,8 @@ func NewCosmosLiquidStakingParametersHandler(k keeper.Keeper) govTypes.Handler {
 			return keeper.HandleEnableModuleProposal(ctx, k, c)
 		case *cosmosTypes.ChangeCosmosValidatorWeightsProposal:
 			return keeper.HandleChangeCosmosValidatorWeightsProposal(ctx, k, c)
-		case *cosmosTypes.ChangeOracleValidatorWeightsProposal:
-			return keeper.HandleChangeOracleValidatorWeightsProposal(ctx, k, c)
+		case *cosmosTypes.ChangeOrchestratorValidatorWeightsProposal:
+			return keeper.HandleChangeOrchestratorValidatorWeightsProposal(ctx, k, c)
 		default:
 			return sdkErrors.Wrapf(sdkErrors.ErrUnknownRequest, "unrecognized distr proposal content type: %T", c)
 		}

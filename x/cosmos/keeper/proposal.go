@@ -20,7 +20,7 @@ type KeyAndValueForProposal struct {
 	Value cosmosTypes.ProposalValue
 }
 
-// creates a new proposal with given voting period in genesis
+// createProposal creates a new proposal with given voting period in genesis
 func (k Keeper) createProposal(c sdk.Context, proposal KeyAndValueForProposal) error {
 	proposalID, err := k.GetProposalID(c)
 	if err != nil {
@@ -52,7 +52,9 @@ func (k Keeper) createProposal(c sdk.Context, proposal KeyAndValueForProposal) e
 	return nil
 }
 
-func (k Keeper) generateOutgoingWeightedVoteEvent(ctx sdk.Context, result map[cosmosTypes.VoteOption]sdk.Dec, cosmosProposalID uint64) {
+// generateOutgoingWeightedVoteTx Generates an outgoing weighted vote transaction with the given vote option and
+// add to it to outgoing pool with given txID
+func (k Keeper) generateOutgoingWeightedVoteTx(ctx sdk.Context, result map[cosmosTypes.VoteOption]sdk.Dec, cosmosProposalID uint64) {
 	nextID := k.autoIncrementID(ctx, []byte(cosmosTypes.KeyLastTXPoolID))
 	params := k.GetParams(ctx)
 
@@ -89,8 +91,12 @@ func (k Keeper) generateOutgoingWeightedVoteEvent(ctx sdk.Context, result map[co
 	}
 
 	voteMsgAny = append(voteMsgAny, msgAny)
+	cosmosAddrr, err := cosmosTypes.Bech32ifyAddressBytes(cosmosTypes.Bech32PrefixAccAddr, k.GetCurrentAddress(ctx))
+	if err != nil {
+		panic(err)
+	}
 	execMsg := authz.MsgExec{
-		Grantee: k.getCurrentAddress(ctx).String(),
+		Grantee: cosmosAddrr,
 		Msgs:    voteMsgAny,
 	}
 
@@ -110,7 +116,7 @@ func (k Keeper) generateOutgoingWeightedVoteEvent(ctx sdk.Context, result map[co
 				SignerInfos: nil,
 				Fee: &sdkTx.Fee{
 					Amount:   nil,
-					GasLimit: 200000,
+					GasLimit: cosmosTypes.MinGasFee,
 					Payer:    "",
 				},
 			},
@@ -120,13 +126,13 @@ func (k Keeper) generateOutgoingWeightedVoteEvent(ctx sdk.Context, result map[co
 		Status:            "",
 		TxHash:            "",
 		ActiveBlockHeight: ctx.BlockHeight() + cosmosTypes.StorageWindow,
-		SignerAddress:     k.getCurrentAddress(ctx).String(),
+		SignerAddress:     cosmosAddrr,
 	}
 
 	//Once event is emitted, store it in KV store for orchestrators to query transactions and sign them
-	k.setNewTxnInOutgoingPool(ctx, nextID, tx)
+	k.SetNewTxnInOutgoingPool(ctx, nextID, tx)
 
-	k.setNewInTransactionQueue(ctx, nextID)
+	k.SetNewInTransactionQueue(ctx, nextID)
 }
 
 // SetProposalID sets the new proposal ID to the store
@@ -165,6 +171,7 @@ func (k Keeper) SetProposal(ctx sdk.Context, proposal cosmosTypes.Proposal) {
 	store.Set(cosmosTypes.ProposalKey1(proposal.ProposalId), bz)
 }
 
+// SetProposalPassed sets the proposal status to passed
 func (k Keeper) SetProposalPassed(ctx sdk.Context, proposalID uint64, result map[cosmosTypes.VoteOption]sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -181,6 +188,7 @@ func (k Keeper) SetProposalPassed(ctx sdk.Context, proposalID uint64, result map
 	store.Set(cosmosTypes.ProposalKey1(proposalID), k.cdc.MustMarshal(&proposal))
 }
 
+// GetProposalID gets the highest proposal ID
 func (k Keeper) GetProposalID(ctx sdk.Context) (proposalID uint64, err error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(cosmosTypes.ProposalIDKey)
@@ -192,6 +200,7 @@ func (k Keeper) GetProposalID(ctx sdk.Context) (proposalID uint64, err error) {
 	return proposalID, nil
 }
 
+// GetProposals returns all the proposals from store
 func (k Keeper) GetProposals(ctx sdk.Context) (proposals cosmosTypes.Proposals) {
 	k.IterateProposals(ctx, func(proposal cosmosTypes.Proposal) bool {
 		proposals = append(proposals, proposal)
@@ -200,6 +209,7 @@ func (k Keeper) GetProposals(ctx sdk.Context) (proposals cosmosTypes.Proposals) 
 	return
 }
 
+// IterateProposals iterates over the all the proposals and performs a callback function
 func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal cosmosTypes.Proposal) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -219,6 +229,11 @@ func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal cosmosTypes.P
 	}
 }
 
+// GetProposalsFiltered gets the proposals filtered by a fixed set of params which
+// includes voter and depositor address and proposal status. The voter address will
+// filter proposals by whether that address has voted on proposals. The depositor
+// address will filter proposals by whether that address has deposited to them.
+// Finally, status will filter proposals by status.
 func (k Keeper) GetProposalsFiltered(ctx sdk.Context, params cosmosTypes.QueryProposalsRequest) cosmosTypes.Proposals {
 	proposals := k.GetProposals(ctx)
 	filteredProposals := make([]cosmosTypes.Proposal, 0, len(proposals))
@@ -236,7 +251,7 @@ func (k Keeper) GetProposalsFiltered(ctx sdk.Context, params cosmosTypes.QueryPr
 		}
 	}
 
-	start, end := sdkClient.Paginate(len(filteredProposals), 10, 10, 100) //TODO : Add Page and limit
+	start, end := sdkClient.Paginate(len(filteredProposals), 10, 10, 100)
 	if start < 0 || end < 0 {
 		filteredProposals = []cosmosTypes.Proposal{}
 	} else {
@@ -246,7 +261,14 @@ func (k Keeper) GetProposalsFiltered(ctx sdk.Context, params cosmosTypes.QueryPr
 	return filteredProposals
 }
 
-func (k Keeper) setProposalDetails(ctx sdk.Context, msg cosmosTypes.MsgMakeProposal) {
+/*
+setProposalDetails Adds the minting message entry to the proposal store with the given validator address.
+Performs the following actions :
+  1. Checks if store has the key or not. If not then create new entry
+  2. Checks if store has it and matches all the details present in the message. If not then create a new entry.
+  3. Finally, if all the details match then append the validator address to keep track.
+*/
+func (k Keeper) setProposalDetails(ctx sdk.Context, msg cosmosTypes.MsgMakeProposal, validatorAddress sdk.ValAddress) {
 	proposalStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ProposalStoreKey)
 	proposalKey := cosmosTypes.NewProposalKey(msg.ChainID, msg.BlockHeight, msg.ProposalID)
 	key := k.cdc.MustMarshal(&proposalKey)
@@ -255,7 +277,7 @@ func (k Keeper) setProposalDetails(ctx sdk.Context, msg cosmosTypes.MsgMakePropo
 	// store has the key in it or not
 	if !proposalStore.Has(key) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newProposalValue := cosmosTypes.NewProposalValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newProposalValue := cosmosTypes.NewProposalValue(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		proposalStore.Set(key, k.cdc.MustMarshal(&newProposalValue))
 		return
 	}
@@ -267,23 +289,25 @@ func (k Keeper) setProposalDetails(ctx sdk.Context, msg cosmosTypes.MsgMakePropo
 	// if not equal then initialize by new value in store
 	if !StoreValueEqualOrNotProposalEvent(proposalValue, msg) {
 		ratio := sdk.NewDec(1).Quo(sdk.NewDec(totalValidatorCount))
-		newProposalValue := cosmosTypes.NewProposalValue(msg, msg.OrchestratorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
+		newProposalValue := cosmosTypes.NewProposalValue(msg, validatorAddress, ratio, ctx.BlockHeight()+cosmosTypes.StorageWindow)
 		proposalStore.Set(key, k.cdc.MustMarshal(&newProposalValue))
 		return
 	}
 
-	if !proposalValue.Find(msg.OrchestratorAddress) {
-		proposalValue.UpdateValues(msg.OrchestratorAddress, totalValidatorCount)
+	if !proposalValue.Find(validatorAddress.String()) {
+		proposalValue.UpdateValues(validatorAddress.String(), totalValidatorCount)
 		proposalStore.Set(key, k.cdc.MustMarshal(&proposalValue))
 		return
 	}
 }
 
+// deleteProposalDetails Removes the proposal details
 func (k Keeper) deleteProposalDetails(ctx sdk.Context, key cosmosTypes.ProposalKey) {
 	proposalStore := prefix.NewStore(ctx.KVStore(k.storeKey), cosmosTypes.ProposalStoreKey)
 	proposalStore.Delete(k.cdc.MustMarshal(&key))
 }
 
+// setProposalPosted Set the proposal posted on native chain
 func (k Keeper) setProposalPosted(ctx sdk.Context, proposal KeyAndValueForProposal) {
 	store := ctx.KVStore(k.storeKey)
 	proposalStore := prefix.NewStore(store, cosmosTypes.ProposalStoreKey)
@@ -307,6 +331,7 @@ func (k Keeper) setProposalPosted(ctx sdk.Context, proposal KeyAndValueForPropos
 	}
 }
 
+// getAllKeyAndValueForProposal Get the complete list of proposals from the DB
 func (k Keeper) getAllKeyAndValueForProposal(ctx sdk.Context) []KeyAndValueForProposal {
 	store := ctx.KVStore(k.storeKey)
 	proposalStore := prefix.NewStore(store, cosmosTypes.ProposalStoreKey)
@@ -332,20 +357,35 @@ func (k Keeper) getAllKeyAndValueForProposal(ctx sdk.Context) []KeyAndValueForPr
 	return list
 }
 
+// IterateProposalsForEmittingVotingTxn Iterates through all the proposals to check
+// and tally the results for all the proposals that have just crossed the voting period.
+// Once voting period is over, mark the proposals passed and then generate vote
+// transaction to be sent to cosmos side.
 func (k Keeper) IterateProposalsForEmittingVotingTxn(ctx sdk.Context) {
 	proposals := k.GetProposals(ctx)
 	for _, proposal := range proposals {
 		if proposal.Status == cosmosTypes.StatusPassed && proposal.VotingEndTime.After(ctx.BlockTime()) {
 			continue
 		}
-		passes, tallyResults := k.Tally(ctx, proposal)
-		if passes {
-			k.SetProposalPassed(ctx, proposal.ProposalId, tallyResults)
-			k.generateOutgoingWeightedVoteEvent(ctx, tallyResults, proposal.CosmosProposalId)
+		if proposal.Status == cosmosTypes.StatusVotingPeriod && ctx.BlockTime().After(proposal.VotingEndTime) {
+			passes, tallyResults := k.Tally(ctx, proposal)
+			if passes {
+				k.SetProposalPassed(ctx, proposal.ProposalId, tallyResults)
+				k.generateOutgoingWeightedVoteTx(ctx, tallyResults, proposal.CosmosProposalId)
+			}
 		}
 	}
 }
 
+/*
+ProcessProposals processes all the proposal requests
+This function is called every EndBlocker to perform the defined set of actions as mentioned below :
+   1. Get the list of all proposal requests
+   2. Checks if the majority of the validator orchestrator have sent the proposal request. Also checks the proposal posted flag
+   3. If majority is reached and other conditions match then proposal is posted on chain and voting period begins.
+   4. Another condition of ActiveBlockHeight is also checked whether to delete the entry or not.
+   5. Iterate over all the proposals to check if they have reached voting end period and then perform defined actions.
+*/
 func (k Keeper) ProcessProposals(ctx sdk.Context) {
 	list := k.getAllKeyAndValueForProposal(ctx)
 	for _, element := range list {
@@ -364,6 +404,7 @@ func (k Keeper) ProcessProposals(ctx sdk.Context) {
 	k.IterateProposalsForEmittingVotingTxn(ctx)
 }
 
+// StoreValueEqualOrNotProposalEvent Helper function for proposal store to check if the relevant details in the message matches or not.
 func StoreValueEqualOrNotProposalEvent(storeValue cosmosTypes.ProposalValue, msgValue cosmosTypes.MsgMakeProposal) bool {
 	if storeValue.ProposalDetails.Title != msgValue.Title {
 		return false

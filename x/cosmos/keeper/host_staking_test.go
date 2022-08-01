@@ -7,6 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/pstake-native/x/cosmos/keeper"
 	"github.com/persistenceOne/pstake-native/x/cosmos/types"
@@ -30,7 +31,7 @@ func TestMulInt(t *testing.T) {
 }
 
 func TestGetIdealCurrentDelegations(t *testing.T) {
-	denom := "uatom"
+	denom := types.DefaultStakingDenom
 	type testValState struct {
 		name   string
 		weight string
@@ -44,113 +45,113 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 		{
 			amount: 5000000,
 			given: []testValState{
-				{"cosmosVal1", "0.5", 10000000},
-				{"cosmosVal2", "0.5", 5000000},
+				{"cosmosvalidatorAddr1", "0.5", 10000000},
+				{"cosmosvalidatorAddr2", "0.5", 5000000},
 			},
 			expected: []testValState{
-				{"cosmosVal1", "", 0},
-				{"cosmosVal2", "", 5000000},
+				{"cosmosvalidatorAddr1", "", 0},
+				{"cosmosvalidatorAddr2", "", 5000000},
 			},
 		},
 		{
 			amount: -5000000,
 			given: []testValState{
-				{"cosmosVal1", "0.5", 10000000},
-				{"cosmosVal2", "0.5", 5000000},
+				{"cosmosvalidatorAddr1", "0.5", 10000000},
+				{"cosmosvalidatorAddr2", "0.5", 5000000},
 			},
 			expected: []testValState{
-				{"cosmosVal1", "", 5000000},
-				{"cosmosVal2", "", 0},
+				{"cosmosvalidatorAddr1", "", 5000000},
+				{"cosmosvalidatorAddr2", "", 0},
 			},
 		},
 		{
 			amount: 5000000,
 			given: []testValState{
-				{"cosmosVal1", "0.9", 10000000},
-				{"cosmosVal2", "0.1", 40000000},
+				{"cosmosvalidatorAddr1", "0.9", 10000000},
+				{"cosmosvalidatorAddr2", "0.1", 40000000},
 			},
 			expected: []testValState{
-				{"cosmosVal1", "", 39500000},
-				{"cosmosVal2", "", -34500000},
+				{"cosmosvalidatorAddr1", "", 39500000},
+				{"cosmosvalidatorAddr2", "", -34500000},
 			},
 		},
 		// Equal distribution
 		{
 			amount: 0,
 			given: []testValState{
-				{"cosmosVal1", "0.5", 10000000},
-				{"cosmosVal2", "0.5", 10000000},
+				{"cosmosvalidatorAddr1", "0.5", 10000000},
+				{"cosmosvalidatorAddr2", "0.5", 10000000},
 			},
 			expected: []testValState{
-				{"cosmosVal1", "", 0},
-				{"cosmosVal2", "", 0},
+				{"cosmosvalidatorAddr1", "", 0},
+				{"cosmosvalidatorAddr2", "", 0},
 			},
 		},
 		{
 			amount: 30000000,
 			given: []testValState{
-				{"cosmosVal1", "0.5", 10000000},
-				{"cosmosVal2", "0.3", 10000000},
-				{"cosmosVal3", "0.2", 10000000},
+				{"cosmosvalidatorAddr1", "0.5", 10000000},
+				{"cosmosvalidatorAddr2", "0.3", 10000000},
+				{"cosmosvalidatorAddr3", "0.2", 10000000},
 			},
 			expected: []testValState{
-				{"cosmosVal1", "", 20000000},
-				{"cosmosVal2", "", 8000000},
-				{"cosmosVal3", "", 2000000},
+				{"cosmosvalidatorAddr1", "", 20000000},
+				{"cosmosvalidatorAddr2", "", 8000000},
+				{"cosmosvalidatorAddr3", "", 2000000},
 			},
 		},
 		{
 			amount: -10000000,
 			given: []testValState{
-				{"cosmosVal1", "0.5", 10000000},
-				{"cosmosVal2", "0.3", 10000000},
-				{"cosmosVal3", "0.2", 10000000},
+				{"cosmosvalidatorAddr1", "0.5", 10000000},
+				{"cosmosvalidatorAddr2", "0.3", 10000000},
+				{"cosmosvalidatorAddr3", "0.2", 10000000},
 			},
 			expected: []testValState{
-				{"cosmosVal1", "", 0},
-				{"cosmosVal2", "", 4000000},
-				{"cosmosVal3", "", 6000000},
+				{"cosmosvalidatorAddr1", "", 0},
+				{"cosmosvalidatorAddr2", "", 4000000},
+				{"cosmosvalidatorAddr3", "", 6000000},
 			},
 		},
 		{
 			amount: -20000000,
 			given: []testValState{
-				{"cosmosVal1", "0.5", 10000000},
-				{"cosmosVal2", "0.3", 10000000},
-				{"cosmosVal3", "0.2", 10000000},
+				{"cosmosvalidatorAddr1", "0.5", 10000000},
+				{"cosmosvalidatorAddr2", "0.3", 10000000},
+				{"cosmosvalidatorAddr3", "0.2", 10000000},
 			},
 			expected: []testValState{
-				{"cosmosVal1", "", 5000000},
-				{"cosmosVal2", "", 7000000},
-				{"cosmosVal3", "", 8000000},
+				{"cosmosvalidatorAddr1", "", 5000000},
+				{"cosmosvalidatorAddr2", "", 7000000},
+				{"cosmosvalidatorAddr3", "", 8000000},
 			},
 		},
 		{
 			amount: 10000000,
 			given: []testValState{
-				{"cosmosVal1", "0.5", 10000000},
-				{"cosmosVal2", "0.5", 10000000},
-				{"cosmosVal3", "0", 10000000},
+				{"cosmosvalidatorAddr1", "0.5", 10000000},
+				{"cosmosvalidatorAddr2", "0.5", 10000000},
+				{"cosmosvalidatorAddr3", "0", 10000000},
 			},
 			expected: []testValState{
-				{"cosmosVal1", "", 10000000},
-				{"cosmosVal2", "", 10000000},
-				{"cosmosVal3", "", -10000000},
+				{"cosmosvalidatorAddr1", "", 10000000},
+				{"cosmosvalidatorAddr2", "", 10000000},
+				{"cosmosvalidatorAddr3", "", -10000000},
 			},
 		},
 		{
 			amount: 10000000,
 			given: []testValState{
-				{"cosmosVal1", "0.5", 10000000},
-				{"cosmosVal2", "0.4", 10000000},
-				{"cosmosVal3", "0", 10000000},
-				{"cosmosVal4", "0.1", 10000000},
+				{"cosmosvalidatorAddr1", "0.5", 10000000},
+				{"cosmosvalidatorAddr2", "0.4", 10000000},
+				{"cosmosvalidatorAddr3", "0", 10000000},
+				{"cosmosvalidatorAddr4", "0.1", 10000000},
 			},
 			expected: []testValState{
-				{"cosmosVal1", "0.5", 15000000},
-				{"cosmosVal2", "0.4", 10000000},
-				{"cosmosVal3", "0", -10000000},
-				{"cosmosVal4", "0.1", -5000000},
+				{"cosmosvalidatorAddr1", "0.5", 15000000},
+				{"cosmosvalidatorAddr2", "0.4", 10000000},
+				{"cosmosvalidatorAddr3", "0", -10000000},
+				{"cosmosvalidatorAddr4", "0.1", -5000000},
 			},
 		},
 	}
@@ -193,27 +194,27 @@ func testStateData(denom string) types.WeightedAddressAmounts {
 		amount int64
 	}{
 		{
-			name:   "cosmosVal1",
+			name:   "cosmosvalidatorAddr1",
 			weight: "0.4",
 			amount: 15000000, // ideal: 14000000
 		},
 		{
-			name:   "cosmosVal2",
+			name:   "cosmosvalidatorAddr2",
 			weight: "0.2",
 			amount: 10000000, // ideal: 7000000
 		},
 		{
-			name:   "cosmosVal3",
+			name:   "cosmosvalidatorAddr3",
 			weight: "0.3",
 			amount: 5000000, // ideal: 10500000
 		},
 		{
-			name:   "cosmosVal4",
+			name:   "cosmosvalidatorAddr4",
 			weight: "0.1",
 			amount: 0, // ideal: 3500000
 		},
 		{
-			name:   "cosmosVal5",
+			name:   "cosmosvalidatorAddr5",
 			weight: "0",
 			amount: 5000000, // ideal: 0
 		},
@@ -222,10 +223,11 @@ func testStateData(denom string) types.WeightedAddressAmounts {
 	state := types.WeightedAddressAmounts{}
 	for _, ts := range testStruct {
 		weight, _ := sdk.NewDecFromStr(ts.weight)
+		valAddress, _ := types.Bech32ifyValAddressBytes(types.Bech32PrefixValAddr, sdk.ValAddress(ts.name))
 		state = append(state, types.WeightedAddressAmount{
 			Weight:  weight,
 			Amount:  sdk.NewInt(ts.amount),
-			Address: sdk.ValAddress(ts.name).String(),
+			Address: valAddress,
 			Denom:   denom,
 		})
 	}
@@ -238,7 +240,9 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
 
 	// Set validator set weighted amount
 	params := app.CosmosKeeper.GetParams(ctx)
-	state := testStateData(params.StakingDenom)
+	bondDenom, err := params.GetBondDenomOf(types.DefaultStakingDenom)
+	require.NoError(suite.T(), err, nil)
+	state := testStateData(bondDenom)
 	suite.SetupValWeightedAmounts(state)
 
 	// Test data
@@ -249,39 +253,39 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
 		{
 			given: 1000,
 			expected: map[string]int64{
-				"cosmosVal3": 1000,
+				"cosmosvalidatorAddr3": 1000,
 			},
 		},
 		{
 			given: 10000000,
 			expected: map[string]int64{
-				"cosmosVal3": 8500000,
-				"cosmosVal4": 1500000,
+				"cosmosvalidatorAddr3": 8500000,
+				"cosmosvalidatorAddr4": 1500000,
 			},
 		},
 		{
 			given: 20000000,
 			expected: map[string]int64{
-				"cosmosVal3": 11500000,
-				"cosmosVal1": 7000000,
-				"cosmosVal4": 1500000,
+				"cosmosvalidatorAddr3": 11500000,
+				"cosmosvalidatorAddr1": 7000000,
+				"cosmosvalidatorAddr4": 1500000,
 			},
 		},
 		{
 			given: 30000000,
 			expected: map[string]int64{
-				"cosmosVal1": 11000000,
-				"cosmosVal3": 14500000,
-				"cosmosVal4": 4500000,
+				"cosmosvalidatorAddr1": 11000000,
+				"cosmosvalidatorAddr3": 14500000,
+				"cosmosvalidatorAddr4": 4500000,
 			},
 		},
 		{
 			given: 50000000,
 			expected: map[string]int64{
-				"cosmosVal1": 19000000,
-				"cosmosVal2": 2000000,
-				"cosmosVal3": 20500000,
-				"cosmosVal4": 8500000,
+				"cosmosvalidatorAddr1": 19000000,
+				"cosmosvalidatorAddr2": 2000000,
+				"cosmosvalidatorAddr3": 20500000,
+				"cosmosvalidatorAddr4": 8500000,
 			},
 		},
 	}
@@ -289,10 +293,13 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
 	// Create input parameters
 	for _, test := range testMatrix {
 		// Create state
-		givenCoin := sdk.NewInt64Coin(params.StakingDenom, test.given)
+		bondDenom, err = params.GetBondDenomOf(types.DefaultStakingDenom)
+		require.NoError(suite.T(), err, nil)
+		givenCoin := sdk.NewInt64Coin(bondDenom, test.given)
 		expectedMap := map[string]int64{}
 		for k, v := range test.expected {
-			expectedMap[sdk.ValAddress(k).String()] = v
+			valAddress, _ := types.Bech32ifyValAddressBytes(types.Bech32PrefixValAddr, sdk.ValAddress(k))
+			expectedMap[valAddress] = v
 		}
 
 		// Run getIdealCurrentDelegations function with params
@@ -301,7 +308,7 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
 		// Check outputs
 		actualMap := map[string]int64{}
 		for _, va := range valAmounts {
-			actualMap[va.Validator.String()] = va.Amount.Amount.Int64()
+			actualMap[va.Validator] = va.Amount.Amount.Int64()
 		}
 		suite.Equal(expectedMap, actualMap, "Matching val distribution")
 	}
@@ -313,7 +320,9 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 
 	// Set validator set weighted amount
 	params := app.CosmosKeeper.GetParams(ctx)
-	state := testStateData(params.StakingDenom)
+	bondDenom, err := params.GetBondDenomOf(types.DefaultStakingDenom)
+	require.NoError(suite.T(), err, nil)
+	state := testStateData(bondDenom)
 	suite.SetupValWeightedAmounts(state)
 
 	// Test data
@@ -322,16 +331,14 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 		expected map[string]int64
 	}{
 		{
-			given: 1000,
-			expected: map[string]int64{
-				"cosmosVal5": 1000,
-			},
+			given:    1000,
+			expected: map[string]int64{},
 		},
 		{
 			given: 10000000,
 			expected: map[string]int64{
-				"cosmosVal5": 5000000,
-				"cosmosVal2": 5000000,
+				"cosmosvalidatorAddr5": 5000000,
+				"cosmosvalidatorAddr2": 5000000,
 			},
 		},
 		{
@@ -341,27 +348,27 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 		{
 			given: 20000000,
 			expected: map[string]int64{
-				"cosmosVal1": 9000000,
-				"cosmosVal2": 6000000,
-				"cosmosVal5": 5000000,
+				"cosmosvalidatorAddr1": 9000000,
+				"cosmosvalidatorAddr2": 6000000,
+				"cosmosvalidatorAddr5": 5000000,
 			},
 		},
 		{
 			given: 30000000,
 			expected: map[string]int64{
-				"cosmosVal1": 13000000,
-				"cosmosVal2": 9000000,
-				"cosmosVal3": 3000000,
-				"cosmosVal5": 5000000,
+				"cosmosvalidatorAddr1": 13000000,
+				"cosmosvalidatorAddr2": 9000000,
+				"cosmosvalidatorAddr3": 3000000,
+				"cosmosvalidatorAddr5": 5000000,
 			},
 		},
 		{
 			given: 35000000,
 			expected: map[string]int64{
-				"cosmosVal1": 15000000,
-				"cosmosVal2": 10000000,
-				"cosmosVal3": 5000000,
-				"cosmosVal5": 5000000,
+				"cosmosvalidatorAddr1": 15000000,
+				"cosmosvalidatorAddr2": 10000000,
+				"cosmosvalidatorAddr3": 5000000,
+				"cosmosvalidatorAddr5": 5000000,
 			},
 		},
 	}
@@ -369,10 +376,13 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 	// Create input parameters
 	for _, test := range testMatrix {
 		// Create state
-		givenCoin := sdk.NewInt64Coin(params.StakingDenom, test.given)
+		bondDenom, err = params.GetBondDenomOf(types.DefaultStakingDenom)
+		require.NoError(suite.T(), err, nil)
+		givenCoin := sdk.NewInt64Coin(bondDenom, test.given)
 		expectedMap := map[string]int64{}
 		for k, v := range test.expected {
-			expectedMap[sdk.ValAddress(k).String()] = v
+			valAddress, _ := types.Bech32ifyValAddressBytes(types.Bech32PrefixValAddr, sdk.ValAddress(k))
+			expectedMap[valAddress] = v
 		}
 
 		// Run getIdealCurrentDelegations function with params
@@ -382,8 +392,77 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 		// Check outputs
 		actualMap := map[string]int64{}
 		for _, va := range valAmounts {
-			actualMap[va.Validator.String()] = va.Amount.Amount.Int64()
+			actualMap[va.Validator] = va.Amount.Amount.Int64()
 		}
 		suite.Equal(expectedMap, actualMap, "Matching val distribution")
+	}
+}
+
+func createStateFromMap(stateMap map[string][]string, denom string) types.WeightedAddressAmounts {
+	// Create state
+	state := types.WeightedAddressAmounts{}
+	for addr, wa := range stateMap {
+		amt, _ := sdk.NewIntFromString(wa[0])
+		weight, _ := sdk.NewDecFromStr(wa[1])
+		valAddress, _ := types.Bech32ifyValAddressBytes(types.Bech32PrefixValAddr, sdk.ValAddress(addr))
+		state = append(state, types.WeightedAddressAmount{
+			Weight:  weight,
+			Amount:  amt,
+			Address: valAddress,
+			Denom:   denom,
+		})
+	}
+	return state
+}
+
+func (suite *IntegrationTestSuite) TestDivideAmountIntoStateValidatorSet() {
+	app, ctx := suite.app, suite.ctx
+
+	// Test data
+	testMatrix := []struct {
+		state    map[string][]string
+		given    int64
+		expected map[string]int64
+	}{
+		{
+			state: map[string][]string{
+				"cosmosvalidatorAddr1": {"4000000", "0.1"},
+				"cosmosvalidatorAddr2": {"8000000", "0.2"},
+				"cosmosvalidatorAddr3": {"8000000", "0.2"},
+				"cosmosvalidatorAddr4": {"20000000", "0.5"},
+			},
+			given: 13028679724,
+			expected: map[string]int64{
+				"cosmosvalidatorAddr1": 1302867972,
+				"cosmosvalidatorAddr2": 2605735944,
+				"cosmosvalidatorAddr3": 2605735944,
+				"cosmosvalidatorAddr4": 6514339864,
+			},
+		},
+	}
+
+	// Create input parameters
+	for _, test := range testMatrix {
+		// Set validator set weighted amount
+		state := createStateFromMap(test.state, types.DefaultStakingDenom)
+		suite.SetupValWeightedAmounts(state)
+
+		// Create state
+		givenCoin := sdk.NewInt64Coin(types.DefaultStakingDenom, test.given)
+		expectedMap := map[string]int64{}
+		for k, v := range test.expected {
+			valAddress, _ := types.Bech32ifyValAddressBytes(types.Bech32PrefixValAddr, sdk.ValAddress(k))
+			expectedMap[valAddress] = v
+		}
+
+		// Run getIdealCurrentDelegations function with params
+		valAmounts, err := app.CosmosKeeper.FetchValidatorsToDelegate(ctx, givenCoin)
+		suite.Nil(err, "Error is not nil for validator to delegate")
+		// Check outputs
+		actualMap := map[string]int64{}
+		for _, va := range valAmounts {
+			actualMap[va.Validator] = va.Amount.Amount.Int64()
+			fmt.Println(actualMap[va.Validator], va.Validator)
+		}
 	}
 }

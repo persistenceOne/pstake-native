@@ -37,6 +37,7 @@ var _ = time.Kitchen
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// MsgSetOrchestrator defines a SDK message for setting a new orchestrator for validator
 type MsgSetOrchestrator struct {
 	Validator    string `protobuf:"bytes,1,opt,name=validator,proto3" json:"validator,omitempty"`
 	Orchestrator string `protobuf:"bytes,2,opt,name=orchestrator,proto3" json:"orchestrator,omitempty"`
@@ -89,6 +90,7 @@ func (m *MsgSetOrchestrator) GetOrchestrator() string {
 	return ""
 }
 
+// MsgSetOrchestratorResponse defines the Msg/SetOrchestrator response type
 type MsgSetOrchestratorResponse struct {
 }
 
@@ -125,6 +127,7 @@ func (m *MsgSetOrchestratorResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSetOrchestratorResponse proto.InternalMessageInfo
 
+// MsgRemoveOrchestrator defines a SDK message for removing orchestrator for validator
 type MsgRemoveOrchestrator struct {
 	Validator    string `protobuf:"bytes,1,opt,name=validator,proto3" json:"validator,omitempty"`
 	Orchestrator string `protobuf:"bytes,2,opt,name=orchestrator,proto3" json:"orchestrator,omitempty"`
@@ -177,6 +180,7 @@ func (m *MsgRemoveOrchestrator) GetOrchestrator() string {
 	return ""
 }
 
+// MsgRemoveOrchestratorResponse defines the Msg/RemoveOrchestrator response type
 type MsgRemoveOrchestratorResponse struct {
 }
 
@@ -213,6 +217,7 @@ func (m *MsgRemoveOrchestratorResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRemoveOrchestratorResponse proto.InternalMessageInfo
 
+// MsgWithdrawStkAsset defines a SDK message for withdrawing stkAsset
 type MsgWithdrawStkAsset struct {
 	FromAddress string     `protobuf:"bytes,1,opt,name=from_address,json=fromAddress,proto3" json:"from_address,omitempty" yaml:"from_address"`
 	ToAddress   string     `protobuf:"bytes,2,opt,name=to_address,json=toAddress,proto3" json:"to_address,omitempty" yaml:"to_address"`
@@ -252,6 +257,7 @@ func (m *MsgWithdrawStkAsset) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgWithdrawStkAsset proto.InternalMessageInfo
 
+// MsgWithdrawStkAssetResponse defines a Msg/WithdrawStkAsset response type
 type MsgWithdrawStkAssetResponse struct {
 }
 
@@ -288,6 +294,7 @@ func (m *MsgWithdrawStkAssetResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgWithdrawStkAssetResponse proto.InternalMessageInfo
 
+// MsgVote defines a SDK message for voting on host-chain proposals
 type MsgVote struct {
 	ProposalId uint64     `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id" yaml:"proposal_id"`
 	Voter      string     `protobuf:"bytes,2,opt,name=voter,proto3" json:"voter,omitempty"`
@@ -326,6 +333,7 @@ func (m *MsgVote) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgVote proto.InternalMessageInfo
 
+// MsgVoteResponse defines a Msg/Vote response type
 type MsgVoteResponse struct {
 }
 
@@ -362,6 +370,7 @@ func (m *MsgVoteResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgVoteResponse proto.InternalMessageInfo
 
+// MsgVoteWeighted defines a SDK message for weighted votes of validator
 type MsgVoteWeighted struct {
 	ProposalId uint64               `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty" yaml:"proposal_id"`
 	Voter      string               `protobuf:"bytes,2,opt,name=voter,proto3" json:"voter,omitempty"`
@@ -400,6 +409,7 @@ func (m *MsgVoteWeighted) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgVoteWeighted proto.InternalMessageInfo
 
+// MsgVoteWeightedResponse defines a Msg/VoteWeighted response type
 type MsgVoteWeightedResponse struct {
 }
 
@@ -436,6 +446,7 @@ func (m *MsgVoteWeightedResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgVoteWeightedResponse proto.InternalMessageInfo
 
+// MsgMintTokensForAccount defines a SDK message for a vote that asks module to mint tokens for an account
 type MsgMintTokensForAccount struct {
 	AddressFromMemo     string     `protobuf:"bytes,1,opt,name=address_from_memo,json=addressFromMemo,proto3" json:"address_from_memo,omitempty"`
 	OrchestratorAddress string     `protobuf:"bytes,2,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
@@ -520,6 +531,7 @@ func (m *MsgMintTokensForAccount) GetBlockHeight() int64 {
 	return 0
 }
 
+// MsgMintTokensForAccountResponse defines a Msg/MintTokensForAccount response type
 type MsgMintTokensForAccountResponse struct {
 }
 
@@ -556,6 +568,7 @@ func (m *MsgMintTokensForAccountResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgMintTokensForAccountResponse proto.InternalMessageInfo
 
+// MsgMakeProposal defines a SDK message for a vote that asks module to replicate proposal on controller chain
 type MsgMakeProposal struct {
 	Title               string    `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty" yaml:"title"`
 	Description         string    `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty" yaml:"description"`
@@ -656,6 +669,7 @@ func (m *MsgMakeProposal) GetVotingEndTime() time.Time {
 	return time.Time{}
 }
 
+// MsgMakeProposalResponse defines a MsgMakeProposal response type
 type MsgMakeProposalResponse struct {
 }
 
@@ -692,6 +706,7 @@ func (m *MsgMakeProposalResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgMakeProposalResponse proto.InternalMessageInfo
 
+// MsgSignedTx defines a SDK message for signing a transaction generated by module
 type MsgSignedTx struct {
 	TxID                uint64 `protobuf:"varint,1,opt,name=tx_i_d,json=txID,proto3" json:"tx_i_d,omitempty"`
 	Tx                  tx.Tx  `protobuf:"bytes,2,opt,name=tx,proto3" json:"tx"`
@@ -752,6 +767,7 @@ func (m *MsgSignedTx) GetOrchestratorAddress() string {
 	return ""
 }
 
+// MsgSignedTxResponse defines a Msg/SignedTx response type
 type MsgSignedTxResponse struct {
 }
 
@@ -788,6 +804,7 @@ func (m *MsgSignedTxResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSignedTxResponse proto.InternalMessageInfo
 
+// MsgTxStatus defines a SDK message for acknowledging status of a broadcast message on host chain
 type MsgTxStatus struct {
 	OrchestratorAddress string `protobuf:"bytes,1,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
 	TxHash              string `protobuf:"bytes,2,opt,name=txHash,proto3" json:"txHash,omitempty"`
@@ -889,6 +906,7 @@ func (m *MsgTxStatus) GetBlockHeight() int64 {
 	return 0
 }
 
+// MsgTxStatusResponse defines a Msg/TxStatus response type
 type MsgTxStatusResponse struct {
 }
 
@@ -925,25 +943,26 @@ func (m *MsgTxStatusResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgTxStatusResponse proto.InternalMessageInfo
 
-type MsgRewardsClaimedOnCosmosChain struct {
-	OrchestratorAddress string     `protobuf:"bytes,1,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
-	AmountClaimed       types.Coin `protobuf:"bytes,2,opt,name=amount_claimed,json=amountClaimed,proto3" json:"amount_claimed"`
-	ChainID             string     `protobuf:"bytes,3,opt,name=chain_i_d,json=chainID,proto3" json:"chain_i_d,omitempty"`
-	BlockHeight         int64      `protobuf:"varint,4,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
+// ValidatorDetails defines validator delegation state on host chain
+type ValidatorDetails struct {
+	ValidatorAddress string     `protobuf:"bytes,1,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
+	BondedTokens     types.Coin `protobuf:"bytes,2,opt,name=bonded_tokens,json=bondedTokens,proto3" json:"bonded_tokens"`
+	UnbondingTokens  types.Coin `protobuf:"bytes,3,opt,name=unbonding_tokens,json=unbondingTokens,proto3" json:"unbonding_tokens"`
+	RewardsCollected types.Coin `protobuf:"bytes,4,opt,name=rewards_collected,json=rewardsCollected,proto3" json:"rewards_collected"`
 }
 
-func (m *MsgRewardsClaimedOnCosmosChain) Reset()         { *m = MsgRewardsClaimedOnCosmosChain{} }
-func (m *MsgRewardsClaimedOnCosmosChain) String() string { return proto.CompactTextString(m) }
-func (*MsgRewardsClaimedOnCosmosChain) ProtoMessage()    {}
-func (*MsgRewardsClaimedOnCosmosChain) Descriptor() ([]byte, []int) {
+func (m *ValidatorDetails) Reset()         { *m = ValidatorDetails{} }
+func (m *ValidatorDetails) String() string { return proto.CompactTextString(m) }
+func (*ValidatorDetails) ProtoMessage()    {}
+func (*ValidatorDetails) Descriptor() ([]byte, []int) {
 	return fileDescriptor_bcec9e484c0426d0, []int{18}
 }
-func (m *MsgRewardsClaimedOnCosmosChain) XXX_Unmarshal(b []byte) error {
+func (m *ValidatorDetails) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRewardsClaimedOnCosmosChain) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ValidatorDetails) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRewardsClaimedOnCosmosChain.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ValidatorDetails.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -953,84 +972,47 @@ func (m *MsgRewardsClaimedOnCosmosChain) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *MsgRewardsClaimedOnCosmosChain) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRewardsClaimedOnCosmosChain.Merge(m, src)
+func (m *ValidatorDetails) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ValidatorDetails.Merge(m, src)
 }
-func (m *MsgRewardsClaimedOnCosmosChain) XXX_Size() int {
+func (m *ValidatorDetails) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRewardsClaimedOnCosmosChain) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRewardsClaimedOnCosmosChain.DiscardUnknown(m)
+func (m *ValidatorDetails) XXX_DiscardUnknown() {
+	xxx_messageInfo_ValidatorDetails.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRewardsClaimedOnCosmosChain proto.InternalMessageInfo
+var xxx_messageInfo_ValidatorDetails proto.InternalMessageInfo
 
-func (m *MsgRewardsClaimedOnCosmosChain) GetOrchestratorAddress() string {
+func (m *ValidatorDetails) GetValidatorAddress() string {
 	if m != nil {
-		return m.OrchestratorAddress
+		return m.ValidatorAddress
 	}
 	return ""
 }
 
-func (m *MsgRewardsClaimedOnCosmosChain) GetAmountClaimed() types.Coin {
+func (m *ValidatorDetails) GetBondedTokens() types.Coin {
 	if m != nil {
-		return m.AmountClaimed
+		return m.BondedTokens
 	}
 	return types.Coin{}
 }
 
-func (m *MsgRewardsClaimedOnCosmosChain) GetChainID() string {
+func (m *ValidatorDetails) GetUnbondingTokens() types.Coin {
 	if m != nil {
-		return m.ChainID
+		return m.UnbondingTokens
 	}
-	return ""
+	return types.Coin{}
 }
 
-func (m *MsgRewardsClaimedOnCosmosChain) GetBlockHeight() int64 {
+func (m *ValidatorDetails) GetRewardsCollected() types.Coin {
 	if m != nil {
-		return m.BlockHeight
+		return m.RewardsCollected
 	}
-	return 0
+	return types.Coin{}
 }
 
-type MsgRewardsClaimedOnCosmosChainResponse struct {
-}
-
-func (m *MsgRewardsClaimedOnCosmosChainResponse) Reset() {
-	*m = MsgRewardsClaimedOnCosmosChainResponse{}
-}
-func (m *MsgRewardsClaimedOnCosmosChainResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRewardsClaimedOnCosmosChainResponse) ProtoMessage()    {}
-func (*MsgRewardsClaimedOnCosmosChainResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bcec9e484c0426d0, []int{19}
-}
-func (m *MsgRewardsClaimedOnCosmosChainResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgRewardsClaimedOnCosmosChainResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgRewardsClaimedOnCosmosChainResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgRewardsClaimedOnCosmosChainResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRewardsClaimedOnCosmosChainResponse.Merge(m, src)
-}
-func (m *MsgRewardsClaimedOnCosmosChainResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgRewardsClaimedOnCosmosChainResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRewardsClaimedOnCosmosChainResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgRewardsClaimedOnCosmosChainResponse proto.InternalMessageInfo
-
+// MsgUndelegateSuccess defines a SDK message for successful delegation of tokens
 type MsgUndelegateSuccess struct {
 	DelegatorAddress    string     `protobuf:"bytes,1,opt,name=delegator_address,json=delegatorAddress,proto3" json:"delegator_address,omitempty"`
 	ValidatorAddress    string     `protobuf:"bytes,2,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
@@ -1045,7 +1027,7 @@ func (m *MsgUndelegateSuccess) Reset()         { *m = MsgUndelegateSuccess{} }
 func (m *MsgUndelegateSuccess) String() string { return proto.CompactTextString(m) }
 func (*MsgUndelegateSuccess) ProtoMessage()    {}
 func (*MsgUndelegateSuccess) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bcec9e484c0426d0, []int{20}
+	return fileDescriptor_bcec9e484c0426d0, []int{19}
 }
 func (m *MsgUndelegateSuccess) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1123,6 +1105,7 @@ func (m *MsgUndelegateSuccess) GetBlockHeight() int64 {
 	return 0
 }
 
+// MsgUndelegateSuccessResponse defines a Msg/UndelegateSuccess response type
 type MsgUndelegateSuccessResponse struct {
 }
 
@@ -1130,7 +1113,7 @@ func (m *MsgUndelegateSuccessResponse) Reset()         { *m = MsgUndelegateSucce
 func (m *MsgUndelegateSuccessResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUndelegateSuccessResponse) ProtoMessage()    {}
 func (*MsgUndelegateSuccessResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bcec9e484c0426d0, []int{21}
+	return fileDescriptor_bcec9e484c0426d0, []int{20}
 }
 func (m *MsgUndelegateSuccessResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1159,6 +1142,7 @@ func (m *MsgUndelegateSuccessResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUndelegateSuccessResponse proto.InternalMessageInfo
 
+// MsgSetSignature defines a SDK message for setting a signature to a transaction
 type MsgSetSignature struct {
 	OrchestratorAddress string `protobuf:"bytes,1,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
 	OutgoingTxID        uint64 `protobuf:"varint,2,opt,name=outgoing_tx_i_d,json=outgoingTxID,proto3" json:"outgoing_tx_i_d,omitempty"`
@@ -1170,7 +1154,7 @@ func (m *MsgSetSignature) Reset()         { *m = MsgSetSignature{} }
 func (m *MsgSetSignature) String() string { return proto.CompactTextString(m) }
 func (*MsgSetSignature) ProtoMessage()    {}
 func (*MsgSetSignature) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bcec9e484c0426d0, []int{22}
+	return fileDescriptor_bcec9e484c0426d0, []int{21}
 }
 func (m *MsgSetSignature) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1227,6 +1211,7 @@ func (m *MsgSetSignature) GetBlockHeight() int64 {
 	return 0
 }
 
+// MsgSetSignatureResponse defines a Msg/SetSignature response type
 type MsgSetSignatureResponse struct {
 }
 
@@ -1234,7 +1219,7 @@ func (m *MsgSetSignatureResponse) Reset()         { *m = MsgSetSignatureResponse
 func (m *MsgSetSignatureResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSetSignatureResponse) ProtoMessage()    {}
 func (*MsgSetSignatureResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bcec9e484c0426d0, []int{23}
+	return fileDescriptor_bcec9e484c0426d0, []int{22}
 }
 func (m *MsgSetSignatureResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1263,71 +1248,12 @@ func (m *MsgSetSignatureResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSetSignatureResponse proto.InternalMessageInfo
 
-type ValidatorDetails struct {
-	ValidatorAddress string     `protobuf:"bytes,1,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
-	BondedTokens     types.Coin `protobuf:"bytes,2,opt,name=bonded_tokens,json=bondedTokens,proto3" json:"bonded_tokens"`
-	UnbondingTokens  types.Coin `protobuf:"bytes,3,opt,name=unbonding_tokens,json=unbondingTokens,proto3" json:"unbonding_tokens"`
-}
-
-func (m *ValidatorDetails) Reset()         { *m = ValidatorDetails{} }
-func (m *ValidatorDetails) String() string { return proto.CompactTextString(m) }
-func (*ValidatorDetails) ProtoMessage()    {}
-func (*ValidatorDetails) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bcec9e484c0426d0, []int{24}
-}
-func (m *ValidatorDetails) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ValidatorDetails) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ValidatorDetails.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ValidatorDetails) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ValidatorDetails.Merge(m, src)
-}
-func (m *ValidatorDetails) XXX_Size() int {
-	return m.Size()
-}
-func (m *ValidatorDetails) XXX_DiscardUnknown() {
-	xxx_messageInfo_ValidatorDetails.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ValidatorDetails proto.InternalMessageInfo
-
-func (m *ValidatorDetails) GetValidatorAddress() string {
-	if m != nil {
-		return m.ValidatorAddress
-	}
-	return ""
-}
-
-func (m *ValidatorDetails) GetBondedTokens() types.Coin {
-	if m != nil {
-		return m.BondedTokens
-	}
-	return types.Coin{}
-}
-
-func (m *ValidatorDetails) GetUnbondingTokens() types.Coin {
-	if m != nil {
-		return m.UnbondingTokens
-	}
-	return types.Coin{}
-}
-
+// MsgSlashingEventOnCosmosChain defines a SDK message for a slashing event that has happened on host chain
 type MsgSlashingEventOnCosmosChain struct {
 	ValidatorAddress    string     `protobuf:"bytes,1,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
-	Amount              types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount"`
+	CurrentDelegation   types.Coin `protobuf:"bytes,2,opt,name=current_delegation,json=currentDelegation,proto3" json:"current_delegation"`
 	OrchestratorAddress string     `protobuf:"bytes,3,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
-	TxHash              string     `protobuf:"bytes,4,opt,name=tx_hash,json=txHash,proto3" json:"tx_hash,omitempty"`
+	SlashType           string     `protobuf:"bytes,4,opt,name=slash_type,json=slashType,proto3" json:"slash_type,omitempty"`
 	ChainID             string     `protobuf:"bytes,5,opt,name=chain_i_d,json=chainID,proto3" json:"chain_i_d,omitempty"`
 	BlockHeight         int64      `protobuf:"varint,6,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
 }
@@ -1336,7 +1262,7 @@ func (m *MsgSlashingEventOnCosmosChain) Reset()         { *m = MsgSlashingEventO
 func (m *MsgSlashingEventOnCosmosChain) String() string { return proto.CompactTextString(m) }
 func (*MsgSlashingEventOnCosmosChain) ProtoMessage()    {}
 func (*MsgSlashingEventOnCosmosChain) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bcec9e484c0426d0, []int{25}
+	return fileDescriptor_bcec9e484c0426d0, []int{23}
 }
 func (m *MsgSlashingEventOnCosmosChain) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1372,9 +1298,9 @@ func (m *MsgSlashingEventOnCosmosChain) GetValidatorAddress() string {
 	return ""
 }
 
-func (m *MsgSlashingEventOnCosmosChain) GetAmount() types.Coin {
+func (m *MsgSlashingEventOnCosmosChain) GetCurrentDelegation() types.Coin {
 	if m != nil {
-		return m.Amount
+		return m.CurrentDelegation
 	}
 	return types.Coin{}
 }
@@ -1386,9 +1312,9 @@ func (m *MsgSlashingEventOnCosmosChain) GetOrchestratorAddress() string {
 	return ""
 }
 
-func (m *MsgSlashingEventOnCosmosChain) GetTxHash() string {
+func (m *MsgSlashingEventOnCosmosChain) GetSlashType() string {
 	if m != nil {
-		return m.TxHash
+		return m.SlashType
 	}
 	return ""
 }
@@ -1407,21 +1333,22 @@ func (m *MsgSlashingEventOnCosmosChain) GetBlockHeight() int64 {
 	return 0
 }
 
-type MsgSlashingEventOnCosmosChainResposne struct {
+// MsgSlashingEventOnCosmosChainResposne defines a SDK message for Msg/SlashingEventOnCosmosChain resposne type
+type MsgSlashingEventOnCosmosChainResponse struct {
 }
 
-func (m *MsgSlashingEventOnCosmosChainResposne) Reset()         { *m = MsgSlashingEventOnCosmosChainResposne{} }
-func (m *MsgSlashingEventOnCosmosChainResposne) String() string { return proto.CompactTextString(m) }
-func (*MsgSlashingEventOnCosmosChainResposne) ProtoMessage()    {}
-func (*MsgSlashingEventOnCosmosChainResposne) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bcec9e484c0426d0, []int{26}
+func (m *MsgSlashingEventOnCosmosChainResponse) Reset()         { *m = MsgSlashingEventOnCosmosChainResponse{} }
+func (m *MsgSlashingEventOnCosmosChainResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgSlashingEventOnCosmosChainResponse) ProtoMessage()    {}
+func (*MsgSlashingEventOnCosmosChainResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bcec9e484c0426d0, []int{24}
 }
-func (m *MsgSlashingEventOnCosmosChainResposne) XXX_Unmarshal(b []byte) error {
+func (m *MsgSlashingEventOnCosmosChainResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgSlashingEventOnCosmosChainResposne) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgSlashingEventOnCosmosChainResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgSlashingEventOnCosmosChainResposne.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgSlashingEventOnCosmosChainResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1431,17 +1358,17 @@ func (m *MsgSlashingEventOnCosmosChainResposne) XXX_Marshal(b []byte, determinis
 		return b[:n], nil
 	}
 }
-func (m *MsgSlashingEventOnCosmosChainResposne) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgSlashingEventOnCosmosChainResposne.Merge(m, src)
+func (m *MsgSlashingEventOnCosmosChainResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSlashingEventOnCosmosChainResponse.Merge(m, src)
 }
-func (m *MsgSlashingEventOnCosmosChainResposne) XXX_Size() int {
+func (m *MsgSlashingEventOnCosmosChainResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgSlashingEventOnCosmosChainResposne) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgSlashingEventOnCosmosChainResposne.DiscardUnknown(m)
+func (m *MsgSlashingEventOnCosmosChainResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSlashingEventOnCosmosChainResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgSlashingEventOnCosmosChainResposne proto.InternalMessageInfo
+var xxx_messageInfo_MsgSlashingEventOnCosmosChainResponse proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*MsgSetOrchestrator)(nil), "cosmos.v1beta1.MsgSetOrchestrator")
@@ -1462,133 +1389,129 @@ func init() {
 	proto.RegisterType((*MsgSignedTxResponse)(nil), "cosmos.v1beta1.MsgSignedTxResponse")
 	proto.RegisterType((*MsgTxStatus)(nil), "cosmos.v1beta1.MsgTxStatus")
 	proto.RegisterType((*MsgTxStatusResponse)(nil), "cosmos.v1beta1.MsgTxStatusResponse")
-	proto.RegisterType((*MsgRewardsClaimedOnCosmosChain)(nil), "cosmos.v1beta1.MsgRewardsClaimedOnCosmosChain")
-	proto.RegisterType((*MsgRewardsClaimedOnCosmosChainResponse)(nil), "cosmos.v1beta1.MsgRewardsClaimedOnCosmosChainResponse")
+	proto.RegisterType((*ValidatorDetails)(nil), "cosmos.v1beta1.ValidatorDetails")
 	proto.RegisterType((*MsgUndelegateSuccess)(nil), "cosmos.v1beta1.MsgUndelegateSuccess")
 	proto.RegisterType((*MsgUndelegateSuccessResponse)(nil), "cosmos.v1beta1.MsgUndelegateSuccessResponse")
 	proto.RegisterType((*MsgSetSignature)(nil), "cosmos.v1beta1.MsgSetSignature")
 	proto.RegisterType((*MsgSetSignatureResponse)(nil), "cosmos.v1beta1.MsgSetSignatureResponse")
-	proto.RegisterType((*ValidatorDetails)(nil), "cosmos.v1beta1.ValidatorDetails")
 	proto.RegisterType((*MsgSlashingEventOnCosmosChain)(nil), "cosmos.v1beta1.MsgSlashingEventOnCosmosChain")
-	proto.RegisterType((*MsgSlashingEventOnCosmosChainResposne)(nil), "cosmos.v1beta1.MsgSlashingEventOnCosmosChainResposne")
+	proto.RegisterType((*MsgSlashingEventOnCosmosChainResponse)(nil), "cosmos.v1beta1.MsgSlashingEventOnCosmosChainResponse")
 }
 
 func init() { proto.RegisterFile("cosmos/v1beta1/msgs.proto", fileDescriptor_bcec9e484c0426d0) }
 
 var fileDescriptor_bcec9e484c0426d0 = []byte{
-	// 1779 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x58, 0xcd, 0x6f, 0x1b, 0xc7,
-	0x15, 0xe7, 0x92, 0x12, 0x25, 0x3d, 0x52, 0x5f, 0x63, 0xd9, 0xa6, 0x56, 0x32, 0x57, 0x59, 0x57,
-	0xb6, 0x6a, 0xc5, 0x64, 0xac, 0xb4, 0x49, 0xa0, 0x4b, 0x61, 0x4a, 0x35, 0xe2, 0x02, 0x8c, 0x83,
-	0xa5, 0x9a, 0xa0, 0xb9, 0x10, 0x4b, 0xee, 0x64, 0xb9, 0x10, 0x77, 0x87, 0xe5, 0x0c, 0x65, 0xba,
-	0xa7, 0x22, 0x41, 0x81, 0x16, 0x05, 0x0a, 0x17, 0xbd, 0xf4, 0x52, 0x34, 0x97, 0xf6, 0x50, 0xb4,
-	0xd7, 0xfe, 0x0d, 0x41, 0x4f, 0x29, 0x7a, 0x29, 0x8a, 0x82, 0x29, 0xec, 0x1e, 0x8a, 0x1c, 0x75,
-	0xe8, 0xb9, 0xd8, 0x99, 0xd9, 0xe5, 0x2e, 0xb9, 0x2b, 0xd3, 0x8a, 0x7b, 0x92, 0xf6, 0xbd, 0x37,
-	0xef, 0xfd, 0xde, 0xf7, 0x0c, 0x61, 0xb3, 0x4d, 0xa8, 0x4b, 0x68, 0xf5, 0xec, 0x5e, 0x0b, 0x33,
-	0xf3, 0x5e, 0xd5, 0xa5, 0x36, 0xad, 0xf4, 0xfa, 0x84, 0x11, 0xb4, 0x22, 0x58, 0x15, 0xc9, 0x52,
-	0x37, 0x6c, 0x62, 0x13, 0xce, 0xaa, 0xfa, 0xff, 0x09, 0x29, 0x75, 0xdb, 0x26, 0xc4, 0xee, 0xe2,
-	0xaa, 0xd9, 0x73, 0xaa, 0xa6, 0xe7, 0x11, 0x66, 0x32, 0x87, 0x78, 0x52, 0x87, 0xba, 0x29, 0xb9,
-	0xfc, 0xab, 0x35, 0xf8, 0xb8, 0x6a, 0x7a, 0x4f, 0x24, 0x6b, 0x6b, 0xc2, 0xb2, 0xb4, 0x26, 0x98,
-	0x37, 0x26, 0x98, 0xbd, 0x3e, 0xe9, 0x11, 0x6a, 0x76, 0x25, 0x5b, 0x9b, 0x54, 0xcb, 0x1c, 0x17,
-	0x53, 0x66, 0xba, 0x3d, 0x29, 0xa0, 0xca, 0xf3, 0x6c, 0x18, 0xaa, 0x60, 0x43, 0xc9, 0x2b, 0x4b,
-	0x5e, 0xcb, 0xa4, 0x38, 0x62, 0xdd, 0xf1, 0x04, 0x5f, 0xff, 0x00, 0x50, 0x9d, 0xda, 0x0d, 0xcc,
-	0x1e, 0xf5, 0xdb, 0x1d, 0x4c, 0x59, 0xdf, 0x64, 0xa4, 0x8f, 0xb6, 0x61, 0xe9, 0xcc, 0xec, 0x3a,
-	0x96, 0xff, 0x51, 0x52, 0x76, 0x94, 0xbd, 0x25, 0x63, 0x4c, 0x40, 0x3a, 0x14, 0x49, 0x44, 0xba,
-	0x94, 0xe5, 0x02, 0x31, 0x9a, 0xbe, 0x0d, 0xea, 0xb4, 0x5e, 0x03, 0xd3, 0x1e, 0xf1, 0x28, 0xd6,
-	0x7f, 0x00, 0x57, 0xeb, 0xd4, 0x36, 0xb0, 0x4b, 0xce, 0xf0, 0x2b, 0x36, 0xac, 0xc1, 0x8d, 0x44,
-	0xd5, 0xa1, 0xed, 0xbf, 0x28, 0x70, 0xa5, 0x4e, 0xed, 0x0f, 0x1d, 0xd6, 0xb1, 0xfa, 0xe6, 0xe3,
-	0x06, 0x3b, 0xbd, 0x4f, 0x29, 0x66, 0xe8, 0x10, 0x8a, 0x1f, 0xf7, 0x89, 0xdb, 0x34, 0x2d, 0xab,
-	0x8f, 0x29, 0x15, 0xd6, 0x6b, 0xd7, 0xcf, 0x47, 0xda, 0x95, 0x27, 0xa6, 0xdb, 0x3d, 0xd4, 0xa3,
-	0x5c, 0xdd, 0x28, 0xf8, 0x9f, 0xf7, 0xc5, 0x17, 0xfa, 0x16, 0x00, 0x23, 0xe1, 0x49, 0x0e, 0xab,
-	0x76, 0xf5, 0x7c, 0xa4, 0xad, 0x8b, 0x93, 0x63, 0x9e, 0x6e, 0x2c, 0x31, 0x12, 0x9c, 0x7a, 0x1b,
-	0xf2, 0xa6, 0x4b, 0x06, 0x1e, 0x2b, 0xe5, 0x76, 0x94, 0xbd, 0xc2, 0xc1, 0x66, 0x45, 0x96, 0x85,
-	0x9f, 0xac, 0xa0, 0x12, 0x2b, 0x47, 0xc4, 0xf1, 0x6a, 0x73, 0x9f, 0x8f, 0xb4, 0x8c, 0x21, 0xc5,
-	0x0f, 0x17, 0x7f, 0xfa, 0x99, 0x96, 0xf9, 0xcf, 0x67, 0x5a, 0x46, 0xbf, 0x01, 0x5b, 0x09, 0xbe,
-	0x84, 0xbe, 0xfe, 0x49, 0x81, 0x85, 0x3a, 0xb5, 0x3f, 0x20, 0x0c, 0xa3, 0x07, 0x50, 0x08, 0x0a,
-	0xab, 0xe9, 0x58, 0xdc, 0xbd, 0xb9, 0xda, 0xee, 0x57, 0x23, 0x2d, 0x4a, 0x3e, 0x1f, 0x69, 0x48,
-	0x60, 0x8e, 0x10, 0x75, 0x03, 0x82, 0xaf, 0x87, 0x16, 0xda, 0x80, 0xf9, 0x33, 0xc2, 0x70, 0x10,
-	0x7d, 0xf1, 0x81, 0x0e, 0x20, 0x4f, 0x7a, 0x7e, 0x33, 0x70, 0x5f, 0x56, 0x0e, 0xd4, 0x4a, 0xbc,
-	0xa1, 0x2a, 0x3e, 0x86, 0x47, 0x5c, 0xc2, 0x90, 0x92, 0x87, 0x6b, 0xbe, 0x1b, 0xbf, 0x96, 0xae,
-	0xfc, 0xf8, 0x9f, 0x3b, 0x19, 0x7d, 0x1d, 0x56, 0x25, 0xdc, 0xd0, 0x85, 0x3f, 0x2b, 0x21, 0xed,
-	0x43, 0xec, 0xd8, 0x1d, 0x86, 0x2d, 0xf4, 0x76, 0x92, 0x2b, 0xd7, 0x2e, 0x8d, 0xbd, 0x06, 0x0b,
-	0x02, 0x11, 0x2d, 0xe5, 0x76, 0x72, 0x7b, 0x85, 0x03, 0x7d, 0x12, 0x7c, 0x60, 0x79, 0xec, 0x84,
-	0xcc, 0x48, 0x70, 0x30, 0xc1, 0x97, 0x4d, 0xb8, 0x3e, 0x81, 0x3b, 0xf4, 0xe9, 0x67, 0x59, 0xce,
-	0xab, 0x3b, 0x1e, 0x3b, 0x21, 0xa7, 0xd8, 0xa3, 0x0f, 0x48, 0xff, 0x7e, 0xbb, 0xed, 0xe7, 0x16,
-	0xdd, 0x81, 0x75, 0x59, 0x2b, 0x4d, 0x5e, 0x70, 0x2e, 0x76, 0x89, 0xec, 0x84, 0x55, 0xc9, 0x78,
-	0xd0, 0x27, 0x6e, 0x1d, 0xbb, 0x04, 0xdd, 0x83, 0x8d, 0x68, 0xed, 0xc7, 0x0b, 0xd0, 0xb8, 0x12,
-	0xe5, 0x7d, 0xdd, 0x9a, 0x43, 0xd7, 0x61, 0x81, 0x0d, 0x9b, 0x1d, 0x93, 0x76, 0x4a, 0x73, 0x5c,
-	0x7d, 0x9e, 0x0d, 0xdf, 0x35, 0x69, 0x07, 0xa9, 0xb0, 0xd4, 0xee, 0x98, 0x8e, 0xd7, 0x74, 0x9a,
-	0x56, 0x69, 0x9e, 0xb3, 0x16, 0x38, 0xe1, 0xe1, 0x31, 0x7a, 0x0d, 0x8a, 0xad, 0x2e, 0x69, 0x9f,
-	0x36, 0x3b, 0x3c, 0x04, 0xa5, 0xfc, 0x8e, 0xb2, 0x97, 0x33, 0x0a, 0x9c, 0xf6, 0x2e, 0x27, 0xe9,
-	0xaf, 0x81, 0x96, 0x12, 0x8a, 0x30, 0x5c, 0x9f, 0xcc, 0xf3, 0x12, 0xa8, 0x9b, 0xa7, 0xf8, 0x7d,
-	0x99, 0x4b, 0x74, 0x0b, 0xe6, 0x99, 0xc3, 0xba, 0x58, 0xb6, 0xe9, 0xda, 0xf9, 0x48, 0x2b, 0xca,
-	0x66, 0xf3, 0xc9, 0xba, 0x21, 0xd8, 0xe8, 0x1d, 0x28, 0x58, 0x98, 0xb6, 0xfb, 0x8e, 0x28, 0x4e,
-	0xd1, 0x9a, 0x91, 0x52, 0x89, 0x30, 0x75, 0x23, 0x2a, 0x8a, 0x8c, 0x94, 0xe0, 0xe6, 0xb8, 0x0a,
-	0xed, 0x7c, 0xa4, 0x6d, 0x09, 0x15, 0x49, 0x52, 0x7a, 0x72, 0xf4, 0xdf, 0x81, 0xe2, 0xb8, 0x36,
-	0x9b, 0x16, 0x8f, 0xe4, 0x2c, 0x95, 0x7b, 0x8c, 0xaa, 0x53, 0x51, 0xae, 0x5d, 0x39, 0x1f, 0x69,
-	0xab, 0xe2, 0x98, 0x64, 0x59, 0xfa, 0x38, 0xf4, 0x87, 0x49, 0xa1, 0x8f, 0x8e, 0xb3, 0x28, 0x57,
-	0x8f, 0xe5, 0x04, 0xfd, 0x5c, 0x81, 0xf5, 0x33, 0xc2, 0x1c, 0xcf, 0x6e, 0x52, 0x66, 0xf6, 0x59,
-	0xd3, 0xdf, 0x38, 0xa5, 0x05, 0x5e, 0x30, 0x6a, 0x45, 0xac, 0xa3, 0x4a, 0xb0, 0x8e, 0x2a, 0x27,
-	0xc1, 0x3a, 0xaa, 0x1d, 0xf9, 0x15, 0xf3, 0xd5, 0x48, 0xdb, 0x9a, 0x3a, 0xfc, 0x3a, 0x71, 0x1d,
-	0x86, 0xdd, 0x1e, 0x7b, 0x72, 0x3e, 0xd2, 0x4a, 0x02, 0xc0, 0x94, 0x90, 0xfe, 0xf4, 0x4b, 0x4d,
-	0x31, 0x56, 0x05, 0xbd, 0xe1, 0x93, 0x7d, 0xd5, 0xe8, 0x53, 0x05, 0x24, 0xad, 0x89, 0x3d, 0x4b,
-	0x60, 0x59, 0x7c, 0x21, 0x96, 0xef, 0x48, 0x2c, 0x9b, 0x13, 0x47, 0x63, 0x48, 0xae, 0xc5, 0x90,
-	0x04, 0x22, 0x02, 0xc7, 0xb2, 0xa0, 0x7e, 0xd7, 0xb3, 0x7c, 0xa5, 0xb2, 0x9d, 0xa3, 0x35, 0x18,
-	0xd6, 0xe7, 0xa7, 0x0a, 0x14, 0xfc, 0x65, 0xe7, 0xd8, 0x1e, 0xb6, 0x4e, 0x86, 0x68, 0x03, 0xf2,
-	0x6c, 0xc8, 0x13, 0xc5, 0x27, 0x93, 0x31, 0xc7, 0x86, 0x0f, 0x8f, 0xd1, 0x3e, 0x64, 0xd9, 0x90,
-	0x17, 0x60, 0xe1, 0xe0, 0x6a, 0xd0, 0x75, 0x6c, 0x18, 0xf6, 0xdc, 0xc9, 0x50, 0x76, 0x5c, 0x96,
-	0x0d, 0x53, 0x3b, 0x3b, 0x97, 0xda, 0xd9, 0xfa, 0x55, 0xbe, 0xd6, 0x02, 0x10, 0x21, 0xb8, 0xdf,
-	0xe6, 0x38, 0xb8, 0x93, 0x61, 0x83, 0x99, 0x6c, 0x40, 0x53, 0x35, 0x2b, 0xe9, 0x33, 0xe3, 0x1a,
-	0xc8, 0x5e, 0x97, 0x83, 0x25, 0xe8, 0xfc, 0x6b, 0x90, 0xa7, 0x5c, 0xa9, 0x84, 0x25, 0xbf, 0xd0,
-	0x2e, 0xac, 0x98, 0xa2, 0x85, 0x9b, 0xde, 0xc0, 0x6d, 0xe1, 0xbe, 0xa8, 0x73, 0x63, 0x59, 0x52,
-	0xdf, 0xe3, 0x44, 0x74, 0x1b, 0x56, 0x29, 0xfe, 0xe1, 0x00, 0x7b, 0x6d, 0x1c, 0xc8, 0xcd, 0x73,
-	0xb9, 0x95, 0x80, 0x2c, 0x05, 0x31, 0x2c, 0xb4, 0xcc, 0xae, 0xe9, 0xb5, 0x71, 0x29, 0xcf, 0xe7,
-	0xf3, 0x05, 0x43, 0xeb, 0x0d, 0x3f, 0x84, 0x7f, 0xf8, 0x52, 0xdb, 0xb3, 0x1d, 0xd6, 0x19, 0xb4,
-	0x2a, 0x6d, 0xe2, 0xca, 0xcb, 0x96, 0xfc, 0x73, 0x97, 0x5a, 0xa7, 0x55, 0xf6, 0xa4, 0x87, 0x29,
-	0x3f, 0x40, 0x8d, 0x40, 0x37, 0x6a, 0xc0, 0x7a, 0x78, 0xd5, 0x68, 0x5a, 0x98, 0x99, 0x4e, 0x97,
-	0x96, 0x16, 0xb8, 0xc1, 0x9d, 0xa9, 0x6d, 0x16, 0x08, 0x1e, 0x0b, 0x39, 0x99, 0xba, 0xb5, 0xb3,
-	0x09, 0xfa, 0xd4, 0x04, 0x5c, 0x9c, 0x9e, 0x80, 0x22, 0x71, 0x41, 0x82, 0xc2, 0xc4, 0xfd, 0x43,
-	0x81, 0x32, 0xbf, 0xc9, 0x3c, 0x36, 0xfb, 0x16, 0x3d, 0xea, 0x9a, 0x8e, 0x8b, 0xad, 0x47, 0xde,
-	0x11, 0x07, 0x72, 0xe4, 0x77, 0xf9, 0x65, 0x72, 0xf9, 0x00, 0x56, 0xc4, 0x40, 0x6f, 0xb6, 0x85,
-	0x46, 0x59, 0x91, 0x2f, 0xdc, 0x03, 0xcb, 0xe2, 0x98, 0xc4, 0x11, 0x9f, 0xfa, 0xb9, 0x8b, 0xa7,
-	0xfe, 0xdc, 0xb4, 0xcf, 0x7b, 0x70, 0xeb, 0x62, 0xdf, 0xc2, 0x30, 0xfc, 0x37, 0x0b, 0x1b, 0x75,
-	0x6a, 0x7f, 0xdf, 0xb3, 0x70, 0x17, 0xdb, 0x26, 0xc3, 0x8d, 0x41, 0xbb, 0xed, 0x7b, 0xb2, 0x0f,
-	0xeb, 0x92, 0x34, 0xe5, 0xf9, 0x5a, 0xc8, 0x08, 0xdc, 0xde, 0x8f, 0xe6, 0x36, 0xbe, 0x26, 0xc7,
-	0x39, 0xfb, 0xda, 0x3b, 0x32, 0x2d, 0x1f, 0x73, 0xe9, 0xf9, 0xd8, 0x1f, 0xaf, 0x55, 0x31, 0xd5,
-	0xd1, 0xf9, 0x48, 0x5b, 0x91, 0x9b, 0x4c, 0x30, 0xf4, 0xb0, 0xe1, 0x62, 0x4b, 0x20, 0x7f, 0x89,
-	0x25, 0xb0, 0x30, 0xfb, 0x12, 0xd0, 0xcb, 0xb0, 0x9d, 0x14, 0xf7, 0x30, 0x31, 0x7f, 0x14, 0x17,
-	0xb3, 0x06, 0x66, 0xfe, 0xcc, 0x31, 0xd9, 0xa0, 0x8f, 0x2f, 0x53, 0x90, 0xbb, 0xb0, 0x4a, 0x06,
-	0xcc, 0x26, 0xfe, 0x00, 0x96, 0x53, 0x33, 0xcb, 0xa7, 0x40, 0x31, 0x20, 0x9f, 0xf8, 0xd3, 0x73,
-	0x1b, 0x96, 0x68, 0x60, 0x86, 0xa7, 0xa5, 0x68, 0x8c, 0x09, 0xb3, 0x54, 0x9c, 0x98, 0xdf, 0x51,
-	0xb4, 0xa1, 0x27, 0x7f, 0x55, 0x60, 0x6d, 0xb2, 0xa1, 0x93, 0x2b, 0x46, 0x49, 0xa9, 0x98, 0x63,
-	0x58, 0x6e, 0x11, 0xcf, 0xc2, 0x56, 0x93, 0xf1, 0x4b, 0xcc, 0xac, 0x4d, 0x55, 0x14, 0xa7, 0xc4,
-	0xcd, 0x07, 0x7d, 0x0f, 0xd6, 0x06, 0x9e, 0x4f, 0xe1, 0xb1, 0x10, 0x8a, 0x66, 0xac, 0xc0, 0xd5,
-	0xf0, 0xa0, 0xd0, 0xa5, 0x3f, 0xcd, 0xf2, 0x77, 0x50, 0xa3, 0x6b, 0xd2, 0x8e, 0xbf, 0xc5, 0xce,
-	0xb0, 0xc7, 0xe2, 0xc3, 0xe3, 0xa5, 0x1c, 0x1c, 0xb7, 0x44, 0xf6, 0xd5, 0xb4, 0x44, 0xfa, 0x22,
-	0xfb, 0xbf, 0xdd, 0x34, 0x6f, 0xc3, 0xee, 0x85, 0x11, 0xe1, 0xf5, 0x40, 0x3d, 0x7c, 0xf0, 0xfb,
-	0x02, 0xe4, 0xea, 0xd4, 0x46, 0xbf, 0x54, 0x60, 0x75, 0xf2, 0x65, 0x3c, 0xf5, 0x34, 0x98, 0x7e,
-	0xe5, 0xaa, 0x77, 0x5e, 0x2c, 0x13, 0xd6, 0x5e, 0xe5, 0x93, 0xbf, 0xfd, 0xfb, 0x57, 0xd9, 0x3d,
-	0xfd, 0x56, 0xb5, 0x47, 0x99, 0x79, 0x8a, 0xab, 0x13, 0xbf, 0x05, 0x4c, 0xda, 0xff, 0x8d, 0x02,
-	0x28, 0xe1, 0xdd, 0xbc, 0x9b, 0x60, 0x72, 0x5a, 0x4c, 0xbd, 0x3b, 0x93, 0x58, 0x08, 0xee, 0x1e,
-	0x07, 0xb7, 0xaf, 0x7f, 0x33, 0x05, 0x5c, 0x02, 0x90, 0x5f, 0x28, 0xb0, 0x18, 0x3c, 0x47, 0xd1,
-	0xcd, 0x04, 0x73, 0x93, 0x6f, 0x55, 0x75, 0x7f, 0x06, 0xa1, 0x10, 0xd1, 0x1b, 0x1c, 0xd1, 0x1d,
-	0x7d, 0x2f, 0x05, 0xd1, 0xe4, 0x41, 0x8a, 0x7e, 0xa7, 0xc0, 0x46, 0xe2, 0x43, 0xeb, 0x76, 0x82,
-	0xdd, 0x24, 0x41, 0xb5, 0x3a, 0xa3, 0x60, 0x08, 0xf2, 0x4d, 0x0e, 0xf2, 0xae, 0xbe, 0x9f, 0x02,
-	0x32, 0x11, 0xce, 0x4f, 0x14, 0x28, 0xc6, 0x5e, 0x38, 0x5a, 0x92, 0xd9, 0x88, 0x80, 0x7a, 0xfb,
-	0x05, 0x02, 0x21, 0x9e, 0x7d, 0x8e, 0x67, 0x57, 0xbf, 0x99, 0x86, 0x27, 0x6a, 0xb6, 0x06, 0x73,
-	0xfc, 0xe7, 0x82, 0xeb, 0x09, 0xda, 0x7d, 0x86, 0xaa, 0xa5, 0x30, 0x42, 0x73, 0x19, 0xf4, 0x11,
-	0x14, 0x63, 0xef, 0xf5, 0xb4, 0x23, 0x81, 0x40, 0xa2, 0x2b, 0x89, 0x2f, 0xe7, 0x0c, 0x7a, 0x0f,
-	0x16, 0xc3, 0xbb, 0xec, 0x56, 0xc2, 0xb1, 0x80, 0xa9, 0xde, 0xbc, 0x80, 0x19, 0xd1, 0xf7, 0x23,
-	0x58, 0x89, 0x5f, 0x43, 0x50, 0x25, 0xb1, 0x49, 0x52, 0x6f, 0x2a, 0xea, 0x5b, 0x2f, 0x27, 0x1f,
-	0xb1, 0xed, 0xc0, 0xfa, 0xf4, 0xbd, 0xe6, 0x1b, 0x09, 0xea, 0xa6, 0xa4, 0xd4, 0xd7, 0x67, 0x91,
-	0x8a, 0xa7, 0x24, 0xb6, 0xa9, 0xb5, 0xe4, 0x19, 0x15, 0x0a, 0x24, 0xa6, 0x24, 0x71, 0x7b, 0x66,
-	0xd0, 0x63, 0x58, 0x8e, 0x4d, 0x55, 0x94, 0x34, 0x66, 0xd2, 0xe7, 0xae, 0xfa, 0xed, 0x97, 0x12,
-	0x0f, 0xc6, 0xb4, 0x9e, 0xa9, 0xbd, 0xff, 0xf9, 0xb3, 0xb2, 0xf2, 0xc5, 0xb3, 0xb2, 0xf2, 0xaf,
-	0x67, 0x65, 0xe5, 0xe9, 0xf3, 0x72, 0xe6, 0x8b, 0xe7, 0xe5, 0xcc, 0xdf, 0x9f, 0x97, 0x33, 0x1f,
-	0xbd, 0x15, 0xb9, 0xfe, 0xf7, 0x70, 0x9f, 0x3a, 0x94, 0xf9, 0x0f, 0x8a, 0x47, 0x1e, 0xae, 0xf6,
-	0x1a, 0x7e, 0x0f, 0xdc, 0xf5, 0x4c, 0xe6, 0x9c, 0xe1, 0xea, 0x30, 0x68, 0x06, 0xfe, 0x24, 0x68,
-	0xe5, 0xf9, 0x4b, 0xf2, 0xcd, 0xff, 0x05, 0x00, 0x00, 0xff, 0xff, 0x48, 0x01, 0x54, 0x3a, 0x2a,
-	0x16, 0x00, 0x00,
+	// 1756 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x57, 0xcf, 0x6f, 0xdb, 0xd6,
+	0x1d, 0x17, 0x65, 0x5b, 0xb6, 0xbf, 0x56, 0x6c, 0xeb, 0xc5, 0x49, 0x64, 0xda, 0x31, 0x5d, 0x66,
+	0x6e, 0xbc, 0xb8, 0x91, 0x1a, 0x77, 0x5b, 0x0b, 0x5f, 0x86, 0xc8, 0x5e, 0xd0, 0x0c, 0x53, 0x52,
+	0x50, 0x5e, 0x8b, 0xf5, 0x42, 0x50, 0xe2, 0x2b, 0x45, 0x58, 0xe4, 0xd3, 0xf8, 0x9e, 0x1c, 0xf9,
+	0x36, 0xb4, 0x18, 0xb0, 0x61, 0xc0, 0xd0, 0x61, 0x97, 0x5d, 0x86, 0xf5, 0xb2, 0x4b, 0xb1, 0x5d,
+	0xf7, 0x37, 0x14, 0x3b, 0x15, 0xd8, 0x65, 0x87, 0x41, 0x1d, 0x92, 0x1d, 0x86, 0x1e, 0x75, 0xd8,
+	0x79, 0xe0, 0x7b, 0x8f, 0x14, 0x25, 0x91, 0xb1, 0xea, 0xf4, 0x24, 0xf1, 0xfb, 0xf3, 0xf3, 0xbe,
+	0x3f, 0xdf, 0x83, 0xcd, 0x16, 0xa1, 0x1e, 0xa1, 0xd5, 0xf3, 0x07, 0x4d, 0xcc, 0xac, 0x07, 0x55,
+	0x8f, 0x3a, 0xb4, 0xd2, 0x0d, 0x08, 0x23, 0x68, 0x55, 0xb0, 0x2a, 0x92, 0xa5, 0x6e, 0x38, 0xc4,
+	0x21, 0x9c, 0x55, 0x0d, 0xff, 0x09, 0x29, 0x75, 0xdb, 0x21, 0xc4, 0xe9, 0xe0, 0xaa, 0xd5, 0x75,
+	0xab, 0x96, 0xef, 0x13, 0x66, 0x31, 0x97, 0xf8, 0xd2, 0x86, 0xba, 0x29, 0xb9, 0xfc, 0xab, 0xd9,
+	0xfb, 0xa8, 0x6a, 0xf9, 0x17, 0x92, 0xb5, 0x35, 0xe1, 0x59, 0x7a, 0x13, 0xcc, 0xdb, 0x13, 0xcc,
+	0x6e, 0x40, 0xba, 0x84, 0x5a, 0x1d, 0xc9, 0xd6, 0x26, 0xcd, 0x32, 0xd7, 0xc3, 0x94, 0x59, 0x5e,
+	0x57, 0x0a, 0xa8, 0x52, 0x9f, 0xf5, 0x63, 0x13, 0xac, 0x2f, 0x79, 0x3b, 0x92, 0xd7, 0xb4, 0x28,
+	0x4e, 0x78, 0x77, 0x7d, 0xc1, 0xd7, 0xdf, 0x07, 0x54, 0xa7, 0x4e, 0x03, 0xb3, 0xa7, 0x41, 0xab,
+	0x8d, 0x29, 0x0b, 0x2c, 0x46, 0x02, 0xb4, 0x0d, 0xcb, 0xe7, 0x56, 0xc7, 0xb5, 0xc3, 0x8f, 0xb2,
+	0xb2, 0xab, 0xec, 0x2f, 0x1b, 0x23, 0x02, 0xd2, 0xa1, 0x48, 0x12, 0xd2, 0xe5, 0x3c, 0x17, 0x18,
+	0xa3, 0xe9, 0xdb, 0xa0, 0x4e, 0xdb, 0x35, 0x30, 0xed, 0x12, 0x9f, 0x62, 0xfd, 0x67, 0x70, 0xa3,
+	0x4e, 0x1d, 0x03, 0x7b, 0xe4, 0x1c, 0x7f, 0xcb, 0x8e, 0x35, 0xb8, 0x9d, 0x6a, 0x3a, 0xf6, 0xfd,
+	0x77, 0x05, 0xae, 0xd7, 0xa9, 0xf3, 0x81, 0xcb, 0xda, 0x76, 0x60, 0x3d, 0x6b, 0xb0, 0xb3, 0x87,
+	0x94, 0x62, 0x86, 0x8e, 0xa0, 0xf8, 0x51, 0x40, 0x3c, 0xd3, 0xb2, 0xed, 0x00, 0x53, 0x2a, 0xbc,
+	0xd7, 0x6e, 0x0d, 0x07, 0xda, 0xf5, 0x0b, 0xcb, 0xeb, 0x1c, 0xe9, 0x49, 0xae, 0x6e, 0xac, 0x84,
+	0x9f, 0x0f, 0xc5, 0x17, 0xfa, 0x1e, 0x00, 0x23, 0xb1, 0x26, 0x87, 0x55, 0xbb, 0x31, 0x1c, 0x68,
+	0x25, 0xa1, 0x39, 0xe2, 0xe9, 0xc6, 0x32, 0x23, 0x91, 0xd6, 0xdb, 0x50, 0xb0, 0x3c, 0xd2, 0xf3,
+	0x59, 0x79, 0x6e, 0x57, 0xd9, 0x5f, 0x39, 0xdc, 0xac, 0xc8, 0xb2, 0x08, 0x93, 0x15, 0x55, 0x62,
+	0xe5, 0x98, 0xb8, 0x7e, 0x6d, 0xfe, 0x8b, 0x81, 0x96, 0x33, 0xa4, 0xf8, 0xd1, 0xd2, 0xaf, 0x3e,
+	0xd3, 0x72, 0xff, 0xfd, 0x4c, 0xcb, 0xe9, 0xb7, 0x61, 0x2b, 0xe5, 0x2c, 0xf1, 0x59, 0xff, 0xaa,
+	0xc0, 0x62, 0x9d, 0x3a, 0xef, 0x13, 0x86, 0xd1, 0x23, 0x58, 0x89, 0x0a, 0xcb, 0x74, 0x6d, 0x7e,
+	0xbc, 0xf9, 0xda, 0xde, 0xd7, 0x03, 0x2d, 0x49, 0x1e, 0x0e, 0x34, 0x24, 0x30, 0x27, 0x88, 0xba,
+	0x01, 0xd1, 0xd7, 0x63, 0x1b, 0x6d, 0xc0, 0xc2, 0x39, 0x61, 0x38, 0x8a, 0xbe, 0xf8, 0x40, 0x87,
+	0x50, 0x20, 0xdd, 0xb0, 0x19, 0xf8, 0x59, 0x56, 0x0f, 0xd5, 0xca, 0x78, 0x43, 0x55, 0x42, 0x0c,
+	0x4f, 0xb9, 0x84, 0x21, 0x25, 0x8f, 0xd6, 0xc3, 0x63, 0xfc, 0x41, 0x1e, 0xe5, 0x17, 0xff, 0xda,
+	0xcd, 0xe9, 0x25, 0x58, 0x93, 0x70, 0xe3, 0x23, 0xfc, 0x4d, 0x89, 0x69, 0x1f, 0x60, 0xd7, 0x69,
+	0x33, 0x6c, 0xa3, 0xb7, 0xd3, 0x8e, 0x72, 0xf3, 0xca, 0xd8, 0x6b, 0xb0, 0x28, 0x10, 0xd1, 0xf2,
+	0xdc, 0xee, 0xdc, 0xfe, 0xca, 0xa1, 0x3e, 0x09, 0x3e, 0xf2, 0x3c, 0x3a, 0x84, 0xcc, 0x48, 0xa4,
+	0x98, 0x72, 0x96, 0x4d, 0xb8, 0x35, 0x81, 0x3b, 0x3e, 0xd3, 0xaf, 0xf3, 0x9c, 0x57, 0x77, 0x7d,
+	0x76, 0x4a, 0xce, 0xb0, 0x4f, 0x1f, 0x91, 0xe0, 0x61, 0xab, 0x15, 0xe6, 0x16, 0xdd, 0x83, 0x92,
+	0xac, 0x15, 0x93, 0x17, 0x9c, 0x87, 0x3d, 0x22, 0x3b, 0x61, 0x4d, 0x32, 0x1e, 0x05, 0xc4, 0xab,
+	0x63, 0x8f, 0xa0, 0x07, 0xb0, 0x91, 0xac, 0xfd, 0xf1, 0x02, 0x34, 0xae, 0x27, 0x79, 0xaf, 0x5a,
+	0x73, 0xe8, 0x16, 0x2c, 0xb2, 0xbe, 0xd9, 0xb6, 0x68, 0xbb, 0x3c, 0xcf, 0xcd, 0x17, 0x58, 0xff,
+	0x5d, 0x8b, 0xb6, 0x91, 0x0a, 0xcb, 0xad, 0xb6, 0xe5, 0xfa, 0xa6, 0x6b, 0xda, 0xe5, 0x05, 0xce,
+	0x5a, 0xe4, 0x84, 0xc7, 0x27, 0xe8, 0x35, 0x28, 0x36, 0x3b, 0xa4, 0x75, 0x66, 0xb6, 0x79, 0x08,
+	0xca, 0x85, 0x5d, 0x65, 0x7f, 0xce, 0x58, 0xe1, 0xb4, 0x77, 0x39, 0x49, 0x7f, 0x0d, 0xb4, 0x8c,
+	0x50, 0xc4, 0xe1, 0xfa, 0x78, 0x81, 0x97, 0x40, 0xdd, 0x3a, 0xc3, 0xef, 0xc9, 0x5c, 0xa2, 0xd7,
+	0x61, 0x81, 0xb9, 0xac, 0x83, 0x65, 0x9b, 0xae, 0x0f, 0x07, 0x5a, 0x51, 0x36, 0x5b, 0x48, 0xd6,
+	0x0d, 0xc1, 0x46, 0xef, 0xc0, 0x8a, 0x8d, 0x69, 0x2b, 0x70, 0x45, 0x71, 0x8a, 0xd6, 0x4c, 0x94,
+	0x4a, 0x82, 0xa9, 0x1b, 0x49, 0x51, 0x64, 0x64, 0x04, 0x77, 0x8e, 0x9b, 0xd0, 0x86, 0x03, 0x6d,
+	0x4b, 0x98, 0x48, 0x93, 0xd2, 0xd3, 0xa3, 0xff, 0x0e, 0x14, 0x47, 0xb5, 0x69, 0xda, 0x3c, 0x92,
+	0xb3, 0x54, 0xee, 0x09, 0xaa, 0x4e, 0x45, 0xb9, 0x76, 0x7d, 0x38, 0xd0, 0xd6, 0x84, 0x9a, 0x64,
+	0xd9, 0xfa, 0x28, 0xf4, 0x47, 0x69, 0xa1, 0x4f, 0x8e, 0xb3, 0x24, 0x57, 0x1f, 0xcb, 0x09, 0xfa,
+	0x8d, 0x02, 0xa5, 0x73, 0xc2, 0x5c, 0xdf, 0x31, 0x29, 0xb3, 0x02, 0x66, 0x86, 0x1b, 0xa7, 0xbc,
+	0xc8, 0x0b, 0x46, 0xad, 0x88, 0x75, 0x54, 0x89, 0xd6, 0x51, 0xe5, 0x34, 0x5a, 0x47, 0xb5, 0xe3,
+	0xb0, 0x62, 0xbe, 0x1e, 0x68, 0x5b, 0x53, 0xca, 0x6f, 0x10, 0xcf, 0x65, 0xd8, 0xeb, 0xb2, 0x8b,
+	0xe1, 0x40, 0x2b, 0x0b, 0x00, 0x53, 0x42, 0xfa, 0xa7, 0x5f, 0x69, 0x8a, 0xb1, 0x26, 0xe8, 0x8d,
+	0x90, 0x1c, 0x9a, 0x46, 0x9f, 0x28, 0x20, 0x69, 0x26, 0xf6, 0x6d, 0x81, 0x65, 0xe9, 0x52, 0x2c,
+	0x3f, 0x94, 0x58, 0x36, 0x27, 0x54, 0xc7, 0x90, 0xdc, 0x1c, 0x43, 0x12, 0x89, 0x08, 0x1c, 0xd7,
+	0x04, 0xf5, 0x47, 0xbe, 0x1d, 0x1a, 0x95, 0xed, 0x9c, 0xac, 0xc1, 0xb8, 0x3e, 0x3f, 0x51, 0x60,
+	0x25, 0x5c, 0x76, 0xae, 0xe3, 0x63, 0xfb, 0xb4, 0x8f, 0x36, 0xa0, 0xc0, 0xfa, 0x3c, 0x51, 0x7c,
+	0x32, 0x19, 0xf3, 0xac, 0xff, 0xf8, 0x04, 0x1d, 0x40, 0x9e, 0xf5, 0x79, 0x01, 0xae, 0x1c, 0xde,
+	0x88, 0xba, 0x8e, 0xf5, 0xe3, 0x9e, 0x3b, 0xed, 0xcb, 0x8e, 0xcb, 0xb3, 0x7e, 0x66, 0x67, 0xcf,
+	0x65, 0x76, 0xb6, 0x7e, 0x83, 0xaf, 0xb5, 0x08, 0x44, 0x0c, 0xee, 0x4f, 0x73, 0x1c, 0xdc, 0x69,
+	0xbf, 0xc1, 0x2c, 0xd6, 0xa3, 0x99, 0x96, 0x95, 0xec, 0x99, 0x71, 0x13, 0x64, 0xaf, 0xcb, 0xc1,
+	0x12, 0x75, 0xfe, 0x4d, 0x28, 0x50, 0x6e, 0x54, 0xc2, 0x92, 0x5f, 0x68, 0x0f, 0x56, 0x2d, 0xd1,
+	0xc2, 0xa6, 0xdf, 0xf3, 0x9a, 0x38, 0x10, 0x75, 0x6e, 0x5c, 0x93, 0xd4, 0x27, 0x9c, 0x88, 0xee,
+	0xc2, 0x1a, 0xc5, 0x3f, 0xef, 0x61, 0xbf, 0x85, 0x23, 0xb9, 0x05, 0x2e, 0xb7, 0x1a, 0x91, 0xa5,
+	0x20, 0x86, 0xc5, 0xa6, 0xd5, 0xb1, 0xfc, 0x16, 0x2e, 0x17, 0xf8, 0x7c, 0x7e, 0xc9, 0xd0, 0x7a,
+	0x33, 0x0c, 0xe1, 0xe7, 0x5f, 0x69, 0xfb, 0x8e, 0xcb, 0xda, 0xbd, 0x66, 0xa5, 0x45, 0x3c, 0x79,
+	0xd9, 0x92, 0x3f, 0xf7, 0xa9, 0x7d, 0x56, 0x65, 0x17, 0x5d, 0x4c, 0xb9, 0x02, 0x35, 0x22, 0xdb,
+	0xa8, 0x01, 0xa5, 0xf8, 0xaa, 0x61, 0xda, 0x98, 0x59, 0x6e, 0x87, 0x96, 0x17, 0xb9, 0xc3, 0xdd,
+	0xa9, 0x6d, 0x16, 0x09, 0x9e, 0x08, 0x39, 0x99, 0xba, 0xf5, 0xf3, 0x09, 0xfa, 0xd4, 0x04, 0x5c,
+	0x9a, 0x9e, 0x80, 0x22, 0x71, 0x51, 0x82, 0x46, 0x89, 0xcb, 0xc3, 0xfa, 0xa4, 0x1b, 0x74, 0x90,
+	0xc4, 0x38, 0x9e, 0xba, 0x91, 0xef, 0x28, 0x6f, 0x27, 0x70, 0xad, 0x49, 0x7c, 0x1b, 0xdb, 0x26,
+	0xe3, 0xa3, 0x55, 0x16, 0xdf, 0xa5, 0x23, 0xbf, 0x28, 0xb4, 0xc4, 0x3c, 0x46, 0x3f, 0x86, 0xf5,
+	0x9e, 0x1f, 0x52, 0xc2, 0x16, 0x91, 0x86, 0x66, 0xdc, 0x1d, 0x6b, 0xb1, 0xa2, 0xb4, 0xf5, 0x13,
+	0x28, 0x05, 0xf8, 0x99, 0x15, 0xd8, 0xd4, 0x6c, 0x91, 0x4e, 0x07, 0xb7, 0x18, 0x16, 0x43, 0x70,
+	0x06, 0x63, 0xeb, 0x52, 0xf3, 0x38, 0x52, 0xd4, 0xff, 0x97, 0x87, 0x8d, 0x3a, 0x75, 0x7e, 0xea,
+	0xdb, 0xb8, 0x83, 0x1d, 0x8b, 0xe1, 0x46, 0xaf, 0xd5, 0x0a, 0x0f, 0x7e, 0x00, 0x25, 0x49, 0x9a,
+	0x8e, 0x52, 0xcc, 0x88, 0xa2, 0x94, 0x1a, 0xd2, 0x7c, 0x46, 0x48, 0xaf, 0xbc, 0x3e, 0xb3, 0xda,
+	0x6e, 0x3e, 0xbb, 0xed, 0x0e, 0x46, 0x1b, 0x57, 0x0c, 0x7c, 0x34, 0x1c, 0x68, 0xab, 0x72, 0xc9,
+	0x09, 0x86, 0x1e, 0xf7, 0xe2, 0xd8, 0x7e, 0x28, 0x5c, 0x61, 0x3f, 0x2c, 0xce, 0xbe, 0x1f, 0xf4,
+	0x1d, 0xd8, 0x4e, 0x8b, 0x7b, 0x5c, 0xba, 0x7f, 0x11, 0x77, 0xb6, 0x06, 0x66, 0xe1, 0x38, 0xb2,
+	0x58, 0x2f, 0xc0, 0x57, 0x99, 0x3b, 0x7b, 0xb0, 0x46, 0x7a, 0xcc, 0x21, 0xbc, 0xf0, 0xc4, 0x40,
+	0xcd, 0xf3, 0x01, 0x51, 0x8c, 0xc8, 0xa7, 0xe1, 0x60, 0xdd, 0x86, 0x65, 0x1a, 0xb9, 0xe1, 0x69,
+	0x29, 0x1a, 0x23, 0xc2, 0x54, 0x03, 0xce, 0x4f, 0x37, 0xa0, 0x18, 0xed, 0x49, 0xb4, 0xa3, 0x0b,
+	0x74, 0x9e, 0x3f, 0x27, 0x1a, 0x1d, 0x8b, 0xb6, 0xc3, 0x65, 0x70, 0x8e, 0x7d, 0xf6, 0xd4, 0x3f,
+	0xe6, 0x39, 0x3f, 0x0e, 0x23, 0xf9, 0xcd, 0x3a, 0xf2, 0x09, 0xa0, 0x56, 0x2f, 0x08, 0xb0, 0xcf,
+	0x4c, 0x19, 0xbb, 0xe8, 0x52, 0x32, 0x43, 0x29, 0x95, 0xa4, 0xea, 0x49, 0xac, 0x79, 0x85, 0x35,
+	0x81, 0x6e, 0x03, 0xd0, 0xf0, 0x34, 0x66, 0x38, 0x03, 0x65, 0xf9, 0x2d, 0x73, 0xca, 0xe9, 0x45,
+	0x17, 0xbf, 0xea, 0x6d, 0xee, 0x2e, 0xec, 0xbd, 0x34, 0x5c, 0x51, 0x60, 0x0f, 0x3f, 0x07, 0x98,
+	0xab, 0x53, 0x07, 0xfd, 0x4e, 0x81, 0xb5, 0xc9, 0xd7, 0xe7, 0xd4, 0xf5, 0x7b, 0xfa, 0x25, 0xa9,
+	0xde, 0xbb, 0x5c, 0x26, 0x4e, 0x62, 0xe5, 0xe3, 0x7f, 0xfc, 0xe7, 0xf7, 0xf9, 0x7d, 0xfd, 0xf5,
+	0x6a, 0x97, 0x32, 0xeb, 0x0c, 0x57, 0x27, 0xde, 0xdb, 0x93, 0xfe, 0xff, 0xa8, 0x00, 0x4a, 0x79,
+	0x9b, 0xee, 0xa5, 0xb8, 0x9c, 0x16, 0x53, 0xef, 0xcf, 0x24, 0x16, 0x83, 0x7b, 0xc0, 0xc1, 0x1d,
+	0xe8, 0xdf, 0xcd, 0x00, 0x97, 0x02, 0xe4, 0xb7, 0x0a, 0x2c, 0x45, 0x4f, 0x3e, 0x74, 0x27, 0xc5,
+	0xdd, 0xe4, 0x7b, 0x50, 0x3d, 0x98, 0x41, 0x28, 0x46, 0xf4, 0x26, 0x47, 0x74, 0x4f, 0xdf, 0xcf,
+	0x40, 0x34, 0xa9, 0x48, 0xd1, 0x9f, 0x15, 0xd8, 0x48, 0x7d, 0xcc, 0xdc, 0x4d, 0xf1, 0x9b, 0x26,
+	0xa8, 0x56, 0x67, 0x14, 0x8c, 0x41, 0xbe, 0xc5, 0x41, 0xde, 0xd7, 0x0f, 0x32, 0x40, 0xa6, 0xc2,
+	0xf9, 0xa5, 0x02, 0xc5, 0xb1, 0x57, 0x84, 0x96, 0xe6, 0x36, 0x21, 0xa0, 0xde, 0xbd, 0x44, 0x20,
+	0xc6, 0x73, 0xc0, 0xf1, 0xec, 0xe9, 0x77, 0xb2, 0xf0, 0x24, 0xdd, 0xd6, 0x60, 0x9e, 0x3f, 0xc9,
+	0x6f, 0xa5, 0x58, 0x0f, 0x19, 0xaa, 0x96, 0xc1, 0x88, 0xdd, 0xe5, 0xd0, 0x87, 0x50, 0x1c, 0x7b,
+	0x13, 0x67, 0xa9, 0x44, 0x02, 0xa9, 0x47, 0x49, 0x7d, 0x9d, 0xe6, 0xd0, 0x13, 0x58, 0x8a, 0xef,
+	0x8b, 0x5b, 0x29, 0x6a, 0x11, 0x53, 0xbd, 0xf3, 0x12, 0x66, 0xc2, 0x9e, 0x0b, 0xa5, 0xe9, 0x25,
+	0xfd, 0x9d, 0x14, 0xdd, 0x29, 0x29, 0xf5, 0x8d, 0x59, 0xa4, 0xc6, 0xc3, 0x32, 0xb6, 0x76, 0xb4,
+	0xf4, 0x39, 0x11, 0x0b, 0xa4, 0x86, 0x25, 0x75, 0x15, 0xe4, 0xd0, 0x33, 0xb8, 0x36, 0x36, 0xd9,
+	0x50, 0x5a, 0xab, 0x67, 0xcf, 0x3e, 0xf5, 0xfb, 0xdf, 0x48, 0x7c, 0xe4, 0xb8, 0xf6, 0xde, 0x17,
+	0xcf, 0x77, 0x94, 0x2f, 0x9f, 0xef, 0x28, 0xff, 0x7e, 0xbe, 0xa3, 0x7c, 0xfa, 0x62, 0x27, 0xf7,
+	0xe5, 0x8b, 0x9d, 0xdc, 0x3f, 0x5f, 0xec, 0xe4, 0x3e, 0xfc, 0x41, 0xe2, 0x9a, 0xdb, 0xc5, 0x01,
+	0x75, 0x29, 0x0b, 0x2f, 0xce, 0x4f, 0x7d, 0x5c, 0xed, 0x36, 0xc2, 0x3a, 0xbc, 0xef, 0x5b, 0xcc,
+	0x3d, 0xc7, 0xd5, 0x7e, 0x54, 0x90, 0xfc, 0xea, 0xdb, 0x2c, 0xf0, 0x17, 0xd3, 0x5b, 0xff, 0x0f,
+	0x00, 0x00, 0xff, 0xff, 0xdf, 0xda, 0x3f, 0xf8, 0x12, 0x15, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1603,19 +1526,28 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
+	// SetOrchestrator defines a method for setting orchestrator for validator
 	SetOrchestrator(ctx context.Context, in *MsgSetOrchestrator, opts ...grpc.CallOption) (*MsgSetOrchestratorResponse, error)
+	// RemoveOrchestrator defines a method for removing orchestrator from validator
 	RemoveOrchestrator(ctx context.Context, in *MsgRemoveOrchestrator, opts ...grpc.CallOption) (*MsgRemoveOrchestratorResponse, error)
+	// Withdraw defines a method for withdawring stkAssets
 	Withdraw(ctx context.Context, in *MsgWithdrawStkAsset, opts ...grpc.CallOption) (*MsgWithdrawStkAssetResponse, error)
+	// MintTokensForAccount defines a method for minting tokens for an account
 	MintTokensForAccount(ctx context.Context, in *MsgMintTokensForAccount, opts ...grpc.CallOption) (*MsgMintTokensForAccountResponse, error)
+	// MakeProposal defines a method for duplicating a host chain proposal on controller chain
 	MakeProposal(ctx context.Context, in *MsgMakeProposal, opts ...grpc.CallOption) (*MsgMakeProposalResponse, error)
+	// Vote defines a method for voting on duplicate host chain proposal
 	Vote(ctx context.Context, in *MsgVote, opts ...grpc.CallOption) (*MsgVoteResponse, error)
+	// VoteWeighted defines a method for accepting weighted vote on duplicate host chain proposal
 	VoteWeighted(ctx context.Context, in *MsgVoteWeighted, opts ...grpc.CallOption) (*MsgVoteWeightedResponse, error)
-	//  rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
+	// TxStatus defines a method to receive host chain transaction acknowledgement
 	TxStatus(ctx context.Context, in *MsgTxStatus, opts ...grpc.CallOption) (*MsgTxStatusResponse, error)
-	RewardsClaimed(ctx context.Context, in *MsgRewardsClaimedOnCosmosChain, opts ...grpc.CallOption) (*MsgRewardsClaimedOnCosmosChainResponse, error)
+	// UndelegateSuccess defines a method for successful undelegation completion
 	UndelegateSuccess(ctx context.Context, in *MsgUndelegateSuccess, opts ...grpc.CallOption) (*MsgUndelegateSuccessResponse, error)
+	// SetSignature defines a method for setting multisig signatures
 	SetSignature(ctx context.Context, in *MsgSetSignature, opts ...grpc.CallOption) (*MsgSetSignatureResponse, error)
-	SlashingEvent(ctx context.Context, in *MsgSlashingEventOnCosmosChain, opts ...grpc.CallOption) (*MsgSlashingEventOnCosmosChainResposne, error)
+	// SlashingEvent defines a method for slashing occurance on host chain
+	SlashingEvent(ctx context.Context, in *MsgSlashingEventOnCosmosChain, opts ...grpc.CallOption) (*MsgSlashingEventOnCosmosChainResponse, error)
 }
 
 type msgClient struct {
@@ -1698,15 +1630,6 @@ func (c *msgClient) TxStatus(ctx context.Context, in *MsgTxStatus, opts ...grpc.
 	return out, nil
 }
 
-func (c *msgClient) RewardsClaimed(ctx context.Context, in *MsgRewardsClaimedOnCosmosChain, opts ...grpc.CallOption) (*MsgRewardsClaimedOnCosmosChainResponse, error) {
-	out := new(MsgRewardsClaimedOnCosmosChainResponse)
-	err := c.cc.Invoke(ctx, "/cosmos.v1beta1.Msg/RewardsClaimed", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *msgClient) UndelegateSuccess(ctx context.Context, in *MsgUndelegateSuccess, opts ...grpc.CallOption) (*MsgUndelegateSuccessResponse, error) {
 	out := new(MsgUndelegateSuccessResponse)
 	err := c.cc.Invoke(ctx, "/cosmos.v1beta1.Msg/UndelegateSuccess", in, out, opts...)
@@ -1725,8 +1648,8 @@ func (c *msgClient) SetSignature(ctx context.Context, in *MsgSetSignature, opts 
 	return out, nil
 }
 
-func (c *msgClient) SlashingEvent(ctx context.Context, in *MsgSlashingEventOnCosmosChain, opts ...grpc.CallOption) (*MsgSlashingEventOnCosmosChainResposne, error) {
-	out := new(MsgSlashingEventOnCosmosChainResposne)
+func (c *msgClient) SlashingEvent(ctx context.Context, in *MsgSlashingEventOnCosmosChain, opts ...grpc.CallOption) (*MsgSlashingEventOnCosmosChainResponse, error) {
+	out := new(MsgSlashingEventOnCosmosChainResponse)
 	err := c.cc.Invoke(ctx, "/cosmos.v1beta1.Msg/SlashingEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1736,19 +1659,28 @@ func (c *msgClient) SlashingEvent(ctx context.Context, in *MsgSlashingEventOnCos
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
+	// SetOrchestrator defines a method for setting orchestrator for validator
 	SetOrchestrator(context.Context, *MsgSetOrchestrator) (*MsgSetOrchestratorResponse, error)
+	// RemoveOrchestrator defines a method for removing orchestrator from validator
 	RemoveOrchestrator(context.Context, *MsgRemoveOrchestrator) (*MsgRemoveOrchestratorResponse, error)
+	// Withdraw defines a method for withdawring stkAssets
 	Withdraw(context.Context, *MsgWithdrawStkAsset) (*MsgWithdrawStkAssetResponse, error)
+	// MintTokensForAccount defines a method for minting tokens for an account
 	MintTokensForAccount(context.Context, *MsgMintTokensForAccount) (*MsgMintTokensForAccountResponse, error)
+	// MakeProposal defines a method for duplicating a host chain proposal on controller chain
 	MakeProposal(context.Context, *MsgMakeProposal) (*MsgMakeProposalResponse, error)
+	// Vote defines a method for voting on duplicate host chain proposal
 	Vote(context.Context, *MsgVote) (*MsgVoteResponse, error)
+	// VoteWeighted defines a method for accepting weighted vote on duplicate host chain proposal
 	VoteWeighted(context.Context, *MsgVoteWeighted) (*MsgVoteWeightedResponse, error)
-	//  rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
+	// TxStatus defines a method to receive host chain transaction acknowledgement
 	TxStatus(context.Context, *MsgTxStatus) (*MsgTxStatusResponse, error)
-	RewardsClaimed(context.Context, *MsgRewardsClaimedOnCosmosChain) (*MsgRewardsClaimedOnCosmosChainResponse, error)
+	// UndelegateSuccess defines a method for successful undelegation completion
 	UndelegateSuccess(context.Context, *MsgUndelegateSuccess) (*MsgUndelegateSuccessResponse, error)
+	// SetSignature defines a method for setting multisig signatures
 	SetSignature(context.Context, *MsgSetSignature) (*MsgSetSignatureResponse, error)
-	SlashingEvent(context.Context, *MsgSlashingEventOnCosmosChain) (*MsgSlashingEventOnCosmosChainResposne, error)
+	// SlashingEvent defines a method for slashing occurance on host chain
+	SlashingEvent(context.Context, *MsgSlashingEventOnCosmosChain) (*MsgSlashingEventOnCosmosChainResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -1779,16 +1711,13 @@ func (*UnimplementedMsgServer) VoteWeighted(ctx context.Context, req *MsgVoteWei
 func (*UnimplementedMsgServer) TxStatus(ctx context.Context, req *MsgTxStatus) (*MsgTxStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TxStatus not implemented")
 }
-func (*UnimplementedMsgServer) RewardsClaimed(ctx context.Context, req *MsgRewardsClaimedOnCosmosChain) (*MsgRewardsClaimedOnCosmosChainResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RewardsClaimed not implemented")
-}
 func (*UnimplementedMsgServer) UndelegateSuccess(ctx context.Context, req *MsgUndelegateSuccess) (*MsgUndelegateSuccessResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UndelegateSuccess not implemented")
 }
 func (*UnimplementedMsgServer) SetSignature(ctx context.Context, req *MsgSetSignature) (*MsgSetSignatureResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetSignature not implemented")
 }
-func (*UnimplementedMsgServer) SlashingEvent(ctx context.Context, req *MsgSlashingEventOnCosmosChain) (*MsgSlashingEventOnCosmosChainResposne, error) {
+func (*UnimplementedMsgServer) SlashingEvent(ctx context.Context, req *MsgSlashingEventOnCosmosChain) (*MsgSlashingEventOnCosmosChainResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SlashingEvent not implemented")
 }
 
@@ -1940,24 +1869,6 @@ func _Msg_TxStatus_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_RewardsClaimed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRewardsClaimedOnCosmosChain)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).RewardsClaimed(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/cosmos.v1beta1.Msg/RewardsClaimed",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RewardsClaimed(ctx, req.(*MsgRewardsClaimedOnCosmosChain))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Msg_UndelegateSuccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgUndelegateSuccess)
 	if err := dec(in); err != nil {
@@ -2047,10 +1958,6 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TxStatus",
 			Handler:    _Msg_TxStatus_Handler,
-		},
-		{
-			MethodName: "RewardsClaimed",
-			Handler:    _Msg_RewardsClaimed_Handler,
 		},
 		{
 			MethodName: "UndelegateSuccess",
@@ -2761,7 +2668,7 @@ func (m *MsgTxStatusResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRewardsClaimedOnCosmosChain) Marshal() (dAtA []byte, err error) {
+func (m *ValidatorDetails) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2771,30 +2678,38 @@ func (m *MsgRewardsClaimedOnCosmosChain) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRewardsClaimedOnCosmosChain) MarshalTo(dAtA []byte) (int, error) {
+func (m *ValidatorDetails) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRewardsClaimedOnCosmosChain) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *ValidatorDetails) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.BlockHeight != 0 {
-		i = encodeVarintMsgs(dAtA, i, uint64(m.BlockHeight))
-		i--
-		dAtA[i] = 0x20
-	}
-	if len(m.ChainID) > 0 {
-		i -= len(m.ChainID)
-		copy(dAtA[i:], m.ChainID)
-		i = encodeVarintMsgs(dAtA, i, uint64(len(m.ChainID)))
-		i--
-		dAtA[i] = 0x1a
-	}
 	{
-		size, err := m.AmountClaimed.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.RewardsCollected.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintMsgs(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	{
+		size, err := m.UnbondingTokens.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintMsgs(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	{
+		size, err := m.BondedTokens.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -2803,36 +2718,13 @@ func (m *MsgRewardsClaimedOnCosmosChain) MarshalToSizedBuffer(dAtA []byte) (int,
 	}
 	i--
 	dAtA[i] = 0x12
-	if len(m.OrchestratorAddress) > 0 {
-		i -= len(m.OrchestratorAddress)
-		copy(dAtA[i:], m.OrchestratorAddress)
-		i = encodeVarintMsgs(dAtA, i, uint64(len(m.OrchestratorAddress)))
+	if len(m.ValidatorAddress) > 0 {
+		i -= len(m.ValidatorAddress)
+		copy(dAtA[i:], m.ValidatorAddress)
+		i = encodeVarintMsgs(dAtA, i, uint64(len(m.ValidatorAddress)))
 		i--
 		dAtA[i] = 0xa
 	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgRewardsClaimedOnCosmosChainResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgRewardsClaimedOnCosmosChainResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgRewardsClaimedOnCosmosChainResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
 	return len(dAtA) - i, nil
 }
 
@@ -3002,56 +2894,6 @@ func (m *MsgSetSignatureResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
-func (m *ValidatorDetails) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ValidatorDetails) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ValidatorDetails) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	{
-		size, err := m.UnbondingTokens.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintMsgs(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x1a
-	{
-		size, err := m.BondedTokens.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintMsgs(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x12
-	if len(m.ValidatorAddress) > 0 {
-		i -= len(m.ValidatorAddress)
-		copy(dAtA[i:], m.ValidatorAddress)
-		i = encodeVarintMsgs(dAtA, i, uint64(len(m.ValidatorAddress)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
 func (m *MsgSlashingEventOnCosmosChain) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -3084,10 +2926,10 @@ func (m *MsgSlashingEventOnCosmosChain) MarshalToSizedBuffer(dAtA []byte) (int, 
 		i--
 		dAtA[i] = 0x2a
 	}
-	if len(m.TxHash) > 0 {
-		i -= len(m.TxHash)
-		copy(dAtA[i:], m.TxHash)
-		i = encodeVarintMsgs(dAtA, i, uint64(len(m.TxHash)))
+	if len(m.SlashType) > 0 {
+		i -= len(m.SlashType)
+		copy(dAtA[i:], m.SlashType)
+		i = encodeVarintMsgs(dAtA, i, uint64(len(m.SlashType)))
 		i--
 		dAtA[i] = 0x22
 	}
@@ -3099,7 +2941,7 @@ func (m *MsgSlashingEventOnCosmosChain) MarshalToSizedBuffer(dAtA []byte) (int, 
 		dAtA[i] = 0x1a
 	}
 	{
-		size, err := m.Amount.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.CurrentDelegation.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -3118,7 +2960,7 @@ func (m *MsgSlashingEventOnCosmosChain) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgSlashingEventOnCosmosChainResposne) Marshal() (dAtA []byte, err error) {
+func (m *MsgSlashingEventOnCosmosChainResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3128,12 +2970,12 @@ func (m *MsgSlashingEventOnCosmosChainResposne) Marshal() (dAtA []byte, err erro
 	return dAtA[:n], nil
 }
 
-func (m *MsgSlashingEventOnCosmosChainResposne) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgSlashingEventOnCosmosChainResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgSlashingEventOnCosmosChainResposne) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgSlashingEventOnCosmosChainResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3452,34 +3294,22 @@ func (m *MsgTxStatusResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgRewardsClaimedOnCosmosChain) Size() (n int) {
+func (m *ValidatorDetails) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.OrchestratorAddress)
+	l = len(m.ValidatorAddress)
 	if l > 0 {
 		n += 1 + l + sovMsgs(uint64(l))
 	}
-	l = m.AmountClaimed.Size()
+	l = m.BondedTokens.Size()
 	n += 1 + l + sovMsgs(uint64(l))
-	l = len(m.ChainID)
-	if l > 0 {
-		n += 1 + l + sovMsgs(uint64(l))
-	}
-	if m.BlockHeight != 0 {
-		n += 1 + sovMsgs(uint64(m.BlockHeight))
-	}
-	return n
-}
-
-func (m *MsgRewardsClaimedOnCosmosChainResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
+	l = m.UnbondingTokens.Size()
+	n += 1 + l + sovMsgs(uint64(l))
+	l = m.RewardsCollected.Size()
+	n += 1 + l + sovMsgs(uint64(l))
 	return n
 }
 
@@ -3558,23 +3388,6 @@ func (m *MsgSetSignatureResponse) Size() (n int) {
 	return n
 }
 
-func (m *ValidatorDetails) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.ValidatorAddress)
-	if l > 0 {
-		n += 1 + l + sovMsgs(uint64(l))
-	}
-	l = m.BondedTokens.Size()
-	n += 1 + l + sovMsgs(uint64(l))
-	l = m.UnbondingTokens.Size()
-	n += 1 + l + sovMsgs(uint64(l))
-	return n
-}
-
 func (m *MsgSlashingEventOnCosmosChain) Size() (n int) {
 	if m == nil {
 		return 0
@@ -3585,13 +3398,13 @@ func (m *MsgSlashingEventOnCosmosChain) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovMsgs(uint64(l))
 	}
-	l = m.Amount.Size()
+	l = m.CurrentDelegation.Size()
 	n += 1 + l + sovMsgs(uint64(l))
 	l = len(m.OrchestratorAddress)
 	if l > 0 {
 		n += 1 + l + sovMsgs(uint64(l))
 	}
-	l = len(m.TxHash)
+	l = len(m.SlashType)
 	if l > 0 {
 		n += 1 + l + sovMsgs(uint64(l))
 	}
@@ -3605,7 +3418,7 @@ func (m *MsgSlashingEventOnCosmosChain) Size() (n int) {
 	return n
 }
 
-func (m *MsgSlashingEventOnCosmosChainResposne) Size() (n int) {
+func (m *MsgSlashingEventOnCosmosChainResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -5617,7 +5430,7 @@ func (m *MsgTxStatusResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRewardsClaimedOnCosmosChain) Unmarshal(dAtA []byte) error {
+func (m *ValidatorDetails) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5640,15 +5453,15 @@ func (m *MsgRewardsClaimedOnCosmosChain) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRewardsClaimedOnCosmosChain: wiretype end group for non-group")
+			return fmt.Errorf("proto: ValidatorDetails: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRewardsClaimedOnCosmosChain: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ValidatorDetails: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrchestratorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5676,11 +5489,11 @@ func (m *MsgRewardsClaimedOnCosmosChain) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OrchestratorAddress = string(dAtA[iNdEx:postIndex])
+			m.ValidatorAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AmountClaimed", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field BondedTokens", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -5707,15 +5520,15 @@ func (m *MsgRewardsClaimedOnCosmosChain) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.AmountClaimed.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.BondedTokens.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ChainID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field UnbondingTokens", wireType)
 			}
-			var stringLen uint64
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMsgs
@@ -5725,29 +5538,30 @@ func (m *MsgRewardsClaimedOnCosmosChain) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthMsgs
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthMsgs
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ChainID = string(dAtA[iNdEx:postIndex])
+			if err := m.UnbondingTokens.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 4:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BlockHeight", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RewardsCollected", wireType)
 			}
-			m.BlockHeight = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMsgs
@@ -5757,61 +5571,25 @@ func (m *MsgRewardsClaimedOnCosmosChain) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.BlockHeight |= int64(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipMsgs(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthMsgs
 			}
-			if (iNdEx + skippy) > l {
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgRewardsClaimedOnCosmosChainResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowMsgs
+			if err := m.RewardsCollected.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRewardsClaimedOnCosmosChainResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRewardsClaimedOnCosmosChainResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipMsgs(dAtA[iNdEx:])
@@ -6349,154 +6127,6 @@ func (m *MsgSetSignatureResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ValidatorDetails) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowMsgs
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ValidatorDetails: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ValidatorDetails: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMsgs
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthMsgs
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthMsgs
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ValidatorAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BondedTokens", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMsgs
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthMsgs
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthMsgs
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.BondedTokens.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UnbondingTokens", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMsgs
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthMsgs
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthMsgs
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.UnbondingTokens.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipMsgs(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthMsgs
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *MsgSlashingEventOnCosmosChain) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -6560,7 +6190,7 @@ func (m *MsgSlashingEventOnCosmosChain) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CurrentDelegation", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -6587,7 +6217,7 @@ func (m *MsgSlashingEventOnCosmosChain) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.CurrentDelegation.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -6625,7 +6255,7 @@ func (m *MsgSlashingEventOnCosmosChain) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TxHash", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field SlashType", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6653,7 +6283,7 @@ func (m *MsgSlashingEventOnCosmosChain) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.TxHash = string(dAtA[iNdEx:postIndex])
+			m.SlashType = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
@@ -6727,7 +6357,7 @@ func (m *MsgSlashingEventOnCosmosChain) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgSlashingEventOnCosmosChainResposne) Unmarshal(dAtA []byte) error {
+func (m *MsgSlashingEventOnCosmosChainResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6750,10 +6380,10 @@ func (m *MsgSlashingEventOnCosmosChainResposne) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgSlashingEventOnCosmosChainResposne: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgSlashingEventOnCosmosChainResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgSlashingEventOnCosmosChainResposne: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgSlashingEventOnCosmosChainResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

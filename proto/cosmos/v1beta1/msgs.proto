@@ -12,45 +12,63 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
 
+// Msg defines the staking Msg service.
 service Msg {
+  // SetOrchestrator defines a method for setting orchestrator for validator
   rpc SetOrchestrator(MsgSetOrchestrator) returns (MsgSetOrchestratorResponse) {
     option (google.api.http).post = "/pstake/cosmos/v1beta1/SetOrchestrator";
   }
+  // RemoveOrchestrator defines a method for removing orchestrator from validator
   rpc RemoveOrchestrator(MsgRemoveOrchestrator) returns (MsgRemoveOrchestratorResponse) {
     option (google.api.http).post = "/pstake/cosmos/v1beta1/RemoveOrchestrator";
   }
+  // Withdraw defines a method for withdawring stkAssets
   rpc Withdraw(MsgWithdrawStkAsset) returns (MsgWithdrawStkAssetResponse) {
     option (google.api.http).post = "/pstake/cosmos/v1beta1/WithdrawStkAssets";
   }
+  // MintTokensForAccount defines a method for minting tokens for an account
   rpc MintTokensForAccount(MsgMintTokensForAccount) returns (MsgMintTokensForAccountResponse) {
     option (google.api.http).post = "/pstake/cosmos/v1beta1/MintTokensForAccount";
   }
+  // MakeProposal defines a method for duplicating a host chain proposal on controller chain
   rpc MakeProposal(MsgMakeProposal) returns (MsgMakeProposalResponse) {
     option (google.api.http).post = "/pstake/cosmos/v1beta1/MakeProposal";
   }
+  // Vote defines a method for voting on duplicate host chain proposal
   rpc Vote(MsgVote) returns (MsgVoteResponse) {};
+  // VoteWeighted defines a method for accepting weighted vote on duplicate host chain proposal
   rpc VoteWeighted(MsgVoteWeighted) returns (MsgVoteWeightedResponse) {};
   //  rpc SignedTxFromOrchestrator(MsgSignedTx) returns (MsgSignedTxResponse) {};
+
+  // TxStatus defines a method to receive host chain transaction acknowledgement
   rpc TxStatus(MsgTxStatus) returns (MsgTxStatusResponse) {};
-  rpc RewardsClaimed(MsgRewardsClaimedOnCosmosChain) returns (MsgRewardsClaimedOnCosmosChainResponse) {}
+  // UndelegateSuccess defines a method for successful undelegation completion
   rpc UndelegateSuccess(MsgUndelegateSuccess) returns (MsgUndelegateSuccessResponse) {};
+  // SetSignature defines a method for setting multisig signatures
   rpc SetSignature(MsgSetSignature) returns (MsgSetSignatureResponse) {};
-  rpc SlashingEvent(MsgSlashingEventOnCosmosChain) returns (MsgSlashingEventOnCosmosChainResposne) {};
+  // SlashingEvent defines a method for slashing occurance on host chain
+  rpc SlashingEvent(MsgSlashingEventOnCosmosChain) returns (MsgSlashingEventOnCosmosChainResponse) {};
 }
 
+// MsgSetOrchestrator defines a SDK message for setting a new orchestrator for validator
 message MsgSetOrchestrator {
   string validator = 1;
   string orchestrator = 2;
 }
+
+// MsgSetOrchestratorResponse defines the Msg/SetOrchestrator response type
 message MsgSetOrchestratorResponse {}
 
+// MsgRemoveOrchestrator defines a SDK message for removing orchestrator for validator
 message MsgRemoveOrchestrator {
   string validator = 1;
   string orchestrator = 2;
 }
 
+// MsgRemoveOrchestratorResponse defines the Msg/RemoveOrchestrator response type
 message MsgRemoveOrchestratorResponse {}
 
+// MsgWithdrawStkAsset defines a SDK message for withdrawing stkAsset
 message MsgWithdrawStkAsset {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -59,8 +77,11 @@ message MsgWithdrawStkAsset {
   string   to_address = 2 [(gogoproto.moretags) = "yaml:\"to_address\""];
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
+
+// MsgWithdrawStkAssetResponse defines a Msg/WithdrawStkAsset response type
 message MsgWithdrawStkAssetResponse {}
 
+// MsgVote defines a SDK message for voting on host-chain proposals
 message MsgVote {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_stringer) = false;
@@ -71,8 +92,11 @@ message MsgVote {
   string voter = 2;
   VoteOption option = 3;
 }
+
+// MsgVoteResponse defines a Msg/Vote response type
 message MsgVoteResponse{}
 
+// MsgVoteWeighted defines a SDK message for weighted votes of validator
 message MsgVoteWeighted {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_stringer) = false;
@@ -83,9 +107,11 @@ message MsgVoteWeighted {
   string                      voter = 2;
   repeated WeightedVoteOption options = 3 [(gogoproto.nullable) = false];
 }
+
+// MsgVoteWeightedResponse defines a Msg/VoteWeighted response type
 message MsgVoteWeightedResponse {}
 
-
+// MsgMintTokensForAccount defines a SDK message for a vote that asks module to mint tokens for an account
 message MsgMintTokensForAccount {
   string address_from_memo = 1;
   string orchestrator_address = 2;
@@ -95,8 +121,10 @@ message MsgMintTokensForAccount {
   int64 block_height = 6;
 }
 
+// MsgMintTokensForAccountResponse defines a Msg/MintTokensForAccount response type
 message MsgMintTokensForAccountResponse {}
 
+// MsgMakeProposal defines a SDK message for a vote that asks module to replicate proposal on controller chain
 message MsgMakeProposal {
   string title = 1 [(gogoproto.moretags) = "yaml:\"title\""];
   string description = 2 [(gogoproto.moretags) = "yaml:\"description\""];
@@ -118,15 +146,20 @@ message MsgMakeProposal {
   ];
 }
 
+// MsgMakeProposalResponse defines a MsgMakeProposal response type
 message MsgMakeProposalResponse {}
 
+// MsgSignedTx defines a SDK message for signing a transaction generated by module
 message MsgSignedTx {
   uint64 tx_i_d = 1;
   cosmos.tx.v1beta1.Tx tx = 2 [(gogoproto.nullable) = false];
   string orchestrator_address = 3;
 }
+
+// MsgSignedTxResponse defines a Msg/SignedTx response type
 message MsgSignedTxResponse {}
 
+// MsgTxStatus defines a SDK message for acknowledging status of a broadcast message on host chain
 message MsgTxStatus {
   string orchestrator_address = 1;
   string txHash = 2;
@@ -139,17 +172,19 @@ message MsgTxStatus {
   repeated ValidatorDetails validator_details = 7 [(gogoproto.nullable) = false];
   int64 block_height = 8;
 }
+
+// MsgTxStatusResponse defines a Msg/TxStatus response type
 message MsgTxStatusResponse {}
 
-message MsgRewardsClaimedOnCosmosChain {
-  string orchestrator_address = 1;
-  cosmos.base.v1beta1.Coin amount_claimed = 2 [(gogoproto.nullable) = false];
-  string chain_i_d = 3;
-  int64 block_height = 4;
+// ValidatorDetails defines validator delegation state on host chain
+message ValidatorDetails {
+  string validator_address = 1;
+  cosmos.base.v1beta1.Coin bonded_tokens = 2 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin unbonding_tokens = 3 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin rewards_collected = 4 [(gogoproto.nullable) = false];
 }
 
-message MsgRewardsClaimedOnCosmosChainResponse {}
-
+// MsgUndelegateSuccess defines a SDK message for successful delegation of tokens
 message MsgUndelegateSuccess {
   string delegator_address = 1;
   string validator_address = 2;
@@ -159,29 +194,29 @@ message MsgUndelegateSuccess {
   string chain_i_d = 6 [(gogoproto.moretags) = "yaml:\"chain_id\""];
   int64 block_height = 7 [(gogoproto.moretags) = "yaml:\"block_height\""];
 }
+
+// MsgUndelegateSuccessResponse defines a Msg/UndelegateSuccess response type
 message MsgUndelegateSuccessResponse {}
 
+// MsgSetSignature defines a SDK message for setting a signature to a transaction
 message MsgSetSignature{
   string orchestrator_address = 1;
   uint64 outgoing_tx_i_d = 2;
   bytes signature = 3;
   int64 block_height = 4;
 }
+
+// MsgSetSignatureResponse defines a Msg/SetSignature response type
 message MsgSetSignatureResponse{}
 
-message ValidatorDetails {
-  string validator_address = 1;
-  cosmos.base.v1beta1.Coin bonded_tokens = 2 [(gogoproto.nullable) = false];
-  cosmos.base.v1beta1.Coin unbonding_tokens = 3 [(gogoproto.nullable) = false];
-}
-
+// MsgSlashingEventOnCosmosChain defines a SDK message for a slashing event that has happened on host chain
 message MsgSlashingEventOnCosmosChain {
   string validator_address = 1;
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin current_delegation = 2 [(gogoproto.nullable) = false];
   string orchestrator_address = 3;
-  string tx_hash = 4;
+  string slash_type = 4;
   string chain_i_d = 5;
   int64 block_height = 6;
 }
-
-message MsgSlashingEventOnCosmosChainResposne {}
+// MsgSlashingEventOnCosmosChainResposne defines a SDK message for Msg/SlashingEventOnCosmosChain resposne type
+message MsgSlashingEventOnCosmosChainResponse {}

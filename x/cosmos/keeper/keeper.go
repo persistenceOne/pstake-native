@@ -7,8 +7,8 @@ import (
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	mintKeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	mintTypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingKeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	tmLog "github.com/tendermint/tendermint/libs/log"
@@ -17,6 +17,7 @@ import (
 	epochsTypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 )
 
+// Keeper of the cosmos store
 type Keeper struct {
 	cdc           codec.BinaryCodec
 	storeKey      sdkTypes.StoreKey
@@ -27,12 +28,14 @@ type Keeper struct {
 	stakingKeeper *stakingKeeper.Keeper
 	hooks         cosmosTypes.GovHooks
 	epochsKeeper  cosmosTypes.EpochKeeper
+	distrKeeper   *distrkeeper.Keeper
 }
 
+// NewKeeper creates a new cosmos Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdkTypes.StoreKey, paramSpace paramsTypes.Subspace, authKeeper *authKeeper.AccountKeeper,
 	bankKeeper *bankKeeper.BaseKeeper, mintKeeper *mintKeeper.Keeper, stakingKeeper *stakingKeeper.Keeper,
-	epochKeeper cosmosTypes.EpochKeeper,
+	epochKeeper cosmosTypes.EpochKeeper, distrKeeper *distrkeeper.Keeper,
 ) Keeper {
 
 	return Keeper{
@@ -44,11 +47,9 @@ func NewKeeper(
 		mintKeeper:    mintKeeper,
 		stakingKeeper: stakingKeeper,
 		epochsKeeper:  epochKeeper,
+		distrKeeper:   distrKeeper,
 	}
 }
-
-//TODO : Add hooks in app.go
-//TODO : Add epoch hooks
 
 // SetHooks sets the hooks for governance
 func (k *Keeper) SetHooks(gh cosmosTypes.GovHooks, eh epochsTypes.EpochHooks) *Keeper {
@@ -76,27 +77,20 @@ func (k Keeper) SetParams(ctx sdkTypes.Context, params cosmosTypes.Params) {
 
 //______________________________________________________________________
 
-// GetMintingParams returns the total set of cosmos parameters.
-func (k Keeper) GetMintingParams(ctx sdkTypes.Context) (params mintTypes.Params) {
-	return k.mintKeeper.GetParams(ctx)
-}
-
-// SetMintingParams sets the total set of cosmos parameters.
-func (k Keeper) SetMintingParams(ctx sdkTypes.Context, params mintTypes.Params) {
-	k.mintKeeper.SetParams(ctx, params)
-}
-
-func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, mintStoreValue cosmosTypes.MsgMintTokensForAccount) error {
+// mintTokens mints tokens in the given account after multiplying with the cValue
+func (k Keeper) mintTokens(ctx sdkTypes.Context, mintStoreValue cosmosTypes.MsgMintTokensForAccount) error {
+	destinationAddress, err := sdkTypes.AccAddressFromBech32(mintStoreValue.AddressFromMemo)
+	if err != nil {
+		return err
+	}
 
 	// convert the amount to minting amount and multiply by C value
-	mintingAmount := sdkTypes.NewCoin(k.GetParams(ctx).MintDenom, mintStoreValue.Amount.Amount)
-	// todo multiply by C value
+	toBeMinted := mintStoreValue.Amount.Amount.ToDec().Mul(k.GetCValue(ctx))
+
+	// remainder is not considered as they cannot be minted
+	mintingAmount, _ := sdkTypes.NewDecCoinFromDec(k.GetParams(ctx).MintDenom, toBeMinted).TruncateDecimal()
 
 	if mintingAmount.Amount.GT(k.GetParams(ctx).MinMintingAmount.Amount) && mintingAmount.Amount.LT(k.GetParams(ctx).MaxMintingAmount.Amount) {
-		destinationAddress, err := sdkTypes.AccAddressFromBech32(mintStoreValue.AddressFromMemo)
-		if err != nil {
-			return err
-		}
 		amnt := sdkTypes.NewCoins(mintingAmount)
 		err = k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, amnt)
 		if err != nil {
@@ -106,22 +100,32 @@ func (k Keeper) mintTokensOnMajority(ctx sdkTypes.Context, mintStoreValue cosmos
 		if err != nil {
 			return err
 		}
+
+		// add the minted amount
+		k.AddToMinted(ctx, mintingAmount)
+
+		// add to virtually staked amount
+		k.AddToVirtuallyStaked(ctx, mintStoreValue.Amount)
 	}
 	return nil
 }
 
-func (k Keeper) mintTokensForRewardReceivers(ctx sdkTypes.Context, address sdkTypes.AccAddress, amount sdkTypes.Coins) error {
-	//TODO : incorporate minting_ratio
+// mintTokensForRewardReceivers mint tokens for the given rewards receiver account with the given amount
+func (k Keeper) mintTokensForRewardReceivers(ctx sdkTypes.Context, address sdkTypes.AccAddress, amount sdkTypes.Coin) error {
+	toBeMinted := sdkTypes.NewCoins(amount)
 
-	err := k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, amount)
+	err := k.bankKeeper.MintCoins(ctx, cosmosTypes.ModuleName, toBeMinted)
 	if err != nil {
 		return err
 	}
 
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, cosmosTypes.ModuleName, address, amount)
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, cosmosTypes.ModuleName, address, toBeMinted)
 	if err != nil {
 		return err
 	}
+
+	// add the minted amount
+	k.AddToMinted(ctx, amount)
 
 	return nil
 }

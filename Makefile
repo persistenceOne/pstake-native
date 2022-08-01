@@ -173,26 +173,35 @@ sync-docs:
 
 
 ###############################################################################
+###                           Docker                            			###
+###############################################################################
+
+include docker/Makefile
+
+
+###############################################################################
 ###                           Tests & Simulation                            ###
 ###############################################################################
 
 include sims.mk
 
-test: test-unit test-build
+TEST_TARGET := ./...
+
+test: test-unit
 
 test-all: check test-race test-cover
 
 test-unit:
-	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
+	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' $(TEST_TARGET) $(TEST_ARGS)
 
 test-race:
-	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
+	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' $(TEST_TARGET) $(TEST_ARGS)
 
 test-cover:
-	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock' ./...
+	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock' $(TEST_TARGET) $(TEST_ARGS)
 
 benchmark:
-	@go test -mod=readonly -bench=. ./...
+	@go test -mod=readonly -bench=. $(TEST_TARGET) $(TEST_ARGS)
 
 
 ###############################################################################

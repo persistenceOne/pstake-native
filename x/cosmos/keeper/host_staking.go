@@ -9,11 +9,13 @@ import (
 	"github.com/persistenceOne/pstake-native/x/cosmos/types"
 )
 
+// ValAddressAmount :
 type ValAddressAmount struct {
-	Validator sdk.ValAddress
+	Validator string
 	Amount    sdk.Coin
 }
 
+// GetIdealCurrentDelegations returns ideal amount of delegations to validators on host chain
 func GetIdealCurrentDelegations(validatorState types.WeightedAddressAmounts, amt sdk.Coin, reverse bool) types.WeightedAddressAmounts {
 	totalDelegations := validatorState.TotalAmount(amt.Denom)
 	curDiffDistribution := types.WeightedAddressAmounts{}
@@ -32,15 +34,17 @@ func GetIdealCurrentDelegations(validatorState types.WeightedAddressAmounts, amt
 			diffAmt = curTokens.Sub(idealTokens)
 		}
 		curDiffDistribution = append(curDiffDistribution, types.WeightedAddressAmount{
-			Address: valState.Address,
-			Weight:  valState.Weight,
-			Denom:   valState.Denom,
-			Amount:  diffAmt,
+			Address:         valState.Address,
+			Weight:          valState.Weight,
+			Denom:           valState.Denom,
+			Amount:          diffAmt,
+			UnbondingTokens: valState.UnbondingTokens,
 		})
 	}
 	return curDiffDistribution
 }
 
+// divideAmountWeightedSet : divides amount to be delegated or undelegated w.r.t weights.
 func divideAmountWeightedSet(valAmounts []ValAddressAmount, coin sdk.Coin, valAddressWeightMap map[string]sdk.Dec) []ValAddressAmount {
 	newValAmounts := []ValAddressAmount{}
 
@@ -50,7 +54,7 @@ func divideAmountWeightedSet(valAmounts []ValAddressAmount, coin sdk.Coin, valAd
 	}
 
 	for _, valAmt := range valAmounts {
-		weight := valAddressWeightMap[valAmt.Validator.String()].Quo(totalWeight)
+		weight := valAddressWeightMap[valAmt.Validator].Quo(totalWeight)
 		amt := weight.MulInt(coin.Amount).RoundInt()
 		newValAmounts = append(newValAmounts, ValAddressAmount{
 			Validator: valAmt.Validator,
@@ -62,26 +66,22 @@ func divideAmountWeightedSet(valAmounts []ValAddressAmount, coin sdk.Coin, valAd
 
 // distributeCoinsAmongstValSet takes the validator distribution and coins to distribute and returns the
 // validator address amount to distribute and the remaining amount to make
-func distributeCoinsAmongstValSet(ws types.WeightedAddressAmounts, coin sdk.Coin) ([]ValAddressAmount, sdk.Coin, error) {
+func distributeCoinsAmongstValSet(ws types.WeightedAddressAmounts, coin sdk.Coin) ([]ValAddressAmount, sdk.Coin) {
 	valAddrAmts := []ValAddressAmount{}
 
 	for _, w := range ws {
-		// Create val address
-		valAddr, err := types.ValAddressFromBech32(w.Address, types.Bech32PrefixValAddr)
-		if err != nil {
-			return nil, coin, err
-		}
 		if coin.Amount.LTE(w.Amount) {
-			valAddrAmts = append(valAddrAmts, ValAddressAmount{Validator: valAddr, Amount: coin})
-			return valAddrAmts, sdk.NewInt64Coin(coin.Denom, 0), nil
+			valAddrAmts = append(valAddrAmts, ValAddressAmount{Validator: w.Address, Amount: coin})
+			return valAddrAmts, sdk.NewInt64Coin(coin.Denom, 0)
 		}
-		valAddrAmts = append(valAddrAmts, ValAddressAmount{Validator: valAddr, Amount: w.Coin()})
+		valAddrAmts = append(valAddrAmts, ValAddressAmount{Validator: w.Address, Amount: w.Coin()})
 		coin = coin.SubAmount(w.Amount)
 	}
 
-	return valAddrAmts, coin, nil
+	return valAddrAmts, coin
 }
 
+// DivideAmountIntoValidatorSet : divides amount into validator set
 func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) ([]ValAddressAmount, error) {
 	if coin.IsZero() {
 		return nil, nil
@@ -91,25 +91,22 @@ func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, co
 	_, nonZeroWeighted := types.GetZeroNonZeroWightedAddrAmts(sortedValDiff)
 	sort.Sort(sort.Reverse(nonZeroWeighted))
 
-	valAmounts, remainderCoin, err := distributeCoinsAmongstValSet(nonZeroWeighted, coin)
-	if err != nil {
-		return nil, err
-	}
+	valAmounts, remainderCoin := distributeCoinsAmongstValSet(nonZeroWeighted, coin)
 
 	// If the remaining amount is not possitive, return early
 	if !remainderCoin.IsPositive() {
 		return valAmounts, nil
 	}
 
-	// Divide the remaining amount amongst the validators a/c to weight
-	// Get zero valued val address to divide the remaing value a/c to weight
-	zeroValued := sortedValDiff.GetZeroValued()
-	valAddressMap := types.GetWeightedAddressMap(zeroValued)
-	valAmounts = divideAmountWeightedSet(valAmounts, remainderCoin, valAddressMap)
+	// Remaining token is the slippage from the multiplication with dec,
+	// Ideally this amount is not going to be alot, hence assigning to
+	// validator with index zero.
+	valAmounts[0].Amount = valAmounts[0].Amount.Add(remainderCoin)
 
 	return valAmounts, nil
 }
 
+// DivideUndelegateAmountIntoValidatorSet : divides undelegation amount into validator set
 func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) ([]ValAddressAmount, error) {
 	if coin.IsZero() {
 		return nil, nil
@@ -121,10 +118,7 @@ func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressA
 	sort.Sort(sort.Reverse(nonZeroWeighted))
 	valWeighted := append(zeroWeighted, nonZeroWeighted...)
 
-	valAmounts, remainderCoin, err := distributeCoinsAmongstValSet(valWeighted, coin)
-	if err != nil {
-		return nil, err
-	}
+	valAmounts, remainderCoin := distributeCoinsAmongstValSet(valWeighted, coin)
 
 	// If the remaining amount is not possitive, return early
 	if !remainderCoin.IsPositive() {
@@ -139,16 +133,17 @@ func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressA
 	return valAmounts, nil
 }
 
-// gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
+// FetchValidatorsToDelegate gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
 func (k Keeper) FetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) ([]ValAddressAmount, error) {
 	params := k.GetParams(ctx)
 
 	// Return nil list if amount is less than delegation threshold
-	if amount.IsLT(params.DelegationThreshold) {
+	if amount.IsLT(params.MinReward) {
 		return nil, nil
 	}
 
 	valWeightedAmt := k.GetAllCosmosValidatorSet(ctx)
+
 	curDiffDistribution := GetIdealCurrentDelegations(valWeightedAmt, amount, false)
 
 	sort.Sort(sort.Reverse(curDiffDistribution))
@@ -156,19 +151,23 @@ func (k Keeper) FetchValidatorsToDelegate(ctx sdk.Context, amount sdk.Coin) ([]V
 	return DivideAmountIntoValidatorSet(curDiffDistribution, amount)
 }
 
-// gives a list of validators having weighted amount for few validators
+// FetchValidatorsToUndelegate gives a list of validators having weighted amount for few validators
 func (k Keeper) FetchValidatorsToUndelegate(ctx sdk.Context, amount sdk.Coin) ([]ValAddressAmount, error) {
 	params := k.GetParams(ctx)
 
 	// Return nil list if amount is less than delegation threshold
-	if amount.IsLT(params.DelegationThreshold) {
+	if amount.IsLT(params.MinBurningAmount) {
 		return nil, nil
 	}
 
 	valWeightedAmt := k.GetAllCosmosValidatorSet(ctx)
 
 	// Check if amount asked to undelegate is more than total delegations
-	totalStaked := valWeightedAmt.TotalAmount(params.StakingDenom)
+	bondDenom, err := params.GetBondDenomOf(types.DefaultStakingDenom)
+	if err != nil {
+		return nil, err
+	}
+	totalStaked := valWeightedAmt.TotalAmount(bondDenom)
 	if totalStaked.Amount.LT(amount.Amount) {
 		return nil, fmt.Errorf("undelegate amount %d more than total staked %d", amount.Amount, totalStaked.Amount)
 	}

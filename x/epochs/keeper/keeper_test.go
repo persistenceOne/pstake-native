@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/persistenceOne/pstake-native/app/helpers"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -20,7 +21,7 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.app = app.Setup(false)
+	suite.app = helpers.Setup(suite.T(), false, 1)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())

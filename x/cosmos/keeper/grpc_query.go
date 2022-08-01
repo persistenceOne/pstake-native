@@ -23,13 +23,14 @@ func (k Keeper) QueryParams(context context.Context, _ *cosmosTypes.QueryParamsR
 // QueryTxByID Query txns by ID for orchestrators to sign
 func (k Keeper) QueryTxByID(context context.Context, req *cosmosTypes.QueryOutgoingTxByIDRequest) (*cosmosTypes.QueryOutgoingTxByIDResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(context)
-	cosmosTxDetails, err := k.getTxnFromOutgoingPoolByID(ctx, req.TxID)
+	cosmosTxDetails, err := k.GetTxnFromOutgoingPoolByID(ctx, req.TxID)
 	if err != nil {
 		return nil, err
 	}
 	return &cosmosTxDetails, nil
 }
 
+// Proposal Query proposal by ID which came in from cosmos side
 func (k Keeper) Proposal(context context.Context, req *cosmosTypes.QueryProposalRequest) (*cosmosTypes.QueryProposalResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -151,18 +152,21 @@ func (k Keeper) Votes(c context.Context, req *cosmosTypes.QueryVotesRequest) (*c
 	return &cosmosTypes.QueryVotesResponse{Votes: votes, Pagination: pageRes}, nil
 }
 
+// CosmosValidatorSet returns the cosmos validator set and their respective weights
 func (k Keeper) CosmosValidatorSet(c context.Context, _ *cosmosTypes.QueryCosmosValidatorSetRequest) (*cosmosTypes.QueryCosmosValidatorSetResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 	weihtedAddresses := k.GetAllCosmosValidatorSet(ctx)
 	return &cosmosTypes.QueryCosmosValidatorSetResponse{WeightedAddresses: weihtedAddresses}, nil
 }
 
-func (k Keeper) OracleValidatorSet(c context.Context, _ *cosmosTypes.QueryOracleValidatorSetRequest) (*cosmosTypes.QueryOracleValidatorSetResponse, error) {
+// OrchestratorValidatorSet returns the orchestrator validator set and their respective weights
+func (k Keeper) OrchestratorValidatorSet(c context.Context, _ *cosmosTypes.QueryOrchestratorValidatorSetRequest) (*cosmosTypes.QueryOrchestratorValidatorSetResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
-	weightedAddresses := k.getAllOracleValidatorSet(ctx)
-	return &cosmosTypes.QueryOracleValidatorSetResponse{WeightedAddresses: weightedAddresses}, nil
+	weightedAddresses := k.getAllOrchestratorValidatorSet(ctx)
+	return &cosmosTypes.QueryOrchestratorValidatorSetResponse{WeightedAddresses: weightedAddresses}, nil
 }
 
+// ValidatorMapping returns the orchestrator address mapped to the given validator address
 func (k Keeper) ValidatorMapping(c context.Context, query *cosmosTypes.QueryValidatorMappingRequest) (*cosmosTypes.QueryValidatorMappingResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
@@ -179,19 +183,34 @@ func (k Keeper) ValidatorMapping(c context.Context, query *cosmosTypes.QueryVali
 	}, nil
 }
 
-func (k Keeper) OracleHeight(c context.Context, query *cosmosTypes.QueryOracleLastUpdateHeightRequest) (*cosmosTypes.QueryOracleLastUpdateHeightResponse, error) {
+// OrchestratorHeight returns the last updated height of given orchestrator
+func (k Keeper) OrchestratorHeight(c context.Context, query *cosmosTypes.QueryOrchestratorLastUpdateHeightRequest) (*cosmosTypes.QueryOrchestratorLastUpdateHeightResponse, error) {
 	ctx := sdkTypes.UnwrapSDKContext(c)
 
-	oracleAddress, err := sdkTypes.AccAddressFromBech32(query.OracleAddress)
+	orchestratorAddress, err := sdkTypes.AccAddressFromBech32(query.OrchestratorAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	oracleLastUpadteHeightNative := k.getOracleLastUpdateHeightNative(ctx, oracleAddress)
-	oracleLastUpadteHeightCosmos := k.getOracleLastUpdateHeightCosmos(ctx, oracleAddress)
+	orchestratorLastUpadteHeightNative := k.getOrchestratorLastUpdateHeightNative(ctx, orchestratorAddress)
+	orchestratorLastUpadteHeightCosmos := k.getOrchestratorLastUpdateHeightCosmos(ctx, orchestratorAddress)
 
-	return &cosmosTypes.QueryOracleLastUpdateHeightResponse{
-		BlockHeightCosmos: oracleLastUpadteHeightCosmos,
-		BlockHeightNative: oracleLastUpadteHeightNative,
+	return &cosmosTypes.QueryOrchestratorLastUpdateHeightResponse{
+		BlockHeightCosmos: orchestratorLastUpadteHeightCosmos,
+		BlockHeightNative: orchestratorLastUpadteHeightNative,
 	}, nil
+}
+
+// CosmosBalance returns the cosmos account balances
+func (k Keeper) CosmosBalance(c context.Context, query *cosmosTypes.QueryCosmosBalanceRequest) (*cosmosTypes.QueryCosmosBalanceResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+	balance := k.getCosmosBalances(ctx)
+	return &cosmosTypes.QueryCosmosBalanceResponse{Balance: balance}, nil
+}
+
+// ActiveTxn returns the active transaction in the queue
+func (k Keeper) ActiveTxn(c context.Context, query *cosmosTypes.QueryActiveTxnRequest) (*cosmosTypes.QueryActiveTxnResponse, error) {
+	ctx := sdkTypes.UnwrapSDKContext(c)
+	txID := k.GetActiveFromTransactionQueue(ctx)
+	return &cosmosTypes.QueryActiveTxnResponse{TxID: txID}, nil
 }
