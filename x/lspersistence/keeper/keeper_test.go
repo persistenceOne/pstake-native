@@ -67,7 +67,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	stakingParams.MaxValidators = 30
 	s.app.StakingKeeper.SetParams(s.ctx, stakingParams)
 
-	s.keeper = s.app.LiquidStakingKeeper
+	s.keeper = s.app.LSPersistenceKeeper
 	s.querier = keeper.Querier{Keeper: s.keeper}
 	s.addrs = chain.AddTestAddrs(s.app, s.ctx, 10, sdk.NewInt(1_000_000_000))
 	s.delAddrs = chain.AddTestAddrs(s.app, s.ctx, 10, sdk.NewInt(1_000_000_000))
@@ -269,7 +269,7 @@ func (s *KeeperTestSuite) advanceHeight(height int, withBeginBlock bool) {
 		s.app.DistrKeeper.SetFeePool(s.ctx, feePool)
 		if withBeginBlock {
 			// liquid validator set update, rebalancing, withdraw rewards, re-stake
-			lspersistence.BeginBlocker(s.ctx, s.app.LiquidStakingKeeper)
+			lspersistence.BeginBlocker(s.ctx, s.app.LSPersistenceKeeper)
 		}
 		staking.EndBlocker(s.ctx, s.app.StakingKeeper)
 	}

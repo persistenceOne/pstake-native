@@ -67,7 +67,7 @@ func MakeTestEncodingConfig() simappparams.EncodingConfig {
 func setup(withGenesis bool, invCheckPeriod uint) (*PstakeApp, GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := MakeTestEncodingConfig()
-	app := NewGaiaApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome,invCheckPeriod, encCdc, EmptyAppOptions{})
+	app := NewpStakeApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome,invCheckPeriod, encCdc, EmptyAppOptions{})
 	if withGenesis {
 		return app, NewDefaultGenesisState()
 	}
@@ -381,7 +381,7 @@ func NewConfig(dbm *dbm.MemDB) network.Config {
 func NewAppConstructor(encodingCfg params.EncodingConfig, db *dbm.MemDB) network.AppConstructor {
 	return func(val network.Validator) types.Application {
 
-		return NewGaiaApp(
+		return NewpStakeApp(
 			val.Ctx.Logger, db, nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
 			MakeEncodingConfig(),
 			simapp.EmptyAppOptions{},

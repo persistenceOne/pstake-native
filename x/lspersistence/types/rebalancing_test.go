@@ -7,7 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/persistenceOne/persistenceCore/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )
 
 var (
