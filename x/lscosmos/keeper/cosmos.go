@@ -7,15 +7,8 @@ import (
 )
 
 // SetCosmosIBCParams sets the cosmos IBC params in store
-func (k Keeper) SetCosmosIBCParams(ctx sdk.Context, proposal types.RegisterCosmosChainProposal) {
-	ibcParams := types.NewCosmosIBCParams(
-		proposal.IBCConnection,
-		proposal.TokenTransferChannel,
-		proposal.TokenTransferPort,
-		proposal.BaseDenom,
-		proposal.MintDenom)
+func (k Keeper) SetCosmosIBCParams(ctx sdk.Context, ibcParams types.CosmosIBCParams) {
 	store := ctx.KVStore(k.storeKey)
-
 	store.Set(types.CosmosIBCParamsKey, k.cdc.MustMarshal(&ibcParams))
 }
 

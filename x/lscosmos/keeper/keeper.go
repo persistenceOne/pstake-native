@@ -2,13 +2,17 @@ package keeper
 
 import (
 	"fmt"
+	accountKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	ibcTransferKeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
@@ -19,12 +23,16 @@ import (
 
 type (
 	Keeper struct {
-		cdc          codec.BinaryCodec
-		storeKey     sdk.StoreKey
-		memKey       sdk.StoreKey
-		paramstore   paramtypes.Subspace
-		ibcKeeepr    ibckeeper.Keeper
-		scopedKeeper capabilitykeeper.ScopedKeeper
+		cdc                codec.BinaryCodec
+		storeKey           sdk.StoreKey
+		memKey             sdk.StoreKey
+		paramstore         paramtypes.Subspace
+		bankKeeper         bankKeeper.BaseKeeper
+		distributionKeeper distrkeeper.Keeper
+		accountKeeper      accountKeeper.AccountKeeper
+		ibcTransKeeper     ibcTransferKeeper.Keeper
+		ibcKeeepr          ibckeeper.Keeper
+		scopedKeeper       capabilitykeeper.ScopedKeeper
 	}
 )
 
@@ -33,7 +41,11 @@ func NewKeeper(
 	storeKey,
 	memKey sdk.StoreKey,
 	ps paramtypes.Subspace,
+	bankKeeper bankKeeper.BaseKeeper,
+	disributionKeeper distrkeeper.Keeper,
+	accKeeper accountKeeper.AccountKeeper,
 	ibckeeper ibckeeper.Keeper,
+	ibcTransferKeeper ibcTransferKeeper.Keeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	// set KeyTable if it has not already been set
@@ -42,12 +54,16 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		ibcKeeepr:    ibckeeper,
-		scopedKeeper: scopedKeeper,
-		cdc:          cdc,
-		storeKey:     storeKey,
-		memKey:       memKey,
-		paramstore:   ps,
+		bankKeeper:         bankKeeper,
+		distributionKeeper: disributionKeeper,
+		accountKeeper:      accKeeper,
+		ibcKeeepr:          ibckeeper,
+		ibcTransKeeper:     ibcTransferKeeper,
+		scopedKeeper:       scopedKeeper,
+		cdc:                cdc,
+		storeKey:           storeKey,
+		memKey:             memKey,
+		paramstore:         ps,
 	}
 }
 
@@ -98,4 +114,46 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 // ClaimCapability allows the module that can claim a capability that IBC module passes to it
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+//MintTokens in the given account
+func (k Keeper) MintTokens(ctx sdk.Context, mintCoin sdk.Coin, delegatorAddress sdk.AccAddress) error {
+
+	err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(mintCoin))
+	if err != nil {
+		return err
+	}
+
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delegatorAddress, sdk.NewCoins(mintCoin))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SendTokensToDepositModule sends the tokens to DepositModuleAccount
+func (k Keeper) SendTokensToDepositModule(ctx sdk.Context, depositCoin sdk.Coins, senderAddress sdk.AccAddress) error {
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddress, types.DepositModuleAccount, depositCoin)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//SendResidueToCommunityPool sends the residue stk token to community pool
+func (k Keeper) SendResidueToCommunityPool(ctx sdk.Context, residue []sdk.DecCoin) {
+	feePool := k.distributionKeeper.GetFeePool(ctx)
+	feePool.CommunityPool = feePool.CommunityPool.Add(residue...)
+	k.distributionKeeper.SetFeePool(ctx, feePool)
+}
+
+//SendProtocolFee to the community pool
+func (k Keeper) SendProtocolFee(ctx sdk.Context, protocolFee []sdk.Coin, delegatorAddr sdk.AccAddress) error {
+	//TODO : create pstake community pool
+	err := k.distributionKeeper.FundCommunityPool(ctx, protocolFee, delegatorAddr)
+	if err != nil {
+		return err
+	}
+	return nil
 }

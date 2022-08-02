@@ -21,6 +21,12 @@ const (
 
 	// PortID is the default port id that module binds to
 	PortID = "lscosmos"
+
+	// MsgTypeLiquidStake is the type of message to liquid stake
+	MsgTypeLiquidStake = "msg_liquid_stake"
+
+	// DepositModuleAccount DepositModuleAccountName
+	DepositModuleAccount = "deposit_account"
 )
 
 var (

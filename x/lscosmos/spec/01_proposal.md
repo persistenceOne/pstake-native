@@ -23,6 +23,8 @@ Example of a register cosmos chain proposal :
 "token_transfer_port": "test-transfer",
 "base_denom": "uatom",
 "mint_denom": "ustkatom",
+"min_deposit": "5",
+"p_stake_deposit_fee": "0.1",
 "deposit": "100stake"
 }
 ```
