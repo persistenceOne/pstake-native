@@ -10,8 +10,8 @@ import (
 
 func TestMsgLiquidStakeRoute(t *testing.T) {
 	delegatorAddr := sdk.AccAddress([]byte("delegatorAddress"))
-	mintToken := sdk.NewInt64Coin("atom", 10)
-	var msg = NewMsgLiquidStake(mintToken, delegatorAddr)
+	depositToken := sdk.NewInt64Coin("atom", 10)
+	var msg = NewMsgLiquidStake(depositToken, delegatorAddr)
 
 	require.Equal(t, msg.Route(), RouterKey)
 	require.Equal(t, msg.Type(), "msg_liquid_stake")
