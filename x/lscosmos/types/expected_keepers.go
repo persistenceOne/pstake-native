@@ -8,15 +8,15 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
-// AccountKeeper defines the expected account keeper used for simulations (noalias)
-type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
-	// Methods imported from account should be defined here
-}
-
 // BankKeeper defines the expected interface needed to retrieve account balances.
 type BankKeeper interface {
 	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) error
+	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
+	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
+	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
+	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	// Methods imported from bank should be defined here
 }
 
@@ -38,4 +38,24 @@ type ScopedKeeper interface {
 	GetCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, bool)
 	AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool
 	ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error
+}
+
+// AccountKeeper defines the expected account keeper used for simulations (noalias)
+type AccountKeeper interface {
+	NewAccount(sdk.Context, types.AccountI) types.AccountI
+	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
+
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
+	GetAllAccounts(ctx sdk.Context) []types.AccountI
+	SetAccount(ctx sdk.Context, acc types.AccountI)
+
+	IterateAccounts(ctx sdk.Context, process func(types.AccountI) bool)
+
+	ValidatePermissions(macc types.ModuleAccountI) error
+
+	GetModuleAddress(moduleName string) sdk.AccAddress
+	GetModuleAddressAndPermissions(moduleName string) (addr sdk.AccAddress, permissions []string)
+	GetModuleAccountAndPermissions(ctx sdk.Context, moduleName string) (types.ModuleAccountI, []string)
+	GetModuleAccount(ctx sdk.Context, moduleName string) types.ModuleAccountI
+	SetModuleAccount(ctx sdk.Context, macc types.ModuleAccountI)
 }

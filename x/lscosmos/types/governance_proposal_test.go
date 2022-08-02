@@ -17,6 +17,8 @@ func TestParameterChangeProposal(t *testing.T) {
 		"transfer",
 		"uatom",
 		"ustkatom",
+		"5",
+		"0.1",
 	)
 
 	require.Equal(t, "title", pcp.GetTitle())

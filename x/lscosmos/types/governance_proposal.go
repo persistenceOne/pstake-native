@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
@@ -19,7 +20,7 @@ func init() {
 }
 
 // NewRegisterCosmosChainProposal creates a new multisig change proposal.
-func NewRegisterCosmosChainProposal(title, description, ibcConnection, tokenTransferChannel, tokenTransferPort, baseDenom, mintDenom string) *RegisterCosmosChainProposal {
+func NewRegisterCosmosChainProposal(title, description, ibcConnection, tokenTransferChannel, tokenTransferPort, baseDenom, mintDenom string, minDeposit string, pStakeDepositFee string) *RegisterCosmosChainProposal {
 	return &RegisterCosmosChainProposal{
 		Title:                title,
 		Description:          description,
@@ -28,6 +29,8 @@ func NewRegisterCosmosChainProposal(title, description, ibcConnection, tokenTran
 		TokenTransferPort:    tokenTransferPort,
 		BaseDenom:            baseDenom,
 		MintDenom:            mintDenom,
+		MinDeposit:           minDeposit,
+		PStakeDepositFee:     pStakeDepositFee,
 	}
 }
 
@@ -84,12 +87,14 @@ MintDenom: 			 %s
 	return b.String()
 }
 
-func NewCosmosIBCParams(ibcConnection, channel, port, baseDenom, mintDenom string) CosmosIBCParams {
+func NewCosmosIBCParams(ibcConnection, channel, port, baseDenom, mintDenom string, minDeposit sdkTypes.Int, pStakeDepositFee sdkTypes.Dec) CosmosIBCParams {
 	return CosmosIBCParams{
 		IBCConnection:        ibcConnection,
 		TokenTransferChannel: channel,
 		TokenTransferPort:    port,
 		BaseDenom:            baseDenom,
 		MintDenom:            mintDenom,
+		MinDeposit:           minDeposit,
+		PStakeDepositFee:     pStakeDepositFee,
 	}
 }

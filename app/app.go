@@ -97,9 +97,20 @@ import (
 	"github.com/gravity-devs/liquidity/x/liquidity"
 	liquiditykeeper "github.com/gravity-devs/liquidity/x/liquidity/keeper"
 	liquiditytypes "github.com/gravity-devs/liquidity/x/liquidity/types"
+	pstakeante "github.com/persistenceOne/pstake-native/ante"
+	pstakeappparams "github.com/persistenceOne/pstake-native/app/params"
 	"github.com/persistenceOne/pstake-native/x/cosmos"
-	lspersistencekeeper "github.com/persistenceOne/pstake-native/x/lspersistence/keeper"
+	cosmosclient "github.com/persistenceOne/pstake-native/x/cosmos/client"
+	cosmostypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
+	"github.com/persistenceOne/pstake-native/x/epochs"
+	epochskeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
+	epochstypes "github.com/persistenceOne/pstake-native/x/epochs/types"
+	"github.com/persistenceOne/pstake-native/x/lscosmos"
+	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
+	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
+	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
 	lspersistencetypes "github.com/persistenceOne/pstake-native/x/lspersistence/types"
+	lspersistencekeeper "github.com/persistenceOne/pstake-native/x/lspersistence/keeper"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
@@ -110,20 +121,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
-	pstakeante "github.com/persistenceOne/pstake-native/ante"
-	pstakeappparams "github.com/persistenceOne/pstake-native/app/params"
-	cosmosclient "github.com/persistenceOne/pstake-native/x/cosmos/client"
-	cosmostypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	 "github.com/persistenceOne/pstake-native/x/epochs"
-	epochskeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
-	epochstypes "github.com/persistenceOne/pstake-native/x/epochs/types"
-	 "github.com/persistenceOne/pstake-native/x/lscosmos"
-	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
-	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
-	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
-
-	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
+
 )
 
 var (
@@ -151,7 +150,6 @@ var (
 			cosmosclient.EnableModuleProposalHandler,
 			cosmosclient.ChangeMultisigProposalHandler,
 			cosmosclient.ChangeCosmosValidatorWeightsProposalHandler,
-			cosmosclient.ChangeOrchestratorValidatorWeightsProposalHandler,
 			lscosmosclient.RegisterCosmosChainProposalHandler,
 		),
 		params.AppModuleBasic{},
@@ -175,18 +173,19 @@ var (
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		authtypes.FeeCollectorName:     nil,
-		distrtypes.ModuleName:          nil,
-		icatypes.ModuleName:            nil,
-		minttypes.ModuleName:           {authtypes.Minter},
-		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
-		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
-		govtypes.ModuleName:            {authtypes.Burner},
-		liquiditytypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
-		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		cosmos.ModuleName:              {authtypes.Minter, authtypes.Burner},
-		lspersistencetypes.ModuleName:  {authtypes.Minter, authtypes.Burner},
-		lscosmostypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
+		authtypes.FeeCollectorName:         nil,
+		distrtypes.ModuleName:              nil,
+		icatypes.ModuleName:                nil,
+		minttypes.ModuleName:               {authtypes.Minter},
+		stakingtypes.BondedPoolName:        {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName:     {authtypes.Burner, authtypes.Staking},
+		govtypes.ModuleName:                {authtypes.Burner},
+		liquiditytypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
+		ibctransfertypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
+		cosmos.ModuleName:                  {authtypes.Minter, authtypes.Burner},
+		lspersistencetypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
+		lscosmostypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
+		lscosmostypes.DepositModuleAccount: nil,
 	}
 )
 
@@ -212,17 +211,17 @@ type PstakeApp struct {
 	memKeys map[string]*sdk.MemoryStoreKey
 
 	// keepers
-	AccountKeeper    authkeeper.AccountKeeper
-	BankKeeper       bankkeeper.BaseKeeper
-	CapabilityKeeper *capabilitykeeper.Keeper
-	StakingKeeper    stakingkeeper.Keeper
-	SlashingKeeper   slashingkeeper.Keeper
-	MintKeeper       mintkeeper.Keeper
-	DistrKeeper      distrkeeper.Keeper
-	GovKeeper        govkeeper.Keeper
-	CrisisKeeper     crisiskeeper.Keeper
-	UpgradeKeeper    upgradekeeper.Keeper
-	ParamsKeeper     paramskeeper.Keeper
+	AccountKeeper       authkeeper.AccountKeeper
+	BankKeeper          bankkeeper.BaseKeeper
+	CapabilityKeeper    *capabilitykeeper.Keeper
+	StakingKeeper       stakingkeeper.Keeper
+	SlashingKeeper      slashingkeeper.Keeper
+	MintKeeper          mintkeeper.Keeper
+	DistrKeeper         distrkeeper.Keeper
+	GovKeeper           govkeeper.Keeper
+	CrisisKeeper        crisiskeeper.Keeper
+	UpgradeKeeper       upgradekeeper.Keeper
+	ParamsKeeper        paramskeeper.Keeper
 	LSPersistenceKeeper lspersistencekeeper.Keeper
 	// IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	IBCKeeper       *ibckeeper.Keeper
@@ -432,12 +431,30 @@ func NewpStakeApp(
 		scopedIBCKeeper,
 	)
 
+	app.TransferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec,
+		keys[ibctransfertypes.StoreKey],
+		app.GetSubspace(ibctransfertypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
+		scopedTransferKeeper,
+	)
+	transferModule := transfer.NewAppModule(app.TransferKeeper)
+	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
+
 	app.LSCosmosKeeper = lscosmoskeeper.NewKeeper(
 		appCodec,
 		keys[lscosmostypes.StoreKey],
 		memKeys[lscosmostypes.MemStoreKey],
 		app.GetSubspace(lscosmostypes.ModuleName),
+		app.BankKeeper,
+		app.DistrKeeper,
+		app.AccountKeeper,
 		*app.IBCKeeper,
+		app.TransferKeeper,
 		scopedLSCosmosKeeper,
 	)
 
@@ -472,20 +489,6 @@ func NewpStakeApp(
 		app.DistrKeeper,
 		app.SlashingKeeper,
 	)
-
-	app.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec,
-		keys[ibctransfertypes.StoreKey],
-		app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-		scopedTransferKeeper,
-	)
-	transferModule := transfer.NewAppModule(app.TransferKeeper)
-	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec, keys[icahosttypes.StoreKey],
@@ -641,7 +644,6 @@ func NewpStakeApp(
 		crisistypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ibchost.ModuleName,
-		genutiltypes.ModuleName,
 		lspersistencetypes.ModuleName,
 		icatypes.ModuleName,
 		evidencetypes.ModuleName,
