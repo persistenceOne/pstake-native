@@ -1,0 +1,25 @@
+syntax = "proto3";
+package lscosmos.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+
+option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
+
+//Msg defines the lsCosmos services.
+service Msg{
+  rpc LiquidStake(MsgLiquidStake) returns (MsgLiquidStakeResponse){
+    option (google.api.http).post = "/pstake/lscosmos/v1beta1/LiquidStake";
+  }
+}
+
+
+message MsgLiquidStake {
+  string delegator_address = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgLiquidStakeResponse{}

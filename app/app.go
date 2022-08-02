@@ -10,6 +10,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -96,17 +97,6 @@ import (
 	"github.com/gravity-devs/liquidity/x/liquidity"
 	liquiditykeeper "github.com/gravity-devs/liquidity/x/liquidity/keeper"
 	liquiditytypes "github.com/gravity-devs/liquidity/x/liquidity/types"
-	"github.com/rakyll/statik/fs"
-	"github.com/spf13/cast"
-	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
-	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v2/router/keeper"
-	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v2/router/types"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/libs/log"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	dbm "github.com/tendermint/tm-db"
-
 	pstakeante "github.com/persistenceOne/pstake-native/ante"
 	pstakeappparams "github.com/persistenceOne/pstake-native/app/params"
 	"github.com/persistenceOne/pstake-native/x/cosmos"
@@ -119,9 +109,16 @@ import (
 	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
 	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
 	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
-
-	// unnamed import of statik for swagger UI support
-	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
+	"github.com/rakyll/statik/fs"
+	"github.com/spf13/cast"
+	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
+	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v2/router/keeper"
+	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v2/router/types"
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmjson "github.com/tendermint/tendermint/libs/json"
+	"github.com/tendermint/tendermint/libs/log"
+	tmos "github.com/tendermint/tendermint/libs/os"
+	dbm "github.com/tendermint/tm-db"
 )
 
 var (
@@ -149,7 +146,6 @@ var (
 			cosmosclient.EnableModuleProposalHandler,
 			cosmosclient.ChangeMultisigProposalHandler,
 			cosmosclient.ChangeCosmosValidatorWeightsProposalHandler,
-			cosmosclient.ChangeOrchestratorValidatorWeightsProposalHandler,
 			lscosmosclient.RegisterCosmosChainProposalHandler,
 		),
 		params.AppModuleBasic{},
@@ -172,17 +168,18 @@ var (
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		authtypes.FeeCollectorName:     nil,
-		distrtypes.ModuleName:          nil,
-		icatypes.ModuleName:            nil,
-		minttypes.ModuleName:           {authtypes.Minter},
-		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
-		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
-		govtypes.ModuleName:            {authtypes.Burner},
-		liquiditytypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
-		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		cosmos.ModuleName:              {authtypes.Minter, authtypes.Burner},
-		lscosmostypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
+		authtypes.FeeCollectorName:         nil,
+		distrtypes.ModuleName:              nil,
+		icatypes.ModuleName:                nil,
+		minttypes.ModuleName:               {authtypes.Minter},
+		stakingtypes.BondedPoolName:        {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName:     {authtypes.Burner, authtypes.Staking},
+		govtypes.ModuleName:                {authtypes.Burner},
+		liquiditytypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
+		ibctransfertypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
+		cosmos.ModuleName:                  {authtypes.Minter, authtypes.Burner},
+		lscosmostypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
+		lscosmostypes.DepositModuleAccount: nil,
 	}
 )
 
@@ -427,12 +424,30 @@ func NewpStakeApp(
 		scopedIBCKeeper,
 	)
 
+	app.TransferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec,
+		keys[ibctransfertypes.StoreKey],
+		app.GetSubspace(ibctransfertypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
+		scopedTransferKeeper,
+	)
+	transferModule := transfer.NewAppModule(app.TransferKeeper)
+	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
+
 	app.LSCosmosKeeper = lscosmoskeeper.NewKeeper(
 		appCodec,
 		keys[lscosmostypes.StoreKey],
 		memKeys[lscosmostypes.MemStoreKey],
 		app.GetSubspace(lscosmostypes.ModuleName),
+		app.BankKeeper,
+		app.DistrKeeper,
+		app.AccountKeeper,
 		*app.IBCKeeper,
+		app.TransferKeeper,
 		scopedLSCosmosKeeper,
 	)
 
@@ -456,20 +471,6 @@ func NewpStakeApp(
 		&stakingKeeper,
 		govRouter,
 	)
-
-	app.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec,
-		keys[ibctransfertypes.StoreKey],
-		app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-		scopedTransferKeeper,
-	)
-	transferModule := transfer.NewAppModule(app.TransferKeeper)
-	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec, keys[icahosttypes.StoreKey],
