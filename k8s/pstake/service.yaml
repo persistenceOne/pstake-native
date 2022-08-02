@@ -18,5 +18,9 @@ spec:
     port: 8081
     protocol: TCP
     targetPort: 8081
+  - name: rest
+    port: 1317
+    protocol: TCP
+    targetPort: 1317
   selector:
     app.kubernetes.io/type: pstake-validator

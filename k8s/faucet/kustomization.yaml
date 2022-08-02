@@ -1,0 +1,5 @@
+resources:
+- faucet.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true

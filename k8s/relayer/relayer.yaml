@@ -74,4 +74,3 @@ spec:
         - name: relayer-config
           configMap:
             name: test-relayer-config
----
