@@ -41,7 +41,7 @@ key_name = 'persistence'
 store_prefix = 'ibc'
 max_gas = 2000000
 fee_granter = ''
-gas_price = { price = 0.001, denom = 'stake' }
+gas_price = { price = 0.001, denom = 'uxprt' }
 gas_adjustment = 0.1
 clock_drift = '15s'
 trusting_period = '14days'
@@ -57,7 +57,7 @@ account_prefix = 'cosmos'
 key_name = 'cosmos'
 store_prefix = 'ibc'
 max_gas = 2000000
-gas_price = { price = 0.001, denom = 'stake' }
+gas_price = { price = 0.001, denom = 'uatom' }
 gas_adjustment = 0.1
 clock_drift = '15s'
 trusting_period = '14days'

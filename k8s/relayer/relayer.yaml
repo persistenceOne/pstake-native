@@ -52,7 +52,6 @@ spec:
                 hermes keys restore --mnemonic "$(jq -r ".keys[$i].mnemonic" /configs/keys.json)" $(jq -r ".keys[$i].chainid" /configs/keys.json) -n $(jq -r ".keys[$i].name" /configs/keys.json)
               done
               hermes start
-              sleep 5000000
           resources:
             limits:
               cpu: "1"

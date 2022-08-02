@@ -117,25 +117,25 @@ spec:
             sed -i 's/swagger = false/swagger = true/g' $GAIA_DIR/config/app.toml
             sed -i 's/enabled-unsafe-cors = false/enabled-unsafe-cors = true/g' $GAIA_DIR/config/app.toml
 
-            jq '.consensus_params.block.max_bytes |= "42020096"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
-            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
-            jq '.app_state.gov.voting_params.voting_period |= "900s"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
-            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
-            jq '.app_state.gov.tally_params.quorum |= "0.0"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
-            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
-            jq '.app_state.gov.deposit_params.min_deposit[0].amount |= "10"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
-            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
+            jq '.consensus_params.block.max_bytes |= "42020096"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesis.new.json
+            mv $GAIA_DIR/config/genesis.new.json $GAIA_DIR/config/genesis.json
+            jq '.app_state.gov.voting_params.voting_period |= "900s"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesis.new.json
+            mv $GAIA_DIR/config/genesis.new.json $GAIA_DIR/config/genesis.json
+            jq '.app_state.gov.tally_params.quorum |= "0.0"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesis.new.json
+            mv $GAIA_DIR/config/genesis.new.json $GAIA_DIR/config/genesis.json
+            jq '.app_state.gov.deposit_params.min_deposit[0].amount |= "10"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesis.new.json
+            mv $GAIA_DIR/config/genesis.new.json $GAIA_DIR/config/genesis.json
           
-            jq '.app_state.crisis.constant_fee.denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
-            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
-            jq '.app_state.gov.deposit_params.min_deposit[0].denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
-            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
-            jq '.app_state.liquidity.params.pool_creation_fee[0].denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
-            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
-            jq '.app_state.mint.params.mint_denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
-            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
-            jq '.app_state.staking.params.bond_denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesisNew
-            mv $GAIA_DIR/config/genesisNew $GAIA_DIR/config/genesis.json
+            jq '.app_state.crisis.constant_fee.denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesis.new.json
+            mv $GAIA_DIR/config/genesis.new.json $GAIA_DIR/config/genesis.json
+            jq '.app_state.gov.deposit_params.min_deposit[0].denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesis.new.json
+            mv $GAIA_DIR/config/genesis.new.json $GAIA_DIR/config/genesis.json
+            jq '.app_state.liquidity.params.pool_creation_fee[0].denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesis.new.json
+            mv $GAIA_DIR/config/genesis.new.json $GAIA_DIR/config/genesis.json
+            jq '.app_state.mint.params.mint_denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesis.new.json
+            mv $GAIA_DIR/config/genesis.new.json $GAIA_DIR/config/genesis.json
+            jq '.app_state.staking.params.bond_denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesis.new.json
+            mv $GAIA_DIR/config/genesis.new.json $GAIA_DIR/config/genesis.json
 
             gaiad tendermint show-node-id --home $GAIA_DIR > /gaiad/genesis-node-id.txt
         resources:
