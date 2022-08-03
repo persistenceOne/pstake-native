@@ -1,0 +1,11 @@
+resources:
+- faucet.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: test-relayer-config
+    files:
+      - configs/.env0
+      - configs/.env1

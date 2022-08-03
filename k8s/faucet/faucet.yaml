@@ -1,0 +1,86 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: faucet
+  labels:
+    app.kubernetes.io/name: faucet
+spec:
+  clusterIP: None
+  ports:
+    - name: faucet-pstake
+      port: 5000
+      protocol: TCP
+      targetPort: 5000
+    - name: faucet-gaia
+      port: 5001
+      protocol: TCP
+      targetPort: 5001
+  selector:
+    app.kubernetes.io/name: faucet
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: faucet
+  namespace: dev-native
+spec:
+  serviceName: faucet
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: faucet
+      app.kubernetes.io/name: faucet
+  template:
+    metadata:
+      annotations:
+        quality: release
+        role: api-gateway
+        sla: high
+        tier: gateway
+      labels:
+        app.kubernetes.io/instance: faucet
+        app.kubernetes.io/type: faucet
+        app.kubernetes.io/name: faucet
+        app.kubernetes.io/version: '0.1'
+    spec:
+      imagePullSecrets:
+        - name: test-docker-creds
+      containers:
+        - name: faucet-pstake
+          image: persistenceone/faucet
+          imagePullPolicy: Always
+          env:
+            - name: ENV
+              value: ".env"
+          command:
+            - bash
+            - "-c"
+            - |
+              ENV_INDEX=${HOSTNAME##*-}
+              ENV_FILE="$ENV$ENV_INDEX"
+              echo "$ENV_FILE"
+              cp /configs/$ENV_FILE .
+              cp $ENV_FILE $ENV
+              echo "Printing .env"
+              cat $ENV
+              node server.js
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: "0.5"
+              memory: 0.5Gi
+          volumeMounts:
+            - mountPath: /relayer
+              name: relayer
+            - mountPath: /configs
+              name: relayer-config
+      volumes:
+        - name: relayer
+          emptyDir: { }
+        - name: relayer-config
+          configMap:
+            name: test-relayer-config
