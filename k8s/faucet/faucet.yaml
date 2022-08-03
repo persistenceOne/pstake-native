@@ -74,13 +74,13 @@ spec:
               cpu: "0.5"
               memory: 0.5Gi
           volumeMounts:
-            - mountPath: /relayer
-              name: relayer
+            - mountPath: /faucet
+              name: faucet
             - mountPath: /configs
-              name: relayer-config
+              name: faucet-config
       volumes:
-        - name: relayer
+        - name: faucet
           emptyDir: { }
-        - name: relayer-config
+        - name: faucet-config
           configMap:
-            name: test-relayer-config
+            name: test-faucet-config
