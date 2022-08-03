@@ -2,11 +2,11 @@ package keeper
 
 import (
 	"context"
-
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibcTransferTypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"strings"
 )
 
 type msgServer struct {
@@ -45,12 +45,28 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	// check if ibc-denom is whitelisted
 	// TODO: Modify the check to a regex-based approach to accomodate staking of delegation vouchers
 	//	This approach will come handy if/ when we allow staking of liquid staking vouchers. As we might not be able to
-	//	allowlist all BaseDenoms and it will have to be done programatically.
+	//	allowlist all BaseDenoms and it will have to be done programmatically.
+	receivedDenomTrace, err := m.ibcTransKeeper.DenomTrace(goCtx,
+		&ibcTransferTypes.QueryDenomTraceRequest{Hash: msg.Amount.Denom},
+	)
+	if err != nil {
+		return nil, err
+	}
 
-	expectedDenom := ibcTransferTypes.ParseDenomTrace(ibcTransferTypes.GetPrefixedDenom(ibcParams.TokenTransferPort, ibcParams.TokenTransferChannel, ibcParams.BaseDenom)).IBCDenom()
-	givenDenom := msg.Amount.Denom
-	if givenDenom != expectedDenom {
+	//check if baseDenom of received coin is whitelisted
+	if receivedDenomTrace.DenomTrace.BaseDenom != ibcParams.BaseDenom {
 		return nil, types.ErrInvalidDenom
+	}
+
+	//Assumption:check for channel assuming only one channel and one hop IBC-Coin deposit
+	//is expected, then given DenomTrace would be Path/BaseDenom => "portA/ChannelAB/uatom"
+	//so check for whitelisted port and channel
+	traceIdentifiers := strings.Split(receivedDenomTrace.DenomTrace.Path, "/")
+	if traceIdentifiers[0] != ibcParams.TokenTransferPort {
+		return nil, types.ErrInvalidPort
+	}
+	if traceIdentifiers[1] != ibcParams.TokenTransferChannel {
+		return nil, types.ErrInvalidChannel
 	}
 
 	// check if address in message is correct or not
