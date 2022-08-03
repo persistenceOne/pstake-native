@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -34,7 +35,7 @@ var (
 	RewardTrigger = sdk.NewDecWithPrec(1, 3) // "0.001000000000000000"
 
 	// LiquidStakingProxyAcc is a proxy reserve account for delegation and undelegation.
-	LiquidStakingProxyAcc = sdk.AccAddress("addrgess")
+	LiquidStakingProxyAcc = authtypes.NewModuleAddress("LiquidStakingProxAddr")
 )
 
 var _ paramstypes.ParamSet = (*Params)(nil)

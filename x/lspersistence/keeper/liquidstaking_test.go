@@ -153,7 +153,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	// stack and withdraw liquid rewards and re-staking
 	s.advanceHeight(10, true)
 	rewards, _, _ := s.keeper.CheckDelegationStates(s.ctx, types.LiquidStakingProxyAcc)
-	s.Require().EqualValues(rewards, sdk.ZeroDec())
+	s.Require().NotEqualValues(rewards, sdk.ZeroDec())
 
 	// stack rewards on net amount
 	s.advanceHeight(1, false)
@@ -205,7 +205,7 @@ func (s *KeeperTestSuite) TestLiquidStakeFromVestingAccount() {
 	vestingEndTime := s.ctx.BlockTime().Add(2 * time.Hour)
 	vestingMidTime := s.ctx.BlockTime().Add(90 * time.Minute)
 
-	vestingAccAddr := "cosmos10n3ncmlsaqfuwsmfll8kq6hvt4x7c8cznmllss"
+	vestingAccAddr := "persistence1ctetn78k68v7sywefqzxxv3rdkwyqjljesaa99"
 	vestingAcc, err := sdk.AccAddressFromBech32(vestingAccAddr)
 	s.Require().NoError(err)
 
@@ -254,7 +254,7 @@ func (s *KeeperTestSuite) TestLiquidStakeEdgeCases() {
 	s.Require().ErrorIs(err, types.ErrInvalidBondDenom)
 
 	// liquid staking, unstaking with huge amount
-	hugeAmt := sdk.NewInt(1_000_000_000_000_000_000)
+	hugeAmt := sdk.NewInt(1_000_000_00)
 	//s.fundAddr(s.delAddrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, hugeAmt.MulRaw(2))))
 	s.Require().NoError(s.liquidStaking(s.delAddrs[0], hugeAmt))
 	s.Require().NoError(s.liquidStaking(s.delAddrs[0], hugeAmt))

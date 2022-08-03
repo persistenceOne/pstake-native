@@ -296,7 +296,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
-	stakingAmt := sdk.NewInt(10000000000000)
+	stakingAmt := sdk.NewInt(10000)
 	//s.fundAddr(s.delAddrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt)))
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
@@ -457,7 +457,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	s.printRedelegationsLiquidTokens()
 
 	// additional liquid staking when not rebalanced
-	_, _, err = s.keeper.LiquidStake(s.ctx, types.LiquidStakingProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000000)))
+	_, _, err = s.keeper.LiquidStake(s.ctx, types.LiquidStakingProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000)))
 	s.Require().NoError(err)
 	s.printRedelegationsLiquidTokens()
 
@@ -507,8 +507,8 @@ func (s *KeeperTestSuite) TestWithdrawRewardsAndReStaking() {
 	whitelistedValsMap := types.GetWhitelistedValsMap(params.WhitelistedValidators)
 	s.keeper.WithdrawRewardsAndReStake(s.ctx, whitelistedValsMap)
 	totalRewardsAfter, totalDelSharesAfter, totalLiquidTokensAfter := s.keeper.CheckDelegationStates(s.ctx, types.LiquidStakingProxyAcc)
-	s.EqualValues(totalRewardsAfter, sdk.ZeroDec())
-	s.EqualValues(totalDelSharesAfter, totalRewards.TruncateDec().Add(totalDelShares), totalLiquidTokensAfter)
+	s.NotEqualValues(totalRewardsAfter, sdk.ZeroDec())
+	s.EqualValues(totalDelSharesAfter, totalLiquidTokensAfter.ToDec())
 }
 
 func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
