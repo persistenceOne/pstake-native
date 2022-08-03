@@ -185,7 +185,6 @@ include docker/Makefile
 
 include sims.mk
 
-TEST_TARGET := ./...
 
 test: test-unit
 
