@@ -47,7 +47,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	//	This approach will come handy if/ when we allow staking of liquid staking vouchers. As we might not be able to
 	//	allowlist all BaseDenoms and it will have to be done programatically.
 
-	expectedDenom := ibcTransferTypes.GetPrefixedDenom(ibcParams.TokenTransferPort, ibcParams.TokenTransferChannel, ibcParams.BaseDenom)
+	expectedDenom := ibcTransferTypes.ParseDenomTrace(ibcTransferTypes.GetPrefixedDenom(ibcParams.TokenTransferPort, ibcParams.TokenTransferChannel, ibcParams.BaseDenom)).IBCDenom()
 	givenDenom := msg.Amount.Denom
 	if givenDenom != expectedDenom {
 		return nil, types.ErrInvalidDenom
