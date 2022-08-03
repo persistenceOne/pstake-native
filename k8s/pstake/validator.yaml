@@ -173,7 +173,7 @@ spec:
 
                     # Run create validator tx command
                     echo "Running txn for create-validator"
-                    pstaked tx staking create-validator --home $PSTAKE_DIR --pubkey=$(pstaked tendermint show-validator --home $PSTAKE_DIR) --moniker $VAL_NAME --amount 5000000000stake --keyring-backend="test" --chain-id $CHAIN_ID --from $VAL_NAME --commission-rate="0.10" --commission-max-rate="0.20" --commission-max-change-rate="0.01" --min-self-delegation="1000000" --gas="auto" --gas-adjustment 1.5 --yes > /validator.log
+                    pstaked tx staking create-validator --home $PSTAKE_DIR --pubkey=$(pstaked tendermint show-validator --home $PSTAKE_DIR) --moniker $VAL_NAME --amount 5000000000uxprt --keyring-backend="test" --chain-id $CHAIN_ID --from $VAL_NAME --commission-rate="0.10" --commission-max-rate="0.20" --commission-max-change-rate="0.01" --min-self-delegation="1000000" --gas="auto" --gas-adjustment 1.5 --yes > /validator.log
           resources:
             limits:
               cpu: "1"
