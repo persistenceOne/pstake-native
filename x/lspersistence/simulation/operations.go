@@ -12,8 +12,8 @@ import (
 
 	appparams "github.com/crescent-network/crescent/v2/app/params"
 	utils "github.com/crescent-network/crescent/v2/types"
-	"github.com/crescent-network/crescent/v2/x/liquidstaking/keeper"
-	"github.com/crescent-network/crescent/v2/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/keeper"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )
 
 // Simulation operation weights constants.

@@ -13,8 +13,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/crescent-network/crescent/v2/x/liquidstaking/simulation"
-	"github.com/crescent-network/crescent/v2/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/simulation"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )
 
 // TestRandomizedGenState tests the normal scenario of applying RandomizedGenState.

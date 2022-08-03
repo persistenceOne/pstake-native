@@ -9,7 +9,7 @@ import (
 
 	chain "github.com/crescent-network/crescent/v2/app"
 	utils "github.com/crescent-network/crescent/v2/types"
-	"github.com/crescent-network/crescent/v2/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )
 
 // test Liquid Staking gov power

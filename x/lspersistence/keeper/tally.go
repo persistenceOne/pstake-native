@@ -11,7 +11,7 @@ import (
 	utils "github.com/crescent-network/crescent/v2/types"
 	farmingtypes "github.com/crescent-network/crescent/v2/x/farming/types"
 	liquiditytypes "github.com/crescent-network/crescent/v2/x/liquidity/types"
-	"github.com/crescent-network/crescent/v2/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )
 
 // GetVoterBalanceByDenom return map of balance amount of voter by denom
