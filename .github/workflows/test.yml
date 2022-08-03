@@ -45,7 +45,7 @@ jobs:
 
       - name: test & coverage report creation
         run: |
-          make test TEST_ARGS="-timeout 12m -race -coverprofile=coverage.txt -covermode=atomic"
+          make test TEST_ARGS="-timeout 12m -race -coverprofile=coverage.txt -covermode=atomic" $TEST_TARGET
         if: "env.GIT_DIFF != ''"
         env:
           TEST_TARGET: "./x/..."

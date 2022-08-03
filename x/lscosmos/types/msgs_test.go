@@ -58,8 +58,5 @@ func TestNewMsgLiquidStakeGetSignBytes(t *testing.T) {
 func TestMsgLiquidStakeGetSigners(t *testing.T) {
 	var msg = NewMsgLiquidStake(sdk.NewCoin("atom", sdk.NewInt(10)), sdk.AccAddress([]byte("input111111111111111")))
 	res := msg.GetSigners()
-	err := fmt.Sprintf("%v", res)
-	fmt.Println(err)
 	require.Equal(t, fmt.Sprintf("%v", res), "[696E707574313131313131313131313131313131]")
-
 }
