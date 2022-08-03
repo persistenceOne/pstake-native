@@ -5,7 +5,7 @@ generatorOptions:
   disableNameSuffixHash: true
 
 configMapGenerator:
-  - name: test-relayer-config
+  - name: test-faucet-config
     files:
       - configs/.env0
       - configs/.env1
