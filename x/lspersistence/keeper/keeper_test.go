@@ -27,8 +27,8 @@ import (
 	farmingtypes "github.com/crescent-network/crescent/v2/x/farming/types"
 	liquiditytypes "github.com/crescent-network/crescent/v2/x/liquidity/types"
 	"github.com/crescent-network/crescent/v2/x/liquidstaking"
-	"github.com/crescent-network/crescent/v2/x/liquidstaking/keeper"
-	"github.com/crescent-network/crescent/v2/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/keeper"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 	"github.com/crescent-network/crescent/v2/x/mint"
 )
 

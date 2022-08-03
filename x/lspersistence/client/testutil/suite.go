@@ -25,8 +25,8 @@ import (
 
 	chain "github.com/crescent-network/crescent/v2/app"
 	"github.com/crescent-network/crescent/v2/app/params"
-	"github.com/crescent-network/crescent/v2/x/liquidstaking/client/cli"
-	"github.com/crescent-network/crescent/v2/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/client/cli"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )
 
 type IntegrationTestSuite struct {

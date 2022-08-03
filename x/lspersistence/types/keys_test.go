@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	farmingtypes "github.com/crescent-network/crescent/v2/x/farming/types"
 
-	"github.com/crescent-network/crescent/v2/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )
 
 type keysTestSuite struct {

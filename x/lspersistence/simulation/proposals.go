@@ -11,8 +11,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/crescent-network/crescent/v2/app/params"
-	"github.com/crescent-network/crescent/v2/x/liquidstaking/keeper"
-	"github.com/crescent-network/crescent/v2/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/keeper"
+	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )
 
 // Simulation operation weights constants.
