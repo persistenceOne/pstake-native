@@ -45,10 +45,11 @@ jobs:
 
       - name: test & coverage report creation
         run: |
-          make test TEST_ARGS="-timeout 12m -race -coverprofile=coverage.txt -covermode=atomic" TEST_TARGET="./x/.."
+          make test
         if: "env.GIT_DIFF != ''"
         env:
           TEST_TARGET: "./x/..."
+          TEST_ARGS: "-timeout 12m -race -coverprofile=coverage.txt -covermode=atomic"
 
       - name: filter out DONTCOVER
         run: |
