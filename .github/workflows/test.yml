@@ -45,10 +45,11 @@ jobs:
 
       - name: test & coverage report creation
         run: |
-          make test TEST_ARGS="-timeout 12m -race -coverprofile=coverage.txt -covermode=atomic" $TEST_TARGET
+          make test
         if: "env.GIT_DIFF != ''"
         env:
           TEST_TARGET: "./x/..."
+          TEST_ARGS: "-timeout 12m -race -coverprofile=coverage.txt -covermode=atomic"
 
       - name: filter out DONTCOVER
         run: |
@@ -60,10 +61,4 @@ jobs:
             echo "Excluding ${filename} from coverage report..."
             sed -i.bak "/$(echo $filename | sed 's/\//\\\//g')/d" coverage.txt
           done
-        if: "env.GIT_DIFF != ''"
-
-      - uses: codecov/codecov-action@v3.1.0
-        with:
-          file: ./coverage.txt # optional
-          fail_ci_if_error: true
         if: "env.GIT_DIFF != ''"
