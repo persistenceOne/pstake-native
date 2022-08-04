@@ -49,7 +49,7 @@ jobs:
         if: "env.GIT_DIFF != ''"
         env:
           TEST_TARGET: "./x/..."
-          TEST_ARGS: "-timeout 12m -race -coverprofile=coverage.txt -covermode=atomic"
+          TEST_ARGS: "-timeout 12m -race -coverprofile=./coverage.out -covermode=atomic"
 
       - name: filter out DONTCOVER
         run: |
@@ -59,6 +59,21 @@ jobs:
           for filename in ${excludelist}; do
             filename=$(echo $filename | sed 's/^./github.com\/cosmos\/cosmos-sdk/g')
             echo "Excluding ${filename} from coverage report..."
-            sed -i.bak "/$(echo $filename | sed 's/\//\\\//g')/d" coverage.txt
+            sed -i "/$(echo $filename | sed 's/\//\\\//g')/d" ./coverage.out
           done
         if: "env.GIT_DIFF != ''"
+
+      - name: Convert coverage to lcov
+        uses: jandelgado/gcov2lcov-action@v1
+      - name: Coveralls
+        uses: coverallsapp/github-action@v1.1.2
+        with:
+          github-token: ${{ secrets.github_token }}
+          path-to-lcov: coverage.lcov
+
+      - name: Code Coverage Report
+        uses: vebr/jest-lcov-reporter@v0.2.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: coverage.lcov
+
