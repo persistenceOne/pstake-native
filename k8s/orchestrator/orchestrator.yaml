@@ -49,10 +49,10 @@ spec:
           resources:
             limits:
               cpu: "1"
-              memory: 1Gi
+              memory: "1G"
             requests:
               cpu: "0.5"
-              memory: 0.5Gi
+              memory: "500M"
           volumeMounts:
             - mountPath: /orc
               name: orc
