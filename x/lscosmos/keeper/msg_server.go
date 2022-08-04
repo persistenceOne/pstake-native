@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+var ibcDenomSeparator = "/"
+
 type msgServer struct {
 	Keeper
 }
@@ -46,22 +48,30 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	// TODO: Modify the check to a regex-based approach to accomodate staking of delegation vouchers
 	//	This approach will come handy if/ when we allow staking of liquid staking vouchers. As we might not be able to
 	//	allowlist all BaseDenoms and it will have to be done programmatically.
-	receivedDenomTrace, err := m.ibcTransKeeper.DenomTrace(goCtx,
-		&ibcTransferTypes.QueryDenomTraceRequest{Hash: msg.Amount.Denom},
-	)
+	denomSplit := strings.SplitN(msg.Amount.Denom, ibcDenomSeparator, 2)
+	if len(denomSplit) < 2 {
+		return nil, types.ErrInvalidDenomHash
+	}
+
+	hexHash, err := ibcTransferTypes.ParseHexHash(denomSplit[1])
 	if err != nil {
-		return nil, err
+		return nil, types.ErrInvalidDenomHash
+	}
+
+	receivedDenomTrace, ok := m.ibcTransKeeper.GetDenomTrace(ctx, hexHash)
+	if !ok {
+		return nil, types.ErrInvalidDenom
 	}
 
 	//check if baseDenom of received coin is whitelisted
-	if receivedDenomTrace.DenomTrace.BaseDenom != ibcParams.BaseDenom {
+	if receivedDenomTrace.BaseDenom != ibcParams.BaseDenom {
 		return nil, types.ErrInvalidDenom
 	}
 
 	//Assumption:check for channel assuming only one channel and one hop IBC-Coin deposit
 	//is expected, then given DenomTrace would be Path/BaseDenom => "portA/ChannelAB/uatom"
 	//so check for whitelisted port and channel
-	traceIdentifiers := strings.Split(receivedDenomTrace.DenomTrace.Path, "/")
+	traceIdentifiers := strings.Split(receivedDenomTrace.Path, ibcDenomSeparator)
 	if traceIdentifiers[0] != ibcParams.TokenTransferPort {
 		return nil, types.ErrInvalidPort
 	}
