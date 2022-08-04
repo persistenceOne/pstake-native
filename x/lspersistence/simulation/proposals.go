@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/crescent-network/crescent/v2/app/params"
+	"github.com/persistenceOne/pstake-native/app/params"
 	"github.com/persistenceOne/pstake-native/x/lspersistence/keeper"
 	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )

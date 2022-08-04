@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	liquiditytypes "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"testing"
 	"time"
 
@@ -21,15 +22,12 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	chain "github.com/crescent-network/crescent/v2/app"
-	utils "github.com/crescent-network/crescent/v2/types"
-	"github.com/crescent-network/crescent/v2/x/farming"
-	farmingtypes "github.com/crescent-network/crescent/v2/x/farming/types"
-	liquiditytypes "github.com/crescent-network/crescent/v2/x/liquidity/types"
-	"github.com/crescent-network/crescent/v2/x/liquidstaking"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	chain "github.com/persistenceOne/pstake-native/app"
+	utils "github.com/persistenceOne/pstake-native/types"
+	"github.com/persistenceOne/pstake-native/x/lspersistence"
 	"github.com/persistenceOne/pstake-native/x/lspersistence/keeper"
 	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
-	"github.com/crescent-network/crescent/v2/x/mint"
 )
 
 var (
@@ -39,7 +37,7 @@ var (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app        *chain.App
+	app        *chain.PstakeApp
 	ctx        sdk.Context
 	keeper     keeper.Keeper
 	querier    keeper.Querier
@@ -54,6 +52,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
+	chain.SetAddressPrefixes()
 	s.app = chain.Setup(false)
 	s.ctx = s.app.BaseApp.NewContext(false, tmproto.Header{})
 	s.govHandler = params.NewParamChangeProposalHandler(s.app.ParamsKeeper)
@@ -62,7 +61,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	stakingParams.MaxValidators = 30
 	s.app.StakingKeeper.SetParams(s.ctx, stakingParams)
 
-	s.keeper = s.app.LiquidStakingKeeper
+	s.keeper = s.app.LSPersistenceKeeper
 	s.querier = keeper.Querier{Keeper: s.keeper}
 	s.addrs = chain.AddTestAddrs(s.app, s.ctx, 10, sdk.NewInt(1_000_000_000))
 	s.delAddrs = chain.AddTestAddrs(s.app, s.ctx, 10, sdk.NewInt(1_000_000_000))
@@ -264,9 +263,9 @@ func (s *KeeperTestSuite) advanceHeight(height int, withBeginBlock bool) {
 		s.app.DistrKeeper.SetFeePool(s.ctx, feePool)
 		if withBeginBlock {
 			// liquid validator set update, rebalancing, withdraw rewards, re-stake
-			liquidstaking.BeginBlocker(s.ctx, s.app.LiquidStakingKeeper)
+			lspersistence.BeginBlocker(s.ctx, s.app.LSPersistenceKeeper)
 		}
-		staking.EndBlocker(s.ctx, *s.app.StakingKeeper)
+		staking.EndBlocker(s.ctx, s.app.StakingKeeper)
 	}
 }
 
@@ -339,69 +338,6 @@ func (s *KeeperTestSuite) fundAddr(addr sdk.AccAddress, amt sdk.Coins) {
 	err := s.app.BankKeeper.MintCoins(s.ctx, liquiditytypes.ModuleName, amt)
 	s.Require().NoError(err)
 	err = s.app.BankKeeper.SendCoinsFromModuleToAccount(s.ctx, liquiditytypes.ModuleName, addr, amt)
-	s.Require().NoError(err)
-}
-
-// liquidity module keeper utils for liquid staking combine test
-
-func (s *KeeperTestSuite) createPair(creator sdk.AccAddress, baseCoinDenom, quoteCoinDenom string, fund bool) liquiditytypes.Pair {
-	params := s.app.LiquidityKeeper.GetParams(s.ctx)
-	if fund {
-		s.fundAddr(creator, params.PairCreationFee)
-	}
-	pair, err := s.app.LiquidityKeeper.CreatePair(s.ctx, liquiditytypes.NewMsgCreatePair(creator, baseCoinDenom, quoteCoinDenom))
-	s.Require().NoError(err)
-	return pair
-}
-
-func (s *KeeperTestSuite) createPool(creator sdk.AccAddress, pairId uint64, depositCoins sdk.Coins, fund bool) liquiditytypes.Pool {
-	params := s.app.LiquidityKeeper.GetParams(s.ctx)
-	if fund {
-		s.fundAddr(creator, depositCoins.Add(params.PoolCreationFee...))
-	}
-	pool, err := s.app.LiquidityKeeper.CreatePool(s.ctx, liquiditytypes.NewMsgCreatePool(creator, pairId, depositCoins))
-	s.Require().NoError(err)
-	return pool
-}
-
-// farming module keeper utils for liquid staking combine test
-
-func (s *KeeperTestSuite) advanceEpochDays() {
-	currentEpochDays := s.app.FarmingKeeper.GetCurrentEpochDays(s.ctx)
-	s.ctx = s.ctx.WithBlockTime(s.ctx.BlockTime().Add(time.Duration(currentEpochDays) * farmingtypes.Day))
-	farming.EndBlocker(s.ctx, s.app.FarmingKeeper)
-}
-
-func (s *KeeperTestSuite) CreateFixedAmountPlan(farmingPoolAcc sdk.AccAddress, stakingCoinWeightsMap map[string]string, epochAmountMap map[string]int64) {
-	stakingCoinWeights := sdk.NewDecCoins()
-	for denom, weight := range stakingCoinWeightsMap {
-		stakingCoinWeights = stakingCoinWeights.Add(sdk.NewDecCoinFromDec(denom, sdk.MustNewDecFromStr(weight)))
-	}
-
-	epochAmount := sdk.NewCoins()
-	for denom, amount := range epochAmountMap {
-		epochAmount = epochAmount.Add(sdk.NewInt64Coin(denom, amount))
-	}
-
-	msg := farmingtypes.NewMsgCreateFixedAmountPlan(
-		fmt.Sprintf("plan%d", s.app.FarmingKeeper.GetGlobalPlanId(s.ctx)+1),
-		farmingPoolAcc,
-		stakingCoinWeights,
-		farmingtypes.ParseTime("0001-01-01T00:00:00Z"),
-		farmingtypes.ParseTime("9999-12-31T00:00:00Z"),
-		epochAmount,
-	)
-	_, err := s.app.FarmingKeeper.CreateFixedAmountPlan(s.ctx, msg, farmingPoolAcc, farmingPoolAcc, farmingtypes.PlanTypePublic)
-	s.Require().NoError(err)
-}
-
-func (s *KeeperTestSuite) Stake(farmerAcc sdk.AccAddress, amt sdk.Coins) {
-	err := s.app.FarmingKeeper.Stake(s.ctx, farmerAcc, amt)
-	s.Require().NoError(err)
-}
-
-func (s *KeeperTestSuite) Unstake(farmerAcc sdk.AccAddress, amt sdk.Coins) {
-	err := s.app.FarmingKeeper.Unstake(s.ctx, farmerAcc, amt)
 	s.Require().NoError(err)
 }
 

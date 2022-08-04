@@ -1,4 +1,4 @@
-package liquidstaking
+package lspersistence
 
 import (
 	"time"

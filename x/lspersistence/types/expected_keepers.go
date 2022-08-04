@@ -8,9 +8,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	abci "github.com/tendermint/tendermint/abci/types"
-
-	farmintypes "github.com/crescent-network/crescent/v2/x/farming/types"
-	liquiditytypes "github.com/crescent-network/crescent/v2/x/liquidity/types"
 )
 
 // BankKeeper defines the expected bank send keeper
@@ -96,21 +93,6 @@ type DistrKeeper interface {
 	IncrementValidatorPeriod(ctx sdk.Context, val stakingtypes.ValidatorI) uint64
 	CalculateDelegationRewards(ctx sdk.Context, val stakingtypes.ValidatorI, del stakingtypes.DelegationI, endingPeriod uint64) (rewards sdk.DecCoins)
 	WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error)
-}
-
-// Liquidity expected liquidity keeper (noalias)
-type LiquidityKeeper interface {
-	GetPair(ctx sdk.Context, id uint64) (pair liquiditytypes.Pair, found bool)
-	GetPool(ctx sdk.Context, id uint64) (pool liquiditytypes.Pool, found bool)
-	GetPoolBalances(ctx sdk.Context, pool liquiditytypes.Pool) (rx sdk.Coin, ry sdk.Coin)
-	GetPoolCoinSupply(ctx sdk.Context, pool liquiditytypes.Pool) sdk.Int
-	IterateAllPools(ctx sdk.Context, cb func(pool liquiditytypes.Pool) (stop bool, err error)) error
-}
-
-// FarmingKeeper expected farming keeper (noalias)
-type FarmingKeeper interface {
-	IterateStakingsByFarmer(ctx sdk.Context, farmerAcc sdk.AccAddress, cb func(stakingCoinDenom string, staking farmintypes.Staking) (stop bool))
-	IterateQueuedStakingsByFarmer(ctx sdk.Context, farmerAcc sdk.AccAddress, cb func(stakingCoinDenom string, endTime time.Time, queuedStaking farmintypes.QueuedStaking) (stop bool))
 }
 
 // SlashingKeeper expected slashing keeper (noalias)

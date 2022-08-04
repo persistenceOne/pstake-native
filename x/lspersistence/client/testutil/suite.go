@@ -23,8 +23,8 @@ import (
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	tmdb "github.com/tendermint/tm-db"
 
-	chain "github.com/crescent-network/crescent/v2/app"
-	"github.com/crescent-network/crescent/v2/app/params"
+	chain "github.com/persistenceOne/pstake-native/app"
+	"github.com/persistenceOne/pstake-native/app/params"
 	"github.com/persistenceOne/pstake-native/x/lspersistence/client/cli"
 	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )
@@ -38,7 +38,7 @@ type IntegrationTestSuite struct {
 
 func NewAppConstructor(encodingCfg params.EncodingConfig) network.AppConstructor {
 	return func(val network.Validator) servertypes.Application {
-		return chain.NewApp(
+		return chain.NewpStakeApp(
 			val.Ctx.Logger, tmdb.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
 			encodingCfg,
 			simapp.EmptyAppOptions{},

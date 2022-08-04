@@ -7,9 +7,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	utils "github.com/crescent-network/crescent/v2/types"
+	utils "github.com/persistenceOne/pstake-native/types"
 	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
-	minttypes "github.com/crescent-network/crescent/v2/x/mint/types"
 )
 
 // tests LiquidStake, LiquidUnstake
@@ -267,7 +266,6 @@ func (s *KeeperTestSuite) TestLiquidStakeEdgeCases() {
 
 func (s *KeeperTestSuite) TestLiquidUnstakeEdgeCases() {
 	mintParams := s.app.MintKeeper.GetParams(s.ctx)
-	mintParams.InflationSchedules = []minttypes.InflationSchedule{}
 	s.app.MintKeeper.SetParams(s.ctx, mintParams)
 
 	_, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000})

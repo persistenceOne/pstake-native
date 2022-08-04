@@ -7,7 +7,7 @@ import (
 
 const (
 	// ModuleName is the name of the liquidstaking module
-	ModuleName = "liquidstaking"
+	ModuleName = "lspersistence"
 
 	// RouterKey is the message router key for the liquidstaking module
 	RouterKey = ModuleName

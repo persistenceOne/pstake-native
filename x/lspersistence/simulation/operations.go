@@ -10,8 +10,8 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	appparams "github.com/crescent-network/crescent/v2/app/params"
-	utils "github.com/crescent-network/crescent/v2/types"
+	appparams "github.com/persistenceOne/pstake-native/app/params"
+	utils "github.com/persistenceOne/pstake-native/types"
 	"github.com/persistenceOne/pstake-native/x/lspersistence/keeper"
 	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )

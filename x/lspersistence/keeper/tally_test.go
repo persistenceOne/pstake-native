@@ -1,14 +1,12 @@
 package keeper_test
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	chain "github.com/crescent-network/crescent/v2/app"
-	utils "github.com/crescent-network/crescent/v2/types"
+	chain "github.com/persistenceOne/pstake-native/app"
+	utils "github.com/persistenceOne/pstake-native/types"
 	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )
 
@@ -58,8 +56,6 @@ func (s *KeeperTestSuite) TestSetLiquidStakingVotingPowers() {
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
-
-	liquidValidators := s.keeper.GetAllLiquidValidators(s.ctx)
 
 	val4, _ := s.app.StakingKeeper.GetValidator(s.ctx, valOpers[3])
 
@@ -144,72 +140,6 @@ func (s *KeeperTestSuite) TestSetLiquidStakingVotingPowers() {
 
 	assertTallyResult(240000000, 100000000, 20000000, 120000000)
 
-	// Test SetLiquidStakingVotingPowers
-	votingPowers := make(govtypes.AdditionalVotingPowers)
-	testVotingPowers := func(voter sdk.AccAddress, bTokenValue sdk.Int) {
-		s.Require().Len(votingPowers[voter.String()], liquidValidators.Len())
-		totalVotingPower := sdk.ZeroDec()
-		for _, v := range liquidValidators {
-			votingPower := votingPowers[voter.String()][v.OperatorAddress]
-			totalVotingPower = totalVotingPower.Add(votingPower)
-			// equal when all liquid validator has same currentWeight
-			s.Require().EqualValues(votingPower, bTokenValue.ToDec().QuoInt64(int64(liquidValidators.Len())))
-		}
-		s.Require().EqualValues(totalVotingPower.TruncateInt(), s.keeper.CalcLiquidStakingVotingPower(s.ctx, voter))
-	}
-	setLiquidStakingVotingPowers := func() {
-		cachedCtx, _ := s.ctx.CacheContext()
-		votingPowers = govtypes.AdditionalVotingPowers{}
-		votes := s.app.GovKeeper.GetVotes(cachedCtx, proposal.ProposalId)
-		s.keeper.SetLiquidStakingVotingPowers(cachedCtx, votes, &votingPowers)
-		utils.PP(votingPowers)
-
-		s.Require().Len(votingPowers, 5)
-		testVotingPowers(delB, delBbToken)
-		testVotingPowers(delC, delCbToken)
-		testVotingPowers(delD, delDbToken)
-		testVotingPowers(delE, delEbToken)
-		testVotingPowers(delF, delFbToken)
-	}
-
-	setLiquidStakingVotingPowers()
-
-	// Test balance of PoolTokens including bToken
-	pair1 := s.createPair(delB, params.LiquidBondDenom, sdk.DefaultBondDenom, false)
-	pool1 := s.createPool(delB, pair1.Id, sdk.NewCoins(sdk.NewCoin(params.LiquidBondDenom, sdk.NewInt(40000000)), sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(44000000))), false)
-	setLiquidStakingVotingPowers()
-	pair2 := s.createPair(delC, sdk.DefaultBondDenom, params.LiquidBondDenom, false)
-	pool2 := s.createPool(delC, pair2.Id, sdk.NewCoins(sdk.NewCoin(params.LiquidBondDenom, sdk.NewInt(40000000)), sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(44000000))), false)
-	balance := s.app.BankKeeper.GetBalance(s.ctx, delC, pool2.PoolCoinDenom)
-	fmt.Println(balance)
-	setLiquidStakingVotingPowers()
-
-	// Test Farming Queued Staking of bToken
-	s.CreateFixedAmountPlan(s.addrs[0], map[string]string{params.LiquidBondDenom: "0.4", pool1.PoolCoinDenom: "0.3", pool2.PoolCoinDenom: "0.3"}, map[string]int64{"stake": 1})
-	s.Stake(delD, sdk.NewCoins(sdk.NewCoin(params.LiquidBondDenom, sdk.NewInt(10000000))))
-	queuedStakingAmt := s.app.FarmingKeeper.GetAllQueuedStakingAmountByFarmerAndDenom(s.ctx, delD, params.LiquidBondDenom)
-	s.Equal(queuedStakingAmt, sdk.NewInt(10000000))
-	setLiquidStakingVotingPowers()
-
-	// Test Farming Staking Position Staking of bToken
-	s.advanceEpochDays()
-	staking, found := s.app.FarmingKeeper.GetStaking(s.ctx, params.LiquidBondDenom, delD)
-	s.True(found)
-	s.Equal(staking.Amount, sdk.NewInt(10000000))
-	setLiquidStakingVotingPowers()
-
-	// Test Farming Queued Staking of PoolTokens including bToken
-	s.Stake(delC, sdk.NewCoins(sdk.NewCoin(pool2.PoolCoinDenom, sdk.NewInt(10000000))))
-	queuedStakingAmt = s.app.FarmingKeeper.GetAllQueuedStakingAmountByFarmerAndDenom(s.ctx, delC, pool2.PoolCoinDenom)
-	s.Equal(queuedStakingAmt, sdk.NewInt(10000000))
-	setLiquidStakingVotingPowers()
-
-	// Test Farming Staking Position of PoolTokens including bToken
-	s.advanceEpochDays()
-	staking, found = s.app.FarmingKeeper.GetStaking(s.ctx, pool2.PoolCoinDenom, delC)
-	s.True(found)
-	s.Equal(staking.Amount, sdk.NewInt(10000000))
-	setLiquidStakingVotingPowers()
 }
 
 // test Liquid Staking gov voting power for the address
@@ -273,77 +203,6 @@ func (s *KeeperTestSuite) TestGetVotingPower() {
 
 	s.assertVotingPower(vals[3], sdk.ZeroInt(), sdk.ZeroInt(), sdk.NewInt(130000000)) // self bonding 10000000 + normal staking 60000000 + liquid staking 240000000/4
 
-	// Test balance of PoolTokens including bToken
-	pair1 := s.createPair(delB, params.LiquidBondDenom, sdk.DefaultBondDenom, false)
-	pool1 := s.createPool(delB, pair1.Id, sdk.NewCoins(sdk.NewCoin(params.LiquidBondDenom, sdk.NewInt(40000000)), sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(44000000))), false)
-	s.assertVotingPower(delB, sdk.ZeroInt(), delBbToken, sdk.ZeroInt())
-
-	pair2 := s.createPair(delC, sdk.DefaultBondDenom, params.LiquidBondDenom, false)
-	pool2 := s.createPool(delC, pair2.Id, sdk.NewCoins(sdk.NewCoin(params.LiquidBondDenom, sdk.NewInt(60000000)), sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(44000000))), false)
-	s.assertVotingPower(delC, sdk.ZeroInt(), delCbToken, sdk.ZeroInt())
-
-	// Test Farming Queued Staking of bToken
-	s.CreateFixedAmountPlan(s.addrs[0], map[string]string{params.LiquidBondDenom: "0.4", pool1.PoolCoinDenom: "0.3", pool2.PoolCoinDenom: "0.3"}, map[string]int64{"stake": 1})
-	s.Stake(delD, sdk.NewCoins(sdk.NewCoin(params.LiquidBondDenom, sdk.NewInt(10000000))))
-	queuedStakingAmt := s.app.FarmingKeeper.GetAllQueuedStakingAmountByFarmerAndDenom(s.ctx, delD, params.LiquidBondDenom)
-	s.Equal(queuedStakingAmt, sdk.NewInt(10000000))
-	s.assertVotingPower(delC, sdk.ZeroInt(), delCbToken, sdk.ZeroInt())
-
-	// Test Farming Staking Position Staking of bToken without balance
-	s.advanceEpochDays()
-	staking, found := s.app.FarmingKeeper.GetStaking(s.ctx, params.LiquidBondDenom, delD)
-	s.True(found)
-	s.Equal(staking.Amount, sdk.NewInt(10000000))
-	s.assertVotingPower(delC, sdk.ZeroInt(), delCbToken, sdk.ZeroInt())
-
-	// Test Farming Queued Staking of bToken
-	s.CreateFixedAmountPlan(s.addrs[0], map[string]string{params.LiquidBondDenom: "0.4", pool1.PoolCoinDenom: "0.3", pool2.PoolCoinDenom: "0.3"}, map[string]int64{"stake": 1})
-	s.Stake(delD, sdk.NewCoins(sdk.NewCoin(params.LiquidBondDenom, sdk.NewInt(10000000))))
-	queuedStakingAmt = s.app.FarmingKeeper.GetAllQueuedStakingAmountByFarmerAndDenom(s.ctx, delD, params.LiquidBondDenom)
-	s.Equal(queuedStakingAmt, sdk.NewInt(10000000))
-	s.assertVotingPower(delD, sdk.ZeroInt(), delDbToken, sdk.ZeroInt())
-
-	// Test Farming Staking Position Staking of bToken without balance
-	s.advanceEpochDays()
-	staking, found = s.app.FarmingKeeper.GetStaking(s.ctx, params.LiquidBondDenom, delD)
-	s.True(found)
-	s.Equal(staking.Amount, sdk.NewInt(20000000))
-	s.assertVotingPower(delD, sdk.ZeroInt(), delDbToken, sdk.ZeroInt())
-
-	// Test Farming Queued Staking of PoolTokens including bToken
-	s.Stake(delC, sdk.NewCoins(sdk.NewCoin(pool2.PoolCoinDenom, sdk.NewInt(500000000000))))
-	queuedStakingAmt = s.app.FarmingKeeper.GetAllQueuedStakingAmountByFarmerAndDenom(s.ctx, delC, pool2.PoolCoinDenom)
-	s.Equal(queuedStakingAmt, sdk.NewInt(500000000000))
-	s.assertVotingPower(delC, sdk.ZeroInt(), delCbToken, sdk.ZeroInt())
-
-	// Test Farming Staking Position of PoolTokens including bToken
-	s.advanceEpochDays()
-	staking, found = s.app.FarmingKeeper.GetStaking(s.ctx, pool2.PoolCoinDenom, delC)
-	s.True(found)
-	s.Equal(staking.Amount, sdk.NewInt(500000000000))
-	s.assertVotingPower(delC, sdk.ZeroInt(), delCbToken, sdk.ZeroInt())
-
-	// Test Farming Queued Staking of PoolTokens including bToken without balance
-	s.Stake(delC, sdk.NewCoins(sdk.NewCoin(pool2.PoolCoinDenom, sdk.NewInt(500000000000))))
-	queuedStakingAmt = s.app.FarmingKeeper.GetAllQueuedStakingAmountByFarmerAndDenom(s.ctx, delC, pool2.PoolCoinDenom)
-	s.Equal(queuedStakingAmt, sdk.NewInt(500000000000))
-	s.assertVotingPower(delC, sdk.ZeroInt(), delCbToken, sdk.ZeroInt())
-
-	// Test Farming Staking Position of PoolTokens including bToken
-	s.advanceEpochDays()
-	staking, found = s.app.FarmingKeeper.GetStaking(s.ctx, pool2.PoolCoinDenom, delC)
-	s.True(found)
-	s.Equal(staking.Amount, sdk.NewInt(1000000000000))
-	s.assertVotingPower(delC, sdk.ZeroInt(), delCbToken, sdk.ZeroInt())
-
-	s.assertVotingPower(delA, sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt())
-	s.assertVotingPower(delE, sdk.NewInt(60000000), delEbToken, sdk.ZeroInt())
-
-	// send bToken of E to vals[3]
-	err = s.app.BankKeeper.SendCoins(s.ctx, delE, vals[3], sdk.NewCoins(sdk.NewCoin(liquidBondDenom, delEbToken)))
-	s.Require().NoError(err)
-	s.assertVotingPower(delE, sdk.NewInt(60000000), sdk.ZeroInt(), sdk.ZeroInt())
-	s.assertVotingPower(vals[3], sdk.ZeroInt(), delEbToken, sdk.NewInt(130000000)) // self bonding 10000000 + normal staking 60000000 + liquid staking 240000000/4
 }
 
 // test Liquid Staking gov power

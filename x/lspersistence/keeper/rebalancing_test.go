@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	utils "github.com/crescent-network/crescent/v2/types"
+	utils "github.com/persistenceOne/pstake-native/types"
 	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )
 
@@ -359,7 +359,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 
 	// complete redelegations
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24 * 20).Add(time.Hour))
-	staking.EndBlocker(s.ctx, *s.app.StakingKeeper)
+	staking.EndBlocker(s.ctx, s.app.StakingKeeper)
 	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 0)
 	// assert rebalanced
@@ -452,7 +452,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 
 	// complete some redelegations
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24 * 20).Add(time.Hour))
-	staking.EndBlocker(s.ctx, *s.app.StakingKeeper)
+	staking.EndBlocker(s.ctx, s.app.StakingKeeper)
 	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 9)
 
