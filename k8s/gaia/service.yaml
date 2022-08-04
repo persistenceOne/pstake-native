@@ -18,7 +18,7 @@ spec:
       port: 8081
       protocol: TCP
       targetPort: 8081
-    - name: lcd
+    - name: rest
       port: 1317
       protocol: TCP
       targetPort: 1317
