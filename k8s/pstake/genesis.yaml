@@ -145,10 +145,10 @@ spec:
           resources:
             limits:
               cpu: "0.2"
-              memory: "0.2Gi"
+              memory: "200M"
             requests:
               cpu: "0.1"
-              memory: "0.1Gi"
+              memory: "100M"
           volumeMounts:
             - mountPath: /pstaked
               name: pstaked
