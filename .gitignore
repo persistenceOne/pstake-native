@@ -28,7 +28,7 @@ cmd/gaiacli/statik/statik.go
 mytestnet
 
 # Testing
-coverage.txt
+coverage.out
 profile.out
 
 # Vagrant
