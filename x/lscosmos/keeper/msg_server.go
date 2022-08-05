@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"context"
-	"strings"
-
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibcTransferTypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
@@ -45,39 +43,18 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		return nil, types.ErrMinDeposit
 	}
 
-	// check if ibc-denom is whitelisted
-	// TODO: Modify the check to a regex-based approach to accomodate staking of delegation vouchers
-	//	This approach will come handy if/ when we allow staking of liquid staking vouchers. As we might not be able to
-	//	allowlist all BaseDenoms and it will have to be done programmatically.
-	denomSplit := strings.SplitN(msg.Amount.Denom, ibcDenomSeparator, 2)
-	if len(denomSplit) < 2 {
-		return nil, types.ErrInvalidDenomHash
-	}
+	expectedIBCPrefix := ibcTransferTypes.GetDenomPrefix(ibcParams.TokenTransferPort, ibcParams.TokenTransferChannel)
 
-	hexHash, err := ibcTransferTypes.ParseHexHash(denomSplit[1])
-	if err != nil {
-		return nil, types.ErrInvalidDenomHash
-	}
+	denomTraceStr, err := m.ibcTransKeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
+	denomTrace := ibcTransferTypes.ParseDenomTrace(denomTraceStr)
 
-	receivedDenomTrace, ok := m.ibcTransKeeper.GetDenomTrace(ctx, hexHash)
-	if !ok {
+	// Check if ibc path matches allowlisted path.
+	if expectedIBCPrefix != denomTrace.GetPrefix() {
 		return nil, types.ErrInvalidDenom
 	}
-
-	//check if baseDenom of received coin is whitelisted
-	if receivedDenomTrace.BaseDenom != ibcParams.BaseDenom {
+	//Check if base denom is valid (uatom) , this can be programmed further to accommodate for liquid staked vouchers.
+	if denomTrace.BaseDenom != ibcParams.BaseDenom {
 		return nil, types.ErrInvalidDenom
-	}
-
-	//Assumption:check for channel assuming only one channel and one hop IBC-Coin deposit
-	//is expected, then given DenomTrace would be Path/BaseDenom => "portA/ChannelAB/uatom"
-	//so check for whitelisted port and channel
-	traceIdentifiers := strings.Split(receivedDenomTrace.Path, ibcDenomSeparator)
-	if traceIdentifiers[0] != ibcParams.TokenTransferPort {
-		return nil, types.ErrInvalidPort
-	}
-	if traceIdentifiers[1] != ibcParams.TokenTransferChannel {
-		return nil, types.ErrInvalidChannel
 	}
 
 	// check if address in message is correct or not
