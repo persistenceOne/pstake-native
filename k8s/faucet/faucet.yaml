@@ -20,13 +20,12 @@ spec:
     app.kubernetes.io/name: faucet
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: faucet
   namespace: dev-native
 spec:
-  serviceName: faucet
-  replicas: 2
+  replicas: 1
   revisionHistoryLimit: 3
   selector:
     matchLabels:
@@ -51,21 +50,9 @@ spec:
         - name: faucet-pstake
           image: persistenceone/faucet
           imagePullPolicy: Always
-          env:
-            - name: ENV
-              value: ".env"
-          command:
-            - bash
-            - "-c"
-            - |
-              ENV_INDEX=${HOSTNAME##*-}
-              ENV_FILE="$ENV$ENV_INDEX"
-              echo "$ENV_FILE"
-              cp /configs/$ENV_FILE .
-              cp $ENV_FILE $ENV
-              echo "Printing .env"
-              cat $ENV
-              node server.js
+          envFrom:
+            - configMapRef:
+                name: test-faucet-config1
           resources:
             limits:
               cpu: "1"
@@ -73,14 +60,16 @@ spec:
             requests:
               cpu: "0.5"
               memory: 0.5Gi
-          volumeMounts:
-            - mountPath: /faucet
-              name: faucet
-            - mountPath: /configs
-              name: faucet-config
-      volumes:
-        - name: faucet
-          emptyDir: { }
-        - name: faucet-config
-          configMap:
-            name: test-faucet-config
+        - name: faucet-gaia
+          image: arhamchordia/test
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: test-faucet-config2
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: "0.5"
+              memory: 0.5Gi
