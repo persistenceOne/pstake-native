@@ -38,7 +38,7 @@ func TestEpochsExportGenesis(t *testing.T) {
 	require.Equal(t, genesis.Epochs[1].EpochCountingStarted, false)
 	require.Equal(t, genesis.Epochs[2].Identifier, "undelegate")
 	require.Equal(t, genesis.Epochs[2].StartTime, chainStartTime)
-	require.Equal(t, genesis.Epochs[2].Duration, time.Minute*8)
+	require.Equal(t, genesis.Epochs[2].Duration, time.Minute*2)
 	require.Equal(t, genesis.Epochs[2].CurrentEpoch, int64(0))
 	require.Equal(t, genesis.Epochs[2].CurrentEpochStartHeight, chainStartHeight)
 	require.Equal(t, genesis.Epochs[2].CurrentEpochStartTime, chainStartTime)
