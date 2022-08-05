@@ -12,7 +12,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	ibcTransferKeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
@@ -30,7 +30,7 @@ type (
 		bankKeeper         bankKeeper.BaseKeeper
 		distributionKeeper distrkeeper.Keeper
 		accountKeeper      accountKeeper.AccountKeeper
-		ibcTransKeeper     ibcTransferKeeper.Keeper
+		ibctransferkeeper  ibctransferkeeper.Keeper
 		ibcKeeepr          ibckeeper.Keeper
 		scopedKeeper       capabilitykeeper.ScopedKeeper
 	}
@@ -45,7 +45,7 @@ func NewKeeper(
 	disributionKeeper distrkeeper.Keeper,
 	accKeeper accountKeeper.AccountKeeper,
 	ibckeeper ibckeeper.Keeper,
-	ibcTransferKeeper ibcTransferKeeper.Keeper,
+	ibctransferkeeper ibctransferkeeper.Keeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	// set KeyTable if it has not already been set
@@ -58,7 +58,7 @@ func NewKeeper(
 		distributionKeeper: disributionKeeper,
 		accountKeeper:      accKeeper,
 		ibcKeeepr:          ibckeeper,
-		ibcTransKeeper:     ibcTransferKeeper,
+		ibctransferkeeper:  ibctransferkeeper,
 		scopedKeeper:       scopedKeeper,
 		cdc:                cdc,
 		storeKey:           storeKey,

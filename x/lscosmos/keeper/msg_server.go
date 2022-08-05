@@ -8,8 +8,6 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-var ibcDenomSeparator = "/"
-
 type msgServer struct {
 	Keeper
 }
@@ -45,7 +43,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 
 	expectedIBCPrefix := ibcTransferTypes.GetDenomPrefix(ibcParams.TokenTransferPort, ibcParams.TokenTransferChannel)
 
-	denomTraceStr, err := m.ibcTransKeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
+	denomTraceStr, err := m.ibctransferkeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
 	denomTrace := ibcTransferTypes.ParseDenomTrace(denomTraceStr)
 
 	// Check if ibc path matches allowlisted path.
