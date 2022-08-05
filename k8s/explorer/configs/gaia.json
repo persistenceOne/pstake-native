@@ -1,7 +1,7 @@
 {
   "chain_name": "gaia",
   "coingecko": "cosmos",
-  "api": "https://lcd.devnet.cosmos.pstake.finance",
+  "api": "https://rest.devnet.cosmos.pstake.finance",
   "rpc": ["https://rpc.devnet.cosmos.pstake.finance:443", "https://rpc.devnet.cosmos.pstake.finance:443"],
   "snapshot_provider": "",
   "sdk_version": "0.45.6",
