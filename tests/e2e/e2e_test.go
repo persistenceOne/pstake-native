@@ -25,7 +25,7 @@ func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
 		)
 		s.Require().Eventually(
 			func() bool {
-				balances, err = queryPstakeAllBalances(chainBAPIEndpoint, recipient)
+				balances, err = queryPStakeAllBalances(chainBAPIEndpoint, recipient)
 				s.Require().NoError(err)
 
 				return balances.Len() == 3
