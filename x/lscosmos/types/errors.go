@@ -17,4 +17,6 @@ var (
 	ErrFailedDeposit        = sdkerrors.Register(ModuleName, 67, "deposit failed")
 	ErrMintFailed           = sdkerrors.Register(ModuleName, 68, "minting failed")
 	ErrMinDeposit           = sdkerrors.Register(ModuleName, 69, "deposit amount less than minimum deposit")
+	ErrInvalidChannel       = sdkerrors.Register(ModuleName, 70, "transfer channel not whitelisted")
+	ErrInvalidPort          = sdkerrors.Register(ModuleName, 71, "transfer port not whitelisted")
 )

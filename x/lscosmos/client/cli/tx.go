@@ -119,9 +119,9 @@ $ %s tx gov submit-proposal register-cosmos-chain <path/to/proposal.json> --from
 
 func NewLiquidStakeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "liquid-stake [amount(whitelisted-ibcDenom coin)] [delegator-address] ",
+		Use:   "liquid-stake [amount(whitelisted-ibcDenom coin)]",
 		Short: `Liquid Stake ibc/Atom to stkAtom`,
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			clientctx, err := client.GetClientTxContext(cmd)
@@ -134,11 +134,7 @@ func NewLiquidStakeCmd() *cobra.Command {
 				return err
 			}
 
-			delegatorAddress, err := sdk.AccAddressFromBech32(args[1])
-			if err != nil {
-				return err
-			}
-
+			delegatorAddress := clientctx.GetFromAddress()
 			msg := types.NewMsgLiquidStake(amount, delegatorAddress)
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
