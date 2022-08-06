@@ -30,8 +30,8 @@ type (
 		bankKeeper         bankKeeper.BaseKeeper
 		distributionKeeper distrkeeper.Keeper
 		accountKeeper      accountKeeper.AccountKeeper
-		ibctransferkeeper  ibctransferkeeper.Keeper
-		ibckeeper          ibckeeper.Keeper
+		ibctransferKeeper  ibctransferkeeper.Keeper
+		ibcKeeper          ibckeeper.Keeper
 		scopedKeeper       capabilitykeeper.ScopedKeeper
 	}
 )
@@ -45,7 +45,7 @@ func NewKeeper(
 	disributionKeeper distrkeeper.Keeper,
 	accKeeper accountKeeper.AccountKeeper,
 	ibcKeeper ibckeeper.Keeper,
-	ibcTransferKeeper ibctransferkeeper.Keeper,
+	ibctransferKeeper ibctransferkeeper.Keeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	// set KeyTable if it has not already been set
@@ -57,8 +57,8 @@ func NewKeeper(
 		bankKeeper:         bankKeeper,
 		distributionKeeper: disributionKeeper,
 		accountKeeper:      accKeeper,
-		ibckeeper:          ibcKeeper,
-		ibctransferkeeper:  ibcTransferKeeper,
+		ibcKeeper:          ibcKeeper,
+		ibctransferKeeper:  ibctransferKeeper,
 		scopedKeeper:       scopedKeeper,
 		cdc:                cdc,
 		storeKey:           storeKey,
@@ -78,7 +78,7 @@ func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 	if !ok {
 		return sdkerrors.Wrapf(channeltypes.ErrChannelCapabilityNotFound, "could not retrieve channel capability at: %s", capName)
 	}
-	return k.ibckeeper.ChannelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
+	return k.ibcKeeper.ChannelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
 }
 
 // IsBound checks if the module is already bound to the desired port
@@ -90,7 +90,7 @@ func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
 // BindPort defines a wrapper function for the ort Keeper's function in
 // order to expose it to module's InitGenesis function
 func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
-	capability := k.ibckeeper.PortKeeper.BindPort(ctx, portID)
+	capability := k.ibcKeeper.PortKeeper.BindPort(ctx, portID)
 	return k.ClaimCapability(ctx, capability, host.PortPath(portID))
 }
 
