@@ -48,11 +48,11 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 
 	// Check if ibc path matches allowlisted path.
 	if expectedIBCPrefix != denomTrace.GetPrefix() {
-		return nil, types.ErrInvalidDenom
+		return nil, types.ErrInvalidDenomPath
 	}
 	//Check if base denom is valid (uatom) , this can be programmed further to accommodate for liquid staked vouchers.
 	if denomTrace.BaseDenom != ibcParams.BaseDenom {
-		return nil, types.ErrInvalidDenomPath
+		return nil, types.ErrInvalidDenom
 	}
 
 	// check if address in message is correct or not
