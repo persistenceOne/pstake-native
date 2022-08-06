@@ -24,15 +24,23 @@ func TestMsgLiquidStakeValidation(t *testing.T) {
 
 	atom123 := sdk.NewInt64Coin("atom", 123)
 	atom0 := sdk.NewInt64Coin("atom", 0)
+	InvalidIBCDenom := sdk.NewInt64Coin("ibc/A", 1)
+	InvalidIBCDenom2 := sdk.NewInt64Coin("ibc/AE", 1)
+	atomNegative := sdk.Coin{
+		Denom:  "atom",
+		Amount: sdk.NewInt(-1),
+	}
 	cases := []struct {
 		expectedErr string // empty means no error expected
 		msg         *MsgLiquidStake
 	}{
-		{"", NewMsgLiquidStake(atom123, addr)},                       // valid send
-		{"", NewMsgLiquidStake(atom123, addr)},                       // valid send with multiple coins
-		{"", NewMsgLiquidStake(atom123, addrLong)},                   // valid send with long addr sender
-		{"0atom: invalid coins", NewMsgLiquidStake(atom0, addr)},     // non positive coin
-		{": invalid address", NewMsgLiquidStake(atom123, addrEmpty)}, // non positive coin
+		{"", NewMsgLiquidStake(atom123, addr)},                                                                                // valid send
+		{"", NewMsgLiquidStake(atom123, addrLong)},                                                                            // valid send with long addr sender
+		{"0atom: invalid coins", NewMsgLiquidStake(atom0, addr)},                                                              // Zero Coin
+		{": invalid address", NewMsgLiquidStake(atom123, addrEmpty)},                                                          // Nil address
+		{"-1atom: invalid coins", NewMsgLiquidStake(atomNegative, addr)},                                                      // Negative coin
+		{"invalid denom trace hash A: encoding/hex: odd length hex string", NewMsgLiquidStake(InvalidIBCDenom, addr)},         // Invalid IBC hash
+		{"invalid denom trace hash AE: expected size to be 32 bytes, got 1 bytes", NewMsgLiquidStake(InvalidIBCDenom2, addr)}, // Negative IBC hash len
 
 	}
 
