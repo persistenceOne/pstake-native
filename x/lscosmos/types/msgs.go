@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
+	ibcTransferTypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 )
 
 var (
@@ -36,7 +37,7 @@ func (m *MsgLiquidStake) ValidateBasic() error {
 	if !m.Amount.IsPositive() {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
 	}
-	return nil
+	return ibcTransferTypes.ValidateIBCDenom(m.Amount.Denom)
 }
 
 // GetSignBytes encodes the message for signing
