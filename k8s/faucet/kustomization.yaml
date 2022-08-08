@@ -5,9 +5,9 @@ generatorOptions:
   disableNameSuffixHash: true
 
 configMapGenerator:
-  - name: test-faucet-config1
+  - name: faucet-pstake
     envs:
-      - configs/.env0
-  - name: test-faucet-config2
+      - configs/.persistence.env
+  - name: faucet-gaia
     envs:
-      - configs/.env1
+      - configs/.cosmos.env

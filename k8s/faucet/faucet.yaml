@@ -52,24 +52,24 @@ spec:
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
-                name: test-faucet-config1
+                name: faucet-pstake
           resources:
             limits:
               cpu: "1"
-              memory: 1Gi
+              memory: "1G"
             requests:
               cpu: "0.5"
-              memory: 0.5Gi
+              memory: "500M"
         - name: faucet-gaia
-          image: arhamchordia/test
+          image: persistenceone/faucet
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
-                name: test-faucet-config2
+                name: faucet-gaia
           resources:
             limits:
               cpu: "1"
-              memory: 1Gi
+              memory: "1G"
             requests:
               cpu: "0.5"
-              memory: 0.5Gi
+              memory: "500M"
