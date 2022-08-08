@@ -12,7 +12,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	ibcTransferKeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
@@ -30,8 +30,8 @@ type (
 		bankKeeper         bankKeeper.BaseKeeper
 		distributionKeeper distrkeeper.Keeper
 		accountKeeper      accountKeeper.AccountKeeper
-		ibcTransKeeper     ibcTransferKeeper.Keeper
-		ibcKeeepr          ibckeeper.Keeper
+		ibctransferKeeper  ibctransferkeeper.Keeper
+		ibcKeeper          ibckeeper.Keeper
 		scopedKeeper       capabilitykeeper.ScopedKeeper
 	}
 )
@@ -44,8 +44,8 @@ func NewKeeper(
 	bankKeeper bankKeeper.BaseKeeper,
 	disributionKeeper distrkeeper.Keeper,
 	accKeeper accountKeeper.AccountKeeper,
-	ibckeeper ibckeeper.Keeper,
-	ibcTransferKeeper ibcTransferKeeper.Keeper,
+	ibcKeeper ibckeeper.Keeper,
+	ibctransferKeeper ibctransferkeeper.Keeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	// set KeyTable if it has not already been set
@@ -57,8 +57,8 @@ func NewKeeper(
 		bankKeeper:         bankKeeper,
 		distributionKeeper: disributionKeeper,
 		accountKeeper:      accKeeper,
-		ibcKeeepr:          ibckeeper,
-		ibcTransKeeper:     ibcTransferKeeper,
+		ibcKeeper:          ibcKeeper,
+		ibctransferKeeper:  ibctransferKeeper,
 		scopedKeeper:       scopedKeeper,
 		cdc:                cdc,
 		storeKey:           storeKey,
@@ -78,7 +78,7 @@ func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 	if !ok {
 		return sdkerrors.Wrapf(channeltypes.ErrChannelCapabilityNotFound, "could not retrieve channel capability at: %s", capName)
 	}
-	return k.ibcKeeepr.ChannelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
+	return k.ibcKeeper.ChannelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
 }
 
 // IsBound checks if the module is already bound to the desired port
@@ -90,7 +90,7 @@ func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
 // BindPort defines a wrapper function for the ort Keeper's function in
 // order to expose it to module's InitGenesis function
 func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
-	capability := k.ibcKeeepr.PortKeeper.BindPort(ctx, portID)
+	capability := k.ibcKeeper.PortKeeper.BindPort(ctx, portID)
 	return k.ClaimCapability(ctx, capability, host.PortPath(portID))
 }
 

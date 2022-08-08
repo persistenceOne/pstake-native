@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibcTransferTypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
@@ -42,14 +41,17 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		return nil, types.ErrMinDeposit
 	}
 
-	// check if ibc-denom is whitelisted
-	// TODO: Modify the check to a regex-based approach to accomodate staking of delegation vouchers
-	//	This approach will come handy if/ when we allow staking of liquid staking vouchers. As we might not be able to
-	//	allowlist all BaseDenoms and it will have to be done programatically.
+	expectedIBCPrefix := ibcTransferTypes.GetDenomPrefix(ibcParams.TokenTransferPort, ibcParams.TokenTransferChannel)
 
-	expectedDenom := ibcTransferTypes.GetPrefixedDenom(ibcParams.TokenTransferPort, ibcParams.TokenTransferChannel, ibcParams.BaseDenom)
-	givenDenom := msg.Amount.Denom
-	if givenDenom != expectedDenom {
+	denomTraceStr, err := m.ibctransferKeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
+	denomTrace := ibcTransferTypes.ParseDenomTrace(denomTraceStr)
+
+	// Check if ibc path matches allowlisted path.
+	if expectedIBCPrefix != denomTrace.GetPrefix() {
+		return nil, types.ErrInvalidDenomPath
+	}
+	//Check if base denom is valid (uatom) , this can be programmed further to accommodate for liquid staked vouchers.
+	if denomTrace.BaseDenom != ibcParams.BaseDenom {
 		return nil, types.ErrInvalidDenom
 	}
 
