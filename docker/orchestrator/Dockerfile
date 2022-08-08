@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine AS build-env
+FROM golang:1.18-alpine AS build-env
 
 # Set up dependencies
 ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3
@@ -22,5 +22,3 @@ WORKDIR /root
 
 # Copy over binaries from the build-env
 COPY --from=build-env /go/bin/orchestrator /usr/bin/orchestrator
-
-

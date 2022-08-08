@@ -1,15 +1,16 @@
 resources:
-- service.yaml
-- configmap.yaml
-- genesis.yaml
-- validator.yaml
+  - service.yaml
+  - configmap.yaml
+  - genesis.yaml
+  - validator.yaml
+  - ingress.yml
 
 generatorOptions:
   disableNameSuffixHash: true
 
 configMapGenerator:
-- name: test-addresses-pstake
-  files:
-  - configs/keys.json
-  - configs/validators.json
-  - configs/orchestrator.json
+  - name: test-addresses-pstake
+    files:
+      - configs/keys.json
+      - configs/validators.json
+      - configs/orchestrator.json
