@@ -19,20 +19,22 @@ func (k Keeper) RegisterICAAccounts(ctx sdk.Context, ibcParams types.CosmosIBCPa
 		return err
 	}
 
-	depositICAPort := chainId + ".deposit"
-	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, ibcParams.IBCConnection, depositICAPort)
+	delegateICAPort := chainId + ".delegate"
+	err = k.ICAControllerKeeper.RegisterInterchainAccount(ctx, ibcParams.IBCConnection, delegateICAPort)
 	if err != nil {
 		return err
 	}
-
-	delegateICAPort := chainId + ".delegate"
-	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, ibcParams.IBCConnection, delegateICAPort)
+	err = k.SetConnectionForPort(ctx, ibcParams.IBCConnection, delegateICAPort)
 	if err != nil {
 		return err
 	}
 
 	rewardsICAPort := chainId + ".rewards"
-	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, ibcParams.IBCConnection, rewardsICAPort)
+	err = k.ICAControllerKeeper.RegisterInterchainAccount(ctx, ibcParams.IBCConnection, rewardsICAPort)
+	if err != nil {
+		return err
+	}
+	err = k.SetConnectionForPort(ctx, ibcParams.IBCConnection, rewardsICAPort)
 	if err != nil {
 		return err
 	}

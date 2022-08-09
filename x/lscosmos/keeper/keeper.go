@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	accountKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
@@ -32,9 +33,9 @@ type (
 		bankKeeper          bankKeeper.BaseKeeper
 		distributionKeeper  distrkeeper.Keeper
 		accountKeeper       accountKeeper.AccountKeeper
-		ibctransferKeeper   ibctransferkeeper.Keeper
-		ibcKeeper           ibckeeper.Keeper
-		icaControllerKeeper icaControllerKeeper.Keeper
+		IBCTransferKeeper   ibctransferkeeper.Keeper
+		IBCKeeper           ibckeeper.Keeper
+		ICAControllerKeeper icaControllerKeeper.Keeper
 		scopedKeeper        capabilitykeeper.ScopedKeeper
 	}
 )
@@ -58,17 +59,17 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		bankKeeper:         bankKeeper,
-		distributionKeeper: disributionKeeper,
-		accountKeeper:      accKeeper,
-		ibcKeeper:          ibckeeper,
-		ibctransferKeeper:  ibctransferkeeper,
-		icaControllerKeeper: icaControllerKeepr,
-		scopedKeeper:       scopedKeeper,
-		cdc:                cdc,
-		storeKey:           storeKey,
-		memKey:             memKey,
-		paramstore:         ps,
+		bankKeeper:          bankKeeper,
+		distributionKeeper:  disributionKeeper,
+		accountKeeper:       accKeeper,
+		IBCKeeper:           ibckeeper,
+		IBCTransferKeeper:   ibctransferkeeper,
+		ICAControllerKeeper: icaControllerKeepr,
+		scopedKeeper:        scopedKeeper,
+		cdc:                 cdc,
+		storeKey:            storeKey,
+		memKey:              memKey,
+		paramstore:          ps,
 	}
 }
 
@@ -83,7 +84,7 @@ func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 	if !ok {
 		return sdkerrors.Wrapf(channeltypes.ErrChannelCapabilityNotFound, "could not retrieve channel capability at: %s", capName)
 	}
-	return k.ibcKeeper.ChannelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
+	return k.IBCKeeper.ChannelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
 }
 
 // IsBound checks if the module is already bound to the desired port
@@ -95,7 +96,7 @@ func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
 // BindPort defines a wrapper function for the ort Keeper's function in
 // order to expose it to module's InitGenesis function
 func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
-	capability := k.ibcKeeper.PortKeeper.BindPort(ctx, portID)
+	capability := k.IBCKeeper.PortKeeper.BindPort(ctx, portID)
 	return k.ClaimCapability(ctx, capability, host.PortPath(portID))
 }
 
@@ -164,11 +165,11 @@ func (k Keeper) SendProtocolFee(ctx sdk.Context, protocolFee []sdk.Coin, delegat
 }
 
 func (k Keeper) GetChainID(ctx sdk.Context, connectionID string) (string, error) {
-	conn, found := k.ibcKeeper.ConnectionKeeper.GetConnection(ctx, connectionID)
+	conn, found := k.IBCKeeper.ConnectionKeeper.GetConnection(ctx, connectionID)
 	if !found {
 		return "", fmt.Errorf("invalid connection id, \"%s\" not found", connectionID)
 	}
-	clientState, found := k.ibcKeeper.ClientKeeper.GetClientState(ctx, conn.ClientId)
+	clientState, found := k.IBCKeeper.ClientKeeper.GetClientState(ctx, conn.ClientId)
 	if !found {
 		return "", fmt.Errorf("client id \"%s\" not found for connection \"%s\"", conn.ClientId, connectionID)
 	}
@@ -178,4 +179,20 @@ func (k Keeper) GetChainID(ctx sdk.Context, connectionID string) (string, error)
 	}
 
 	return client.ChainId, nil
+}
+
+func (k *Keeper) SetConnectionForPort(ctx sdk.Context, connectionId string, port string) error {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PrefixPortMappingKey)
+	b := []byte(connectionId)
+	store.Set([]byte(port), b)
+	return nil
+}
+
+func (k *Keeper) GetConnectionForPort(ctx sdk.Context, port string) (string, error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PrefixPortMappingKey)
+	bz := store.Get([]byte(port))
+	if len(bz) == 0 {
+		return "", fmt.Errorf("unable to find mapping for port %s", port)
+	}
+	return string(bz), nil
 }
