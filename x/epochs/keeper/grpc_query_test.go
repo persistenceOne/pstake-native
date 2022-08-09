@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) TestQueryEpochInfos() {
 	suite.Require().Equal(epochInfosResponse.Epochs[1].EpochCountingStarted, false)
 	suite.Require().Equal(epochInfosResponse.Epochs[2].Identifier, "undelegate")
 	suite.Require().Equal(epochInfosResponse.Epochs[2].StartTime, chainStartTime)
-	suite.Require().Equal(epochInfosResponse.Epochs[2].Duration, time.Minute*8)
+	suite.Require().Equal(epochInfosResponse.Epochs[2].Duration, time.Minute*2)
 	suite.Require().Equal(epochInfosResponse.Epochs[2].CurrentEpoch, int64(0))
 	suite.Require().Equal(epochInfosResponse.Epochs[2].CurrentEpochStartTime, chainStartTime)
 	suite.Require().Equal(epochInfosResponse.Epochs[2].EpochCountingStarted, false)
