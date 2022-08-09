@@ -12,10 +12,12 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	icaControllerKeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
@@ -23,16 +25,17 @@ import (
 
 type (
 	Keeper struct {
-		cdc                codec.BinaryCodec
-		storeKey           sdk.StoreKey
-		memKey             sdk.StoreKey
-		paramstore         paramtypes.Subspace
-		bankKeeper         bankKeeper.BaseKeeper
-		distributionKeeper distrkeeper.Keeper
-		accountKeeper      accountKeeper.AccountKeeper
-		ibctransferKeeper  ibctransferkeeper.Keeper
-		ibcKeeper          ibckeeper.Keeper
-		scopedKeeper       capabilitykeeper.ScopedKeeper
+		cdc                 codec.BinaryCodec
+		storeKey            sdk.StoreKey
+		memKey              sdk.StoreKey
+		paramstore          paramtypes.Subspace
+		bankKeeper          bankKeeper.BaseKeeper
+		distributionKeeper  distrkeeper.Keeper
+		accountKeeper       accountKeeper.AccountKeeper
+		ibctransferKeeper   ibctransferkeeper.Keeper
+		ibcKeeper           ibckeeper.Keeper
+		icaControllerKeeper icaControllerKeeper.Keeper
+		scopedKeeper        capabilitykeeper.ScopedKeeper
 	}
 )
 
@@ -44,8 +47,9 @@ func NewKeeper(
 	bankKeeper bankKeeper.BaseKeeper,
 	disributionKeeper distrkeeper.Keeper,
 	accKeeper accountKeeper.AccountKeeper,
-	ibcKeeper ibckeeper.Keeper,
-	ibctransferKeeper ibctransferkeeper.Keeper,
+	ibckeeper ibckeeper.Keeper,
+	ibctransferkeeper ibctransferkeeper.Keeper,
+	icaControllerKeepr icaControllerKeeper.Keeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	// set KeyTable if it has not already been set
@@ -57,8 +61,9 @@ func NewKeeper(
 		bankKeeper:         bankKeeper,
 		distributionKeeper: disributionKeeper,
 		accountKeeper:      accKeeper,
-		ibcKeeper:          ibcKeeper,
-		ibctransferKeeper:  ibctransferKeeper,
+		ibcKeeper:          ibckeeper,
+		ibctransferKeeper:  ibctransferkeeper,
+		icaControllerKeeper: icaControllerKeepr,
 		scopedKeeper:       scopedKeeper,
 		cdc:                cdc,
 		storeKey:           storeKey,
@@ -156,4 +161,21 @@ func (k Keeper) SendProtocolFee(ctx sdk.Context, protocolFee []sdk.Coin, delegat
 		return err
 	}
 	return nil
+}
+
+func (k Keeper) GetChainID(ctx sdk.Context, connectionID string) (string, error) {
+	conn, found := k.ibcKeeper.ConnectionKeeper.GetConnection(ctx, connectionID)
+	if !found {
+		return "", fmt.Errorf("invalid connection id, \"%s\" not found", connectionID)
+	}
+	clientState, found := k.ibcKeeper.ClientKeeper.GetClientState(ctx, conn.ClientId)
+	if !found {
+		return "", fmt.Errorf("client id \"%s\" not found for connection \"%s\"", conn.ClientId, connectionID)
+	}
+	client, ok := clientState.(*ibctmtypes.ClientState)
+	if !ok {
+		return "", fmt.Errorf("invalid client state for client \"%s\" on connection \"%s\"", conn.ClientId, connectionID)
+	}
+
+	return client.ChainId, nil
 }

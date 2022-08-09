@@ -35,5 +35,9 @@ func HandleRegisterCosmosChainProposal(ctx sdk.Context, k keeper.Keeper, content
 		content.TokenTransferPort, content.BaseDenom, content.MintDenom, minDeposit, pStakeDepositFee)
 
 	k.SetCosmosIBCParams(ctx, paramsProposal)
+	err = k.RegisterICAAccounts(ctx, paramsProposal)
+	if err != nil {
+		return err
+	}
 	return nil
 }
