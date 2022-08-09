@@ -1,0 +1,12 @@
+resources:
+  - configmap.yaml
+  - explorer.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: chain-configs
+    files:
+      - configs/gaia.json
+      - configs/pstake.json
