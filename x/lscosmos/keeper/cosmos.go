@@ -12,30 +12,26 @@ func (k Keeper) SetCosmosIBCParams(ctx sdk.Context, ibcParams types.CosmosIBCPar
 	store.Set(types.CosmosIBCParamsKey, k.cdc.MustMarshal(&ibcParams))
 }
 
-func (k Keeper) RegisterICAAccounts(ctx sdk.Context, ibcParams types.CosmosIBCParams) error {
+func (k Keeper) RegisterICAAccounts(ctx sdk.Context, connectionId string) error {
 
-	chainId, err := k.GetChainID(ctx, ibcParams.IBCConnection)
+	chainId, err := k.GetChainID(ctx, connectionId)
 	if err != nil {
 		return err
 	}
 
 	delegateICAPort := chainId + ".delegate"
-	err = k.ICAControllerKeeper.RegisterInterchainAccount(ctx, ibcParams.IBCConnection, delegateICAPort)
-	if err != nil {
+	if err = k.ICAControllerKeeper.RegisterInterchainAccount(ctx, connectionId, delegateICAPort); err != nil {
 		return err
 	}
-	err = k.SetConnectionForPort(ctx, ibcParams.IBCConnection, delegateICAPort)
-	if err != nil {
+	if err = k.SetConnectionForPort(ctx, connectionId, delegateICAPort); err != nil {
 		return err
 	}
 
 	rewardsICAPort := chainId + ".rewards"
-	err = k.ICAControllerKeeper.RegisterInterchainAccount(ctx, ibcParams.IBCConnection, rewardsICAPort)
-	if err != nil {
+	if err = k.ICAControllerKeeper.RegisterInterchainAccount(ctx, connectionId, rewardsICAPort); err != nil {
 		return err
 	}
-	err = k.SetConnectionForPort(ctx, ibcParams.IBCConnection, rewardsICAPort)
-	if err != nil {
+	if err = k.SetConnectionForPort(ctx, connectionId, rewardsICAPort); err != nil {
 		return err
 	}
 

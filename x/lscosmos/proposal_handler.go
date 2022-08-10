@@ -4,8 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	types2 "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	types3 "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
@@ -37,29 +35,7 @@ func HandleRegisterCosmosChainProposal(ctx sdk.Context, k keeper.Keeper, content
 		content.TokenTransferPort, content.BaseDenom, content.MintDenom, minDeposit, pStakeDepositFee)
 
 	k.SetCosmosIBCParams(ctx, paramsProposal)
-	err = k.RegisterICAAccounts(ctx, paramsProposal)
-	//msg := types2.MsgTransfer{
-	//	SourceChannel: "channel-0",
-	//	SourcePort:    "transfer",
-	//}
-	msg := types2.MsgTransfer{
-		SourcePort:    "transfer",
-		SourceChannel: "channel-0",
-		Token:         sdk.NewCoin("stake", sdk.NewInt(10)),
-		Sender:        "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
-		Receiver:      "cosmos1hcqg5wj9t42zawqkqucs7la85ffyv08lum327c",
-		TimeoutHeight: types3.Height{
-			RevisionNumber: 0,
-			RevisionHeight: 41474,
-		},
-		TimeoutTimestamp: 0,
-	}
-	_, err = k.IBCTransferKeeper.Transfer(sdk.WrapSDKContext(ctx), &msg)
-	if err != nil {
-		return err
-	}
-
-	if err != nil {
+	if err = k.RegisterICAAccounts(ctx, paramsProposal.IBCConnection); err != nil {
 		return err
 	}
 	return nil
