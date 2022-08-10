@@ -6,8 +6,8 @@
 // A testing network is created dynamically and contains multiple Docker
 // containers:
 //
-// 1. Two independent Gaia networks
-// 3. A hermes relayer connecting the two Gaia networks over IBC
+// 1. Two independent PStake networks
+// 3. A hermes relayer connecting the two PStake networks over IBC
 //
 // The file e2e_test.go contains the actual end-to-end integration tests that
 // utilize the testing suite.

@@ -45,8 +45,8 @@ jobs:
         run: |
           make test
         env:
-          TEST_TARGET: "./x/..."
-          TEST_ARGS: "-timeout 12m -race -coverprofile=./coverage.out -covermode=atomic"
+          TEST_TARGET: "./..."
+          TEST_ARGS: "-timeout 12m -race -coverprofile=./coverage.out -covermode=atomic -v"
 
       - name: filter out DONTCOVER
         run: |

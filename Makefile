@@ -185,10 +185,9 @@ include docker/Makefile
 
 include sims.mk
 
-
 test: test-unit
 
-test-all: check test-race test-cover
+test-all: check test-race test-cover test-e2e
 
 test-unit:
 	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' $(TEST_TARGET) $(TEST_ARGS)
@@ -197,7 +196,10 @@ test-race:
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' $(TEST_TARGET) $(TEST_ARGS)
 
 test-cover:
-	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock' $(TEST_TARGET) $(TEST_ARGS)
+	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.out -covermode=atomic -v -tags='ledger test_ledger_mock' $(TEST_TARGET) $(TEST_ARGS)
+
+test-e2e:
+	$(MAKE) test-cover  TEST_TARGET=./tests/e2e/...
 
 benchmark:
 	@go test -mod=readonly -bench=. $(TEST_TARGET) $(TEST_ARGS)

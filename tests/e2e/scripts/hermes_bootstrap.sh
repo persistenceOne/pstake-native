@@ -41,13 +41,13 @@ host = '127.0.0.1'
 port = 3001
 
 [[chains]]
-id = '$GAIA_A_E2E_CHAIN_ID'
-rpc_addr = 'http://$GAIA_A_E2E_VAL_HOST:26657'
-grpc_addr = 'http://$GAIA_A_E2E_VAL_HOST:9090'
-websocket_addr = 'ws://$GAIA_A_E2E_VAL_HOST:26657/websocket'
+id = '$PSTAKE_A_E2E_CHAIN_ID'
+rpc_addr = 'http://$PSTAKE_A_E2E_VAL_HOST:26657'
+grpc_addr = 'http://$PSTAKE_A_E2E_VAL_HOST:9090'
+websocket_addr = 'ws://$PSTAKE_A_E2E_VAL_HOST:26657/websocket'
 rpc_timeout = '10s'
-account_prefix = 'cosmos'
-key_name = 'val01-gaia-a'
+account_prefix = 'persistence'
+key_name = 'val01-pstake-a'
 store_prefix = 'ibc'
 max_gas = 6000000
 gas_price = { price = 0.001, denom = 'photon' }
@@ -57,13 +57,13 @@ trusting_period = '14days'
 trust_threshold = { numerator = '1', denominator = '3' }
 
 [[chains]]
-id = '$GAIA_B_E2E_CHAIN_ID'
-rpc_addr = 'http://$GAIA_B_E2E_VAL_HOST:26657'
-grpc_addr = 'http://$GAIA_B_E2E_VAL_HOST:9090'
-websocket_addr = 'ws://$GAIA_B_E2E_VAL_HOST:26657/websocket'
+id = '$PSTAKE_B_E2E_CHAIN_ID'
+rpc_addr = 'http://$PSTAKE_B_E2E_VAL_HOST:26657'
+grpc_addr = 'http://$PSTAKE_B_E2E_VAL_HOST:9090'
+websocket_addr = 'ws://$PSTAKE_B_E2E_VAL_HOST:26657/websocket'
 rpc_timeout = '10s'
-account_prefix = 'cosmos'
-key_name = 'val01-gaia-b'
+account_prefix = 'persistence'
+key_name = 'val01-pstake-b'
 store_prefix = 'ibc'
 max_gas = 6000000
 gas_price = { price = 0.001, denom = 'photon' }
@@ -74,8 +74,8 @@ trust_threshold = { numerator = '1', denominator = '3' }
 EOF
 
 # import keys
-hermes keys restore ${GAIA_B_E2E_CHAIN_ID} -n "val01-gaia-b" -m "${GAIA_B_E2E_VAL_MNEMONIC}"
-hermes keys restore ${GAIA_A_E2E_CHAIN_ID} -n "val01-gaia-a" -m "${GAIA_A_E2E_VAL_MNEMONIC}"
+hermes keys restore ${PSTAKE_B_E2E_CHAIN_ID} -n "val01-pstake-b" -m "${PSTAKE_B_E2E_VAL_MNEMONIC}"
+hermes keys restore ${PSTAKE_A_E2E_CHAIN_ID} -n "val01-pstake-a" -m "${PSTAKE_A_E2E_VAL_MNEMONIC}"
 
 # start Hermes relayer
 hermes start
