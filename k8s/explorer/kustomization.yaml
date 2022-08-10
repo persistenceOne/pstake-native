@@ -1,6 +1,7 @@
 resources:
   - configmap.yaml
   - explorer.yaml
+  - ingress.yml
 
 generatorOptions:
   disableNameSuffixHash: true
