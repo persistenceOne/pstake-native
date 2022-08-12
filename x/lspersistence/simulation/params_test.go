@@ -19,10 +19,10 @@ func TestParamChanges(t *testing.T) {
 		simValue    string
 		subspace    string
 	}{
-		{"liquidstaking/WhitelistedValidators", "WhitelistedValidators", "[]", "liquidstaking"},
-		{"liquidstaking/LiquidBondDenom", "LiquidBondDenom", "\"bstake\"", "liquidstaking"},
-		{"liquidstaking/UnstakeFeeRate", "UnstakeFeeRate", "\"0.010000000000000000\"", "liquidstaking"},
-		{"liquidstaking/MinLiquidStakingAmount", "MinLiquidStakingAmount", "\"9727887\"", "liquidstaking"},
+		{"lspersistence/WhitelistedValidators", "WhitelistedValidators", "[]", "lspersistence"},
+		{"lspersistence/LiquidBondDenom", "LiquidBondDenom", "\"bstake\"", "lspersistence"},
+		{"lspersistence/UnstakeFeeRate", "UnstakeFeeRate", "\"0.010000000000000000\"", "lspersistence"},
+		{"lspersistence/MinLiquidStakingAmount", "MinLiquidStakingAmount", "\"9727887\"", "lspersistence"},
 	}
 
 	paramChanges := simulation.ParamChanges(r)
