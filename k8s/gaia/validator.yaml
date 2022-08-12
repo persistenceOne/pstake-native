@@ -27,7 +27,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: gaia-validator
-  namespace: dev-native
 spec:
   serviceName: gaia-validator
   replicas: 3

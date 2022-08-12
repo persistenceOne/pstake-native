@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: orchestrator
-  namespace: dev-native
 spec:
   serviceName: orchestrator
   replicas: 4
