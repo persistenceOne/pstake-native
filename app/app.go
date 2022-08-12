@@ -78,6 +78,8 @@ import (
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ica "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts"
+	icacontroller "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
 	icacontrollertypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
 	icahost "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host"
 	icahostkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/keeper"
@@ -168,18 +170,25 @@ var (
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		authtypes.FeeCollectorName:         nil,
-		distrtypes.ModuleName:              nil,
-		icatypes.ModuleName:                nil,
-		minttypes.ModuleName:               {authtypes.Minter},
-		stakingtypes.BondedPoolName:        {authtypes.Burner, authtypes.Staking},
-		stakingtypes.NotBondedPoolName:     {authtypes.Burner, authtypes.Staking},
-		govtypes.ModuleName:                {authtypes.Burner},
-		liquiditytypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
-		ibctransfertypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
-		cosmos.ModuleName:                  {authtypes.Minter, authtypes.Burner},
-		lscosmostypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
-		lscosmostypes.DepositModuleAccount: nil,
+		authtypes.FeeCollectorName:            nil,
+		distrtypes.ModuleName:                 nil,
+		icatypes.ModuleName:                   nil,
+		minttypes.ModuleName:                  {authtypes.Minter},
+		stakingtypes.BondedPoolName:           {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName:        {authtypes.Burner, authtypes.Staking},
+		govtypes.ModuleName:                   {authtypes.Burner},
+		liquiditytypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
+		ibctransfertypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
+		cosmos.ModuleName:                     {authtypes.Minter, authtypes.Burner},
+		lscosmostypes.ModuleName:              {authtypes.Minter, authtypes.Burner},
+		lscosmostypes.DepositModuleAccount:    nil,
+		lscosmostypes.DelegationModuleAccount: nil,
+		lscosmostypes.RewardModuleAccount:     nil,
+		lscosmostypes.UndelegateModuleAccount: nil,
+	}
+
+	receiveAllowedMAcc = map[string]bool{
+		lscosmostypes.UndelegateModuleAccount: true,
 	}
 )
 
@@ -217,22 +226,25 @@ type PstakeApp struct {
 	UpgradeKeeper    upgradekeeper.Keeper
 	ParamsKeeper     paramskeeper.Keeper
 	// IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	IBCKeeper       *ibckeeper.Keeper
-	ICAHostKeeper   icahostkeeper.Keeper
-	EvidenceKeeper  evidencekeeper.Keeper
-	TransferKeeper  ibctransferkeeper.Keeper
-	FeeGrantKeeper  feegrantkeeper.Keeper
-	AuthzKeeper     authzkeeper.Keeper
-	LiquidityKeeper liquiditykeeper.Keeper
-	RouterKeeper    routerkeeper.Keeper
-	CosmosKeeper    cosmos.Keeper
-	EpochsKeeper    epochskeeper.Keeper
-	LSCosmosKeeper  lscosmoskeeper.Keeper
+	IBCKeeper           *ibckeeper.Keeper
+	ICAHostKeeper       icahostkeeper.Keeper
+	ICAControllerKeeper icacontrollerkeeper.Keeper
+	EvidenceKeeper      evidencekeeper.Keeper
+	TransferKeeper      ibctransferkeeper.Keeper
+	FeeGrantKeeper      feegrantkeeper.Keeper
+	AuthzKeeper         authzkeeper.Keeper
+	LiquidityKeeper     liquiditykeeper.Keeper
+	RouterKeeper        routerkeeper.Keeper
+	CosmosKeeper        cosmos.Keeper
+	EpochsKeeper        epochskeeper.Keeper
+	LSCosmosKeeper      lscosmoskeeper.Keeper
 
 	// make scoped keepers public for test purposes
-	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
-	ScopedICAHostKeeper  capabilitykeeper.ScopedKeeper
+	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
+	ScopedTransferKeeper      capabilitykeeper.ScopedKeeper
+	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
+	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
+	ScopedLSCosmosKeeper      capabilitykeeper.ScopedKeeper
 
 	// the module manager
 	mm *module.Manager
@@ -279,7 +291,7 @@ func NewpStakeApp(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, liquiditytypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, icahosttypes.StoreKey,
-		cosmos.StoreKey, epochstypes.StoreKey, lscosmostypes.StoreKey,
+		icacontrollertypes.StoreKey, cosmos.StoreKey, epochstypes.StoreKey, lscosmostypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, lscosmostypes.MemStoreKey)
@@ -312,6 +324,7 @@ func NewpStakeApp(
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
+	scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
 	scopedLSCosmosKeeper := app.CapabilityKeeper.ScopeToModule(lscosmostypes.ModuleName)
 	app.CapabilityKeeper.Seal()
 
@@ -328,7 +341,7 @@ func NewpStakeApp(
 		keys[banktypes.StoreKey],
 		app.AccountKeeper,
 		app.GetSubspace(banktypes.ModuleName),
-		app.ModuleAccountAddrs(),
+		app.SendCoinBlockedAddrs(),
 	)
 	app.AuthzKeeper = authzkeeper.NewKeeper(
 		keys[authzkeeper.StoreKey],
@@ -438,19 +451,6 @@ func NewpStakeApp(
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
 	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
-	app.LSCosmosKeeper = lscosmoskeeper.NewKeeper(
-		appCodec,
-		keys[lscosmostypes.StoreKey],
-		memKeys[lscosmostypes.MemStoreKey],
-		app.GetSubspace(lscosmostypes.ModuleName),
-		app.BankKeeper,
-		app.DistrKeeper,
-		app.AccountKeeper,
-		*app.IBCKeeper,
-		app.TransferKeeper,
-		scopedLSCosmosKeeper,
-	)
-
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
 	govRouter.
@@ -471,7 +471,12 @@ func NewpStakeApp(
 		&stakingKeeper,
 		govRouter,
 	)
-
+	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
+		appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
+		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
+		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+		scopedICAControllerKeeper, app.MsgServiceRouter(),
+	)
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec, keys[icahosttypes.StoreKey],
 		app.GetSubspace(icahosttypes.SubModuleName),
@@ -481,8 +486,23 @@ func NewpStakeApp(
 		scopedICAHostKeeper,
 		app.MsgServiceRouter(),
 	)
-	icaModule := ica.NewAppModule(nil, &app.ICAHostKeeper)
+
+	icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
 	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
+	app.LSCosmosKeeper = lscosmoskeeper.NewKeeper(
+		appCodec,
+		keys[lscosmostypes.StoreKey],
+		memKeys[lscosmostypes.MemStoreKey],
+		app.GetSubspace(lscosmostypes.ModuleName),
+		app.BankKeeper,
+		app.DistrKeeper,
+		app.AccountKeeper,
+		*app.IBCKeeper,
+		app.TransferKeeper,
+		scopedLSCosmosKeeper,
+	)
+	lscosmosModule := lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
+	icaControllerIBCModule := icacontroller.NewIBCModule(app.ICAControllerKeeper, lscosmosModule)
 
 	app.RouterKeeper = routerkeeper.NewKeeper(appCodec, keys[routertypes.StoreKey], app.GetSubspace(routertypes.ModuleName), app.TransferKeeper, app.DistrKeeper)
 
@@ -490,7 +510,9 @@ func NewpStakeApp(
 	// create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-		AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
+		AddRoute(ibctransfertypes.ModuleName, transferIBCModule).
+		AddRoute(icacontrollertypes.SubModuleName, icaControllerIBCModule).
+		AddRoute(lscosmostypes.ModuleName, icaControllerIBCModule)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -667,6 +689,8 @@ func NewpStakeApp(
 		cosmos.NewAppModule(appCodec, app.CosmosKeeper),
 		lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
 		transferModule,
+		//icaModule,
+		lscosmosModule,
 	)
 
 	app.sm.RegisterStoreDecoders()
@@ -698,56 +722,6 @@ func NewpStakeApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgradeName,
-		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-
-			fromVM[icatypes.ModuleName] = icaModule.ConsensusVersion()
-			// create ICS27 Controller submodule params
-			controllerParams := icacontrollertypes.Params{}
-			// create ICS27 Host submodule params
-			hostParams := icahosttypes.Params{
-				HostEnabled: true,
-				AllowMessages: []string{
-					authzMsgExec,
-					authzMsgGrant,
-					authzMsgRevoke,
-					bankMsgSend,
-					bankMsgMultiSend,
-					distrMsgSetWithdrawAddr,
-					distrMsgWithdrawValidatorCommission,
-					distrMsgFundCommunityPool,
-					distrMsgWithdrawDelegatorReward,
-					feegrantMsgGrantAllowance,
-					feegrantMsgRevokeAllowance,
-					govMsgVoteWeighted,
-					govMsgSubmitProposal,
-					govMsgDeposit,
-					govMsgVote,
-					stakingMsgEditValidator,
-					stakingMsgDelegate,
-					stakingMsgUndelegate,
-					stakingMsgBeginRedelegate,
-					stakingMsgCreateValidator,
-					vestingMsgCreateVestingAccount,
-					transferMsgTransfer,
-					liquidityMsgCreatePool,
-					liquidityMsgSwapWithinBatch,
-					liquidityMsgDepositWithinBatch,
-					liquidityMsgWithdrawWithinBatch,
-				},
-			}
-
-			ctx.Logger().Info("start to init interchainaccount module...")
-			// initialize ICS27 module
-			icaModule.InitModule(ctx, controllerParams, hostParams)
-
-			ctx.Logger().Info("start to run module migrations...")
-
-			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-		},
-	)
-
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
@@ -770,6 +744,9 @@ func NewpStakeApp(
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.ScopedTransferKeeper = scopedTransferKeeper
+	app.ScopedICAHostKeeper = scopedICAHostKeeper
+	app.ScopedICAControllerKeeper = scopedICAControllerKeeper
+	app.ScopedLSCosmosKeeper = scopedLSCosmosKeeper
 
 	return app
 }
@@ -811,6 +788,13 @@ func (app *PstakeApp) ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
+	return modAccAddrs
+}
+func (app *PstakeApp) SendCoinBlockedAddrs() map[string]bool {
+	modAccAddrs := make(map[string]bool)
+	for acc := range maccPerms {
+		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = !receiveAllowedMAcc[acc]
+	}
 	return modAccAddrs
 }
 
@@ -927,8 +911,9 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(liquiditytypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
-	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
+	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
+	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
 	paramsKeeper.Subspace(lscosmostypes.ModuleName)
 
 	return paramsKeeper
