@@ -16,6 +16,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	_, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000})
 	params := s.keeper.GetParams(s.ctx)
 	params.MinLiquidStakingAmount = sdk.NewInt(50000)
+	types.RewardTrigger = sdk.NewDecWithPrec(1, 5)
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
@@ -115,7 +116,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	s.Require().Equal(stakingAmt.Sub(unbondingAmt).ToDec(), proxyAccDel1.GetShares().Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
 
 	// complete unbonding
-	s.ctx = s.ctx.WithBlockHeight(200).WithBlockTime(ubdTime.Add(1))
+	s.ctx = s.ctx.WithBlockHeight(1000).WithBlockTime(ubdTime.Add(1))
 	updates := s.app.StakingKeeper.BlockValidatorUpdates(s.ctx) // EndBlock of staking keeper, mature UBD
 	s.Require().Empty(updates)
 	balanceCompleteUBD := s.app.BankKeeper.GetBalance(s.ctx, s.delAddrs[0], sdk.DefaultBondDenom)
@@ -149,7 +150,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	s.Require().Equal(sdk.NewDec(13333), res[2].DelShares)
 
 	// stack and withdraw liquid rewards and re-staking
-	s.advanceHeight(10, true)
+	s.advanceHeight(20, true)
 	rewards, _, _ := s.keeper.CheckDelegationStates(s.ctx, types.LiquidStakingProxyAcc)
 	s.Require().EqualValues(rewards, sdk.ZeroDec())
 
@@ -203,7 +204,7 @@ func (s *KeeperTestSuite) TestLiquidStakeFromVestingAccount() {
 	vestingEndTime := s.ctx.BlockTime().Add(2 * time.Hour)
 	vestingMidTime := s.ctx.BlockTime().Add(90 * time.Minute)
 
-	vestingAccAddr := "cosmos10n3ncmlsaqfuwsmfll8kq6hvt4x7c8cznmllss"
+	vestingAccAddr := "persistence19hx4jut2lfkuwvmk4t3h4v4vmzkxlha5euzel8"
 	vestingAcc, err := sdk.AccAddressFromBech32(vestingAccAddr)
 	s.Require().NoError(err)
 

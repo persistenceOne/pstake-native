@@ -497,7 +497,7 @@ func (s *KeeperTestSuite) TestWithdrawRewardsAndReStaking() {
 	s.keeper.WithdrawRewardsAndReStake(s.ctx, whitelistedValsMap)
 	totalRewardsAfter, totalDelSharesAfter, totalLiquidTokensAfter := s.keeper.CheckDelegationStates(s.ctx, types.LiquidStakingProxyAcc)
 	s.EqualValues(totalRewardsAfter, sdk.ZeroDec())
-	s.EqualValues(totalDelSharesAfter, totalRewards.TruncateDec().Add(totalDelShares), totalLiquidTokensAfter)
+	s.EqualValues(totalDelSharesAfter.Add(sdk.NewDec(1)), totalRewards.TruncateDec().Add(totalDelShares), totalLiquidTokensAfter)
 }
 
 func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
