@@ -189,6 +189,7 @@ var (
 
 	receiveAllowedMAcc = map[string]bool{
 		lscosmostypes.UndelegateModuleAccount: true,
+		lscosmostypes.DelegationModuleAccount: true,
 	}
 )
 
