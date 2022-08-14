@@ -27,6 +27,16 @@ const (
 
 	// DepositModuleAccount DepositModuleAccountName
 	DepositModuleAccount = "deposit_account"
+
+	// DelegationModuleAccount DelegationModuleAccountName
+	DelegationModuleAccount = "delegation_account"
+
+	// RewardModuleAccount RewardModuleAccountName
+	RewardModuleAccount = "reward_account"
+
+	// UndelegateModuleAccount UndelegateModuleAccountName,
+	// This account will not be a part of maccPerms - Deny list, since it receives undelegated tokens.
+	UndelegateModuleAccount = "undelegation_account"
 )
 
 var (
