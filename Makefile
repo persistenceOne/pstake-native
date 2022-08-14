@@ -182,6 +182,8 @@ include docker/Makefile
 ###############################################################################
 ###                           Tests & Simulation                            ###
 ###############################################################################
+TEST_TARGET ?= ./...
+TEST_ARGS ?= -timeout 12m -race -coverprofile=./coverage.out -covermode=atomic -v
 
 include sims.mk
 
@@ -190,6 +192,7 @@ test: test-unit
 test-all: check test-race test-cover test-e2e
 
 test-unit:
+
 	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' $(TEST_TARGET) $(TEST_ARGS)
 
 test-race:
