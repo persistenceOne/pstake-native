@@ -11,6 +11,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -111,8 +112,8 @@ import (
 	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
 	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
 	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
-	lspersistencetypes "github.com/persistenceOne/pstake-native/x/lspersistence/types"
 	lspersistencekeeper "github.com/persistenceOne/pstake-native/x/lspersistence/keeper"
+	lspersistencetypes "github.com/persistenceOne/pstake-native/x/lspersistence/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
@@ -123,8 +124,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
-	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
-
 )
 
 var (
@@ -185,7 +184,7 @@ var (
 		liquiditytypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
 		cosmos.ModuleName:                     {authtypes.Minter, authtypes.Burner},
-		lspersistencetypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
+		lspersistencetypes.ModuleName:         {authtypes.Minter, authtypes.Burner},
 		lscosmostypes.ModuleName:              {authtypes.Minter, authtypes.Burner},
 		lscosmostypes.DepositModuleAccount:    nil,
 		lscosmostypes.DelegationModuleAccount: nil,

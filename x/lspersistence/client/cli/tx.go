@@ -18,7 +18,7 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lspersistence/types"
 )
 
-// GetTxCmd returns a root CLI command handler for all x/liquidstaking transaction commands.
+// GetTxCmd returns a root CLI command handler for all x/lspersistence transaction commands.
 func GetTxCmd() *cobra.Command {
 	liquidstakingTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
