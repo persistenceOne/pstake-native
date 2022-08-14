@@ -350,13 +350,13 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"lspersistence", "v1beta1", "params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"pstake", "lspersistence", "v1beta1", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_LiquidValidators_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"lspersistence", "v1beta1", "validators"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_LiquidValidators_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"pstake","lspersistence", "v1beta1", "validators"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_VotingPower_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"lspersistence", "v1beta1", "voting_power", "voter"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_VotingPower_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"pstake","lspersistence", "v1beta1", "voting_power", "voter"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_States_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"lspersistence", "v1beta1", "states"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_States_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"pstake","lspersistence", "v1beta1", "states"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
