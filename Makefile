@@ -192,7 +192,6 @@ test: test-unit
 test-all: check test-race test-cover test-e2e
 
 test-unit:
-
 	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' $(TEST_TARGET) $(TEST_ARGS)
 
 test-race:
