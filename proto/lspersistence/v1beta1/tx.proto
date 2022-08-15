@@ -6,7 +6,7 @@ import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/persistenceOne/pstake-native/x/lspersistence/types";
+option go_package = "github.com/persistenceOne/pStake-native/x/lspersistence/types";
 
 // Msg defines the liquid staking Msg service.
 service Msg {

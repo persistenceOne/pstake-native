@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "lscosmos/v1beta1/params.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
-option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
+option go_package = "github.com/persistenceOne/pStake-native/x/lscosmos/types";
 
 // GenesisState defines the lscosmos module's genesis state.
 message GenesisState {

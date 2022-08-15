@@ -206,9 +206,9 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"persistenceOne", "pstake-native", "lscosmos", "params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"persistenceOne", "pStake-native", "lscosmos", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_CosmosIBCParams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"persistenceOne", "pstake-native", "lscosmos", "cosmos_ibc_params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_CosmosIBCParams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"persistenceOne", "pStake-native", "lscosmos", "cosmos_ibc_params"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
