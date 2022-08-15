@@ -223,14 +223,15 @@ type PstakeApp struct {
 	// IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	IBCKeeper           *ibckeeper.Keeper
 	ICAHostKeeper       icahostkeeper.Keeper
-	ICAControllerKeeper icacontrollerkeeper.KeeperEvidenceKeeper evidencekeeper.Keeper
-	TransferKeeper ibctransferkeeper.Keeper
-	FeeGrantKeeper feegrantkeeper.Keeper
-	AuthzKeeper    authzkeeper.Keeper
-	RouterKeeper   routerkeeper.Keeper
-	CosmosKeeper   cosmos.Keeper
-	EpochsKeeper   epochskeeper.Keeper
-	LSCosmosKeeper lscosmoskeeper.Keeper
+	ICAControllerKeeper icacontrollerkeeper.Keeper
+	EvidenceKeeper      evidencekeeper.Keeper
+	TransferKeeper      ibctransferkeeper.Keeper
+	FeeGrantKeeper      feegrantkeeper.Keeper
+	AuthzKeeper         authzkeeper.Keeper
+	RouterKeeper        routerkeeper.Keeper
+	CosmosKeeper        cosmos.Keeper
+	EpochsKeeper        epochskeeper.Keeper
+	LSCosmosKeeper      lscosmoskeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
