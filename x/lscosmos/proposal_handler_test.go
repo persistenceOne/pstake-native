@@ -1,15 +1,14 @@
 package lscosmos_test
 
 import (
-	"testing"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/persistenceOne/pstake-native/app"
 	"github.com/persistenceOne/pstake-native/app/helpers"
-	ls_cosmos "github.com/persistenceOne/pstake-native/x/lscosmos"
+	"github.com/persistenceOne/pstake-native/x/lscosmos"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 	"github.com/stretchr/testify/suite"
+	"testing"
 )
 
 type HandlerTestSuite struct {
@@ -21,10 +20,10 @@ type HandlerTestSuite struct {
 }
 
 func (suite *HandlerTestSuite) SetupTest() {
-	_, app, ctx := helpers.CreateTestApp()
-	suite.app = &app
+	_, pstakeApp, ctx := helpers.CreateTestApp()
+	suite.app = &pstakeApp
 	suite.ctx = ctx
-	suite.govHandler = ls_cosmos.NewLSCosmosProposalHandler(suite.app.LSCosmosKeeper)
+	suite.govHandler = lscosmos.NewLSCosmosProposalHandler(suite.app.LSCosmosKeeper)
 }
 
 func TestHandlerTestSuite(t *testing.T) {

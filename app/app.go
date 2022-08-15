@@ -166,24 +166,25 @@ var (
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		authtypes.FeeCollectorName:         nil,
-		distrtypes.ModuleName:              nil,
-		icatypes.ModuleName:                nil,
-		minttypes.ModuleName:               {authtypes.Minter},
-		stakingtypes.BondedPoolName:        {authtypes.Burner, authtypes.Staking},
-		stakingtypes.NotBondedPoolName:     {authtypes.Burner, authtypes.Staking},
-		govtypes.ModuleName:                {authtypes.Burner},
-		ibctransfertypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
-		cosmos.ModuleName:                  {authtypes.Minter, authtypes.Burner},
-		lscosmostypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
-		lscosmostypes.DepositModuleAccount: nil, lscosmostypes.DelegationModuleAccount: nil,
-		lscosmostypes.RewardModuleAccount:     nil,
-		lscosmostypes.UndelegateModuleAccount: nil,
+		authtypes.FeeCollectorName:              nil,
+		distrtypes.ModuleName:                   nil,
+		icatypes.ModuleName:                     nil,
+		minttypes.ModuleName:                    {authtypes.Minter},
+		stakingtypes.BondedPoolName:             {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName:          {authtypes.Burner, authtypes.Staking},
+		govtypes.ModuleName:                     {authtypes.Burner},
+		ibctransfertypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
+		cosmos.ModuleName:                       {authtypes.Minter, authtypes.Burner},
+		lscosmostypes.ModuleName:                {authtypes.Minter, authtypes.Burner},
+		lscosmostypes.DepositModuleAccount:      nil,
+		lscosmostypes.DelegationModuleAccount:   nil,
+		lscosmostypes.RewardModuleAccount:       nil,
+		lscosmostypes.UndelegationModuleAccount: nil,
 	}
 
 	receiveAllowedMAcc = map[string]bool{
-		lscosmostypes.UndelegateModuleAccount: true,
-		lscosmostypes.DelegationModuleAccount: true,
+		lscosmostypes.UndelegationModuleAccount: true,
+		lscosmostypes.DelegationModuleAccount:   true,
 	}
 )
 
@@ -437,28 +438,9 @@ func NewpStakeApp(
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
 	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
-	// register the proposal types
-	govRouter := govtypes.NewRouter()
-	govRouter.
-		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
-		AddRoute(cosmostypes.RouterKey, cosmos.NewCosmosLiquidStakingProposalHandler(app.CosmosKeeper)).
-		AddRoute(lscosmostypes.RouterKey, lscosmos.NewLSCosmosProposalHandler(app.LSCosmosKeeper))
-
-	app.GovKeeper = govkeeper.NewKeeper(
-		appCodec,
-		keys[govtypes.StoreKey],
-		app.GetSubspace(govtypes.ModuleName),
-		app.AccountKeeper,
-		app.BankKeeper,
-		&stakingKeeper,
-		govRouter,
-	)
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
-		appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
+		appCodec, keys[icacontrollertypes.StoreKey],
+		app.GetSubspace(icacontrollertypes.SubModuleName),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		scopedICAControllerKeeper, app.MsgServiceRouter(),
@@ -484,6 +466,7 @@ func NewpStakeApp(
 		app.DistrKeeper,
 		app.AccountKeeper,
 		*app.IBCKeeper,
+		app.ICAControllerKeeper,
 		app.TransferKeeper,
 		scopedLSCosmosKeeper,
 	)
@@ -501,6 +484,27 @@ func NewpStakeApp(
 		AddRoute(lscosmostypes.ModuleName, icaControllerIBCModule)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
+
+	// register the proposal types
+	govRouter := govtypes.NewRouter()
+	govRouter.
+		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
+		AddRoute(cosmostypes.RouterKey, cosmos.NewCosmosLiquidStakingProposalHandler(app.CosmosKeeper)).
+		AddRoute(lscosmostypes.RouterKey, lscosmos.NewLSCosmosProposalHandler(app.LSCosmosKeeper))
+
+	app.GovKeeper = govkeeper.NewKeeper(
+		appCodec,
+		keys[govtypes.StoreKey],
+		app.GetSubspace(govtypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		&stakingKeeper,
+		govRouter,
+	)
 
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(

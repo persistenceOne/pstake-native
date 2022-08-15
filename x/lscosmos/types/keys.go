@@ -1,5 +1,7 @@
 package types
 
+import icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+
 const (
 	// ModuleName defines the module name
 	ModuleName = "lscosmos"
@@ -26,19 +28,24 @@ const (
 	MsgTypeLiquidStake = "msg_liquid_stake"
 
 	// DepositModuleAccount DepositModuleAccountName
-	DepositModuleAccount = "deposit_account"
+	DepositModuleAccount = ModuleName + "_pstake_deposit_account"
 
 	// DelegationModuleAccount DelegationModuleAccountName
-	DelegationModuleAccount = "delegation_account"
+	DelegationModuleAccount = ModuleName + "_pstake_delegation_account"
 
 	// RewardModuleAccount RewardModuleAccountName
-	RewardModuleAccount = "reward_account"
+	RewardModuleAccount = ModuleName + "_pstake_reward_account"
 
-	// UndelegateModuleAccount UndelegateModuleAccountName,
+	// UndelegationModuleAccount UndelegationModuleAccountName,
 	// This account will not be a part of maccPerms - Deny list, since it receives undelegated tokens.
-	UndelegateModuleAccount = "undelegation_account"
+	UndelegationModuleAccount = ModuleName + "_pstake_undelegation_account"
 )
 
+var (
+	DelegationAccountPortID, _   = icatypes.NewControllerPortID(DelegationModuleAccount)
+	RewardAccountPortID, _       = icatypes.NewControllerPortID(RewardModuleAccount)
+	UndelegationAccountPortID, _ = icatypes.NewControllerPortID(UndelegationModuleAccount)
+)
 var (
 	// PortKey defines the key to store the port ID in store
 	PortKey = KeyPrefix("lscosmos-port")
