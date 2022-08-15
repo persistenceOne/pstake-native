@@ -182,6 +182,8 @@ include docker/Makefile
 ###############################################################################
 ###                           Tests & Simulation                            ###
 ###############################################################################
+TEST_TARGET ?= ./...
+TEST_ARGS ?= -timeout 12m -race -coverprofile=./coverage.out -covermode=atomic -v
 
 include sims.mk
 
