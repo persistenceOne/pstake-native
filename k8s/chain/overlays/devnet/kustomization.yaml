@@ -1,0 +1,7 @@
+namespace: dev-native
+commonLabels:
+  variant: local
+commonAnnotations:
+  note: "dev net"
+resources:
+  - ../../base

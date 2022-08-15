@@ -6,6 +6,10 @@ apply:
 delete:
 	kubectl delete -k $(PROCESS)
 
+local-cluster:
+	kind create cluster --name "localnet"
+	kubectl config use-context kind-localnet
+
 # debug:
     # port-forward
     # init -genesis

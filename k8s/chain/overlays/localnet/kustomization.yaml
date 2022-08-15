@@ -1,0 +1,7 @@
+namespace: default
+commonLabels:
+  variant: local
+commonAnnotations:
+  note: "local net"
+resources:
+  - ../../base
