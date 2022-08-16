@@ -6,18 +6,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	accountKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	icacontrollerkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
@@ -28,13 +21,15 @@ type Keeper struct {
 	storeKey             sdk.StoreKey
 	memKey               sdk.StoreKey
 	paramstore           paramtypes.Subspace
-	bankKeeper           bankKeeper.BaseKeeper
-	distributionKeeper   distrkeeper.Keeper
-	accountKeeper        accountKeeper.AccountKeeper
-	ibcTransferKeeper    ibctransferkeeper.Keeper
-	ibcKeeper            ibckeeper.Keeper
-	icaControllerKeeper  icacontrollerkeeper.Keeper
-	lscosmosScopedKeeper capabilitykeeper.ScopedKeeper
+	bankKeeper           types.BankKeeper
+	distributionKeeper   types.DistributionKeeper
+	accountKeeper        types.AccountKeeper
+	ics4WrapperKeeper    types.ICS4WrapperKeeper
+	channelKeeper        types.ChannelKeeper
+	portKeeper           types.PortKeeper
+	ibcTransferKeeper    types.IBCTransferKeeper
+	icaControllerKeeper  types.ICAControllerKeeper
+	lscosmosScopedKeeper types.ScopedKeeper
 }
 
 func NewKeeper(
@@ -42,13 +37,15 @@ func NewKeeper(
 	storeKey,
 	memKey sdk.StoreKey,
 	ps paramtypes.Subspace,
-	bankKeeper bankKeeper.BaseKeeper,
-	disributionKeeper distrkeeper.Keeper,
-	accKeeper accountKeeper.AccountKeeper,
-	ibcKeeper ibckeeper.Keeper,
-	icaControllerKeeper icacontrollerkeeper.Keeper,
-	ibcTransferKeeper ibctransferkeeper.Keeper,
-	lscosmosScopedKeeper capabilitykeeper.ScopedKeeper,
+	bankKeeper types.BankKeeper,
+	disributionKeeper types.DistributionKeeper,
+	accKeeper types.AccountKeeper,
+	ics4WrapperKeeper types.ICS4WrapperKeeper,
+	channelKeeper types.ChannelKeeper,
+	portKeeper types.PortKeeper,
+	ibcTransferKeeper types.IBCTransferKeeper,
+	icaControllerKeeper types.ICAControllerKeeper,
+	lscosmosScopedKeeper types.ScopedKeeper,
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -59,7 +56,9 @@ func NewKeeper(
 		bankKeeper:           bankKeeper,
 		distributionKeeper:   disributionKeeper,
 		accountKeeper:        accKeeper,
-		ibcKeeper:            ibcKeeper,
+		ics4WrapperKeeper:    ics4WrapperKeeper,
+		channelKeeper:        channelKeeper,
+		portKeeper:           portKeeper,
 		ibcTransferKeeper:    ibcTransferKeeper,
 		icaControllerKeeper:  icaControllerKeeper,
 		lscosmosScopedKeeper: lscosmosScopedKeeper,
@@ -81,7 +80,7 @@ func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 	if !ok {
 		return sdkerrors.Wrapf(channeltypes.ErrChannelCapabilityNotFound, "could not retrieve channel capability at: %s", capName)
 	}
-	return k.ibcKeeper.ChannelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
+	return k.channelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
 }
 
 // IsBound checks if the module is already bound to the desired port
@@ -93,7 +92,7 @@ func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
 // BindPort defines a wrapper function for the ort Keeper's function in
 // order to expose it to module's InitGenesis function
 func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
-	capability := k.ibcKeeper.PortKeeper.BindPort(ctx, portID)
+	capability := k.portKeeper.BindPort(ctx, portID)
 	return k.ClaimCapability(ctx, capability, host.PortPath(portID))
 }
 

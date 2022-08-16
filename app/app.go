@@ -465,9 +465,11 @@ func NewpStakeApp(
 		app.BankKeeper,
 		app.DistrKeeper,
 		app.AccountKeeper,
-		*app.IBCKeeper,
-		app.ICAControllerKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
 		app.TransferKeeper,
+		app.ICAControllerKeeper,
 		scopedLSCosmosKeeper,
 	)
 	lscosmosModule := lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)

@@ -1,8 +1,8 @@
 {
   "title": "register cosmos chain proposal",
   "description": "this proposal register cosmos chain params in the chain",
-  "ibc_connection": "connection-1",
-  "token_transfer_channel": "channel-1",
+  "ibc_connection": "connection-0",
+  "token_transfer_channel": "channel-0",
   "token_transfer_port": "transfer",
   "base_denom": "uatom",
   "mint_denom": "ustkatom",
