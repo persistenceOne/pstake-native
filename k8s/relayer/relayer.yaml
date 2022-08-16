@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: relayer
-  namespace: dev-native
 spec:
   replicas: 1
   revisionHistoryLimit: 3
