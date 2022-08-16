@@ -39,7 +39,7 @@ func (suite *HandlerTestSuite) TestProposalHandler() {
 		{
 			"all fields",
 			types.NewRegisterCosmosChainProposal("title", "description", "connection", "channel-1", "transfer", "uatom", "ustkatom", "5", "0"),
-			false,
+			true,
 		},
 	}
 
