@@ -31,7 +31,7 @@ func HandleRegisterCosmosChainProposal(ctx sdk.Context, k Keeper, content types.
 	}
 	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, content.IBCConnection, types.RewardModuleAccount)
 	if err != nil {
-		return sdkerrors.Wrap(err, "Could not register ica delegation Address")
+		return sdkerrors.Wrap(err, "Could not register ica reward Address")
 	}
 
 	paramsProposal := types.NewCosmosIBCParams(content.IBCConnection, content.TokenTransferChannel,
