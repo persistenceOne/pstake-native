@@ -132,7 +132,9 @@ func RandomDec(r *rand.Rand, min, max sdk.Dec) sdk.Dec {
 // GenAndDeliverTx generates a transactions and delivers it.
 func GenAndDeliverTx(txCtx simulation.OperationInput, fees sdk.Coins, gas uint64) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 	account := txCtx.AccountKeeper.GetAccount(txCtx.Context, txCtx.SimAccount.Address)
+	r := rand.New(rand.NewSource(2))
 	tx, err := helpers.GenTx(
+		r,
 		txCtx.TxGen,
 		[]sdk.Msg{txCtx.Msg},
 		fees,

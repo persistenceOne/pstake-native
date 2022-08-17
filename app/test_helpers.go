@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/tendermint/tendermint/libs/log"
+	"math/rand"
 	"strconv"
 	"testing"
 	"time"
@@ -67,7 +68,7 @@ func MakeTestEncodingConfig() simappparams.EncodingConfig {
 func setup(withGenesis bool, invCheckPeriod uint) (*PstakeApp, GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := MakeTestEncodingConfig()
-	app := NewpStakeApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome,invCheckPeriod, encCdc, EmptyAppOptions{})
+	app := NewpStakeApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, encCdc, EmptyAppOptions{})
 	if withGenesis {
 		return app, NewDefaultGenesisState()
 	}
@@ -96,8 +97,6 @@ func Setup(isCheckTx bool) *PstakeApp {
 
 	return app
 }
-
-
 
 type GenerateAccountStrategy func(int) []sdk.AccAddress
 
@@ -225,8 +224,10 @@ func SignCheckDeliver(
 	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header, msgs []sdk.Msg,
 	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
+	r := rand.New(rand.NewSource(2))
 
 	tx, err := helpers.GenTx(
+		r,
 		txCfg,
 		msgs,
 		sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 0)},
@@ -275,8 +276,10 @@ func SignCheckDeliver(
 func GenSequenceOfTxs(txGen client.TxConfig, msgs []sdk.Msg, accNums []uint64, initSeqNums []uint64, numToGenerate int, priv ...cryptotypes.PrivKey) ([]sdk.Tx, error) {
 	txs := make([]sdk.Tx, numToGenerate)
 	var err error
+	r := rand.New(rand.NewSource(2))
 	for i := 0; i < numToGenerate; i++ {
 		txs[i], err = helpers.GenTx(
+			r,
 			txGen,
 			msgs,
 			sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 0)},
@@ -386,6 +389,6 @@ func NewAppConstructor(encodingCfg params.EncodingConfig, db *dbm.MemDB) network
 			MakeEncodingConfig(),
 			simapp.EmptyAppOptions{},
 			bam.SetPruning(store.NewPruningOptionsFromString(val.AppConfig.Pruning)),
-			bam.SetMinGasPrices(val.AppConfig.MinGasPrices),)
+			bam.SetMinGasPrices(val.AppConfig.MinGasPrices))
 	}
 }
