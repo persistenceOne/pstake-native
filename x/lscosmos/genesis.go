@@ -14,7 +14,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 
 	k.SetParams(ctx, genState.Params)
 	k.SetModuleState(ctx, genState.ModuleEnabled)
-	k.SetDepositAmount(ctx, genState.DepositAmount)
 	k.SetCosmosIBCParams(ctx, genState.CosmosIBCParams)
 	if !genState.CosmosIBCParams.IsEmpty() {
 		err := k.NewCapability(ctx, host.ChannelCapabilityPath(genState.CosmosIBCParams.TokenTransferPort, genState.CosmosIBCParams.TokenTransferChannel))
@@ -37,7 +36,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 
 	genesis.ModuleEnabled = k.GetModuleState(ctx)
 	genesis.CosmosIBCParams = k.GetCosmosIBCParams(ctx)
-	genesis.DepositAmount = k.GetDepositAmount(ctx)
 	genesis.AllowListedValidators = k.GetAllowListedValidators(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
 

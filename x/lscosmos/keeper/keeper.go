@@ -156,16 +156,9 @@ func (k Keeper) MintTokens(ctx sdk.Context, mintCoin sdk.Coin, delegatorAddress 
 	return nil
 }
 
-// SendTokensToDepositModuleAndStore sends the tokens to DepositModuleAccount
-func (k Keeper) SendTokensToDepositModuleAndStore(ctx sdk.Context, depositCoin sdk.Coins, senderAddress sdk.AccAddress) error {
-	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddress, types.DepositModuleAccount, depositCoin)
-	if err != nil {
-		return err
-	}
-	depositAmount := k.GetDepositAmount(ctx)
-	depositAmount.Amount = depositAmount.Amount.Add(depositCoin...)
-	k.SetDepositAmount(ctx, depositAmount)
-	return nil
+// SendTokensToDepositModule sends the tokens to DepositModuleAccount
+func (k Keeper) SendTokensToDepositModule(ctx sdk.Context, depositCoin sdk.Coins, senderAddress sdk.AccAddress) error {
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddress, types.DepositModuleAccount, depositCoin)
 }
 
 // SendResidueToCommunityPool sends the residue stk token to community pool

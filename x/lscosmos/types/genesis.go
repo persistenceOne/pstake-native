@@ -9,8 +9,6 @@ func DefaultGenesis() *GenesisState {
 		ModuleEnabled:         false,
 		CosmosIBCParams:       CosmosIBCParams{},
 		AllowListedValidators: AllowListedValidators{},
-
-		DepositAmount: DepositAmount{},
 	}
 }
 

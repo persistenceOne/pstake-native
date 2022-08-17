@@ -16,6 +16,5 @@ message GenesisState {
   // this line is used by starport scaffolding # genesis/proto/state
   bool module_enabled = 2;
   CosmosIBCParams cosmos_i_b_c_params = 3 [(gogoproto.nullable) = false];
-  DepositAmount deposit_amount = 4 [(gogoproto.nullable) = false];
-  AllowListedValidators allow_listed_validators = 5 [(gogoproto.nullable) = false];
+  AllowListedValidators allow_listed_validators = 4 [(gogoproto.nullable) = false];
 }

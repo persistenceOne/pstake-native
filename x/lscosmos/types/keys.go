@@ -56,8 +56,8 @@ var (
 
 	ModuleEnableKey          = []byte{0x01}
 	CosmosIBCParamsKey       = []byte{0x02}
-	DepositAmountKey         = []byte{0x03}
-	AllowListedValidatorsKey = []byte{0x04}
+	AllowListedValidatorsKey = []byte{0x03}
+	DelegationAccountKey     = []byte{0x04}
 )
 
 func KeyPrefix(p string) []byte {
