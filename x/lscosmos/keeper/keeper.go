@@ -124,19 +124,19 @@ func (k Keeper) NewCapability(ctx sdk.Context, name string) error {
 	return err
 }
 
-func (k Keeper) GetDepositAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+func (k Keeper) GetDepositModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.DepositModuleAccount)
 }
 
-func (k Keeper) GetDelegationAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+func (k Keeper) GetDelegationModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.DelegationModuleAccount)
 }
 
-func (k Keeper) GetRewardAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+func (k Keeper) GetRewardModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.RewardModuleAccount)
 }
 
-func (k Keeper) GetUndelegationAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+func (k Keeper) GetUndelegationModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.UndelegationModuleAccount)
 }
 

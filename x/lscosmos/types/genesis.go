@@ -9,6 +9,7 @@ func DefaultGenesis() *GenesisState {
 		ModuleEnabled:         false,
 		CosmosIBCParams:       CosmosIBCParams{},
 		AllowListedValidators: AllowListedValidators{},
+		DelegationState:       DelegationState{},
 	}
 }
 

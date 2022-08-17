@@ -22,10 +22,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		}
 	}
 	k.SetAllowListedValidators(ctx, genState.AllowListedValidators)
-	k.GetDepositAccount(ctx)
-	k.GetDelegationAccount(ctx)
-	k.GetRewardAccount(ctx)
-	k.GetUndelegationAccount(ctx)
+	k.SetDelegationState(ctx, genState.DelegationState)
+
+	k.GetDepositModuleAccount(ctx)
+	k.GetDelegationModuleAccount(ctx)
+	k.GetRewardModuleAccount(ctx)
+	k.GetUndelegationModuleAccount(ctx)
 
 }
 
@@ -37,6 +39,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.ModuleEnabled = k.GetModuleState(ctx)
 	genesis.CosmosIBCParams = k.GetCosmosIBCParams(ctx)
 	genesis.AllowListedValidators = k.GetAllowListedValidators(ctx)
+	genesis.DelegationState = k.GetDelegationState(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis
