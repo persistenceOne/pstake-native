@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"fmt"
-	liquiditytypes "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"testing"
 	"time"
 
@@ -335,9 +334,9 @@ func (s *KeeperTestSuite) createContinuousVestingAccount(from sdk.AccAddress, to
 }
 
 func (s *KeeperTestSuite) fundAddr(addr sdk.AccAddress, amt sdk.Coins) {
-	err := s.app.BankKeeper.MintCoins(s.ctx, liquiditytypes.ModuleName, amt)
+	err := s.app.BankKeeper.MintCoins(s.ctx, types.ModuleName, amt)
 	s.Require().NoError(err)
-	err = s.app.BankKeeper.SendCoinsFromModuleToAccount(s.ctx, liquiditytypes.ModuleName, addr, amt)
+	err = s.app.BankKeeper.SendCoinsFromModuleToAccount(s.ctx, types.ModuleName, addr, amt)
 	s.Require().NoError(err)
 }
 
