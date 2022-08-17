@@ -23,21 +23,19 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-type (
-	Keeper struct {
-		cdc                  codec.BinaryCodec
-		storeKey             sdk.StoreKey
-		memKey               sdk.StoreKey
-		paramstore           paramtypes.Subspace
-		bankKeeper           bankKeeper.BaseKeeper
-		distributionKeeper   distrkeeper.Keeper
-		accountKeeper        accountKeeper.AccountKeeper
-		ibcTransferKeeper    ibctransferkeeper.Keeper
-		ibcKeeper            ibckeeper.Keeper
-		icaControllerKeeper  icacontrollerkeeper.Keeper
-		lscosmosScopedKeeper capabilitykeeper.ScopedKeeper
-	}
-)
+type Keeper struct {
+	cdc                  codec.BinaryCodec
+	storeKey             sdk.StoreKey
+	memKey               sdk.StoreKey
+	paramstore           paramtypes.Subspace
+	bankKeeper           bankKeeper.BaseKeeper
+	distributionKeeper   distrkeeper.Keeper
+	accountKeeper        accountKeeper.AccountKeeper
+	ibcTransferKeeper    ibctransferkeeper.Keeper
+	ibcKeeper            ibckeeper.Keeper
+	icaControllerKeeper  icacontrollerkeeper.Keeper
+	lscosmosScopedKeeper capabilitykeeper.ScopedKeeper
+}
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
