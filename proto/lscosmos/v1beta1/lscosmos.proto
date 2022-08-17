@@ -10,18 +10,6 @@ option (gogoproto.equal_all) = true;
 option (gogoproto.stringer_all) = false;
 option (gogoproto.goproto_getters_all) = false;
 
-//message InterchainModuleAccount {
-//
-//}
-
-message DepositAmount {
-  repeated cosmos.base.v1beta1.Coin amount = 1 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
-    (gogoproto.moretags) = "yaml:\"amount\""
-  ];
-}
-
 message AllowListedValidators {
   repeated AllowListedValidator allow_listed_validators = 1 [
     (gogoproto.nullable) = false,
