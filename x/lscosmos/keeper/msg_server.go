@@ -43,7 +43,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 
 	expectedIBCPrefix := ibcTransferTypes.GetDenomPrefix(ibcParams.TokenTransferPort, ibcParams.TokenTransferChannel)
 
-	denomTraceStr, err := m.ibctransferKeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
+	denomTraceStr, err := m.ibcTransferKeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
 	denomTrace := ibcTransferTypes.ParseDenomTrace(denomTraceStr)
 
 	// Check if ibc path matches allowlisted path.

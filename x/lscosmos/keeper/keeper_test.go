@@ -6,7 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	ibcTransferTypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/persistenceOne/pstake-native/app"
@@ -23,38 +23,15 @@ type IntegrationTestSuite struct {
 }
 
 func (suite *IntegrationTestSuite) SetupTest() {
-	_, app, ctx := helpers.CreateTestApp()
+	_, pstakeApp, ctx := helpers.CreateTestApp()
 
-	keeper := app.LSCosmosKeeper
+	keeper := pstakeApp.LSCosmosKeeper
 
 	params := types.DefaultParams()
 	keeper.SetParams(ctx, params)
 
-	suite.app = &app
+	suite.app = &pstakeApp
 	suite.ctx = ctx
-}
-
-func testProposal(
-	title,
-	description,
-	connection,
-	channel,
-	transfer,
-	uatom,
-	ustkatom,
-	minDeposit,
-	pStakeDepositFee string) *types.RegisterCosmosChainProposal {
-	return types.NewRegisterCosmosChainProposal(
-		title,
-		description,
-		connection,
-		channel,
-		transfer,
-		uatom,
-		ustkatom,
-		minDeposit,
-		pStakeDepositFee,
-	)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -69,14 +46,14 @@ func (suite *IntegrationTestSuite) TestMintToken() {
 		Description:          "this proposal register cosmos chain params in the chain",
 		IBCConnection:        "test connection",
 		TokenTransferChannel: "test-channel-1",
-		TokenTransferPort:    "test-transfer",
+		TokenTransferPort:    "transfer",
 		BaseDenom:            "uatom",
 		MintDenom:            "ustkatom",
 		MinDeposit:           "5",
 		PStakeDepositFee:     "0.1",
 	}
 
-	ibcDenom := ibcTransferTypes.GetPrefixedDenom(testParams.TokenTransferPort, testParams.TokenTransferChannel, testParams.BaseDenom)
+	ibcDenom := ibctransfertypes.GetPrefixedDenom(testParams.TokenTransferPort, testParams.TokenTransferChannel, testParams.BaseDenom)
 	balanceOfIbcToken := sdk.NewInt64Coin(ibcDenom, 100)
 	mintAmountDec := balanceOfIbcToken.Amount.ToDec().Mul(pstakeApp.LSCosmosKeeper.GetCValue(ctx))
 	toBeMintedTokens, _ := sdk.NewDecCoinFromDec(testParams.MintDenom, mintAmountDec).TruncateDecimal()

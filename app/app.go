@@ -97,18 +97,15 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	"github.com/gorilla/mux"
-	"github.com/gravity-devs/liquidity/x/liquidity"
-	liquiditykeeper "github.com/gravity-devs/liquidity/x/liquidity/keeper"
-	liquiditytypes "github.com/gravity-devs/liquidity/x/liquidity/types"
 	pstakeante "github.com/persistenceOne/pstake-native/ante"
 	pstakeappparams "github.com/persistenceOne/pstake-native/app/params"
 	"github.com/persistenceOne/pstake-native/x/cosmos"
 	cosmosclient "github.com/persistenceOne/pstake-native/x/cosmos/client"
 	cosmostypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
-	epochs "github.com/persistenceOne/pstake-native/x/epochs"
+	"github.com/persistenceOne/pstake-native/x/epochs"
 	epochskeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
 	epochstypes "github.com/persistenceOne/pstake-native/x/epochs/types"
-	lscosmos "github.com/persistenceOne/pstake-native/x/lscosmos"
+	"github.com/persistenceOne/pstake-native/x/lscosmos"
 	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
 	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
 	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
@@ -163,7 +160,6 @@ var (
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
-		liquidity.AppModuleBasic{},
 		router.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		cosmos.AppModuleBasic{},
@@ -181,7 +177,6 @@ var (
 		stakingtypes.BondedPoolName:           {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName:        {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:                   {authtypes.Burner},
-		liquiditytypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
 		cosmos.ModuleName:                     {authtypes.Minter, authtypes.Burner},
 		lspersistencetypes.ModuleName:         {authtypes.Minter, authtypes.Burner},
@@ -193,8 +188,8 @@ var (
 	}
 
 	receiveAllowedMAcc = map[string]bool{
-		lscosmostypes.UndelegateModuleAccount: true,
-		lscosmostypes.DelegationModuleAccount: true,
+		lscosmostypes.UndelegationModuleAccount: true,
+		lscosmostypes.DelegationModuleAccount:   true,
 	}
 )
 
@@ -240,7 +235,6 @@ type PstakeApp struct {
 	TransferKeeper      ibctransferkeeper.Keeper
 	FeeGrantKeeper      feegrantkeeper.Keeper
 	AuthzKeeper         authzkeeper.Keeper
-	LiquidityKeeper     liquiditykeeper.Keeper
 	RouterKeeper        routerkeeper.Keeper
 	CosmosKeeper        cosmos.Keeper
 	EpochsKeeper        epochskeeper.Keeper
@@ -296,7 +290,7 @@ func NewpStakeApp(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
-		evidencetypes.StoreKey, liquiditytypes.StoreKey, ibctransfertypes.StoreKey,
+		evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, icahosttypes.StoreKey,
 		icacontrollertypes.StoreKey, cosmos.StoreKey, epochstypes.StoreKey, lscosmostypes.StoreKey, lspersistencetypes.StoreKey,
 	)
@@ -420,14 +414,6 @@ func NewpStakeApp(
 		homePath,
 		app.BaseApp,
 	)
-	app.LiquidityKeeper = liquiditykeeper.NewKeeper(
-		appCodec,
-		keys[liquiditytypes.StoreKey],
-		app.GetSubspace(liquiditytypes.ModuleName),
-		app.BankKeeper,
-		app.AccountKeeper,
-		app.DistrKeeper,
-	)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -458,27 +444,6 @@ func NewpStakeApp(
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
 	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
-	// register the proposal types
-	govRouter := govtypes.NewRouter()
-	govRouter.
-		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
-		AddRoute(cosmostypes.RouterKey, cosmos.NewCosmosLiquidStakingProposalHandler(app.CosmosKeeper)).
-		AddRoute(lscosmostypes.RouterKey, lscosmos.NewLSCosmosProposalHandler(app.LSCosmosKeeper))
-
-	app.GovKeeper = govkeeper.NewKeeper(
-		appCodec,
-		keys[govtypes.StoreKey],
-		app.GetSubspace(govtypes.ModuleName),
-		app.AccountKeeper,
-		app.BankKeeper,
-		&stakingKeeper,
-		govRouter,
-	)
-
 	app.LSPersistenceKeeper = lspersistencekeeper.NewKeeper(
 		appCodec,
 		keys[lspersistencetypes.StoreKey],
@@ -491,7 +456,8 @@ func NewpStakeApp(
 	)
 
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
-		appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
+		appCodec, keys[icacontrollertypes.StoreKey],
+		app.GetSubspace(icacontrollertypes.SubModuleName),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		scopedICAControllerKeeper, app.MsgServiceRouter(),
@@ -516,8 +482,11 @@ func NewpStakeApp(
 		app.BankKeeper,
 		app.DistrKeeper,
 		app.AccountKeeper,
-		*app.IBCKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
 		app.TransferKeeper,
+		app.ICAControllerKeeper,
 		scopedLSCosmosKeeper,
 	)
 	lscosmosModule := lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
@@ -534,6 +503,27 @@ func NewpStakeApp(
 		AddRoute(lscosmostypes.ModuleName, icaControllerIBCModule)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
+
+	// register the proposal types
+	govRouter := govtypes.NewRouter()
+	govRouter.
+		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
+		AddRoute(cosmostypes.RouterKey, cosmos.NewCosmosLiquidStakingProposalHandler(app.CosmosKeeper)).
+		AddRoute(lscosmostypes.RouterKey, lscosmos.NewLSCosmosProposalHandler(app.LSCosmosKeeper))
+
+	app.GovKeeper = govkeeper.NewKeeper(
+		appCodec,
+		keys[govtypes.StoreKey],
+		app.GetSubspace(govtypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		&stakingKeeper,
+		govRouter,
+	)
 
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
@@ -578,7 +568,6 @@ func NewpStakeApp(
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
-		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
 		cosmos.NewAppModule(appCodec, app.CosmosKeeper),
 		epochs.NewAppModule(appCodec, app.EpochsKeeper),
 		lspersistence.NewAppModule(appCodec, app.LSPersistenceKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper),
@@ -601,7 +590,6 @@ func NewpStakeApp(
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		lspersistencetypes.ModuleName,
-		liquiditytypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ibchost.ModuleName,
 		icatypes.ModuleName,
@@ -626,7 +614,6 @@ func NewpStakeApp(
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		lspersistencetypes.ModuleName,
-		liquiditytypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ibchost.ModuleName,
 		icatypes.ModuleName,
@@ -670,7 +657,6 @@ func NewpStakeApp(
 		lspersistencetypes.ModuleName,
 		icatypes.ModuleName,
 		evidencetypes.ModuleName,
-		liquiditytypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
 		authtypes.ModuleName,
@@ -707,7 +693,6 @@ func NewpStakeApp(
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
-		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		cosmos.NewAppModule(appCodec, app.CosmosKeeper),
 		lspersistence.NewAppModule(appCodec, app.LSPersistenceKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper),
@@ -932,7 +917,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)
-	paramsKeeper.Subspace(liquiditytypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)

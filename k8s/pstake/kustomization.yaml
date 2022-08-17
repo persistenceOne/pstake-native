@@ -1,3 +1,5 @@
+namespace: dev-native
+
 resources:
   - service.yaml
   - configmap.yaml

@@ -23,6 +23,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		}
 	}
 	k.SetParams(ctx, genState.Params)
+
+	k.GetDepositAccount(ctx)
+	k.GetDelegationAccount(ctx)
+	k.GetRewardAccount(ctx)
+	k.GetUndelegationAccount(ctx)
+
 }
 
 // ExportGenesis returns the capability module's exported genesis.
