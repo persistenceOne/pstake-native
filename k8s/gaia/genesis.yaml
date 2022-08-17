@@ -35,7 +35,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: gaia-genesis
-  namespace: dev-native
 spec:
   serviceName: gaia-genesis
   replicas: 1

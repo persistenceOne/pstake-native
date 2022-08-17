@@ -27,7 +27,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: pstake-validator
-  namespace: dev-native
 spec:
   serviceName: pstake-validator
   replicas: 3

@@ -19,7 +19,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: explorer
-  namespace: dev-native
 spec:
   serviceName: explorer
   replicas: 1
