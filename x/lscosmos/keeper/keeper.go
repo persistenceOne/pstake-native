@@ -118,6 +118,12 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.lscosmosScopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
+// NewCapability allows the module that can initiate and claim a capability that IBC module passes to it
+func (k Keeper) NewCapability(ctx sdk.Context, name string) error {
+	_, err := k.lscosmosScopedKeeper.NewCapability(ctx, name)
+	return err
+}
+
 func (k Keeper) GetDepositAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.DepositModuleAccount)
 }
@@ -150,12 +156,15 @@ func (k Keeper) MintTokens(ctx sdk.Context, mintCoin sdk.Coin, delegatorAddress 
 	return nil
 }
 
-// SendTokensToDepositModule sends the tokens to DepositModuleAccount
-func (k Keeper) SendTokensToDepositModule(ctx sdk.Context, depositCoin sdk.Coins, senderAddress sdk.AccAddress) error {
+// SendTokensToDepositModuleAndStore sends the tokens to DepositModuleAccount
+func (k Keeper) SendTokensToDepositModuleAndStore(ctx sdk.Context, depositCoin sdk.Coins, senderAddress sdk.AccAddress) error {
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddress, types.DepositModuleAccount, depositCoin)
 	if err != nil {
 		return err
 	}
+	depositAmount := k.GetDepositAmount(ctx)
+	depositAmount.Amount = depositAmount.Amount.Add(depositCoin...)
+	k.SetDepositAmount(ctx, depositAmount)
 	return nil
 }
 

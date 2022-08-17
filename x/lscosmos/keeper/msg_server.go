@@ -34,7 +34,9 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	if ctx.IsZero() || !msg.Amount.IsValid() {
 		return nil, types.ErrInvalidArgs
 	}
-
+	if !m.GetModuleState(ctx) {
+		return nil, types.ErrModuleDisabled
+	}
 	//GetParams
 	ibcParams := m.GetCosmosIBCParams(ctx)
 
@@ -68,7 +70,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 
 	//send the deposit to the deposit-module account
 	depositAmount := sdkTypes.NewCoins(msg.Amount)
-	err = m.SendTokensToDepositModule(ctx, depositAmount, delegatorAddress)
+	err = m.SendTokensToDepositModuleAndStore(ctx, depositAmount, delegatorAddress)
 	if err != nil {
 		return nil, types.ErrFailedDeposit
 	}

@@ -1,12 +1,23 @@
 {
   "title": "register cosmos chain proposal",
   "description": "this proposal register cosmos chain params in the chain",
+  "enable_module": true,
   "ibc_connection": "connection-0",
   "token_transfer_channel": "channel-0",
   "token_transfer_port": "transfer",
   "base_denom": "uatom",
   "mint_denom": "ustkatom",
   "min_deposit": "1",
+  "allow_listed_validators": {
+    "allow_listed_validators": [
+      {
+        "validator_address": "persistencevaloper1hcqg5wj9t42zawqkqucs7la85ffyv08lmnhye9",
+        "target_weight": "1"
+      }
+    ]
+  },
   "p_stake_deposit_fee": "0.00",
+  "p_stake_restake_fee": "0.00",
+  "p_stake_unstake_fee": "0.00",
   "deposit": "1000000uxprt"
 }

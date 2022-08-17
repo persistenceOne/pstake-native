@@ -2,7 +2,7 @@ package lscosmos
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
@@ -11,19 +11,18 @@ import (
 // state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	// this line is used by starport scaffolding # genesis/module/init
-	k.SetPort(ctx, genState.PortId)
-	// Only try to bind to port if it is not already bound, since we may already own
-	// port capability from capability InitGenesis
-	if !k.IsBound(ctx, genState.PortId) {
-		// module binds to the port on InitChain
-		// and claims the returned capability
-		err := k.BindPort(ctx, genState.PortId)
+
+	k.SetParams(ctx, genState.Params)
+	k.SetModuleState(ctx, genState.ModuleEnabled)
+	k.SetDepositAmount(ctx, genState.DepositAmount)
+	k.SetCosmosIBCParams(ctx, genState.CosmosIBCParams)
+	if !genState.CosmosIBCParams.IsEmpty() {
+		err := k.NewCapability(ctx, host.ChannelCapabilityPath(genState.CosmosIBCParams.TokenTransferPort, genState.CosmosIBCParams.TokenTransferChannel))
 		if err != nil {
-			panic("could not claim port capability: " + err.Error())
+			panic(err)
 		}
 	}
-	k.SetParams(ctx, genState.Params)
-
+	k.SetAllowListedValidators(ctx, genState.AllowListedValidators)
 	k.GetDepositAccount(ctx)
 	k.GetDelegationAccount(ctx)
 	k.GetRewardAccount(ctx)
@@ -36,7 +35,10 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis := types.DefaultGenesis()
 	genesis.Params = k.GetParams(ctx)
 
-	genesis.PortId = k.GetPort(ctx)
+	genesis.ModuleEnabled = k.GetModuleState(ctx)
+	genesis.CosmosIBCParams = k.GetCosmosIBCParams(ctx)
+	genesis.DepositAmount = k.GetDepositAmount(ctx)
+	genesis.AllowListedValidators = k.GetAllowListedValidators(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis

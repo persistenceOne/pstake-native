@@ -1,0 +1,59 @@
+syntax = "proto3";
+package lscosmos.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
+
+option (gogoproto.equal_all) = true;
+option (gogoproto.stringer_all) = false;
+option (gogoproto.goproto_getters_all) = false;
+
+//message InterchainModuleAccount {
+//
+//}
+
+message DepositAmount {
+  repeated cosmos.base.v1beta1.Coin amount = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.moretags) = "yaml:\"amount\""
+  ];
+}
+
+message AllowListedValidators {
+  repeated AllowListedValidator allow_listed_validators = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"allow_lised_validators\""
+  ];
+}
+
+message AllowListedValidator {
+
+  // validator_address defines the bech32-encoded address the allowlisted validator
+  string validator_address = 1 [(gogoproto.moretags) = "yaml:\"validator_address\""];
+
+  // target_weight specifies the target weight for liquid staking, unstaking amount, which is a value for calculating
+  // the real weight to be derived according to the active status
+  string target_weight = 2 [
+    (gogoproto.moretags) = "yaml:\"target_weight\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// CosmosIBCParams go into the DB
+message CosmosIBCParams {
+  option (gogoproto.goproto_stringer) = true;
+
+  string i_b_c_connection = 1;
+  string token_transfer_channel = 2;
+  string token_transfer_port = 3;
+  string base_denom = 4;
+  string mint_denom = 5;
+  string min_deposit = 6 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  string p_stake_deposit_fee = 7 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
+  string p_stake_restake_fee = 8 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
+  string p_stake_unstake_fee = 9 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
+}

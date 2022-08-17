@@ -91,16 +91,38 @@ $ %s tx gov submit-proposal register-cosmos-chain <path/to/proposal.json> --from
 
 			from := clientCtx.GetFromAddress()
 
+			minDeposit, ok := sdk.NewIntFromString(proposal.MinDeposit)
+			if !ok {
+				return types.ErrInvalidIntParse
+			}
+			depositFee, err := sdk.NewDecFromStr(proposal.PStakeDepositFee)
+			if err != nil {
+				return err
+			}
+
+			restakeFee, err := sdk.NewDecFromStr(proposal.PStakeRestakeFee)
+			if err != nil {
+				return err
+			}
+			unstakeFee, err := sdk.NewDecFromStr(proposal.PStakeUnstakeFee)
+			if err != nil {
+				return err
+			}
+
 			content := types.NewRegisterCosmosChainProposal(
 				proposal.Title,
 				proposal.Description,
+				proposal.ModuleEnabled,
 				proposal.IBCConnection,
 				proposal.TokenTransferChannel,
 				proposal.TokenTransferPort,
 				proposal.BaseDenom,
 				proposal.MintDenom,
-				proposal.MinDeposit,
-				proposal.PStakeDepositFee,
+				minDeposit,
+				proposal.AllowListedValidators,
+				depositFee,
+				restakeFee,
+				unstakeFee,
 			)
 
 			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)

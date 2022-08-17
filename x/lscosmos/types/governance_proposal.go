@@ -4,33 +4,40 @@ import (
 	"fmt"
 	"strings"
 
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
-	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 const (
 	ProposalTypeRegisterCosmosChain = "RegisterCosmosChain"
 )
 
-var _ govTypes.Content = &RegisterCosmosChainProposal{}
+var _ govtypes.Content = &RegisterCosmosChainProposal{}
 
 func init() {
-	govTypes.RegisterProposalType(ProposalTypeRegisterCosmosChain)
-	govTypes.RegisterProposalTypeCodec(&RegisterCosmosChainProposal{}, "persistenceCore/RegisterCosmosChain")
+	govtypes.RegisterProposalType(ProposalTypeRegisterCosmosChain)
+	govtypes.RegisterProposalTypeCodec(&RegisterCosmosChainProposal{}, "persistenceCore/RegisterCosmosChain")
 }
 
 // NewRegisterCosmosChainProposal creates a new multisig change proposal.
-func NewRegisterCosmosChainProposal(title, description, ibcConnection, tokenTransferChannel, tokenTransferPort, baseDenom, mintDenom string, minDeposit string, pStakeDepositFee string) *RegisterCosmosChainProposal {
+func NewRegisterCosmosChainProposal(title, description string, moduleEnabled bool, ibcConnection, tokenTransferChannel,
+	tokenTransferPort, baseDenom, mintDenom string, minDeposit sdktypes.Int, allowListedValidators AllowListedValidators,
+	pStakeDepositFee, pstakeRestakeFee, pStakeUnstakeFee sdktypes.Dec) *RegisterCosmosChainProposal {
+
 	return &RegisterCosmosChainProposal{
-		Title:                title,
-		Description:          description,
-		IBCConnection:        ibcConnection,
-		TokenTransferChannel: tokenTransferChannel,
-		TokenTransferPort:    tokenTransferPort,
-		BaseDenom:            baseDenom,
-		MintDenom:            mintDenom,
-		MinDeposit:           minDeposit,
-		PStakeDepositFee:     pStakeDepositFee,
+		Title:                 title,
+		Description:           description,
+		ModuleEnabled:         moduleEnabled,
+		IBCConnection:         ibcConnection,
+		TokenTransferChannel:  tokenTransferChannel,
+		TokenTransferPort:     tokenTransferPort,
+		BaseDenom:             baseDenom,
+		MintDenom:             mintDenom,
+		MinDeposit:            minDeposit,
+		AllowListedValidators: allowListedValidators,
+		PStakeDepositFee:      pStakeDepositFee,
+		PStakeRestakeFee:      pstakeRestakeFee,
+		PStakeUnstakeFee:      pStakeUnstakeFee,
 	}
 }
 
@@ -56,7 +63,7 @@ func (m *RegisterCosmosChainProposal) ProposalType() string {
 
 // ValidateBasic runs basic stateless validity checks
 func (m *RegisterCosmosChainProposal) ValidateBasic() error {
-	err := govTypes.ValidateAbstract(m)
+	err := govtypes.ValidateAbstract(m)
 	if err != nil {
 		return err
 	}
@@ -67,27 +74,38 @@ func (m *RegisterCosmosChainProposal) ValidateBasic() error {
 // String returns the string of proposal details
 func (m *RegisterCosmosChainProposal) String() string {
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf(`Update Pool Incentives Proposal:
+	b.WriteString(fmt.Sprintf(`Register host chain:
 Title:                 %s
 Description:           %s
+ModuleEnabled:		   %v
 IBCConnection:         %s
 TokenTransferChannel:  %s
 TokenTransferPort:     %s
-BaseDenom: 			 %s
-MintDenom: 			 %s
+BaseDenom: 			   %s
+MintDenom: 			   %s
+AllowlistedValidators: %s
+PstakeDepositFee:	   %s
+PstakeRestakeFee: 	   %s
+PstakeUnstakeFee: 	   %s
+
 `,
 		m.Title,
 		m.Description,
+		m.ModuleEnabled,
 		m.IBCConnection,
 		m.TokenTransferChannel,
 		m.TokenTransferPort,
 		m.BaseDenom,
-		m.MintDenom),
+		m.MintDenom,
+		m.AllowListedValidators,
+		m.PStakeDepositFee,
+		m.PStakeRestakeFee,
+		m.PStakeUnstakeFee),
 	)
 	return b.String()
 }
 
-func NewCosmosIBCParams(ibcConnection, channel, port, baseDenom, mintDenom string, minDeposit sdkTypes.Int, pStakeDepositFee sdkTypes.Dec) CosmosIBCParams {
+func NewCosmosIBCParams(ibcConnection, channel, port, baseDenom, mintDenom string, minDeposit sdktypes.Int, pStakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee sdktypes.Dec) CosmosIBCParams {
 	return CosmosIBCParams{
 		IBCConnection:        ibcConnection,
 		TokenTransferChannel: channel,
@@ -96,5 +114,21 @@ func NewCosmosIBCParams(ibcConnection, channel, port, baseDenom, mintDenom strin
 		MintDenom:            mintDenom,
 		MinDeposit:           minDeposit,
 		PStakeDepositFee:     pStakeDepositFee,
+		PStakeRestakeFee:     pstakeRestakeFee,
+		PStakeUnstakeFee:     pstakeUnstakeFee,
 	}
+}
+
+// Checks if cosmosIBC params were initialised
+func (c *CosmosIBCParams) IsEmpty() bool {
+	if c.TokenTransferChannel == "" ||
+		c.TokenTransferPort == "" ||
+		c.IBCConnection == "" ||
+		c.BaseDenom == "" ||
+		c.MintDenom == "" {
+		return true
+	}
+	// can add more, but this should be good enough
+
+	return false
 }

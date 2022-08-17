@@ -1,6 +1,8 @@
 package utils
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,13 +12,21 @@ func TestNewParamChangeJSON(t *testing.T) {
 	rcj := NewRegisterChainJSON(
 		"title",
 		"description",
+		true,
 		"connection",
 		"channel-1",
 		"transfer",
 		"uatom",
 		"ustkatom",
 		"5",
-		"0",
+		types.AllowListedValidators{
+			AllowListedValidators: []types.AllowListedValidator{{
+				ValidatorAddress: "Valaddr",
+				TargetWeight:     sdk.OneDec(),
+			}}},
+		"0.0",
+		"0.0",
+		"0.0",
 		"1000stake",
 	)
 	require.Equal(t, "title", rcj.Title)

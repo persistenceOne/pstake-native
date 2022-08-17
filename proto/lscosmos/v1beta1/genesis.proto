@@ -3,6 +3,8 @@ package lscosmos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "lscosmos/v1beta1/params.proto";
+import "lscosmos/v1beta1/lscosmos.proto";
+import "lscosmos/v1beta1/governance_proposal.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
@@ -10,6 +12,10 @@ option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
 // GenesisState defines the lscosmos module's genesis state.
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
-  string port_id = 2;
+
   // this line is used by starport scaffolding # genesis/proto/state
+  bool module_enabled = 2;
+  CosmosIBCParams cosmos_i_b_c_params = 3 [(gogoproto.nullable) = false];
+  DepositAmount deposit_amount = 4 [(gogoproto.nullable) = false];
+  AllowListedValidators allow_listed_validators = 5 [(gogoproto.nullable) = false];
 }
