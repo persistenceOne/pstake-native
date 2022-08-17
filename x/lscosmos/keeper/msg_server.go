@@ -70,7 +70,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 
 	//send the deposit to the deposit-module account
 	depositAmount := sdkTypes.NewCoins(msg.Amount)
-	err = m.SendTokensToDepositModule(ctx, depositAmount, delegatorAddress)
+	err = m.SendTokensToDepositModuleAndStore(ctx, depositAmount, delegatorAddress)
 	if err != nil {
 		return nil, types.ErrFailedDeposit
 	}
