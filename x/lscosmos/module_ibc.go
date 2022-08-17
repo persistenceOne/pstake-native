@@ -6,10 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
+
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
@@ -26,13 +28,19 @@ func (am AppModule) OnChanOpenInit(
 ) error {
 
 	// Require portID is the portID module is bound to
-	boundPort := am.keeper.GetPort(ctx)
-	if boundPort != portID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
+	//boundPort := am.keeper.GetPort(ctx)
+	if portID != types.DelegationAccountPortID &&
+		portID != types.RewardAccountPortID &&
+		portID != types.UndelegationAccountPortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s, %s or %s",
+			portID, types.DelegationAccountPortID, types.RewardAccountPortID, types.UndelegationAccountPortID)
 	}
-
-	if version != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", version, types.Version)
+	var versionData icatypes.Metadata
+	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(version), &versionData); err != nil {
+		return err
+	}
+	if versionData.Version != icatypes.Version {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", versionData.Version, icatypes.Version)
 	}
 
 	// Claim channel capability passed back by IBC module

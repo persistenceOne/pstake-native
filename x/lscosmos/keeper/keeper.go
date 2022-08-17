@@ -2,16 +2,18 @@ package keeper
 
 import (
 	"fmt"
-	accountKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	accountKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/keeper"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
@@ -21,20 +23,19 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-type (
-	Keeper struct {
-		cdc                codec.BinaryCodec
-		storeKey           sdk.StoreKey
-		memKey             sdk.StoreKey
-		paramstore         paramtypes.Subspace
-		bankKeeper         bankKeeper.BaseKeeper
-		distributionKeeper distrkeeper.Keeper
-		accountKeeper      accountKeeper.AccountKeeper
-		ibctransferKeeper  ibctransferkeeper.Keeper
-		ibcKeeper          ibckeeper.Keeper
-		scopedKeeper       capabilitykeeper.ScopedKeeper
-	}
-)
+type Keeper struct {
+	cdc                  codec.BinaryCodec
+	storeKey             sdk.StoreKey
+	memKey               sdk.StoreKey
+	paramstore           paramtypes.Subspace
+	bankKeeper           bankKeeper.BaseKeeper
+	distributionKeeper   distrkeeper.Keeper
+	accountKeeper        accountKeeper.AccountKeeper
+	ibcTransferKeeper    ibctransferkeeper.Keeper
+	ibcKeeper            ibckeeper.Keeper
+	icaControllerKeeper  icacontrollerkeeper.Keeper
+	lscosmosScopedKeeper capabilitykeeper.ScopedKeeper
+}
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
@@ -45,8 +46,9 @@ func NewKeeper(
 	disributionKeeper distrkeeper.Keeper,
 	accKeeper accountKeeper.AccountKeeper,
 	ibcKeeper ibckeeper.Keeper,
-	ibctransferKeeper ibctransferkeeper.Keeper,
-	scopedKeeper capabilitykeeper.ScopedKeeper,
+	icaControllerKeeper icacontrollerkeeper.Keeper,
+	ibcTransferKeeper ibctransferkeeper.Keeper,
+	lscosmosScopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -54,16 +56,17 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		bankKeeper:         bankKeeper,
-		distributionKeeper: disributionKeeper,
-		accountKeeper:      accKeeper,
-		ibcKeeper:          ibcKeeper,
-		ibctransferKeeper:  ibctransferKeeper,
-		scopedKeeper:       scopedKeeper,
-		cdc:                cdc,
-		storeKey:           storeKey,
-		memKey:             memKey,
-		paramstore:         ps,
+		bankKeeper:           bankKeeper,
+		distributionKeeper:   disributionKeeper,
+		accountKeeper:        accKeeper,
+		ibcKeeper:            ibcKeeper,
+		ibcTransferKeeper:    ibcTransferKeeper,
+		icaControllerKeeper:  icaControllerKeeper,
+		lscosmosScopedKeeper: lscosmosScopedKeeper,
+		cdc:                  cdc,
+		storeKey:             storeKey,
+		memKey:               memKey,
+		paramstore:           ps,
 	}
 }
 
@@ -74,7 +77,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // ChanCloseInit defines a wrapper function for the channel Keeper's function
 func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 	capName := host.ChannelCapabilityPath(portID, channelID)
-	chanCap, ok := k.scopedKeeper.GetCapability(ctx, capName)
+	chanCap, ok := k.lscosmosScopedKeeper.GetCapability(ctx, capName)
 	if !ok {
 		return sdkerrors.Wrapf(channeltypes.ErrChannelCapabilityNotFound, "could not retrieve channel capability at: %s", capName)
 	}
@@ -83,7 +86,7 @@ func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 
 // IsBound checks if the module is already bound to the desired port
 func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
-	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
+	_, ok := k.lscosmosScopedKeeper.GetCapability(ctx, host.PortPath(portID))
 	return ok
 }
 
@@ -106,14 +109,30 @@ func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 	store.Set(types.PortKey, []byte(portID))
 }
 
-// AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
+// AuthenticateCapability wraps the lscosmosScopedKeeper's AuthenticateCapability function
 func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool {
-	return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
+	return k.lscosmosScopedKeeper.AuthenticateCapability(ctx, cap, name)
 }
 
 // ClaimCapability allows the module that can claim a capability that IBC module passes to it
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
-	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+	return k.lscosmosScopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+func (k Keeper) GetDepositAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+	return k.accountKeeper.GetModuleAccount(ctx, types.DepositModuleAccount)
+}
+
+func (k Keeper) GetDelegationAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+	return k.accountKeeper.GetModuleAccount(ctx, types.DelegationModuleAccount)
+}
+
+func (k Keeper) GetRewardAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+	return k.accountKeeper.GetModuleAccount(ctx, types.RewardModuleAccount)
+}
+
+func (k Keeper) GetUndelegationAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+	return k.accountKeeper.GetModuleAccount(ctx, types.UndelegationModuleAccount)
 }
 
 //MintTokens in the given account
