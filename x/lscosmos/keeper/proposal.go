@@ -8,7 +8,7 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-// HandleRegisterCosmosChainProposal performs the writes cosmos ICB params.
+// HandleRegisterCosmosChainProposal performs the writes cosmos IBC params.
 func HandleRegisterCosmosChainProposal(ctx sdk.Context, k Keeper, content types.RegisterCosmosChainProposal) error {
 	minDeposit, ok := sdk.NewIntFromString(content.MinDeposit)
 	if !ok {
