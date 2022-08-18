@@ -96,6 +96,15 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	"github.com/gorilla/mux"
+	pstakeante "github.com/persistenceOne/pstake-native/ante"
+	pstakeappparams "github.com/persistenceOne/pstake-native/app/params"
+	"github.com/persistenceOne/pstake-native/x/epochs"
+	epochskeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
+	epochstypes "github.com/persistenceOne/pstake-native/x/epochs/types"
+	"github.com/persistenceOne/pstake-native/x/lscosmos"
+	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
+	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
+	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
@@ -106,16 +115,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
-
-	pstakeante "github.com/persistenceOne/pstake-native/ante"
-	pstakeappparams "github.com/persistenceOne/pstake-native/app/params"
-	"github.com/persistenceOne/pstake-native/x/epochs"
-	epochskeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
-	epochstypes "github.com/persistenceOne/pstake-native/x/epochs/types"
-	"github.com/persistenceOne/pstake-native/x/lscosmos"
-	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
-	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
-	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 var (
@@ -453,6 +452,7 @@ func NewpStakeApp(
 		app.TransferKeeper,
 		app.ICAControllerKeeper,
 		scopedLSCosmosKeeper,
+		app.MsgServiceRouter(),
 	)
 	lscosmosModule := lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
 	icaControllerIBCModule := icacontroller.NewIBCModule(app.ICAControllerKeeper, lscosmosModule)
