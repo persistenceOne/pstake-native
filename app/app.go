@@ -98,9 +98,7 @@ import (
 	"github.com/gorilla/mux"
 	pstakeante "github.com/persistenceOne/pstake-native/ante"
 	pstakeappparams "github.com/persistenceOne/pstake-native/app/params"
-	"github.com/persistenceOne/pstake-native/x/cosmos"
-	cosmosclient "github.com/persistenceOne/pstake-native/x/cosmos/client"
-	cosmostypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
+
 	"github.com/persistenceOne/pstake-native/x/epochs"
 	epochskeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
 	epochstypes "github.com/persistenceOne/pstake-native/x/epochs/types"
@@ -142,9 +140,6 @@ var (
 			upgradeclient.CancelProposalHandler,
 			ibcclientclient.UpdateClientProposalHandler,
 			ibcclientclient.UpgradeProposalHandler,
-			cosmosclient.EnableModuleProposalHandler,
-			cosmosclient.ChangeMultisigProposalHandler,
-			cosmosclient.ChangeCosmosValidatorWeightsProposalHandler,
 			lscosmosclient.RegisterCosmosChainProposalHandler,
 		),
 		params.AppModuleBasic{},
@@ -159,7 +154,6 @@ var (
 		vesting.AppModuleBasic{},
 		router.AppModuleBasic{},
 		ica.AppModuleBasic{},
-		cosmos.AppModuleBasic{},
 		epochs.AppModuleBasic{},
 		lscosmos.AppModuleBasic{},
 	)
@@ -174,7 +168,6 @@ var (
 		stakingtypes.NotBondedPoolName:          {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:                     {authtypes.Burner},
 		ibctransfertypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
-		cosmos.ModuleName:                       {authtypes.Minter, authtypes.Burner},
 		lscosmostypes.ModuleName:                {authtypes.Minter, authtypes.Burner},
 		lscosmostypes.DepositModuleAccount:      nil,
 		lscosmostypes.DelegationModuleAccount:   nil,
@@ -230,7 +223,6 @@ type PstakeApp struct {
 	FeeGrantKeeper      feegrantkeeper.Keeper
 	AuthzKeeper         authzkeeper.Keeper
 	RouterKeeper        routerkeeper.Keeper
-	CosmosKeeper        cosmos.Keeper
 	EpochsKeeper        epochskeeper.Keeper
 	LSCosmosKeeper      lscosmoskeeper.Keeper
 
@@ -286,7 +278,7 @@ func NewpStakeApp(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, icahosttypes.StoreKey,
-		icacontrollertypes.StoreKey, cosmos.StoreKey, epochstypes.StoreKey, lscosmostypes.StoreKey,
+		icacontrollertypes.StoreKey, epochstypes.StoreKey, lscosmostypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, lscosmostypes.MemStoreKey)
@@ -390,17 +382,7 @@ func NewpStakeApp(
 		appCodec,
 		keys[epochstypes.StoreKey],
 	)
-	app.CosmosKeeper = cosmos.NewKeeper(
-		appCodec,
-		keys[cosmos.StoreKey],
-		app.ParamsKeeper.Subspace(cosmos.DefaultParamspace),
-		&app.AccountKeeper,
-		&app.BankKeeper,
-		&app.MintKeeper,
-		&app.StakingKeeper,
-		app.EpochsKeeper,
-		&app.DistrKeeper,
-	)
+
 	app.UpgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,
 		keys[upgradetypes.StoreKey],
@@ -471,6 +453,7 @@ func NewpStakeApp(
 		app.TransferKeeper,
 		app.ICAControllerKeeper,
 		scopedLSCosmosKeeper,
+		app.MsgServiceRouter(),
 	)
 	lscosmosModule := lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
 	icaControllerIBCModule := icacontroller.NewIBCModule(app.ICAControllerKeeper, lscosmosModule)
@@ -495,7 +478,6 @@ func NewpStakeApp(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
-		AddRoute(cosmostypes.RouterKey, cosmos.NewCosmosLiquidStakingProposalHandler(app.CosmosKeeper)).
 		AddRoute(lscosmostypes.RouterKey, lscosmos.NewLSCosmosProposalHandler(app.LSCosmosKeeper))
 
 	app.GovKeeper = govkeeper.NewKeeper(
@@ -519,9 +501,7 @@ func NewpStakeApp(
 	app.EvidenceKeeper = *evidenceKeeper
 
 	app.EpochsKeeper.SetHooks(
-		epochstypes.NewMultiEpochHooks(
-			app.CosmosKeeper.Hooks(),
-		),
+		epochstypes.NewMultiEpochHooks(),
 	)
 
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
@@ -551,7 +531,6 @@ func NewpStakeApp(
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
-		cosmos.NewAppModule(appCodec, app.CosmosKeeper),
 		epochs.NewAppModule(appCodec, app.EpochsKeeper),
 		lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
 		transferModule,
@@ -575,7 +554,6 @@ func NewpStakeApp(
 		ibchost.ModuleName,
 		icatypes.ModuleName,
 		routertypes.ModuleName,
-		cosmos.ModuleName,
 		lscosmostypes.ModuleName,
 		epochstypes.ModuleName,
 		authtypes.ModuleName,
@@ -600,7 +578,6 @@ func NewpStakeApp(
 		routertypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
-		cosmos.ModuleName,
 		lscosmostypes.ModuleName,
 		epochstypes.ModuleName,
 		capabilitytypes.ModuleName,
@@ -641,7 +618,6 @@ func NewpStakeApp(
 		authtypes.ModuleName,
 		genutiltypes.ModuleName,
 		routertypes.ModuleName,
-		cosmos.ModuleName,
 		lscosmostypes.ModuleName,
 		epochstypes.ModuleName,
 		paramstypes.ModuleName,
@@ -673,7 +649,6 @@ func NewpStakeApp(
 		params.NewAppModule(app.ParamsKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
-		cosmos.NewAppModule(appCodec, app.CosmosKeeper),
 		lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
 		transferModule,
 		//icaModule,
