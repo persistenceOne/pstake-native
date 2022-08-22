@@ -2,7 +2,7 @@ ARG IMG_TAG=latest
 
 # Compile the gaiad binary
 FROM golang:1.18-alpine AS builder
-WORKDIR /go/src/github.com/persistenceOne/pStake-native
+WORKDIR /go/src/github.com/persistenceOne/pstake-native
 COPY go.mod go.sum* ./
 RUN go mod download
 COPY . .

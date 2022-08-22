@@ -24,7 +24,7 @@ DOCKER := $(shell which docker)
 BUILDDIR ?= $(CURDIR)/build
 TEST_DOCKER_REPO=mkoijn6/pstakednode
 
-HTTPS_GIT := https://github.com/persistenceOne/pStake-native.git
+HTTPS_GIT := https://github.com/persistenceOne/pstake-native.git
 DOCKER := $(shell which docker)
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf
 
