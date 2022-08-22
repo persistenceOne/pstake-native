@@ -12,7 +12,7 @@ import "cosmos_proto/cosmos.proto";
 import "cosmos/staking/v1beta1/tx.proto";
 import "cosmos/tx/signing/v1beta1/signing.proto";
 
-option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
+option go_package = "github.com/persistenceOne/pstake-native/x/cosmos/types";
 
 message ChainIDHeightAndTxHashKey {
   string chain_i_d = 1;

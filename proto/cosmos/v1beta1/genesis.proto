@@ -9,7 +9,7 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/abci/v1beta1/abci.proto";
 import "cosmos/tx/v1beta1/tx.proto";
 
-option go_package = "github.com/persistenceOne/pStake-native/x/cosmos/types";
+option go_package = "github.com/persistenceOne/pstake-native/x/cosmos/types";
 
 message GenesisState {
   Params params = 1 [(gogoproto.moretags) = "yaml:\"params\"", (gogoproto.nullable) = false];

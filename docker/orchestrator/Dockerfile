@@ -4,7 +4,7 @@ FROM golang:1.18-alpine AS build-env
 ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3
 
 # Set working directory for the build
-WORKDIR /go/src/github.com/peristenceOne/pStake-native
+WORKDIR /go/src/github.com/peristenceOne/pstake-native
 
 # Add source files
 COPY .. .

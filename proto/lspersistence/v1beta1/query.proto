@@ -6,7 +6,7 @@ import "lspersistence/v1beta1/lspersistence.proto";
 import "gogoproto/gogo.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
-option go_package = "github.com/persistenceOne/pStake-native/x/lspersistence/types";
+option go_package = "github.com/persistenceOne/pstake-native/x/lspersistence/types";
 
 // Query defines the gRPC query service for the liquidstaking module.
 service Query {
@@ -17,7 +17,7 @@ service Query {
       description: "Returns all parameters of the liquid staking module.";
   external_docs: {
   url:
-    "https://github.com/persistenceOne/pStake-native/x/lspersistence/spec";
+    "https://github.com/persistenceOne/pstake-native/x/lspersistence/spec";
   description:
     "Find out more about the params";
   }
@@ -30,7 +30,7 @@ rpc LiquidValidators(QueryLiquidValidatorsRequest) returns (QueryLiquidValidator
     description: "Returns all liquid validators of the liquid staking module.";
 external_docs: {
 url:
-  "https://github.com/persistenceOne/pStake-native/x/lspersistence/spec";
+  "https://github.com/persistenceOne/pstake-native/x/lspersistence/spec";
 description:
   "Find out more about the liquid validators";
 }
@@ -43,7 +43,7 @@ rpc VotingPower(QueryVotingPowerRequest) returns (QueryVotingPowerResponse) {
     description: "Returns voting power of staking and liquid staking module's of the voter that can be exercised.";
 external_docs: {
 url:
-  "https://github.com/persistenceOne/pStake-native/x/lspersistence/spec";
+  "https://github.com/persistenceOne/pstake-native/x/lspersistence/spec";
 description:
   "Find out more about the liquid validators";
 }
@@ -57,7 +57,7 @@ rpc States(QueryStatesRequest) returns (QueryStatesResponse) {
     description: "Returns states of the liquid staking module.";
 external_docs: {
 url:
-  "https://github.com/persistenceOne/pStake-native/x/lspersistence/spec";
+  "https://github.com/persistenceOne/pstake-native/x/lspersistence/spec";
 description:
   "Find out more about the liquid staking";
 }

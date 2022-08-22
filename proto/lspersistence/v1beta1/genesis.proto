@@ -4,7 +4,7 @@ package lspersistence.v1beta1;
 import "gogoproto/gogo.proto";
 import "lspersistence/v1beta1/lspersistence.proto";
 
-option go_package            = "github.com/persistenceOne/pStake-native/x/lspersistence/types";
+option go_package            = "github.com/persistenceOne/pstake-native/x/lspersistence/types";
 option (gogoproto.equal_all) = true;
 
 // GenesisState defines the lspersistence module's genesis state.
