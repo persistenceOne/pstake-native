@@ -43,6 +43,8 @@ const (
 	DelegationEpochIdentifier   = "day"
 	RewardEpochIdentifier       = "day"
 	UndelegationEpochIdentifier = "week"
+
+	IBCTimeoutHeightIncrement uint64 = 100
 )
 
 var (

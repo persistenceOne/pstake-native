@@ -45,3 +45,12 @@ message CosmosIBCParams {
   string p_stake_restake_fee = 8 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
   string p_stake_unstake_fee = 9 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
 }
+
+// DelegationState stores module account balance, ica account balance, delegation state, undelegation state
+message DelegationState {
+  //This field is necessary as the address of not blocked for send coins,
+  // we only should care about funds that have come via proper channels.
+  repeated cosmos.base.v1beta1.Coin host_delegation_account_balance = 1 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  string host_chain_delegation_address = 2 ;
+}
+

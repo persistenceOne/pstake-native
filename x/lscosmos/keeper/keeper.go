@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -17,10 +18,11 @@ import (
 )
 
 type Keeper struct {
-	cdc                  codec.BinaryCodec
-	storeKey             sdk.StoreKey
-	memKey               sdk.StoreKey
-	paramstore           paramtypes.Subspace
+	cdc        codec.BinaryCodec
+	storeKey   sdk.StoreKey
+	memKey     sdk.StoreKey
+	paramstore paramtypes.Subspace
+
 	bankKeeper           types.BankKeeper
 	distributionKeeper   types.DistributionKeeper
 	accountKeeper        types.AccountKeeper
@@ -30,6 +32,8 @@ type Keeper struct {
 	ibcTransferKeeper    types.IBCTransferKeeper
 	icaControllerKeeper  types.ICAControllerKeeper
 	lscosmosScopedKeeper types.ScopedKeeper
+
+	msgRouter *baseapp.MsgServiceRouter
 }
 
 func NewKeeper(
@@ -46,6 +50,7 @@ func NewKeeper(
 	ibcTransferKeeper types.IBCTransferKeeper,
 	icaControllerKeeper types.ICAControllerKeeper,
 	lscosmosScopedKeeper types.ScopedKeeper,
+	msgRouter *baseapp.MsgServiceRouter,
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -66,6 +71,7 @@ func NewKeeper(
 		storeKey:             storeKey,
 		memKey:               memKey,
 		paramstore:           ps,
+		msgRouter:            msgRouter,
 	}
 }
 

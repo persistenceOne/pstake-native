@@ -1,7 +1,7 @@
 {
   "title": "register cosmos chain proposal",
   "description": "this proposal register cosmos chain params in the chain",
-  "enable_module": true,
+  "module_enabled": true,
   "ibc_connection": "connection-0",
   "token_transfer_channel": "channel-0",
   "token_transfer_port": "transfer",

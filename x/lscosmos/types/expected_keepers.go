@@ -6,6 +6,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
@@ -35,6 +36,7 @@ type BankKeeper interface {
 	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
+	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
@@ -56,6 +58,7 @@ type ChannelKeeper interface {
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 	ChanCloseInit(ctx sdk.Context, portID, channelID string, chanCap *capabilitytypes.Capability) error
+	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
 }
 
 // PortKeeper defines the expected IBC port keeper
@@ -73,8 +76,14 @@ type ScopedKeeper interface {
 
 type IBCTransferKeeper interface {
 	DenomPathFromHash(ctx sdk.Context, denom string) (string, error)
+
+	// Based on the note in ibc-go SendTransfer implementation, we use msg server for this
+	//SendTransfer(
+	//	ctx sdk.Context, sourcePort, sourceChannel string, token sdk.Coin, sender sdk.AccAddress, receiver string,
+	//	timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error
 }
 
 type ICAControllerKeeper interface {
 	RegisterInterchainAccount(ctx sdk.Context, connectionID, owner string) error
+	GetInterchainAccountAddress(ctx sdk.Context, connectionID, portID string) (string, bool)
 }

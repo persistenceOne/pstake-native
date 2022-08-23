@@ -17,4 +17,5 @@ message GenesisState {
   bool module_enabled = 2;
   CosmosIBCParams cosmos_i_b_c_params = 3 [(gogoproto.nullable) = false];
   AllowListedValidators allow_listed_validators = 4 [(gogoproto.nullable) = false];
+  DelegationState delegation_state = 5 [(gogoproto.nullable) = false];
 }
