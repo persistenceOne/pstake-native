@@ -19,3 +19,13 @@ func (k Keeper) CosmosIBCParams(c context.Context, in *types.QueryCosmosIBCParam
 		CosmosIBCParams: ibcParams,
 	}, nil
 }
+
+func (k Keeper) DelegationState(ctx context.Context, request *types.QueryDelegationStateRequest) (*types.QueryDelegationStateResponse, error) {
+	sdkctx := sdk.UnwrapSDKContext(ctx)
+	delegationState := k.GetDelegationState(sdkctx)
+
+	return &types.QueryDelegationStateResponse{
+		DelegationState: delegationState,
+	}, nil
+
+}

@@ -25,6 +25,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(
 		CmdQueryParams(),
 		CmdQueryCosmosIBCParams(),
+		CmdQueryDelegationState(),
 	)
 	// this line is used by starport scaffolding # 1
 
@@ -42,6 +43,30 @@ func CmdQueryCosmosIBCParams() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.CosmosIBCParams(context.Background(), &types.QueryCosmosIBCParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryDelegationState() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delegation-state",
+		Short: "shows delegation state",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.DelegationState(context.Background(), &types.QueryDelegationStateRequest{})
 			if err != nil {
 				return err
 			}
