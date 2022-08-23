@@ -16,7 +16,7 @@ func main() {
 	configuration.SetBech32PrefixForValidator(app.Bech32PrefixValAddr, app.Bech32PrefixValPub)
 	configuration.SetBech32PrefixForConsensusNode(app.Bech32PrefixConsAddr, app.Bech32PrefixConsPub)
 	configuration.SetCoinType(app.CoinType)
-	configuration.SetFullFundraiserPath(app.FullFundraiserPath)
+	configuration.SetPurpose(app.Purpose)
 	configuration.Seal()
 
 	rootCmd, _ := cmd.NewRootCmd()

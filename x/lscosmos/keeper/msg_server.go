@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"context"
+
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibcTransferTypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
@@ -44,6 +46,9 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	expectedIBCPrefix := ibcTransferTypes.GetDenomPrefix(ibcParams.TokenTransferPort, ibcParams.TokenTransferChannel)
 
 	denomTraceStr, err := m.ibcTransferKeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
+	if err != nil {
+		return nil, err
+	}
 	denomTrace := ibcTransferTypes.ParseDenomTrace(denomTraceStr)
 
 	// Check if ibc path matches allowlisted path.

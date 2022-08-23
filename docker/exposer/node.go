@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -17,6 +16,7 @@ const (
 	clientNameKey  = "CLIENT_NAME"
 )
 
+//nolint:gocritic,skip_for_now
 func executeCommand(name string, arg ...string) string {
 	cmd := exec.Command(name, arg...)
 	stdout, err := cmd.StdoutPipe()
@@ -30,7 +30,7 @@ func executeCommand(name string, arg ...string) string {
 		log.Fatalf("Execute command: '%s' error, %s\n", cmd.String(), err)
 	}
 
-	cmdOut, _ := ioutil.ReadAll(stdout)
+	cmdOut, _ := io.ReadAll(stdout)
 
 	return string(cmdOut)
 }
@@ -55,7 +55,7 @@ func getGenesisHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer jsonFile.Close()
 
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+	byteValue, _ := io.ReadAll(jsonFile)
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")

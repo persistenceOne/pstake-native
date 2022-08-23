@@ -11,6 +11,8 @@ var (
 )
 
 // NewMsgLiquidStake returns a new MsgLiquidStake
+//
+//nolint:interfacer
 func NewMsgLiquidStake(amount sdk.Coin, address sdk.AccAddress) *MsgLiquidStake {
 	return &MsgLiquidStake{
 		DelegatorAddress: address.String(),
