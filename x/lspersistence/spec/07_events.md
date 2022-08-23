@@ -26,8 +26,8 @@
 |--------------|----------------------|--------------------|
 | liquid_stake | delegator            | {delegatorAddress} |
 | liquid_stake | amount               | {delegationAmount} |
-| liquid_stake | btoken_minted_amount | {newDelShares}     |
-| liquid_stake | amount               | {bTokenMintAmount} |
+| liquid_stake | stkToken_minted_amount | {newDelShares}     |
+| liquid_stake | amount               | {stkTokenMintAmount} |
 | message      | module               | liquidstaking      |
 | message      | action               | liquid_stake       |
 | message      | sender               | {senderAddress}    |
@@ -37,7 +37,7 @@
 | Type           | Attribute Key    | Attribute Value    |
 |----------------|------------------|--------------------|
 | liquid_unstake | validator        | {validatorAddress} |
-| liquid_unstake | amount           | {bTokenBurnAmount} |
+| liquid_unstake | amount           | {stkTokenBurnAmount} |
 | liquid_unstake | unbonding_amount | {unbondingAmount}  |
 | liquid_unstake | unbonded_amount  | {unbondedAmount}   |
 | liquid_unstake | completion_time  | {completionTime}   |

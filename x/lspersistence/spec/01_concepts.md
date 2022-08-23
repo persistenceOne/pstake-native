@@ -4,7 +4,7 @@
 
 ## Liquid Staking Module
 
-Liquidstaking module provides a way for delegators to benefit with greater yields at the same time that improves capital efficiency and decentralization. The module allows users to delegate their native token(BondDenom) that stakes for them without losing access to their funds. Users can liquid stake any amount of native token and receive a synthetic version of the original token called “bToken” as a staking representation. When delegators want to liquid unstake, the module burns the bToken and give them back the native token. Delegators must wait for the unbonding period. Technically, it is worth noting that the module unbonds the amount of bToken that values the native token at the mint rate that considers both accumulated rewards and slashing existence.
+Liquidstaking module provides a way for delegators to benefit with greater yields at the same time that improves capital efficiency and decentralization. The module allows users to delegate their native token(BondDenom) that stakes for them without losing access to their funds. Users can liquid stake any amount of native token and receive a synthetic version of the original token called “stkToken” as a staking representation. When delegators want to liquid unstake, the module burns the stkToken and give them back the native token. Delegators must wait for the unbonding period. Technically, it is worth noting that the module unbonds the amount of stkToken that values the native token at the mint rate that considers both accumulated rewards and slashing existence.
 
 ## Liquid Validators
 
@@ -12,12 +12,10 @@ Liquid validators are determined through governance process. They must be define
 
 ## Liquid Governance
 
-The module acknowledges voting power of all voters by aggregating the core activities that is related to the bToken. These are the following core activities:
+The module acknowledges voting power of all voters by aggregating the core activities that is related to the stkToken. These are the following core activities:
 
-- Balance of `bToken`
-- Balance of `PoolCoin(s)` that includes `bToken`
-- Farming position of `bToken`
-- Farming position of `PoolCoin(s)` that include `bToken`
+- Balance of `stkToken`
+- Balance of `PoolCoin(s)` that includes `stkToken`
 
 ## Rebalancing
 
@@ -38,4 +36,4 @@ Liquid stakers who unbond their delegation must wait for the duration of the `Un
 
 ## Slashing
 
-A liquid validator must comply slashing rules of the slashing module in Cosmos SDK. They must keep up their liveness and stay away from any other infraction related attributes. If a liquid validator fails to comply the slashing rules, the module burns some amount of liquid tokens from all liquid validators. This results to having the value of bToken decreased. Therefore, it is crucial for the community to choose and elect the most secure and responsible liquid validators.
+A liquid validator must comply slashing rules of the slashing module in Cosmos SDK. They must keep up their liveness and stay away from any other infraction related attributes. If a liquid validator fails to comply the slashing rules, the module burns some amount of liquid tokens from all liquid validators. This results to having the value of stkToken decreased. Therefore, it is crucial for the community to choose and elect the most secure and responsible liquid validators.

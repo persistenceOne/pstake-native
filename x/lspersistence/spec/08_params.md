@@ -30,7 +30,7 @@ type WhitelistedValidator struct {
 
 ## UnstakeFeeRate
 
-It is the fee rate that liquid stakers pay when they liquid unstake. When liquid unstake is requested, unbonded by subtracting the UnstakeFeeRate from unbondingAmount, which remains the DelShares of LiquidStakingProxyAcc, increasing the value of netAmount and bToken. Even if the `UnstakeFeeRate` is zero, a small loss may occur due to a decimal loss in the process of dividing the staking/unstaking amount into weight of liquid validators, which is also accumulated in the netAmount value like fee.
+It is the fee rate that liquid stakers pay when they liquid unstake. When liquid unstake is requested, unbonded by subtracting the UnstakeFeeRate from unbondingAmount, which remains the DelShares of LiquidStakingProxyAcc, increasing the value of netAmount and stkToken. Even if the `UnstakeFeeRate` is zero, a small loss may occur due to a decimal loss in the process of dividing the staking/unstaking amount into weight of liquid validators, which is also accumulated in the netAmount value like fee.
 
 ## MinLiquidStakingAmount
 
@@ -53,8 +53,4 @@ It is the rate that triggers to withdraw rewards and re-stake amounts to active 
 
 ### LiquidStakingProxyAcc
 
-The proxy reserve account for all delegations and undelegations. It is derived by the following code snippet.
-
-```go
-LiquidStakingProxyAcc = farmingtypes.DeriveAddress(farmingtypes.AddressType32Bytes, ModuleName, "LiquidStakingProxyAcc")
-```
+The proxy reserve account for all delegations and undelegations.

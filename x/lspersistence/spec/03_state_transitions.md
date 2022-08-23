@@ -17,17 +17,17 @@ State transitions of liquid validators are performed on every `BeginBlock` to ke
 ## Liquid Staking
 
 - Reserve native token to `LiquidStakingProxyAcc`
-- Mint the amount of `bToken` that is based on `MintRate`
+- Mint the amount of `stkToken` that is based on `MintRate`
   - Initial minting amount is the same as liquid staking amount
-- Send the minted `bToken` amount to the liquid delegator
+- Send the minted `stkToken` amount to the liquid delegator
 - `LiquidStakingProxyAcc` delegates delegation shares to all active liquid validators that correspond to their weight
   - Internally, the module calls `Delegate` function in `staking` module
   - First active liquid validator may receive slightly more delegation shares due to some crumb occuring from division
 
 ## Liquid Unstaking
 
-- Calculate the unbonding amount from the requesting `bToken` 
-- Burn the requesting `bToken`
+- Calculate the unbonding amount from the requesting `stkToken` 
+- Burn the requesting `stkToken`
 - `LiquidStakingProxyAcc` unbonds the 
   - Internally, the module calls `Unbond` function in `staking` module and it takes `UnbondingTime` to be matured
   - `LiquidStakingProxyAcc` transfers an ownership of `UnbondingDelegation` to the liquid delegator. The liquid delegator is expected to receive unbonding amount after `UnbondingDelegation` is matured.

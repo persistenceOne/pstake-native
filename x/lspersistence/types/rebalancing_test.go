@@ -13,16 +13,16 @@ import (
 var (
 	liquidValidators = []types.LiquidValidator{
 		{
-			OperatorAddress: "cosmosvaloper15kdfwczhpmccprekhlzrvkhzw92940l3w37qqj",
+			OperatorAddress: "persistencevaloper1xukct7canygptg26xkz079emzh9fs7a2fm2mpe",
 		},
 		{
-			OperatorAddress: "cosmosvaloper1x73gyvh74ahs2rt9cqrpjkkk74nczwfpnskv3rczmsf0m6aj5dksqr58m3",
+			OperatorAddress: "persistencevaloper1hcqg5wj9t42zawqkqucs7la85ffyv08lmnhye9",
 		},
 		{
-			OperatorAddress: "cosmosvaloper10ngyx42lfpylpllm4k3g7fz4gufnt3ptyhm5pn",
+			OperatorAddress: "persistencevaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jtjdgsy",
 		},
 		{
-			OperatorAddress: "cosmosvaloper10fcwju2n8vvffkp8judj3skqpvnphasxjar5yx",
+			OperatorAddress: "persistencevaloper10khgeppewe4rgfrcy809r9h00aquwxxx2j64k6",
 		},
 	}
 )

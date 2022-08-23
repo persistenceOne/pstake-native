@@ -76,13 +76,13 @@ NetAmount is the sum of the following items that belongs to `LiquidStakingProxyA
 - Remaining rewards 
 - Unbonding balance
 
-`MintRate` is the rate that is calculated from total supply of `bTokens` divided by `NetAmount`. 
-- `MintRate = bTokenTotalSupply / NetAmount` 
+`MintRate` is the rate that is calculated from total supply of `stkTokens` divided by `NetAmount`. 
+- `MintRate = stkTokenTotalSupply / NetAmount` 
 
-Depending on the equation, the value transformation between native tokens and bTokens can be calculated as follows:
+Depending on the equation, the value transformation between native tokens and stkTokens can be calculated as follows:
 
-- NativeTokenToBToken : `nativeTokenAmount * bTokenTotalSupply / netAmount` with truncations
-- BTokenToNativeToken : `bTokenAmount * netAmount / bTokenTotalSupply * (1-params.UnstakeFeeRate)` with truncations
+- NativeTokenTostkToken : `nativeTokenAmount * stkTokenTotalSupply / netAmount` with truncations
+- stkTokenToNativeToken : `stkTokenAmount * netAmount / stkTokenTotalSupply * (1-params.UnstakeFeeRate)` with truncations
 
 
 ### NetAmountState
@@ -92,10 +92,10 @@ NetAmountState provides states with each field for `NetAmount`. Each field is de
 ```go
 // NetAmountState is type for NetAmount
 type NetAmountState struct {
-	// mint_rate is bTokenTotalSupply / NetAmount
+	// mint_rate is stkTokenTotalSupply / NetAmount
 	MintRate sdk.Dec
-	// btoken_total_supply returns the total supply of btoken(liquid_bond_denom)
-	BtokenTotalSupply sdk.Int
+	// stkToken_total_supply returns the total supply of stkToken(liquid_bond_denom)
+	stkTokenTotalSupply sdk.Int
 	// net_amount is proxy account's native token balance + total liquid tokens + total remaining rewards + total unbonding balance
 	NetAmount sdk.Dec
 	// total_del_shares define the delegation shares of all liquid validators

@@ -41,14 +41,14 @@ func WeightedOperations(
 	var weightMsgLiquidStake int
 	appParams.GetOrGenerate(cdc, OpWeightMsgLiquidStake, &weightMsgLiquidStake, nil,
 		func(_ *rand.Rand) {
-			weightMsgLiquidStake = appparams.DefaultWeightMsgLiquidStake
+			weightMsgLiquidStake = appparams.DefaultLSPWeightMsgLiquidStake
 		},
 	)
 
 	var weightMsgLiquidUnstake int
 	appParams.GetOrGenerate(cdc, OpWeightMsgLiquidUnstake, &weightMsgLiquidUnstake, nil,
 		func(_ *rand.Rand) {
-			weightMsgLiquidUnstake = appparams.DefaultWeightMsgLiquidUnstake
+			weightMsgLiquidUnstake = appparams.DefaultLSPWeightMsgLiquidUnstake
 		},
 	)
 

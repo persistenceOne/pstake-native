@@ -14,19 +14,19 @@ import (
 var (
 	whitelistedValidators = []types.WhitelistedValidator{
 		{
-			ValidatorAddress: "cosmosvaloper10e4vsut6suau8tk9m6dnrm0slgd6npe3jx5xpv",
+			ValidatorAddress: "persistencevaloper1xukct7canygptg26xkz079emzh9fs7a2fm2mpe",
 			TargetWeight:     sdk.NewInt(10),
 		},
 		{
-			ValidatorAddress: "cosmosvaloper18hfzxheyknesfgcrttr5dg50ffnfphtwtar9fz",
+			ValidatorAddress: "persistencevaloper1hcqg5wj9t42zawqkqucs7la85ffyv08lmnhye9",
 			TargetWeight:     sdk.NewInt(1),
 		},
 		{
-			ValidatorAddress: "cosmosvaloper18hfzxheyknesfgcrttr5dg50ffnfphtwtar9fz",
+			ValidatorAddress: "persistencevaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jtjdgsy",
 			TargetWeight:     sdk.NewInt(-1),
 		},
 		{
-			ValidatorAddress: "cosmosvaloper1ld6vlyy24906u3aqp5lj54f3nsg2592nm9nj5c",
+			ValidatorAddress: "persistencevaloper10khgeppewe4rgfrcy809r9h00aquwxxx2j64k6",
 			TargetWeight:     sdk.NewInt(0),
 		},
 	}

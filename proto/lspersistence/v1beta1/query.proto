@@ -6,63 +6,63 @@ import "lspersistence/v1beta1/lspersistence.proto";
 import "gogoproto/gogo.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
-option go_package = "github.com/persistenceOne/pStake-native/x/lspersistence/types";
+option go_package = "github.com/persistenceOne/pstake-native/x/lspersistence/types";
 
 // Query defines the gRPC query service for the liquidstaking module.
 service Query {
-  // Params returns parameters of the liquidstaking module.
-  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get                                           = "/lspersistence/v1beta1/params";
+    // Params returns parameters of the liquidstaking module.
+    rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+      option (google.api.http).get                                           = "/lspersistence/v1beta1/params";
+      option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        description: "Returns all parameters of the liquid staking module.";
+        external_docs: {
+         url:
+          "https://github.com/persistenceOne/pstake-native/x/lspersistence/spec";
+         description:
+          "Find out more about the params";
+       }
+      };
+    }
+  // LiquidValidators returns liquid validators with states of the liquidstaking module.
+  rpc LiquidValidators(QueryLiquidValidatorsRequest) returns (QueryLiquidValidatorsResponse) {
+    option (google.api.http).get                                           = "/lspersistence/v1beta1/validators";
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      description: "Returns all parameters of the liquid staking module.";
-  external_docs: {
-  url:
-    "https://github.com/persistenceOne/pStake-native/x/lspersistence/spec";
-  description:
-    "Find out more about the params";
+      description: "Returns all liquid validators of the liquid staking module.";
+      external_docs: {
+       url:
+        "https://github.com/persistenceOne/pstake-native/x/lspersistence/spec";
+       description:
+        "Find out more about the liquid validators";
+       }
+    };
   }
-  };
-}
-// LiquidValidators returns liquid validators with states of the liquidstaking module.
-rpc LiquidValidators(QueryLiquidValidatorsRequest) returns (QueryLiquidValidatorsResponse) {
-  option (google.api.http).get                                           = "/lspersistence/v1beta1/validators";
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-    description: "Returns all liquid validators of the liquid staking module.";
-external_docs: {
-url:
-  "https://github.com/persistenceOne/pStake-native/x/lspersistence/spec";
-description:
-  "Find out more about the liquid validators";
-}
-};
-}
-// VotingPower returns voting power of staking and liquid staking module's of the voter that can be exercised.
-rpc VotingPower(QueryVotingPowerRequest) returns (QueryVotingPowerResponse) {
-  option (google.api.http).get = "/lspersistence/v1beta1/voting_power/{voter}";
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-    description: "Returns voting power of staking and liquid staking module's of the voter that can be exercised.";
-external_docs: {
-url:
-  "https://github.com/persistenceOne/pStake-native/x/lspersistence/spec";
-description:
-  "Find out more about the liquid validators";
-}
-};
-}
+  // VotingPower returns voting power of staking and liquid staking module's of the voter that can be exercised.
+    rpc VotingPower(QueryVotingPowerRequest) returns (QueryVotingPowerResponse) {
+    option (google.api.http).get = "/lspersistence/v1beta1/voting_power/{voter}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "Returns voting power of staking and liquid staking module's of the voter that can be exercised.";
+      external_docs: {
+       url:
+       "https://github.com/persistenceOne/pstake-native/x/lspersistence/spec";
+       description:
+        "Find out more about the liquid validators";
+      }
+    };
+ }
 
-// States returns states of the liquidstaking module.
-rpc States(QueryStatesRequest) returns (QueryStatesResponse) {
-  option (google.api.http).get                                           = "/lspersistence/v1beta1/states";
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+  // States returns states of the liquidstaking module.
+   rpc States(QueryStatesRequest) returns (QueryStatesResponse) {
+   option (google.api.http).get                                           = "/lspersistence/v1beta1/states";
+   option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
     description: "Returns states of the liquid staking module.";
-external_docs: {
-url:
-  "https://github.com/persistenceOne/pStake-native/x/lspersistence/spec";
-description:
-  "Find out more about the liquid staking";
-}
-};
-}
+    external_docs: {
+     url:
+      "https://github.com/persistenceOne/pstake-native/x/lspersistence/spec";
+     description:
+      "Find out more about the liquid staking";
+    }
+   };
+  }
 }
 
 // QueryParamsRequest is the request type for the Query/Params RPC method.

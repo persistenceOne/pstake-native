@@ -30,27 +30,27 @@ func ProposalContents(ak types.AccountKeeper, bk types.BankKeeper, sk types.Stak
 	return []simtypes.WeightedProposalContent{
 		simulation.NewWeightedProposalContent(
 			OpWeightSimulateAddWhitelistValidatorsProposal,
-			params.DefaultWeightAddWhitelistValidatorsProposal,
+			params.DefaultLSPWeightAddWhitelistValidatorsProposal,
 			SimulateAddWhitelistValidatorsProposal(sk, k),
 		),
 		simulation.NewWeightedProposalContent(
 			OpWeightSimulateUpdateWhitelistValidatorsProposal,
-			params.DefaultWeightUpdateWhitelistValidatorsProposal,
+			params.DefaultLSPWeightUpdateWhitelistValidatorsProposal,
 			SimulateUpdateWhitelistValidatorsProposal(sk, k),
 		),
 		simulation.NewWeightedProposalContent(
 			OpWeightSimulateDeleteWhitelistValidatorsProposal,
-			params.DefaultWeightDeleteWhitelistValidatorsProposal,
+			params.DefaultLSPWeightDeleteWhitelistValidatorsProposal,
 			SimulateDeleteWhitelistValidatorsProposal(sk, k),
 		),
 		simulation.NewWeightedProposalContent(
 			OpWeightCompleteRedelegationUnbonding,
-			params.DefaultWeightCompleteRedelegationUnbonding,
+			params.DefaultLSPWeightCompleteRedelegationUnbonding,
 			SimulateCompleteRedelegationUnbonding(sk),
 		),
 		simulation.NewWeightedProposalContent(
 			OpWeightTallyWithLiquidStaking,
-			params.DefaultWeightTallyWithLiquidStaking,
+			params.DefaultLSPWeightTallyWithLiquidStaking,
 			SimulateTallyWithLiquidStaking(ak, bk, gk),
 		),
 	}
