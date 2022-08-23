@@ -112,7 +112,6 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 	// should be transferred to pstake address.
 	//remainingBalance := allBalances.Sub(sdk.NewCoins(depositBalance))
 
-	return
 }
 
 func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.CosmosIBCParams) {
@@ -120,11 +119,9 @@ func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosm
 	// on Ack do icq for reward acc. balance of uatom
 	// callback for sending it to delegation account
 	// on Ack delegate txn
-	return
 }
 
 func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.CosmosIBCParams) {
-	return
 }
 
 // ___________________________________________________________________________________________________

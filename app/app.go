@@ -99,15 +99,6 @@ import (
 	"github.com/persistenceOne/persistence-sdk/x/ibctransferhooks"
 	ibctransferhookskeeper "github.com/persistenceOne/persistence-sdk/x/ibctransferhooks/keeper"
 	ibctransferhookstypes "github.com/persistenceOne/persistence-sdk/x/ibctransferhooks/types"
-	pstakeante "github.com/persistenceOne/pstake-native/ante"
-	pstakeappparams "github.com/persistenceOne/pstake-native/app/params"
-	"github.com/persistenceOne/pstake-native/x/epochs"
-	epochskeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
-	epochstypes "github.com/persistenceOne/pstake-native/x/epochs/types"
-	"github.com/persistenceOne/pstake-native/x/lscosmos"
-	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
-	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
-	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
@@ -118,6 +109,16 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
+
+	pstakeante "github.com/persistenceOne/pstake-native/ante"
+	pstakeappparams "github.com/persistenceOne/pstake-native/app/params"
+	"github.com/persistenceOne/pstake-native/x/epochs"
+	epochskeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
+	epochstypes "github.com/persistenceOne/pstake-native/x/epochs/types"
+	"github.com/persistenceOne/pstake-native/x/lscosmos"
+	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
+	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
+	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 var (

@@ -7,7 +7,6 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
@@ -50,7 +49,7 @@ type DistributionKeeper interface {
 }
 
 type ICS4WrapperKeeper interface {
-	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet ibcexported.PacketI) error
+	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet exported.PacketI) error
 }
 
 // ChannelKeeper defines the expected IBC channel keeper
@@ -76,11 +75,6 @@ type ScopedKeeper interface {
 
 type IBCTransferKeeper interface {
 	DenomPathFromHash(ctx sdk.Context, denom string) (string, error)
-
-	// Based on the note in ibc-go SendTransfer implementation, we use msg server for this
-	//SendTransfer(
-	//	ctx sdk.Context, sourcePort, sourceChannel string, token sdk.Coin, sender sdk.AccAddress, receiver string,
-	//	timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error
 }
 
 type ICAControllerKeeper interface {
