@@ -1,8 +1,6 @@
 package types_test
 
 import (
-	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"testing"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
@@ -38,11 +36,4 @@ func TestGenesisState_Validate(t *testing.T) {
 			}
 		})
 	}
-}
-
-func Test1GenesisState_Validate(t *testing.T) {
-	fmt.Println("asdasd")
-	fmt.Println(types.DepositAmount{}.Amount == nil)
-	fmt.Println(types.DepositAmount{}.Amount.Add(sdk.NewInt64Coin("asd", 1)))
-	fmt.Println(types.DepositAmount{}.Amount.IsEqual(sdk.Coins{}))
 }

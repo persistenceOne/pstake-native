@@ -14,21 +14,22 @@ func (suite *IntegrationTestSuite) TestCosmosIBCParamsQuery() {
 	minDeposit := sdk.NewInt(5)
 	depositFee, err := sdk.NewDecFromStr("0.01")
 	suite.NoError(err)
-	proposal := types.NewRegisterCosmosChainProposal("title", "description", "connection-0", "channel-0", "transfer", "uatom", "ustkatom", minDeposit.String(), depositFee.String())
-	params := types.NewCosmosIBCParams(proposal.IBCConnection, proposal.TokenTransferChannel, proposal.TokenTransferPort, proposal.BaseDenom, proposal.MintDenom, minDeposit, depositFee)
+	restakeFee, err := sdk.NewDecFromStr("0.02")
+	suite.NoError(err)
+	unstakeFee, err := sdk.NewDecFromStr("0.03")
+	suite.NoError(err)
+	params := types.NewCosmosIBCParams("connection-0", "channel-0", "transfer",
+		"uatom", "ustkatom", minDeposit, depositFee, restakeFee, unstakeFee)
 	suite.app.LSCosmosKeeper.SetCosmosIBCParams(ctx, params)
 
 	c := sdk.WrapSDKContext(ctx)
 	response, err := app.LSCosmosKeeper.CosmosIBCParams(c, &types.QueryCosmosIBCParamsRequest{})
 	suite.NoError(err)
-	minDeposit, ok := sdk.NewIntFromString(proposal.MinDeposit)
+	minDeposit, ok := sdk.NewIntFromString("1")
 	if !ok {
 		err = sdkErrors.Wrap(err, "minimum deposit amount is invalid")
 	}
 	suite.NoError(err)
-	pStakeDepositFee, err := sdk.NewDecFromStr(proposal.PStakeDepositFee)
-	suite.NoError(err)
-	cosmoIBCparams := types.NewCosmosIBCParams(proposal.IBCConnection, proposal.TokenTransferChannel, proposal.TokenTransferPort, proposal.BaseDenom, proposal.MintDenom, minDeposit, pStakeDepositFee)
-	suite.Equal(&types.QueryCosmosIBCParamsResponse{CosmosIBCParams: cosmoIBCparams}, response)
+	suite.Equal(&types.QueryCosmosIBCParamsResponse{CosmosIBCParams: params}, response)
 
 }
