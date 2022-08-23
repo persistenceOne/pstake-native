@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,18 +38,18 @@ type RegisterCosmosChainProposalJSON struct {
 	Deposit              string `json:"deposit" yaml:"deposit"`
 }
 
-func NewRegisterChainJSON(Title, Description, IBCConnection, TokenTransferChannel, TokenTransferPort, BaseDenom, MintDenom, MinDeposit, PStakeDepositFee, Deposit string) RegisterCosmosChainProposalJSON {
+func NewRegisterChainJSON(title, description, ibcConnection, tokenTransferChannel, tokenTransferPort, baseDenom, mintDenom, minDeposit, pStakeDepositFee, deposit string) RegisterCosmosChainProposalJSON {
 	return RegisterCosmosChainProposalJSON{
-		Title:                Title,
-		Description:          Description,
-		IBCConnection:        IBCConnection,
-		TokenTransferChannel: TokenTransferChannel,
-		TokenTransferPort:    TokenTransferPort,
-		BaseDenom:            BaseDenom,
-		MintDenom:            MintDenom,
-		MinDeposit:           MinDeposit,
-		PStakeDepositFee:     PStakeDepositFee,
-		Deposit:              Deposit,
+		Title:                title,
+		Description:          description,
+		IBCConnection:        ibcConnection,
+		TokenTransferChannel: tokenTransferChannel,
+		TokenTransferPort:    tokenTransferPort,
+		BaseDenom:            baseDenom,
+		MintDenom:            mintDenom,
+		MinDeposit:           minDeposit,
+		PStakeDepositFee:     pStakeDepositFee,
+		Deposit:              deposit,
 	}
 }
 
@@ -58,7 +58,7 @@ func NewRegisterChainJSON(Title, Description, IBCConnection, TokenTransferChanne
 func ParseRegisterCosmosChainProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (RegisterCosmosChainProposalJSON, error) {
 	proposal := RegisterCosmosChainProposalJSON{}
 
-	contents, err := ioutil.ReadFile(proposalFile)
+	contents, err := os.ReadFile(proposalFile)
 	if err != nil {
 		return proposal, err
 	}

@@ -145,6 +145,7 @@ func (am AppModule) OnRecvPacket(
 	}
 
 	// Dispatch packet
+	//nolint:gocritic,unimplemented_code
 	switch packet := modulePacketData.Packet.(type) {
 	// this line is used by starport scaffolding # ibc/packet/module/recv
 	default:
@@ -153,6 +154,7 @@ func (am AppModule) OnRecvPacket(
 	}
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
+	//nolint:govet,unimplemented
 	return ack
 }
 
@@ -178,13 +180,14 @@ func (am AppModule) OnAcknowledgementPacket(
 	var eventType string
 
 	// Dispatch packet
+	//nolint:gocritic,unimplemented_code
 	switch packet := modulePacketData.Packet.(type) {
 	// this line is used by starport scaffolding # ibc/packet/module/ack
 	default:
 		errMsg := fmt.Sprintf("unrecognized %s packet type: %T", types.ModuleName, packet)
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
 	}
-
+	//nolint:govet,unimplemented
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			eventType,
@@ -223,7 +226,7 @@ func (am AppModule) OnTimeoutPacket(
 	if err := modulePacketData.Unmarshal(modulePacket.GetData()); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: %s", err.Error())
 	}
-
+	//nolint:gocritic,unimplemented_code
 	// Dispatch packet
 	switch packet := modulePacketData.Packet.(type) {
 	// this line is used by starport scaffolding # ibc/packet/module/timeout
@@ -231,6 +234,6 @@ func (am AppModule) OnTimeoutPacket(
 		errMsg := fmt.Sprintf("unrecognized %s packet type: %T", types.ModuleName, packet)
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
 	}
-
+	//nolint:govet,unimplemented
 	return nil
 }

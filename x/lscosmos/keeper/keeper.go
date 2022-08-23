@@ -134,7 +134,7 @@ func (k Keeper) GetUndelegationAccount(ctx sdk.Context) authtypes.ModuleAccountI
 	return k.accountKeeper.GetModuleAccount(ctx, types.UndelegationModuleAccount)
 }
 
-//MintTokens in the given account
+// MintTokens in the given account
 func (k Keeper) MintTokens(ctx sdk.Context, mintCoin sdk.Coin, delegatorAddress sdk.AccAddress) error {
 
 	err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(mintCoin))
@@ -159,14 +159,14 @@ func (k Keeper) SendTokensToDepositModule(ctx sdk.Context, depositCoin sdk.Coins
 	return nil
 }
 
-//SendResidueToCommunityPool sends the residue stk token to community pool
+// SendResidueToCommunityPool sends the residue stk token to community pool
 func (k Keeper) SendResidueToCommunityPool(ctx sdk.Context, residue []sdk.DecCoin) {
 	feePool := k.distributionKeeper.GetFeePool(ctx)
 	feePool.CommunityPool = feePool.CommunityPool.Add(residue...)
 	k.distributionKeeper.SetFeePool(ctx, feePool)
 }
 
-//SendProtocolFee to the community pool
+// SendProtocolFee to the community pool
 func (k Keeper) SendProtocolFee(ctx sdk.Context, protocolFee []sdk.Coin, delegatorAddr sdk.AccAddress) error {
 	//TODO : create pstake community pool
 	err := k.distributionKeeper.FundCommunityPool(ctx, protocolFee, delegatorAddr)

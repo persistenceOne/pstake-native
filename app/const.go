@@ -1,10 +1,10 @@
 package app
 
-// nolint: gosec
+//nolint:deadcode,unused,unused_vars
 const (
 	appName     = "pStake"
 	upgradeName = ""
-
+	//nolint:nolintlint,unused_vars
 	authzMsgExec                        = "/cosmos.authz.v1beta1.MsgExec"
 	authzMsgGrant                       = "/cosmos.authz.v1beta1.MsgGrant"
 	authzMsgRevoke                      = "/cosmos.authz.v1beta1.MsgRevoke"

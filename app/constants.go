@@ -14,8 +14,7 @@ import (
 const (
 	Bech32MainPrefix = "persistence"
 	CoinType         = 118
-
-	FullFundraiserPath = "44'/118'/0'/0/0"
+	Purpose          = 44
 
 	HumanCoinUnit = "xprt"
 	BaseCoinUnit  = "uxprt"
