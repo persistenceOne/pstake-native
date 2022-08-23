@@ -9,7 +9,6 @@ import (
 
 	simapp "github.com/persistenceOne/pstake-native/app"
 	"github.com/persistenceOne/pstake-native/app/helpers"
-	cosmostypes "github.com/persistenceOne/pstake-native/x/cosmos/types"
 	"github.com/persistenceOne/pstake-native/x/epochs"
 	"github.com/persistenceOne/pstake-native/x/epochs/types"
 )
@@ -20,7 +19,6 @@ func TestEpochInfoChangesBeginBlockerAndInitGenesis(t *testing.T) {
 	var epochInfo types.EpochInfo
 
 	_, app, ctx = helpers.CreateTestApp()
-	app.CosmosKeeper.SetParams(ctx, cosmostypes.DefaultParams())
 	epochs.InitGenesis(ctx, app.EpochsKeeper, *types.DefaultGenesis())
 
 	now := time.Now()
@@ -229,7 +227,6 @@ func TestLegacyEpochSerialization(t *testing.T) {
 
 	now := time.Now()
 	_, app, ctx := helpers.CreateTestApp()
-	app.CosmosKeeper.SetParams(ctx, cosmostypes.DefaultParams())
 
 	// On init genesis, default epochs information is set
 	// To check init genesis again, should make it fresh status
