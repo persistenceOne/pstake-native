@@ -1,7 +1,7 @@
 namespace: dev-native
 
 resources:
-- faucet.yaml
+- faucet.yml
 - ingress.yml
 
 generatorOptions:
