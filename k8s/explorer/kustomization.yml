@@ -1,8 +1,8 @@
 namespace: dev-native
 
 resources:
-  - configmap.yaml
-  - explorer.yaml
+  - configmap.yml
+  - explorer.yml
   - ingress.yml
 
 generatorOptions:

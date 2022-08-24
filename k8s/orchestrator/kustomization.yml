@@ -1,7 +1,7 @@
 namespace: dev-native
 
 resources:
-- orchestrator.yaml
+- orchestrator.yml
 
 generatorOptions:
   disableNameSuffixHash: true
