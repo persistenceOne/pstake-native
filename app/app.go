@@ -95,6 +95,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
@@ -184,6 +185,7 @@ var (
 var (
 	_ simapp.App              = (*PstakeApp)(nil)
 	_ servertypes.Application = (*PstakeApp)(nil)
+	_ ibctesting.TestingApp   = (*PstakeApp)(nil)
 )
 
 // PstakeApp extends an ABCI application, but with most of its parameters exported.
@@ -262,7 +264,6 @@ func NewpStakeApp(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *PstakeApp {
-
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
@@ -614,7 +615,6 @@ func NewpStakeApp(
 		evidencetypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
-		authtypes.ModuleName,
 		genutiltypes.ModuleName,
 		routertypes.ModuleName,
 		lscosmostypes.ModuleName,
@@ -648,10 +648,8 @@ func NewpStakeApp(
 		params.NewAppModule(app.ParamsKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
-		lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
-		transferModule,
-		//icaModule,
 		lscosmosModule,
+		transferModule,
 	)
 
 	app.sm.RegisterStoreDecoders()
@@ -877,4 +875,32 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(lscosmostypes.ModuleName)
 
 	return paramsKeeper
+}
+
+// IBC Go TestingApp functions
+
+// GetBaseApp implements the TestingApp interface.
+func (app *PstakeApp) GetBaseApp() *baseapp.BaseApp {
+	return app.BaseApp
+}
+
+// GetStakingKeeper implements the TestingApp interface.
+func (app *PstakeApp) GetStakingKeeper() stakingkeeper.Keeper {
+	return app.StakingKeeper
+}
+
+// GetIBCKeeper implements the TestingApp interface.
+func (app *PstakeApp) GetIBCKeeper() *ibckeeper.Keeper {
+	return app.IBCKeeper
+}
+
+// GetScopedIBCKeeper implements the TestingApp interface.
+func (app *PstakeApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
+	return app.ScopedIBCKeeper
+}
+
+// GetTxConfig implements the TestingApp interface.
+func (app *PstakeApp) GetTxConfig() client.TxConfig {
+	cfg := MakeEncodingConfig()
+	return cfg.TxConfig
 }
