@@ -96,9 +96,9 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	"github.com/gorilla/mux"
-	"github.com/persistenceOne/persistence-sdk/x/ibctransferhooks"
-	ibctransferhookskeeper "github.com/persistenceOne/persistence-sdk/x/ibctransferhooks/keeper"
-	ibctransferhookstypes "github.com/persistenceOne/persistence-sdk/x/ibctransferhooks/types"
+	"github.com/persistenceOne/persistence-sdk/x/ibchooker"
+	ibchookerkeeper "github.com/persistenceOne/persistence-sdk/x/ibchooker/keeper"
+	ibchookertypes "github.com/persistenceOne/persistence-sdk/x/ibchooker/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
@@ -154,7 +154,7 @@ var (
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
-		ibctransferhooks.AppModuleBasic{},
+		ibchooker.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		router.AppModuleBasic{},
 		ica.AppModuleBasic{},
@@ -224,7 +224,7 @@ type PstakeApp struct {
 	ICAControllerKeeper icacontrollerkeeper.Keeper
 	EvidenceKeeper      evidencekeeper.Keeper
 	TransferKeeper      ibctransferkeeper.Keeper
-	TransferHooksKeeper ibctransferhookskeeper.Keeper
+	TransferHooksKeeper ibchookerkeeper.Keeper //one instance of ibchooker
 	FeeGrantKeeper      feegrantkeeper.Keeper
 	AuthzKeeper         authzkeeper.Keeper
 	RouterKeeper        routerkeeper.Keeper
@@ -460,9 +460,9 @@ func NewpStakeApp(
 		scopedLSCosmosKeeper,
 		app.MsgServiceRouter(),
 	)
-	ibcTransferHooksKeeper := ibctransferhookskeeper.NewKeeper()
-	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(ibctransferhookstypes.NewMultiStakingHooks(app.LSCosmosKeeper.NewIBCTransferHooks()))
-	ibcTransferHooksMiddleware := ibctransferhooks.NewAppModule(app.TransferHooksKeeper, transferIBCModule)
+	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()
+	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(ibchookertypes.NewMultiStakingHooks(app.LSCosmosKeeper.NewIBCTransferHooks()))
+	ibcTransferHooksMiddleware := ibchooker.NewAppModule(app.TransferHooksKeeper, transferIBCModule)
 
 	app.RouterKeeper = routerkeeper.NewKeeper(appCodec, keys[routertypes.StoreKey], app.GetSubspace(routertypes.ModuleName), app.TransferKeeper, app.DistrKeeper)
 
@@ -580,7 +580,7 @@ func NewpStakeApp(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
-		ibctransferhookstypes.ModuleName, //Noop
+		ibchookertypes.ModuleName, //Noop
 	)
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
@@ -605,7 +605,7 @@ func NewpStakeApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-		ibctransferhookstypes.ModuleName, //Noop
+		ibchookertypes.ModuleName, //Noop
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -638,7 +638,7 @@ func NewpStakeApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-		ibctransferhookstypes.ModuleName, //Noop
+		ibchookertypes.ModuleName, //Noop
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)

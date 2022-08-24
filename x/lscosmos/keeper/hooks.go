@@ -9,7 +9,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibctransferhookstypes "github.com/persistenceOne/persistence-sdk/x/ibctransferhooks/types"
+	ibchookertypes "github.com/persistenceOne/persistence-sdk/x/ibchooker/types"
 	epochstypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 
 	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
@@ -139,7 +139,7 @@ type IBCTransferHooks struct {
 	k Keeper
 }
 
-var _ ibctransferhookstypes.IBCTransferHooks = IBCTransferHooks{}
+var _ ibchookertypes.IBCHandshakeHooks = IBCTransferHooks{}
 
 func (k Keeper) NewIBCTransferHooks() IBCTransferHooks {
 	return IBCTransferHooks{k}

@@ -12,7 +12,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/ory/dockertest/v3 v3.9.1
-	github.com/persistenceOne/persistence-sdk v0.0.0-20220823135222-1270905e4377
+	github.com/persistenceOne/persistence-sdk v0.0.0-20220824105754-673972c2f881
 	github.com/rakyll/statik v0.1.7
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.5.0
@@ -251,7 +251,6 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
-	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
 	golang.org/x/exp/typeparams v0.0.0-20220613132600-b0d781184e0d // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
