@@ -532,7 +532,7 @@ func NewpStakeApp(
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		epochs.NewAppModule(appCodec, app.EpochsKeeper),
-		lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
+		lscosmosModule,
 		transferModule,
 		icaModule,
 		routerModule,
