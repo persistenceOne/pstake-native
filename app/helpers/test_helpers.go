@@ -127,7 +127,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*app.PstakeApp, app.GenesisSt
 // SetupTestingApp initializes the IBC-go testing application
 func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := tmdb.NewMemDB()
-	app1 := app.NewpStakeApp(
+	newpStakeApp := app.NewpStakeApp(
 		log.NewNopLogger(),
 		db,
 		nil,
@@ -138,5 +138,5 @@ func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 		app.MakeEncodingConfig(),
 		EmptyAppOptions{},
 	)
-	return app1, app.NewDefaultGenesisState()
+	return newpStakeApp, app.NewDefaultGenesisState()
 }

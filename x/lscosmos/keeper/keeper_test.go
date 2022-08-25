@@ -43,7 +43,7 @@ func newPstakeAppPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 func GetPstakeApp(chain *ibctesting.TestChain) *app.PstakeApp {
 	app1, ok := chain.App.(*app.PstakeApp)
 	if !ok {
-		panic("not sim app")
+		panic("not pstake app")
 	}
 
 	return app1
