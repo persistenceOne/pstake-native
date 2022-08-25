@@ -92,7 +92,7 @@ func (k Keeper) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
-	counterpartyChannelId string,
+	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
 	var counterpartyVersionData icatypes.Metadata
