@@ -38,7 +38,19 @@ func (suite *HandlerTestSuite) TestProposalHandler() {
 	}{
 		{
 			"all fields",
-			types.NewRegisterCosmosChainProposal("title", "description", "connection", "channel-1", "transfer", "uatom", "ustkatom", "5", "0"),
+			types.NewRegisterCosmosChainProposal("title",
+				"description",
+				true,
+				"connection-0",
+				"channel-1",
+				"transfer",
+				"uatom",
+				"ustkatom",
+				sdk.OneInt().MulRaw(5),
+				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "addr", TargetWeight: sdk.OneDec()}}},
+				sdk.ZeroDec(),
+				sdk.ZeroDec(),
+				sdk.ZeroDec()),
 			true,
 		},
 	}

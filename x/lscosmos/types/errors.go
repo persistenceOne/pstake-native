@@ -18,4 +18,6 @@ var (
 	ErrMintFailed           = sdkerrors.Register(ModuleName, 68, "minting failed")
 	ErrMinDeposit           = sdkerrors.Register(ModuleName, 69, "deposit amount less than minimum deposit")
 	ErrInvalidDenomPath     = sdkerrors.Register(ModuleName, 70, "denomPath invalid")
+	ErrModuleDisabled       = sdkerrors.Register(ModuleName, 71, "Module is not enabled/ disabled")
+	ErrInvalidIntParse      = sdkerrors.Register(ModuleName, 72, "unable to parse to sdk.Int")
 )
