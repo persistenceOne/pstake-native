@@ -23,18 +23,16 @@ func (k Keeper) GetDelegationState(ctx sdk.Context) types.DelegationState {
 	return delegationState
 }
 
-func (k Keeper) AddBalanceToDelegationState(ctx sdk.Context, coin sdk.Coin) error {
+func (k Keeper) AddBalanceToDelegationState(ctx sdk.Context, coin sdk.Coin) {
 	delegationState := k.GetDelegationState(ctx)
 	delegationState.HostDelegationAccountBalance = delegationState.HostDelegationAccountBalance.Add(coin)
 	k.SetDelegationState(ctx, delegationState)
-	return nil
 }
 
-func (k Keeper) RemoveBalanceToDelegationState(ctx sdk.Context, coins sdk.Coins) error {
+func (k Keeper) RemoveBalanceToDelegationState(ctx sdk.Context, coins sdk.Coins) {
 	delegationState := k.GetDelegationState(ctx)
 	delegationState.HostDelegationAccountBalance = delegationState.HostDelegationAccountBalance.Sub(coins)
 	k.SetDelegationState(ctx, delegationState)
-	return nil
 }
 
 func (k Keeper) SetHostChainDelegationAddress(ctx sdk.Context, addr string) error {
