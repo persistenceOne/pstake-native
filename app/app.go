@@ -96,6 +96,9 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	"github.com/gorilla/mux"
+	"github.com/persistenceOne/persistence-sdk/x/epochs"
+	epochskeeper "github.com/persistenceOne/persistence-sdk/x/epochs/keeper"
+	epochstypes "github.com/persistenceOne/persistence-sdk/x/epochs/types"
 	"github.com/persistenceOne/persistence-sdk/x/ibchooker"
 	ibchookerkeeper "github.com/persistenceOne/persistence-sdk/x/ibchooker/keeper"
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/x/ibchooker/types"
@@ -112,9 +115,6 @@ import (
 
 	pstakeante "github.com/persistenceOne/pstake-native/ante"
 	pstakeappparams "github.com/persistenceOne/pstake-native/app/params"
-	"github.com/persistenceOne/pstake-native/x/epochs"
-	epochskeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
-	epochstypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 	"github.com/persistenceOne/pstake-native/x/lscosmos"
 	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
 	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
@@ -383,7 +383,7 @@ func NewpStakeApp(
 		app.BankKeeper,
 		authtypes.FeeCollectorName,
 	)
-	app.EpochsKeeper = epochskeeper.NewKeeper(
+	epochsKeeper := *epochskeeper.NewKeeper(
 		appCodec,
 		keys[epochstypes.StoreKey],
 	)
@@ -512,7 +512,7 @@ func NewpStakeApp(
 
 	app.EvidenceKeeper = *evidenceKeeper
 
-	app.EpochsKeeper.SetHooks(
+	app.EpochsKeeper = *epochsKeeper.SetHooks(
 		epochstypes.NewMultiEpochHooks(app.LSCosmosKeeper.NewEpochHooks()),
 	)
 
@@ -543,7 +543,7 @@ func NewpStakeApp(
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
-		epochs.NewAppModule(appCodec, app.EpochsKeeper),
+		epochs.NewAppModule(app.EpochsKeeper),
 		transferModule,
 		ibcTransferHooksMiddleware,
 		icaModule,
