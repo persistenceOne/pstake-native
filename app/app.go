@@ -466,7 +466,7 @@ func NewpStakeApp(
 
 	app.RouterKeeper = routerkeeper.NewKeeper(appCodec, keys[routertypes.StoreKey], app.GetSubspace(routertypes.ModuleName), app.TransferKeeper, app.DistrKeeper)
 
-	// Information will flow: ibc-port -> icaController -> lscosmos- pstake.
+	// Information will flow: ibc-port -> icaController -> lscosmos.
 	lscosmosModule := lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
 	icaControllerIBCModule := icacontroller.NewIBCModule(app.ICAControllerKeeper, lscosmosModule)
 
