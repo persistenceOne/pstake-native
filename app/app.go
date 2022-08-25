@@ -224,7 +224,7 @@ type PstakeApp struct {
 	ICAControllerKeeper icacontrollerkeeper.Keeper
 	EvidenceKeeper      evidencekeeper.Keeper
 	TransferKeeper      ibctransferkeeper.Keeper
-	TransferHooksKeeper ibchookerkeeper.Keeper //one instance of ibchooker
+	TransferHooksKeeper ibchookerkeeper.Keeper
 	FeeGrantKeeper      feegrantkeeper.Keeper
 	AuthzKeeper         authzkeeper.Keeper
 	RouterKeeper        routerkeeper.Keeper
@@ -470,7 +470,7 @@ func NewpStakeApp(
 	lscosmosModule := lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
 	icaControllerIBCModule := icacontroller.NewIBCModule(app.ICAControllerKeeper, lscosmosModule)
 
-	//This module is not being used for any routing, can be removed, only part of ModuleManager.
+	// This module is not being used for any routing, can be removed, only part of ModuleManager.
 	// using ibcTransferHooksMiddleware instead.
 	routerModule := router.NewAppModule(app.RouterKeeper, transferIBCModule)
 	// create static IBC router, add transfer route, then set and seal it
