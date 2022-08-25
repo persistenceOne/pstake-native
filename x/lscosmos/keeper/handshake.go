@@ -151,6 +151,8 @@ func (k Keeper) OnChanCloseConfirm(
 }
 
 // OnRecvPacket implements the IBCModule interface
+//
+//nolint:govet,gocritic,unimplemented_code
 func (k Keeper) OnRecvPacket(
 	ctx sdk.Context,
 	modulePacket channeltypes.Packet,
@@ -178,6 +180,8 @@ func (k Keeper) OnRecvPacket(
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
+//
+//nolint:govet,gocritic,unimplemented_code
 func (k Keeper) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	modulePacket channeltypes.Packet,
@@ -235,6 +239,8 @@ func (k Keeper) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket implements the IBCModule interface
+//
+//nolint:govet,gocritic,unimplemented_code
 func (k Keeper) OnTimeoutPacket(
 	ctx sdk.Context,
 	modulePacket channeltypes.Packet,
