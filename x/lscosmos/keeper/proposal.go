@@ -15,16 +15,13 @@ import (
 
 // HandleRegisterCosmosChainProposal performs the writes cosmos IBC params.
 func HandleRegisterCosmosChainProposal(ctx sdk.Context, k Keeper, content types.RegisterCosmosChainProposal) error {
-	minDeposit, ok := sdk.NewIntFromString(content.MinDeposit)
-	if !ok {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum deposit must be a positive integer")
+	oldData := k.GetCosmosIBCParams(ctx)
+	if !oldData.IsEmpty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module was already registered")
 	}
-
-	pStakeDepositFee, err := sdk.NewDecFromStr(content.PStakeDepositFee)
-	if err != nil {
-		return err
+	if !content.ModuleEnabled {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module should also be enabled while passing register proposal")
 	}
-
 	if content.TokenTransferPort != ibctransfertypes.PortID {
 		return sdkerrors.Wrap(ibcporttypes.ErrInvalidPort, "Only acceptable TokenTransferPort is \"transfer\"")
 	}
@@ -41,7 +38,7 @@ func HandleRegisterCosmosChainProposal(ctx sdk.Context, k Keeper, content types.
 		)
 	}
 	// TODO Understand capabilities and see if it has to be/ should be claimed in lsscopedkeeper. If it even matters.
-	_, err = k.lscosmosScopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(content.TokenTransferPort, content.TokenTransferChannel))
+	_, err := k.lscosmosScopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(content.TokenTransferPort, content.TokenTransferChannel))
 	if err != nil {
 		return sdkerrors.Wrapf(err, "Failed to create and claim capability for ibc transfer port and channel")
 	}
@@ -57,8 +54,14 @@ func HandleRegisterCosmosChainProposal(ctx sdk.Context, k Keeper, content types.
 	}
 
 	paramsProposal := types.NewCosmosIBCParams(content.IBCConnection, content.TokenTransferChannel,
-		content.TokenTransferPort, content.BaseDenom, content.MintDenom, minDeposit, pStakeDepositFee)
+		content.TokenTransferPort, content.BaseDenom, content.MintDenom, content.MinDeposit,
+		content.PStakeDepositFee, content.PStakeRestakeFee, content.PStakeUnstakeFee)
 
 	k.SetCosmosIBCParams(ctx, paramsProposal)
+
+	if !content.AllowListedValidators.Valid() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Allow listed validators is invalid")
+	}
+	k.SetAllowListedValidators(ctx, content.AllowListedValidators)
 	return nil
 }

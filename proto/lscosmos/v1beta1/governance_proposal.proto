@@ -3,6 +3,7 @@ package lscosmos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "lscosmos/v1beta1/lscosmos.proto";
 
 option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
 
@@ -18,23 +19,15 @@ message RegisterCosmosChainProposal {
 
   string title = 1;
   string description = 2;
-  string i_b_c_connection = 3;
-  string token_transfer_channel = 4;
-  string token_transfer_port = 5;
-  string base_denom = 6;
-  string mint_denom = 7;
-  string min_deposit = 8;
-  string p_stake_deposit_fee = 9;  //protocol fee in percentage
-}
-
-message CosmosIBCParams {
-  option (gogoproto.goproto_stringer) = true;
-
-  string i_b_c_connection = 1;
-  string token_transfer_channel = 2;
-  string token_transfer_port = 3;
-  string base_denom = 4;
-  string mint_denom = 5;
-  string min_deposit = 6 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
-  string p_stake_deposit_fee = 7 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
+  bool  module_enabled = 3;
+  string i_b_c_connection = 4;
+  string token_transfer_channel = 5;
+  string token_transfer_port = 6;
+  string base_denom = 7;
+  string mint_denom = 8;
+  string min_deposit = 9 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  AllowListedValidators allow_listed_validators = 10 [(gogoproto.nullable) = false];
+  string p_stake_deposit_fee = 11 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string p_stake_restake_fee = 12 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string p_stake_unstake_fee = 13 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }

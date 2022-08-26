@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -17,10 +18,11 @@ import (
 )
 
 type Keeper struct {
-	cdc                  codec.BinaryCodec
-	storeKey             sdk.StoreKey
-	memKey               sdk.StoreKey
-	paramstore           paramtypes.Subspace
+	cdc        codec.BinaryCodec
+	storeKey   sdk.StoreKey
+	memKey     sdk.StoreKey
+	paramstore paramtypes.Subspace
+
 	bankKeeper           types.BankKeeper
 	distributionKeeper   types.DistributionKeeper
 	accountKeeper        types.AccountKeeper
@@ -30,6 +32,8 @@ type Keeper struct {
 	ibcTransferKeeper    types.IBCTransferKeeper
 	icaControllerKeeper  types.ICAControllerKeeper
 	lscosmosScopedKeeper types.ScopedKeeper
+
+	msgRouter *baseapp.MsgServiceRouter
 }
 
 func NewKeeper(
@@ -46,6 +50,7 @@ func NewKeeper(
 	ibcTransferKeeper types.IBCTransferKeeper,
 	icaControllerKeeper types.ICAControllerKeeper,
 	lscosmosScopedKeeper types.ScopedKeeper,
+	msgRouter *baseapp.MsgServiceRouter,
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -66,6 +71,7 @@ func NewKeeper(
 		storeKey:             storeKey,
 		memKey:               memKey,
 		paramstore:           ps,
+		msgRouter:            msgRouter,
 	}
 }
 
@@ -118,19 +124,25 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.lscosmosScopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-func (k Keeper) GetDepositAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+// NewCapability allows the module that can initiate and claim a capability that IBC module passes to it
+func (k Keeper) NewCapability(ctx sdk.Context, name string) error {
+	_, err := k.lscosmosScopedKeeper.NewCapability(ctx, name)
+	return err
+}
+
+func (k Keeper) GetDepositModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.DepositModuleAccount)
 }
 
-func (k Keeper) GetDelegationAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+func (k Keeper) GetDelegationModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.DelegationModuleAccount)
 }
 
-func (k Keeper) GetRewardAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+func (k Keeper) GetRewardModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.RewardModuleAccount)
 }
 
-func (k Keeper) GetUndelegationAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+func (k Keeper) GetUndelegationModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.UndelegationModuleAccount)
 }
 
@@ -152,11 +164,7 @@ func (k Keeper) MintTokens(ctx sdk.Context, mintCoin sdk.Coin, delegatorAddress 
 
 // SendTokensToDepositModule sends the tokens to DepositModuleAccount
 func (k Keeper) SendTokensToDepositModule(ctx sdk.Context, depositCoin sdk.Coins, senderAddress sdk.AccAddress) error {
-	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddress, types.DepositModuleAccount, depositCoin)
-	if err != nil {
-		return err
-	}
-	return nil
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddress, types.DepositModuleAccount, depositCoin)
 }
 
 // SendResidueToCommunityPool sends the residue stk token to community pool

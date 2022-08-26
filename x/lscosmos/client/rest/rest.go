@@ -72,16 +72,38 @@ func postRegisterChainHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			return
 		}
 
+		minDeposit, ok := sdk.NewIntFromString(req.MinDeposit)
+		if !ok {
+			_ = rest.CheckBadRequestError(w, types.ErrInvalidIntParse)
+			return
+		}
+		depositFee, err := sdk.NewDecFromStr(req.PStakeDepositFee)
+		if rest.CheckBadRequestError(w, err) {
+			return
+		}
+		restakeFee, err := sdk.NewDecFromStr(req.PStakeRestakeFee)
+		if rest.CheckBadRequestError(w, err) {
+			return
+		}
+		unstakeFee, err := sdk.NewDecFromStr(req.PStakeUnstakeFee)
+		if rest.CheckBadRequestError(w, err) {
+			return
+		}
+
 		content := types.NewRegisterCosmosChainProposal(
 			req.Title,
 			req.Description,
+			req.ModuleEnabled,
 			req.IBCConnection,
 			req.TokenTransferChannel,
 			req.TokenTransferPort,
 			req.BaseDenom,
 			req.MintDenom,
-			req.MinDeposit,
-			req.PStakeDepositFee,
+			minDeposit,
+			req.AllowListedValidators,
+			depositFee,
+			restakeFee,
+			unstakeFee,
 		)
 
 		msg, err := govtypes.NewMsgSubmitProposal(content, req.Deposit, req.Proposer)

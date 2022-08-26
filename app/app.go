@@ -95,7 +95,14 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/gorilla/mux"
+	"github.com/persistenceOne/persistence-sdk/x/epochs"
+	epochskeeper "github.com/persistenceOne/persistence-sdk/x/epochs/keeper"
+	epochstypes "github.com/persistenceOne/persistence-sdk/x/epochs/types"
+	"github.com/persistenceOne/persistence-sdk/x/ibchooker"
+	ibchookerkeeper "github.com/persistenceOne/persistence-sdk/x/ibchooker/keeper"
+	ibchookertypes "github.com/persistenceOne/persistence-sdk/x/ibchooker/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
@@ -109,9 +116,6 @@ import (
 
 	pstakeante "github.com/persistenceOne/pstake-native/ante"
 	pstakeappparams "github.com/persistenceOne/pstake-native/app/params"
-	"github.com/persistenceOne/pstake-native/x/epochs"
-	epochskeeper "github.com/persistenceOne/pstake-native/x/epochs/keeper"
-	epochstypes "github.com/persistenceOne/pstake-native/x/epochs/types"
 	"github.com/persistenceOne/pstake-native/x/lscosmos"
 	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
 	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
@@ -151,6 +155,7 @@ var (
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
+		ibchooker.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		router.AppModuleBasic{},
 		ica.AppModuleBasic{},
@@ -184,6 +189,7 @@ var (
 var (
 	_ simapp.App              = (*PstakeApp)(nil)
 	_ servertypes.Application = (*PstakeApp)(nil)
+	_ ibctesting.TestingApp   = (*PstakeApp)(nil)
 )
 
 // PstakeApp extends an ABCI application, but with most of its parameters exported.
@@ -220,6 +226,7 @@ type PstakeApp struct {
 	ICAControllerKeeper icacontrollerkeeper.Keeper
 	EvidenceKeeper      evidencekeeper.Keeper
 	TransferKeeper      ibctransferkeeper.Keeper
+	TransferHooksKeeper ibchookerkeeper.Keeper
 	FeeGrantKeeper      feegrantkeeper.Keeper
 	AuthzKeeper         authzkeeper.Keeper
 	RouterKeeper        routerkeeper.Keeper
@@ -262,7 +269,6 @@ func NewpStakeApp(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *PstakeApp {
-
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
@@ -378,7 +384,7 @@ func NewpStakeApp(
 		app.BankKeeper,
 		authtypes.FeeCollectorName,
 	)
-	app.EpochsKeeper = epochskeeper.NewKeeper(
+	epochsKeeper := *epochskeeper.NewKeeper(
 		appCodec,
 		keys[epochstypes.StoreKey],
 	)
@@ -453,17 +459,25 @@ func NewpStakeApp(
 		app.TransferKeeper,
 		app.ICAControllerKeeper,
 		scopedLSCosmosKeeper,
+		app.MsgServiceRouter(),
 	)
-	lscosmosModule := lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
-	icaControllerIBCModule := icacontroller.NewIBCModule(app.ICAControllerKeeper, lscosmosModule)
+	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()
+	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(ibchookertypes.NewMultiStakingHooks(app.LSCosmosKeeper.NewIBCTransferHooks()))
+	ibcTransferHooksMiddleware := ibchooker.NewAppModule(app.TransferHooksKeeper, transferIBCModule)
 
 	app.RouterKeeper = routerkeeper.NewKeeper(appCodec, keys[routertypes.StoreKey], app.GetSubspace(routertypes.ModuleName), app.TransferKeeper, app.DistrKeeper)
 
+	// Information will flow: ibc-port -> icaController -> lscosmos.
+	lscosmosModule := lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
+	icaControllerIBCModule := icacontroller.NewIBCModule(app.ICAControllerKeeper, lscosmosModule)
+
+	// This module is not being used for any routing, can be removed, only part of ModuleManager.
+	// using ibcTransferHooksMiddleware instead.
 	routerModule := router.NewAppModule(app.RouterKeeper, transferIBCModule)
 	// create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-		AddRoute(ibctransfertypes.ModuleName, transferIBCModule).
+		AddRoute(ibctransfertypes.ModuleName, ibcTransferHooksMiddleware).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerIBCModule).
 		AddRoute(lscosmostypes.ModuleName, icaControllerIBCModule)
 
@@ -499,8 +513,8 @@ func NewpStakeApp(
 
 	app.EvidenceKeeper = *evidenceKeeper
 
-	app.EpochsKeeper.SetHooks(
-		epochstypes.NewMultiEpochHooks(),
+	app.EpochsKeeper = *epochsKeeper.SetHooks(
+		epochstypes.NewMultiEpochHooks(app.LSCosmosKeeper.NewEpochHooks()),
 	)
 
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
@@ -530,11 +544,12 @@ func NewpStakeApp(
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
-		epochs.NewAppModule(appCodec, app.EpochsKeeper),
-		lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
+		epochs.NewAppModule(app.EpochsKeeper),
 		transferModule,
+		ibcTransferHooksMiddleware,
 		icaModule,
 		routerModule,
+		lscosmosModule,
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -566,6 +581,7 @@ func NewpStakeApp(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
+		ibchookertypes.ModuleName, //Noop
 	)
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
@@ -590,6 +606,7 @@ func NewpStakeApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
+		ibchookertypes.ModuleName, //Noop
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -614,7 +631,6 @@ func NewpStakeApp(
 		evidencetypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
-		authtypes.ModuleName,
 		genutiltypes.ModuleName,
 		routertypes.ModuleName,
 		lscosmostypes.ModuleName,
@@ -622,6 +638,7 @@ func NewpStakeApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
+		ibchookertypes.ModuleName, //Noop
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -648,8 +665,8 @@ func NewpStakeApp(
 		params.NewAppModule(app.ParamsKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
-		lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
 		transferModule,
+		// ibcTransferHooksMiddleware, TODO implement simulationModule interface
 		//icaModule,
 		lscosmosModule,
 	)
@@ -877,4 +894,32 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(lscosmostypes.ModuleName)
 
 	return paramsKeeper
+}
+
+// IBC Go TestingApp functions
+
+// GetBaseApp implements the TestingApp interface.
+func (app *PstakeApp) GetBaseApp() *baseapp.BaseApp {
+	return app.BaseApp
+}
+
+// GetStakingKeeper implements the TestingApp interface.
+func (app *PstakeApp) GetStakingKeeper() stakingkeeper.Keeper {
+	return app.StakingKeeper
+}
+
+// GetIBCKeeper implements the TestingApp interface.
+func (app *PstakeApp) GetIBCKeeper() *ibckeeper.Keeper {
+	return app.IBCKeeper
+}
+
+// GetScopedIBCKeeper implements the TestingApp interface.
+func (app *PstakeApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
+	return app.ScopedIBCKeeper
+}
+
+// GetTxConfig implements the TestingApp interface.
+func (app *PstakeApp) GetTxConfig() client.TxConfig {
+	cfg := MakeEncodingConfig()
+	return cfg.TxConfig
 }

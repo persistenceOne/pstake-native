@@ -39,6 +39,12 @@ const (
 	// UndelegationModuleAccount UndelegationModuleAccountName,
 	// This account will not be a part of maccPerms - Deny list, since it receives undelegated tokens.
 	UndelegationModuleAccount = ModuleName + "_pstake_undelegation_account"
+
+	DelegationEpochIdentifier   = "day"
+	RewardEpochIdentifier       = "day"
+	UndelegationEpochIdentifier = "week"
+
+	IBCTimeoutHeightIncrement uint64 = 100
 )
 
 var (
@@ -50,7 +56,10 @@ var (
 	// PortKey defines the key to store the port ID in store
 	PortKey = KeyPrefix("lscosmos-port")
 
-	CosmosIBCParamsKey = []byte{0x01}
+	ModuleEnableKey          = []byte{0x01}
+	CosmosIBCParamsKey       = []byte{0x02}
+	AllowListedValidatorsKey = []byte{0x03}
+	DelegationStateKey       = []byte{0x04}
 )
 
 func KeyPrefix(p string) []byte {
