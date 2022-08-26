@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -121,4 +122,21 @@ func setup(withGenesis bool, invCheckPeriod uint) (*app.PstakeApp, app.GenesisSt
 	}
 
 	return testApp, app.GenesisState{}
+}
+
+// SetupTestingApp initializes the IBC-go testing application
+func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
+	db := tmdb.NewMemDB()
+	newpStakeApp := app.NewpStakeApp(
+		log.NewNopLogger(),
+		db,
+		nil,
+		true,
+		map[int64]bool{},
+		app.DefaultNodeHome,
+		5,
+		app.MakeEncodingConfig(),
+		EmptyAppOptions{},
+	)
+	return newpStakeApp, app.NewDefaultGenesisState()
 }
