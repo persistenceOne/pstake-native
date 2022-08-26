@@ -1,6 +1,10 @@
 package types
 
-import icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+import (
+	"time"
+
+	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+)
 
 const (
 	// ModuleName defines the module name
@@ -45,23 +49,18 @@ const (
 	UndelegationEpochIdentifier = "week"
 
 	IBCTimeoutHeightIncrement uint64 = 100
+	ICATimeoutTimestamp              = time.Minute * 5
 )
 
 var (
-	DelegationAccountPortID, _   = icatypes.NewControllerPortID(DelegationModuleAccount)
-	RewardAccountPortID, _       = icatypes.NewControllerPortID(RewardModuleAccount)
-	UndelegationAccountPortID, _ = icatypes.NewControllerPortID(UndelegationModuleAccount)
+	DelegationAccountPortID, _ = icatypes.NewControllerPortID(DelegationModuleAccount)
+	RewardAccountPortID, _     = icatypes.NewControllerPortID(RewardModuleAccount)
 )
 var (
 	// PortKey defines the key to store the port ID in store
-	PortKey = KeyPrefix("lscosmos-port")
 
 	ModuleEnableKey          = []byte{0x01}
 	CosmosIBCParamsKey       = []byte{0x02}
 	AllowListedValidatorsKey = []byte{0x03}
 	DelegationStateKey       = []byte{0x04}
 )
-
-func KeyPrefix(p string) []byte {
-	return []byte(p)
-}

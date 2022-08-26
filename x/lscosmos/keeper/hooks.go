@@ -5,9 +5,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 	epochstypes "github.com/persistenceOne/persistence-sdk/x/epochs/types"
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/x/ibchooker/types"
@@ -130,9 +132,88 @@ func (k Keeper) OnRecvIBCTransferPacket(ctx sdk.Context, packet channeltypes.Pac
 }
 
 func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress, transferAckErr error) {
+	if !k.GetModuleState(ctx) {
+		return
+	}
+	if transferAckErr != nil {
+		return
+	}
+	var ack channeltypes.Acknowledgement
+	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		return
+	}
+	if !ack.Success() {
+		return
+	}
+	var data ibctransfertypes.FungibleTokenPacketData
+	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return
+	}
+	// check for tokens moved from delegationModuleAccount to it's ica counterpart.
+	cosmosIBCParams := k.GetCosmosIBCParams(ctx)
+	delegationState := k.GetDelegationState(ctx)
+	if packet.GetSourceChannel() != cosmosIBCParams.TokenTransferChannel ||
+		packet.GetSourcePort() != cosmosIBCParams.TokenTransferPort {
+		// no need to log, since most likely code is expected to enter this condition
+		return
+	}
+
+	//TODO check for denom
+	if data.GetSender() != k.GetDelegationModuleAccount(ctx).GetAddress().String() ||
+		data.GetReceiver() != delegationState.HostChainDelegationAddress ||
+		data.GetDenom() != ibctransfertypes.GetPrefixedDenom(cosmosIBCParams.TokenTransferPort, cosmosIBCParams.TokenTransferChannel, cosmosIBCParams.BaseDenom) {
+		return
+	}
+	k.Logger(ctx).Info(fmt.Sprintf("pstake tokens successfully transferred to host chain address %s, amount: %s, denom: %s", data.Receiver, data.Amount, data.Denom))
+
+	//do ica delegate.
+	amount, ok := sdk.NewIntFromString(data.GetAmount())
+	if !ok {
+		return
+	}
+	k.AddBalanceToDelegationState(ctx, sdk.NewCoin(cosmosIBCParams.BaseDenom, amount))
+
+	delegatableAmount := k.GetDelegationState(ctx).HostDelegationAccountBalance.AmountOf(cosmosIBCParams.BaseDenom)
+	allowlistedValidators := k.GetAllowListedValidators(ctx)
+	if !delegatableAmount.GT(sdk.NewInt(int64(len(allowlistedValidators.AllowListedValidators)))) {
+		k.Logger(ctx).Info(fmt.Sprintf("amount is too low to delegate, %v ", delegatableAmount))
+		return
+	}
+	msgs := DelegateMsgs(delegationState.HostChainDelegationAddress, allowlistedValidators, delegatableAmount, cosmosIBCParams.BaseDenom)
+
+	channelID, found := k.icaControllerKeeper.GetOpenActiveChannel(ctx, cosmosIBCParams.IBCConnection, lscosmostypes.DelegationAccountPortID)
+	if !found {
+		k.Logger(ctx).Error(fmt.Sprintf("failed to retrieve active channel for port %s", lscosmostypes.DelegationAccountPortID))
+		return
+	}
+
+	chanCap, found := k.lscosmosScopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(lscosmostypes.DelegationAccountPortID, channelID))
+	if !found {
+		k.Logger(ctx).Error(fmt.Sprintf("module does not own channel capability, module: %s, channelID: %s, portId: %s", lscosmostypes.ModuleName, channelID, lscosmostypes.DelegationAccountPortID))
+		return
+	}
+
+	delegateMsgData, err := icatypes.SerializeCosmosTx(k.cdc, msgs)
+	if err != nil {
+		k.Logger(ctx).Error(fmt.Sprintf("could not serialize cosmostx err %v", err))
+		return
+	}
+
+	icaPacketData := icatypes.InterchainAccountPacketData{
+		Type: icatypes.EXECUTE_TX,
+		Data: delegateMsgData,
+	}
+	timeoutTimestamp := ctx.BlockTime().Add(lscosmostypes.ICATimeoutTimestamp).UnixNano()
+	seq, err := k.icaControllerKeeper.SendTx(ctx, chanCap, cosmosIBCParams.IBCConnection, lscosmostypes.DelegationAccountPortID, icaPacketData, uint64(timeoutTimestamp))
+	if err != nil {
+		k.Logger(ctx).Error(fmt.Sprintf("send ica delegation txn failed with err %v", err))
+		return
+	}
+	k.Logger(ctx).Info(fmt.Sprintf("sent ICA Delefate transaction with seq: %v", seq))
 }
 
 func (k Keeper) OnTimeoutIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferTimeoutErr error) {
+	// Do nothing because amount will be reverted to delegationModuleAccount.
 }
 
 type IBCTransferHooks struct {

@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
@@ -28,12 +29,10 @@ func (k Keeper) OnChanOpenInit(
 ) error {
 
 	// Require portID is the portID module is bound to
-	//boundPort := k.GetPort(ctx)
 	if portID != types.DelegationAccountPortID &&
-		portID != types.RewardAccountPortID &&
-		portID != types.UndelegationAccountPortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s, %s or %s",
-			portID, types.DelegationAccountPortID, types.RewardAccountPortID, types.UndelegationAccountPortID)
+		portID != types.RewardAccountPortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s or %s",
+			portID, types.DelegationAccountPortID, types.RewardAccountPortID)
 	}
 	var versionData icatypes.Metadata
 	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(version), &versionData); err != nil {
@@ -62,29 +61,8 @@ func (k Keeper) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-
-	// Require portID is the portID module is bound to
-	boundPort := k.GetPort(ctx)
-	if boundPort != portID {
-		return "", sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
-	}
-
-	if counterpartyVersion != types.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s", counterpartyVersion, types.Version)
-	}
-
-	// Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
-	// (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
-	// If module can already authenticate the capability then module already owns it so we don't need to claim
-	// Otherwise, module does not have channel capability and we must claim it from IBC
-	if !k.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		// Only claim channel capability passed back by IBC module if we do not already own it
-		if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return "", err
-		}
-	}
-
-	return types.Version, nil
+	// Controller Auth Module does not do OnChanOpenTry
+	return "", nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -103,7 +81,7 @@ func (k Keeper) OnChanOpenAck(
 	if counterpartyVersionData.Version != icatypes.Version {
 		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
 	}
-	//TODO check
+	//TODO more checks
 
 	hostchainparams := k.GetCosmosIBCParams(ctx)
 
@@ -161,25 +139,8 @@ func (k Keeper) OnRecvPacket(
 	modulePacket channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	var ack channeltypes.Acknowledgement
-
-	// this line is used by starport scaffolding # oracle/packet/module/recv
-
-	var modulePacketData types.LscosmosPacketData
-	if err := modulePacketData.Unmarshal(modulePacket.GetData()); err != nil {
-		return channeltypes.NewErrorAcknowledgement(sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: %s", err.Error()).Error())
-	}
-
-	// Dispatch packet
-	switch packet := modulePacketData.Packet.(type) {
-	// this line is used by starport scaffolding # ibc/packet/module/recv
-	default:
-		errMsg := fmt.Sprintf("unrecognized %s packet type: %T", types.ModuleName, packet)
-		return channeltypes.NewErrorAcknowledgement(errMsg)
-	}
-
-	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
-	return ack
+	// Controller Auth Module does not do OnRecvPacket
+	return nil
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
@@ -195,22 +156,40 @@ func (k Keeper) OnAcknowledgementPacket(
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet acknowledgement: %v", err)
 	}
-
+	if !ack.Success() {
+		return sdkerrors.Wrapf(channeltypes.ErrInvalidAcknowledgement, "acknowledgement failed")
+	}
 	// this line is used by starport scaffolding # oracle/packet/module/ack
 
-	var modulePacketData types.LscosmosPacketData
-	if err := modulePacketData.Unmarshal(modulePacket.GetData()); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: %s", err.Error())
+	txMsgData := &sdk.TxMsgData{}
+	if err := k.cdc.Unmarshal(ack.GetResult(), txMsgData); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
 	}
 
+	icaPacket := &icatypes.InterchainAccountPacketData{}
+	if err := icatypes.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), icaPacket); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
+	}
+	msgs, err := icatypes.DeserializeCosmosTx(k.cdc, icaPacket.GetData())
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot Deserialise icapacket data: %v", err)
+	}
 	var eventType string
 
 	// Dispatch packet
-	switch packet := modulePacketData.Packet.(type) {
-	// this line is used by starport scaffolding # ibc/packet/module/ack
+	switch len(txMsgData.Data) {
+	case 0:
+		// TODO: handle for sdk 0.46.x
+		return nil
 	default:
-		errMsg := fmt.Sprintf("unrecognized %s packet type: %T", types.ModuleName, packet)
-		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
+		for i, msgData := range txMsgData.Data {
+			response, err := k.handleAckMsgData(ctx, msgData, msgs[i])
+			if err != nil {
+				return err
+			}
+
+			k.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
+		}
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -249,18 +228,62 @@ func (k Keeper) OnTimeoutPacket(
 	modulePacket channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	var modulePacketData types.LscosmosPacketData
-	if err := modulePacketData.Unmarshal(modulePacket.GetData()); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: %s", err.Error())
-	}
+	// this line is used by starport scaffolding # oracle/packet/module/ack
 
+	icaPacket := &icatypes.InterchainAccountPacketData{}
+	if err := icatypes.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), icaPacket); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
+	}
+	msgs, err := icatypes.DeserializeCosmosTx(k.cdc, icaPacket.GetData())
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot Deserialise icapacket data: %v", err)
+	}
 	// Dispatch packet
-	switch packet := modulePacketData.Packet.(type) {
-	// this line is used by starport scaffolding # ibc/packet/module/timeout
+	switch len(icaPacket.Data) {
+	case 0:
+		// TODO: handle for sdk 0.46.x
+		return nil
 	default:
-		errMsg := fmt.Sprintf("unrecognized %s packet type: %T", types.ModuleName, packet)
-		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
+		for _, msg := range msgs {
+			response, err := k.handleTimeoutMsgData(ctx, msg)
+			if err != nil {
+				return err
+			}
+
+			k.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
+		}
 	}
 
 	return nil
+}
+
+func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.Msg) (string, error) {
+	switch msgData.MsgType {
+	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
+		parsedMsg := msg.(*stakingtypes.MsgDelegate)
+		var msgResponse stakingtypes.MsgDelegateResponse
+		if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+		}
+		// remove from host-balance
+		k.RemoveBalanceToDelegationState(ctx, sdk.NewCoins(parsedMsg.Amount))
+		// Add delegation state
+
+		return msgResponse.String(), nil
+
+	// TODO: handle other messages
+
+	default:
+		return "", nil
+	}
+}
+
+func (k Keeper) handleTimeoutMsgData(_ sdk.Context, msg sdk.Msg) (string, error) {
+	switch sdk.MsgTypeURL(msg) {
+	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
+		return msg.String(), nil
+
+	default:
+		return "", nil
+	}
 }
