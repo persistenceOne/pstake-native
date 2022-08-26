@@ -132,8 +132,6 @@ func (k Keeper) OnChanCloseConfirm(
 }
 
 // OnRecvPacket implements the IBCModule interface
-//
-//nolint:govet,gocritic,unimplemented_code
 func (k Keeper) OnRecvPacket(
 	ctx sdk.Context,
 	modulePacket channeltypes.Packet,
@@ -144,8 +142,6 @@ func (k Keeper) OnRecvPacket(
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
-//
-//nolint:govet,gocritic,unimplemented_code
 func (k Keeper) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	modulePacket channeltypes.Packet,
@@ -221,8 +217,6 @@ func (k Keeper) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket implements the IBCModule interface
-//
-//nolint:govet,gocritic,unimplemented_code
 func (k Keeper) OnTimeoutPacket(
 	ctx sdk.Context,
 	modulePacket channeltypes.Packet,
@@ -282,7 +276,8 @@ func (k Keeper) handleTimeoutMsgData(_ sdk.Context, msg sdk.Msg) (string, error)
 	switch sdk.MsgTypeURL(msg) {
 	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 		return msg.String(), nil
-
+	case sdk.MsgTypeURL(&stakingtypes.MsgBeginRedelegate{}):
+		return msg.String(), sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Not implemented, unexpected msg %s", msg.String())
 	default:
 		return "", nil
 	}
