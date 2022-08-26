@@ -116,8 +116,11 @@ func (k Keeper) OnChanOpenAck(
 		if err := k.SetHostChainDelegationAddress(ctx, address); err != nil {
 			return err
 		}
-
 	}
+
+	// On Ack we enable module and it's transactions
+	// TODO add checks if both delegation and rewards ica exists only then enable module
+	k.SetModuleState(ctx, true)
 
 	return nil
 }
