@@ -19,7 +19,9 @@ func HandleRegisterCosmosChainProposal(ctx sdk.Context, k Keeper, content types.
 	if !oldData.IsEmpty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module was already registered")
 	}
-
+	if !content.ModuleEnabled {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module should also be enabled while passing register proposal")
+	}
 	if content.TokenTransferPort != ibctransfertypes.PortID {
 		return sdkerrors.Wrap(ibcporttypes.ErrInvalidPort, "Only acceptable TokenTransferPort is \"transfer\"")
 	}
@@ -61,6 +63,5 @@ func HandleRegisterCosmosChainProposal(ctx sdk.Context, k Keeper, content types.
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Allow listed validators is invalid")
 	}
 	k.SetAllowListedValidators(ctx, content.AllowListedValidators)
-	k.SetModuleState(ctx, content.ModuleEnabled)
 	return nil
 }
