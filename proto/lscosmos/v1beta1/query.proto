@@ -18,7 +18,7 @@ service Query {
     option (google.api.http).get = "/persistenceOne/pstake-native/lscosmos/params";
   }
 
-  rpc CosmosIBCParams(QueryCosmosIBCParamsRequest) returns (QueryCosmosIBCParamsResponse) {
+  rpc CosmosParams(QueryCosmosParamsRequest) returns (QueryCosmosParamsResponse) {
     option (google.api.http).get = "/persistenceOne/pstake-native/lscosmos/cosmos_ibc_params";
   }
 
@@ -36,12 +36,12 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryCosmosIBCParamsRequest is request for the Ouery/CosmosIBCParams methods.
-message QueryCosmosIBCParamsRequest {}
+// QueryCosmosParamsRequest is request for the Ouery/CosmosParams methods.
+message QueryCosmosParamsRequest {}
 
-// QueryCosmosIBCParamsResponse is response for the Ouery/CosmosIBCParams methods.
-message QueryCosmosIBCParamsResponse {
-  CosmosIBCParams cosmos_i_b_c_params = 1 [(gogoproto.nullable) = false];
+// QueryCosmosParamsResponse is response for the Ouery/CosmosParams methods.
+message QueryCosmosParamsResponse {
+  CosmosParams cosmos_params = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryDelegationStateRequest is request for the Ouery/DelegationState methods.
