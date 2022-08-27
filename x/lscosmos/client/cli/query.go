@@ -24,7 +24,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 
 	cmd.AddCommand(
 		CmdQueryParams(),
-		CmdQueryCosmosParams(),
+		CmdQueryHostChainParams(),
 		CmdQueryDelegationState(),
 	)
 	// this line is used by starport scaffolding # 1
@@ -32,17 +32,17 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	return cmd
 }
 
-func CmdQueryCosmosParams() *cobra.Command {
+func CmdQueryHostChainParams() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cosmos-params",
-		Short: "shows cosmos ibc parameters",
+		Use:   "host-chain-params",
+		Short: "shows host chain parameters",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.CosmosParams(context.Background(), &types.QueryCosmosParamsRequest{})
+			res, err := queryClient.HostChainParams(context.Background(), &types.QueryHostChainParamsRequest{})
 			if err != nil {
 				return err
 			}

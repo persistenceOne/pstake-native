@@ -33,7 +33,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	if !k.GetModuleState(ctx) {
 		return
 	}
-	hostChainParams := k.GetCosmosParams(ctx)
+	hostChainParams := k.GetHostChainParams(ctx)
 	if epochIdentifier == lscosmostypes.DelegationEpochIdentifier {
 		k.DelegationEpochWorkFlow(ctx, hostChainParams)
 	}
@@ -68,7 +68,7 @@ func (h EpochsHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoc
 	h.k.AfterEpochEnd(ctx, epochIdentifier, epochNumber)
 }
 
-func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.CosmosParams) {
+func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) {
 	// greater than min amount, transfer from deposit to delegation, to ibctransfer.
 	// Right now we only do baseDenom
 	ibcDenom := ibctransfertypes.ParseDenomTrace(
@@ -116,14 +116,14 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 
 }
 
-func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.CosmosParams) {
+func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) {
 	// send withdraw rewards from delegators.
 	// on Ack do icq for reward acc. balance of uatom
 	// callback for sending it to delegation account
 	// on Ack delegate txn
 }
 
-func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.CosmosParams) {
+func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) {
 }
 
 // ___________________________________________________________________________________________________

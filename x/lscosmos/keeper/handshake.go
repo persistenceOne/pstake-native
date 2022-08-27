@@ -83,7 +83,7 @@ func (k Keeper) OnChanOpenAck(
 	}
 	//TODO more checks
 
-	hostchainparams := k.GetCosmosParams(ctx)
+	hostchainparams := k.GetHostChainParams(ctx)
 
 	if portID == types.DelegationAccountPortID {
 		address, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostchainparams.ConnectionID, portID)

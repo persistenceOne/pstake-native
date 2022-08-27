@@ -9,22 +9,22 @@ import (
 )
 
 const (
-	ProposalTypeRegisterCosmosChain = "RegisterCosmosChain"
+	ProposalTypeRegisterHostChain = "RegisterHostChain"
 )
 
-var _ govtypes.Content = &RegisterCosmosChainProposal{}
+var _ govtypes.Content = &RegisterHostChainProposal{}
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeRegisterCosmosChain)
-	govtypes.RegisterProposalTypeCodec(&RegisterCosmosChainProposal{}, "persistenceCore/RegisterCosmosChain")
+	govtypes.RegisterProposalType(ProposalTypeRegisterHostChain)
+	govtypes.RegisterProposalTypeCodec(&RegisterHostChainProposal{}, "persistenceCore/RegisterHostChain")
 }
 
-// NewRegisterCosmosChainProposal creates a new multisig change proposal.
-func NewRegisterCosmosChainProposal(title, description string, moduleEnabled bool, connectionID, transferChannel,
+// NewRegisterHostChainProposal creates a new multisig change proposal.
+func NewRegisterHostChainProposal(title, description string, moduleEnabled bool, connectionID, transferChannel,
 	transferPort, baseDenom, mintDenom string, minDeposit sdktypes.Int, allowListedValidators AllowListedValidators,
-	pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee sdktypes.Dec) *RegisterCosmosChainProposal {
+	pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee sdktypes.Dec) *RegisterHostChainProposal {
 
-	return &RegisterCosmosChainProposal{
+	return &RegisterHostChainProposal{
 		Title:                 title,
 		Description:           description,
 		ModuleEnabled:         moduleEnabled,
@@ -42,27 +42,27 @@ func NewRegisterCosmosChainProposal(title, description string, moduleEnabled boo
 }
 
 // GetTitle returns the title of the multisig change proposal.
-func (m *RegisterCosmosChainProposal) GetTitle() string {
+func (m *RegisterHostChainProposal) GetTitle() string {
 	return m.Title
 }
 
 // GetDescription returns the description of multisig change proposal.
-func (m *RegisterCosmosChainProposal) GetDescription() string {
+func (m *RegisterHostChainProposal) GetDescription() string {
 	return m.Description
 }
 
 // ProposalRoute returns the proposal route of multisig change proposal.
-func (m *RegisterCosmosChainProposal) ProposalRoute() string {
+func (m *RegisterHostChainProposal) ProposalRoute() string {
 	return RouterKey
 }
 
 // ProposalType returns the proposal type of multisig change proposal.
-func (m *RegisterCosmosChainProposal) ProposalType() string {
-	return ProposalTypeRegisterCosmosChain
+func (m *RegisterHostChainProposal) ProposalType() string {
+	return ProposalTypeRegisterHostChain
 }
 
 // ValidateBasic runs basic stateless validity checks
-func (m *RegisterCosmosChainProposal) ValidateBasic() error {
+func (m *RegisterHostChainProposal) ValidateBasic() error {
 	err := govtypes.ValidateAbstract(m)
 	if err != nil {
 		return err
@@ -72,7 +72,7 @@ func (m *RegisterCosmosChainProposal) ValidateBasic() error {
 }
 
 // String returns the string of proposal details
-func (m *RegisterCosmosChainProposal) String() string {
+func (m *RegisterHostChainProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Register host chain:
 Title:                 %s
@@ -105,8 +105,8 @@ PstakeUnstakeFee: 	   %s
 	return b.String()
 }
 
-func NewCosmosParams(connectionID, channel, port, baseDenom, mintDenom string, minDeposit sdktypes.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee sdktypes.Dec) CosmosParams {
-	return CosmosParams{
+func NewHostChainParams(connectionID, channel, port, baseDenom, mintDenom string, minDeposit sdktypes.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee sdktypes.Dec) HostChainParams {
+	return HostChainParams{
 		ConnectionID:     connectionID,
 		TransferChannel:  channel,
 		TransferPort:     port,
@@ -119,8 +119,8 @@ func NewCosmosParams(connectionID, channel, port, baseDenom, mintDenom string, m
 	}
 }
 
-// IsEmpty Checks if CosmosParams were initialised
-func (c *CosmosParams) IsEmpty() bool {
+// IsEmpty Checks if HostChainParams were initialised
+func (c *HostChainParams) IsEmpty() bool {
 	if c.TransferChannel == "" ||
 		c.TransferPort == "" ||
 		c.ConnectionID == "" ||

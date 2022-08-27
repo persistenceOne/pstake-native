@@ -6,18 +6,18 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-// SetCosmosParams sets the cosmos IBC params in store
-func (k Keeper) SetCosmosParams(ctx sdk.Context, cosmosParams types.CosmosParams) {
+// SetHostChainParams sets the host chain params in store
+func (k Keeper) SetHostChainParams(ctx sdk.Context, hostChainParams types.HostChainParams) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.CosmosParamsKey, k.cdc.MustMarshal(&cosmosParams))
+	store.Set(types.HostChainParamsKey, k.cdc.MustMarshal(&hostChainParams))
 }
 
-// GetCosmosParams gets the cosmos IBC params in store
-func (k Keeper) GetCosmosParams(ctx sdk.Context) types.CosmosParams {
+// GetHostChainParams gets the host chain params in store
+func (k Keeper) GetHostChainParams(ctx sdk.Context) types.HostChainParams {
 	store := ctx.KVStore(k.storeKey)
 
-	var cosmosParams types.CosmosParams
-	k.cdc.MustUnmarshal(store.Get(types.CosmosParamsKey), &cosmosParams)
+	var hostChainParams types.HostChainParams
+	k.cdc.MustUnmarshal(store.Get(types.HostChainParamsKey), &hostChainParams)
 
-	return cosmosParams
+	return hostChainParams
 }

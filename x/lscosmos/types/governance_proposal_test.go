@@ -10,7 +10,7 @@ import (
 )
 
 func TestParameterChangeProposal(t *testing.T) {
-	pcp := types.NewRegisterCosmosChainProposal(
+	pcp := types.NewRegisterHostChainProposal(
 		"title",
 		"description",
 		true,
@@ -40,6 +40,6 @@ func TestParameterChangeProposal(t *testing.T) {
 	require.Equal(t, sdk.ZeroDec(), pcp.PstakeRestakeFee)
 	require.Equal(t, sdk.ZeroDec(), pcp.PstakeUnstakeFee)
 	require.Equal(t, types.RouterKey, pcp.ProposalRoute())
-	require.Equal(t, types.ProposalTypeRegisterCosmosChain, pcp.ProposalType())
+	require.Equal(t, types.ProposalTypeRegisterHostChain, pcp.ProposalType())
 	require.Nil(t, pcp.ValidateBasic())
 }

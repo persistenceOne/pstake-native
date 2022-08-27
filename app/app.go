@@ -144,7 +144,7 @@ var (
 			upgradeclient.CancelProposalHandler,
 			ibcclientclient.UpdateClientProposalHandler,
 			ibcclientclient.UpgradeProposalHandler,
-			lscosmosclient.RegisterCosmosChainProposalHandler,
+			lscosmosclient.RegisterHostChainProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
