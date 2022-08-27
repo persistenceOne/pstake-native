@@ -1,5 +1,5 @@
 syntax = "proto3";
-package lscosmos.v1beta1;
+package pstake.lscosmos.v1beta1;
 
 // this line is used by starport scaffolding # proto/packet/import
 
