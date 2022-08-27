@@ -15,15 +15,15 @@ option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
 service Query {
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/pstake/lscosmos/params";
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/params";
   }
 
   rpc HostChainParams(QueryHostChainParamsRequest) returns (QueryHostChainParamsResponse) {
-    option (google.api.http).get = "/pstake/lscosmos/host_chain_params";
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/host_chain_params";
   }
 
   rpc DelegationState(QueryDelegationStateRequest) returns (QueryDelegationStateResponse) {
-    option (google.api.http).get = "/pstake/lscosmos/delegation_state";
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/delegation_state";
   }
 }
 
