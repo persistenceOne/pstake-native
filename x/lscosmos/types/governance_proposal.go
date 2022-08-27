@@ -21,7 +21,7 @@ func init() {
 
 // NewRegisterCosmosChainProposal creates a new multisig change proposal.
 func NewRegisterCosmosChainProposal(title, description string, moduleEnabled bool, connectionID, transferChannel,
-	TransferPort, baseDenom, mintDenom string, minDeposit sdktypes.Int, allowListedValidators AllowListedValidators,
+	transferPort, baseDenom, mintDenom string, minDeposit sdktypes.Int, allowListedValidators AllowListedValidators,
 	pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee sdktypes.Dec) *RegisterCosmosChainProposal {
 
 	return &RegisterCosmosChainProposal{
@@ -30,7 +30,7 @@ func NewRegisterCosmosChainProposal(title, description string, moduleEnabled boo
 		ModuleEnabled:         moduleEnabled,
 		ConnectionID:          connectionID,
 		TransferChannel:       transferChannel,
-		TransferPort:          TransferPort,
+		TransferPort:          transferPort,
 		BaseDenom:             baseDenom,
 		MintDenom:             mintDenom,
 		MinDeposit:            minDeposit,
