@@ -10,13 +10,13 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
-// CosmosIBCParams returns the stored cosoms IBC params set through proposal.
-func (k Keeper) CosmosIBCParams(c context.Context, in *types.QueryCosmosIBCParamsRequest) (*types.QueryCosmosIBCParamsResponse, error) {
+// CosmosParams returns the stored cosoms IBC params set through proposal.
+func (k Keeper) CosmosParams(c context.Context, in *types.QueryCosmosParamsRequest) (*types.QueryCosmosParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	ibcParams := k.GetCosmosIBCParams(ctx)
+	cosmosParams := k.GetCosmosParams(ctx)
 
-	return &types.QueryCosmosIBCParamsResponse{
-		CosmosIBCParams: ibcParams,
+	return &types.QueryCosmosParamsResponse{
+		CosmosParams: cosmosParams,
 	}, nil
 }
 

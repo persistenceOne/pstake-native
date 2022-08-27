@@ -24,7 +24,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 
 	cmd.AddCommand(
 		CmdQueryParams(),
-		CmdQueryCosmosIBCParams(),
+		CmdQueryCosmosParams(),
 		CmdQueryDelegationState(),
 	)
 	// this line is used by starport scaffolding # 1
@@ -32,7 +32,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	return cmd
 }
 
-func CmdQueryCosmosIBCParams() *cobra.Command {
+func CmdQueryCosmosParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cosmos-params",
 		Short: "shows cosmos ibc parameters",
@@ -42,7 +42,7 @@ func CmdQueryCosmosIBCParams() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.CosmosIBCParams(context.Background(), &types.QueryCosmosIBCParamsRequest{})
+			res, err := queryClient.CosmosParams(context.Background(), &types.QueryCosmosParamsRequest{})
 			if err != nil {
 				return err
 			}

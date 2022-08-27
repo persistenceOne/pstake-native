@@ -15,21 +15,21 @@ import (
 
 // HandleRegisterCosmosChainProposal performs the writes cosmos IBC params.
 func HandleRegisterCosmosChainProposal(ctx sdk.Context, k Keeper, content types.RegisterCosmosChainProposal) error {
-	oldData := k.GetCosmosIBCParams(ctx)
+	oldData := k.GetCosmosParams(ctx)
 	if !oldData.IsEmpty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module was already registered")
 	}
 	if !content.ModuleEnabled {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module should also be enabled while passing register proposal")
 	}
-	if content.TokenTransferPort != ibctransfertypes.PortID {
-		return sdkerrors.Wrap(ibcporttypes.ErrInvalidPort, "Only acceptable TokenTransferPort is \"transfer\"")
+	if content.TransferPort != ibctransfertypes.PortID {
+		return sdkerrors.Wrap(ibcporttypes.ErrInvalidPort, "Only acceptable TransferPort is \"transfer\"")
 	}
 
 	// checks for valid and active channel
-	channel, found := k.channelKeeper.GetChannel(ctx, content.TokenTransferPort, content.TokenTransferChannel)
+	channel, found := k.channelKeeper.GetChannel(ctx, content.TransferPort, content.TransferChannel)
 	if !found {
-		return sdkerrors.Wrap(ibcchanneltypes.ErrChannelNotFound, fmt.Sprintf("channel for ibc transfer: %s not found", content.TokenTransferChannel))
+		return sdkerrors.Wrap(ibcchanneltypes.ErrChannelNotFound, fmt.Sprintf("channel for ibc transfer: %s not found", content.TransferChannel))
 	}
 	if channel.State != ibcchanneltypes.OPEN {
 		return sdkerrors.Wrapf(
@@ -38,26 +38,26 @@ func HandleRegisterCosmosChainProposal(ctx sdk.Context, k Keeper, content types.
 		)
 	}
 	// TODO Understand capabilities and see if it has to be/ should be claimed in lsscopedkeeper. If it even matters.
-	_, err := k.lscosmosScopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(content.TokenTransferPort, content.TokenTransferChannel))
+	_, err := k.lscosmosScopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(content.TransferPort, content.TransferChannel))
 	if err != nil {
 		return sdkerrors.Wrapf(err, "Failed to create and claim capability for ibc transfer port and channel")
 	}
 
 	// This checks for channel being active
-	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, content.IBCConnection, types.DelegationModuleAccount)
+	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, content.ConnectionID, types.DelegationModuleAccount)
 	if err != nil {
 		return sdkerrors.Wrap(err, "Could not register ica delegation Address")
 	}
-	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, content.IBCConnection, types.RewardModuleAccount)
+	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, content.ConnectionID, types.RewardModuleAccount)
 	if err != nil {
 		return sdkerrors.Wrap(err, "Could not register ica reward Address")
 	}
 
-	paramsProposal := types.NewCosmosIBCParams(content.IBCConnection, content.TokenTransferChannel,
-		content.TokenTransferPort, content.BaseDenom, content.MintDenom, content.MinDeposit,
-		content.PStakeDepositFee, content.PStakeRestakeFee, content.PStakeUnstakeFee)
+	paramsProposal := types.NewCosmosParams(content.ConnectionID, content.TransferChannel,
+		content.TransferPort, content.BaseDenom, content.MintDenom, content.MinDeposit,
+		content.PstakeDepositFee, content.PstakeRestakeFee, content.PstakeUnstakeFee)
 
-	k.SetCosmosIBCParams(ctx, paramsProposal)
+	k.SetCosmosParams(ctx, paramsProposal)
 
 	if !content.AllowListedValidators.Valid() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Allow listed validators is invalid")

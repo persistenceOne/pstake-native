@@ -33,7 +33,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	if !k.GetModuleState(ctx) {
 		return
 	}
-	hostChainParams := k.GetCosmosIBCParams(ctx)
+	hostChainParams := k.GetCosmosParams(ctx)
 	if epochIdentifier == lscosmostypes.DelegationEpochIdentifier {
 		k.DelegationEpochWorkFlow(ctx, hostChainParams)
 	}
@@ -68,12 +68,12 @@ func (h EpochsHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoc
 	h.k.AfterEpochEnd(ctx, epochIdentifier, epochNumber)
 }
 
-func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.CosmosIBCParams) {
+func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.CosmosParams) {
 	// greater than min amount, transfer from deposit to delegation, to ibctransfer.
 	// Right now we only do baseDenom
 	ibcDenom := ibctransfertypes.ParseDenomTrace(
 		ibctransfertypes.GetPrefixedDenom(
-			hostChainParams.TokenTransferPort, hostChainParams.TokenTransferChannel, hostChainParams.BaseDenom,
+			hostChainParams.TransferPort, hostChainParams.TransferChannel, hostChainParams.BaseDenom,
 		),
 	).IBCDenom()
 	allBalances := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(lscosmostypes.DepositModuleAccount))
@@ -89,14 +89,14 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 	}
 
 	delegationState := k.GetDelegationState(ctx)
-	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, hostChainParams.TokenTransferPort, hostChainParams.TokenTransferChannel)
+	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, hostChainParams.TransferPort, hostChainParams.TransferChannel)
 	if err != nil {
 		k.Logger(ctx).Error(fmt.Sprintf("Error getting client state %s", err))
 		return
 	}
 	timeoutHeight := clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), clientState.GetLatestHeight().GetRevisionHeight()+lscosmostypes.IBCTimeoutHeightIncrement)
 
-	msg := ibctransfertypes.NewMsgTransfer(hostChainParams.TokenTransferPort, hostChainParams.TokenTransferChannel,
+	msg := ibctransfertypes.NewMsgTransfer(hostChainParams.TransferPort, hostChainParams.TransferChannel,
 		depositBalance, authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount).String(),
 		delegationState.HostChainDelegationAddress, timeoutHeight, 0)
 
@@ -116,14 +116,14 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 
 }
 
-func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.CosmosIBCParams) {
+func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.CosmosParams) {
 	// send withdraw rewards from delegators.
 	// on Ack do icq for reward acc. balance of uatom
 	// callback for sending it to delegation account
 	// on Ack delegate txn
 }
 
-func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.CosmosIBCParams) {
+func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.CosmosParams) {
 }
 
 // ___________________________________________________________________________________________________
