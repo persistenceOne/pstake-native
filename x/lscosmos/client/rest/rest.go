@@ -77,15 +77,15 @@ func postRegisterChainHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			_ = rest.CheckBadRequestError(w, types.ErrInvalidIntParse)
 			return
 		}
-		depositFee, err := sdk.NewDecFromStr(req.PStakeDepositFee)
+		depositFee, err := sdk.NewDecFromStr(req.PstakeDepositFee)
 		if rest.CheckBadRequestError(w, err) {
 			return
 		}
-		restakeFee, err := sdk.NewDecFromStr(req.PStakeRestakeFee)
+		restakeFee, err := sdk.NewDecFromStr(req.PstakeRestakeFee)
 		if rest.CheckBadRequestError(w, err) {
 			return
 		}
-		unstakeFee, err := sdk.NewDecFromStr(req.PStakeUnstakeFee)
+		unstakeFee, err := sdk.NewDecFromStr(req.PstakeUnstakeFee)
 		if rest.CheckBadRequestError(w, err) {
 			return
 		}
@@ -94,9 +94,9 @@ func postRegisterChainHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			req.Title,
 			req.Description,
 			req.ModuleEnabled,
-			req.IBCConnection,
-			req.TokenTransferChannel,
-			req.TokenTransferPort,
+			req.ConnectionID,
+			req.TransferChannel,
+			req.TransferPort,
 			req.BaseDenom,
 			req.MintDenom,
 			minDeposit,

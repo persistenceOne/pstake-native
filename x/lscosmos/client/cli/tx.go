@@ -95,16 +95,16 @@ $ %s tx gov submit-proposal register-cosmos-chain <path/to/proposal.json> --from
 			if !ok {
 				return types.ErrInvalidIntParse
 			}
-			depositFee, err := sdk.NewDecFromStr(proposal.PStakeDepositFee)
+			depositFee, err := sdk.NewDecFromStr(proposal.PstakeDepositFee)
 			if err != nil {
 				return err
 			}
 
-			restakeFee, err := sdk.NewDecFromStr(proposal.PStakeRestakeFee)
+			restakeFee, err := sdk.NewDecFromStr(proposal.PstakeRestakeFee)
 			if err != nil {
 				return err
 			}
-			unstakeFee, err := sdk.NewDecFromStr(proposal.PStakeUnstakeFee)
+			unstakeFee, err := sdk.NewDecFromStr(proposal.PstakeUnstakeFee)
 			if err != nil {
 				return err
 			}
@@ -113,9 +113,9 @@ $ %s tx gov submit-proposal register-cosmos-chain <path/to/proposal.json> --from
 				proposal.Title,
 				proposal.Description,
 				proposal.ModuleEnabled,
-				proposal.IBCConnection,
-				proposal.TokenTransferChannel,
-				proposal.TokenTransferPort,
+				proposal.ConnectionID,
+				proposal.TransferChannel,
+				proposal.TransferPort,
 				proposal.BaseDenom,
 				proposal.MintDenom,
 				minDeposit,

@@ -18,13 +18,13 @@ Example of a register cosmos chain proposal :
 {
 "title": "register cosmos chain proposal",
 "description": "this proposal register cosmos chain params in the chain",
-"ibc_connection": "test connection",
-"token_transfer_channel": "test-channel-1",
-"token_transfer_port": "test-transfer",
+"connectionID": "test connection",
+"transfer_channel": "test-channel-1",
+"transfer_port": "test-transfer",
 "base_denom": "uatom",
 "mint_denom": "ustkatom",
 "min_deposit": "5",
-"p_stake_deposit_fee": "0.1",
+"pstake_deposit_fee": "0.1",
 "deposit": "100stake"
 }
 ```
