@@ -113,22 +113,22 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
-// QueryCosmosIBCParamsRequest is request for the Ouery/CosmosIBCParams methods.
-type QueryCosmosIBCParamsRequest struct {
+// QueryCosmosParamsRequest is request for the Ouery/CosmosParams methods.
+type QueryCosmosParamsRequest struct {
 }
 
-func (m *QueryCosmosIBCParamsRequest) Reset()         { *m = QueryCosmosIBCParamsRequest{} }
-func (m *QueryCosmosIBCParamsRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryCosmosIBCParamsRequest) ProtoMessage()    {}
-func (*QueryCosmosIBCParamsRequest) Descriptor() ([]byte, []int) {
+func (m *QueryCosmosParamsRequest) Reset()         { *m = QueryCosmosParamsRequest{} }
+func (m *QueryCosmosParamsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryCosmosParamsRequest) ProtoMessage()    {}
+func (*QueryCosmosParamsRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_86447f92490bdee4, []int{2}
 }
-func (m *QueryCosmosIBCParamsRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryCosmosParamsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryCosmosIBCParamsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryCosmosParamsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryCosmosIBCParamsRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryCosmosParamsRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -138,35 +138,35 @@ func (m *QueryCosmosIBCParamsRequest) XXX_Marshal(b []byte, deterministic bool) 
 		return b[:n], nil
 	}
 }
-func (m *QueryCosmosIBCParamsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryCosmosIBCParamsRequest.Merge(m, src)
+func (m *QueryCosmosParamsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryCosmosParamsRequest.Merge(m, src)
 }
-func (m *QueryCosmosIBCParamsRequest) XXX_Size() int {
+func (m *QueryCosmosParamsRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryCosmosIBCParamsRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryCosmosIBCParamsRequest.DiscardUnknown(m)
+func (m *QueryCosmosParamsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryCosmosParamsRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryCosmosIBCParamsRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryCosmosParamsRequest proto.InternalMessageInfo
 
-// QueryCosmosIBCParamsResponse is response for the Ouery/CosmosIBCParams methods.
-type QueryCosmosIBCParamsResponse struct {
-	CosmosIBCParams CosmosIBCParams `protobuf:"bytes,1,opt,name=cosmos_i_b_c_params,json=cosmosIBCParams,proto3" json:"cosmos_i_b_c_params"`
+// QueryCosmosParamsResponse is response for the Ouery/CosmosParams methods.
+type QueryCosmosParamsResponse struct {
+	CosmosParams CosmosParams `protobuf:"bytes,1,opt,name=cosmos_params,json=cosmosParams,proto3" json:"cosmos_params"`
 }
 
-func (m *QueryCosmosIBCParamsResponse) Reset()         { *m = QueryCosmosIBCParamsResponse{} }
-func (m *QueryCosmosIBCParamsResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryCosmosIBCParamsResponse) ProtoMessage()    {}
-func (*QueryCosmosIBCParamsResponse) Descriptor() ([]byte, []int) {
+func (m *QueryCosmosParamsResponse) Reset()         { *m = QueryCosmosParamsResponse{} }
+func (m *QueryCosmosParamsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryCosmosParamsResponse) ProtoMessage()    {}
+func (*QueryCosmosParamsResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_86447f92490bdee4, []int{3}
 }
-func (m *QueryCosmosIBCParamsResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryCosmosParamsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryCosmosIBCParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryCosmosParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryCosmosIBCParamsResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryCosmosParamsResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -176,23 +176,23 @@ func (m *QueryCosmosIBCParamsResponse) XXX_Marshal(b []byte, deterministic bool)
 		return b[:n], nil
 	}
 }
-func (m *QueryCosmosIBCParamsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryCosmosIBCParamsResponse.Merge(m, src)
+func (m *QueryCosmosParamsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryCosmosParamsResponse.Merge(m, src)
 }
-func (m *QueryCosmosIBCParamsResponse) XXX_Size() int {
+func (m *QueryCosmosParamsResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryCosmosIBCParamsResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryCosmosIBCParamsResponse.DiscardUnknown(m)
+func (m *QueryCosmosParamsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryCosmosParamsResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryCosmosIBCParamsResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryCosmosParamsResponse proto.InternalMessageInfo
 
-func (m *QueryCosmosIBCParamsResponse) GetCosmosIBCParams() CosmosIBCParams {
+func (m *QueryCosmosParamsResponse) GetCosmosParams() CosmosParams {
 	if m != nil {
-		return m.CosmosIBCParams
+		return m.CosmosParams
 	}
-	return CosmosIBCParams{}
+	return CosmosParams{}
 }
 
 // QueryDelegationStateRequest is request for the Ouery/DelegationState methods.
@@ -280,8 +280,8 @@ func (m *QueryDelegationStateResponse) GetDelegationState() DelegationState {
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "lscosmos.v1beta1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "lscosmos.v1beta1.QueryParamsResponse")
-	proto.RegisterType((*QueryCosmosIBCParamsRequest)(nil), "lscosmos.v1beta1.QueryCosmosIBCParamsRequest")
-	proto.RegisterType((*QueryCosmosIBCParamsResponse)(nil), "lscosmos.v1beta1.QueryCosmosIBCParamsResponse")
+	proto.RegisterType((*QueryCosmosParamsRequest)(nil), "lscosmos.v1beta1.QueryCosmosParamsRequest")
+	proto.RegisterType((*QueryCosmosParamsResponse)(nil), "lscosmos.v1beta1.QueryCosmosParamsResponse")
 	proto.RegisterType((*QueryDelegationStateRequest)(nil), "lscosmos.v1beta1.QueryDelegationStateRequest")
 	proto.RegisterType((*QueryDelegationStateResponse)(nil), "lscosmos.v1beta1.QueryDelegationStateResponse")
 }
@@ -289,38 +289,38 @@ func init() {
 func init() { proto.RegisterFile("lscosmos/v1beta1/query.proto", fileDescriptor_86447f92490bdee4) }
 
 var fileDescriptor_86447f92490bdee4 = []byte{
-	// 486 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0xbf, 0x8f, 0xd3, 0x30,
-	0x1c, 0xc5, 0x6b, 0x7e, 0x74, 0x30, 0x43, 0x4f, 0xbe, 0x1b, 0x4e, 0xa5, 0x97, 0x83, 0x08, 0x24,
-	0x84, 0xd4, 0x58, 0x77, 0x08, 0x38, 0x58, 0x40, 0x3d, 0x16, 0x06, 0x04, 0x14, 0xb1, 0xb0, 0x44,
-	0x4e, 0xee, 0x2b, 0x13, 0xd1, 0xda, 0xbe, 0xd8, 0xad, 0xb8, 0x95, 0x99, 0x01, 0x89, 0xbf, 0x04,
-	0xfe, 0x8a, 0x1b, 0x2b, 0xb1, 0x30, 0x21, 0xd4, 0xf2, 0x7f, 0x80, 0xe2, 0x38, 0x41, 0x49, 0x1a,
-	0xe8, 0x56, 0xf9, 0xbd, 0xbe, 0xf7, 0xa9, 0xfd, 0x8a, 0x07, 0x13, 0x1d, 0x4b, 0x3d, 0x95, 0x9a,
-	0xce, 0x0f, 0x22, 0x30, 0xec, 0x80, 0x9e, 0xce, 0x20, 0x3d, 0x0b, 0x54, 0x2a, 0x8d, 0x24, 0x5b,
-	0x85, 0x1a, 0x38, 0xb5, 0xbf, 0xc3, 0x25, 0x97, 0x56, 0xa4, 0xd9, 0xa7, 0xdc, 0xd7, 0x1f, 0x70,
-	0x29, 0xf9, 0x04, 0x28, 0x53, 0x09, 0x65, 0x42, 0x48, 0xc3, 0x4c, 0x22, 0x85, 0x76, 0xea, 0x6d,
-	0xd7, 0x10, 0x31, 0x0d, 0x79, 0x7c, 0x59, 0xa6, 0x18, 0x4f, 0x84, 0x35, 0x3b, 0xef, 0x5e, 0x83,
-	0x47, 0xb1, 0x94, 0x4d, 0xcb, 0xa8, 0x86, 0xcc, 0xe5, 0x1c, 0x52, 0xc1, 0x44, 0x0c, 0xa1, 0x4a,
-	0xa5, 0x92, 0x9a, 0x4d, 0x9c, 0x77, 0xbf, 0xe1, 0x2d, 0x7f, 0x8d, 0x35, 0xf8, 0x3b, 0x98, 0xbc,
-	0xcc, 0x68, 0x5e, 0xd8, 0x86, 0x31, 0x9c, 0xce, 0x40, 0x1b, 0xff, 0x19, 0xde, 0xae, 0x9c, 0x6a,
-	0x25, 0x85, 0x06, 0x72, 0x0f, 0x77, 0x73, 0x92, 0x5d, 0x74, 0x0d, 0xdd, 0xba, 0x72, 0xb8, 0x1b,
-	0xd4, 0xef, 0x26, 0xc8, 0xbf, 0x31, 0xba, 0x74, 0xfe, 0x63, 0xbf, 0x33, 0x76, 0x6e, 0x7f, 0x0f,
-	0x5f, 0xb5, 0x71, 0xc7, 0xd6, 0xfb, 0x74, 0x74, 0x5c, 0x6d, 0x9b, 0xe1, 0xc1, 0x7a, 0xd9, 0xd5,
-	0xbe, 0xc6, 0xdb, 0x79, 0x4b, 0x98, 0x84, 0x51, 0x18, 0x87, 0x15, 0x86, 0xeb, 0x4d, 0x86, 0x5a,
-	0x8e, 0x83, 0xe9, 0xc5, 0xd5, 0xe3, 0x92, 0xea, 0x09, 0x4c, 0x80, 0xdb, 0xfb, 0x7f, 0x65, 0x98,
-	0x81, 0x82, 0x2a, 0x75, 0x54, 0x0d, 0xd9, 0x51, 0x8d, 0xf1, 0xd6, 0x49, 0x29, 0x85, 0x3a, 0xd3,
-	0xda, 0x91, 0x6a, 0x21, 0x05, 0xd2, 0x49, 0xf5, 0xf8, 0xf0, 0xf7, 0x45, 0x7c, 0xd9, 0x96, 0x92,
-	0x8f, 0x08, 0x77, 0x73, 0x4e, 0x72, 0xa3, 0x19, 0xd7, 0x7c, 0xb2, 0xfe, 0xcd, 0xff, 0xb8, 0x72,
-	0x6a, 0xff, 0xee, 0x87, 0x6f, 0xbf, 0x3e, 0x5f, 0xa0, 0x64, 0x48, 0x15, 0xa4, 0x3a, 0xd1, 0x06,
-	0x44, 0x0c, 0xcf, 0x05, 0x50, 0xa5, 0x0d, 0x7b, 0x07, 0xc3, 0x6c, 0x88, 0x73, 0x28, 0x57, 0xe2,
-	0x96, 0x47, 0xbe, 0x22, 0xdc, 0xab, 0x5d, 0x2b, 0x19, 0xb6, 0x34, 0xae, 0x7f, 0xe5, 0x7e, 0xb0,
-	0xa9, 0xdd, 0x91, 0x3e, 0xb6, 0xa4, 0x0f, 0xc9, 0xd1, 0x86, 0xa4, 0xc5, 0x44, 0xa2, 0x62, 0x20,
-	0xe4, 0x0b, 0xc2, 0xbd, 0xda, 0xc5, 0xb7, 0x42, 0xaf, 0x1f, 0x41, 0x2b, 0x74, 0xcb, 0x28, 0xfc,
-	0x47, 0x16, 0xfa, 0x01, 0xb9, 0xbf, 0x21, 0x74, 0x7d, 0x41, 0xa3, 0xf1, 0xf9, 0xd2, 0x43, 0x8b,
-	0xa5, 0x87, 0x7e, 0x2e, 0x3d, 0xf4, 0x69, 0xe5, 0x75, 0x16, 0x2b, 0xaf, 0xf3, 0x7d, 0xe5, 0x75,
-	0xde, 0x1c, 0xf1, 0xc4, 0xbc, 0x9d, 0x45, 0x41, 0x2c, 0xa7, 0xff, 0x0e, 0x7f, 0xff, 0x37, 0xde,
-	0x9c, 0x29, 0xd0, 0x51, 0xd7, 0xfe, 0xd5, 0xef, 0xfc, 0x09, 0x00, 0x00, 0xff, 0xff, 0xc2, 0x01,
-	0xf5, 0x34, 0xe8, 0x04, 0x00, 0x00,
+	// 491 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0x3f, 0x6f, 0x13, 0x31,
+	0x18, 0xc6, 0x63, 0xfe, 0x64, 0x30, 0x45, 0xad, 0x4c, 0x87, 0x70, 0xa4, 0x57, 0x38, 0x81, 0x84,
+	0x8a, 0x72, 0x56, 0x8b, 0x80, 0xc2, 0x02, 0x2a, 0x2c, 0x0c, 0x08, 0x08, 0x1b, 0x4b, 0xe4, 0xbb,
+	0xbe, 0x98, 0x13, 0x89, 0xed, 0x9e, 0x9d, 0x88, 0xae, 0xcc, 0x0c, 0x48, 0x7c, 0x0a, 0x46, 0xbe,
+	0x45, 0xc7, 0x4a, 0x2c, 0x4c, 0x08, 0x25, 0x7c, 0x06, 0x66, 0x14, 0xdf, 0xdb, 0x23, 0xc9, 0xa5,
+	0x70, 0x5b, 0xe4, 0xe7, 0xf1, 0xf3, 0xfc, 0xf2, 0xfa, 0x3d, 0xda, 0xee, 0xdb, 0x54, 0xdb, 0x81,
+	0xb6, 0x7c, 0xb4, 0x9d, 0x80, 0x13, 0xdb, 0xfc, 0x60, 0x08, 0xf9, 0x61, 0x6c, 0x72, 0xed, 0x34,
+	0x5b, 0x3b, 0x51, 0x63, 0x54, 0x83, 0x75, 0xa9, 0xa5, 0xf6, 0x22, 0x9f, 0xfe, 0x2a, 0x7c, 0x41,
+	0x5b, 0x6a, 0x2d, 0xfb, 0xc0, 0x85, 0xc9, 0xb8, 0x50, 0x4a, 0x3b, 0xe1, 0x32, 0xad, 0x2c, 0xaa,
+	0x5b, 0xd8, 0x90, 0x08, 0x0b, 0x45, 0x7c, 0x59, 0x66, 0x84, 0xcc, 0x94, 0x37, 0xa3, 0x77, 0xa3,
+	0xc2, 0x63, 0x44, 0x2e, 0x06, 0x65, 0x54, 0x45, 0x96, 0x7a, 0x04, 0xb9, 0x12, 0x2a, 0x85, 0x9e,
+	0xc9, 0xb5, 0xd1, 0x56, 0xf4, 0xd1, 0xbb, 0x59, 0xf1, 0x96, 0xff, 0xc6, 0x1b, 0xa2, 0x75, 0xca,
+	0x5e, 0x4e, 0x69, 0x5e, 0xf8, 0x86, 0x2e, 0x1c, 0x0c, 0xc1, 0xba, 0xe8, 0x19, 0xbd, 0x34, 0x77,
+	0x6a, 0x8d, 0x56, 0x16, 0xd8, 0x5d, 0xda, 0x2c, 0x48, 0x5a, 0xe4, 0x2a, 0xb9, 0x79, 0x61, 0xa7,
+	0x15, 0x2f, 0xce, 0x26, 0x2e, 0x6e, 0xec, 0x9d, 0x3b, 0xfa, 0xb1, 0xd9, 0xe8, 0xa2, 0x3b, 0x0a,
+	0x68, 0xcb, 0xc7, 0x3d, 0xf6, 0xde, 0xf9, 0xaa, 0x37, 0xf4, 0xf2, 0x12, 0x0d, 0x0b, 0x9f, 0xd2,
+	0x8b, 0x45, 0x7e, 0x6f, 0xae, 0x37, 0xac, 0xf6, 0xce, 0x5e, 0xc7, 0xf6, 0x95, 0x74, 0xe6, 0x2c,
+	0xda, 0xa0, 0x57, 0x7c, 0xcf, 0x13, 0xe8, 0x83, 0xf4, 0xd3, 0x7e, 0xe5, 0x84, 0x83, 0x13, 0x8c,
+	0x9c, 0xb6, 0x97, 0xcb, 0x48, 0xd2, 0xa5, 0x6b, 0xfb, 0xa5, 0xd4, 0xb3, 0x53, 0x0d, 0x61, 0xae,
+	0x55, 0x61, 0x16, 0x42, 0x90, 0x67, 0x75, 0x7f, 0xfe, 0x78, 0xe7, 0xf7, 0x59, 0x7a, 0xde, 0x97,
+	0xb2, 0x8f, 0x84, 0x36, 0x0b, 0x4e, 0x76, 0xbd, 0x1a, 0x57, 0x7d, 0xa0, 0xe0, 0xc6, 0x7f, 0x5c,
+	0x05, 0x75, 0x74, 0xe7, 0xc3, 0xb7, 0x5f, 0x9f, 0xcf, 0x70, 0xd6, 0xe1, 0x06, 0x72, 0x9b, 0x59,
+	0x07, 0x2a, 0x85, 0xe7, 0x0a, 0xb8, 0xb1, 0x4e, 0xbc, 0x83, 0xce, 0x74, 0xed, 0x46, 0x50, 0xee,
+	0x04, 0xee, 0x19, 0xfb, 0x42, 0xe8, 0xca, 0xec, 0x40, 0xd9, 0xd6, 0x29, 0x75, 0x4b, 0x1e, 0x34,
+	0xb8, 0x55, 0xcb, 0x8b, 0x80, 0x8f, 0x3c, 0xe0, 0x03, 0xb6, 0x5b, 0x13, 0x10, 0xb7, 0x21, 0x4b,
+	0x52, 0xdc, 0x08, 0xf6, 0x95, 0xd0, 0xd5, 0x85, 0x79, 0xb3, 0xce, 0x29, 0x08, 0xcb, 0xdf, 0x3e,
+	0x88, 0xeb, 0xda, 0x11, 0xfa, 0xa1, 0x87, 0xbe, 0xcf, 0xee, 0xd5, 0x84, 0x5e, 0x5c, 0x9c, 0xbd,
+	0xee, 0xd1, 0x38, 0x24, 0xc7, 0xe3, 0x90, 0xfc, 0x1c, 0x87, 0xe4, 0xd3, 0x24, 0x6c, 0x1c, 0x4f,
+	0xc2, 0xc6, 0xf7, 0x49, 0xd8, 0x78, 0xbd, 0x2b, 0x33, 0xf7, 0x76, 0x98, 0xc4, 0xa9, 0x1e, 0xfc,
+	0x3b, 0xfc, 0xfd, 0xdf, 0x78, 0x77, 0x68, 0xc0, 0x26, 0x4d, 0xff, 0x3d, 0xdf, 0xfe, 0x13, 0x00,
+	0x00, 0xff, 0xff, 0xc7, 0x5d, 0x32, 0x51, 0xcd, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -337,7 +337,7 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Parameters queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	CosmosIBCParams(ctx context.Context, in *QueryCosmosIBCParamsRequest, opts ...grpc.CallOption) (*QueryCosmosIBCParamsResponse, error)
+	CosmosParams(ctx context.Context, in *QueryCosmosParamsRequest, opts ...grpc.CallOption) (*QueryCosmosParamsResponse, error)
 	DelegationState(ctx context.Context, in *QueryDelegationStateRequest, opts ...grpc.CallOption) (*QueryDelegationStateResponse, error)
 }
 
@@ -358,9 +358,9 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
-func (c *queryClient) CosmosIBCParams(ctx context.Context, in *QueryCosmosIBCParamsRequest, opts ...grpc.CallOption) (*QueryCosmosIBCParamsResponse, error) {
-	out := new(QueryCosmosIBCParamsResponse)
-	err := c.cc.Invoke(ctx, "/lscosmos.v1beta1.Query/CosmosIBCParams", in, out, opts...)
+func (c *queryClient) CosmosParams(ctx context.Context, in *QueryCosmosParamsRequest, opts ...grpc.CallOption) (*QueryCosmosParamsResponse, error) {
+	out := new(QueryCosmosParamsResponse)
+	err := c.cc.Invoke(ctx, "/lscosmos.v1beta1.Query/CosmosParams", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -380,7 +380,7 @@ func (c *queryClient) DelegationState(ctx context.Context, in *QueryDelegationSt
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
-	CosmosIBCParams(context.Context, *QueryCosmosIBCParamsRequest) (*QueryCosmosIBCParamsResponse, error)
+	CosmosParams(context.Context, *QueryCosmosParamsRequest) (*QueryCosmosParamsResponse, error)
 	DelegationState(context.Context, *QueryDelegationStateRequest) (*QueryDelegationStateResponse, error)
 }
 
@@ -391,8 +391,8 @@ type UnimplementedQueryServer struct {
 func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
 }
-func (*UnimplementedQueryServer) CosmosIBCParams(ctx context.Context, req *QueryCosmosIBCParamsRequest) (*QueryCosmosIBCParamsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CosmosIBCParams not implemented")
+func (*UnimplementedQueryServer) CosmosParams(ctx context.Context, req *QueryCosmosParamsRequest) (*QueryCosmosParamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CosmosParams not implemented")
 }
 func (*UnimplementedQueryServer) DelegationState(ctx context.Context, req *QueryDelegationStateRequest) (*QueryDelegationStateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DelegationState not implemented")
@@ -420,20 +420,20 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_CosmosIBCParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryCosmosIBCParamsRequest)
+func _Query_CosmosParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryCosmosParamsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).CosmosIBCParams(ctx, in)
+		return srv.(QueryServer).CosmosParams(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/lscosmos.v1beta1.Query/CosmosIBCParams",
+		FullMethod: "/lscosmos.v1beta1.Query/CosmosParams",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).CosmosIBCParams(ctx, req.(*QueryCosmosIBCParamsRequest))
+		return srv.(QueryServer).CosmosParams(ctx, req.(*QueryCosmosParamsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -465,8 +465,8 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_Params_Handler,
 		},
 		{
-			MethodName: "CosmosIBCParams",
-			Handler:    _Query_CosmosIBCParams_Handler,
+			MethodName: "CosmosParams",
+			Handler:    _Query_CosmosParams_Handler,
 		},
 		{
 			MethodName: "DelegationState",
@@ -533,7 +533,7 @@ func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryCosmosIBCParamsRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryCosmosParamsRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -543,12 +543,12 @@ func (m *QueryCosmosIBCParamsRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryCosmosIBCParamsRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryCosmosParamsRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryCosmosIBCParamsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryCosmosParamsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -556,7 +556,7 @@ func (m *QueryCosmosIBCParamsRequest) MarshalToSizedBuffer(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryCosmosIBCParamsResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryCosmosParamsResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -566,18 +566,18 @@ func (m *QueryCosmosIBCParamsResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryCosmosIBCParamsResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryCosmosParamsResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryCosmosIBCParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryCosmosParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
 	{
-		size, err := m.CosmosIBCParams.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.CosmosParams.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -676,7 +676,7 @@ func (m *QueryParamsResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryCosmosIBCParamsRequest) Size() (n int) {
+func (m *QueryCosmosParamsRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -685,13 +685,13 @@ func (m *QueryCosmosIBCParamsRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryCosmosIBCParamsResponse) Size() (n int) {
+func (m *QueryCosmosParamsResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = m.CosmosIBCParams.Size()
+	l = m.CosmosParams.Size()
 	n += 1 + l + sovQuery(uint64(l))
 	return n
 }
@@ -855,7 +855,7 @@ func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryCosmosIBCParamsRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryCosmosParamsRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -878,10 +878,10 @@ func (m *QueryCosmosIBCParamsRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryCosmosIBCParamsRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryCosmosParamsRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryCosmosIBCParamsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryCosmosParamsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -905,7 +905,7 @@ func (m *QueryCosmosIBCParamsRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryCosmosIBCParamsResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryCosmosParamsResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -928,15 +928,15 @@ func (m *QueryCosmosIBCParamsResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryCosmosIBCParamsResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryCosmosParamsResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryCosmosIBCParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryCosmosParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CosmosIBCParams", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CosmosParams", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -963,7 +963,7 @@ func (m *QueryCosmosIBCParamsResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.CosmosIBCParams.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.CosmosParams.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
