@@ -62,7 +62,7 @@ func RegisterChainRESTHandler(clientCtx client.Context) govrest.ProposalRESTHand
 
 func postRegisterChainHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req utils.RegisterCosmosChainProposalReq
+		var req utils.RegisterHostChainProposalReq
 		if !rest.ReadRESTReq(w, r, clientCtx.LegacyAmino, &req) {
 			return
 		}
@@ -90,7 +90,7 @@ func postRegisterChainHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		content := types.NewRegisterCosmosChainProposal(
+		content := types.NewRegisterHostChainProposal(
 			req.Title,
 			req.Description,
 			req.ModuleEnabled,

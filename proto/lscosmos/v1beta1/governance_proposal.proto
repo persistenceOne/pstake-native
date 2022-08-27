@@ -11,16 +11,16 @@ option (gogoproto.equal_all) = true;
 option (gogoproto.stringer_all) = false;
 option (gogoproto.goproto_getters_all) = false;
 
-// RegisterCosmosChainProposal defines the details needed to register cosmos chain for
+// RegisterHostChainProposal defines the details needed to register cosmos chain for
 // liquid staking transactions through lscosmos module
-message RegisterCosmosChainProposal {
+message RegisterHostChainProposal {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_stringer) = false;
 
   string title = 1;
   string description = 2;
   bool  module_enabled = 3;
-  string connectionID = 4;
+  string connection_i_d = 4;
   string transfer_channel = 5;
   string transfer_port = 6;
   string base_denom = 7;

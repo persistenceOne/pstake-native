@@ -10,13 +10,13 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-type RegisterCosmosChainProposalReq struct {
+type RegisterHostChainProposalReq struct {
 	BaseReq     rest.BaseReq `json:"base_req" yaml:"base_req"`
 	Title       string       `json:"title" yaml:"title"`
 	Description string       `json:"description" yaml:"description"`
 	// TODO update
 	ModuleEnabled         bool                        `json:"module_enabled" yaml:"module_enabled"`
-	ConnectionID          string                      `json:"connectionID" yaml:"connectionID"`
+	ConnectionID          string                      `json:"connection_i_d" yaml:"connection_i_d"`
 	TransferChannel       string                      `json:"transfer_channel" yaml:"transfer_channel"`
 	TransferPort          string                      `json:"transfer_port" yaml:"transfer_port"`
 	BaseDenom             string                      `json:"base_denom" yaml:"base_denom"`
@@ -30,11 +30,11 @@ type RegisterCosmosChainProposalReq struct {
 	Deposit               sdk.Coins                   `json:"deposit" yaml:"deposit"`
 }
 
-type RegisterCosmosChainProposalJSON struct {
+type RegisterHostChainProposalJSON struct {
 	Title                 string                      `json:"title" yaml:"title"`
 	Description           string                      `json:"description" yaml:"description"`
 	ModuleEnabled         bool                        `json:"module_enabled" yaml:"module_enabled"`
-	ConnectionID          string                      `json:"connectionID" yaml:"connectionID"`
+	ConnectionID          string                      `json:"connection_i_d" yaml:"connection_i_d"`
 	TransferChannel       string                      `json:"transfer_channel" yaml:"transfer_channel"`
 	TransferPort          string                      `json:"transfer_port" yaml:"transfer_port"`
 	BaseDenom             string                      `json:"base_denom" yaml:"base_denom"`
@@ -48,8 +48,8 @@ type RegisterCosmosChainProposalJSON struct {
 }
 
 func NewRegisterChainJSON(title, description string, moduleEnabled bool, connectionID, transferChannel, transferPort,
-	baseDenom, mintDenom, minDeposit string, allowListedValidators types.AllowListedValidators, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, deposit string) RegisterCosmosChainProposalJSON {
-	return RegisterCosmosChainProposalJSON{
+	baseDenom, mintDenom, minDeposit string, allowListedValidators types.AllowListedValidators, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, deposit string) RegisterHostChainProposalJSON {
+	return RegisterHostChainProposalJSON{
 		Title:                 title,
 		Description:           description,
 		ModuleEnabled:         moduleEnabled,
@@ -67,10 +67,10 @@ func NewRegisterChainJSON(title, description string, moduleEnabled bool, connect
 	}
 }
 
-// ParseRegisterCosmosChainProposalJSON reads and parses a RegisterCosmosChainProposalJSON from
+// ParseRegisterHostChainProposalJSON reads and parses a RegisterHostChainProposalJSON from
 // file.
-func ParseRegisterCosmosChainProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (RegisterCosmosChainProposalJSON, error) {
-	proposal := RegisterCosmosChainProposalJSON{}
+func ParseRegisterHostChainProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (RegisterHostChainProposalJSON, error) {
+	proposal := RegisterHostChainProposalJSON{}
 
 	contents, err := os.ReadFile(proposalFile)
 	if err != nil {

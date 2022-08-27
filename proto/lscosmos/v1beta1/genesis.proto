@@ -15,7 +15,7 @@ message GenesisState {
 
   // this line is used by starport scaffolding # genesis/proto/state
   bool module_enabled = 2;
-  CosmosParams cosmos_params = 3 [(gogoproto.nullable) = false];
+  HostChainParams host_chain_params = 3 [(gogoproto.nullable) = false];
   AllowListedValidators allow_listed_validators = 4 [(gogoproto.nullable) = false];
   DelegationState delegation_state = 5 [(gogoproto.nullable) = false];
 }

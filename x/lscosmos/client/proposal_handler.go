@@ -8,5 +8,5 @@ import (
 )
 
 var (
-	RegisterCosmosChainProposalHandler = client.NewProposalHandler(cli.NewRegisterCosmosChainCmd, rest.RegisterChainRESTHandler)
+	RegisterHostChainProposalHandler = client.NewProposalHandler(cli.NewRegisterHostChainCmd, rest.RegisterChainRESTHandler)
 )

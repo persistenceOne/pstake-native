@@ -31,11 +31,11 @@ message AllowListedValidator {
   ];
 }
 
-// CosmosParams go into the DB
-message CosmosParams {
+// HostChainParams go into the DB
+message HostChainParams {
   option (gogoproto.goproto_stringer) = true;
 
-  string connectionID = 1;
+  string connection_i_d = 1;
   string transfer_channel = 2;
   string transfer_port = 3;
   string base_denom = 4;

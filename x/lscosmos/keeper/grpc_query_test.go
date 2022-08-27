@@ -7,7 +7,7 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-func (suite *IntegrationTestSuite) TestCosmosParamsQuery() {
+func (suite *IntegrationTestSuite) TestHostChainParamsQuery() {
 	app, ctx := suite.app, suite.ctx
 
 	suite.govHandler = lscosmos.NewLSCosmosProposalHandler(suite.app.LSCosmosKeeper)
@@ -18,18 +18,18 @@ func (suite *IntegrationTestSuite) TestCosmosParamsQuery() {
 	suite.NoError(err)
 	unstakeFee, err := sdk.NewDecFromStr("0.03")
 	suite.NoError(err)
-	params := types.NewCosmosParams("connection-0", "channel-0", "transfer",
+	params := types.NewHostChainParams("connection-0", "channel-0", "transfer",
 		"uatom", "ustkatom", minDeposit, depositFee, restakeFee, unstakeFee)
-	suite.app.LSCosmosKeeper.SetCosmosParams(ctx, params)
+	suite.app.LSCosmosKeeper.SetHostChainParams(ctx, params)
 
 	c := sdk.WrapSDKContext(ctx)
-	response, err := app.LSCosmosKeeper.CosmosParams(c, &types.QueryCosmosParamsRequest{})
+	response, err := app.LSCosmosKeeper.HostChainParams(c, &types.QueryHostChainParamsRequest{})
 	suite.NoError(err)
 	minDeposit, ok := sdk.NewIntFromString("1")
 	if !ok {
 		err = sdkErrors.Wrap(err, "minimum deposit amount is invalid")
 	}
 	suite.NoError(err)
-	suite.Equal(&types.QueryCosmosParamsResponse{CosmosParams: params}, response)
+	suite.Equal(&types.QueryHostChainParamsResponse{HostChainParams: params}, response)
 
 }

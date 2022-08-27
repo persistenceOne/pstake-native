@@ -1,10 +1,10 @@
 {
-  "title": "register cosmos chain proposal",
-  "description": "this proposal register cosmos chain params in the chain",
+  "title": "register host chain proposal",
+  "description": "this proposal register host chain params in the chain",
   "module_enabled": true,
-  "ibc_connection": "connection-0",
-  "token_transfer_channel": "channel-0",
-  "token_transfer_port": "transfer",
+  "connection_i_d": "connection-0",
+  "transfer_channel": "channel-0",
+  "transfer_port": "transfer",
   "base_denom": "uatom",
   "mint_denom": "ustkatom",
   "min_deposit": "1",
@@ -16,8 +16,8 @@
       }
     ]
   },
-  "p_stake_deposit_fee": "0.00",
-  "p_stake_restake_fee": "0.00",
-  "p_stake_unstake_fee": "0.00",
+  "pstake_deposit_fee": "0.00",
+  "pstake_restake_fee": "0.00",
+  "pstake_unstake_fee": "0.00",
   "deposit": "1000000uxprt"
 }

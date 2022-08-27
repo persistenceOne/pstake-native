@@ -13,9 +13,9 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-// HandleRegisterCosmosChainProposal performs the writes cosmos IBC params.
-func HandleRegisterCosmosChainProposal(ctx sdk.Context, k Keeper, content types.RegisterCosmosChainProposal) error {
-	oldData := k.GetCosmosParams(ctx)
+// HandleRegisterHostChainProposal performs the writes host chain params.
+func HandleRegisterHostChainProposal(ctx sdk.Context, k Keeper, content types.RegisterHostChainProposal) error {
+	oldData := k.GetHostChainParams(ctx)
 	if !oldData.IsEmpty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module was already registered")
 	}
@@ -53,11 +53,11 @@ func HandleRegisterCosmosChainProposal(ctx sdk.Context, k Keeper, content types.
 		return sdkerrors.Wrap(err, "Could not register ica reward Address")
 	}
 
-	paramsProposal := types.NewCosmosParams(content.ConnectionID, content.TransferChannel,
+	paramsProposal := types.NewHostChainParams(content.ConnectionID, content.TransferChannel,
 		content.TransferPort, content.BaseDenom, content.MintDenom, content.MinDeposit,
 		content.PstakeDepositFee, content.PstakeRestakeFee, content.PstakeUnstakeFee)
 
-	k.SetCosmosParams(ctx, paramsProposal)
+	k.SetHostChainParams(ctx, paramsProposal)
 
 	if !content.AllowListedValidators.Valid() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Allow listed validators is invalid")

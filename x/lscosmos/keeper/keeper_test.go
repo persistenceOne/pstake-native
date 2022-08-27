@@ -75,7 +75,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 func (suite *IntegrationTestSuite) TestMintToken() {
 	pstakeApp, ctx := suite.app, suite.ctx
 
-	testParams := types.RegisterCosmosChainProposal{
+	testParams := types.RegisterHostChainProposal{
 		Title:                 "register cosmos chain proposal",
 		Description:           "this proposal register cosmos chain params in the chain",
 		ModuleEnabled:         true,
