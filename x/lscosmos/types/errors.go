@@ -20,4 +20,5 @@ var (
 	ErrInvalidDenomPath     = sdkerrors.Register(ModuleName, 70, "denomPath invalid")
 	ErrModuleDisabled       = sdkerrors.Register(ModuleName, 71, "Module is not enabled/ disabled")
 	ErrInvalidIntParse      = sdkerrors.Register(ModuleName, 72, "unable to parse to sdk.Int")
+	ErrICATxFailure         = sdkerrors.Register(ModuleName, 73, "ica transaction failed")
 )
