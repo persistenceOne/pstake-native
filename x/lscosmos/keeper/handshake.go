@@ -263,6 +263,7 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 		k.RemoveBalanceFromDelegationState(ctx, sdk.NewCoins(parsedMsg.Amount))
 		// Add delegation state
 		k.AddHostAccountDelegation(ctx, types.NewHostAccountDelegation(parsedMsg.ValidatorAddress, parsedMsg.Amount))
+
 		return msgResponse.String(), nil
 
 	// TODO: handle other messages
