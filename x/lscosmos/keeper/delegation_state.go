@@ -29,7 +29,7 @@ func (k Keeper) AddBalanceToDelegationState(ctx sdk.Context, coin sdk.Coin) {
 	k.SetDelegationState(ctx, delegationState)
 }
 
-func (k Keeper) RemoveBalanceToDelegationState(ctx sdk.Context, coins sdk.Coins) {
+func (k Keeper) RemoveBalanceFromDelegationState(ctx sdk.Context, coins sdk.Coins) {
 	delegationState := k.GetDelegationState(ctx)
 	delegationState.HostDelegationAccountBalance = delegationState.HostDelegationAccountBalance.Sub(coins)
 	k.SetDelegationState(ctx, delegationState)
