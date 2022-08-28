@@ -45,17 +45,17 @@ func (k Keeper) SetHostChainDelegationAddress(ctx sdk.Context, addr string) erro
 	return nil
 }
 
-func (k Keeper) AddHostChainDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) {
+func (k Keeper) AddHostAccountDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) {
 	delegationState := k.GetDelegationState(ctx)
-	delegationState = appendHostChainDelegation(delegationState, delegation)
+	delegationState = appendHostAccountDelegation(delegationState, delegation)
 	k.SetDelegationState(ctx, delegationState)
 }
-func (k Keeper) SubtractHostChainDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) {
+func (k Keeper) SubtractHostAccountDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) {
 	delegationState := k.GetDelegationState(ctx)
-	delegationState = removeHostChainDelegation(delegationState, delegation)
+	delegationState = removeHostAccountDelegation(delegationState, delegation)
 	k.SetDelegationState(ctx, delegationState)
 }
-func appendHostChainDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) types.DelegationState {
+func appendHostAccountDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) types.DelegationState {
 	// optimise this // do we want to have it sorted?
 	for _, existingDelegation := range delegationState.HostAccountDelegations {
 		if existingDelegation.ValidatorAddress == delegation.ValidatorAddress {
@@ -67,16 +67,13 @@ func appendHostChainDelegation(delegationState types.DelegationState, delegation
 	delegationState.HostAccountDelegations = append(delegationState.HostAccountDelegations, delegation)
 	return delegationState
 }
-func removeHostChainDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) types.DelegationState {
+func removeHostAccountDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) types.DelegationState {
 	// optimise this // do we want to have it sorted?
 	for _, existingDelegation := range delegationState.HostAccountDelegations {
 		if existingDelegation.ValidatorAddress == delegation.ValidatorAddress {
-			existingDelegation.Amount = existingDelegation.Amount.Sub(delegation.Amount)
-			if existingDelegation.Amount.IsNegative() {
-				panic("WTF?")
-			}
+			existingDelegation.Amount = existingDelegation.Amount.Sub(delegation.Amount) //This will panic if coin goes negative
 			return delegationState
 		}
 	}
-	panic("WTF?")
+	panic("WTF?") //todo proper errors
 }
