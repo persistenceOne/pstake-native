@@ -25,35 +25,35 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// RegisterCosmosChainProposal defines the details needed to register cosmos chain for
+// RegisterHostChainProposal defines the details needed to register cosmos chain for
 // liquid staking transactions through lscosmos module
-type RegisterCosmosChainProposal struct {
+type RegisterHostChainProposal struct {
 	Title                 string                                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	Description           string                                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	ModuleEnabled         bool                                   `protobuf:"varint,3,opt,name=module_enabled,json=moduleEnabled,proto3" json:"module_enabled,omitempty"`
-	IBCConnection         string                                 `protobuf:"bytes,4,opt,name=i_b_c_connection,json=iBCConnection,proto3" json:"i_b_c_connection,omitempty"`
-	TokenTransferChannel  string                                 `protobuf:"bytes,5,opt,name=token_transfer_channel,json=tokenTransferChannel,proto3" json:"token_transfer_channel,omitempty"`
-	TokenTransferPort     string                                 `protobuf:"bytes,6,opt,name=token_transfer_port,json=tokenTransferPort,proto3" json:"token_transfer_port,omitempty"`
+	ConnectionID          string                                 `protobuf:"bytes,4,opt,name=connection_i_d,json=connectionID,proto3" json:"connection_i_d,omitempty"`
+	TransferChannel       string                                 `protobuf:"bytes,5,opt,name=transfer_channel,json=transferChannel,proto3" json:"transfer_channel,omitempty"`
+	TransferPort          string                                 `protobuf:"bytes,6,opt,name=transfer_port,json=transferPort,proto3" json:"transfer_port,omitempty"`
 	BaseDenom             string                                 `protobuf:"bytes,7,opt,name=base_denom,json=baseDenom,proto3" json:"base_denom,omitempty"`
 	MintDenom             string                                 `protobuf:"bytes,8,opt,name=mint_denom,json=mintDenom,proto3" json:"mint_denom,omitempty"`
 	MinDeposit            github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,9,opt,name=min_deposit,json=minDeposit,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"min_deposit"`
 	AllowListedValidators AllowListedValidators                  `protobuf:"bytes,10,opt,name=allow_listed_validators,json=allowListedValidators,proto3" json:"allow_listed_validators"`
-	PStakeDepositFee      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,11,opt,name=p_stake_deposit_fee,json=pStakeDepositFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"p_stake_deposit_fee"`
-	PStakeRestakeFee      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,12,opt,name=p_stake_restake_fee,json=pStakeRestakeFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"p_stake_restake_fee"`
-	PStakeUnstakeFee      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,13,opt,name=p_stake_unstake_fee,json=pStakeUnstakeFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"p_stake_unstake_fee"`
+	PstakeDepositFee      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,11,opt,name=pstake_deposit_fee,json=pstakeDepositFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"pstake_deposit_fee"`
+	PstakeRestakeFee      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,12,opt,name=pstake_restake_fee,json=pstakeRestakeFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"pstake_restake_fee"`
+	PstakeUnstakeFee      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,13,opt,name=pstake_unstake_fee,json=pstakeUnstakeFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"pstake_unstake_fee"`
 }
 
-func (m *RegisterCosmosChainProposal) Reset()      { *m = RegisterCosmosChainProposal{} }
-func (*RegisterCosmosChainProposal) ProtoMessage() {}
-func (*RegisterCosmosChainProposal) Descriptor() ([]byte, []int) {
+func (m *RegisterHostChainProposal) Reset()      { *m = RegisterHostChainProposal{} }
+func (*RegisterHostChainProposal) ProtoMessage() {}
+func (*RegisterHostChainProposal) Descriptor() ([]byte, []int) {
 	return fileDescriptor_abbb79eadcf33bd7, []int{0}
 }
-func (m *RegisterCosmosChainProposal) XXX_Unmarshal(b []byte) error {
+func (m *RegisterHostChainProposal) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *RegisterCosmosChainProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *RegisterHostChainProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_RegisterCosmosChainProposal.Marshal(b, m, deterministic)
+		return xxx_messageInfo_RegisterHostChainProposal.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -63,20 +63,20 @@ func (m *RegisterCosmosChainProposal) XXX_Marshal(b []byte, deterministic bool) 
 		return b[:n], nil
 	}
 }
-func (m *RegisterCosmosChainProposal) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RegisterCosmosChainProposal.Merge(m, src)
+func (m *RegisterHostChainProposal) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisterHostChainProposal.Merge(m, src)
 }
-func (m *RegisterCosmosChainProposal) XXX_Size() int {
+func (m *RegisterHostChainProposal) XXX_Size() int {
 	return m.Size()
 }
-func (m *RegisterCosmosChainProposal) XXX_DiscardUnknown() {
-	xxx_messageInfo_RegisterCosmosChainProposal.DiscardUnknown(m)
+func (m *RegisterHostChainProposal) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisterHostChainProposal.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_RegisterCosmosChainProposal proto.InternalMessageInfo
+var xxx_messageInfo_RegisterHostChainProposal proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*RegisterCosmosChainProposal)(nil), "lscosmos.v1beta1.RegisterCosmosChainProposal")
+	proto.RegisterType((*RegisterHostChainProposal)(nil), "lscosmos.v1beta1.RegisterHostChainProposal")
 }
 
 func init() {
@@ -84,46 +84,45 @@ func init() {
 }
 
 var fileDescriptor_abbb79eadcf33bd7 = []byte{
-	// 562 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x93, 0x4f, 0x6f, 0xd3, 0x3e,
-	0x18, 0xc7, 0x93, 0xdf, 0x6f, 0x1b, 0x9b, 0xcb, 0xd0, 0xc8, 0x0a, 0x44, 0x43, 0xa4, 0x15, 0x12,
-	0xac, 0x42, 0x5a, 0xa2, 0x01, 0x07, 0xc4, 0x8d, 0xb6, 0x20, 0x21, 0x21, 0x6d, 0x0a, 0x7f, 0x0e,
-	0x48, 0x60, 0x39, 0xc9, 0xb3, 0xd6, 0x6a, 0x62, 0x47, 0xb6, 0x5b, 0xe0, 0xc6, 0x4b, 0xe0, 0xc8,
-	0x71, 0xc7, 0xbd, 0x94, 0x1e, 0x77, 0x44, 0x1c, 0x26, 0x68, 0x2f, 0xbc, 0x0c, 0x64, 0x3b, 0x2d,
-	0xa5, 0x70, 0x41, 0x3b, 0x39, 0xf9, 0x7e, 0xbf, 0xcf, 0xe7, 0x79, 0x62, 0xc7, 0xe8, 0x4e, 0x2e,
-	0x53, 0x2e, 0x0b, 0x2e, 0xa3, 0xd1, 0x7e, 0x02, 0x8a, 0xec, 0x47, 0x3d, 0x3e, 0x02, 0xc1, 0x08,
-	0x4b, 0x01, 0x97, 0x82, 0x97, 0x5c, 0x92, 0x3c, 0x2c, 0x05, 0x57, 0xdc, 0xdb, 0x9a, 0x65, 0xc3,
-	0x2a, 0xbb, 0x53, 0xef, 0xf1, 0x1e, 0x37, 0x66, 0xa4, 0x9f, 0x6c, 0x6e, 0x27, 0xa8, 0x88, 0x09,
-	0x91, 0x30, 0xc7, 0xa6, 0x9c, 0xb2, 0xca, 0x6f, 0xfc, 0xd1, 0x73, 0x0e, 0x36, 0x81, 0x9b, 0x27,
-	0x6b, 0xe8, 0x7a, 0x0c, 0x3d, 0x2a, 0x15, 0x88, 0x8e, 0x31, 0x3a, 0x7d, 0x42, 0xd9, 0x61, 0x35,
-	0x8e, 0x57, 0x47, 0xab, 0x8a, 0xaa, 0x1c, 0x7c, 0xb7, 0xe9, 0xb6, 0x36, 0x62, 0xfb, 0xe2, 0x35,
-	0x51, 0x2d, 0x03, 0x99, 0x0a, 0x5a, 0x2a, 0xca, 0x99, 0xff, 0x9f, 0xf1, 0x16, 0x25, 0xef, 0x16,
-	0xba, 0x54, 0xf0, 0x6c, 0x98, 0x03, 0x06, 0x46, 0x92, 0x1c, 0x32, 0xff, 0xff, 0xa6, 0xdb, 0x5a,
-	0x8f, 0x37, 0xad, 0xfa, 0xd8, 0x8a, 0xde, 0x2e, 0xda, 0xa2, 0x38, 0xc1, 0x29, 0x4e, 0x39, 0x63,
-	0x90, 0x1a, 0xda, 0x8a, 0xa1, 0x6d, 0xd2, 0x76, 0xa7, 0x33, 0x17, 0xbd, 0xfb, 0xe8, 0xaa, 0xe2,
-	0x03, 0x60, 0x58, 0x09, 0xc2, 0xe4, 0x11, 0x08, 0x9c, 0xf6, 0x09, 0x63, 0x90, 0xfb, 0xab, 0x26,
-	0x5e, 0x37, 0xee, 0x8b, 0xca, 0xec, 0x58, 0xcf, 0x0b, 0xd1, 0xf6, 0x52, 0x55, 0xc9, 0x85, 0xf2,
-	0xd7, 0x4c, 0xc9, 0xe5, 0xdf, 0x4a, 0x0e, 0xb9, 0x50, 0xde, 0x0d, 0x84, 0xf4, 0x4e, 0xe2, 0x0c,
-	0x18, 0x2f, 0xfc, 0x0b, 0x26, 0xb6, 0xa1, 0x95, 0xae, 0x16, 0xb4, 0x5d, 0x50, 0xa6, 0x2a, 0x7b,
-	0xdd, 0xda, 0x5a, 0xb1, 0xf6, 0x01, 0xaa, 0x15, 0x94, 0xe1, 0x0c, 0x4a, 0x2e, 0xa9, 0xf2, 0x37,
-	0xb4, 0xdf, 0x0e, 0xc7, 0x67, 0x0d, 0xe7, 0xeb, 0x59, 0xe3, 0x76, 0x8f, 0xaa, 0xfe, 0x30, 0x09,
-	0x53, 0x5e, 0x44, 0xd5, 0x91, 0xd8, 0x65, 0x4f, 0x66, 0x83, 0x48, 0x7d, 0x28, 0x41, 0x86, 0x4f,
-	0x99, 0x8a, 0x75, 0x87, 0xae, 0x25, 0x78, 0x80, 0xae, 0x91, 0x3c, 0xe7, 0xef, 0x70, 0xae, 0xcf,
-	0x27, 0xc3, 0x23, 0x92, 0xd3, 0x8c, 0x28, 0x2e, 0xa4, 0x8f, 0x9a, 0x6e, 0xab, 0x76, 0x77, 0x37,
-	0x5c, 0xfe, 0x4f, 0xc2, 0x47, 0xba, 0xe0, 0x99, 0xc9, 0xbf, 0x9a, 0xc7, 0xdb, 0x2b, 0x7a, 0x8a,
-	0xf8, 0x0a, 0xf9, 0x9b, 0xe9, 0xbd, 0x41, 0xdb, 0x25, 0x96, 0x8a, 0x0c, 0x60, 0x36, 0x3b, 0x3e,
-	0x02, 0xf0, 0x6b, 0xff, 0x3c, 0x7f, 0x17, 0xd2, 0x78, 0xab, 0x7c, 0xae, 0x49, 0xd5, 0x27, 0x3c,
-	0x01, 0x58, 0xc4, 0x0b, 0xb0, 0xab, 0xc6, 0x5f, 0x3c, 0x0f, 0x3e, 0xb6, 0xa0, 0x25, 0xfc, 0x90,
-	0xfd, 0xc2, 0x6f, 0x9e, 0x07, 0xff, 0x92, 0xcd, 0xf0, 0x0f, 0xd7, 0x3f, 0x1f, 0x37, 0x9c, 0x1f,
-	0xc7, 0x0d, 0xa7, 0xfd, 0x76, 0xfc, 0x3d, 0x70, 0x3e, 0x4e, 0x02, 0xe7, 0x64, 0x12, 0xb8, 0xe3,
-	0x49, 0xe0, 0x9e, 0x4e, 0x02, 0xf7, 0xdb, 0x24, 0x70, 0x3f, 0x4d, 0x03, 0xe7, 0x74, 0x1a, 0x38,
-	0x5f, 0xa6, 0x81, 0xf3, 0xfa, 0xc1, 0x42, 0xa7, 0x12, 0x84, 0xd4, 0x9b, 0xcd, 0x52, 0x38, 0x60,
-	0x10, 0x95, 0x06, 0xba, 0xc7, 0x88, 0xa2, 0x23, 0x88, 0xde, 0xcf, 0xaf, 0xa2, 0xed, 0x9f, 0xac,
-	0x99, 0x1b, 0x79, 0xef, 0x67, 0x00, 0x00, 0x00, 0xff, 0xff, 0x45, 0x99, 0x86, 0x27, 0x28, 0x04,
-	0x00, 0x00,
+	// 547 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x93, 0xbf, 0x6f, 0xd3, 0x40,
+	0x14, 0xc7, 0x6d, 0x68, 0x43, 0x72, 0x69, 0x4a, 0x64, 0x15, 0x61, 0x2a, 0xe1, 0x44, 0xfc, 0x0c,
+	0x48, 0xb5, 0x55, 0x58, 0x10, 0x1b, 0x69, 0x40, 0x54, 0x42, 0x6a, 0x65, 0x09, 0x06, 0x84, 0xb0,
+	0x2e, 0xf6, 0x6b, 0x72, 0xaa, 0x7d, 0xcf, 0xba, 0xbb, 0x04, 0xd8, 0x98, 0x99, 0x18, 0x19, 0x3b,
+	0xf2, 0xa7, 0x64, 0xec, 0x88, 0x18, 0x2a, 0x48, 0x16, 0xfe, 0x0c, 0x74, 0x3e, 0x27, 0x0d, 0x3f,
+	0x96, 0xaa, 0xd3, 0xd9, 0xdf, 0xef, 0xf7, 0x3e, 0xef, 0xf9, 0xf9, 0x8e, 0xdc, 0x4f, 0x65, 0x8c,
+	0x32, 0x43, 0x19, 0x8c, 0xb7, 0xfb, 0xa0, 0xe8, 0x76, 0x30, 0xc0, 0x31, 0x08, 0x4e, 0x79, 0x0c,
+	0x51, 0x2e, 0x30, 0x47, 0x49, 0x53, 0x3f, 0x17, 0xa8, 0xd0, 0x69, 0xce, 0xb3, 0x7e, 0x99, 0xdd,
+	0xdc, 0x18, 0xe0, 0x00, 0x0b, 0x33, 0xd0, 0x4f, 0x26, 0xb7, 0xe9, 0x95, 0xc4, 0x3e, 0x95, 0xb0,
+	0xc0, 0xc6, 0xc8, 0x78, 0xe9, 0xb7, 0xfe, 0xa9, 0xb9, 0x00, 0x17, 0x81, 0x1b, 0x9f, 0x2a, 0xe4,
+	0x5a, 0x08, 0x03, 0x26, 0x15, 0x88, 0xe7, 0x28, 0xd5, 0xce, 0x90, 0x32, 0xbe, 0x5f, 0x36, 0xe3,
+	0x6c, 0x90, 0x55, 0xc5, 0x54, 0x0a, 0xae, 0xdd, 0xb6, 0x3b, 0xb5, 0xd0, 0xbc, 0x38, 0x6d, 0x52,
+	0x4f, 0x40, 0xc6, 0x82, 0xe5, 0x8a, 0x21, 0x77, 0x2f, 0x14, 0xde, 0xb2, 0xe4, 0xdc, 0x26, 0xeb,
+	0x19, 0x26, 0xa3, 0x14, 0x22, 0xe0, 0xb4, 0x9f, 0x42, 0xe2, 0x5e, 0x6c, 0xdb, 0x9d, 0x6a, 0xd8,
+	0x30, 0xea, 0x53, 0x23, 0x3a, 0xb7, 0xc8, 0x7a, 0x8c, 0x9c, 0x43, 0xac, 0x37, 0x45, 0x2c, 0x4a,
+	0xdc, 0x95, 0x82, 0xb5, 0x76, 0xaa, 0xee, 0xf6, 0x9c, 0x7b, 0xa4, 0xa9, 0x04, 0xe5, 0xf2, 0x00,
+	0x44, 0x14, 0x0f, 0x29, 0xe7, 0x90, 0xba, 0xab, 0x45, 0xee, 0xf2, 0x5c, 0xdf, 0x31, 0xb2, 0x73,
+	0x93, 0x34, 0x16, 0xd1, 0x1c, 0x85, 0x72, 0x2b, 0x86, 0x37, 0x17, 0xf7, 0x51, 0x28, 0xe7, 0x3a,
+	0x21, 0x7a, 0x5c, 0x51, 0x02, 0x1c, 0x33, 0xf7, 0x52, 0x91, 0xa8, 0x69, 0xa5, 0xa7, 0x05, 0x6d,
+	0x67, 0x8c, 0xab, 0xd2, 0xae, 0x1a, 0x5b, 0x2b, 0xc6, 0xde, 0x23, 0xf5, 0x8c, 0xf1, 0x28, 0x81,
+	0x1c, 0x25, 0x53, 0x6e, 0x4d, 0xfb, 0x5d, 0x7f, 0x72, 0xd2, 0xb2, 0xbe, 0x9f, 0xb4, 0xee, 0x0c,
+	0x98, 0x1a, 0x8e, 0xfa, 0x7e, 0x8c, 0x59, 0x50, 0xce, 0xdd, 0x2c, 0x5b, 0x32, 0x39, 0x0c, 0xd4,
+	0x87, 0x1c, 0xa4, 0xbf, 0xcb, 0x55, 0xa8, 0x2b, 0xf4, 0x0c, 0xc1, 0x01, 0x72, 0x95, 0xa6, 0x29,
+	0xbe, 0x8b, 0x52, 0xfd, 0x13, 0x92, 0x68, 0x4c, 0x53, 0x96, 0x50, 0x85, 0x42, 0xba, 0xa4, 0x6d,
+	0x77, 0xea, 0x0f, 0xee, 0xfa, 0x7f, 0x1f, 0x06, 0xff, 0x89, 0xde, 0xf0, 0xa2, 0xc8, 0xbf, 0x5a,
+	0xc4, 0xbb, 0x2b, 0xba, 0x8b, 0xf0, 0x0a, 0xfd, 0x9f, 0xe9, 0xbc, 0x21, 0x4e, 0x2e, 0x15, 0x3d,
+	0x84, 0x79, 0xeb, 0xd1, 0x01, 0x80, 0x5b, 0x3f, 0x73, 0xfb, 0x3d, 0x88, 0xc3, 0xa6, 0x21, 0x95,
+	0x5f, 0xf0, 0x0c, 0x60, 0x89, 0x2e, 0xc0, 0xac, 0x9a, 0xbe, 0x76, 0x1e, 0x7a, 0x68, 0x40, 0x7f,
+	0xd2, 0x47, 0xfc, 0x94, 0xde, 0x38, 0x0f, 0xfd, 0x25, 0x9f, 0xd3, 0x1f, 0x57, 0xbf, 0x1c, 0xb5,
+	0xac, 0x5f, 0x47, 0x2d, 0xab, 0xfb, 0x76, 0xf2, 0xd3, 0xb3, 0x3e, 0x4e, 0x3d, 0xeb, 0xeb, 0xd4,
+	0xb3, 0x27, 0x53, 0xcf, 0x3e, 0x9e, 0x7a, 0xf6, 0x8f, 0xa9, 0x67, 0x7f, 0x9e, 0x79, 0xd6, 0xf1,
+	0xcc, 0xb3, 0xbe, 0xcd, 0x3c, 0xeb, 0xf5, 0xa3, 0xa5, 0x4a, 0x39, 0x08, 0xa9, 0x27, 0xcd, 0x63,
+	0xd8, 0xe3, 0x10, 0x18, 0xf6, 0x16, 0xa7, 0x8a, 0x8d, 0x21, 0x78, 0xbf, 0xb8, 0x6c, 0xa6, 0x7e,
+	0xbf, 0x52, 0xdc, 0xb9, 0x87, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0xa7, 0xad, 0x6f, 0xa3, 0x0a,
+	0x04, 0x00, 0x00,
 }
 
-func (m *RegisterCosmosChainProposal) Marshal() (dAtA []byte, err error) {
+func (m *RegisterHostChainProposal) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -133,20 +132,20 @@ func (m *RegisterCosmosChainProposal) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *RegisterCosmosChainProposal) MarshalTo(dAtA []byte) (int, error) {
+func (m *RegisterHostChainProposal) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *RegisterCosmosChainProposal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *RegisterHostChainProposal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
 	{
-		size := m.PStakeUnstakeFee.Size()
+		size := m.PstakeUnstakeFee.Size()
 		i -= size
-		if _, err := m.PStakeUnstakeFee.MarshalTo(dAtA[i:]); err != nil {
+		if _, err := m.PstakeUnstakeFee.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
 		}
 		i = encodeVarintGovernanceProposal(dAtA, i, uint64(size))
@@ -154,9 +153,9 @@ func (m *RegisterCosmosChainProposal) MarshalToSizedBuffer(dAtA []byte) (int, er
 	i--
 	dAtA[i] = 0x6a
 	{
-		size := m.PStakeRestakeFee.Size()
+		size := m.PstakeRestakeFee.Size()
 		i -= size
-		if _, err := m.PStakeRestakeFee.MarshalTo(dAtA[i:]); err != nil {
+		if _, err := m.PstakeRestakeFee.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
 		}
 		i = encodeVarintGovernanceProposal(dAtA, i, uint64(size))
@@ -164,9 +163,9 @@ func (m *RegisterCosmosChainProposal) MarshalToSizedBuffer(dAtA []byte) (int, er
 	i--
 	dAtA[i] = 0x62
 	{
-		size := m.PStakeDepositFee.Size()
+		size := m.PstakeDepositFee.Size()
 		i -= size
-		if _, err := m.PStakeDepositFee.MarshalTo(dAtA[i:]); err != nil {
+		if _, err := m.PstakeDepositFee.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
 		}
 		i = encodeVarintGovernanceProposal(dAtA, i, uint64(size))
@@ -207,24 +206,24 @@ func (m *RegisterCosmosChainProposal) MarshalToSizedBuffer(dAtA []byte) (int, er
 		i--
 		dAtA[i] = 0x3a
 	}
-	if len(m.TokenTransferPort) > 0 {
-		i -= len(m.TokenTransferPort)
-		copy(dAtA[i:], m.TokenTransferPort)
-		i = encodeVarintGovernanceProposal(dAtA, i, uint64(len(m.TokenTransferPort)))
+	if len(m.TransferPort) > 0 {
+		i -= len(m.TransferPort)
+		copy(dAtA[i:], m.TransferPort)
+		i = encodeVarintGovernanceProposal(dAtA, i, uint64(len(m.TransferPort)))
 		i--
 		dAtA[i] = 0x32
 	}
-	if len(m.TokenTransferChannel) > 0 {
-		i -= len(m.TokenTransferChannel)
-		copy(dAtA[i:], m.TokenTransferChannel)
-		i = encodeVarintGovernanceProposal(dAtA, i, uint64(len(m.TokenTransferChannel)))
+	if len(m.TransferChannel) > 0 {
+		i -= len(m.TransferChannel)
+		copy(dAtA[i:], m.TransferChannel)
+		i = encodeVarintGovernanceProposal(dAtA, i, uint64(len(m.TransferChannel)))
 		i--
 		dAtA[i] = 0x2a
 	}
-	if len(m.IBCConnection) > 0 {
-		i -= len(m.IBCConnection)
-		copy(dAtA[i:], m.IBCConnection)
-		i = encodeVarintGovernanceProposal(dAtA, i, uint64(len(m.IBCConnection)))
+	if len(m.ConnectionID) > 0 {
+		i -= len(m.ConnectionID)
+		copy(dAtA[i:], m.ConnectionID)
+		i = encodeVarintGovernanceProposal(dAtA, i, uint64(len(m.ConnectionID)))
 		i--
 		dAtA[i] = 0x22
 	}
@@ -266,7 +265,7 @@ func encodeVarintGovernanceProposal(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *RegisterCosmosChainProposal) Size() (n int) {
+func (m *RegisterHostChainProposal) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -283,15 +282,15 @@ func (m *RegisterCosmosChainProposal) Size() (n int) {
 	if m.ModuleEnabled {
 		n += 2
 	}
-	l = len(m.IBCConnection)
+	l = len(m.ConnectionID)
 	if l > 0 {
 		n += 1 + l + sovGovernanceProposal(uint64(l))
 	}
-	l = len(m.TokenTransferChannel)
+	l = len(m.TransferChannel)
 	if l > 0 {
 		n += 1 + l + sovGovernanceProposal(uint64(l))
 	}
-	l = len(m.TokenTransferPort)
+	l = len(m.TransferPort)
 	if l > 0 {
 		n += 1 + l + sovGovernanceProposal(uint64(l))
 	}
@@ -307,11 +306,11 @@ func (m *RegisterCosmosChainProposal) Size() (n int) {
 	n += 1 + l + sovGovernanceProposal(uint64(l))
 	l = m.AllowListedValidators.Size()
 	n += 1 + l + sovGovernanceProposal(uint64(l))
-	l = m.PStakeDepositFee.Size()
+	l = m.PstakeDepositFee.Size()
 	n += 1 + l + sovGovernanceProposal(uint64(l))
-	l = m.PStakeRestakeFee.Size()
+	l = m.PstakeRestakeFee.Size()
 	n += 1 + l + sovGovernanceProposal(uint64(l))
-	l = m.PStakeUnstakeFee.Size()
+	l = m.PstakeUnstakeFee.Size()
 	n += 1 + l + sovGovernanceProposal(uint64(l))
 	return n
 }
@@ -322,7 +321,7 @@ func sovGovernanceProposal(x uint64) (n int) {
 func sozGovernanceProposal(x uint64) (n int) {
 	return sovGovernanceProposal(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *RegisterCosmosChainProposal) Unmarshal(dAtA []byte) error {
+func (m *RegisterHostChainProposal) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -345,10 +344,10 @@ func (m *RegisterCosmosChainProposal) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: RegisterCosmosChainProposal: wiretype end group for non-group")
+			return fmt.Errorf("proto: RegisterHostChainProposal: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: RegisterCosmosChainProposal: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: RegisterHostChainProposal: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -437,7 +436,7 @@ func (m *RegisterCosmosChainProposal) Unmarshal(dAtA []byte) error {
 			m.ModuleEnabled = bool(v != 0)
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IBCConnection", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionID", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -465,11 +464,11 @@ func (m *RegisterCosmosChainProposal) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.IBCConnection = string(dAtA[iNdEx:postIndex])
+			m.ConnectionID = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TokenTransferChannel", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field TransferChannel", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -497,11 +496,11 @@ func (m *RegisterCosmosChainProposal) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.TokenTransferChannel = string(dAtA[iNdEx:postIndex])
+			m.TransferChannel = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TokenTransferPort", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field TransferPort", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -529,7 +528,7 @@ func (m *RegisterCosmosChainProposal) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.TokenTransferPort = string(dAtA[iNdEx:postIndex])
+			m.TransferPort = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 7:
 			if wireType != 2 {
@@ -664,7 +663,7 @@ func (m *RegisterCosmosChainProposal) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 11:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PStakeDepositFee", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PstakeDepositFee", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -692,13 +691,13 @@ func (m *RegisterCosmosChainProposal) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.PStakeDepositFee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.PstakeDepositFee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 12:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PStakeRestakeFee", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PstakeRestakeFee", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -726,13 +725,13 @@ func (m *RegisterCosmosChainProposal) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.PStakeRestakeFee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.PstakeRestakeFee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 13:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PStakeUnstakeFee", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PstakeUnstakeFee", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -760,7 +759,7 @@ func (m *RegisterCosmosChainProposal) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.PStakeUnstakeFee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.PstakeUnstakeFee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

@@ -7,13 +7,13 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-// SetCosmosIBCParams sets the cosmos IBC params in store
+// SetDelegationState sets the delegation state in store
 func (k Keeper) SetDelegationState(ctx sdk.Context, delegationState types.DelegationState) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.DelegationStateKey, k.cdc.MustMarshal(&delegationState))
 }
 
-// GetCosmosIBCParams gets the cosmos IBC params in store
+// GetDelegationState gets the delegation state in store
 func (k Keeper) GetDelegationState(ctx sdk.Context) types.DelegationState {
 	store := ctx.KVStore(k.storeKey)
 

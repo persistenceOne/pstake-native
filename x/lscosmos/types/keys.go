@@ -60,7 +60,7 @@ var (
 	// PortKey defines the key to store the port ID in store
 
 	ModuleEnableKey          = []byte{0x01}
-	CosmosIBCParamsKey       = []byte{0x02}
+	HostChainParamsKey       = []byte{0x02}
 	AllowListedValidatorsKey = []byte{0x03}
 	DelegationStateKey       = []byte{0x04}
 )

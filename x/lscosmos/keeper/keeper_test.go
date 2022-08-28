@@ -75,23 +75,23 @@ func (suite *IntegrationTestSuite) SetupTest() {
 func (suite *IntegrationTestSuite) TestMintToken() {
 	pstakeApp, ctx := suite.app, suite.ctx
 
-	testParams := types.RegisterCosmosChainProposal{
+	testParams := types.RegisterHostChainProposal{
 		Title:                 "register cosmos chain proposal",
 		Description:           "this proposal register cosmos chain params in the chain",
 		ModuleEnabled:         true,
-		IBCConnection:         "test connection",
-		TokenTransferChannel:  "test-channel-1",
-		TokenTransferPort:     "transfer",
+		ConnectionID:          "test connection",
+		TransferChannel:       "test-channel-1",
+		TransferPort:          "transfer",
 		BaseDenom:             "uatom",
 		MintDenom:             "ustkatom",
 		MinDeposit:            sdk.OneInt().MulRaw(5),
 		AllowListedValidators: types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "addr", TargetWeight: sdk.OneDec()}}},
-		PStakeDepositFee:      sdk.ZeroDec(),
-		PStakeRestakeFee:      sdk.ZeroDec(),
-		PStakeUnstakeFee:      sdk.ZeroDec(),
+		PstakeDepositFee:      sdk.ZeroDec(),
+		PstakeRestakeFee:      sdk.ZeroDec(),
+		PstakeUnstakeFee:      sdk.ZeroDec(),
 	}
 
-	ibcDenom := ibctransfertypes.GetPrefixedDenom(testParams.TokenTransferPort, testParams.TokenTransferChannel, testParams.BaseDenom)
+	ibcDenom := ibctransfertypes.GetPrefixedDenom(testParams.TransferPort, testParams.TransferChannel, testParams.BaseDenom)
 	balanceOfIbcToken := sdk.NewInt64Coin(ibcDenom, 100)
 	mintAmountDec := balanceOfIbcToken.Amount.ToDec().Mul(pstakeApp.LSCosmosKeeper.GetCValue(ctx))
 	toBeMintedTokens, _ := sdk.NewDecCoinFromDec(testParams.MintDenom, mintAmountDec).TruncateDecimal()

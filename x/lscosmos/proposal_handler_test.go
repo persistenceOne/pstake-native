@@ -33,12 +33,12 @@ func TestHandlerTestSuite(t *testing.T) {
 func (suite *HandlerTestSuite) TestProposalHandler() {
 	testCases := []struct {
 		name     string
-		proposal *types.RegisterCosmosChainProposal
+		proposal *types.RegisterHostChainProposal
 		expErr   bool
 	}{
 		{
 			"all fields",
-			types.NewRegisterCosmosChainProposal("title",
+			types.NewRegisterHostChainProposal("title",
 				"description",
 				true,
 				"connection-0",

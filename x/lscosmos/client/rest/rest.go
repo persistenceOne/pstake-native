@@ -62,7 +62,7 @@ func RegisterChainRESTHandler(clientCtx client.Context) govrest.ProposalRESTHand
 
 func postRegisterChainHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req utils.RegisterCosmosChainProposalReq
+		var req utils.RegisterHostChainProposalReq
 		if !rest.ReadRESTReq(w, r, clientCtx.LegacyAmino, &req) {
 			return
 		}
@@ -77,26 +77,26 @@ func postRegisterChainHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			_ = rest.CheckBadRequestError(w, types.ErrInvalidIntParse)
 			return
 		}
-		depositFee, err := sdk.NewDecFromStr(req.PStakeDepositFee)
+		depositFee, err := sdk.NewDecFromStr(req.PstakeDepositFee)
 		if rest.CheckBadRequestError(w, err) {
 			return
 		}
-		restakeFee, err := sdk.NewDecFromStr(req.PStakeRestakeFee)
+		restakeFee, err := sdk.NewDecFromStr(req.PstakeRestakeFee)
 		if rest.CheckBadRequestError(w, err) {
 			return
 		}
-		unstakeFee, err := sdk.NewDecFromStr(req.PStakeUnstakeFee)
+		unstakeFee, err := sdk.NewDecFromStr(req.PstakeUnstakeFee)
 		if rest.CheckBadRequestError(w, err) {
 			return
 		}
 
-		content := types.NewRegisterCosmosChainProposal(
+		content := types.NewRegisterHostChainProposal(
 			req.Title,
 			req.Description,
 			req.ModuleEnabled,
-			req.IBCConnection,
-			req.TokenTransferChannel,
-			req.TokenTransferPort,
+			req.ConnectionID,
+			req.TransferChannel,
+			req.TransferPort,
 			req.BaseDenom,
 			req.MintDenom,
 			minDeposit,

@@ -39,20 +39,20 @@ func GetTxCmd() *cobra.Command {
 
 	// this line is used by starport scaffolding # 1
 	cmd.AddCommand(
-		NewRegisterCosmosChainCmd(),
+		NewRegisterHostChainCmd(),
 		NewLiquidStakeCmd(),
 	)
 
 	return cmd
 }
 
-func NewRegisterCosmosChainCmd() *cobra.Command {
+func NewRegisterHostChainCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "register-cosmos-chain [proposal-file]",
+		Use:   "register-host-chain [proposal-file]",
 		Args:  cobra.ExactArgs(1),
-		Short: "Submit a register cosmos chain proposal",
+		Short: "Submit a register host chain proposal",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Submit a register cosmos chain proposal along with an initial deposit
+			fmt.Sprintf(`Submit a register host chain proposal along with an initial deposit
 The proposal details must be supplied via a JSON file. For values that contains objects,
 only non-empty fields will be updated.
 
@@ -61,20 +61,22 @@ important that any value change is valid.
 
 Example Proposal :
 {
-	"title": "register cosmos chain proposal",
-	"description": "this proposal register cosmos chain params in the chain",
-	"ibc_connection": "test connection",
-	"token_transfer_channel": "test-channel-1",
-	"token_transfer_port": "test-transfer",
+	"title": "register host chain proposal",
+	"description": "this proposal register host chain params in the chain",
+	"connection_i_d": "test connection",
+	"transfer_channel": "test-channel-1",
+	"transfer_port": "test-transfer",
 	"base_denom": "uatom",
 	"mint_denom": "ustkatom",
 	"min_deposit": "5",
-	"p_stake_deposit_fee": "0.1",
+	"pstake_deposit_fee": "0.1",
+	"pstake_restake_fee": "0.1",
+	"pstake_unstake_fee": "0.1",
 	"deposit": "100stake"
 }
 
 Example:
-$ %s tx gov submit-proposal register-cosmos-chain <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
+$ %s tx gov submit-proposal register-host-chain <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
 `,
 				version.AppName,
 			),
@@ -84,7 +86,7 @@ $ %s tx gov submit-proposal register-cosmos-chain <path/to/proposal.json> --from
 			if err != nil {
 				return err
 			}
-			proposal, err := utils.ParseRegisterCosmosChainProposalJSON(clientCtx.LegacyAmino, args[0])
+			proposal, err := utils.ParseRegisterHostChainProposalJSON(clientCtx.LegacyAmino, args[0])
 			if err != nil {
 				return err
 			}
@@ -95,27 +97,27 @@ $ %s tx gov submit-proposal register-cosmos-chain <path/to/proposal.json> --from
 			if !ok {
 				return types.ErrInvalidIntParse
 			}
-			depositFee, err := sdk.NewDecFromStr(proposal.PStakeDepositFee)
+			depositFee, err := sdk.NewDecFromStr(proposal.PstakeDepositFee)
 			if err != nil {
 				return err
 			}
 
-			restakeFee, err := sdk.NewDecFromStr(proposal.PStakeRestakeFee)
+			restakeFee, err := sdk.NewDecFromStr(proposal.PstakeRestakeFee)
 			if err != nil {
 				return err
 			}
-			unstakeFee, err := sdk.NewDecFromStr(proposal.PStakeUnstakeFee)
+			unstakeFee, err := sdk.NewDecFromStr(proposal.PstakeUnstakeFee)
 			if err != nil {
 				return err
 			}
 
-			content := types.NewRegisterCosmosChainProposal(
+			content := types.NewRegisterHostChainProposal(
 				proposal.Title,
 				proposal.Description,
 				proposal.ModuleEnabled,
-				proposal.IBCConnection,
-				proposal.TokenTransferChannel,
-				proposal.TokenTransferPort,
+				proposal.ConnectionID,
+				proposal.TransferChannel,
+				proposal.TransferPort,
 				proposal.BaseDenom,
 				proposal.MintDenom,
 				minDeposit,

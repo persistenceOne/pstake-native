@@ -7,7 +7,7 @@ func DefaultGenesis() *GenesisState {
 		// this line is used by starport scaffolding # genesis/types/default
 		Params:                DefaultParams(),
 		ModuleEnabled:         false,
-		CosmosIBCParams:       CosmosIBCParams{},
+		HostChainParams:       HostChainParams{},
 		AllowListedValidators: AllowListedValidators{},
 		DelegationState:       DelegationState{},
 	}

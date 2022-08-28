@@ -10,67 +10,67 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-type RegisterCosmosChainProposalReq struct {
+type RegisterHostChainProposalReq struct {
 	BaseReq     rest.BaseReq `json:"base_req" yaml:"base_req"`
 	Title       string       `json:"title" yaml:"title"`
 	Description string       `json:"description" yaml:"description"`
 	// TODO update
 	ModuleEnabled         bool                        `json:"module_enabled" yaml:"module_enabled"`
-	IBCConnection         string                      `json:"ibc_connection" yaml:"ibc_connection"`
-	TokenTransferChannel  string                      `json:"token_transfer_channel" yaml:"token_transfer_channel"`
-	TokenTransferPort     string                      `json:"token_transfer_port" yaml:"token_transfer_port"`
+	ConnectionID          string                      `json:"connection_i_d" yaml:"connection_i_d"`
+	TransferChannel       string                      `json:"transfer_channel" yaml:"transfer_channel"`
+	TransferPort          string                      `json:"transfer_port" yaml:"transfer_port"`
 	BaseDenom             string                      `json:"base_denom" yaml:"base_denom"`
 	MintDenom             string                      `json:"mint_denom" yaml:"mint_denom"`
 	MinDeposit            string                      `json:"min_deposit" yaml:"min_deposit"`
 	AllowListedValidators types.AllowListedValidators `json:"allow_listed_validators" yaml:"allow_listed_validators"`
-	PStakeDepositFee      string                      `json:"p_stake_deposit_fee" yaml:"p_stake_deposit_fee"`
-	PStakeRestakeFee      string                      `json:"p_stake_restake_fee" yaml:"p_stake_restake_fee"`
-	PStakeUnstakeFee      string                      `json:"p_stake_unstake_fee" yaml:"p_stake_unstake_fee"`
+	PstakeDepositFee      string                      `json:"pstake_deposit_fee" yaml:"pstake_deposit_fee"`
+	PstakeRestakeFee      string                      `json:"pstake_restake_fee" yaml:"pstake_restake_fee"`
+	PstakeUnstakeFee      string                      `json:"pstake_unstake_fee" yaml:"pstake_unstake_fee"`
 	Proposer              sdk.AccAddress              `json:"proposer" yaml:"proposer"`
 	Deposit               sdk.Coins                   `json:"deposit" yaml:"deposit"`
 }
 
-type RegisterCosmosChainProposalJSON struct {
+type RegisterHostChainProposalJSON struct {
 	Title                 string                      `json:"title" yaml:"title"`
 	Description           string                      `json:"description" yaml:"description"`
 	ModuleEnabled         bool                        `json:"module_enabled" yaml:"module_enabled"`
-	IBCConnection         string                      `json:"ibc_connection" yaml:"ibc_connection"`
-	TokenTransferChannel  string                      `json:"token_transfer_channel" yaml:"token_transfer_channel"`
-	TokenTransferPort     string                      `json:"token_transfer_port" yaml:"token_transfer_port"`
+	ConnectionID          string                      `json:"connection_i_d" yaml:"connection_i_d"`
+	TransferChannel       string                      `json:"transfer_channel" yaml:"transfer_channel"`
+	TransferPort          string                      `json:"transfer_port" yaml:"transfer_port"`
 	BaseDenom             string                      `json:"base_denom" yaml:"base_denom"`
 	MintDenom             string                      `json:"mint_denom" yaml:"mint_denom"`
 	MinDeposit            string                      `json:"min_deposit" yaml:"min_deposit"`
 	AllowListedValidators types.AllowListedValidators `json:"allow_listed_validators" yaml:"allow_listed_validators"`
-	PStakeDepositFee      string                      `json:"p_stake_deposit_fee" yaml:"p_stake_deposit_fee"`
-	PStakeRestakeFee      string                      `json:"p_stake_restake_fee" yaml:"p_stake_restake_fee"`
-	PStakeUnstakeFee      string                      `json:"p_stake_unstake_fee" yaml:"p_stake_unstake_fee"`
+	PstakeDepositFee      string                      `json:"pstake_deposit_fee" yaml:"pstake_deposit_fee"`
+	PstakeRestakeFee      string                      `json:"pstake_restake_fee" yaml:"pstake_restake_fee"`
+	PstakeUnstakeFee      string                      `json:"pstake_unstake_fee" yaml:"pstake_unstake_fee"`
 	Deposit               string                      `json:"deposit" yaml:"deposit"`
 }
 
-func NewRegisterChainJSON(title, description string, moduleEnabled bool, ibcConnectionID, tokenTransferChannel, tokenTransferPort,
-	baseDenom, mintDenom, minDeposit string, allowListedValidators types.AllowListedValidators, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, deposit string) RegisterCosmosChainProposalJSON {
-	return RegisterCosmosChainProposalJSON{
+func NewRegisterChainJSON(title, description string, moduleEnabled bool, connectionID, transferChannel, transferPort,
+	baseDenom, mintDenom, minDeposit string, allowListedValidators types.AllowListedValidators, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, deposit string) RegisterHostChainProposalJSON {
+	return RegisterHostChainProposalJSON{
 		Title:                 title,
 		Description:           description,
 		ModuleEnabled:         moduleEnabled,
-		IBCConnection:         ibcConnectionID,
-		TokenTransferChannel:  tokenTransferChannel,
-		TokenTransferPort:     tokenTransferPort,
+		ConnectionID:          connectionID,
+		TransferChannel:       transferChannel,
+		TransferPort:          transferPort,
 		BaseDenom:             baseDenom,
 		MintDenom:             mintDenom,
 		MinDeposit:            minDeposit,
 		AllowListedValidators: allowListedValidators,
-		PStakeDepositFee:      pstakeDepositFee,
-		PStakeRestakeFee:      pstakeRestakeFee,
-		PStakeUnstakeFee:      pstakeUnstakeFee,
+		PstakeDepositFee:      pstakeDepositFee,
+		PstakeRestakeFee:      pstakeRestakeFee,
+		PstakeUnstakeFee:      pstakeUnstakeFee,
 		Deposit:               deposit,
 	}
 }
 
-// ParseRegisterCosmosChainProposalJSON reads and parses a RegisterCosmosChainProposalJSON from
+// ParseRegisterHostChainProposalJSON reads and parses a RegisterHostChainProposalJSON from
 // file.
-func ParseRegisterCosmosChainProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (RegisterCosmosChainProposalJSON, error) {
-	proposal := RegisterCosmosChainProposalJSON{}
+func ParseRegisterHostChainProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (RegisterHostChainProposalJSON, error) {
+	proposal := RegisterHostChainProposalJSON{}
 
 	contents, err := os.ReadFile(proposalFile)
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 )
 
 func TestParameterChangeProposal(t *testing.T) {
-	pcp := types.NewRegisterCosmosChainProposal(
+	pcp := types.NewRegisterHostChainProposal(
 		"title",
 		"description",
 		true,
@@ -27,19 +27,19 @@ func TestParameterChangeProposal(t *testing.T) {
 	)
 
 	require.Equal(t, "title", pcp.GetTitle())
-	require.Equal(t, "connection-0", pcp.IBCConnection)
+	require.Equal(t, "connection-0", pcp.ConnectionID)
 	require.Equal(t, true, pcp.ModuleEnabled)
-	require.Equal(t, "channel-1", pcp.TokenTransferChannel)
-	require.Equal(t, "transfer", pcp.TokenTransferPort)
+	require.Equal(t, "channel-1", pcp.TransferChannel)
+	require.Equal(t, "transfer", pcp.TransferPort)
 	require.Equal(t, "uatom", pcp.BaseDenom)
 	require.Equal(t, "ustkatom", pcp.MintDenom)
 	require.Equal(t, sdk.NewInt(5), pcp.MinDeposit)
 	require.Equal(t, "addr", pcp.AllowListedValidators.AllowListedValidators[0].ValidatorAddress)
 	require.Equal(t, sdk.OneDec(), pcp.AllowListedValidators.AllowListedValidators[0].TargetWeight)
-	require.Equal(t, sdk.ZeroDec(), pcp.PStakeDepositFee)
-	require.Equal(t, sdk.ZeroDec(), pcp.PStakeRestakeFee)
-	require.Equal(t, sdk.ZeroDec(), pcp.PStakeUnstakeFee)
+	require.Equal(t, sdk.ZeroDec(), pcp.PstakeDepositFee)
+	require.Equal(t, sdk.ZeroDec(), pcp.PstakeRestakeFee)
+	require.Equal(t, sdk.ZeroDec(), pcp.PstakeUnstakeFee)
 	require.Equal(t, types.RouterKey, pcp.ProposalRoute())
-	require.Equal(t, types.ProposalTypeRegisterCosmosChain, pcp.ProposalType())
+	require.Equal(t, types.ProposalTypeRegisterHostChain, pcp.ProposalType())
 	require.Nil(t, pcp.ValidateBasic())
 }

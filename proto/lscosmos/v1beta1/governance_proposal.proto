@@ -11,23 +11,23 @@ option (gogoproto.equal_all) = true;
 option (gogoproto.stringer_all) = false;
 option (gogoproto.goproto_getters_all) = false;
 
-// RegisterCosmosChainProposal defines the details needed to register cosmos chain for
+// RegisterHostChainProposal defines the details needed to register cosmos chain for
 // liquid staking transactions through lscosmos module
-message RegisterCosmosChainProposal {
+message RegisterHostChainProposal {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_stringer) = false;
 
   string title = 1;
   string description = 2;
   bool  module_enabled = 3;
-  string i_b_c_connection = 4;
-  string token_transfer_channel = 5;
-  string token_transfer_port = 6;
+  string connection_i_d = 4;
+  string transfer_channel = 5;
+  string transfer_port = 6;
   string base_denom = 7;
   string mint_denom = 8;
   string min_deposit = 9 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
   AllowListedValidators allow_listed_validators = 10 [(gogoproto.nullable) = false];
-  string p_stake_deposit_fee = 11 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  string p_stake_restake_fee = 12 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  string p_stake_unstake_fee = 13 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string pstake_deposit_fee = 11 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string pstake_restake_fee = 12 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string pstake_unstake_fee = 13 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }

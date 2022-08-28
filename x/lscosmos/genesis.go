@@ -14,9 +14,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 
 	k.SetParams(ctx, genState.Params)
 	k.SetModuleState(ctx, genState.ModuleEnabled)
-	k.SetCosmosIBCParams(ctx, genState.CosmosIBCParams)
-	if !genState.CosmosIBCParams.IsEmpty() {
-		err := k.NewCapability(ctx, host.ChannelCapabilityPath(genState.CosmosIBCParams.TokenTransferPort, genState.CosmosIBCParams.TokenTransferChannel))
+	k.SetHostChainParams(ctx, genState.HostChainParams)
+	if !genState.HostChainParams.IsEmpty() {
+		err := k.NewCapability(ctx, host.ChannelCapabilityPath(genState.HostChainParams.TransferPort, genState.HostChainParams.TransferChannel))
 		if err != nil {
 			panic(err)
 		}
@@ -37,7 +37,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.Params = k.GetParams(ctx)
 
 	genesis.ModuleEnabled = k.GetModuleState(ctx)
-	genesis.CosmosIBCParams = k.GetCosmosIBCParams(ctx)
+	genesis.HostChainParams = k.GetHostChainParams(ctx)
 	genesis.AllowListedValidators = k.GetAllowListedValidators(ctx)
 	genesis.DelegationState = k.GetDelegationState(ctx)
 	// this line is used by starport scaffolding # genesis/module/export

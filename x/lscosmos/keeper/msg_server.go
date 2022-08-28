@@ -38,14 +38,14 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		return nil, types.ErrModuleDisabled
 	}
 	//GetParams
-	ibcParams := m.GetCosmosIBCParams(ctx)
+	hostChainParams := m.GetHostChainParams(ctx)
 
 	//check for minimum deposit amount
-	if msg.Amount.Amount.LT(ibcParams.MinDeposit) {
+	if msg.Amount.Amount.LT(hostChainParams.MinDeposit) {
 		return nil, types.ErrMinDeposit
 	}
 
-	expectedIBCPrefix := ibcTransferTypes.GetDenomPrefix(ibcParams.TokenTransferPort, ibcParams.TokenTransferChannel)
+	expectedIBCPrefix := ibcTransferTypes.GetDenomPrefix(hostChainParams.TransferPort, hostChainParams.TransferChannel)
 
 	denomTraceStr, err := m.ibcTransferKeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
 	if err != nil {
@@ -58,7 +58,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		return nil, types.ErrInvalidDenomPath
 	}
 	//Check if base denom is valid (uatom) , this can be programmed further to accommodate for liquid staked vouchers.
-	if denomTrace.BaseDenom != ibcParams.BaseDenom {
+	if denomTrace.BaseDenom != hostChainParams.BaseDenom {
 		return nil, types.ErrInvalidDenom
 	}
 
@@ -77,7 +77,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 
 	// amount of stk tokens to be minted
 	mintAmountDec := msg.Amount.Amount.ToDec().Mul(m.GetCValue(ctx))
-	mintToken, residue := sdkTypes.NewDecCoinFromDec(ibcParams.MintDenom, mintAmountDec).TruncateDecimal()
+	mintToken, residue := sdkTypes.NewDecCoinFromDec(hostChainParams.MintDenom, mintAmountDec).TruncateDecimal()
 	if residue.Amount.GT(sdkTypes.NewDec(0)) {
 		m.SendResidueToCommunityPool(ctx, sdkTypes.NewDecCoins(residue))
 	}
@@ -89,9 +89,9 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	}
 
 	//Calculate protocol fee
-	protocolFee := ibcParams.PStakeDepositFee
+	protocolFee := hostChainParams.PstakeDepositFee
 	protocolFeeAmount := protocolFee.MulInt(mintToken.Amount)
-	protocolCoins, residue := sdkTypes.NewDecCoinFromDec(ibcParams.MintDenom, protocolFeeAmount).TruncateDecimal()
+	protocolCoins, residue := sdkTypes.NewDecCoinFromDec(hostChainParams.MintDenom, protocolFeeAmount).TruncateDecimal()
 
 	if residue.Amount.GT(sdkTypes.NewDec(0)) {
 		m.SendResidueToCommunityPool(ctx, sdkTypes.NewDecCoins(residue))

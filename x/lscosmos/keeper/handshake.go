@@ -83,12 +83,12 @@ func (k Keeper) OnChanOpenAck(
 	}
 	//TODO more checks
 
-	hostchainparams := k.GetCosmosIBCParams(ctx)
+	hostchainparams := k.GetHostChainParams(ctx)
 
 	if portID == types.DelegationAccountPortID {
-		address, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostchainparams.IBCConnection, portID)
+		address, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostchainparams.ConnectionID, portID)
 		if !found {
-			ctx.Logger().Error(fmt.Sprintf("expected to find an address for %s/%s", hostchainparams.IBCConnection, portID))
+			ctx.Logger().Error(fmt.Sprintf("expected to find an address for %s/%s", hostchainparams.ConnectionID, portID))
 			return icatypes.ErrInterchainAccountNotFound
 		}
 		if err := k.SetHostChainDelegationAddress(ctx, address); err != nil {
