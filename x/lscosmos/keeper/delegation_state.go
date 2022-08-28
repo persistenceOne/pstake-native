@@ -44,3 +44,39 @@ func (k Keeper) SetHostChainDelegationAddress(ctx sdk.Context, addr string) erro
 	k.SetDelegationState(ctx, delegationState)
 	return nil
 }
+
+func (k Keeper) AddHostChainDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) {
+	delegationState := k.GetDelegationState(ctx)
+	delegationState = appendHostChainDelegation(delegationState, delegation)
+	k.SetDelegationState(ctx, delegationState)
+}
+func (k Keeper) SubtractHostChainDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) {
+	delegationState := k.GetDelegationState(ctx)
+	delegationState = removeHostChainDelegation(delegationState, delegation)
+	k.SetDelegationState(ctx, delegationState)
+}
+func appendHostChainDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) types.DelegationState {
+	// optimise this // do we want to have it sorted?
+	for _, existingDelegation := range delegationState.HostAccountDelegations {
+		if existingDelegation.ValidatorAddress == delegation.ValidatorAddress {
+			existingDelegation.Amount = existingDelegation.Amount.Add(delegation.Amount)
+			return delegationState
+		}
+	}
+
+	delegationState.HostAccountDelegations = append(delegationState.HostAccountDelegations, delegation)
+	return delegationState
+}
+func removeHostChainDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) types.DelegationState {
+	// optimise this // do we want to have it sorted?
+	for _, existingDelegation := range delegationState.HostAccountDelegations {
+		if existingDelegation.ValidatorAddress == delegation.ValidatorAddress {
+			existingDelegation.Amount = existingDelegation.Amount.Sub(delegation.Amount)
+			if existingDelegation.Amount.IsNegative() {
+				panic("WTF?")
+			}
+			return delegationState
+		}
+	}
+	panic("WTF?")
+}
