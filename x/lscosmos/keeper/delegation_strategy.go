@@ -22,7 +22,7 @@ func DelegateMsgs(delegatorAddr string, allowlistedValidators lscosmostypes.Allo
 			ValidatorAddress: val.ValidatorAddress,
 			Amount:           sdk.NewCoin(denom, delegationAmount),
 		}
-		msgs = append(msgs, msg)
+		msgs[i] = msg
 	}
 	return msgs
 }
