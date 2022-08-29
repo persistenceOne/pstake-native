@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -116,6 +117,22 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 
 func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) {
 	// send withdraw rewards from delegators.
+	delegationState := k.GetDelegationState(ctx)
+	if len(delegationState.HostAccountDelegations) == 0 {
+		return
+	}
+	withdrawRewardMsgs := make([]sdk.Msg, len(delegationState.HostAccountDelegations))
+	for i, delegation := range delegationState.HostAccountDelegations {
+		withdrawRewardMsgs[i] = &distributiontypes.MsgWithdrawDelegatorReward{
+			DelegatorAddress: delegationState.HostChainDelegationAddress,
+			ValidatorAddress: delegation.ValidatorAddress,
+		}
+	}
+	err := generateAndExecuteICATx(ctx, k, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, withdrawRewardMsgs)
+	if err != nil {
+		return
+	}
+
 	// on Ack do icq for reward acc. balance of uatom
 	// callback for sending it to delegation account
 	// on Ack delegate txn
