@@ -198,7 +198,7 @@ test-race:
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' $(TEST_TARGET) $(TEST_ARGS)
 
 test-cover:
-	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.out -covermode=atomic -v -tags='ledger test_ledger_mock' $(TEST_TARGET) $(TEST_ARGS)
+	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.out -covermode=atomic -v -tags='ledger test_ledger_mock'  -v $(TEST_TARGET) $(TEST_ARGS)
 
 test-e2e:
 	$(MAKE) test-cover  TEST_TARGET=./tests/e2e/...
