@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -73,6 +74,12 @@ func (k Keeper) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
+	if portID != types.DelegationAccountPortID &&
+		portID != types.RewardAccountPortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s or %s",
+			portID, types.DelegationAccountPortID, types.RewardAccountPortID)
+	}
+
 	var counterpartyVersionData icatypes.Metadata
 	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &counterpartyVersionData); err != nil {
 		return err
@@ -81,24 +88,29 @@ func (k Keeper) OnChanOpenAck(
 	if counterpartyVersionData.Version != icatypes.Version {
 		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
 	}
-	//TODO more checks
+	//TODO more checks, capability, channelID??
 
 	hostchainparams := k.GetHostChainParams(ctx)
 
-	if portID == types.DelegationAccountPortID {
-		address, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostchainparams.ConnectionID, portID)
-		if !found {
-			ctx.Logger().Error(fmt.Sprintf("expected to find an address for %s/%s", hostchainparams.ConnectionID, portID))
-			return icatypes.ErrInterchainAccountNotFound
-		}
-		if err := k.SetHostChainDelegationAddress(ctx, address); err != nil {
+	delegationAddress, delegationAddrfound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostchainparams.ConnectionID, types.DelegationAccountPortID)
+	if delegationAddrfound && portID == types.DelegationAccountPortID {
+		if err := k.SetHostChainDelegationAddress(ctx, delegationAddress); err != nil {
 			return err
 		}
 	}
 
-	// On Ack we enable module and it's transactions
-	// TODO add checks if both delegation and rewards ica exists only then enable module
-	k.SetModuleState(ctx, true)
+	rewardAddress, rewardAddrFound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostchainparams.ConnectionID, types.RewardAccountPortID)
+
+	if rewardAddrFound && delegationAddrfound {
+		setWithdrawAddrMsg := &distributiontypes.MsgSetWithdrawAddress{
+			DelegatorAddress: delegationAddress,
+			WithdrawAddress:  rewardAddress,
+		}
+		err := generateAndExecuteICATx(ctx, k, hostchainparams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{setWithdrawAddrMsg})
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -266,7 +278,13 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 
 		return msgResponse.String(), nil
 
-	// TODO: handle other messages
+	case sdk.MsgTypeURL(&distributiontypes.MsgSetWithdrawAddress{}):
+		var msgResponse distributiontypes.MsgSetWithdrawAddressResponse
+		if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+		}
+		k.SetModuleState(ctx, true)
+		return msgResponse.String(), nil
 
 	default:
 		return "", nil

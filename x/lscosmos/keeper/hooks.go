@@ -5,11 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
 	epochstypes "github.com/persistenceOne/persistence-sdk/x/epochs/types"
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/x/ibchooker/types"
@@ -158,7 +156,6 @@ func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet chann
 		return
 	}
 
-	//TODO check for denom
 	if data.GetSender() != k.GetDelegationModuleAccount(ctx).GetAddress().String() ||
 		data.GetReceiver() != delegationState.HostChainDelegationAddress ||
 		data.GetDenom() != ibctransfertypes.GetPrefixedDenom(hostChainParams.TransferPort, hostChainParams.TransferChannel, hostChainParams.BaseDenom) {
@@ -181,35 +178,10 @@ func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet chann
 	}
 	msgs := DelegateMsgs(delegationState.HostChainDelegationAddress, allowlistedValidators, delegatableAmount, hostChainParams.BaseDenom)
 
-	channelID, found := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID)
-	if !found {
-		k.Logger(ctx).Error(fmt.Sprintf("failed to retrieve active channel for port %s", lscosmostypes.DelegationAccountPortID))
-		return
-	}
-
-	chanCap, found := k.lscosmosScopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(lscosmostypes.DelegationAccountPortID, channelID))
-	if !found {
-		k.Logger(ctx).Error(fmt.Sprintf("module does not own channel capability, module: %s, channelID: %s, portId: %s", lscosmostypes.ModuleName, channelID, lscosmostypes.DelegationAccountPortID))
-		return
-	}
-
-	delegateMsgData, err := icatypes.SerializeCosmosTx(k.cdc, msgs)
+	err := generateAndExecuteICATx(ctx, k, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, msgs)
 	if err != nil {
-		k.Logger(ctx).Error(fmt.Sprintf("could not serialize cosmostx err %v", err))
 		return
 	}
-
-	icaPacketData := icatypes.InterchainAccountPacketData{
-		Type: icatypes.EXECUTE_TX,
-		Data: delegateMsgData,
-	}
-	timeoutTimestamp := ctx.BlockTime().Add(lscosmostypes.ICATimeoutTimestamp).UnixNano()
-	seq, err := k.icaControllerKeeper.SendTx(ctx, chanCap, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, icaPacketData, uint64(timeoutTimestamp))
-	if err != nil {
-		k.Logger(ctx).Error(fmt.Sprintf("send ica delegation txn failed with err %v", err))
-		return
-	}
-	k.Logger(ctx).Info(fmt.Sprintf("sent ICA Delefate transaction with seq: %v", seq))
 }
 
 func (k Keeper) OnTimeoutIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferTimeoutErr error) {
