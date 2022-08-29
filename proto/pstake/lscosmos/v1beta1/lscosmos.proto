@@ -52,5 +52,12 @@ message DelegationState {
   // we only should care about funds that have come via proper channels.
   repeated cosmos.base.v1beta1.Coin host_delegation_account_balance = 1 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
   string host_chain_delegation_address = 2 ;
+  repeated HostAccountDelegation host_account_delegations = 3 [(gogoproto.nullable) = false];
 }
 
+message HostAccountDelegation {
+  option (gogoproto.goproto_stringer) = true;
+
+  string validator_address = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+}

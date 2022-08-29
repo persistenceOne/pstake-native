@@ -21,3 +21,10 @@ func (av *AllowListedValidators) Valid() bool {
 	}
 	return sum.Equal(sdk.OneDec())
 }
+
+func NewHostAccountDelegation(validatorAddress string, amount sdk.Coin) HostAccountDelegation {
+	return HostAccountDelegation{
+		ValidatorAddress: validatorAddress,
+		Amount:           amount,
+	}
+}

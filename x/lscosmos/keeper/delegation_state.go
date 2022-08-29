@@ -29,7 +29,7 @@ func (k Keeper) AddBalanceToDelegationState(ctx sdk.Context, coin sdk.Coin) {
 	k.SetDelegationState(ctx, delegationState)
 }
 
-func (k Keeper) RemoveBalanceToDelegationState(ctx sdk.Context, coins sdk.Coins) {
+func (k Keeper) RemoveBalanceFromDelegationState(ctx sdk.Context, coins sdk.Coins) {
 	delegationState := k.GetDelegationState(ctx)
 	delegationState.HostDelegationAccountBalance = delegationState.HostDelegationAccountBalance.Sub(coins)
 	k.SetDelegationState(ctx, delegationState)
@@ -43,4 +43,37 @@ func (k Keeper) SetHostChainDelegationAddress(ctx sdk.Context, addr string) erro
 	delegationState.HostChainDelegationAddress = addr
 	k.SetDelegationState(ctx, delegationState)
 	return nil
+}
+
+func (k Keeper) AddHostAccountDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) {
+	delegationState := k.GetDelegationState(ctx)
+	delegationState = appendHostAccountDelegation(delegationState, delegation)
+	k.SetDelegationState(ctx, delegationState)
+}
+func (k Keeper) SubtractHostAccountDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) {
+	delegationState := k.GetDelegationState(ctx)
+	delegationState = removeHostAccountDelegation(delegationState, delegation)
+	k.SetDelegationState(ctx, delegationState)
+}
+func appendHostAccountDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) types.DelegationState {
+	// optimise this // do we want to have it sorted?
+	for _, existingDelegation := range delegationState.HostAccountDelegations {
+		if existingDelegation.ValidatorAddress == delegation.ValidatorAddress {
+			existingDelegation.Amount = existingDelegation.Amount.Add(delegation.Amount)
+			return delegationState
+		}
+	}
+
+	delegationState.HostAccountDelegations = append(delegationState.HostAccountDelegations, delegation)
+	return delegationState
+}
+func removeHostAccountDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) types.DelegationState {
+	// optimise this // do we want to have it sorted?
+	for _, existingDelegation := range delegationState.HostAccountDelegations {
+		if existingDelegation.ValidatorAddress == delegation.ValidatorAddress {
+			existingDelegation.Amount = existingDelegation.Amount.Sub(delegation.Amount) //This will panic if coin goes negative
+			return delegationState
+		}
+	}
+	panic("WTF?") //todo proper errors
 }

@@ -272,8 +272,9 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
 		}
 		// remove from host-balance
-		k.RemoveBalanceToDelegationState(ctx, sdk.NewCoins(parsedMsg.Amount))
+		k.RemoveBalanceFromDelegationState(ctx, sdk.NewCoins(parsedMsg.Amount))
 		// Add delegation state
+		k.AddHostAccountDelegation(ctx, types.NewHostAccountDelegation(parsedMsg.ValidatorAddress, parsedMsg.Amount))
 
 		return msgResponse.String(), nil
 
