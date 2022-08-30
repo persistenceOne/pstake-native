@@ -106,7 +106,7 @@ func (k Keeper) OnChanOpenAck(
 			DelegatorAddress: delegationAddress,
 			WithdrawAddress:  rewardAddress,
 		}
-		err := generateAndExecuteICATx(ctx, k, hostchainparams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{setWithdrawAddrMsg})
+		err := generateAndExecuteICATx(ctx, k, hostchainparams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{setWithdrawAddrMsg}, true)
 		if err != nil {
 			return err
 		}

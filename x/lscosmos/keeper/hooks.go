@@ -128,7 +128,7 @@ func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosm
 			ValidatorAddress: delegation.ValidatorAddress,
 		}
 	}
-	err := generateAndExecuteICATx(ctx, k, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, withdrawRewardMsgs)
+	err := generateAndExecuteICATx(ctx, k, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, withdrawRewardMsgs, false)
 	if err != nil {
 		return
 	}
@@ -195,7 +195,7 @@ func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet chann
 	}
 	msgs := DelegateMsgs(delegationState.HostChainDelegationAddress, allowlistedValidators, delegatableAmount, hostChainParams.BaseDenom)
 
-	err := generateAndExecuteICATx(ctx, k, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, msgs)
+	err := generateAndExecuteICATx(ctx, k, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, msgs, false)
 	if err != nil {
 		return
 	}

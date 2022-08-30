@@ -11,8 +11,15 @@ import (
 	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-func generateAndExecuteICATx(ctx sdk.Context, k Keeper, connectionID string, portID string, msgs []sdk.Msg) error {
-	channelID, found := k.icaControllerKeeper.GetOpenActiveChannel(ctx, connectionID, portID)
+func generateAndExecuteICATx(ctx sdk.Context, k Keeper, connectionID string, portID string, msgs []sdk.Msg, optimistic bool) error {
+	channelID := ""
+	found := false
+	if optimistic {
+		channelID, found = k.icaControllerKeeper.GetActiveChannelID(ctx, connectionID, portID)
+
+	} else {
+		channelID, found = k.icaControllerKeeper.GetOpenActiveChannel(ctx, connectionID, portID)
+	}
 	if !found {
 		k.Logger(ctx).Error(fmt.Sprintf("failed to retrieve active channel for port %s", portID))
 		return channeltypes.ErrInvalidChannelState
