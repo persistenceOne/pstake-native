@@ -16,6 +16,7 @@ type RegisterHostChainProposalReq struct {
 	Description string       `json:"description" yaml:"description"`
 	// TODO update
 	ModuleEnabled         bool                        `json:"module_enabled" yaml:"module_enabled"`
+	ChainID               string                      `json:"chain_i_d" yaml:"chain_i_d"`
 	ConnectionID          string                      `json:"connection_i_d" yaml:"connection_i_d"`
 	TransferChannel       string                      `json:"transfer_channel" yaml:"transfer_channel"`
 	TransferPort          string                      `json:"transfer_port" yaml:"transfer_port"`
@@ -34,6 +35,7 @@ type RegisterHostChainProposalJSON struct {
 	Title                 string                      `json:"title" yaml:"title"`
 	Description           string                      `json:"description" yaml:"description"`
 	ModuleEnabled         bool                        `json:"module_enabled" yaml:"module_enabled"`
+	ChainID               string                      `json:"chain_i_d" yaml:"chain_i_d"`
 	ConnectionID          string                      `json:"connection_i_d" yaml:"connection_i_d"`
 	TransferChannel       string                      `json:"transfer_channel" yaml:"transfer_channel"`
 	TransferPort          string                      `json:"transfer_port" yaml:"transfer_port"`
@@ -47,12 +49,13 @@ type RegisterHostChainProposalJSON struct {
 	Deposit               string                      `json:"deposit" yaml:"deposit"`
 }
 
-func NewRegisterChainJSON(title, description string, moduleEnabled bool, connectionID, transferChannel, transferPort,
+func NewRegisterChainJSON(title, description string, moduleEnabled bool, chainID, connectionID, transferChannel, transferPort,
 	baseDenom, mintDenom, minDeposit string, allowListedValidators types.AllowListedValidators, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, deposit string) RegisterHostChainProposalJSON {
 	return RegisterHostChainProposalJSON{
 		Title:                 title,
 		Description:           description,
 		ModuleEnabled:         moduleEnabled,
+		ChainID:               chainID,
 		ConnectionID:          connectionID,
 		TransferChannel:       transferChannel,
 		TransferPort:          transferPort,

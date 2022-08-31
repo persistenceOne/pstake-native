@@ -13,6 +13,7 @@ func TestNewParamChangeJSON(t *testing.T) {
 		"title",
 		"description",
 		true,
+		"cosmoshub-4",
 		"connection",
 		"channel-1",
 		"transfer",
@@ -31,6 +32,7 @@ func TestNewParamChangeJSON(t *testing.T) {
 	)
 	require.Equal(t, "title", rcj.Title)
 	require.Equal(t, "description", rcj.Description)
+	require.Equal(t, "cosmoshub-4", rcj.ChainID)
 	require.Equal(t, "connection", rcj.ConnectionID)
 	require.Equal(t, "channel-1", rcj.TransferChannel)
 	require.Equal(t, "transfer", rcj.TransferPort)

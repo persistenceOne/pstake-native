@@ -94,6 +94,7 @@ func postRegisterChainHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			req.Title,
 			req.Description,
 			req.ModuleEnabled,
+			req.ChainID,
 			req.ConnectionID,
 			req.TransferChannel,
 			req.TransferPort,

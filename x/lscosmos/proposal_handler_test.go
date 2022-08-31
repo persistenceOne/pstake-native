@@ -41,6 +41,7 @@ func (suite *HandlerTestSuite) TestProposalHandler() {
 			types.NewRegisterHostChainProposal("title",
 				"description",
 				true,
+				"cosmoshub-4",
 				"connection-0",
 				"channel-1",
 				"transfer",

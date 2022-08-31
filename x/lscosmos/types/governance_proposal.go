@@ -20,7 +20,7 @@ func init() {
 }
 
 // NewRegisterHostChainProposal creates a new multisig change proposal.
-func NewRegisterHostChainProposal(title, description string, moduleEnabled bool, connectionID, transferChannel,
+func NewRegisterHostChainProposal(title, description string, moduleEnabled bool, chainID, connectionID, transferChannel,
 	transferPort, baseDenom, mintDenom string, minDeposit sdktypes.Int, allowListedValidators AllowListedValidators,
 	pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee sdktypes.Dec) *RegisterHostChainProposal {
 
@@ -28,6 +28,7 @@ func NewRegisterHostChainProposal(title, description string, moduleEnabled bool,
 		Title:                 title,
 		Description:           description,
 		ModuleEnabled:         moduleEnabled,
+		ChainID:               chainID,
 		ConnectionID:          connectionID,
 		TransferChannel:       transferChannel,
 		TransferPort:          transferPort,
@@ -105,8 +106,9 @@ PstakeUnstakeFee: 	   %s
 	return b.String()
 }
 
-func NewHostChainParams(connectionID, channel, port, baseDenom, mintDenom string, minDeposit sdktypes.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee sdktypes.Dec) HostChainParams {
+func NewHostChainParams(chainID, connectionID, channel, port, baseDenom, mintDenom string, minDeposit sdktypes.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee sdktypes.Dec) HostChainParams {
 	return HostChainParams{
+		ChainID:          chainID,
 		ConnectionID:     connectionID,
 		TransferChannel:  channel,
 		TransferPort:     port,
@@ -124,6 +126,7 @@ func (c *HostChainParams) IsEmpty() bool {
 	if c.TransferChannel == "" ||
 		c.TransferPort == "" ||
 		c.ConnectionID == "" ||
+		c.ChainID == "" ||
 		c.BaseDenom == "" ||
 		c.MintDenom == "" {
 		return true

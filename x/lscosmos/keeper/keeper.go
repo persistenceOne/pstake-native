@@ -31,6 +31,7 @@ type Keeper struct {
 	portKeeper           types.PortKeeper
 	ibcTransferKeeper    types.IBCTransferKeeper
 	icaControllerKeeper  types.ICAControllerKeeper
+	icqKeeper            types.ICQKeeper
 	lscosmosScopedKeeper types.ScopedKeeper
 
 	msgRouter *baseapp.MsgServiceRouter
@@ -49,6 +50,7 @@ func NewKeeper(
 	portKeeper types.PortKeeper,
 	ibcTransferKeeper types.IBCTransferKeeper,
 	icaControllerKeeper types.ICAControllerKeeper,
+	icqKeeper types.ICQKeeper,
 	lscosmosScopedKeeper types.ScopedKeeper,
 	msgRouter *baseapp.MsgServiceRouter,
 ) Keeper {
@@ -66,6 +68,7 @@ func NewKeeper(
 		portKeeper:           portKeeper,
 		ibcTransferKeeper:    ibcTransferKeeper,
 		icaControllerKeeper:  icaControllerKeeper,
+		icqKeeper:            icqKeeper,
 		lscosmosScopedKeeper: lscosmosScopedKeeper,
 		cdc:                  cdc,
 		storeKey:             storeKey,

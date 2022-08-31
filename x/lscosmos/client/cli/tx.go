@@ -115,6 +115,7 @@ $ %s tx gov submit-proposal register-host-chain <path/to/proposal.json> --from <
 				proposal.Title,
 				proposal.Description,
 				proposal.ModuleEnabled,
+				proposal.ChainID,
 				proposal.ConnectionID,
 				proposal.TransferChannel,
 				proposal.TransferPort,

@@ -14,6 +14,7 @@ func TestParameterChangeProposal(t *testing.T) {
 		"title",
 		"description",
 		true,
+		"cosmoshub-4",
 		"connection-0",
 		"channel-1",
 		"transfer",
@@ -27,6 +28,7 @@ func TestParameterChangeProposal(t *testing.T) {
 	)
 
 	require.Equal(t, "title", pcp.GetTitle())
+	require.Equal(t, "cosmoshub-4", pcp.ChainID)
 	require.Equal(t, "connection-0", pcp.ConnectionID)
 	require.Equal(t, true, pcp.ModuleEnabled)
 	require.Equal(t, "channel-1", pcp.TransferChannel)

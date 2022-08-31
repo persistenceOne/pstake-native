@@ -128,7 +128,7 @@ func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosm
 			ValidatorAddress: delegation.ValidatorAddress,
 		}
 	}
-	err := generateAndExecuteICATx(ctx, k, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, withdrawRewardMsgs)
+	err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, withdrawRewardMsgs)
 	if err != nil {
 		return
 	}
@@ -186,19 +186,6 @@ func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet chann
 		return
 	}
 	k.AddBalanceToDelegationState(ctx, sdk.NewCoin(hostChainParams.BaseDenom, amount))
-
-	delegatableAmount := k.GetDelegationState(ctx).HostDelegationAccountBalance.AmountOf(hostChainParams.BaseDenom)
-	allowlistedValidators := k.GetAllowListedValidators(ctx)
-	if !delegatableAmount.GT(sdk.NewInt(int64(len(allowlistedValidators.AllowListedValidators)))) {
-		k.Logger(ctx).Info(fmt.Sprintf("amount is too low to delegate, %v ", delegatableAmount))
-		return
-	}
-	msgs := DelegateMsgs(delegationState.HostChainDelegationAddress, allowlistedValidators, delegatableAmount, hostChainParams.BaseDenom)
-
-	err := generateAndExecuteICATx(ctx, k, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, msgs)
-	if err != nil {
-		return
-	}
 }
 
 func (k Keeper) OnTimeoutIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferTimeoutErr error) {

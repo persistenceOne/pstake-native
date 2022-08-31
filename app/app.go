@@ -103,6 +103,9 @@ import (
 	"github.com/persistenceOne/persistence-sdk/x/ibchooker"
 	ibchookerkeeper "github.com/persistenceOne/persistence-sdk/x/ibchooker/keeper"
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/x/ibchooker/types"
+	"github.com/persistenceOne/persistence-sdk/x/interchainquery"
+	interchainquerykeeper "github.com/persistenceOne/persistence-sdk/x/interchainquery/keeper"
+	interchainquerytypes "github.com/persistenceOne/persistence-sdk/x/interchainquery/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
@@ -161,6 +164,7 @@ var (
 		ica.AppModuleBasic{},
 		epochs.AppModuleBasic{},
 		lscosmos.AppModuleBasic{},
+		interchainquery.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -221,17 +225,18 @@ type PstakeApp struct {
 	UpgradeKeeper    upgradekeeper.Keeper
 	ParamsKeeper     paramskeeper.Keeper
 	// IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	IBCKeeper           *ibckeeper.Keeper
-	ICAHostKeeper       icahostkeeper.Keeper
-	ICAControllerKeeper icacontrollerkeeper.Keeper
-	EvidenceKeeper      evidencekeeper.Keeper
-	TransferKeeper      ibctransferkeeper.Keeper
-	TransferHooksKeeper ibchookerkeeper.Keeper
-	FeeGrantKeeper      feegrantkeeper.Keeper
-	AuthzKeeper         authzkeeper.Keeper
-	RouterKeeper        routerkeeper.Keeper
-	EpochsKeeper        epochskeeper.Keeper
-	LSCosmosKeeper      lscosmoskeeper.Keeper
+	IBCKeeper             *ibckeeper.Keeper
+	ICAHostKeeper         icahostkeeper.Keeper
+	ICAControllerKeeper   icacontrollerkeeper.Keeper
+	EvidenceKeeper        evidencekeeper.Keeper
+	TransferKeeper        ibctransferkeeper.Keeper
+	TransferHooksKeeper   ibchookerkeeper.Keeper
+	FeeGrantKeeper        feegrantkeeper.Keeper
+	AuthzKeeper           authzkeeper.Keeper
+	RouterKeeper          routerkeeper.Keeper
+	EpochsKeeper          epochskeeper.Keeper
+	LSCosmosKeeper        lscosmoskeeper.Keeper
+	InterchainQueryKeeper interchainquerykeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -284,7 +289,7 @@ func NewpStakeApp(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, icahosttypes.StoreKey,
-		icacontrollertypes.StoreKey, epochstypes.StoreKey, lscosmostypes.StoreKey,
+		icacontrollertypes.StoreKey, epochstypes.StoreKey, lscosmostypes.StoreKey, interchainquerytypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, lscosmostypes.MemStoreKey)
@@ -445,6 +450,10 @@ func NewpStakeApp(
 
 	icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
 	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
+
+	app.InterchainQueryKeeper = interchainquerykeeper.NewKeeper(appCodec, keys[interchainquerytypes.StoreKey], app.IBCKeeper)
+	interchainQueryModule := interchainquery.NewAppModule(appCodec, app.InterchainQueryKeeper)
+
 	app.LSCosmosKeeper = lscosmoskeeper.NewKeeper(
 		appCodec,
 		keys[lscosmostypes.StoreKey],
@@ -458,9 +467,13 @@ func NewpStakeApp(
 		&app.IBCKeeper.PortKeeper,
 		app.TransferKeeper,
 		app.ICAControllerKeeper,
+		&app.InterchainQueryKeeper,
 		scopedLSCosmosKeeper,
 		app.MsgServiceRouter(),
 	)
+
+	_ = app.InterchainQueryKeeper.SetCallbackHandler(lscosmostypes.ModuleName, app.LSCosmosKeeper.CallbackHandler())
+
 	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()
 	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(ibchookertypes.NewMultiStakingHooks(app.LSCosmosKeeper.NewIBCTransferHooks()))
 	ibcTransferHooksMiddleware := ibchooker.NewAppModule(app.TransferHooksKeeper, transferIBCModule)
@@ -550,6 +563,7 @@ func NewpStakeApp(
 		icaModule,
 		routerModule,
 		lscosmosModule,
+		interchainQueryModule,
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -582,6 +596,7 @@ func NewpStakeApp(
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
 		ibchookertypes.ModuleName, //Noop
+		interchainquerytypes.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
@@ -607,6 +622,7 @@ func NewpStakeApp(
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 		ibchookertypes.ModuleName, //Noop
+		interchainquerytypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -639,6 +655,7 @@ func NewpStakeApp(
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 		ibchookertypes.ModuleName, //Noop
+		interchainquerytypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -892,6 +909,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
 	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
 	paramsKeeper.Subspace(lscosmostypes.ModuleName)
+	paramsKeeper.Subspace(interchainquerytypes.ModuleName)
 
 	return paramsKeeper
 }

@@ -35,15 +35,16 @@ message AllowListedValidator {
 message HostChainParams {
   option (gogoproto.goproto_stringer) = true;
 
-  string connection_i_d = 1;
-  string transfer_channel = 2;
-  string transfer_port = 3;
-  string base_denom = 4;
-  string mint_denom = 5;
-  string min_deposit = 6 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
-  string pstake_deposit_fee = 7 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
-  string pstake_restake_fee = 8 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
-  string pstake_unstake_fee = 9 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
+  string chain_i_d = 1;
+  string connection_i_d = 2;
+  string transfer_channel = 3;
+  string transfer_port = 4;
+  string base_denom = 5;
+  string mint_denom = 6;
+  string min_deposit = 7 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  string pstake_deposit_fee = 8 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
+  string pstake_restake_fee = 9 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
+  string pstake_unstake_fee = 10 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
 }
 
 // DelegationState stores module account balance, ica account balance, delegation state, undelegation state
@@ -60,4 +61,8 @@ message HostAccountDelegation {
 
   string validator_address = 1;
   cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+}
+
+message HostChainRewardAddress {
+  string address = 1;
 }
