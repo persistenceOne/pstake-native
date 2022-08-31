@@ -369,7 +369,6 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 				if err != nil {
 					return "", types.ErrFailedDeposit
 				}
-
 			}
 		}
 		return msgResponse.String(), nil

@@ -89,11 +89,8 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	//Calculate protocol fee
 	protocolFee := hostChainParams.PstakeDepositFee
 	protocolFeeAmount := protocolFee.MulInt(mintToken.Amount)
-	protocolCoins, residue := sdkTypes.NewDecCoinFromDec(hostChainParams.MintDenom, protocolFeeAmount).TruncateDecimal()
-
-	if residue.Amount.GT(sdkTypes.NewDec(0)) {
-		m.SendResidueToCommunityPool(ctx, sdkTypes.NewDecCoins(residue))
-	}
+	// We do not care about residue, as to not break Total calculation invariant.
+	protocolCoins, _ := sdkTypes.NewDecCoinFromDec(hostChainParams.MintDenom, protocolFeeAmount).TruncateDecimal()
 
 	//Send (mintedTokens - protocolTokens) to delegator address
 	err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delegatorAddress,
@@ -113,7 +110,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		sdkTypes.NewEvent(
 			types.EventTypeLiquidStake,
 			sdkTypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
-			sdkTypes.NewAttribute(types.AttributeAmountMinted, mintAmountDec.String()),
+			sdkTypes.NewAttribute(types.AttributeAmountMinted, mintToken.String()),
 		),
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
