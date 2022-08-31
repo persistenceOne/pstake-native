@@ -48,10 +48,6 @@ func HandleRegisterHostChainProposal(ctx sdk.Context, k Keeper, content types.Re
 	if err != nil {
 		return sdkerrors.Wrap(err, "Could not register ica delegation Address")
 	}
-	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, content.ConnectionID, types.RewardModuleAccount)
-	if err != nil {
-		return sdkerrors.Wrap(err, "Could not register ica reward Address")
-	}
 
 	paramsProposal := types.NewHostChainParams(content.ConnectionID, content.TransferChannel,
 		content.TransferPort, content.BaseDenom, content.MintDenom, content.MinDeposit,
