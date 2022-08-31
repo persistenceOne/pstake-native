@@ -92,30 +92,32 @@ func (k Keeper) OnChanOpenAck(
 
 	hostChainParams := k.GetHostChainParams(ctx)
 
-	delegationAddress, delegationAddrfound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostChainParams.ConnectionID, types.DelegationAccountPortID)
-	if delegationAddrfound && portID == types.DelegationAccountPortID {
-		if err := k.SetHostChainDelegationAddress(ctx, delegationAddress); err != nil {
-			return err
-		}
-		if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, types.RewardModuleAccount); err != nil {
-			return sdkerrors.Wrap(err, "Could not register ica reward Address")
-		}
+	if portID == types.DelegationAccountPortID {
+		delegationAddress, delegationAddrfound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostChainParams.ConnectionID, types.DelegationAccountPortID)
+		if delegationAddrfound {
+			if err := k.SetHostChainDelegationAddress(ctx, delegationAddress); err != nil {
+				return err
+			}
+			if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, types.RewardModuleAccount); err != nil {
+				return sdkerrors.Wrap(err, "Could not register ica reward Address")
+			}
 
-	}
-
-	rewardAddress, rewardAddrFound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostChainParams.ConnectionID, types.RewardAccountPortID)
-
-	if rewardAddrFound && delegationAddrfound {
-		setWithdrawAddrMsg := &distributiontypes.MsgSetWithdrawAddress{
-			DelegatorAddress: delegationAddress,
-			WithdrawAddress:  rewardAddress,
-		}
-		err := generateAndExecuteICATx(ctx, k, hostChainParams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{setWithdrawAddrMsg})
-		if err != nil {
-			return err
 		}
 	}
-
+	if portID == types.RewardAccountPortID {
+		rewardAddress, rewardAddrFound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostChainParams.ConnectionID, types.RewardAccountPortID)
+		delegationAddress := k.GetDelegationState(ctx).HostChainDelegationAddress
+		if rewardAddrFound {
+			setWithdrawAddrMsg := &distributiontypes.MsgSetWithdrawAddress{
+				DelegatorAddress: delegationAddress,
+				WithdrawAddress:  rewardAddress,
+			}
+			err := generateAndExecuteICATx(ctx, k, hostChainParams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{setWithdrawAddrMsg})
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
