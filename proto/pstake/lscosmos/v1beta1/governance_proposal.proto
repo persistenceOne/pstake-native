@@ -20,14 +20,15 @@ message RegisterHostChainProposal {
   string title = 1;
   string description = 2;
   bool  module_enabled = 3;
-  string connection_i_d = 4;
-  string transfer_channel = 5;
-  string transfer_port = 6;
-  string base_denom = 7;
-  string mint_denom = 8;
-  string min_deposit = 9 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
-  AllowListedValidators allow_listed_validators = 10 [(gogoproto.nullable) = false];
-  string pstake_deposit_fee = 11 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  string pstake_restake_fee = 12 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  string pstake_unstake_fee = 13 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string chain_i_d = 4;
+  string connection_i_d = 5;
+  string transfer_channel = 6;
+  string transfer_port = 7;
+  string base_denom = 8;
+  string mint_denom = 9;
+  string min_deposit = 10 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  AllowListedValidators allow_listed_validators = 11 [(gogoproto.nullable) = false];
+  string pstake_deposit_fee = 12 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string pstake_restake_fee = 13 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string pstake_unstake_fee = 14 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }

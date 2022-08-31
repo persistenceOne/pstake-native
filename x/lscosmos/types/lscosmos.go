@@ -28,3 +28,9 @@ func NewHostAccountDelegation(validatorAddress string, amount sdk.Coin) HostAcco
 		Amount:           amount,
 	}
 }
+
+func NewHostChainRewardAddress(address string) HostChainRewardAddress {
+	return HostChainRewardAddress{
+		Address: address,
+	}
+}

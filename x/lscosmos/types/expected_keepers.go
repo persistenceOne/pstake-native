@@ -84,3 +84,7 @@ type ICAControllerKeeper interface {
 	SendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error)
 	GetOpenActiveChannel(ctx sdk.Context, connectionID, portID string) (string, bool)
 }
+
+type ICQKeeper interface {
+	MakeRequest(ctx sdk.Context, connectionID string, chainID string, queryType string, request []byte, period sdk.Int, module string, callbackID string, ttl uint64)
+}

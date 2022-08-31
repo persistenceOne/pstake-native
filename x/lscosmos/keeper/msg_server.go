@@ -77,10 +77,8 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 
 	// amount of stk tokens to be minted
 	mintAmountDec := msg.Amount.Amount.ToDec().Mul(m.GetCValue(ctx))
-	mintToken, residue := sdkTypes.NewDecCoinFromDec(hostChainParams.MintDenom, mintAmountDec).TruncateDecimal()
-	if residue.Amount.GT(sdkTypes.NewDec(0)) {
-		m.SendResidueToCommunityPool(ctx, sdkTypes.NewDecCoins(residue))
-	}
+	// We do not care about residue here because it won't be minted and bank.TotalSupply invariant should not be affected
+	mintToken, _ := sdkTypes.NewDecCoinFromDec(hostChainParams.MintDenom, mintAmountDec).TruncateDecimal()
 
 	//Mint staked representative tokens in lscosmos module account
 	err = m.bankKeeper.MintCoins(ctx, types.ModuleName, sdkTypes.NewCoins(mintToken))
@@ -91,11 +89,8 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	//Calculate protocol fee
 	protocolFee := hostChainParams.PstakeDepositFee
 	protocolFeeAmount := protocolFee.MulInt(mintToken.Amount)
-	protocolCoins, residue := sdkTypes.NewDecCoinFromDec(hostChainParams.MintDenom, protocolFeeAmount).TruncateDecimal()
-
-	if residue.Amount.GT(sdkTypes.NewDec(0)) {
-		m.SendResidueToCommunityPool(ctx, sdkTypes.NewDecCoins(residue))
-	}
+	// We do not care about residue, as to not break Total calculation invariant.
+	protocolCoins, _ := sdkTypes.NewDecCoinFromDec(hostChainParams.MintDenom, protocolFeeAmount).TruncateDecimal()
 
 	//Send (mintedTokens - protocolTokens) to delegator address
 	err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delegatorAddress,
@@ -104,7 +99,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		return nil, types.ErrMintFailed
 	}
 
-	//Send protocol fee to protocol pool
+	//Send protocol fee to protocol pool // TODO send to pstake multisig
 	err = m.SendProtocolFee(ctx, sdkTypes.NewCoins(protocolCoins), delegatorAddress)
 	if err != nil {
 		return nil, types.ErrFailedDeposit
@@ -115,7 +110,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		sdkTypes.NewEvent(
 			types.EventTypeLiquidStake,
 			sdkTypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
-			sdkTypes.NewAttribute(types.AttributeAmountMinted, mintAmountDec.String()),
+			sdkTypes.NewAttribute(types.AttributeAmountMinted, mintToken.String()),
 		),
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,

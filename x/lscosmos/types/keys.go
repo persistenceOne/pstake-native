@@ -59,8 +59,9 @@ var (
 var (
 	// PortKey defines the key to store the port ID in store
 
-	ModuleEnableKey          = []byte{0x01}
-	HostChainParamsKey       = []byte{0x02}
-	AllowListedValidatorsKey = []byte{0x03}
-	DelegationStateKey       = []byte{0x04}
+	ModuleEnableKey           = []byte{0x01}
+	HostChainParamsKey        = []byte{0x02}
+	AllowListedValidatorsKey  = []byte{0x03}
+	DelegationStateKey        = []byte{0x04}
+	HostChainRewardAddressKey = []byte{0x05}
 )

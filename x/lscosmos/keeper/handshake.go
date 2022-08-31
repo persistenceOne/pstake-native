@@ -5,6 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -108,11 +110,12 @@ func (k Keeper) OnChanOpenAck(
 		rewardAddress, rewardAddrFound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostChainParams.ConnectionID, types.RewardAccountPortID)
 		delegationAddress := k.GetDelegationState(ctx).HostChainDelegationAddress
 		if rewardAddrFound {
+			_ = k.SetHostChainRewardAddressIfEmpty(ctx, types.NewHostChainRewardAddress(rewardAddress))
 			setWithdrawAddrMsg := &distributiontypes.MsgSetWithdrawAddress{
 				DelegatorAddress: delegationAddress,
 				WithdrawAddress:  rewardAddress,
 			}
-			err := generateAndExecuteICATx(ctx, k, hostChainParams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{setWithdrawAddrMsg})
+			err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{setWithdrawAddrMsg})
 			if err != nil {
 				return err
 			}
@@ -166,6 +169,14 @@ func (k Keeper) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+	_, ok := k.lscosmosScopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(modulePacket.GetSourcePort(), modulePacket.GetSourceChannel()))
+	if !ok {
+		return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "capability not found for port: %s channel: %s in module: %s", modulePacket.GetSourcePort(), modulePacket.GetSourceChannel(), types.ModuleName)
+	}
+
+	// TODO add checks for capabilities, ports, channels
+	hostChainParams := k.GetHostChainParams(ctx)
+
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet acknowledgement: %v", err)
@@ -174,7 +185,6 @@ func (k Keeper) OnAcknowledgementPacket(
 		return sdkerrors.Wrapf(channeltypes.ErrInvalidAcknowledgement, "acknowledgement failed")
 	}
 	// this line is used by starport scaffolding # oracle/packet/module/ack
-
 	txMsgData := &sdk.TxMsgData{}
 	if err := k.cdc.Unmarshal(ack.GetResult(), txMsgData); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
@@ -197,12 +207,35 @@ func (k Keeper) OnAcknowledgementPacket(
 		return nil
 	default:
 		for i, msgData := range txMsgData.Data {
-			response, err := k.handleAckMsgData(ctx, msgData, msgs[i])
+			response, err := k.handleAckMsgData(ctx, msgData, msgs[i], hostChainParams)
 			if err != nil {
 				return err
 			}
-
 			k.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
+
+			// if the packet has withdrawrewards msgs
+			if i == 0 && msgData.MsgType == sdk.MsgTypeURL(&distributiontypes.MsgWithdrawDelegatorReward{}) {
+				rewardAddr := k.GetHostChainRewardAddress(ctx)
+
+				balanceQuery := banktypes.QueryBalanceRequest{Address: rewardAddr.Address, Denom: hostChainParams.BaseDenom}
+				bz, err := k.cdc.Marshal(&balanceQuery)
+				if err != nil {
+					return err
+				}
+
+				// total rewards balance withdrawn
+				k.icqKeeper.MakeRequest(
+					ctx,
+					hostChainParams.ConnectionID,
+					hostChainParams.ChainID,
+					"cosmos.bank.v1beta1.Query/Balance",
+					bz,
+					sdk.NewInt(int64(-1)),
+					types.ModuleName,
+					RewardsAccountBalance,
+					0,
+				)
+			}
 		}
 	}
 
@@ -241,6 +274,13 @@ func (k Keeper) OnTimeoutPacket(
 	relayer sdk.AccAddress,
 ) error {
 	// this line is used by starport scaffolding # oracle/packet/module/ack
+	_, ok := k.lscosmosScopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(modulePacket.GetSourcePort(), modulePacket.GetSourceChannel()))
+	if !ok {
+		return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "capability not found for port: %s channel: %s in module: %s", modulePacket.GetSourcePort(), modulePacket.GetSourceChannel(), types.ModuleName)
+	}
+
+	// TODO add checks for capabilities, ports, channels
+	hostChainParams := k.GetHostChainParams(ctx)
 
 	icaPacket := &icatypes.InterchainAccountPacketData{}
 	if err := icatypes.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), icaPacket); err != nil {
@@ -257,7 +297,7 @@ func (k Keeper) OnTimeoutPacket(
 		return nil
 	default:
 		for _, msg := range msgs {
-			response, err := k.handleTimeoutMsgData(ctx, msg)
+			response, err := k.handleTimeoutMsgData(ctx, msg, hostChainParams)
 			if err != nil {
 				return err
 			}
@@ -269,16 +309,17 @@ func (k Keeper) OnTimeoutPacket(
 	return nil
 }
 
-func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.Msg) (string, error) {
+func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.Msg, hostChainParams types.HostChainParams) (string, error) {
 	switch msgData.MsgType {
 	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
-		parsedMsg := msg.(*stakingtypes.MsgDelegate)
+		parsedMsg, ok := msg.(*stakingtypes.MsgDelegate)
+		if !ok {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", msgData.MsgType)
+		}
 		var msgResponse stakingtypes.MsgDelegateResponse
 		if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
 			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
 		}
-		// remove from host-balance
-		k.RemoveBalanceFromDelegationState(ctx, sdk.NewCoins(parsedMsg.Amount))
 		// Add delegation state
 		k.AddHostAccountDelegation(ctx, types.NewHostAccountDelegation(parsedMsg.ValidatorAddress, parsedMsg.Amount))
 
@@ -291,18 +332,61 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 		}
 		k.SetModuleState(ctx, true)
 		return msgResponse.String(), nil
+	case sdk.MsgTypeURL(&distributiontypes.MsgWithdrawDelegatorReward{}):
+		var msgResponse distributiontypes.MsgWithdrawDelegatorRewardResponse
+		if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+		}
+		return msgResponse.String(), nil
+	case sdk.MsgTypeURL(&banktypes.MsgSend{}):
+		parsedMsg, ok := msg.(*banktypes.MsgSend)
+		if !ok {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", msgData.MsgType)
+		}
+		var msgResponse banktypes.MsgSendResponse
+		if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+		}
+		//is from rewardaddr to delegationaddr?
+		rewardAddress := k.GetHostChainRewardAddress(ctx)
+		delegationState := k.GetDelegationState(ctx)
+		if rewardAddress.Address == parsedMsg.FromAddress && delegationState.HostChainDelegationAddress == parsedMsg.ToAddress {
+			amountOfBaseDenom := parsedMsg.Amount.AmountOf(hostChainParams.BaseDenom)
+			if amountOfBaseDenom.GT(sdk.ZeroInt()) {
+				k.AddBalanceToDelegationState(ctx, sdk.NewCoin(hostChainParams.BaseDenom, amountOfBaseDenom))
 
+				//Mint autocompounding fee
+				pstakeFeeAmount := hostChainParams.PstakeRestakeFee.MulInt(amountOfBaseDenom).Mul(k.GetCValue(ctx))
+				protocolFee, _ := sdk.NewDecCoinFromDec(hostChainParams.MintDenom, pstakeFeeAmount).TruncateDecimal()
+
+				err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(protocolFee))
+				if err != nil {
+					return "", types.ErrMintFailed
+				}
+
+				//Send protocol fee to protocol pool //TODO send to pstake multisig.
+				err = k.SendProtocolFee(ctx, sdk.NewCoins(protocolFee), authtypes.NewModuleAddress(types.ModuleName))
+				if err != nil {
+					return "", types.ErrFailedDeposit
+				}
+			}
+		}
+		return msgResponse.String(), nil
 	default:
 		return "", nil
 	}
 }
 
-func (k Keeper) handleTimeoutMsgData(_ sdk.Context, msg sdk.Msg) (string, error) {
+func (k Keeper) handleTimeoutMsgData(ctx sdk.Context, msg sdk.Msg, _ types.HostChainParams) (string, error) {
 	switch sdk.MsgTypeURL(msg) {
 	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
+		parsedMsg, ok := msg.(*stakingtypes.MsgDelegate)
+		if !ok {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
+		}
+		// Add to host-balance, because delegate txn timed out.
+		k.AddBalanceToDelegationState(ctx, parsedMsg.Amount)
 		return msg.String(), nil
-	case sdk.MsgTypeURL(&stakingtypes.MsgBeginRedelegate{}):
-		return msg.String(), sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Not implemented, unexpected msg %s", msg.String())
 	default:
 		return "", nil
 	}

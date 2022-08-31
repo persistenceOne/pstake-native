@@ -49,7 +49,7 @@ func HandleRegisterHostChainProposal(ctx sdk.Context, k Keeper, content types.Re
 		return sdkerrors.Wrap(err, "Could not register ica delegation Address")
 	}
 
-	paramsProposal := types.NewHostChainParams(content.ConnectionID, content.TransferChannel,
+	paramsProposal := types.NewHostChainParams(content.ChainID, content.ConnectionID, content.TransferChannel,
 		content.TransferPort, content.BaseDenom, content.MintDenom, content.MinDeposit,
 		content.PstakeDepositFee, content.PstakeRestakeFee, content.PstakeUnstakeFee)
 

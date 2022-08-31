@@ -18,7 +18,7 @@ func (suite *IntegrationTestSuite) TestHostChainParamsQuery() {
 	suite.NoError(err)
 	unstakeFee, err := sdk.NewDecFromStr("0.03")
 	suite.NoError(err)
-	params := types.NewHostChainParams("connection-0", "channel-0", "transfer",
+	params := types.NewHostChainParams("cosmoshub-4", "connection-0", "channel-0", "transfer",
 		"uatom", "ustkatom", minDeposit, depositFee, restakeFee, unstakeFee)
 	suite.app.LSCosmosKeeper.SetHostChainParams(ctx, params)
 
