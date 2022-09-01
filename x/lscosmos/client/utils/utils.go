@@ -4,32 +4,8 @@ import (
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/rest"
-
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
-
-type RegisterHostChainProposalReq struct {
-	BaseReq     rest.BaseReq `json:"base_req" yaml:"base_req"`
-	Title       string       `json:"title" yaml:"title"`
-	Description string       `json:"description" yaml:"description"`
-	// TODO update
-	ModuleEnabled         bool                        `json:"module_enabled" yaml:"module_enabled"`
-	ChainID               string                      `json:"chain_i_d" yaml:"chain_i_d"`
-	ConnectionID          string                      `json:"connection_i_d" yaml:"connection_i_d"`
-	TransferChannel       string                      `json:"transfer_channel" yaml:"transfer_channel"`
-	TransferPort          string                      `json:"transfer_port" yaml:"transfer_port"`
-	BaseDenom             string                      `json:"base_denom" yaml:"base_denom"`
-	MintDenom             string                      `json:"mint_denom" yaml:"mint_denom"`
-	MinDeposit            string                      `json:"min_deposit" yaml:"min_deposit"`
-	AllowListedValidators types.AllowListedValidators `json:"allow_listed_validators" yaml:"allow_listed_validators"`
-	PstakeDepositFee      string                      `json:"pstake_deposit_fee" yaml:"pstake_deposit_fee"`
-	PstakeRestakeFee      string                      `json:"pstake_restake_fee" yaml:"pstake_restake_fee"`
-	PstakeUnstakeFee      string                      `json:"pstake_unstake_fee" yaml:"pstake_unstake_fee"`
-	Proposer              sdk.AccAddress              `json:"proposer" yaml:"proposer"`
-	Deposit               sdk.Coins                   `json:"deposit" yaml:"deposit"`
-}
 
 type RegisterHostChainProposalJSON struct {
 	Title                 string                      `json:"title" yaml:"title"`

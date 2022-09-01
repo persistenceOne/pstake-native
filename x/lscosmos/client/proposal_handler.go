@@ -1,12 +1,25 @@
 package client
 
 import (
-	"github.com/cosmos/cosmos-sdk/x/gov/client"
+	"net/http"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/types/rest"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/client/cli"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/client/rest"
 )
 
 var (
-	RegisterHostChainProposalHandler = client.NewProposalHandler(cli.NewRegisterHostChainCmd, rest.RegisterChainRESTHandler)
+	RegisterHostChainProposalHandler = govclient.NewProposalHandler(cli.NewRegisterHostChainCmd, emptyRestHandler)
 )
+
+func emptyRestHandler(client.Context) govrest.ProposalRESTHandler {
+	return govrest.ProposalRESTHandler{
+		SubRoute: "unsupported-ibc-client",
+		Handler: func(w http.ResponseWriter, r *http.Request) {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "Legacy REST Routes are not supported for IBC proposals")
+		},
+	}
+}
