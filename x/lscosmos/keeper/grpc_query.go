@@ -35,6 +35,24 @@ func (k Keeper) AllowListedValidators(c context.Context, request *types.QueryAll
 	allowListedValidators := k.GetAllowListedValidators(ctx)
 
 	return &types.QueryAllowListedValidatorsResponse{
-		ListedValidators: allowListedValidators,
+		AllowListedValidators: allowListedValidators,
+	}, nil
+}
+
+func (k Keeper) CValue(c context.Context, request *types.QueryCValueRequest) (*types.QueryCValueResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	cValue := k.GetCValue(ctx)
+
+	return &types.QueryCValueResponse{
+		CValue: cValue,
+	}, nil
+}
+
+func (k Keeper) ModuleState(c context.Context, request *types.QueryModuleStateRequest) (*types.QueryModuleStateResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	moduleState := k.GetModuleState(ctx)
+
+	return &types.QueryModuleStateResponse{
+		ModuleState: moduleState,
 	}, nil
 }

@@ -6,6 +6,7 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
@@ -314,9 +315,9 @@ func (m *QueryAllowListedValidatorsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAllowListedValidatorsRequest proto.InternalMessageInfo
 
-// QueryListedValidatorsResponse is a request for the Query/AllowListedValidators methods.
+// QueryListedValidatorsResponse is a response for the Query/AllowListedValidators methods.
 type QueryAllowListedValidatorsResponse struct {
-	ListedValidators AllowListedValidators `protobuf:"bytes,1,opt,name=listedValidators,proto3" json:"listedValidators"`
+	AllowListedValidators AllowListedValidators `protobuf:"bytes,1,opt,name=allow_listed_validators,json=allowListedValidators,proto3" json:"allow_listed_validators"`
 }
 
 func (m *QueryAllowListedValidatorsResponse) Reset()         { *m = QueryAllowListedValidatorsResponse{} }
@@ -352,11 +353,168 @@ func (m *QueryAllowListedValidatorsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAllowListedValidatorsResponse proto.InternalMessageInfo
 
-func (m *QueryAllowListedValidatorsResponse) GetListedValidators() AllowListedValidators {
+func (m *QueryAllowListedValidatorsResponse) GetAllowListedValidators() AllowListedValidators {
 	if m != nil {
-		return m.ListedValidators
+		return m.AllowListedValidators
 	}
 	return AllowListedValidators{}
+}
+
+// QueryCValueRequest is a request for the Query/CValue methods.
+type QueryCValueRequest struct {
+}
+
+func (m *QueryCValueRequest) Reset()         { *m = QueryCValueRequest{} }
+func (m *QueryCValueRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryCValueRequest) ProtoMessage()    {}
+func (*QueryCValueRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_799833dfb4f243e6, []int{8}
+}
+func (m *QueryCValueRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryCValueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryCValueRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryCValueRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryCValueRequest.Merge(m, src)
+}
+func (m *QueryCValueRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryCValueRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryCValueRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryCValueRequest proto.InternalMessageInfo
+
+// QueryCValueRequest is a response for the Query/CValue methods.
+type QueryCValueResponse struct {
+	CValue github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,1,opt,name=c_value,json=cValue,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"c_value"`
+}
+
+func (m *QueryCValueResponse) Reset()         { *m = QueryCValueResponse{} }
+func (m *QueryCValueResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryCValueResponse) ProtoMessage()    {}
+func (*QueryCValueResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_799833dfb4f243e6, []int{9}
+}
+func (m *QueryCValueResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryCValueResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryCValueResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryCValueResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryCValueResponse.Merge(m, src)
+}
+func (m *QueryCValueResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryCValueResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryCValueResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryCValueResponse proto.InternalMessageInfo
+
+// QueryModuleStateRequest is a request for the Query/ModuleState methods.
+type QueryModuleStateRequest struct {
+}
+
+func (m *QueryModuleStateRequest) Reset()         { *m = QueryModuleStateRequest{} }
+func (m *QueryModuleStateRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryModuleStateRequest) ProtoMessage()    {}
+func (*QueryModuleStateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_799833dfb4f243e6, []int{10}
+}
+func (m *QueryModuleStateRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryModuleStateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryModuleStateRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryModuleStateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryModuleStateRequest.Merge(m, src)
+}
+func (m *QueryModuleStateRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryModuleStateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryModuleStateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryModuleStateRequest proto.InternalMessageInfo
+
+// QueryModuleStateRequest is a response for the Query/ModuleState methods.
+type QueryModuleStateResponse struct {
+	ModuleState bool `protobuf:"varint,1,opt,name=module_state,json=moduleState,proto3" json:"module_state,omitempty"`
+}
+
+func (m *QueryModuleStateResponse) Reset()         { *m = QueryModuleStateResponse{} }
+func (m *QueryModuleStateResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryModuleStateResponse) ProtoMessage()    {}
+func (*QueryModuleStateResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_799833dfb4f243e6, []int{11}
+}
+func (m *QueryModuleStateResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryModuleStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryModuleStateResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryModuleStateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryModuleStateResponse.Merge(m, src)
+}
+func (m *QueryModuleStateResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryModuleStateResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryModuleStateResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryModuleStateResponse proto.InternalMessageInfo
+
+func (m *QueryModuleStateResponse) GetModuleState() bool {
+	if m != nil {
+		return m.ModuleState
+	}
+	return false
 }
 
 func init() {
@@ -368,6 +526,10 @@ func init() {
 	proto.RegisterType((*QueryDelegationStateResponse)(nil), "pstake.lscosmos.v1beta1.QueryDelegationStateResponse")
 	proto.RegisterType((*QueryAllowListedValidatorsRequest)(nil), "pstake.lscosmos.v1beta1.QueryAllowListedValidatorsRequest")
 	proto.RegisterType((*QueryAllowListedValidatorsResponse)(nil), "pstake.lscosmos.v1beta1.QueryAllowListedValidatorsResponse")
+	proto.RegisterType((*QueryCValueRequest)(nil), "pstake.lscosmos.v1beta1.QueryCValueRequest")
+	proto.RegisterType((*QueryCValueResponse)(nil), "pstake.lscosmos.v1beta1.QueryCValueResponse")
+	proto.RegisterType((*QueryModuleStateRequest)(nil), "pstake.lscosmos.v1beta1.QueryModuleStateRequest")
+	proto.RegisterType((*QueryModuleStateResponse)(nil), "pstake.lscosmos.v1beta1.QueryModuleStateResponse")
 }
 
 func init() {
@@ -375,44 +537,53 @@ func init() {
 }
 
 var fileDescriptor_799833dfb4f243e6 = []byte{
-	// 579 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x94, 0x4f, 0x6f, 0xd3, 0x30,
-	0x18, 0xc6, 0x6b, 0xc4, 0x7a, 0x30, 0x87, 0x0e, 0x33, 0x04, 0x2a, 0x23, 0x65, 0x19, 0x82, 0xb1,
-	0x8d, 0x84, 0x16, 0x90, 0x26, 0x10, 0x07, 0xfe, 0x1c, 0x38, 0x20, 0x01, 0x05, 0x21, 0xb1, 0x4b,
-	0x70, 0x5b, 0x2b, 0x8d, 0x48, 0x6d, 0x2f, 0x76, 0x0b, 0xe5, 0xc8, 0x81, 0x13, 0x07, 0x24, 0x3e,
-	0x09, 0x7c, 0x8a, 0x09, 0x71, 0x98, 0xc4, 0x85, 0x13, 0x42, 0x2d, 0x1f, 0x04, 0xc5, 0x71, 0x33,
-	0x25, 0x8d, 0x53, 0xd8, 0xad, 0xf2, 0xfb, 0xbc, 0xef, 0xf3, 0x7b, 0xdd, 0x27, 0x86, 0xeb, 0x5c,
-	0x48, 0xfc, 0x9a, 0xb8, 0xa1, 0xe8, 0x32, 0x31, 0x60, 0xc2, 0x1d, 0x35, 0x3b, 0x44, 0xe2, 0xa6,
-	0xbb, 0x37, 0x24, 0xd1, 0xd8, 0xe1, 0x11, 0x93, 0x0c, 0x9d, 0x49, 0x44, 0xce, 0x4c, 0xe4, 0x68,
-	0x51, 0x7d, 0xc5, 0x67, 0x3e, 0x53, 0x1a, 0x37, 0xfe, 0x95, 0xc8, 0xeb, 0xab, 0x3e, 0x63, 0x7e,
-	0x48, 0x5c, 0xcc, 0x03, 0x17, 0x53, 0xca, 0x24, 0x96, 0x01, 0xa3, 0x42, 0x57, 0x37, 0xb5, 0x51,
-	0x07, 0x0b, 0x92, 0xb8, 0xa4, 0x9e, 0x1c, 0xfb, 0x01, 0x55, 0x62, 0xad, 0xbd, 0x68, 0xa2, 0xe3,
-	0x38, 0xc2, 0x83, 0xd9, 0xc4, 0xa6, 0x49, 0xe5, 0xb3, 0x11, 0x89, 0x28, 0xa6, 0x5d, 0xe2, 0xf1,
-	0x88, 0x71, 0x26, 0x70, 0xa8, 0x5b, 0x2e, 0x99, 0x5a, 0xd2, 0x15, 0x95, 0xce, 0x5e, 0x81, 0xe8,
-	0x69, 0x8c, 0xf8, 0x44, 0xf9, 0xb5, 0xc9, 0xde, 0x90, 0x08, 0x69, 0x3f, 0x87, 0xa7, 0x32, 0xa7,
-	0x82, 0x33, 0x2a, 0x08, 0xba, 0x03, 0xab, 0x09, 0xd7, 0x59, 0x70, 0x01, 0x6c, 0x9c, 0x68, 0x35,
-	0x1c, 0xc3, 0xbd, 0x39, 0x49, 0xe3, 0xbd, 0xe3, 0xfb, 0xbf, 0x1a, 0x95, 0xb6, 0x6e, 0xb2, 0xcf,
-	0xc3, 0x73, 0x6a, 0xea, 0x43, 0x26, 0xe4, 0xfd, 0x3e, 0x0e, 0x68, 0xd6, 0xf4, 0x1d, 0x5c, 0x2d,
-	0x2e, 0x6b, 0xf7, 0x5d, 0x78, 0xb2, 0xcf, 0x84, 0xf4, 0xba, 0x71, 0xcd, 0xcb, 0x80, 0x6c, 0x18,
-	0x41, 0x72, 0xc3, 0x34, 0x51, 0xad, 0x9f, 0x3d, 0x4e, 0xd1, 0x1e, 0x90, 0x90, 0xf8, 0xea, 0x0f,
-	0x7a, 0x26, 0xb1, 0x24, 0x33, 0xb4, 0xb1, 0x46, 0x9b, 0x2b, 0x6b, 0xb4, 0x97, 0x70, 0xb9, 0x97,
-	0x96, 0x3c, 0x11, 0xd7, 0x16, 0x92, 0xe5, 0x66, 0xcd, 0xc8, 0x7a, 0xd9, 0x63, 0x7b, 0x1d, 0xae,
-	0x29, 0xeb, 0xbb, 0x61, 0xc8, 0xde, 0x3c, 0x0a, 0x84, 0x24, 0xbd, 0x17, 0x38, 0x0c, 0x7a, 0x58,
-	0xb2, 0x28, 0xbd, 0xba, 0x0f, 0x00, 0xda, 0x65, 0x2a, 0x8d, 0xf9, 0x0a, 0x2e, 0x87, 0xb9, 0x9a,
-	0xc6, 0x74, 0x8c, 0x98, 0x85, 0x13, 0x35, 0xec, 0xdc, 0xb4, 0xd6, 0xf7, 0x25, 0xb8, 0xa4, 0x40,
-	0xd0, 0x47, 0x00, 0xab, 0xc9, 0xe5, 0xa2, 0x2d, 0xe3, 0xf0, 0xf9, 0xe8, 0xd5, 0xb7, 0xff, 0x4d,
-	0x9c, 0x6c, 0x64, 0x5f, 0x7e, 0xff, 0xe3, 0xcf, 0xe7, 0x63, 0x6b, 0xa8, 0xe1, 0x96, 0x7f, 0x48,
-	0xe8, 0x2b, 0x80, 0xb5, 0x5c, 0x16, 0xd0, 0x8d, 0x72, 0xab, 0xe2, 0x98, 0xd6, 0x6f, 0xfe, 0x67,
-	0x97, 0x26, 0x6d, 0x29, 0xd2, 0x6d, 0xb4, 0x69, 0x24, 0x9d, 0x0b, 0x37, 0xfa, 0x02, 0x60, 0x2d,
-	0x17, 0x93, 0x45, 0xd0, 0xc5, 0x01, 0x5e, 0x04, 0x6d, 0xc8, 0xb5, 0xdd, 0x54, 0xd0, 0x5b, 0xe8,
-	0x8a, 0x11, 0x3a, 0x1f, 0x7b, 0xf4, 0x0d, 0xc0, 0xd3, 0x85, 0x99, 0x41, 0xb7, 0xca, 0x19, 0xca,
-	0x02, 0x5e, 0xbf, 0x7d, 0xa4, 0x5e, 0xbd, 0xc5, 0x8e, 0xda, 0xa2, 0x85, 0xae, 0x19, 0xb7, 0xc0,
-	0x71, 0xbf, 0x97, 0xa4, 0xd9, 0x1b, 0x1d, 0xc6, 0xbc, 0xbd, 0x3f, 0xb1, 0xc0, 0xc1, 0xc4, 0x02,
-	0xbf, 0x27, 0x16, 0xf8, 0x34, 0xb5, 0x2a, 0x07, 0x53, 0xab, 0xf2, 0x73, 0x6a, 0x55, 0x76, 0x77,
-	0xfc, 0x40, 0xf6, 0x87, 0x1d, 0xa7, 0xcb, 0x06, 0x2e, 0x27, 0x91, 0x88, 0x5b, 0x69, 0x97, 0x3c,
-	0xa6, 0x44, 0x9b, 0x5c, 0x8d, 0xdf, 0xf9, 0x11, 0x71, 0xdf, 0x1e, 0xba, 0xc9, 0x31, 0x27, 0xa2,
-	0x53, 0x55, 0x0f, 0xef, 0xf5, 0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xdb, 0x77, 0xa3, 0xfd, 0x99,
-	0x06, 0x00, 0x00,
+	// 729 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x95, 0x4f, 0x6f, 0xd3, 0x30,
+	0x18, 0xc6, 0x6b, 0x04, 0x65, 0x78, 0x48, 0x03, 0xb3, 0x69, 0xa3, 0x8c, 0x76, 0xcb, 0x60, 0x1b,
+	0xfb, 0x93, 0xac, 0x05, 0xa4, 0x09, 0xb4, 0x03, 0xdb, 0x24, 0x38, 0x80, 0x80, 0x82, 0x26, 0xb1,
+	0x03, 0x95, 0x9b, 0x5a, 0x69, 0xb4, 0x34, 0xce, 0x62, 0xb7, 0x30, 0x4e, 0x88, 0x33, 0x48, 0x08,
+	0x3e, 0x01, 0x1f, 0x01, 0x3e, 0xc5, 0xc4, 0x69, 0x12, 0x17, 0xc4, 0x61, 0x42, 0x2b, 0x1f, 0x04,
+	0xc5, 0x71, 0xb3, 0xa6, 0x8d, 0x53, 0xc6, 0xa9, 0x95, 0xdf, 0xe7, 0x7d, 0xdf, 0x9f, 0xed, 0xf7,
+	0x71, 0xe0, 0x8c, 0xc7, 0x38, 0xde, 0x21, 0x86, 0xc3, 0x4c, 0xca, 0x1a, 0x94, 0x19, 0xad, 0x62,
+	0x95, 0x70, 0x5c, 0x34, 0x76, 0x9b, 0xc4, 0xdf, 0xd3, 0x3d, 0x9f, 0x72, 0x8a, 0xc6, 0x43, 0x91,
+	0xde, 0x11, 0xe9, 0x52, 0x94, 0x1b, 0xb5, 0xa8, 0x45, 0x85, 0xc6, 0x08, 0xfe, 0x85, 0xf2, 0xdc,
+	0xa4, 0x45, 0xa9, 0xe5, 0x10, 0x03, 0x7b, 0xb6, 0x81, 0x5d, 0x97, 0x72, 0xcc, 0x6d, 0xea, 0x32,
+	0x19, 0x5d, 0x90, 0x8d, 0xaa, 0x98, 0x91, 0xb0, 0x4b, 0xd4, 0xd3, 0xc3, 0x96, 0xed, 0x0a, 0xb1,
+	0xd4, 0x5e, 0x53, 0xd1, 0x79, 0xd8, 0xc7, 0x8d, 0x4e, 0xc5, 0xa2, 0x4a, 0x65, 0xd1, 0x16, 0xf1,
+	0x5d, 0xec, 0x9a, 0xa4, 0xe2, 0xf9, 0xd4, 0xa3, 0x0c, 0x3b, 0x32, 0x65, 0x56, 0x95, 0x12, 0x6d,
+	0x51, 0xe8, 0xb4, 0x51, 0x88, 0x9e, 0x06, 0x88, 0x4f, 0x44, 0xbf, 0x32, 0xd9, 0x6d, 0x12, 0xc6,
+	0xb5, 0xe7, 0xf0, 0x52, 0x6c, 0x95, 0x79, 0xd4, 0x65, 0x04, 0xad, 0xc1, 0x6c, 0xc8, 0x35, 0x01,
+	0xa6, 0xc0, 0xfc, 0x70, 0xa9, 0xa0, 0x2b, 0xce, 0x4d, 0x0f, 0x13, 0xd7, 0x4f, 0xef, 0x1f, 0x16,
+	0x32, 0x65, 0x99, 0xa4, 0x5d, 0x85, 0x57, 0x44, 0xd5, 0x07, 0x94, 0xf1, 0x8d, 0x3a, 0xb6, 0xdd,
+	0x78, 0xd3, 0x37, 0x70, 0x32, 0x39, 0x2c, 0xbb, 0x6f, 0xc3, 0x8b, 0x75, 0xca, 0x78, 0xc5, 0x0c,
+	0x62, 0x95, 0x18, 0xc8, 0xbc, 0x12, 0xa4, 0xa7, 0x98, 0x24, 0x1a, 0xa9, 0xc7, 0x97, 0x23, 0xb4,
+	0x4d, 0xe2, 0x10, 0x4b, 0x5c, 0xd0, 0x33, 0x8e, 0x39, 0xe9, 0xa0, 0xed, 0x49, 0xb4, 0xbe, 0xb0,
+	0x44, 0x7b, 0x01, 0x2f, 0xd4, 0xa2, 0x50, 0x85, 0x05, 0xb1, 0x81, 0x64, 0x3d, 0xb5, 0x3a, 0x64,
+	0xb5, 0xf8, 0xb2, 0x36, 0x03, 0xa7, 0x45, 0xeb, 0x7b, 0x8e, 0x43, 0x5f, 0x3d, 0xb4, 0x19, 0x27,
+	0xb5, 0x2d, 0xec, 0xd8, 0x35, 0xcc, 0xa9, 0x1f, 0x1d, 0xdd, 0x27, 0x00, 0xb5, 0x34, 0x95, 0xc4,
+	0x74, 0xe0, 0x38, 0x0e, 0x04, 0x15, 0x47, 0x28, 0x2a, 0xad, 0x48, 0x22, 0x69, 0x75, 0x25, 0x6d,
+	0x62, 0x61, 0xc9, 0x3c, 0x86, 0x93, 0x82, 0xd1, 0x68, 0x6d, 0x6c, 0x61, 0xa7, 0x19, 0x1d, 0xe5,
+	0x4b, 0x39, 0x5a, 0x9d, 0x55, 0x89, 0x76, 0x1f, 0x9e, 0x35, 0x03, 0x9e, 0x66, 0x78, 0x70, 0xe7,
+	0xd6, 0xf5, 0xa0, 0xf4, 0xaf, 0xc3, 0xc2, 0xac, 0x65, 0xf3, 0x7a, 0xb3, 0xaa, 0x9b, 0xb4, 0x61,
+	0xc8, 0x51, 0x0e, 0x7f, 0x96, 0x59, 0x6d, 0xc7, 0xe0, 0x7b, 0x1e, 0x61, 0xfa, 0x26, 0x31, 0xcb,
+	0x59, 0x53, 0x14, 0xd4, 0x2e, 0xc3, 0x71, 0x51, 0xff, 0x11, 0xad, 0x35, 0x1d, 0x12, 0xbb, 0xc5,
+	0x35, 0x38, 0xd1, 0x1f, 0x92, 0xfd, 0xa7, 0xe1, 0xf9, 0x86, 0x58, 0xee, 0xba, 0xbd, 0xa1, 0xf2,
+	0x70, 0xe3, 0x58, 0x5a, 0x7a, 0x3b, 0x04, 0xcf, 0x88, 0x7c, 0xf4, 0x1e, 0xc0, 0x6c, 0x38, 0x38,
+	0x68, 0x51, 0x79, 0x62, 0xfd, 0xb6, 0xca, 0x2d, 0xfd, 0x9b, 0x38, 0x44, 0xd2, 0xe6, 0xde, 0xfd,
+	0xf8, 0xf3, 0xf9, 0xd4, 0x34, 0x2a, 0x18, 0xe9, 0x8f, 0x04, 0xfa, 0x06, 0xe0, 0x48, 0xcf, 0x9c,
+	0xa3, 0x5b, 0xe9, 0xad, 0x92, 0x2d, 0x98, 0xbb, 0x7d, 0xc2, 0x2c, 0x49, 0x5a, 0x12, 0xa4, 0x4b,
+	0x68, 0x41, 0x49, 0xda, 0x67, 0x5c, 0xf4, 0x15, 0xc0, 0x91, 0x1e, 0x0b, 0x0c, 0x82, 0x4e, 0x36,
+	0xe7, 0x20, 0x68, 0x85, 0x67, 0xb5, 0xa2, 0x80, 0x5e, 0x44, 0x37, 0x94, 0xd0, 0xbd, 0x96, 0x46,
+	0xdf, 0x01, 0x1c, 0x4b, 0x34, 0x02, 0xba, 0x93, 0xce, 0x90, 0x66, 0xde, 0xdc, 0xdd, 0xff, 0xca,
+	0x95, 0xbb, 0x58, 0x15, 0xbb, 0x28, 0xa1, 0x15, 0xe5, 0x2e, 0x14, 0x8e, 0x47, 0x1f, 0x00, 0xcc,
+	0x86, 0x26, 0x1c, 0x34, 0xc4, 0x31, 0x03, 0x0f, 0x1a, 0xe2, 0xb8, 0xaf, 0xb5, 0x79, 0xc1, 0xa7,
+	0xa1, 0x29, 0x25, 0x9f, 0xb4, 0x3d, 0xfa, 0x02, 0xe0, 0x70, 0x97, 0x33, 0xd1, 0x4a, 0x7a, 0x9f,
+	0x7e, 0x7f, 0xe7, 0x8a, 0x27, 0xc8, 0x90, 0x78, 0xcb, 0x02, 0x6f, 0x0e, 0x5d, 0x57, 0xe2, 0x75,
+	0xbf, 0x0a, 0xeb, 0xe5, 0xfd, 0xa3, 0x3c, 0x38, 0x38, 0xca, 0x83, 0xdf, 0x47, 0x79, 0xf0, 0xb1,
+	0x9d, 0xcf, 0x1c, 0xb4, 0xf3, 0x99, 0x9f, 0xed, 0x7c, 0x66, 0x7b, 0xb5, 0xeb, 0x99, 0xf2, 0x88,
+	0xcf, 0x82, 0xe3, 0x76, 0x4d, 0xf2, 0xd8, 0x25, 0xb2, 0xf2, 0x72, 0xf0, 0xdd, 0x6f, 0x11, 0xe3,
+	0xf5, 0x71, 0x0b, 0xf1, 0x78, 0x55, 0xb3, 0xe2, 0x43, 0x7c, 0xf3, 0x6f, 0x00, 0x00, 0x00, 0xff,
+	0xff, 0x25, 0x0b, 0xd4, 0xc7, 0xa9, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -432,6 +603,8 @@ type QueryClient interface {
 	HostChainParams(ctx context.Context, in *QueryHostChainParamsRequest, opts ...grpc.CallOption) (*QueryHostChainParamsResponse, error)
 	DelegationState(ctx context.Context, in *QueryDelegationStateRequest, opts ...grpc.CallOption) (*QueryDelegationStateResponse, error)
 	AllowListedValidators(ctx context.Context, in *QueryAllowListedValidatorsRequest, opts ...grpc.CallOption) (*QueryAllowListedValidatorsResponse, error)
+	CValue(ctx context.Context, in *QueryCValueRequest, opts ...grpc.CallOption) (*QueryCValueResponse, error)
+	ModuleState(ctx context.Context, in *QueryModuleStateRequest, opts ...grpc.CallOption) (*QueryModuleStateResponse, error)
 }
 
 type queryClient struct {
@@ -478,6 +651,24 @@ func (c *queryClient) AllowListedValidators(ctx context.Context, in *QueryAllowL
 	return out, nil
 }
 
+func (c *queryClient) CValue(ctx context.Context, in *QueryCValueRequest, opts ...grpc.CallOption) (*QueryCValueResponse, error) {
+	out := new(QueryCValueResponse)
+	err := c.cc.Invoke(ctx, "/pstake.lscosmos.v1beta1.Query/CValue", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) ModuleState(ctx context.Context, in *QueryModuleStateRequest, opts ...grpc.CallOption) (*QueryModuleStateResponse, error) {
+	out := new(QueryModuleStateResponse)
+	err := c.cc.Invoke(ctx, "/pstake.lscosmos.v1beta1.Query/ModuleState", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
@@ -485,6 +676,8 @@ type QueryServer interface {
 	HostChainParams(context.Context, *QueryHostChainParamsRequest) (*QueryHostChainParamsResponse, error)
 	DelegationState(context.Context, *QueryDelegationStateRequest) (*QueryDelegationStateResponse, error)
 	AllowListedValidators(context.Context, *QueryAllowListedValidatorsRequest) (*QueryAllowListedValidatorsResponse, error)
+	CValue(context.Context, *QueryCValueRequest) (*QueryCValueResponse, error)
+	ModuleState(context.Context, *QueryModuleStateRequest) (*QueryModuleStateResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -502,6 +695,12 @@ func (*UnimplementedQueryServer) DelegationState(ctx context.Context, req *Query
 }
 func (*UnimplementedQueryServer) AllowListedValidators(ctx context.Context, req *QueryAllowListedValidatorsRequest) (*QueryAllowListedValidatorsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AllowListedValidators not implemented")
+}
+func (*UnimplementedQueryServer) CValue(ctx context.Context, req *QueryCValueRequest) (*QueryCValueResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CValue not implemented")
+}
+func (*UnimplementedQueryServer) ModuleState(ctx context.Context, req *QueryModuleStateRequest) (*QueryModuleStateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ModuleState not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -580,6 +779,42 @@ func _Query_AllowListedValidators_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_CValue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryCValueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).CValue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pstake.lscosmos.v1beta1.Query/CValue",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).CValue(ctx, req.(*QueryCValueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_ModuleState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryModuleStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).ModuleState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pstake.lscosmos.v1beta1.Query/ModuleState",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).ModuleState(ctx, req.(*QueryModuleStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "pstake.lscosmos.v1beta1.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -599,6 +834,14 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AllowListedValidators",
 			Handler:    _Query_AllowListedValidators_Handler,
+		},
+		{
+			MethodName: "CValue",
+			Handler:    _Query_CValue_Handler,
+		},
+		{
+			MethodName: "ModuleState",
+			Handler:    _Query_ModuleState_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -817,7 +1060,7 @@ func (m *QueryAllowListedValidatorsResponse) MarshalToSizedBuffer(dAtA []byte) (
 	var l int
 	_ = l
 	{
-		size, err := m.ListedValidators.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.AllowListedValidators.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -826,6 +1069,118 @@ func (m *QueryAllowListedValidatorsResponse) MarshalToSizedBuffer(dAtA []byte) (
 	}
 	i--
 	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryCValueRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryCValueRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryCValueRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryCValueResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryCValueResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryCValueResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.CValue.Size()
+		i -= size
+		if _, err := m.CValue.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryModuleStateRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryModuleStateRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryModuleStateRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryModuleStateResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryModuleStateResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryModuleStateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.ModuleState {
+		i--
+		if m.ModuleState {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x8
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -915,8 +1270,49 @@ func (m *QueryAllowListedValidatorsResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.ListedValidators.Size()
+	l = m.AllowListedValidators.Size()
 	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryCValueRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryCValueResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.CValue.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryModuleStateRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryModuleStateResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.ModuleState {
+		n += 2
+	}
 	return n
 }
 
@@ -1406,7 +1802,7 @@ func (m *QueryAllowListedValidatorsResponse) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ListedValidators", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field AllowListedValidators", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1433,10 +1829,264 @@ func (m *QueryAllowListedValidatorsResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.ListedValidators.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.AllowListedValidators.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryCValueRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryCValueRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryCValueRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryCValueResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryCValueResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryCValueResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CValue", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.CValue.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryModuleStateRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryModuleStateRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryModuleStateRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryModuleStateResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryModuleStateResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryModuleStateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ModuleState", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.ModuleState = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
