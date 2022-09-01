@@ -27,7 +27,7 @@ type RegisterHostChainProposalJSON struct {
 }
 
 func NewRegisterChainJSON(title, description string, moduleEnabled bool, chainID, connectionID, transferChannel, transferPort,
-	baseDenom, mintDenom, minDeposit, pstakeFeeAddress string, allowListedValidators types.AllowListedValidators, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, deposit string) RegisterHostChainProposalJSON {
+	baseDenom, mintDenom, minDeposit, pstakeFeeAddress, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, deposit string, allowListedValidators types.AllowListedValidators) RegisterHostChainProposalJSON {
 	return RegisterHostChainProposalJSON{
 		Title:                 title,
 		Description:           description,
