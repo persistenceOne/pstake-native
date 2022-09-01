@@ -35,7 +35,7 @@ func (k Keeper) AllowListedValidators(c context.Context, request *types.QueryAll
 	allowListedValidators := k.GetAllowListedValidators(ctx)
 
 	return &types.QueryAllowListedValidatorsResponse{
-		ListedValidators: allowListedValidators,
+		AllowListedValidators: allowListedValidators,
 	}, nil
 }
 
