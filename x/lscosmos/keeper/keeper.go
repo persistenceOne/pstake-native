@@ -171,7 +171,7 @@ func (k Keeper) SendProtocolFee(ctx sdk.Context, protocolFee []sdk.Coin, pstakeF
 	if err != nil {
 		return err
 	}
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.DepositModuleAccount, addr, protocolFee)
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, protocolFee)
 	if err != nil {
 		return err
 	}

@@ -105,7 +105,6 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		return nil, types.ErrFailedDeposit
 	}
 
-	//TODO: emit ICA delegator module address?
 	ctx.EventManager().EmitEvents(sdkTypes.Events{
 		sdkTypes.NewEvent(
 			types.EventTypeLiquidStake,
