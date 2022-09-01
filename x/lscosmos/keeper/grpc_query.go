@@ -20,12 +20,21 @@ func (k Keeper) HostChainParams(c context.Context, in *types.QueryHostChainParam
 	}, nil
 }
 
-func (k Keeper) DelegationState(ctx context.Context, request *types.QueryDelegationStateRequest) (*types.QueryDelegationStateResponse, error) {
-	sdkctx := sdk.UnwrapSDKContext(ctx)
-	delegationState := k.GetDelegationState(sdkctx)
+func (k Keeper) DelegationState(c context.Context, request *types.QueryDelegationStateRequest) (*types.QueryDelegationStateResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	delegationState := k.GetDelegationState(ctx)
 
 	return &types.QueryDelegationStateResponse{
 		DelegationState: delegationState,
 	}, nil
 
+}
+
+func (k Keeper) AllowListedValidators(c context.Context, request *types.QueryAllowListedValidatorsRequest) (*types.QueryAllowListedValidatorsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	allowListedValidators := k.GetAllowListedValidators(ctx)
+
+	return &types.QueryAllowListedValidatorsResponse{
+		ListedValidators: allowListedValidators,
+	}, nil
 }

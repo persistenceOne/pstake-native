@@ -25,6 +25,10 @@ service Query {
   rpc DelegationState(QueryDelegationStateRequest) returns (QueryDelegationStateResponse) {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/delegation_state";
   }
+
+  rpc AllowListedValidators(QueryAllowListedValidatorsRequest) returns (QueryAllowListedValidatorsResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/allow_listed_validators";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -50,4 +54,12 @@ message QueryDelegationStateRequest {}
 // QueryDelegationStateResponse is response for the Ouery/DelegationState methods.
 message QueryDelegationStateResponse {
   DelegationState delegation_state = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryListedValidatorsRequest is a request for the Query/AllowListedValidators methods.
+message QueryAllowListedValidatorsRequest {}
+
+// QueryListedValidatorsResponse is a request for the Query/AllowListedValidators methods.
+message QueryAllowListedValidatorsResponse {
+  AllowListedValidators listedValidators = 1 [(gogoproto.nullable) = false];
 }
