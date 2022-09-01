@@ -166,8 +166,8 @@ func (k Keeper) SendResidueToCommunityPool(ctx sdk.Context, residue []sdk.DecCoi
 }
 
 // SendProtocolFee to the community pool
-func (k Keeper) SendProtocolFee(ctx sdk.Context, protocolFee []sdk.Coin, pstakeRewardAddress sdk.AccAddress) error {
-	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.DepositModuleAccount, pstakeRewardAddress, protocolFee)
+func (k Keeper) SendProtocolFee(ctx sdk.Context, protocolFee []sdk.Coin, pstakeFeeAddress sdk.AccAddress) error {
+	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.DepositModuleAccount, pstakeFeeAddress, protocolFee)
 	if err != nil {
 		return err
 	}

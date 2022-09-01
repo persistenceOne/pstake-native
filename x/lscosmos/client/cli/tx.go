@@ -110,7 +110,7 @@ $ %s tx gov submit-proposal register-host-chain <path/to/proposal.json> --from <
 				proposal.TransferPort,
 				proposal.BaseDenom,
 				proposal.MintDenom,
-				proposal.PstakeRewardAddress,
+				proposal.PstakeFeeAddress,
 				minDeposit,
 				proposal.AllowListedValidators,
 				depositFee,

@@ -21,7 +21,7 @@ func init() {
 
 // NewRegisterHostChainProposal creates a new multisig change proposal.
 func NewRegisterHostChainProposal(title, description string, moduleEnabled bool, chainID, connectionID, transferChannel,
-	transferPort, baseDenom, mintDenom, pstakeRewardAddress string, minDeposit sdktypes.Int, allowListedValidators AllowListedValidators,
+	transferPort, baseDenom, mintDenom, pstakeFeeAddress string, minDeposit sdktypes.Int, allowListedValidators AllowListedValidators,
 	pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee sdktypes.Dec) *RegisterHostChainProposal {
 
 	return &RegisterHostChainProposal{
@@ -39,7 +39,7 @@ func NewRegisterHostChainProposal(title, description string, moduleEnabled bool,
 		PstakeDepositFee:      pstakeDepositFee,
 		PstakeRestakeFee:      pstakeRestakeFee,
 		PstakeUnstakeFee:      pstakeUnstakeFee,
-		PstakeRewardAddress:   pstakeRewardAddress,
+		PstakeFeeAddress:      pstakeFeeAddress,
 	}
 }
 
@@ -107,19 +107,19 @@ PstakeUnstakeFee: 	   %s
 	return b.String()
 }
 
-func NewHostChainParams(chainID, connectionID, channel, port, baseDenom, mintDenom, pstakeRewardAddress string, minDeposit sdktypes.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee sdktypes.Dec) HostChainParams {
+func NewHostChainParams(chainID, connectionID, channel, port, baseDenom, mintDenom, pstakefeeAddress string, minDeposit sdktypes.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee sdktypes.Dec) HostChainParams {
 	return HostChainParams{
-		ChainID:             chainID,
-		ConnectionID:        connectionID,
-		TransferChannel:     channel,
-		TransferPort:        port,
-		BaseDenom:           baseDenom,
-		MintDenom:           mintDenom,
-		MinDeposit:          minDeposit,
-		PstakeDepositFee:    pstakeDepositFee,
-		PstakeRestakeFee:    pstakeRestakeFee,
-		PstakeUnstakeFee:    pstakeUnstakeFee,
-		PstakeRewardAddress: pstakeRewardAddress,
+		ChainID:          chainID,
+		ConnectionID:     connectionID,
+		TransferChannel:  channel,
+		TransferPort:     port,
+		BaseDenom:        baseDenom,
+		MintDenom:        mintDenom,
+		MinDeposit:       minDeposit,
+		PstakeDepositFee: pstakeDepositFee,
+		PstakeRestakeFee: pstakeRestakeFee,
+		PstakeUnstakeFee: pstakeUnstakeFee,
+		PstakeFeeAddress: pstakefeeAddress,
 	}
 }
 
@@ -131,7 +131,7 @@ func (c *HostChainParams) IsEmpty() bool {
 		c.ChainID == "" ||
 		c.BaseDenom == "" ||
 		c.MintDenom == "" ||
-		c.PstakeRewardAddress == "" {
+		c.PstakeFeeAddress == "" {
 		return true
 	}
 	// can add more, but this should be good enough

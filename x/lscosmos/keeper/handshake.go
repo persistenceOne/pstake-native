@@ -364,8 +364,8 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 				}
 
 				//Send protocol fee to protocol pool //TODO send to pstake multisig.
-				pstakerewardaddrString := hostChainParams.PstakeRewardAddress
-				addr, err := sdk.AccAddressFromBech32(pstakerewardaddrString)
+				pstakeFeeAddrString := hostChainParams.PstakeFeeAddress
+				addr, err := sdk.AccAddressFromBech32(pstakeFeeAddrString)
 				if err != nil {
 					return "", err
 				}
