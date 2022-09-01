@@ -27,8 +27,8 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryHostChainParams(),
 		CmdQueryDelegationState(),
 		CmdQueryAllowListedValidators(),
+		CmdQueryCValue(),
 	)
-	// this line is used by starport scaffolding # 1
 
 	return cmd
 }
@@ -92,6 +92,30 @@ func CmdQueryAllowListedValidators() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.AllowListedValidators(context.Background(), &types.QueryAllowListedValidatorsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryCValue() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "c-value",
+		Short: "shows current c-value of the protocol",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.CValue(context.Background(), &types.QueryCValueRequest{})
 			if err != nil {
 				return err
 			}
