@@ -2,8 +2,9 @@ package types
 
 import (
 	"errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (av *AllowListedValidators) Valid() bool {
