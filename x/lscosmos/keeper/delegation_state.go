@@ -61,9 +61,9 @@ func (k Keeper) SubtractHostAccountDelegation(ctx sdk.Context, delegation types.
 }
 func appendHostAccountDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) types.DelegationState {
 	// optimise this // do we want to have it sorted?
-	for _, existingDelegation := range delegationState.HostAccountDelegations {
+	for i, existingDelegation := range delegationState.HostAccountDelegations {
 		if existingDelegation.ValidatorAddress == delegation.ValidatorAddress {
-			existingDelegation.Amount = existingDelegation.Amount.Add(delegation.Amount)
+			delegationState.HostAccountDelegations[i].Amount = existingDelegation.Amount.Add(delegation.Amount)
 			return delegationState
 		}
 	}
@@ -73,9 +73,9 @@ func appendHostAccountDelegation(delegationState types.DelegationState, delegati
 }
 func removeHostAccountDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) (types.DelegationState, error) {
 	// optimise this // do we want to have it sorted?
-	for _, existingDelegation := range delegationState.HostAccountDelegations {
+	for i, existingDelegation := range delegationState.HostAccountDelegations {
 		if existingDelegation.ValidatorAddress == delegation.ValidatorAddress {
-			existingDelegation.Amount = existingDelegation.Amount.Sub(delegation.Amount) //This will panic if coin goes negative
+			delegationState.HostAccountDelegations[i].Amount = existingDelegation.Amount.Sub(delegation.Amount) //This will panic if coin goes negative
 			return delegationState, nil
 		}
 	}
