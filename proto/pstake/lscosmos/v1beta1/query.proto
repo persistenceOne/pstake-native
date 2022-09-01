@@ -29,6 +29,10 @@ service Query {
   rpc AllowListedValidators(QueryAllowListedValidatorsRequest) returns (QueryAllowListedValidatorsResponse) {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/allow_listed_validators";
   }
+
+  rpc CValue(QueryCValueRequest) returns (QueryCValueResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/c_value";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -61,5 +65,13 @@ message QueryAllowListedValidatorsRequest {}
 
 // QueryListedValidatorsResponse is a request for the Query/AllowListedValidators methods.
 message QueryAllowListedValidatorsResponse {
-  AllowListedValidators listedValidators = 1 [(gogoproto.nullable) = false];
+  AllowListedValidators allow_listed_validators = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryCValueRequest is a request for the Query/CValue methods.
+message QueryCValueRequest {}
+
+// QueryCValueRequest is a request for the Query/CValue methods.
+message QueryCValueResponse {
+  string c_value = 1 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
