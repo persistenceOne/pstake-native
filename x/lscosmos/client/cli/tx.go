@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -15,16 +14,6 @@ import (
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/client/utils"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
-)
-
-var (
-	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
-)
-
-//nolint:deadcode,unused,unused_vars
-const (
-	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
-	listSeparator              = ","
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -164,7 +153,6 @@ func NewLiquidStakeCmd() *cobra.Command {
 			msg := types.NewMsgLiquidStake(amount, delegatorAddress)
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
-
 		},
 	}
 
