@@ -90,17 +90,23 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	protocolFee := hostChainParams.PstakeDepositFee
 	protocolFeeAmount := protocolFee.MulInt(mintToken.Amount)
 	// We do not care about residue, as to not break Total calculation invariant.
-	protocolCoins, _ := sdkTypes.NewDecCoinFromDec(hostChainParams.MintDenom, protocolFeeAmount).TruncateDecimal()
+	protocolCoin, _ := sdkTypes.NewDecCoinFromDec(hostChainParams.MintDenom, protocolFeeAmount).TruncateDecimal()
 
 	//Send (mintedTokens - protocolTokens) to delegator address
 	err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delegatorAddress,
-		sdkTypes.NewCoins(mintToken))
+		sdkTypes.NewCoins(mintToken.Sub(protocolCoin)))
 	if err != nil {
 		return nil, types.ErrMintFailed
 	}
 
-	//Send protocol fee to protocol pool // TODO send to pstake multisig
-	err = m.SendProtocolFee(ctx, sdkTypes.NewCoins(protocolCoins), delegatorAddress)
+	//Send protocol fee to protocol pool
+	pstakeRewardAddrString := hostChainParams.PstakeRewardAddress
+	addr, err := sdkTypes.AccAddressFromBech32(pstakeRewardAddrString)
+	if err != nil {
+		return nil, err
+	}
+
+	err = m.SendProtocolFee(ctx, sdkTypes.NewCoins(protocolCoin), addr)
 	if err != nil {
 		return nil, types.ErrFailedDeposit
 	}
@@ -111,10 +117,12 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 			types.EventTypeLiquidStake,
 			sdkTypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
 			sdkTypes.NewAttribute(types.AttributeAmountMinted, mintToken.String()),
+			sdkTypes.NewAttribute(types.AttributeAmountRecieved, mintToken.Sub(protocolCoin).String()),
+			sdkTypes.NewAttribute(types.AttributePstakeDepositFee, protocolFee.String()),
 		),
 		sdkTypes.NewEvent(
 			sdkTypes.EventTypeMessage,
-			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, types.AttributeKeyAck),
+			sdkTypes.NewAttribute(sdkTypes.AttributeKeyModule, types.AttributeValueCategory),
 			sdkTypes.NewAttribute(sdkTypes.AttributeKeySender, msg.DelegatorAddress),
 		)},
 	)

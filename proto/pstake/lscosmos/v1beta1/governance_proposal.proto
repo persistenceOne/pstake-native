@@ -31,4 +31,5 @@ message RegisterHostChainProposal {
   string pstake_deposit_fee = 12 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
   string pstake_restake_fee = 13 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
   string pstake_unstake_fee = 14 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string pstake_reward_address = 15;
 }

@@ -20,6 +20,7 @@ func TestParameterChangeProposal(t *testing.T) {
 		"transfer",
 		"uatom",
 		"ustkatom",
+		"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
 		sdk.OneInt().MulRaw(5),
 		types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "addr", TargetWeight: sdk.OneDec()}}},
 		sdk.ZeroDec(),
@@ -35,6 +36,7 @@ func TestParameterChangeProposal(t *testing.T) {
 	require.Equal(t, "transfer", pcp.TransferPort)
 	require.Equal(t, "uatom", pcp.BaseDenom)
 	require.Equal(t, "ustkatom", pcp.MintDenom)
+	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", pcp.PstakeRewardAddress)
 	require.Equal(t, sdk.NewInt(5), pcp.MinDeposit)
 	require.Equal(t, "addr", pcp.AllowListedValidators.AllowListedValidators[0].ValidatorAddress)
 	require.Equal(t, sdk.OneDec(), pcp.AllowListedValidators.AllowListedValidators[0].TargetWeight)
