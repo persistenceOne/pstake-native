@@ -12,7 +12,7 @@
   "allow_listed_validators": {
     "allow_listed_validators": [
       {
-        "validator_address": "persistencevaloper1hcqg5wj9t42zawqkqucs7la85ffyv08lmnhye9",
+        "validator_address": "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
         "target_weight": "1"
       }
     ]
