@@ -26,6 +26,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryParams(),
 		CmdQueryHostChainParams(),
 		CmdQueryDelegationState(),
+		CmdQueryAllowListedValidators(),
 	)
 	// this line is used by starport scaffolding # 1
 
@@ -67,6 +68,30 @@ func CmdQueryDelegationState() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.DelegationState(context.Background(), &types.QueryDelegationStateRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryAllowListedValidators() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "allow-listed-validators",
+		Short: "shows allow listed validators",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.AllowListedValidators(context.Background(), &types.QueryAllowListedValidatorsRequest{})
 			if err != nil {
 				return err
 			}
