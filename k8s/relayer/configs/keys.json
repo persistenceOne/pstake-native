@@ -2,7 +2,7 @@
   "chains": [
     {
       "name": "persistence",
-      "id": "pstaked",
+      "id": "chainid-2",
       "hdpath": "m/44'/118'/0'/0/0",
       "port": "transfer",
       "keys": [
@@ -17,7 +17,7 @@
     },
     {
       "name": "cosmos",
-      "id": "gaiad",
+      "id": "chainid-1",
       "hdpath": "m/44'/118'/0'/0/0",
       "port": "transfer",
       "keys": [
