@@ -100,7 +100,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	}
 
 	//Send protocol fee to protocol pool
-	err = m.SendProtocolFee(ctx, sdkTypes.NewCoins(protocolCoin), hostChainParams.PstakeFeeAddress)
+	err = m.SendProtocolFee(ctx, sdkTypes.NewCoins(protocolCoin), types.ModuleName, hostChainParams.PstakeFeeAddress)
 	if err != nil {
 		return nil, types.ErrFailedDeposit
 	}

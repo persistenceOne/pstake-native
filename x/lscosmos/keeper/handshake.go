@@ -364,7 +364,7 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 				}
 
 				//Send protocol fee to protocol pool
-				err = k.SendProtocolFee(ctx, sdk.NewCoins(protocolFee), hostChainParams.PstakeFeeAddress)
+				err = k.SendProtocolFee(ctx, sdk.NewCoins(protocolFee), types.ModuleName, hostChainParams.PstakeFeeAddress)
 				if err != nil {
 					return "", types.ErrFailedDeposit
 				}
