@@ -11,8 +11,8 @@ type RegisterHostChainProposalJSON struct {
 	Title                 string                      `json:"title" yaml:"title"`
 	Description           string                      `json:"description" yaml:"description"`
 	ModuleEnabled         bool                        `json:"module_enabled" yaml:"module_enabled"`
-	ChainID               string                      `json:"chain_i_d" yaml:"chain_i_d"`
-	ConnectionID          string                      `json:"connection_i_d" yaml:"connection_i_d"`
+	ChainID               string                      `json:"chain_id" yaml:"chain_id"`
+	ConnectionID          string                      `json:"connection_id" yaml:"connection_id"`
 	TransferChannel       string                      `json:"transfer_channel" yaml:"transfer_channel"`
 	TransferPort          string                      `json:"transfer_port" yaml:"transfer_port"`
 	BaseDenom             string                      `json:"base_denom" yaml:"base_denom"`
