@@ -33,6 +33,10 @@ service Query {
   rpc CValue(QueryCValueRequest) returns (QueryCValueResponse) {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/c_value";
   }
+
+  rpc ModuleState(QueryModuleStateRequest) returns (QueryModuleStateResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/module_state";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -63,7 +67,7 @@ message QueryDelegationStateResponse {
 // QueryListedValidatorsRequest is a request for the Query/AllowListedValidators methods.
 message QueryAllowListedValidatorsRequest {}
 
-// QueryListedValidatorsResponse is a request for the Query/AllowListedValidators methods.
+// QueryListedValidatorsResponse is a response for the Query/AllowListedValidators methods.
 message QueryAllowListedValidatorsResponse {
   AllowListedValidators allow_listed_validators = 1 [(gogoproto.nullable) = false];
 }
@@ -71,7 +75,15 @@ message QueryAllowListedValidatorsResponse {
 // QueryCValueRequest is a request for the Query/CValue methods.
 message QueryCValueRequest {}
 
-// QueryCValueRequest is a request for the Query/CValue methods.
+// QueryCValueRequest is a response for the Query/CValue methods.
 message QueryCValueResponse {
   string c_value = 1 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}
+
+// QueryModuleStateRequest is a request for the Query/ModuleState methods.
+message QueryModuleStateRequest {}
+
+// QueryModuleStateRequest is a response for the Query/ModuleState methods.
+message QueryModuleStateResponse {
+  bool module_state = 1;
 }

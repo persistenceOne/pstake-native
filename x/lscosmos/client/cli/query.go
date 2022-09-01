@@ -28,6 +28,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryDelegationState(),
 		CmdQueryAllowListedValidators(),
 		CmdQueryCValue(),
+		CmdQueryModuleState(),
 	)
 
 	return cmd
@@ -116,6 +117,30 @@ func CmdQueryCValue() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.CValue(context.Background(), &types.QueryCValueRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryModuleState() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "module-state",
+		Short: "shows current module state",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.ModuleState(context.Background(), &types.QueryModuleStateRequest{})
 			if err != nil {
 				return err
 			}

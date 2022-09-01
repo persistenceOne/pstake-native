@@ -47,3 +47,12 @@ func (k Keeper) CValue(c context.Context, request *types.QueryCValueRequest) (*t
 		CValue: cValue,
 	}, nil
 }
+
+func (k Keeper) ModuleState(c context.Context, request *types.QueryModuleStateRequest) (*types.QueryModuleStateResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	moduleState := k.GetModuleState(ctx)
+
+	return &types.QueryModuleStateResponse{
+		ModuleState: moduleState,
+	}, nil
+}
