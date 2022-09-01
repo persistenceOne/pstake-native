@@ -22,15 +22,15 @@ func TestNewParamChangeJSON(t *testing.T) {
 		"ustkatom",
 		"5",
 		"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+		"0.0",
+		"0.0",
+		"0.0",
+		"1000stake",
 		types.AllowListedValidators{
 			AllowListedValidators: []types.AllowListedValidator{{
 				ValidatorAddress: "Valaddr",
 				TargetWeight:     sdk.OneDec(),
 			}}},
-		"0.0",
-		"0.0",
-		"0.0",
-		"1000stake",
 	)
 	require.Equal(t, "title", rcj.Title)
 	require.Equal(t, "description", rcj.Description)
