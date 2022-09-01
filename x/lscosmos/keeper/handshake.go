@@ -364,12 +364,8 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 				}
 
 				//Send protocol fee to protocol pool //TODO send to pstake multisig.
-				pstakeFeeAddrString := hostChainParams.PstakeFeeAddress
-				addr, err := sdk.AccAddressFromBech32(pstakeFeeAddrString)
-				if err != nil {
-					return "", err
-				}
-				err = k.SendProtocolFee(ctx, sdk.NewCoins(protocolFee), addr)
+
+				err = k.SendProtocolFee(ctx, sdk.NewCoins(protocolFee), hostChainParams.PstakeFeeAddress)
 				if err != nil {
 					return "", types.ErrFailedDeposit
 				}

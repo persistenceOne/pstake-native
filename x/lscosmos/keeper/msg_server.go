@@ -100,13 +100,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	}
 
 	//Send protocol fee to protocol pool
-	pstakeFeeAddrString := hostChainParams.PstakeFeeAddress
-	addr, err := sdkTypes.AccAddressFromBech32(pstakeFeeAddrString)
-	if err != nil {
-		return nil, err
-	}
-
-	err = m.SendProtocolFee(ctx, sdkTypes.NewCoins(protocolCoin), addr)
+	err = m.SendProtocolFee(ctx, sdkTypes.NewCoins(protocolCoin), hostChainParams.PstakeFeeAddress)
 	if err != nil {
 		return nil, types.ErrFailedDeposit
 	}
