@@ -30,13 +30,13 @@ misbehaviour = true
 [mode.connections]
 
 # Whether or not to enable the connection workers for handshake completion. [Required]
-enabled = false
+enabled = true
 
 # Specify the channels mode.
 [mode.channels]
 
 # Whether or not to enable the channel workers for handshake completion. [Required]
-enabled = false
+enabled = true
 
 # Specify the packets mode.
 [mode.packets]
@@ -95,7 +95,7 @@ host = '127.0.0.1'
 port = 3001
 
 [[chains]]
-id = 'gaiad'
+id = 'gaiad-1'
 rpc_addr = 'http://gaia-genesis.dev-native.svc.cluster.local:26657'
 grpc_addr = 'http://gaia-genesis.dev-native.svc.cluster.local:9090'
 websocket_addr = 'ws://gaia-genesis.dev-native.svc.cluster.local:26657/websocket'
@@ -103,10 +103,10 @@ rpc_timeout = '10s'
 account_prefix = 'cosmos'
 key_name = 'cosmos'
 store_prefix = 'ibc'
-default_gas = 100000
-max_gas = 400000
+default_gas = 500000
+max_gas = 1000000
 gas_price = { price = 0.001, denom = 'uatom' }
-gas_multiplier = 1.0
+gas_multiplier = 1.5
 max_msg_num = 30
 max_tx_size = 2097152
 clock_drift = '5s'
@@ -116,7 +116,7 @@ trust_threshold = { numerator = '1', denominator = '3' }
 address_type = { derivation = 'cosmos' }
 
 [[chains]]
-id = 'pstaked'
+id = 'pstaked-1'
 rpc_addr = 'http://pstake-genesis.dev-native.svc.cluster.local:26657'
 grpc_addr = 'http://pstake-genesis.dev-native.svc.cluster.local:9090'
 websocket_addr = 'ws://pstake-genesis.dev-native.svc.cluster.local:26657/websocket'
@@ -124,10 +124,10 @@ rpc_timeout = '10s'
 account_prefix = 'persistence'
 key_name = 'persistence'
 store_prefix = 'ibc'
-default_gas = 100000
-max_gas = 400000
+default_gas = 500000
+max_gas = 1000000
 gas_price = { price = 0.001, denom = 'uxprt' }
-gas_multiplier = 1.0
+gas_multiplier = 1.5
 max_msg_num = 30
 max_tx_size = 2097152
 clock_drift = '5s'

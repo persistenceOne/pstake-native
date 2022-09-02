@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: gaia
 data:
-  chain.id: gaiad
+  chain.id: gaiad-1

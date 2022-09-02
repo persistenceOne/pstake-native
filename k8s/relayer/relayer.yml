@@ -26,7 +26,7 @@ spec:
         - name: test-docker-creds
       containers:
         - name: relayer
-          image: informalsystems/hermes:1.0.0-rc.1
+          image: informalsystems/hermes:1.0.0
           imagePullPolicy: Always
           env:
             - name: RELAYER_DIR

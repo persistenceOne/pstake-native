@@ -92,11 +92,6 @@ spec:
                 pstaked add-genesis-account $(jq -r .validators[$i].address /configs/validators.json) $COINS --keyring-backend='test' --home $PSTAKE_DIR
               done
               
-              for ((i=0; i<$(jq -r '.keys | length' /configs/keys.json); i++))
-              do
-                jq -r ".keys[$i].mnemonic" /configs/orchestrator.json | pstaked keys add $(jq -r ".keys[$i].name" /configs/orchestrator.json) --recover --keyring-backend='test' --home $PSTAKE_DIR
-              done
-              
               pstaked gentx $(jq -r ".genesis[0].name" /configs/validators.json) 5000000000uxprt --keyring-backend="test" --chain-id $CHAIN_ID --home $PSTAKE_DIR
               echo "Output of gentx"
               cat $PSTAKE_DIR/config/gentx/*.json | jq
@@ -134,6 +129,10 @@ spec:
               jq '.app_state.mint.params.mint_denom |= "uxprt"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesis.new.json
               mv $PSTAKE_DIR/config/genesis.new.json $PSTAKE_DIR/config/genesis.json
               jq '.app_state.staking.params.bond_denom |= "uxprt"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesis.new.json
+              mv $PSTAKE_DIR/config/genesis.new.json $PSTAKE_DIR/config/genesis.json
+              jq -r '.app_state.epochs.epochs[0].duration |= "30s"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesis.new.json
+              mv $PSTAKE_DIR/config/genesis.new.json $PSTAKE_DIR/config/genesis.json
+              jq -r '.app_state.epochs.epochs[2].duration |= "120s"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesis.new.json
               mv $PSTAKE_DIR/config/genesis.new.json $PSTAKE_DIR/config/genesis.json
               
               echo "TRYING TO PRINT GENESIS JSON"
