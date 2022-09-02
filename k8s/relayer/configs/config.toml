@@ -104,9 +104,9 @@ account_prefix = 'cosmos'
 key_name = 'cosmos'
 store_prefix = 'ibc'
 default_gas = 500000
-max_gas = 2000000
+max_gas = 1000000
 gas_price = { price = 0.001, denom = 'uatom' }
-gas_multiplier = 1.0
+gas_multiplier = 1.5
 max_msg_num = 30
 max_tx_size = 2097152
 clock_drift = '5s'
@@ -125,9 +125,9 @@ account_prefix = 'persistence'
 key_name = 'persistence'
 store_prefix = 'ibc'
 default_gas = 500000
-max_gas = 2000000
+max_gas = 1000000
 gas_price = { price = 0.001, denom = 'uxprt' }
-gas_multiplier = 1.0
+gas_multiplier = 1.5
 max_msg_num = 30
 max_tx_size = 2097152
 clock_drift = '5s'
