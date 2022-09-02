@@ -89,7 +89,7 @@ func (m *RegisterHostChainProposal) ValidateBasic() error {
 	}
 
 	if m.PstakeUnstakeFee.IsNegative() || m.PstakeUnstakeFee.GTE(sdktypes.OneDec()) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake deposit fee must be between 0 and 1")
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake unstake fee must be between 0 and 1")
 	}
 
 	if m.MinDeposit.LTE(sdktypes.ZeroInt()) {
