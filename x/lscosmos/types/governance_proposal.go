@@ -80,19 +80,19 @@ func (m *RegisterHostChainProposal) ValidateBasic() error {
 		return err
 	}
 
-	if m.PstakeDepositFee.IsNegative() {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake deposit fee must be positive")
+	if m.PstakeDepositFee.IsNegative() || m.PstakeDepositFee.GTE(sdktypes.OneDec()) {
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake deposit fee must be between 0 and 1")
 	}
 
-	if m.PstakeRestakeFee.IsNegative() {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake restake fee must be positive")
+	if m.PstakeRestakeFee.IsNegative() || m.PstakeDepositFee.GTE(sdktypes.OneDec()) {
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake restake fee must be between 0 and 1")
 	}
 
-	if m.PstakeUnstakeFee.IsNegative() {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake unstake fee must be positive")
+	if m.PstakeUnstakeFee.IsNegative() || m.PstakeDepositFee.GTE(sdktypes.OneDec()) {
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake deposit fee must be between 0 and 1")
 	}
 
-	if m.MinDeposit.IsNegative() || m.MinDeposit.IsZero() {
+	if m.MinDeposit.LTE(sdktypes.ZeroInt()) {
 		return sdkerrors.Wrapf(ErrInvalidDeposit, "min deposit must be positive")
 	}
 
