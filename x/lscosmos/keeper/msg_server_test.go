@@ -10,7 +10,7 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-func (suite IntegrationTestSuite) setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {
+func (suite *IntegrationTestSuite) setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {
 	_, app, ctx := helpers.CreateTestApp()
 	k := app.LSCosmosKeeper
 	return keeper.NewMsgServerImpl(k), sdk.WrapSDKContext(ctx)
