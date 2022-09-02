@@ -15,4 +15,3 @@ configMapGenerator:
     files:
       - configs/keys.json
       - configs/validators.json
-      - configs/orchestrator.json

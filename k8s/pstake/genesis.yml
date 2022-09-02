@@ -92,11 +92,6 @@ spec:
                 pstaked add-genesis-account $(jq -r .validators[$i].address /configs/validators.json) $COINS --keyring-backend='test' --home $PSTAKE_DIR
               done
               
-              for ((i=0; i<$(jq -r '.keys | length' /configs/keys.json); i++))
-              do
-                jq -r ".keys[$i].mnemonic" /configs/orchestrator.json | pstaked keys add $(jq -r ".keys[$i].name" /configs/orchestrator.json) --recover --keyring-backend='test' --home $PSTAKE_DIR
-              done
-              
               pstaked gentx $(jq -r ".genesis[0].name" /configs/validators.json) 5000000000uxprt --keyring-backend="test" --chain-id $CHAIN_ID --home $PSTAKE_DIR
               echo "Output of gentx"
               cat $PSTAKE_DIR/config/gentx/*.json | jq

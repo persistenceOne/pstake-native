@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: pstake
 data:
-  chain.id: chainid-2
+  chain.id: pstaked-1
