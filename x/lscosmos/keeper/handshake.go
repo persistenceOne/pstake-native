@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -364,8 +363,8 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 					return "", types.ErrMintFailed
 				}
 
-				//Send protocol fee to protocol pool //TODO send to pstake multisig.
-				err = k.SendProtocolFee(ctx, sdk.NewCoins(protocolFee), authtypes.NewModuleAddress(types.ModuleName))
+				//Send protocol fee to protocol pool
+				err = k.SendProtocolFee(ctx, sdk.NewCoins(protocolFee), types.ModuleName, hostChainParams.PstakeFeeAddress)
 				if err != nil {
 					return "", types.ErrFailedDeposit
 				}

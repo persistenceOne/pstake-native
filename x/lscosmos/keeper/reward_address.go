@@ -21,7 +21,7 @@ func (k Keeper) GetHostChainRewardAddress(ctx sdk.Context) types.HostChainReward
 	return hostChainRewardAddress
 }
 
-// SetHostChainRewardAddress sets host chain reward address
+// SetHostChainRewardAddressIfEmpty  sets host chain reward address
 func (k Keeper) SetHostChainRewardAddressIfEmpty(ctx sdk.Context, hostChainRewardAddress types.HostChainRewardAddress) error {
 	addr := k.GetHostChainRewardAddress(ctx)
 	if addr.Address == "" {

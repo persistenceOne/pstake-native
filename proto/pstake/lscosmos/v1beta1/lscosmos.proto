@@ -45,6 +45,7 @@ message HostChainParams {
   string pstake_deposit_fee = 8 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
   string pstake_restake_fee = 9 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
   string pstake_unstake_fee = 10 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false]; //protocol fee in percentage
+  string pstake_fee_address = 11;
 }
 
 // DelegationState stores module account balance, ica account balance, delegation state, undelegation state
