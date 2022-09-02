@@ -10,6 +10,8 @@ const (
 	AttributeKeyAck           = "acknowledgement"
 	AttributeKeyAckError      = "error"
 	AttributeAmountMinted     = "amount"
+	AttributeAmountRecieved   = "received"
+	AttributePstakeDepositFee = "pstake-deposit-fee"
 	AttributeDelegatorAddress = "address"
 	AttributeValueCategory    = ModuleName
 )

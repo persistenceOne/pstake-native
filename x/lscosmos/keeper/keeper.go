@@ -166,9 +166,12 @@ func (k Keeper) SendResidueToCommunityPool(ctx sdk.Context, residue []sdk.DecCoi
 }
 
 // SendProtocolFee to the community pool
-func (k Keeper) SendProtocolFee(ctx sdk.Context, protocolFee []sdk.Coin, delegatorAddr sdk.AccAddress) error {
-	//TODO : create pstake community pool
-	err := k.distributionKeeper.FundCommunityPool(ctx, protocolFee, delegatorAddr)
+func (k Keeper) SendProtocolFee(ctx sdk.Context, protocolFee []sdk.Coin, moduleAccount, pstakeFeeAddressString string) error {
+	addr, err := sdk.AccAddressFromBech32(pstakeFeeAddressString)
+	if err != nil {
+		return err
+	}
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, moduleAccount, addr, protocolFee)
 	if err != nil {
 		return err
 	}

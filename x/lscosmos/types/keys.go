@@ -50,6 +50,8 @@ const (
 
 	IBCTimeoutHeightIncrement uint64 = 100
 	ICATimeoutTimestamp              = time.Minute * 5
+
+	CosmosValOperPrefix = "cosmosvaloper"
 )
 
 var (

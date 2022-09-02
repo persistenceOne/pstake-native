@@ -21,15 +21,16 @@ func TestNewParamChangeJSON(t *testing.T) {
 		"uatom",
 		"ustkatom",
 		"5",
+		"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+		"0.0",
+		"0.0",
+		"0.0",
+		"1000stake",
 		types.AllowListedValidators{
 			AllowListedValidators: []types.AllowListedValidator{{
 				ValidatorAddress: "Valaddr",
 				TargetWeight:     sdk.OneDec(),
 			}}},
-		"0.0",
-		"0.0",
-		"0.0",
-		"1000stake",
 	)
 	require.Equal(t, "title", rcj.Title)
 	require.Equal(t, "description", rcj.Description)
@@ -40,6 +41,7 @@ func TestNewParamChangeJSON(t *testing.T) {
 	require.Equal(t, "uatom", rcj.BaseDenom)
 	require.Equal(t, "ustkatom", rcj.MintDenom)
 	require.Equal(t, "5", rcj.MinDeposit)
+	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", rcj.PstakeFeeAddress)
 	require.Equal(t, "0.0", rcj.PstakeDepositFee)
 	require.Equal(t, "0.0", rcj.PstakeRestakeFee)
 	require.Equal(t, "0.0", rcj.PstakeUnstakeFee)

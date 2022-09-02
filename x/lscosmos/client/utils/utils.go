@@ -22,11 +22,12 @@ type RegisterHostChainProposalJSON struct {
 	PstakeDepositFee      string                      `json:"pstake_deposit_fee" yaml:"pstake_deposit_fee"`
 	PstakeRestakeFee      string                      `json:"pstake_restake_fee" yaml:"pstake_restake_fee"`
 	PstakeUnstakeFee      string                      `json:"pstake_unstake_fee" yaml:"pstake_unstake_fee"`
+	PstakeFeeAddress      string                      `json:"pstake_fee_address" yaml:"pstake_fee_address"`
 	Deposit               string                      `json:"deposit" yaml:"deposit"`
 }
 
 func NewRegisterChainJSON(title, description string, moduleEnabled bool, chainID, connectionID, transferChannel, transferPort,
-	baseDenom, mintDenom, minDeposit string, allowListedValidators types.AllowListedValidators, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, deposit string) RegisterHostChainProposalJSON {
+	baseDenom, mintDenom, minDeposit, pstakeFeeAddress, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, deposit string, allowListedValidators types.AllowListedValidators) RegisterHostChainProposalJSON {
 	return RegisterHostChainProposalJSON{
 		Title:                 title,
 		Description:           description,
@@ -42,6 +43,7 @@ func NewRegisterChainJSON(title, description string, moduleEnabled bool, chainID
 		PstakeDepositFee:      pstakeDepositFee,
 		PstakeRestakeFee:      pstakeRestakeFee,
 		PstakeUnstakeFee:      pstakeUnstakeFee,
+		PstakeFeeAddress:      pstakeFeeAddress,
 		Deposit:               deposit,
 	}
 }
