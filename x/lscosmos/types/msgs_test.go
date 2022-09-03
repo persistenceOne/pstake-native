@@ -35,7 +35,7 @@ func TestMsgLiquidStakeValidation(t *testing.T) {
 		msg         *MsgLiquidStake
 	}{
 		{"", NewMsgLiquidStake(atom123, addr)}, // valid send
-		{"persistence12p6hyur0wdjkvatvd3ujqmr0denjqctyv3ex2umn4nhuy6: invalid address", NewMsgLiquidStake(atom123, addrLong)}, // valid send with long addr sender
+		{"persistence12p6hyur0wdjkvatvd3ujqmr0denjqctyv3ex2umn4nhuy6: invalid address", NewMsgLiquidStake(atom123, addrLong)}, // invalid send with long addr sender
 		{"0atom: invalid coins", NewMsgLiquidStake(atom0, addr)},                                                              // Zero Coin
 		{": invalid address", NewMsgLiquidStake(atom123, addrEmpty)},                                                          // Nil address
 		{"-1atom: invalid coins", NewMsgLiquidStake(atomNegative, addr)},                                                      // Negative coin
