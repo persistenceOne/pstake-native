@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
@@ -17,6 +15,9 @@ func (suite *IntegrationTestSuite) TestCValue() {
 	amounts := sdk.NewCoins(sdk.NewInt64Coin(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, 1000000))
 	err := app.BankKeeper.MintCoins(ctx, types.ModuleName, amounts)
 	suite.NoError(err)
+
+	cValue := lscosmosKeeper.GetCValue(ctx)
+	suite.Equal(sdk.OneDec(), cValue)
 
 	supply := lscosmosKeeper.GetMintedAmount(ctx)
 	suite.True(amounts.AmountOf(lscosmosKeeper.GetHostChainParams(ctx).MintDenom).Equal(supply))
@@ -40,6 +41,7 @@ func (suite *IntegrationTestSuite) TestCValue() {
 				Amount:           sdk.NewInt64Coin(lscosmosKeeper.GetHostChainParams(ctx).BaseDenom, 100000),
 			},
 		},
+		HostDelegationAccountBalance: sdk.NewCoins(sdk.NewInt64Coin(lscosmosKeeper.GetHostChainParams(ctx).BaseDenom, 1000)),
 	}
 
 	lscosmosKeeper.SetDelegationState(ctx, delegationState)
@@ -47,9 +49,8 @@ func (suite *IntegrationTestSuite) TestCValue() {
 	stakedAmount := lscosmosKeeper.GetStakedAmount(ctx)
 	suite.True(sdk.NewInt(1000000).Equal(stakedAmount))
 
-	fmt.Println(lscosmosKeeper.GetHostChainParams(ctx))
-	cValue := lscosmosKeeper.GetCValue(ctx)
-	suite.Equal(sdk.OneDec(), cValue)
+	cValue = lscosmosKeeper.GetCValue(ctx)
+	suite.Equal(sdk.NewDecWithPrec(999000999000999001, 18), cValue)
 
 	hostChainParams := lscosmosKeeper.GetHostChainParams(ctx)
 	ibcDenom := ibctransfertypes.ParseDenomTrace(
@@ -76,5 +77,5 @@ func (suite *IntegrationTestSuite) TestCValue() {
 	suite.NoError(err)
 
 	cValue = lscosmosKeeper.GetCValue(ctx)
-	suite.Equal(sdk.NewDecWithPrec(980392156862745098, 18), cValue)
+	suite.Equal(sdk.NewDecWithPrec(979431929480901077, 18), cValue)
 }

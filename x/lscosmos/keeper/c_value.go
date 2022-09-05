@@ -57,6 +57,10 @@ func (k Keeper) GetStakedAmount(ctx sdk.Context) sdk.Int {
 	return sum
 }
 
+func (k Keeper) GetHostDelegationAccountAmount(ctx sdk.Context) sdk.Int {
+	return k.GetDelegationState(ctx).HostDelegationAccountBalance.AmountOf(k.GetHostChainParams(ctx).BaseDenom)
+}
+
 // GetCValue gets the C cached C value if cache is valid or re-calculates if expired
 // returns 1 in case where total staked amount is 0
 func (k Keeper) GetCValue(ctx sdk.Context) sdk.Dec {
@@ -64,9 +68,12 @@ func (k Keeper) GetCValue(ctx sdk.Context) sdk.Dec {
 		Add(k.GetDelegationAccountAmount(ctx)).
 		Add(k.GetIBCTransferTransientAmount(ctx)).
 		Add(k.GetDelegationTransientAmount(ctx)).
-		Add(k.GetStakedAmount(ctx))
-	if stakedAmount.IsZero() {
+		Add(k.GetStakedAmount(ctx)).
+		Add(k.GetHostDelegationAccountAmount(ctx))
+
+	if stakedAmount.IsZero() || k.GetMintedAmount(ctx).IsZero() {
 		return sdk.OneDec()
 	}
+
 	return sdk.NewDecFromInt(k.GetMintedAmount(ctx)).Quo(sdk.NewDecFromInt(stakedAmount))
 }
