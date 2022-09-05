@@ -50,11 +50,11 @@ func (k Keeper) GetDelegationTransientAmount(ctx sdk.Context) sdk.Int {
 }
 
 func (k Keeper) GetStakedAmount(ctx sdk.Context) sdk.Int {
-	delegations := sdk.NewCoin(k.GetHostChainParams(ctx).BaseDenom, sdk.ZeroInt())
-	for _, had := range k.GetDelegationState(ctx).HostAccountDelegations {
-		delegations = delegations.Add(had.Amount)
+	sum := sdk.ZeroInt()
+	for _, delegation := range k.GetDelegationState(ctx).HostAccountDelegations {
+		sum = sum.Add(delegation.Amount.Amount)
 	}
-	return delegations.Amount
+	return sum
 }
 
 // GetCValue gets the C cached C value if cache is valid or re-calculates if expired
