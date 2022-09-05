@@ -1092,8 +1092,8 @@ github.com/pelletier/go-toml/v2 v2.0.2 h1:+jQXlF3scKIcSEKkdHzXhCTDLPFi5r1wnK6yPS
 github.com/pelletier/go-toml/v2 v2.0.2/go.mod h1:MovirKjgVRESsAvNZlAjtFwV867yGuwRkXbG66OzopI=
 github.com/performancecopilot/speed v3.0.0+incompatible/go.mod h1:/CLtqpZ5gBg1M9iaPbIdPPGyKcA8hKdoy6hAWba7Yac=
 github.com/performancecopilot/speed/v4 v4.0.0/go.mod h1:qxrSyuDGrTOWfV+uKRFhfxw6h/4HXRGUiZiufxo49BM=
-github.com/persistenceOne/persistence-sdk v0.0.0-20220826084541-4a0f43969ed3 h1:ZFNRsAyosU0/QHKI98XwK2HTMVEs4I+svbJmUJ3nSfs=
-github.com/persistenceOne/persistence-sdk v0.0.0-20220826084541-4a0f43969ed3/go.mod h1:uA9/NxT5TrbT7HgnWb3aijbb6vez8g6mtXUezroOpvk=
+github.com/persistenceOne/persistence-sdk v0.0.0-20220905124855-21cc57717641 h1:aJbWYXEKX5pjuExmX8ApcPxJRnhG2A88/pErfG9QmVk=
+github.com/persistenceOne/persistence-sdk v0.0.0-20220905124855-21cc57717641/go.mod h1:uA9/NxT5TrbT7HgnWb3aijbb6vez8g6mtXUezroOpvk=
 github.com/peterbourgon/diskv v2.0.1+incompatible/go.mod h1:uqqh8zWWbv1HBMNONnaR/tNboyR3/BZd58JJSHlUSCU=
 github.com/peterh/liner v1.1.1-0.20190123174540-a2c9a5303de7/go.mod h1:CRroGNssyjTd/qIG2FyxByd2S8JEAZXBl4qUrZf8GS0=
 github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 h1:q2e307iGHPdTGp0hoxKjt1H5pDo6utceo3dQVK3I5XQ=
