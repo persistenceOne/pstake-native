@@ -111,8 +111,16 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 
 	// move extra tokens to pstake address - anyone can send tokens to delegation address.
 	// should be transferred to pstake address.
-	//remainingBalance := allBalances.Sub(sdk.NewCoins(depositBalance))
+	remainingBalance := allBalances.Sub(sdk.NewCoins(depositBalance))
 
+	if !remainingBalance.Empty() {
+		feeAddr := sdk.MustAccAddressFromBech32(hostChainParams.PstakeFeeAddress)
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, lscosmostypes.DepositModuleAccount, feeAddr, remainingBalance)
+		if err != nil {
+			k.Logger(ctx).Error(fmt.Sprintf("could not send remaining balance: %s in depositModuleAccount: %s with error: %s", remainingBalance, lscosmostypes.DepositModuleAccount, err))
+			return
+		}
+	}
 }
 
 func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) {
