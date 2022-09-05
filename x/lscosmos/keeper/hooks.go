@@ -143,53 +143,58 @@ func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscos
 
 // ___________________________________________________________________________________________________
 
-func (k Keeper) OnRecvIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferAck ibcexported.Acknowledgement) {
+func (k Keeper) OnRecvIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferAck ibcexported.Acknowledgement) error {
+	return nil
 }
 
-func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress, transferAckErr error) {
+func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress, transferAckErr error) error {
 	if !k.GetModuleState(ctx) {
-		return
+		return lscosmostypes.ErrModuleDisabled
 	}
 	if transferAckErr != nil {
-		return
+		return transferAckErr
 	}
 	var ack channeltypes.Acknowledgement
 	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return
+		return err
 	}
 	if !ack.Success() {
-		return
+		return channeltypes.ErrInvalidAcknowledgement
 	}
 	var data ibctransfertypes.FungibleTokenPacketData
 	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return
+		return err
 	}
 	// check for tokens moved from delegationModuleAccount to it's ica counterpart.
 	hostChainParams := k.GetHostChainParams(ctx)
 	delegationState := k.GetDelegationState(ctx)
 	if packet.GetSourceChannel() != hostChainParams.TransferChannel ||
 		packet.GetSourcePort() != hostChainParams.TransferPort {
-		// no need to log, since most likely code is expected to enter this condition
-		return
+		// no need to return err, since most likely code is expected to enter this condition
+		return nil
 	}
 
 	if data.GetSender() != k.GetDelegationModuleAccount(ctx).GetAddress().String() ||
 		data.GetReceiver() != delegationState.HostChainDelegationAddress ||
 		data.GetDenom() != ibctransfertypes.GetPrefixedDenom(hostChainParams.TransferPort, hostChainParams.TransferChannel, hostChainParams.BaseDenom) {
-		return
+		// no need to return err, since most likely code is expected to enter this condition
+		return nil
 	}
 	k.Logger(ctx).Info(fmt.Sprintf("pstake tokens successfully transferred to host chain address %s, amount: %s, denom: %s", data.Receiver, data.Amount, data.Denom))
 
 	//do ica delegate.
 	amount, ok := sdk.NewIntFromString(data.GetAmount())
 	if !ok {
-		return
+		return ibctransfertypes.ErrInvalidAmount
 	}
 	k.AddBalanceToDelegationState(ctx, sdk.NewCoin(hostChainParams.BaseDenom, amount))
+
+	return nil
 }
 
-func (k Keeper) OnTimeoutIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferTimeoutErr error) {
+func (k Keeper) OnTimeoutIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferTimeoutErr error) error {
 	// Do nothing because amount will be reverted to delegationModuleAccount.
+	return nil
 }
 
 type IBCTransferHooks struct {
@@ -202,14 +207,15 @@ func (k Keeper) NewIBCTransferHooks() IBCTransferHooks {
 	return IBCTransferHooks{k}
 }
 
-func (i IBCTransferHooks) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferAck ibcexported.Acknowledgement) {
-	i.k.OnRecvIBCTransferPacket(ctx, packet, relayer, transferAck)
+func (i IBCTransferHooks) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferAck ibcexported.Acknowledgement) error {
+	return i.k.OnRecvIBCTransferPacket(ctx, packet, relayer, transferAck)
 }
 
-func (i IBCTransferHooks) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress, transferAckErr error) {
-	i.k.OnAcknowledgementIBCTransferPacket(ctx, packet, acknowledgement, relayer, transferAckErr)
+func (i IBCTransferHooks) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress, transferAckErr error) error {
+	return i.k.OnAcknowledgementIBCTransferPacket(ctx, packet, acknowledgement, relayer, transferAckErr)
+
 }
 
-func (i IBCTransferHooks) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferTimeoutErr error) {
-	i.k.OnTimeoutIBCTransferPacket(ctx, packet, relayer, transferTimeoutErr)
+func (i IBCTransferHooks) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferTimeoutErr error) error {
+	return i.k.OnTimeoutIBCTransferPacket(ctx, packet, relayer, transferTimeoutErr)
 }
