@@ -71,9 +71,10 @@ func (k Keeper) GetCValue(ctx sdk.Context) sdk.Dec {
 		Add(k.GetStakedAmount(ctx)).
 		Add(k.GetHostDelegationAccountAmount(ctx))
 
-	if stakedAmount.IsZero() || k.GetMintedAmount(ctx).IsZero() {
+	mintedAmount := k.GetMintedAmount(ctx)
+	if stakedAmount.IsZero() || mintedAmount.IsZero() {
 		return sdk.OneDec()
 	}
 
-	return sdk.NewDecFromInt(k.GetMintedAmount(ctx)).Quo(sdk.NewDecFromInt(stakedAmount))
+	return sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(stakedAmount))
 }
