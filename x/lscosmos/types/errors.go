@@ -25,4 +25,5 @@ var (
 	ErrInValidAllowListedValidators      = sdkerrors.Register(ModuleName, 75, "invalid allow listed validators")
 	ErrInvalidFee                        = sdkerrors.Register(ModuleName, 76, "invalid fee")
 	ErrInvalidDeposit                    = sdkerrors.Register(ModuleName, 77, "invalid deposit")
+	ErrNoHostChainDelegations            = sdkerrors.Register(ModuleName, 78, "no delegations on host chain")
 )

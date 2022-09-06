@@ -10,6 +10,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
+	"github.com/persistenceOne/persistence-sdk/utils"
 	epochstypes "github.com/persistenceOne/persistence-sdk/x/epochs/types"
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/x/ibchooker/types"
 
@@ -35,13 +36,25 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	}
 	hostChainParams := k.GetHostChainParams(ctx)
 	if epochIdentifier == lscosmostypes.DelegationEpochIdentifier {
-		k.DelegationEpochWorkFlow(ctx, hostChainParams)
+		wrapperFn := func(ctx sdk.Context) error {
+			return k.DelegationEpochWorkFlow(ctx, hostChainParams)
+		}
+		err := utils.ApplyFuncIfNoError(ctx, wrapperFn)
+		k.Logger(ctx).Error("Failed DelegationEpochIdentifier Function with:", "err: ", err)
 	}
 	if epochIdentifier == lscosmostypes.RewardEpochIdentifier {
-		k.RewardEpochEpochWorkFlow(ctx, hostChainParams)
+		wrapperFn := func(ctx sdk.Context) error {
+			return k.RewardEpochEpochWorkFlow(ctx, hostChainParams)
+		}
+		err := utils.ApplyFuncIfNoError(ctx, wrapperFn)
+		k.Logger(ctx).Error("Failed RewardEpochIdentifier Function with:", "err: ", err)
 	}
 	if epochIdentifier == lscosmostypes.UndelegationEpochIdentifier {
-		k.UndelegationEpochWorkFlow(ctx, hostChainParams)
+		wrapperFn := func(ctx sdk.Context) error {
+			return k.UndelegationEpochWorkFlow(ctx, hostChainParams)
+		}
+		err := utils.ApplyFuncIfNoError(ctx, wrapperFn)
+		k.Logger(ctx).Error("Failed UndelegationEpochIdentifier Function with:", "err: ", err)
 	}
 	return nil
 }
@@ -69,7 +82,7 @@ func (h EpochsHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoc
 	return h.k.AfterEpochEnd(ctx, epochIdentifier, epochNumber)
 }
 
-func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) {
+func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) error {
 	// greater than min amount, transfer from deposit to delegation, to ibctransfer.
 	// Right now we only do baseDenom
 	ibcDenom := ibctransfertypes.ParseDenomTrace(
@@ -77,28 +90,28 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 			hostChainParams.TransferPort, hostChainParams.TransferChannel, hostChainParams.BaseDenom,
 		),
 	).IBCDenom()
-	allBalances := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(lscosmostypes.DepositModuleAccount))
-	depositBalance := sdk.NewCoin(ibcDenom, allBalances.AmountOf(ibcDenom))
-	if !depositBalance.Amount.GT(sdk.ZeroInt()) {
-		return
+	allDepositBalances := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(lscosmostypes.DepositModuleAccount))
+	depositBalance := sdk.NewCoin(ibcDenom, allDepositBalances.AmountOf(ibcDenom))
+	if depositBalance.Amount.GT(sdk.ZeroInt()) {
+		err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, lscosmostypes.DepositModuleAccount, lscosmostypes.DelegationModuleAccount, sdk.NewCoins(depositBalance))
+		if err != nil {
+			k.Logger(ctx).Error("Could not send amount from ", lscosmostypes.DepositModuleAccount, " module account to ",
+				lscosmostypes.DelegationModuleAccount)
+			return err
+		}
 	}
-	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, lscosmostypes.DepositModuleAccount, lscosmostypes.DelegationModuleAccount, sdk.NewCoins(depositBalance))
-	if err != nil {
-		k.Logger(ctx).Info("Could not send amount from ", lscosmostypes.DepositModuleAccount, " module account to ",
-			lscosmostypes.DelegationModuleAccount)
-		return
-	}
-
+	allDelegationBalances := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount))
+	delegationBalance := sdk.NewCoin(ibcDenom, allDelegationBalances.AmountOf(ibcDenom))
 	delegationState := k.GetDelegationState(ctx)
 	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, hostChainParams.TransferPort, hostChainParams.TransferChannel)
 	if err != nil {
 		k.Logger(ctx).Error(fmt.Sprintf("Error getting client state %s", err))
-		return
+		return err
 	}
 	timeoutHeight := clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), clientState.GetLatestHeight().GetRevisionHeight()+lscosmostypes.IBCTimeoutHeightIncrement)
 
 	msg := ibctransfertypes.NewMsgTransfer(hostChainParams.TransferPort, hostChainParams.TransferChannel,
-		depositBalance, authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount).String(),
+		delegationBalance, authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount).String(),
 		delegationState.HostChainDelegationAddress, timeoutHeight, 0)
 
 	handler := k.msgRouter.Handler(msg)
@@ -106,30 +119,31 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 	res, err := handler(ctx, msg)
 	if err != nil {
 		k.Logger(ctx).Error(fmt.Sprintf("could not send transfer msg via MsgServiceRouter, error: %s", err))
-		return
+		return err
 	}
 
 	ctx.EventManager().EmitEvents(res.GetEvents())
 
 	// move extra tokens to pstake address - anyone can send tokens to delegation address.
 	// should be transferred to pstake address.
-	remainingBalance := allBalances.Sub(sdk.NewCoins(depositBalance))
+	remainingBalance := allDepositBalances.Sub(sdk.NewCoins(depositBalance))
 
 	if !remainingBalance.Empty() {
 		feeAddr := sdk.MustAccAddressFromBech32(hostChainParams.PstakeFeeAddress)
 		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, lscosmostypes.DepositModuleAccount, feeAddr, remainingBalance)
 		if err != nil {
 			k.Logger(ctx).Error(fmt.Sprintf("could not send remaining balance: %s in depositModuleAccount: %s with error: %s", remainingBalance, lscosmostypes.DepositModuleAccount, err))
-			return
+			return err
 		}
 	}
+	return nil
 }
 
-func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) {
+func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) error {
 	// send withdraw rewards from delegators.
 	delegationState := k.GetDelegationState(ctx)
 	if len(delegationState.HostAccountDelegations) == 0 {
-		return
+		return lscosmostypes.ErrNoHostChainDelegations
 	}
 	withdrawRewardMsgs := make([]sdk.Msg, len(delegationState.HostAccountDelegations))
 	for i, delegation := range delegationState.HostAccountDelegations {
@@ -139,16 +153,14 @@ func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosm
 		}
 	}
 	err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, withdrawRewardMsgs)
-	if err != nil {
-		return
-	}
-
+	return err
 	// on Ack do icq for reward acc. balance of uatom
 	// callback for sending it to delegation account
 	// on Ack delegate txn
 }
 
-func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) {
+func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) error {
+	return nil
 }
 
 // ___________________________________________________________________________________________________
