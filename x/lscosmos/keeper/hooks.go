@@ -125,17 +125,19 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 	ctx.EventManager().EmitEvents(res.GetEvents())
 
 	// move extra tokens to pstake address - anyone can send tokens to delegation address.
+	// deposit address is deny-listed address - can only accept tokens via transactions, so should not have any extra tokens
 	// should be transferred to pstake address.
-	remainingBalance := allDepositBalances.Sub(sdk.NewCoins(depositBalance))
+	remainingDelegationBalance := allDelegationBalances.Sub(sdk.NewCoins(delegationBalance))
 
-	if !remainingBalance.Empty() {
+	if !remainingDelegationBalance.Empty() {
 		feeAddr := sdk.MustAccAddressFromBech32(hostChainParams.PstakeFeeAddress)
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, lscosmostypes.DepositModuleAccount, feeAddr, remainingBalance)
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, lscosmostypes.DelegationModuleAccount, feeAddr, remainingDelegationBalance)
 		if err != nil {
-			k.Logger(ctx).Error(fmt.Sprintf("could not send remaining balance: %s in depositModuleAccount: %s with error: %s", remainingBalance, lscosmostypes.DepositModuleAccount, err))
+			k.Logger(ctx).Error(fmt.Sprintf("could not send remaining balance: %s in delegationModuleAccount: %s with error: %s", remainingDelegationBalance, lscosmostypes.DelegationModuleAccount, err))
 			return err
 		}
 	}
+
 	return nil
 }
 
