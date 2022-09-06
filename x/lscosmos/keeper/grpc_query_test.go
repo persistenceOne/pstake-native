@@ -3,27 +3,11 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/persistenceOne/pstake-native/x/lscosmos"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 func (suite *IntegrationTestSuite) TestHostChainParamsQuery() {
 	app, ctx := suite.app, suite.ctx
-
-	suite.govHandler = lscosmos.NewLSCosmosProposalHandler(suite.app.LSCosmosKeeper)
-
-	depositFee, err := sdk.NewDecFromStr("0.01")
-	suite.NoError(err)
-
-	restakeFee, err := sdk.NewDecFromStr("0.02")
-	suite.NoError(err)
-
-	unstakeFee, err := sdk.NewDecFromStr("0.03")
-	suite.NoError(err)
-
-	params := types.NewHostChainParams("cosmoshub-4", "connection-0", "channel-0", "transfer",
-		"uatom", "ustkatom", "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", sdk.NewInt(5), depositFee, restakeFee, unstakeFee)
-	suite.app.LSCosmosKeeper.SetHostChainParams(ctx, params)
 
 	c := sdk.WrapSDKContext(ctx)
 
@@ -31,24 +15,11 @@ func (suite *IntegrationTestSuite) TestHostChainParamsQuery() {
 
 	res, err := qrysrv.HostChainParams(c, &types.QueryHostChainParamsRequest{})
 	suite.NoError(err)
-	suite.Equal(&types.QueryHostChainParamsResponse{HostChainParams: params}, res)
+	suite.Equal(&types.QueryHostChainParamsResponse{HostChainParams: app.LSCosmosKeeper.GetHostChainParams(ctx)}, res)
 }
 
 func (suite *IntegrationTestSuite) TestQueryDelegationState() {
 	app, ctx := suite.app, suite.ctx
-
-	depositFee, err := sdk.NewDecFromStr("0.01")
-	suite.NoError(err)
-	restakeFee, err := sdk.NewDecFromStr("0.02")
-	suite.NoError(err)
-	unstakeFee, err := sdk.NewDecFromStr("0.03")
-	suite.NoError(err)
-	params := types.NewHostChainParams("cosmoshub-4", "connection-0", "channel-0",
-		"transfer", "uatom", "ustkatom",
-		"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", sdk.NewInt(5), depositFee, restakeFee,
-		unstakeFee,
-	)
-	suite.app.LSCosmosKeeper.SetHostChainParams(ctx, params)
 
 	baseDenom := app.LSCosmosKeeper.GetHostChainParams(ctx).BaseDenom
 	delegationState := types.DelegationState{
