@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"fmt"
+	"github.com/persistenceOne/persistence-sdk/utils"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -15,8 +15,14 @@ func (k Keeper) BeginBlock(ctx sdk.Context) {
 
 	hostChainParams := k.GetHostChainParams(ctx)
 	delegationState := k.GetDelegationState(ctx)
-	//TODO handle err like osmosis
-	_ = k.DoDelegate(ctx, delegationState.HostChainDelegationAddress, hostChainParams.ConnectionID, hostChainParams.BaseDenom)
+
+	delegateWrapperFn := func(ctx sdk.Context) error {
+		return k.DoDelegate(ctx, delegationState.HostChainDelegationAddress, hostChainParams.ConnectionID, hostChainParams.BaseDenom)
+	}
+	err := utils.ApplyFuncIfNoError(ctx, delegateWrapperFn)
+	if err != nil {
+		k.Logger(ctx).Error("Unable to Delegate tokens with ", "err: ", err)
+	}
 
 }
 
@@ -24,7 +30,7 @@ func (k Keeper) DoDelegate(ctx sdk.Context, hostChainDelegationAddress, connecti
 	delegatableAmount := k.GetDelegationState(ctx).HostDelegationAccountBalance.AmountOf(baseDenom)
 	allowlistedValidators := k.GetAllowListedValidators(ctx)
 	if !delegatableAmount.GT(sdk.NewInt(int64(len(allowlistedValidators.AllowListedValidators)))) {
-		k.Logger(ctx).Info(fmt.Sprintf("amount is too low to delegate, %v ", delegatableAmount))
+		// amount to delegate is too low, return early
 		return nil
 	}
 	msgs := DelegateMsgs(hostChainDelegationAddress, allowlistedValidators, delegatableAmount, baseDenom)
