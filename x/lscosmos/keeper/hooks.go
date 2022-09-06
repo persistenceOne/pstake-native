@@ -17,7 +17,8 @@ import (
 )
 
 // BeforeEpochStart - call hook if registered
-func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) {
+func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+	return nil
 }
 
 /*
@@ -27,10 +28,10 @@ AfterEpochEnd handle the "stake", "reward" and "undelegate" epoch and their resp
 and shift the amount to next epoch if the min amount is not reached
 3. "undelegate" generated the undelegate transaction for undelegating the amount accumulated over the "undelegate" epoch
 */
-func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) {
+func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	//params := k.GetParams(ctx)
 	if !k.GetModuleState(ctx) {
-		return
+		return lscosmostypes.ErrModuleDisabled
 	}
 	hostChainParams := k.GetHostChainParams(ctx)
 	if epochIdentifier == lscosmostypes.DelegationEpochIdentifier {
@@ -42,6 +43,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	if epochIdentifier == lscosmostypes.UndelegationEpochIdentifier {
 		k.UndelegationEpochWorkFlow(ctx, hostChainParams)
 	}
+	return nil
 }
 
 // ___________________________________________________________________________________________________
@@ -59,12 +61,12 @@ func (k Keeper) NewEpochHooks() EpochsHooks {
 }
 
 // epochs hooks
-func (h EpochsHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) {
-	h.k.BeforeEpochStart(ctx, epochIdentifier, epochNumber)
+func (h EpochsHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+	return h.k.BeforeEpochStart(ctx, epochIdentifier, epochNumber)
 }
 
-func (h EpochsHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) {
-	h.k.AfterEpochEnd(ctx, epochIdentifier, epochNumber)
+func (h EpochsHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+	return h.k.AfterEpochEnd(ctx, epochIdentifier, epochNumber)
 }
 
 func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) {
