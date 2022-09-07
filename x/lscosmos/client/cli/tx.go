@@ -36,7 +36,7 @@ func GetTxCmd() *cobra.Command {
 
 func NewRegisterHostChainCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "register-host-chain [proposal-file]",
+		Use:   "pstake-lscosmos-register-host-chain [proposal-file]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Submit a register host chain proposal",
 		Long: strings.TrimSpace(
@@ -163,7 +163,7 @@ func NewLiquidStakeCmd() *cobra.Command {
 
 func NewMinDepositAndFeeChangeCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "min-deposit-and-fee-change",
+		Use:   "pstake-lscosmos-min-deposit-and-fee-change",
 		Args:  cobra.ExactArgs(1),
 		Short: "Submit a minimum deposit and fee change proposal",
 		Long: strings.TrimSpace(
@@ -247,7 +247,7 @@ $ %s tx gov submit-proposal min-deposit-and-fee-change  <path/to/proposal.json> 
 
 func NewPstakeFeeAddressChangeCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "change-pstake-fee-address [proposal-file]",
+		Use:   "pstake-lscosmos-change-pstake-fee-address [proposal-file]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Submit a pstake fee address change proposal",
 		Long: strings.TrimSpace(
@@ -312,7 +312,7 @@ $ %s tx gov submit-proposal change-pstake-fee-address <path/to/proposal.json> --
 
 func NewAllowListedValidatorSetChangeProposalCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "change-allow-listed-validator-set [proposal-file]",
+		Use:   "pstake-lscosmos-change-allow-listed-validator-set [proposal-file]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Submit a AllowListed Validator set change proposal",
 		Long: strings.TrimSpace(
