@@ -2,12 +2,17 @@ package types_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/persistenceOne/pstake-native/app"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
+
+func init() {
+	app.SetAddressPrefixes()
+}
 
 func TestParameterChangeProposal(t *testing.T) {
 	pcp := types.NewRegisterHostChainProposal(
@@ -22,7 +27,7 @@ func TestParameterChangeProposal(t *testing.T) {
 		"ustkatom",
 		"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
 		sdk.OneInt().MulRaw(5),
-		types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "addr", TargetWeight: sdk.OneDec()}}},
+		types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
 		sdk.ZeroDec(),
 		sdk.ZeroDec(),
 		sdk.ZeroDec(),
@@ -38,7 +43,7 @@ func TestParameterChangeProposal(t *testing.T) {
 	require.Equal(t, "ustkatom", pcp.MintDenom)
 	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", pcp.PstakeFeeAddress)
 	require.Equal(t, sdk.NewInt(5), pcp.MinDeposit)
-	require.Equal(t, "addr", pcp.AllowListedValidators.AllowListedValidators[0].ValidatorAddress)
+	require.Equal(t, "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", pcp.AllowListedValidators.AllowListedValidators[0].ValidatorAddress)
 	require.Equal(t, sdk.OneDec(), pcp.AllowListedValidators.AllowListedValidators[0].TargetWeight)
 	require.Equal(t, sdk.ZeroDec(), pcp.PstakeDepositFee)
 	require.Equal(t, sdk.ZeroDec(), pcp.PstakeRestakeFee)

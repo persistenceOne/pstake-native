@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
@@ -78,6 +79,31 @@ func (m *RegisterHostChainProposal) ValidateBasic() error {
 	err := govtypes.ValidateAbstract(m)
 	if err != nil {
 		return err
+	}
+
+	if !m.AllowListedValidators.Valid() {
+		return sdkerrors.Wrapf(ErrInValidAllowListedValidators, "allow listed validators is not valid")
+	}
+
+	_, err = sdktypes.AccAddressFromBech32(m.PstakeFeeAddress)
+	if err != nil {
+		return err
+	}
+
+	if m.PstakeDepositFee.IsNegative() || m.PstakeDepositFee.GTE(sdktypes.OneDec()) {
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake deposit fee must be between 0 and 1")
+	}
+
+	if m.PstakeRestakeFee.IsNegative() || m.PstakeRestakeFee.GTE(sdktypes.OneDec()) {
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake restake fee must be between 0 and 1")
+	}
+
+	if m.PstakeUnstakeFee.IsNegative() || m.PstakeUnstakeFee.GTE(sdktypes.OneDec()) {
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake unstake fee must be between 0 and 1")
+	}
+
+	if m.MinDeposit.LTE(sdktypes.ZeroInt()) {
+		return sdkerrors.Wrapf(ErrInvalidDeposit, "min deposit must be positive")
 	}
 
 	return nil
