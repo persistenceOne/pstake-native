@@ -15,6 +15,8 @@ func NewLSCosmosProposalHandler(k keeper.Keeper) govtypes.Handler {
 		switch c := content.(type) {
 		case *types.RegisterHostChainProposal:
 			return keeper.HandleRegisterHostChainProposal(ctx, k, *c)
+		case *types.MinDepositAndFeeChangeProposal:
+			return keeper.HandleMinDepositAndFeeChangeProposal(ctx, k, *c)
 
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized proposal content type: %T", c)

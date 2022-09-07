@@ -61,3 +61,18 @@ func HandleRegisterHostChainProposal(ctx sdk.Context, k Keeper, content types.Re
 	k.SetAllowListedValidators(ctx, content.AllowListedValidators)
 	return nil
 }
+
+// HandleMinDepositAndFeeChangeProposal changes host chain params for desired min-deposit and protocol fee
+func HandleMinDepositAndFeeChangeProposal(ctx sdk.Context, k Keeper, content types.MinDepositAndFeeChangeProposal) error {
+	oldData := k.GetHostChainParams(ctx)
+	if oldData.IsEmpty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
+	}
+
+	paramsProposal := types.NewHostChainParams(oldData.ChainID, oldData.ConnectionID, oldData.TransferChannel,
+		oldData.TransferPort, oldData.BaseDenom, oldData.MintDenom, oldData.PstakeFeeAddress,
+		content.MinDeposit, content.PstakeDepositFee, content.PstakeRestakeFee, content.PstakeUnstakeFee)
+	k.SetHostChainParams(ctx, paramsProposal)
+
+	return nil
+}

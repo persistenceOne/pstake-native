@@ -9,14 +9,20 @@ import (
 )
 
 const (
-	ProposalTypeRegisterHostChain = "RegisterHostChain"
+	ProposalTypeRegisterHostChain      = "RegisterHostChain"
+	ProposalTypeMinDepositAndFeeChange = "MinDepositAndFeeChange"
 )
 
-var _ govtypes.Content = &RegisterHostChainProposal{}
+var (
+	_ govtypes.Content = &RegisterHostChainProposal{}
+	_ govtypes.Content = &MinDepositAndFeeChangeProposal{}
+)
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeRegisterHostChain)
 	govtypes.RegisterProposalTypeCodec(&RegisterHostChainProposal{}, "persistenceCore/RegisterHostChain")
+	govtypes.RegisterProposalType(ProposalTypeMinDepositAndFeeChange)
+	govtypes.RegisterProposalTypeCodec(&MinDepositAndFeeChangeProposal{}, "persistenceCore/MinDepositAndFeeChange")
 }
 
 // NewRegisterHostChainProposal creates a new multisig change proposal.
@@ -137,4 +143,70 @@ func (c *HostChainParams) IsEmpty() bool {
 	// can add more, but this should be good enough
 
 	return false
+}
+
+// NewMinDepositAndFeeChangeProposal creates a protocol fee and min deposit change proposal.
+func NewMinDepositAndFeeChangeProposal(title, description string, minDeposit sdktypes.Int, pstakeDepositFee,
+	pstakeRestakeFee, pstakeUnstakeFee sdktypes.Dec) *MinDepositAndFeeChangeProposal {
+
+	return &MinDepositAndFeeChangeProposal{
+		Title:            title,
+		Description:      description,
+		MinDeposit:       minDeposit,
+		PstakeDepositFee: pstakeDepositFee,
+		PstakeRestakeFee: pstakeRestakeFee,
+		PstakeUnstakeFee: pstakeUnstakeFee,
+	}
+}
+
+// GetTitle returns the title of the min-deposit and fee change proposal.
+func (m *MinDepositAndFeeChangeProposal) GetTitle() string {
+	return m.Title
+}
+
+// GetDescription returns the description of the min-deposit and fee change proposal.
+func (m *MinDepositAndFeeChangeProposal) GetDescription() string {
+	return m.Description
+}
+
+// ProposalRoute returns the proposal-route of the min-deposit and fee change proposal.
+func (m *MinDepositAndFeeChangeProposal) ProposalRoute() string {
+	return RouterKey
+}
+
+// ProposalType returns the proposal-type of the min-deposit and fee change proposal.
+func (m *MinDepositAndFeeChangeProposal) ProposalType() string {
+	return ProposalTypeMinDepositAndFeeChange
+}
+
+// ValidateBasic runs basic stateless validity checks
+func (m *MinDepositAndFeeChangeProposal) ValidateBasic() error {
+	err := govtypes.ValidateAbstract(m)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// String returns the string of proposal details
+func (m *MinDepositAndFeeChangeProposal) String() string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf(`MinDepositAndFeeChange:
+Title:                 %s
+Description:           %s
+MinDeposit:             %s
+PstakeDepositFee:	   %s
+PstakeRestakeFee: 	   %s
+PstakeUnstakeFee: 	   %s
+
+`,
+		m.Title,
+		m.Description,
+		m.MinDeposit,
+		m.PstakeDepositFee,
+		m.PstakeRestakeFee,
+		m.PstakeUnstakeFee),
+	)
+	return b.String()
 }

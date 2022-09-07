@@ -64,3 +64,43 @@ func ParseRegisterHostChainProposalJSON(cdc *codec.LegacyAmino, proposalFile str
 
 	return proposal, nil
 }
+
+type MinDepositAndFeeChangeProposalJSON struct {
+	Title            string `json:"title" yaml:"title"`
+	Description      string `json:"description" yaml:"description"`
+	MinDeposit       string `json:"min_deposit" yaml:"min_deposit"`
+	PstakeDepositFee string `json:"pstake_deposit_fee" yaml:"pstake_deposit_fee"`
+	PstakeRestakeFee string `json:"pstake_restake_fee" yaml:"pstake_restake_fee"`
+	PstakeUnstakeFee string `json:"pstake_unstake_fee" yaml:"pstake_unstake_fee"`
+	Deposit          string `json:"deposit" yaml:"deposit"`
+}
+
+func NewMinDepositAndFeeChangeJSON(title, description, minDeposit, pstakeDepositFee, pstakeRestakeFee,
+	pstakeUnstakeFee, deposit string) MinDepositAndFeeChangeProposalJSON {
+	return MinDepositAndFeeChangeProposalJSON{
+		Title:            title,
+		Description:      description,
+		MinDeposit:       minDeposit,
+		PstakeDepositFee: pstakeDepositFee,
+		PstakeRestakeFee: pstakeRestakeFee,
+		PstakeUnstakeFee: pstakeUnstakeFee,
+		Deposit:          deposit,
+	}
+
+}
+
+// ParseMinDepositAndFeeChangeProposalJSON reads and parses a MinDepositAndFeeChangeProposal from
+// file.
+func ParseMinDepositAndFeeChangeProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (MinDepositAndFeeChangeProposalJSON, error) {
+	proposal := MinDepositAndFeeChangeProposalJSON{}
+
+	contents, err := os.ReadFile(proposalFile)
+	if err != nil {
+		return proposal, err
+	}
+	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
+		return proposal, err
+	}
+
+	return proposal, nil
+}

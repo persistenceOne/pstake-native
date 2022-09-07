@@ -28,7 +28,6 @@ func GetTxCmd() *cobra.Command {
 
 	// this line is used by starport scaffolding # 1
 	cmd.AddCommand(
-		NewRegisterHostChainCmd(),
 		NewLiquidStakeCmd(),
 	)
 
@@ -160,4 +159,88 @@ func NewLiquidStakeCmd() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+func NewMinDepositAndFeeChangeCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "min-deposit-and-fee-change",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a minimum deposit and fee change proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a min-deposit and fee change proposal along with an initial deposit
+The proposal details must be supplied via a JSON file. For values that contains objects,
+only non-empty fields will be updated.
+
+IMPORTANT : The values for the fields in this proposal are not validated, so it is very
+important that any value change is valid.
+
+Example Proposal :
+{
+	"title": "min-deposit and fee change proposal",
+	"description": "this proposal changes min-deposit and protocol fee on chain",
+	"min_deposit": "5",
+	"pstake_deposit_fee": "0.1",
+	"pstake_restake_fee": "0.1",
+	"pstake_unstake_fee": "0.1",
+	"deposit": "100stake"
+}
+
+Example:
+$ %s tx gov submit-proposal min-deposit-and-fee-change  <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			proposal, err := utils.ParseMinDepositAndFeeChangeProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+			from := clientCtx.GetFromAddress()
+
+			minDeposit, ok := sdk.NewIntFromString(proposal.MinDeposit)
+			if !ok {
+				return types.ErrInvalidIntParse
+			}
+			depositFee, err := sdk.NewDecFromStr(proposal.PstakeDepositFee)
+			if err != nil {
+				return err
+			}
+
+			restakeFee, err := sdk.NewDecFromStr(proposal.PstakeRestakeFee)
+			if err != nil {
+				return err
+			}
+			unstakeFee, err := sdk.NewDecFromStr(proposal.PstakeUnstakeFee)
+			if err != nil {
+				return err
+			}
+
+			content := types.NewMinDepositAndFeeChangeProposal(
+				proposal.Title,
+				proposal.Description,
+				minDeposit,
+				depositFee,
+				restakeFee,
+				unstakeFee,
+			)
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+
+		},
+	}
 }

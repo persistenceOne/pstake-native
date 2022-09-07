@@ -47,3 +47,24 @@ func TestParameterChangeProposal(t *testing.T) {
 	require.Equal(t, types.ProposalTypeRegisterHostChain, pcp.ProposalType())
 	require.Nil(t, pcp.ValidateBasic())
 }
+
+func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
+	pcp := types.NewMinDepositAndFeeChangeProposal(
+		"title",
+		"description",
+		sdk.OneInt().MulRaw(5),
+		sdk.ZeroDec(),
+		sdk.ZeroDec(),
+		sdk.ZeroDec(),
+	)
+
+	require.Equal(t, "title", pcp.GetTitle())
+	require.Equal(t, sdk.NewInt(5), pcp.MinDeposit)
+	require.Equal(t, sdk.ZeroDec(), pcp.PstakeDepositFee)
+	require.Equal(t, sdk.ZeroDec(), pcp.PstakeRestakeFee)
+	require.Equal(t, sdk.ZeroDec(), pcp.PstakeUnstakeFee)
+	require.Equal(t, types.RouterKey, pcp.ProposalRoute())
+	require.Equal(t, types.ProposalTypeMinDepositAndFeeChange, pcp.ProposalType())
+	require.Nil(t, pcp.ValidateBasic())
+
+}

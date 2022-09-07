@@ -9,7 +9,7 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-func TestNewParamChangeJSON(t *testing.T) {
+func TestNewRegisterChainJSON(t *testing.T) {
 	rcj := NewRegisterChainJSON(
 		"title",
 		"description",
@@ -42,6 +42,25 @@ func TestNewParamChangeJSON(t *testing.T) {
 	require.Equal(t, "ustkatom", rcj.MintDenom)
 	require.Equal(t, "5", rcj.MinDeposit)
 	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", rcj.PstakeFeeAddress)
+	require.Equal(t, "0.0", rcj.PstakeDepositFee)
+	require.Equal(t, "0.0", rcj.PstakeRestakeFee)
+	require.Equal(t, "0.0", rcj.PstakeUnstakeFee)
+	require.Equal(t, "1000stake", rcj.Deposit)
+}
+
+func TestNewMinDepositAndFeeChangeJSON(t *testing.T) {
+	rcj := NewMinDepositAndFeeChangeJSON(
+		"title",
+		"description",
+		"5",
+		"0.0",
+		"0.0",
+		"0.0",
+		"1000stake")
+
+	require.Equal(t, "title", rcj.Title)
+	require.Equal(t, "description", rcj.Description)
+	require.Equal(t, "5", rcj.MinDeposit)
 	require.Equal(t, "0.0", rcj.PstakeDepositFee)
 	require.Equal(t, "0.0", rcj.PstakeRestakeFee)
 	require.Equal(t, "0.0", rcj.PstakeUnstakeFee)

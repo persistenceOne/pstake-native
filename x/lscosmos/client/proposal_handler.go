@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	RegisterHostChainProposalHandler = govclient.NewProposalHandler(cli.NewRegisterHostChainCmd, emptyRestHandler)
+	RegisterHostChainProposalHandler      = govclient.NewProposalHandler(cli.NewRegisterHostChainCmd, emptyRestHandler)
+	MinDepositAndFeeChangeProposalHandler = govclient.NewProposalHandler(cli.NewMinDepositAndFeeChangeCmd, emptyRestHandler)
 )
 
 func emptyRestHandler(client.Context) govrest.ProposalRESTHandler {
