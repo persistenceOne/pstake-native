@@ -150,6 +150,7 @@ var (
 			lscosmosclient.RegisterHostChainProposalHandler,
 			lscosmosclient.MinDepositAndFeeChangeProposalHandler,
 			lscosmosclient.PstakeFeeAddressChangeProposalHandler,
+			lscosmosclient.AllowListValidatorSetChangeProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},

@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
@@ -126,6 +127,39 @@ func NewPstakeFeeAddressChangeProposalJSON(title, description, pstakeFeeAddress,
 // file.
 func ParsePstakeFeeAddressChangeProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (PstakeFeeAddressChangeProposalJSON, error) {
 	proposal := PstakeFeeAddressChangeProposalJSON{}
+
+	contents, err := os.ReadFile(proposalFile)
+	if err != nil {
+		return proposal, err
+	}
+	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
+		return proposal, err
+	}
+
+	return proposal, nil
+}
+
+type AllowListedValidatorSetChangeProposalJSON struct {
+	Title                 string                      `json:"title" yaml:"title"`
+	Description           string                      `json:"description" yaml:"description"`
+	AllowListedValidators types.AllowListedValidators `json:"allow_listed_validators" yaml:"allow_listed_validators"`
+	Deposit               string                      `json:"deposit" yaml:"deposit"`
+}
+
+func NewAllowListedValidatorSetChangeProposalJSON(title, description, deposit string, allowListedValidators types.AllowListedValidators) AllowListedValidatorSetChangeProposalJSON {
+	return AllowListedValidatorSetChangeProposalJSON{
+		Title:                 title,
+		Description:           description,
+		AllowListedValidators: allowListedValidators,
+		Deposit:               deposit,
+	}
+
+}
+
+// ParseAllowListedValidatorSetChangeProposalJSON  reads and parses a AllowListedValidatorSetChangeProposalJSON  from
+// file.
+func ParseAllowListedValidatorSetChangeProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (AllowListedValidatorSetChangeProposalJSON, error) {
+	proposal := AllowListedValidatorSetChangeProposalJSON{}
 
 	contents, err := os.ReadFile(proposalFile)
 	if err != nil {

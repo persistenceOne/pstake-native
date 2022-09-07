@@ -10,15 +10,17 @@ import (
 )
 
 const (
-	ProposalTypeRegisterHostChain      = "RegisterHostChain"
-	ProposalTypeMinDepositAndFeeChange = "MinDepositAndFeeChange"
-	ProposalPstakeFeeAddressChange     = "PstakeFeeAddressChange"
+	ProposalTypeRegisterHostChain         = "RegisterHostChain"
+	ProposalTypeMinDepositAndFeeChange    = "MinDepositAndFeeChange"
+	ProposalPstakeFeeAddressChange        = "PstakeFeeAddressChange"
+	ProposalAllowListedValidatorSetChange = "AllowListedValidatorSetChange"
 )
 
 var (
 	_ govtypes.Content = &RegisterHostChainProposal{}
 	_ govtypes.Content = &MinDepositAndFeeChangeProposal{}
 	_ govtypes.Content = &PstakeFeeAddressChangeProposal{}
+	_ govtypes.Content = &AllowListedValidatorSetChangeProposal{}
 )
 
 func init() {
@@ -28,6 +30,8 @@ func init() {
 	govtypes.RegisterProposalTypeCodec(&MinDepositAndFeeChangeProposal{}, "persistenceCore/MinDepositAndFeeChange")
 	govtypes.RegisterProposalType(ProposalPstakeFeeAddressChange)
 	govtypes.RegisterProposalTypeCodec(&PstakeFeeAddressChangeProposal{}, "persistenceCore/PstakeFeeAddressChange")
+	govtypes.RegisterProposalType(ProposalAllowListedValidatorSetChange)
+	govtypes.RegisterProposalTypeCodec(&AllowListedValidatorSetChangeProposal{}, "persistenceCore/AllowListedValidatorSetChange")
 }
 
 // NewRegisterHostChainProposal creates a new multisig change proposal.
@@ -293,6 +297,62 @@ PstakeFeeAddress: 	   %s
 		m.Title,
 		m.Description,
 		m.PstakeFeeAddress,
+	),
+	)
+	return b.String()
+}
+
+// NewAllowListedValidatorSetChangeProposal creates a allowListed validator set change proposal.
+func NewAllowListedValidatorSetChangeProposal(title, description string, allowListedValidators AllowListedValidators) *AllowListedValidatorSetChangeProposal {
+	return &AllowListedValidatorSetChangeProposal{
+		Title:                 title,
+		Description:           description,
+		AllowListedValidators: allowListedValidators,
+	}
+}
+
+// GetTitle returns the title of allowListed validator set change proposal.
+func (m *AllowListedValidatorSetChangeProposal) GetTitle() string {
+	return m.Title
+}
+
+// GetDescription returns the description of allowListed validator set change proposal.
+func (m *AllowListedValidatorSetChangeProposal) GetDescription() string {
+	return m.Description
+}
+
+// ProposalRoute returns the proposal-route of allowListed validator set change proposal.
+func (m *AllowListedValidatorSetChangeProposal) ProposalRoute() string {
+	return RouterKey
+}
+
+// ProposalType returns the proposal-type of allowListed validator set change proposal.
+func (m *AllowListedValidatorSetChangeProposal) ProposalType() string {
+	return ProposalAllowListedValidatorSetChange
+}
+
+// ValidateBasic runs basic stateless validity checks
+func (m *AllowListedValidatorSetChangeProposal) ValidateBasic() error {
+	err := govtypes.ValidateAbstract(m)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// String returns the string of proposal details
+func (m *AllowListedValidatorSetChangeProposal) String() string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf(`AllowListedValidatorSetChange:
+Title:                 %s
+Description:           %s
+AllowListedValidators: 	   %s
+
+`,
+		m.Title,
+		m.Description,
+		m.AllowListedValidators,
 	),
 	)
 	return b.String()

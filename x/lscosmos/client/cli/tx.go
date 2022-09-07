@@ -309,3 +309,70 @@ $ %s tx gov submit-proposal change-pstake-fee-address <path/to/proposal.json> --
 		},
 	}
 }
+
+func NewAllowListedValidatorSetChangeProposalCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "change-allow-listed-validator-set [proposal-file]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a AllowListed Validator set change proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a AllowListed Validator set change proposal along with an initial deposit
+The proposal details must be supplied via a JSON file. For values that contains objects,
+only non-empty fields will be updated.
+
+IMPORTANT : The values for the fields in this proposal are not validated, so it is very
+important that any value change is valid.
+
+Example Proposal :
+{
+	"title": "change pstake fee address",
+	"description": "this proposal changes pstake fee address in the chain",
+	"allow_listed_validators": {
+   		 "allow_listed_validators": [
+      {
+        "validator_address": "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
+        "target_weight": "1"
+      }
+    ]
+  },
+"deposit": "100stake"
+}
+
+Example:
+$ %s tx gov submit-proposal change-allow-listed-validator-set <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			proposal, err := utils.ParseAllowListedValidatorSetChangeProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			from := clientCtx.GetFromAddress()
+
+			content := types.NewAllowListedValidatorSetChangeProposal(
+				proposal.Title,
+				proposal.Description,
+				proposal.AllowListedValidators,
+			)
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+
+		},
+	}
+}

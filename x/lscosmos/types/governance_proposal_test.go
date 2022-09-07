@@ -86,5 +86,19 @@ func TestNewPstakeFeeAddressChangeProposal(t *testing.T) {
 	require.Equal(t, types.RouterKey, pcp.ProposalRoute())
 	require.Equal(t, types.ProposalPstakeFeeAddressChange, pcp.ProposalType())
 	require.Nil(t, pcp.ValidateBasic())
+}
 
+func TestNewAllowListedValidatorSetChangeProposal(t *testing.T) {
+	pcp := types.NewAllowListedValidatorSetChangeProposal(
+		"title",
+		"description",
+		types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
+	)
+
+	require.Equal(t, "title", pcp.GetTitle())
+	require.Equal(t, "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", pcp.AllowListedValidators.AllowListedValidators[0].ValidatorAddress)
+	require.Equal(t, sdk.OneDec(), pcp.AllowListedValidators.AllowListedValidators[0].TargetWeight)
+	require.Equal(t, types.RouterKey, pcp.ProposalRoute())
+	require.Equal(t, types.ProposalAllowListedValidatorSetChange, pcp.ProposalType())
+	require.Nil(t, pcp.ValidateBasic())
 }

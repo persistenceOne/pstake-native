@@ -91,3 +91,16 @@ func HandlePstakeFeeAddressChangeProposal(ctx sdk.Context, k Keeper, content typ
 
 	return nil
 }
+
+// HandleAllowListedValidatorSetChangeProposal changes the allowList validator set
+func HandleAllowListedValidatorSetChangeProposal(ctx sdk.Context, k Keeper, content types.AllowListedValidatorSetChangeProposal) error {
+	oldData := k.GetHostChainParams(ctx)
+	if oldData.IsEmpty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
+	}
+	if !content.AllowListedValidators.Valid() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Allow listed validators is invalid")
+	}
+	k.SetAllowListedValidators(ctx, content.AllowListedValidators)
+	return nil
+}
