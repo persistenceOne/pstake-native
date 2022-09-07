@@ -9,8 +9,8 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-func TestNewParamChangeJSON(t *testing.T) {
-	rcj := NewRegisterChainJSON(
+func TestNewRegisterChainJSON(t *testing.T) {
+	propJSON := NewRegisterChainJSON(
 		"title",
 		"description",
 		true,
@@ -32,18 +32,70 @@ func TestNewParamChangeJSON(t *testing.T) {
 				TargetWeight:     sdk.OneDec(),
 			}}},
 	)
-	require.Equal(t, "title", rcj.Title)
-	require.Equal(t, "description", rcj.Description)
-	require.Equal(t, "cosmoshub-4", rcj.ChainID)
-	require.Equal(t, "connection", rcj.ConnectionID)
-	require.Equal(t, "channel-1", rcj.TransferChannel)
-	require.Equal(t, "transfer", rcj.TransferPort)
-	require.Equal(t, "uatom", rcj.BaseDenom)
-	require.Equal(t, "ustkatom", rcj.MintDenom)
-	require.Equal(t, "5", rcj.MinDeposit)
-	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", rcj.PstakeFeeAddress)
-	require.Equal(t, "0.0", rcj.PstakeDepositFee)
-	require.Equal(t, "0.0", rcj.PstakeRestakeFee)
-	require.Equal(t, "0.0", rcj.PstakeUnstakeFee)
-	require.Equal(t, "1000stake", rcj.Deposit)
+	require.Equal(t, "title", propJSON.Title)
+	require.Equal(t, "description", propJSON.Description)
+	require.Equal(t, "cosmoshub-4", propJSON.ChainID)
+	require.Equal(t, "connection", propJSON.ConnectionID)
+	require.Equal(t, "channel-1", propJSON.TransferChannel)
+	require.Equal(t, "transfer", propJSON.TransferPort)
+	require.Equal(t, "uatom", propJSON.BaseDenom)
+	require.Equal(t, "ustkatom", propJSON.MintDenom)
+	require.Equal(t, "5", propJSON.MinDeposit)
+	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", propJSON.PstakeFeeAddress)
+	require.Equal(t, "0.0", propJSON.PstakeDepositFee)
+	require.Equal(t, "0.0", propJSON.PstakeRestakeFee)
+	require.Equal(t, "0.0", propJSON.PstakeUnstakeFee)
+	require.Equal(t, "1000stake", propJSON.Deposit)
+}
+
+func TestNewMinDepositAndFeeChangeJSON(t *testing.T) {
+	propJSON := NewMinDepositAndFeeChangeJSON(
+		"title",
+		"description",
+		"5",
+		"0.0",
+		"0.0",
+		"0.0",
+		"1000stake")
+
+	require.Equal(t, "title", propJSON.Title)
+	require.Equal(t, "description", propJSON.Description)
+	require.Equal(t, "5", propJSON.MinDeposit)
+	require.Equal(t, "0.0", propJSON.PstakeDepositFee)
+	require.Equal(t, "0.0", propJSON.PstakeRestakeFee)
+	require.Equal(t, "0.0", propJSON.PstakeUnstakeFee)
+	require.Equal(t, "1000stake", propJSON.Deposit)
+}
+
+func TestNewPstakeFeeAddressChangeProposalJSON(t *testing.T) {
+	propJSON := NewPstakeFeeAddressChangeProposalJSON(
+		"title",
+		"description",
+		"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+		"1000stake")
+
+	require.Equal(t, "title", propJSON.Title)
+	require.Equal(t, "description", propJSON.Description)
+	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", propJSON.PstakeFeeAddress)
+	require.Equal(t, "1000stake", propJSON.Deposit)
+}
+
+func TestNewAllowListedValidatorSetChangeProposalJSON(t *testing.T) {
+	propJSON := NewAllowListedValidatorSetChangeProposalJSON(
+		"title",
+		"description",
+		"1000stake",
+		types.AllowListedValidators{
+			AllowListedValidators: []types.AllowListedValidator{{
+				ValidatorAddress: "Valaddr",
+				TargetWeight:     sdk.OneDec(),
+			}}},
+	)
+
+	require.Equal(t, "title", propJSON.Title)
+	require.Equal(t, "description", propJSON.Description)
+	require.Equal(t, "Valaddr", propJSON.AllowListedValidators.AllowListedValidators[0].ValidatorAddress)
+	require.Equal(t, sdk.OneDec(), propJSON.AllowListedValidators.AllowListedValidators[0].TargetWeight)
+	require.Equal(t, "1000stake", propJSON.Deposit)
+
 }

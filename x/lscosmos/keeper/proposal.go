@@ -61,3 +61,63 @@ func HandleRegisterHostChainProposal(ctx sdk.Context, k Keeper, content types.Re
 	k.SetAllowListedValidators(ctx, content.AllowListedValidators)
 	return nil
 }
+
+// HandleMinDepositAndFeeChangeProposal changes host chain params for desired min-deposit and protocol fee
+func HandleMinDepositAndFeeChangeProposal(ctx sdk.Context, k Keeper, content types.MinDepositAndFeeChangeProposal) error {
+	if !k.GetModuleState(ctx) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
+	}
+
+	hostChainParams := k.GetHostChainParams(ctx)
+	if hostChainParams.IsEmpty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
+	}
+
+	// modify oldData with the new proposal content
+	hostChainParams.MinDeposit = content.MinDeposit
+	hostChainParams.PstakeDepositFee = content.PstakeDepositFee
+	hostChainParams.PstakeRestakeFee = content.PstakeRestakeFee
+	hostChainParams.PstakeUnstakeFee = content.PstakeUnstakeFee
+
+	k.SetHostChainParams(ctx, hostChainParams)
+
+	return nil
+}
+
+// HandlePstakeFeeAddressChangeProposal changes fee collector address
+func HandlePstakeFeeAddressChangeProposal(ctx sdk.Context, k Keeper, content types.PstakeFeeAddressChangeProposal) error {
+	if !k.GetModuleState(ctx) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
+	}
+
+	hostChainParams := k.GetHostChainParams(ctx)
+	if hostChainParams.IsEmpty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
+	}
+
+	// modify oldData with the new proposal content
+	hostChainParams.PstakeFeeAddress = content.PstakeFeeAddress
+
+	k.SetHostChainParams(ctx, hostChainParams)
+
+	return nil
+}
+
+// HandleAllowListedValidatorSetChangeProposal changes the allowList validator set
+func HandleAllowListedValidatorSetChangeProposal(ctx sdk.Context, k Keeper, content types.AllowListedValidatorSetChangeProposal) error {
+	if !k.GetModuleState(ctx) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
+	}
+
+	hostChainParams := k.GetHostChainParams(ctx)
+	if hostChainParams.IsEmpty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
+	}
+
+	if !content.AllowListedValidators.Valid() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Allow listed validators is invalid")
+	}
+
+	k.SetAllowListedValidators(ctx, content.AllowListedValidators)
+	return nil
+}

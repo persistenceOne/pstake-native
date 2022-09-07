@@ -65,19 +65,19 @@ func (k Keeper) GetCValue(ctx sdk.Context) sdk.Dec {
 	return sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(stakedAmount))
 }
 
-func (k Keeper) ConvertStkToToken(ctx sdk.Context, stkCoin sdk.Coin) (sdk.Coin, sdk.DecCoin) {
+func (k Keeper) ConvertStkToToken(ctx sdk.Context, stkCoin sdk.DecCoin) (sdk.Coin, sdk.DecCoin) {
 
 	// calculate the current stkToken value
-	tokenValue := stkCoin.Amount.ToDec().Mul(sdk.OneDec().Quo(k.GetCValue(ctx)))
+	tokenValue := stkCoin.Amount.Mul(sdk.OneDec().Quo(k.GetCValue(ctx)))
 
 	return sdk.NewDecCoinFromDec(k.GetIBCDenom(ctx), tokenValue).TruncateDecimal()
 }
 
-func (k Keeper) ConvertTokenToStk(ctx sdk.Context, token sdk.Coin) (sdk.Coin, sdk.DecCoin) {
+func (k Keeper) ConvertTokenToStk(ctx sdk.Context, token sdk.DecCoin) (sdk.Coin, sdk.DecCoin) {
 	mintDenom := k.GetHostChainParams(ctx).MintDenom
 
 	// calculate the current token value
-	tokenValue := token.Amount.ToDec().Mul(k.GetCValue(ctx))
+	tokenValue := token.Amount.Mul(k.GetCValue(ctx))
 
 	return sdk.NewDecCoinFromDec(mintDenom, tokenValue).TruncateDecimal()
 }
