@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
@@ -58,6 +59,112 @@ func ParseRegisterHostChainProposalJSON(cdc *codec.LegacyAmino, proposalFile str
 		return proposal, err
 	}
 
+	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
+		return proposal, err
+	}
+
+	return proposal, nil
+}
+
+type MinDepositAndFeeChangeProposalJSON struct {
+	Title            string `json:"title" yaml:"title"`
+	Description      string `json:"description" yaml:"description"`
+	MinDeposit       string `json:"min_deposit" yaml:"min_deposit"`
+	PstakeDepositFee string `json:"pstake_deposit_fee" yaml:"pstake_deposit_fee"`
+	PstakeRestakeFee string `json:"pstake_restake_fee" yaml:"pstake_restake_fee"`
+	PstakeUnstakeFee string `json:"pstake_unstake_fee" yaml:"pstake_unstake_fee"`
+	Deposit          string `json:"deposit" yaml:"deposit"`
+}
+
+func NewMinDepositAndFeeChangeJSON(title, description, minDeposit, pstakeDepositFee, pstakeRestakeFee,
+	pstakeUnstakeFee, deposit string) MinDepositAndFeeChangeProposalJSON {
+	return MinDepositAndFeeChangeProposalJSON{
+		Title:            title,
+		Description:      description,
+		MinDeposit:       minDeposit,
+		PstakeDepositFee: pstakeDepositFee,
+		PstakeRestakeFee: pstakeRestakeFee,
+		PstakeUnstakeFee: pstakeUnstakeFee,
+		Deposit:          deposit,
+	}
+
+}
+
+// ParseMinDepositAndFeeChangeProposalJSON reads and parses a MinDepositAndFeeChangeProposal from
+// file.
+func ParseMinDepositAndFeeChangeProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (MinDepositAndFeeChangeProposalJSON, error) {
+	proposal := MinDepositAndFeeChangeProposalJSON{}
+
+	contents, err := os.ReadFile(proposalFile)
+	if err != nil {
+		return proposal, err
+	}
+	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
+		return proposal, err
+	}
+
+	return proposal, nil
+}
+
+type PstakeFeeAddressChangeProposalJSON struct {
+	Title            string `json:"title" yaml:"title"`
+	Description      string `json:"description" yaml:"description"`
+	PstakeFeeAddress string `json:"pstake_fee_address" yaml:"pstake_fee_address"`
+	Deposit          string `json:"deposit" yaml:"deposit"`
+}
+
+func NewPstakeFeeAddressChangeProposalJSON(title, description, pstakeFeeAddress, deposit string) PstakeFeeAddressChangeProposalJSON {
+	return PstakeFeeAddressChangeProposalJSON{
+		Title:            title,
+		Description:      description,
+		PstakeFeeAddress: pstakeFeeAddress,
+		Deposit:          deposit,
+	}
+
+}
+
+// ParsePstakeFeeAddressChangeProposalJSON reads and parses a PstakeFeeAddressChangeProposal  from
+// file.
+func ParsePstakeFeeAddressChangeProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (PstakeFeeAddressChangeProposalJSON, error) {
+	proposal := PstakeFeeAddressChangeProposalJSON{}
+
+	contents, err := os.ReadFile(proposalFile)
+	if err != nil {
+		return proposal, err
+	}
+	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
+		return proposal, err
+	}
+
+	return proposal, nil
+}
+
+type AllowListedValidatorSetChangeProposalJSON struct {
+	Title                 string                      `json:"title" yaml:"title"`
+	Description           string                      `json:"description" yaml:"description"`
+	AllowListedValidators types.AllowListedValidators `json:"allow_listed_validators" yaml:"allow_listed_validators"`
+	Deposit               string                      `json:"deposit" yaml:"deposit"`
+}
+
+func NewAllowListedValidatorSetChangeProposalJSON(title, description, deposit string, allowListedValidators types.AllowListedValidators) AllowListedValidatorSetChangeProposalJSON {
+	return AllowListedValidatorSetChangeProposalJSON{
+		Title:                 title,
+		Description:           description,
+		AllowListedValidators: allowListedValidators,
+		Deposit:               deposit,
+	}
+
+}
+
+// ParseAllowListedValidatorSetChangeProposalJSON  reads and parses a AllowListedValidatorSetChangeProposalJSON  from
+// file.
+func ParseAllowListedValidatorSetChangeProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (AllowListedValidatorSetChangeProposalJSON, error) {
+	proposal := AllowListedValidatorSetChangeProposalJSON{}
+
+	contents, err := os.ReadFile(proposalFile)
+	if err != nil {
+		return proposal, err
+	}
 	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
 		return proposal, err
 	}
