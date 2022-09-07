@@ -104,3 +104,36 @@ func ParseMinDepositAndFeeChangeProposalJSON(cdc *codec.LegacyAmino, proposalFil
 
 	return proposal, nil
 }
+
+type FeeAddressChangeProposalJSON struct {
+	Title            string `json:"title" yaml:"title"`
+	Description      string `json:"description" yaml:"description"`
+	PstakeFeeAddress string `json:"pstake_fee_address" yaml:"pstake_fee_address"`
+	Deposit          string `json:"deposit" yaml:"deposit"`
+}
+
+func NewFeeAddressChangeProposalJSON(title, description, pstakeFeeAddress, deposit string) FeeAddressChangeProposalJSON {
+	return FeeAddressChangeProposalJSON{
+		Title:            title,
+		Description:      description,
+		PstakeFeeAddress: pstakeFeeAddress,
+		Deposit:          deposit,
+	}
+
+}
+
+// ParseFeeAddressChangeProposalJSON reads and parses a FeeAddressChangeProposal  from
+// file.
+func ParseFeeAddressChangeProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (FeeAddressChangeProposalJSON, error) {
+	proposal := FeeAddressChangeProposalJSON{}
+
+	contents, err := os.ReadFile(proposalFile)
+	if err != nil {
+		return proposal, err
+	}
+	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
+		return proposal, err
+	}
+
+	return proposal, nil
+}

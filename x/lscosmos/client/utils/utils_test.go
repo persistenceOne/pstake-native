@@ -66,3 +66,16 @@ func TestNewMinDepositAndFeeChangeJSON(t *testing.T) {
 	require.Equal(t, "0.0", rcj.PstakeUnstakeFee)
 	require.Equal(t, "1000stake", rcj.Deposit)
 }
+
+func TestNewStrMinDepositAndFeeChangeJSON(t *testing.T) {
+	rcj := NewFeeAddressChangeProposalJSON(
+		"title",
+		"description",
+		"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+		"1000stake")
+
+	require.Equal(t, "title", rcj.Title)
+	require.Equal(t, "description", rcj.Description)
+	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", rcj.PstakeFeeAddress)
+	require.Equal(t, "1000stake", rcj.Deposit)
+}

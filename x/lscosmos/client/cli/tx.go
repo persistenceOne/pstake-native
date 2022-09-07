@@ -244,3 +244,68 @@ $ %s tx gov submit-proposal min-deposit-and-fee-change  <path/to/proposal.json> 
 		},
 	}
 }
+
+func NewFeeCollectorChangeCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "change-fee-collector-address [proposal-file]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a fee collector change proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a fee collector change proposal along with an initial deposit
+The proposal details must be supplied via a JSON file. For values that contains objects,
+only non-empty fields will be updated.
+
+IMPORTANT : The values for the fields in this proposal are not validated, so it is very
+important that any value change is valid.
+
+Example Proposal :
+{
+	"title": "change fee collector address",
+	"description": "this proposal changes fee collector address in the chain",
+	"pstake_fee_address" : "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9"
+	"deposit": "100stake"
+}
+
+Example:
+$ %s tx gov submit-proposal change-fee-collector-address <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			proposal, err := utils.ParseFeeAddressChangeProposalJSON(clientCtx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			from := clientCtx.GetFromAddress()
+
+			feeCollectorAddress, err := sdk.AccAddressFromBech32(proposal.PstakeFeeAddress)
+			if err != nil {
+				return err
+			}
+
+			content := types.NewFeeCollectorAddressChangeProposal(
+				proposal.Title,
+				proposal.Description,
+				feeCollectorAddress.String(),
+			)
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+}

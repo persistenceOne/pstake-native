@@ -68,3 +68,18 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 	require.Nil(t, pcp.ValidateBasic())
 
 }
+
+func TestNewFeeCollectorAddressChangeProposal(t *testing.T) {
+	pcp := types.NewFeeCollectorAddressChangeProposal(
+		"title",
+		"description",
+		"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+	)
+
+	require.Equal(t, "title", pcp.GetTitle())
+	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", pcp.PstakeFeeAddress)
+	require.Equal(t, types.RouterKey, pcp.ProposalRoute())
+	require.Equal(t, types.ProposalFeeCollectorAddressChange, pcp.ProposalType())
+	require.Nil(t, pcp.ValidateBasic())
+
+}
