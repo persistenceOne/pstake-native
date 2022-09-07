@@ -77,8 +77,8 @@ func HandleMinDepositAndFeeChangeProposal(ctx sdk.Context, k Keeper, content typ
 	return nil
 }
 
-// HandleFeeCollectorAddressChangeProposal changes fee collector address
-func HandleFeeCollectorAddressChangeProposal(ctx sdk.Context, k Keeper, content types.FeeCollectorAddressChangeProposal) error {
+// HandlePstakeFeeAddressChangeProposal changes fee collector address
+func HandlePstakeFeeAddressChangeProposal(ctx sdk.Context, k Keeper, content types.PstakeFeeAddressChangeProposal) error {
 	oldData := k.GetHostChainParams(ctx)
 	if oldData.IsEmpty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")

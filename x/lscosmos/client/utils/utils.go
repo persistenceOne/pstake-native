@@ -105,15 +105,15 @@ func ParseMinDepositAndFeeChangeProposalJSON(cdc *codec.LegacyAmino, proposalFil
 	return proposal, nil
 }
 
-type FeeAddressChangeProposalJSON struct {
+type PstakeFeeAddressChangeProposalJSON struct {
 	Title            string `json:"title" yaml:"title"`
 	Description      string `json:"description" yaml:"description"`
 	PstakeFeeAddress string `json:"pstake_fee_address" yaml:"pstake_fee_address"`
 	Deposit          string `json:"deposit" yaml:"deposit"`
 }
 
-func NewFeeAddressChangeProposalJSON(title, description, pstakeFeeAddress, deposit string) FeeAddressChangeProposalJSON {
-	return FeeAddressChangeProposalJSON{
+func NewPstakeFeeAddressChangeProposalJSON(title, description, pstakeFeeAddress, deposit string) PstakeFeeAddressChangeProposalJSON {
+	return PstakeFeeAddressChangeProposalJSON{
 		Title:            title,
 		Description:      description,
 		PstakeFeeAddress: pstakeFeeAddress,
@@ -122,10 +122,10 @@ func NewFeeAddressChangeProposalJSON(title, description, pstakeFeeAddress, depos
 
 }
 
-// ParseFeeAddressChangeProposalJSON reads and parses a FeeAddressChangeProposal  from
+// ParsePstakeFeeAddressChangeProposalJSON reads and parses a PstakeFeeAddressChangeProposal  from
 // file.
-func ParseFeeAddressChangeProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (FeeAddressChangeProposalJSON, error) {
-	proposal := FeeAddressChangeProposalJSON{}
+func ParsePstakeFeeAddressChangeProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (PstakeFeeAddressChangeProposalJSON, error) {
+	proposal := PstakeFeeAddressChangeProposalJSON{}
 
 	contents, err := os.ReadFile(proposalFile)
 	if err != nil {

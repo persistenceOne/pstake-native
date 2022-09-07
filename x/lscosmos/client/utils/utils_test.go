@@ -68,7 +68,7 @@ func TestNewMinDepositAndFeeChangeJSON(t *testing.T) {
 }
 
 func TestNewStrMinDepositAndFeeChangeJSON(t *testing.T) {
-	rcj := NewFeeAddressChangeProposalJSON(
+	rcj := NewPstakeFeeAddressChangeProposalJSON(
 		"title",
 		"description",
 		"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",

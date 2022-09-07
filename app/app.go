@@ -149,7 +149,7 @@ var (
 			ibcclientclient.UpgradeProposalHandler,
 			lscosmosclient.RegisterHostChainProposalHandler,
 			lscosmosclient.MinDepositAndFeeChangeProposalHandler,
-			lscosmosclient.FeeCollectorAddressChangeProposalHandler,
+			lscosmosclient.PstakeFeeAddressChangeProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},

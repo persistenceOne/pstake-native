@@ -46,7 +46,7 @@ message MinDepositAndFeeChangeProposal {
   string pstake_unstake_fee = 6[(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
 
-message FeeCollectorAddressChangeProposal {
+message PstakeFeeAddressChangeProposal {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_stringer) = false;
 

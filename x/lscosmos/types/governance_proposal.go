@@ -11,13 +11,13 @@ import (
 const (
 	ProposalTypeRegisterHostChain      = "RegisterHostChain"
 	ProposalTypeMinDepositAndFeeChange = "MinDepositAndFeeChange"
-	ProposalFeeCollectorAddressChange  = "FeeCollectorAddressChange"
+	ProposalPstakeFeeAddressChange     = "PstakeFeeAddressChange"
 )
 
 var (
 	_ govtypes.Content = &RegisterHostChainProposal{}
 	_ govtypes.Content = &MinDepositAndFeeChangeProposal{}
-	_ govtypes.Content = &FeeCollectorAddressChangeProposal{}
+	_ govtypes.Content = &PstakeFeeAddressChangeProposal{}
 )
 
 func init() {
@@ -25,8 +25,8 @@ func init() {
 	govtypes.RegisterProposalTypeCodec(&RegisterHostChainProposal{}, "persistenceCore/RegisterHostChain")
 	govtypes.RegisterProposalType(ProposalTypeMinDepositAndFeeChange)
 	govtypes.RegisterProposalTypeCodec(&MinDepositAndFeeChangeProposal{}, "persistenceCore/MinDepositAndFeeChange")
-	govtypes.RegisterProposalType(ProposalFeeCollectorAddressChange)
-	govtypes.RegisterProposalTypeCodec(&FeeCollectorAddressChangeProposal{}, "persistenceCore/FeeCollectorAddressChange")
+	govtypes.RegisterProposalType(ProposalPstakeFeeAddressChange)
+	govtypes.RegisterProposalTypeCodec(&PstakeFeeAddressChangeProposal{}, "persistenceCore/PstakeFeeAddressChange")
 }
 
 // NewRegisterHostChainProposal creates a new multisig change proposal.
@@ -215,38 +215,38 @@ PstakeUnstakeFee: 	   %s
 	return b.String()
 }
 
-// NewFeeCollectorAddressChangeProposal creates a fee collector address change proposal.
-func NewFeeCollectorAddressChangeProposal(title, description,
-	pstakeFeeAddress string) *FeeCollectorAddressChangeProposal {
-	return &FeeCollectorAddressChangeProposal{
+// NewPstakeFeeAddressChangeProposal creates a pstake fee  address change proposal.
+func NewPstakeFeeAddressChangeProposal(title, description,
+	pstakeFeeAddress string) *PstakeFeeAddressChangeProposal {
+	return &PstakeFeeAddressChangeProposal{
 		Title:            title,
 		Description:      description,
 		PstakeFeeAddress: pstakeFeeAddress,
 	}
 }
 
-// GetTitle returns the title of fee collector address change proposal.
-func (m *FeeCollectorAddressChangeProposal) GetTitle() string {
+// GetTitle returns the title of fee collector pstake fee address change proposal.
+func (m *PstakeFeeAddressChangeProposal) GetTitle() string {
 	return m.Title
 }
 
-// GetDescription returns the description of the fee collector address proposal.
-func (m *FeeCollectorAddressChangeProposal) GetDescription() string {
+// GetDescription returns the description of the pstake fee address proposal.
+func (m *PstakeFeeAddressChangeProposal) GetDescription() string {
 	return m.Description
 }
 
-// ProposalRoute returns the proposal-route of fee collector address proposal.
-func (m *FeeCollectorAddressChangeProposal) ProposalRoute() string {
+// ProposalRoute returns the proposal-route of pstake fee address proposal.
+func (m *PstakeFeeAddressChangeProposal) ProposalRoute() string {
 	return RouterKey
 }
 
-// ProposalType returns the proposal-type of fee collector address change proposal.
-func (m *FeeCollectorAddressChangeProposal) ProposalType() string {
-	return ProposalFeeCollectorAddressChange
+// ProposalType returns the proposal-type of pstake fee address change proposal.
+func (m *PstakeFeeAddressChangeProposal) ProposalType() string {
+	return ProposalPstakeFeeAddressChange
 }
 
 // ValidateBasic runs basic stateless validity checks
-func (m *FeeCollectorAddressChangeProposal) ValidateBasic() error {
+func (m *PstakeFeeAddressChangeProposal) ValidateBasic() error {
 	err := govtypes.ValidateAbstract(m)
 	if err != nil {
 		return err
@@ -256,9 +256,9 @@ func (m *FeeCollectorAddressChangeProposal) ValidateBasic() error {
 }
 
 // String returns the string of proposal details
-func (m *FeeCollectorAddressChangeProposal) String() string {
+func (m *PstakeFeeAddressChangeProposal) String() string {
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf(`FeeCollectorAddressChange:
+	b.WriteString(fmt.Sprintf(`PstakeFeeAddressChange:
 Title:                 %s
 Description:           %s
 PstakeFeeAddress: 	   %s
