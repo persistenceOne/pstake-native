@@ -20,7 +20,7 @@ func (suite *IntegrationTestSuite) TestHandleRewardsAccountCallbacks() {
 	suite.NoError(err)
 
 	err = lscosmosKeeper.HandleRewardsAccountBalanceCallback(ctx, queryBalancesResponse, icqtypes.Query{})
-	suite.Error(err)
+	suite.NoError(err)
 
 	delegationState := types.DelegationState{
 		HostDelegationAccountBalance: sdk.NewCoins(sdk.NewInt64Coin(hostChainParams.BaseDenom, 100)),
