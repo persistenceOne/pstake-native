@@ -68,18 +68,18 @@ func HandleMinDepositAndFeeChangeProposal(ctx sdk.Context, k Keeper, content typ
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
 	}
 
-	oldData := k.GetHostChainParams(ctx)
-	if oldData.IsEmpty() {
+	hostChainParams := k.GetHostChainParams(ctx)
+	if hostChainParams.IsEmpty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
 	}
 
 	// modify oldData with the new proposal content
-	oldData.MinDeposit = content.MinDeposit
-	oldData.PstakeDepositFee = content.PstakeDepositFee
-	oldData.PstakeRestakeFee = content.PstakeRestakeFee
-	oldData.PstakeUnstakeFee = content.PstakeUnstakeFee
+	hostChainParams.MinDeposit = content.MinDeposit
+	hostChainParams.PstakeDepositFee = content.PstakeDepositFee
+	hostChainParams.PstakeRestakeFee = content.PstakeRestakeFee
+	hostChainParams.PstakeUnstakeFee = content.PstakeUnstakeFee
 
-	k.SetHostChainParams(ctx, oldData)
+	k.SetHostChainParams(ctx, hostChainParams)
 
 	return nil
 }
@@ -90,15 +90,15 @@ func HandlePstakeFeeAddressChangeProposal(ctx sdk.Context, k Keeper, content typ
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
 	}
 
-	oldData := k.GetHostChainParams(ctx)
-	if oldData.IsEmpty() {
+	hostChainParams := k.GetHostChainParams(ctx)
+	if hostChainParams.IsEmpty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
 	}
 
 	// modify oldData with the new proposal content
-	oldData.PstakeFeeAddress = content.PstakeFeeAddress
+	hostChainParams.PstakeFeeAddress = content.PstakeFeeAddress
 
-	k.SetHostChainParams(ctx, oldData)
+	k.SetHostChainParams(ctx, hostChainParams)
 
 	return nil
 }
@@ -109,8 +109,8 @@ func HandleAllowListedValidatorSetChangeProposal(ctx sdk.Context, k Keeper, cont
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
 	}
 
-	oldData := k.GetHostChainParams(ctx)
-	if oldData.IsEmpty() {
+	hostChainParams := k.GetHostChainParams(ctx)
+	if hostChainParams.IsEmpty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
 	}
 
