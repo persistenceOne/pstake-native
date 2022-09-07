@@ -70,26 +70,25 @@ func (suite *IntegrationTestSuite) SetupTest() {
 
 	suite.path = newPstakeAppPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(suite.path)
+
+	// set host chain params
+	depositFee, err := sdk.NewDecFromStr("0.01")
+	suite.NoError(err)
+
+	restakeFee, err := sdk.NewDecFromStr("0.02")
+	suite.NoError(err)
+
+	unstakeFee, err := sdk.NewDecFromStr("0.03")
+	suite.NoError(err)
+
+	hostChainParams := types.NewHostChainParams("cosmoshub-4", "connection-0", "channel-0", "transfer",
+		"uatom", "ustkatom", "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", sdk.NewInt(5), depositFee, restakeFee, unstakeFee)
+	suite.app.LSCosmosKeeper.SetHostChainParams(suite.ctx, hostChainParams)
 }
 
 func (suite *IntegrationTestSuite) TestMintToken() {
 	pstakeApp, ctx := suite.app, suite.ctx
-
-	testParams := types.RegisterHostChainProposal{
-		Title:                 "register cosmos chain proposal",
-		Description:           "this proposal register cosmos chain params in the chain",
-		ModuleEnabled:         true,
-		ConnectionID:          "test connection",
-		TransferChannel:       "test-channel-1",
-		TransferPort:          "transfer",
-		BaseDenom:             "uatom",
-		MintDenom:             "ustkatom",
-		MinDeposit:            sdk.OneInt().MulRaw(5),
-		AllowListedValidators: types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "addr", TargetWeight: sdk.OneDec()}}},
-		PstakeDepositFee:      sdk.ZeroDec(),
-		PstakeRestakeFee:      sdk.ZeroDec(),
-		PstakeUnstakeFee:      sdk.ZeroDec(),
-	}
+	testParams := pstakeApp.LSCosmosKeeper.GetHostChainParams(ctx)
 
 	ibcDenom := ibctransfertypes.GetPrefixedDenom(testParams.TransferPort, testParams.TransferChannel, testParams.BaseDenom)
 	balanceOfIbcToken := sdk.NewInt64Coin(ibcDenom, 100)

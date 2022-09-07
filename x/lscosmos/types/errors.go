@@ -22,4 +22,8 @@ var (
 	ErrInvalidIntParse                   = sdkerrors.Register(ModuleName, 72, "unable to parse to sdk.Int")
 	ErrICATxFailure                      = sdkerrors.Register(ModuleName, 73, "ica transaction failed")
 	ErrCannotRemoveNonExistentDelegation = sdkerrors.Register(ModuleName, 74, "Cannot remove delegation from a non existing delegation")
+	ErrInValidAllowListedValidators      = sdkerrors.Register(ModuleName, 75, "invalid allow listed validators")
+	ErrInvalidFee                        = sdkerrors.Register(ModuleName, 76, "invalid fee")
+	ErrInvalidDeposit                    = sdkerrors.Register(ModuleName, 77, "invalid deposit")
+	ErrNoHostChainDelegations            = sdkerrors.Register(ModuleName, 78, "no delegations on host chain")
 )
