@@ -25,13 +25,13 @@ var (
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeRegisterHostChain)
-	govtypes.RegisterProposalTypeCodec(&RegisterHostChainProposal{}, "persistenceCore/RegisterHostChain")
+	govtypes.RegisterProposalTypeCodec(&RegisterHostChainProposal{}, "pstake/RegisterHostChain")
 	govtypes.RegisterProposalType(ProposalTypeMinDepositAndFeeChange)
-	govtypes.RegisterProposalTypeCodec(&MinDepositAndFeeChangeProposal{}, "persistenceCore/MinDepositAndFeeChange")
+	govtypes.RegisterProposalTypeCodec(&MinDepositAndFeeChangeProposal{}, "pstake/MinDepositAndFeeChange")
 	govtypes.RegisterProposalType(ProposalPstakeFeeAddressChange)
-	govtypes.RegisterProposalTypeCodec(&PstakeFeeAddressChangeProposal{}, "persistenceCore/PstakeFeeAddressChange")
+	govtypes.RegisterProposalTypeCodec(&PstakeFeeAddressChangeProposal{}, "pstake/PstakeFeeAddressChange")
 	govtypes.RegisterProposalType(ProposalAllowListedValidatorSetChange)
-	govtypes.RegisterProposalTypeCodec(&AllowListedValidatorSetChangeProposal{}, "persistenceCore/AllowListedValidatorSetChange")
+	govtypes.RegisterProposalTypeCodec(&AllowListedValidatorSetChangeProposal{}, "pstake/AllowListedValidatorSetChange")
 }
 
 // NewRegisterHostChainProposal creates a new multisig change proposal.
