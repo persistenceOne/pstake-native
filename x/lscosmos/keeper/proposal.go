@@ -64,56 +64,60 @@ func HandleRegisterHostChainProposal(ctx sdk.Context, k Keeper, content types.Re
 
 // HandleMinDepositAndFeeChangeProposal changes host chain params for desired min-deposit and protocol fee
 func HandleMinDepositAndFeeChangeProposal(ctx sdk.Context, k Keeper, content types.MinDepositAndFeeChangeProposal) error {
+	if !k.GetModuleState(ctx) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
+	}
+
 	oldData := k.GetHostChainParams(ctx)
 	if oldData.IsEmpty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
 	}
 
-	if !k.GetModuleState(ctx) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
-	}
+	// modify oldData with the new proposal content
+	oldData.MinDeposit = content.MinDeposit
+	oldData.PstakeDepositFee = content.PstakeDepositFee
+	oldData.PstakeRestakeFee = content.PstakeRestakeFee
+	oldData.PstakeUnstakeFee = content.PstakeUnstakeFee
 
-	paramsProposal := types.NewHostChainParams(oldData.ChainID, oldData.ConnectionID, oldData.TransferChannel,
-		oldData.TransferPort, oldData.BaseDenom, oldData.MintDenom, oldData.PstakeFeeAddress,
-		content.MinDeposit, content.PstakeDepositFee, content.PstakeRestakeFee, content.PstakeUnstakeFee)
-	k.SetHostChainParams(ctx, paramsProposal)
+	k.SetHostChainParams(ctx, oldData)
 
 	return nil
 }
 
 // HandlePstakeFeeAddressChangeProposal changes fee collector address
 func HandlePstakeFeeAddressChangeProposal(ctx sdk.Context, k Keeper, content types.PstakeFeeAddressChangeProposal) error {
+	if !k.GetModuleState(ctx) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
+	}
+
 	oldData := k.GetHostChainParams(ctx)
 	if oldData.IsEmpty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
 	}
 
-	if !k.GetModuleState(ctx) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
-	}
+	// modify oldData with the new proposal content
+	oldData.PstakeFeeAddress = content.PstakeFeeAddress
 
-	paramsProposal := types.NewHostChainParams(oldData.ChainID, oldData.ConnectionID, oldData.TransferChannel,
-		oldData.TransferPort, oldData.BaseDenom, oldData.MintDenom, content.PstakeFeeAddress,
-		oldData.MinDeposit, oldData.PstakeDepositFee, oldData.PstakeRestakeFee, oldData.PstakeUnstakeFee)
-	k.SetHostChainParams(ctx, paramsProposal)
+	k.SetHostChainParams(ctx, oldData)
 
 	return nil
 }
 
 // HandleAllowListedValidatorSetChangeProposal changes the allowList validator set
 func HandleAllowListedValidatorSetChangeProposal(ctx sdk.Context, k Keeper, content types.AllowListedValidatorSetChangeProposal) error {
+	if !k.GetModuleState(ctx) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
+	}
+
 	oldData := k.GetHostChainParams(ctx)
 	if oldData.IsEmpty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
 	}
 
-	if !k.GetModuleState(ctx) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
-	}
-
 	if !content.AllowListedValidators.Valid() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Allow listed validators is invalid")
 	}
+
 	k.SetAllowListedValidators(ctx, content.AllowListedValidators)
 	return nil
 }
