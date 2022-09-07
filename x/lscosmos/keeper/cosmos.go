@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
@@ -20,4 +21,15 @@ func (k Keeper) GetHostChainParams(ctx sdk.Context) types.HostChainParams {
 	k.cdc.MustUnmarshal(store.Get(types.HostChainParamsKey), &hostChainParams)
 
 	return hostChainParams
+}
+
+func (k Keeper) GetIBCDenom(ctx sdk.Context) string {
+	hostChainParams := k.GetHostChainParams(ctx)
+	ibcDenom := ibctransfertypes.ParseDenomTrace(
+		ibctransfertypes.GetPrefixedDenom(
+			hostChainParams.TransferPort, hostChainParams.TransferChannel, hostChainParams.BaseDenom,
+		),
+	).IBCDenom()
+
+	return ibcDenom
 }

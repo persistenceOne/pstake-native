@@ -85,11 +85,7 @@ func (h EpochsHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoc
 func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) error {
 	// greater than min amount, transfer from deposit to delegation, to ibctransfer.
 	// Right now we only do baseDenom
-	ibcDenom := ibctransfertypes.ParseDenomTrace(
-		ibctransfertypes.GetPrefixedDenom(
-			hostChainParams.TransferPort, hostChainParams.TransferChannel, hostChainParams.BaseDenom,
-		),
-	).IBCDenom()
+	ibcDenom := k.GetIBCDenom(ctx)
 	allDepositBalances := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(lscosmostypes.DepositModuleAccount))
 	depositBalance := sdk.NewCoin(ibcDenom, allDepositBalances.AmountOf(ibcDenom))
 	if depositBalance.Amount.GT(sdk.ZeroInt()) {
