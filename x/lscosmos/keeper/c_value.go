@@ -66,7 +66,6 @@ func (k Keeper) GetCValue(ctx sdk.Context) sdk.Dec {
 }
 
 func (k Keeper) ConvertStkToToken(ctx sdk.Context, stkCoin sdk.Coin) (sdk.Coin, sdk.DecCoin) {
-
 	// calculate the current stkToken value
 	tokenValue := stkCoin.Amount.ToDec().Mul(sdk.OneDec().Quo(k.GetCValue(ctx)))
 
