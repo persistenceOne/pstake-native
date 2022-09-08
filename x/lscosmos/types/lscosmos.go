@@ -25,6 +25,15 @@ func (av *AllowListedValidators) Valid() bool {
 	return sum.Equal(sdk.OneDec())
 }
 
+func GetAddressMap(validators AllowListedValidators) map[string]sdk.Dec {
+	addressMap := map[string]sdk.Dec{}
+
+	for _, val := range validators.AllowListedValidators {
+		addressMap[val.ValidatorAddress] = val.TargetWeight
+	}
+	return addressMap
+}
+
 func NewHostAccountDelegation(validatorAddress string, amount sdk.Coin) HostAccountDelegation {
 	return HostAccountDelegation{
 		ValidatorAddress: validatorAddress,
@@ -57,4 +66,16 @@ func ValAddressFromBech32(address string) (addr sdk.ValAddress, err error) {
 	}
 
 	return bz, nil
+}
+
+// TotalDelegations gives the amount of total delegations on Host Chain.
+func (ds DelegationState) TotalDelegations(denom string) sdk.Coin {
+	total := sdk.NewCoin(denom, sdk.ZeroInt())
+
+	for _, val := range ds.HostAccountDelegations {
+		if val.Amount.Denom == denom {
+			total.Amount = total.Amount.Add(val.Amount.Amount)
+		}
+	}
+	return total
 }
