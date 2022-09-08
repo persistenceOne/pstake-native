@@ -9,6 +9,7 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
+// DelegateMsgs gives the list of Delegate Txs to be executed based on the current state and params.
 func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.Int, denom string) ([]sdk.Msg, error) {
 	valList := k.GetAllowListedValidators(ctx)
 	delegationState := k.GetDelegationState(ctx)
@@ -44,7 +45,7 @@ func FetchValidatorsToDelegate(valList types.AllowListedValidators, delegationSt
 
 // GetIdealCurrentDelegations returns ideal amount of delegations to validators on host chain
 func GetIdealCurrentDelegations(valList types.AllowListedValidators, delegationState types.DelegationState, amt sdk.Coin, reverse bool) types.WeightedAddressAmounts {
-	totalDelegations := delegationState.TotalAmount(amt.Denom)
+	totalDelegations := delegationState.TotalDelegations(amt.Denom)
 
 	curDiffDistribution := types.WeightedAddressAmounts{}
 	delegationMap := types.GetHostAccountDelegationMap(delegationState.HostAccountDelegations)

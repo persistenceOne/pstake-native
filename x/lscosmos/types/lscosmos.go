@@ -68,7 +68,8 @@ func ValAddressFromBech32(address string) (addr sdk.ValAddress, err error) {
 	return bz, nil
 }
 
-func (ds DelegationState) TotalAmount(denom string) sdk.Coin {
+// TotalDelegations gives the amount of total delegations on Host Chain.
+func (ds DelegationState) TotalDelegations(denom string) sdk.Coin {
 	total := sdk.NewCoin(denom, sdk.ZeroInt())
 
 	for _, val := range ds.HostAccountDelegations {

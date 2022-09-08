@@ -35,22 +35,14 @@ func (suite *IntegrationTestSuite) SetupAllowListedValSetAndDelegationState(ws t
 	app.LSCosmosKeeper.SetModuleState(ctx, true)
 	app.LSCosmosKeeper.SetAllowListedValidators(ctx, allowListedVal)
 	app.LSCosmosKeeper.SetDelegationState(ctx, delegationState)
-
-	delState := app.LSCosmosKeeper.GetDelegationState(ctx)
-	allVal := app.LSCosmosKeeper.GetAllowListedValidators(ctx)
-	fmt.Println(delState, allVal)
-
 }
 
 func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSet() {
-	app, ctx := suite.app, suite.ctx
+	_, ctx := suite.app, suite.ctx
 
-	hostChainparams := app.LSCosmosKeeper.GetHostChainParams(ctx)
-	valset := app.LSCosmosKeeper.GetAllowListedValidators(ctx)
 	denom := HostStakingDenom
 	state := testStateData(denom)
 	suite.SetupAllowListedValSetAndDelegationState(state)
-	fmt.Println(hostChainparams, denom, valset)
 
 	// Test data
 	testMatrix := []struct {
