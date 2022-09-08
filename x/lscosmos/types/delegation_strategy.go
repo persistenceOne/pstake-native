@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/json"
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -59,25 +58,6 @@ func (ws WeightedAddressAmounts) Less(i, j int) bool {
 }
 func (ws WeightedAddressAmounts) Swap(i, j int) {
 	ws[i], ws[j] = ws[j], ws[i]
-}
-func (ws WeightedAddressAmounts) Sort() WeightedAddressAmounts {
-	sort.Sort(ws)
-	return ws
-}
-
-func (ws WeightedAddressAmounts) Marshal() ([]byte, error) {
-	if ws == nil {
-		return json.Marshal(WeightedAddressAmounts{})
-	}
-	return json.Marshal(ws)
-}
-
-func (ws WeightedAddressAmounts) Unmarshal(bz []byte) error {
-	err := json.Unmarshal(bz, &ws)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // TotalAmount returns the total amount for a given denom
