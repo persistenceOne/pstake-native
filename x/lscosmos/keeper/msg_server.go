@@ -120,3 +120,71 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	)
 	return &types.MsgLiquidStakeResponse{}, nil
 }
+
+func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.MsgJuiceResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, types.ErrInvalidMessage
+	}
+
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	// sanity check for the arguments of message
+	if ctx.IsZero() || !msg.Amount.IsValid() {
+		return nil, types.ErrInvalidArgs
+	}
+	if !m.GetModuleState(ctx) {
+		return nil, types.ErrModuleDisabled
+	}
+	//GetParams
+	hostChainParams := m.GetHostChainParams(ctx)
+
+	//check for minimum deposit amount
+	if msg.Amount.Amount.LT(hostChainParams.MinDeposit) {
+		return nil, types.ErrMinDeposit
+	}
+
+	expectedIBCPrefix := ibctransfertypes.GetDenomPrefix(hostChainParams.TransferPort, hostChainParams.TransferChannel)
+
+	denomTraceStr, err := m.ibcTransferKeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
+	if err != nil {
+		return nil, err
+	}
+	denomTrace := ibctransfertypes.ParseDenomTrace(denomTraceStr)
+
+	// Check if ibc path matches allowlisted path.
+	if expectedIBCPrefix != denomTrace.GetPrefix() {
+		return nil, types.ErrInvalidDenomPath
+	}
+	//Check if base denom is valid (uatom) , this can be programmed further to accommodate for liquid staked vouchers.
+	if denomTrace.BaseDenom != hostChainParams.BaseDenom {
+		return nil, types.ErrInvalidDenom
+	}
+
+	// check if address in message is correct or not
+	rewarderAddress, err := sdktypes.AccAddressFromBech32(msg.RewarderAddress)
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress
+	}
+
+	//send the rewards boost amount  to the deposit-module account
+	rewardsBoostAmount := sdktypes.NewCoins(msg.Amount)
+	err = m.SendTokensToRewardBoosterModuleAccount(ctx, rewardsBoostAmount, rewarderAddress)
+	if err != nil {
+		return nil, types.ErrFailedDeposit
+	}
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeRewardBoost,
+			sdktypes.NewAttribute(types.AttributeRewarderAddress, rewarderAddress.String()),
+			sdktypes.NewAttribute(types.AttributeAmountRecieved, rewardsBoostAmount.String()),
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.RewarderAddress),
+		)},
+	)
+	return &types.MsgJuiceResponse{}, nil
+}

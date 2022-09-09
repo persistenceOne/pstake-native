@@ -86,6 +86,18 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 	// greater than min amount, transfer from deposit to delegation, to ibctransfer.
 	// Right now we only do baseDenom
 	ibcDenom := k.GetIBCDenom(ctx)
+
+	allRewardBoosterBalances := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(lscosmostypes.RewardBoosterModuleAccount))
+	rewardsBoosterBalance := sdk.NewCoin(ibcDenom, allRewardBoosterBalances.AmountOf(ibcDenom))
+	if rewardsBoosterBalance.Amount.GT(sdk.ZeroInt()) {
+		err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, lscosmostypes.RewardBoosterModuleAccount, lscosmostypes.DelegationModuleAccount, sdk.NewCoins(rewardsBoosterBalance))
+		if err != nil {
+			k.Logger(ctx).Error("Could not send amount from ", lscosmostypes.RewardBoosterModuleAccount, " module account to ",
+				lscosmostypes.DelegationModuleAccount)
+			return err
+		}
+	}
+
 	allDepositBalances := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(lscosmostypes.DepositModuleAccount))
 	depositBalance := sdk.NewCoin(ibcDenom, allDepositBalances.AmountOf(ibcDenom))
 	if depositBalance.Amount.GT(sdk.ZeroInt()) {
