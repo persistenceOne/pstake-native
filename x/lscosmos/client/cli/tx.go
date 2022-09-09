@@ -64,7 +64,7 @@ Example Proposal :
 }
 
 Example:
-$ %s tx gov submit-proposal register-host-chain <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
+$ %s tx gov submit-proposal pstake-lscosmos-register-host-chain <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
 `,
 				version.AppName,
 			),
@@ -186,7 +186,7 @@ Example Proposal :
 }
 
 Example:
-$ %s tx gov submit-proposal min-deposit-and-fee-change  <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
+$ %s tx gov submit-proposal pstake-lscosmos-min-deposit-and-fee-change  <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
 `,
 				version.AppName,
 			),
@@ -267,7 +267,7 @@ Example Proposal :
 }
 
 Example:
-$ %s tx gov submit-proposal change-pstake-fee-address <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
+$ %s tx gov submit-proposal pstake-lscosmos-change-pstake-fee-address <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
 `,
 				version.AppName,
 			),
@@ -339,7 +339,7 @@ Example Proposal :
 }
 
 Example:
-$ %s tx gov submit-proposal change-allow-listed-validator-set <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
+$ %s tx gov submit-proposal pstake-lscosmos-change-allow-listed-validator-set <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
 `,
 				version.AppName,
 			),
