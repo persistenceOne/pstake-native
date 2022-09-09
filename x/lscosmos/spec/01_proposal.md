@@ -54,7 +54,7 @@ Example of a register host chain proposal :
 Sample command to submit a host chain register proposal :
 
 ```
-$ $BIN_NAME tx gov submit-proposal pstake-lscosmos-register-host-chain <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
+$ $BIN_NAME tx gov submit-proposal pstake-lscosmos-min-deposit-and-fee-change  <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
 ```
 
 # Change Min Deposit and Fee Proposal
@@ -70,14 +70,20 @@ Example proposal :
 
 ```json
 {
-  "title": "register host chain proposal",
-  "description": "this proposal register host chain params in the chain",
-  "min_deposit": "1",
-  "pstake_deposit_fee": "0.00",
-  "pstake_restake_fee": "0.05",
-  "pstake_unstake_fee": "0.00",
-  "deposit": "1000000uxprt"
+  "title": "min-deposit and fee change proposal",
+  "description": "this proposal changes min-deposit and protocol fee on chain",
+  "min_deposit": "5",
+  "pstake_deposit_fee": "0.1",
+  "pstake_restake_fee": "0.1",
+  "pstake_unstake_fee": "0.1",
+  "deposit": "1000000stake"
 }
+```
+
+Sample command to submit proposal :
+
+```
+$ $BIN_NAME tx gov submit-proposal pstake-lscosmos-min-deposit-and-fee-change  <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
 ```
 
 It used when there is a need to change all the different types of fees and minimum deposit needed by user to liquid
@@ -93,11 +99,17 @@ Example proposal :
 
 ```json
 {
-  "title": "register host chain proposal",
-  "description": "this proposal register host chain params in the chain",
-  "pstake_fee_address": "persistence108cqtjz7gqasctvrw74kewg6642062kmfuujsd",
-  "deposit": "1000000uxprt"
+  "title": "change pstake fee address",
+  "description": "this proposal changes pstake fee address in the chain",
+  "pstake_fee_address" : "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9"
+  "deposit": "10000000stake"
 }
+```
+
+Sample command to submit proposal :
+
+```
+$ $BIN_NAME tx gov submit-proposal pstake-lscosmos-change-pstake-fee-address <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
 ```
 
 It is used to change the pstake fee address if old one is not needed anymore.
@@ -112,8 +124,8 @@ Example proposal :
 
 ```json
 {
-  "title": "register host chain proposal",
-  "description": "this proposal register host chain params in the chain",
+  "title": "change pstake fee address",
+  "description": "this proposal changes pstake fee address in the chain",
   "allow_listed_validators": {
     "allow_listed_validators": [
       {
@@ -122,8 +134,14 @@ Example proposal :
       }
     ]
   },
-  "deposit": "1000000uxprt"
+  "deposit": "100000stake"
 }
+```
+
+Sample command to submit proposal :
+
+```
+$ $BIN_NAME tx gov submit-proposal pstake-lscosmos-change-allow-listed-validator-set <path/to/proposal.json> --from <key_or_address> --fees <1000stake> --gas <200000>
 ```
 
 It is to change the validator set of lscsomos module if in case the old validator set becomes stale.
