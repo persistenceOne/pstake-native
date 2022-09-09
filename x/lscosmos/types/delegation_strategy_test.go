@@ -14,6 +14,9 @@ func TestWeightedAddressAmounts(t *testing.T) {
 	wa3 := types.NewWeightedAddressAmount("addr3", sdk.NewDecWithPrec(2, 1), sdk.NewCoin("uatom", sdk.NewInt(1010)), sdk.NewCoin("uatom", sdk.NewInt(100)))
 	wa4 := types.NewWeightedAddressAmount("addr4", sdk.NewDecWithPrec(3, 1), sdk.NewCoin("uatom", sdk.NewInt(1003)), sdk.NewCoin("uatom", sdk.NewInt(100)))
 
+	// get coin from weightedAddressAmount
+	require.Equal(t, sdk.NewCoin("uatom", sdk.NewInt(0)), wa1.Coin())
+
 	// create new weighted address amounts using the above 4 weightedAddressAmount
 	weightedAddressAmounts := types.NewWeightedAddressAmounts([]types.WeightedAddressAmount{wa1, wa2, wa3, wa4})
 
