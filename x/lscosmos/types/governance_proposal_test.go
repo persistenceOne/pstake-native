@@ -1,10 +1,13 @@
 package types_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/pstake-native/app"
+	"strings"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/persistenceOne/pstake-native/app"
 	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
@@ -15,42 +18,132 @@ func init() {
 }
 
 func TestParameterChangeProposal(t *testing.T) {
-	pcp := types.NewRegisterHostChainProposal(
-		"title",
-		"description",
-		true,
-		"cosmoshub-4",
-		"connection-0",
-		"channel-1",
-		"transfer",
-		"uatom",
-		"ustkatom",
-		"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
-		sdk.OneInt().MulRaw(5),
-		types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
-		sdk.ZeroDec(),
-		sdk.ZeroDec(),
-		sdk.ZeroDec(),
-	)
+	testCases := []struct {
+		testName      string
+		proposal      types.RegisterHostChainProposal
+		expectedError error
+	}{
+		{
+			testName: "correct proposal content",
+			proposal: *types.NewRegisterHostChainProposal("title", "description", true,
+				"cosmoshub-4", "connection-0", "channel-1", "transfer",
+				"uatom", "ustkatom", "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+				sdk.OneInt().MulRaw(5),
+				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
+				sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(),
+			),
+			expectedError: nil,
+		},
+		{
+			testName: "invalid title length",
+			proposal: *types.NewRegisterHostChainProposal("", "description", true,
+				"cosmoshub-4", "connection-0", "channel-1", "transfer",
+				"uatom", "ustkatom", "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+				sdk.OneInt().MulRaw(5),
+				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
+				sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(),
+			),
+			expectedError: sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, "proposal title cannot be blank"),
+		},
+		{
+			testName: "invalid title length",
+			proposal: *types.NewRegisterHostChainProposal(strings.Repeat("-", 141), "description", true,
+				"cosmoshub-4", "connection-0", "channel-1", "transfer",
+				"uatom", "ustkatom", "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+				sdk.OneInt().MulRaw(5),
+				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
+				sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(),
+			),
+			expectedError: sdkerrors.Wrapf(govtypes.ErrInvalidProposalContent, "proposal title is longer than max length of %d", govtypes.MaxTitleLength),
+		},
+		{
+			testName: "invalid description length",
+			proposal: *types.NewRegisterHostChainProposal("title", "", true,
+				"cosmoshub-4", "connection-0", "channel-1", "transfer",
+				"uatom", "ustkatom", "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+				sdk.OneInt().MulRaw(5),
+				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
+				sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(),
+			),
+			expectedError: sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, "proposal description cannot be blank"),
+		},
+		{
+			testName: "invalid description length",
+			proposal: *types.NewRegisterHostChainProposal("title", strings.Repeat("-", govtypes.MaxDescriptionLength+1), true,
+				"cosmoshub-4", "connection-0", "channel-1", "transfer",
+				"uatom", "ustkatom", "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+				sdk.OneInt().MulRaw(5),
+				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
+				sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(),
+			),
+			expectedError: sdkerrors.Wrapf(govtypes.ErrInvalidProposalContent, "proposal description is longer than max length of %d", govtypes.MaxDescriptionLength),
+		},
+		{
+			testName: "incorrect allow listed validators",
+			proposal: *types.NewRegisterHostChainProposal("title", "description", true,
+				"cosmoshub-4", "connection-0", "channel-1", "transfer",
+				"uatom", "ustkatom", "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+				sdk.OneInt().MulRaw(5),
+				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.ZeroDec()}}},
+				sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(),
+			),
+			expectedError: sdkerrors.Wrapf(types.ErrInValidAllowListedValidators, "allow listed validators is not valid"),
+		},
+		{
+			testName: "incorrect pstake deposit fee",
+			proposal: *types.NewRegisterHostChainProposal("title", "description", true,
+				"cosmoshub-4", "connection-0", "channel-1", "transfer",
+				"uatom", "ustkatom", "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+				sdk.OneInt().MulRaw(5),
+				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
+				sdk.NewDec(10), sdk.ZeroDec(), sdk.ZeroDec(),
+			),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake deposit fee must be between 0 and 1"),
+		},
+		{
+			testName: "incorrect pstake restake fee",
+			proposal: *types.NewRegisterHostChainProposal("title", "description", true,
+				"cosmoshub-4", "connection-0", "channel-1", "transfer",
+				"uatom", "ustkatom", "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+				sdk.OneInt().MulRaw(5),
+				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
+				sdk.ZeroDec(), sdk.NewDec(10), sdk.ZeroDec(),
+			),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake restake fee must be between 0 and 1"),
+		},
+		{
+			testName: "incorrect pstake unstake fee",
+			proposal: *types.NewRegisterHostChainProposal("title", "description", true,
+				"cosmoshub-4", "connection-0", "channel-1", "transfer",
+				"uatom", "ustkatom", "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+				sdk.OneInt().MulRaw(5),
+				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
+				sdk.ZeroDec(), sdk.ZeroDec(), sdk.NewDec(10),
+			),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake unstake fee must be between 0 and 1"),
+		},
+		{
+			testName: "incorrect deposit",
+			proposal: *types.NewRegisterHostChainProposal("title", "description", true,
+				"cosmoshub-4", "connection-0", "channel-1", "transfer",
+				"uatom", "ustkatom", "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
+				sdk.OneInt().MulRaw(-1),
+				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
+				sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(),
+			),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidDeposit, "min deposit must be positive"),
+		},
+	}
 
-	require.Equal(t, "title", pcp.GetTitle())
-	require.Equal(t, "cosmoshub-4", pcp.ChainID)
-	require.Equal(t, "connection-0", pcp.ConnectionID)
-	require.Equal(t, true, pcp.ModuleEnabled)
-	require.Equal(t, "channel-1", pcp.TransferChannel)
-	require.Equal(t, "transfer", pcp.TransferPort)
-	require.Equal(t, "uatom", pcp.BaseDenom)
-	require.Equal(t, "ustkatom", pcp.MintDenom)
-	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", pcp.PstakeFeeAddress)
-	require.Equal(t, sdk.NewInt(5), pcp.MinDeposit)
-	require.Equal(t, "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", pcp.AllowListedValidators.AllowListedValidators[0].ValidatorAddress)
-	require.Equal(t, sdk.OneDec(), pcp.AllowListedValidators.AllowListedValidators[0].TargetWeight)
-	require.Equal(t, sdk.ZeroDec(), pcp.PstakeDepositFee)
-	require.Equal(t, sdk.ZeroDec(), pcp.PstakeRestakeFee)
-	require.Equal(t, sdk.ZeroDec(), pcp.PstakeUnstakeFee)
-	require.Equal(t, types.RouterKey, pcp.ProposalRoute())
-	require.Equal(t, types.ProposalTypeRegisterHostChain, pcp.ProposalType())
-	require.Nil(t, pcp.ValidateBasic())
+	for _, tc := range testCases {
+		require.Equal(t, types.RouterKey, tc.proposal.ProposalRoute())
+		require.Equal(t, types.ProposalTypeRegisterHostChain, tc.proposal.ProposalType())
+
+		if tc.expectedError != nil {
+			require.Equal(t, tc.expectedError.Error(), tc.proposal.ValidateBasic().Error())
+		}
+	}
+
 }
 
 func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
