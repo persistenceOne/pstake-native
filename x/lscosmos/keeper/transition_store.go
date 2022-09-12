@@ -5,49 +5,49 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-// SetIBCTransitionStore sets tokens that are in ibc transition
-func (k Keeper) SetIBCTransitionStore(ctx sdk.Context, ibcAmountTransitionStore types.IbcAmountTransitionStore) {
+// SetIBCTransientStore sets tokens that are in ibc transition
+func (k Keeper) SetIBCTransientStore(ctx sdk.Context, ibcAmountTransientStore types.IBCAmountTransientStore) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.IBCTransitionStore, k.cdc.MustMarshal(&ibcAmountTransitionStore))
+	store.Set(types.IBCTransitionStore, k.cdc.MustMarshal(&ibcAmountTransientStore))
 }
 
-// GetIBCTransitionStore gets tokens that are in ibc transition
-func (k Keeper) GetIBCTransitionStore(ctx sdk.Context) types.IbcAmountTransitionStore {
+// GetIBCTransientStore gets tokens that are in ibc transition
+func (k Keeper) GetIBCTransientStore(ctx sdk.Context) types.IBCAmountTransientStore {
 	store := ctx.KVStore(k.storeKey)
-	var ibcAmountTransitionStore types.IbcAmountTransitionStore
-	k.cdc.MustUnmarshal(store.Get(types.IBCTransitionStore), &ibcAmountTransitionStore)
+	var ibcAmountTransientStore types.IBCAmountTransientStore
+	k.cdc.MustUnmarshal(store.Get(types.IBCTransitionStore), &ibcAmountTransientStore)
 
-	return ibcAmountTransitionStore
+	return ibcAmountTransientStore
 }
 
-// AddIBCTransferToTransitionStore adds ibctransfer tokens that are in ibc transition
+// AddIBCTransferToTransientStore adds ibctransfer tokens that are in ibc transition
 // CONTRACT: to be used atomically with IBCTransfer of tokens from delegation account to it's host counterpart
-func (k Keeper) AddIBCTransferToTransitionStore(ctx sdk.Context, amount sdk.Coin) {
-	transitionStore := k.GetIBCTransitionStore(ctx)
-	transitionStore.IbcTransfer = transitionStore.IbcTransfer.Add(amount)
-	k.SetIBCTransitionStore(ctx, transitionStore)
+func (k Keeper) AddIBCTransferToTransientStore(ctx sdk.Context, amount sdk.Coin) {
+	transientStore := k.GetIBCTransientStore(ctx)
+	transientStore.IBCTransfer = transientStore.IBCTransfer.Add(amount)
+	k.SetIBCTransientStore(ctx, transientStore)
 }
 
-// RemoveIBCTransferFromTransitionStore removes ibctransfer tokens that are in ibc transition
+// RemoveIBCTransferFromTransientStore removes ibctransfer tokens that are in ibc transition
 // CONTRACT: to be used atomically with AddBalanceToDelegationState
-func (k Keeper) RemoveIBCTransferFromTransitionStore(ctx sdk.Context, amount sdk.Coin) {
-	transitionStore := k.GetIBCTransitionStore(ctx)
-	transitionStore.IbcTransfer = transitionStore.IbcTransfer.Sub(sdk.NewCoins(amount))
-	k.SetIBCTransitionStore(ctx, transitionStore)
+func (k Keeper) RemoveIBCTransferFromTransientStore(ctx sdk.Context, amount sdk.Coin) {
+	transientStore := k.GetIBCTransientStore(ctx)
+	transientStore.IBCTransfer = transientStore.IBCTransfer.Sub(sdk.NewCoins(amount))
+	k.SetIBCTransientStore(ctx, transientStore)
 }
 
-// AddICADelegateToTransitionStore adds ibctransfer tokens that are in ibc transition
+// AddICADelegateToTransientStore adds ibctransfer tokens that are in ibc transition
 // CONTRACT: to be used atomically with RemoveBalanceFromDelegationState
-func (k Keeper) AddICADelegateToTransitionStore(ctx sdk.Context, amount sdk.Coin) {
-	transitionStore := k.GetIBCTransitionStore(ctx)
-	transitionStore.IcaDelegate = transitionStore.IcaDelegate.Add(amount)
-	k.SetIBCTransitionStore(ctx, transitionStore)
+func (k Keeper) AddICADelegateToTransientStore(ctx sdk.Context, amount sdk.Coin) {
+	transientStore := k.GetIBCTransientStore(ctx)
+	transientStore.ICADelegate = transientStore.ICADelegate.Add(amount)
+	k.SetIBCTransientStore(ctx, transientStore)
 }
 
-// RemoveICADelegateFromTransitionStore removes ibctransfer tokens that are in ibc transition
+// RemoveICADelegateFromTransientStore removes ibctransfer tokens that are in ibc transition
 // Contract: to be used atomically with AddHostAccountDelegation
-func (k Keeper) RemoveICADelegateFromTransitionStore(ctx sdk.Context, amount sdk.Coin) {
-	transitionStore := k.GetIBCTransitionStore(ctx)
-	transitionStore.IcaDelegate = transitionStore.IcaDelegate.Sub(amount)
-	k.SetIBCTransitionStore(ctx, transitionStore)
+func (k Keeper) RemoveICADelegateFromTransientStore(ctx sdk.Context, amount sdk.Coin) {
+	transientStore := k.GetIBCTransientStore(ctx)
+	transientStore.ICADelegate = transientStore.ICADelegate.Sub(amount)
+	k.SetIBCTransientStore(ctx, transientStore)
 }

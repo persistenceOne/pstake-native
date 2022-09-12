@@ -41,7 +41,7 @@ func (k Keeper) DoDelegate(ctx sdk.Context, hostChainDelegationAddress, connecti
 
 	amountToDelegate := sdk.NewCoin(baseDenom, delegatableAmount)
 	k.RemoveBalanceFromDelegationState(ctx, sdk.NewCoins(amountToDelegate))
-	k.AddICADelegateToTransitionStore(ctx, amountToDelegate)
+	k.AddICADelegateToTransientStore(ctx, amountToDelegate)
 
 	return nil
 }

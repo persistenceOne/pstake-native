@@ -68,10 +68,10 @@ message HostChainRewardAddress {
   string address = 1;
 }
 
-message ibcAmountTransitionStore {
+message IBCAmountTransientStore {
   // ibc_transfer stores only tokens which have ibc denoms "ibc/HEXHASH"
-  repeated cosmos.base.v1beta1.Coin ibc_transfer = 1 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  repeated cosmos.base.v1beta1.Coin i_b_c_transfer = 1 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
   // ica_delegate stores only token which has staking baseDenom
-  cosmos.base.v1beta1.Coin ica_delegate = 2  [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin i_c_a_delegate = 2  [(gogoproto.nullable) = false];
 }
 
