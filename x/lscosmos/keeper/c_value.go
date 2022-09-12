@@ -26,13 +26,23 @@ func (k Keeper) GetDelegationAccountAmount(ctx sdk.Context) sdk.Int {
 }
 
 func (k Keeper) GetIBCTransferTransientAmount(ctx sdk.Context) sdk.Int {
-	// TODO get amount from transient state
-	return sdk.ZeroInt()
+	transferAmount := k.GetIBCTransitionStore(ctx).IbcTransfer
+
+	sum := sdk.ZeroInt()
+	for _, coin := range transferAmount {
+		sum = sum.Add(coin.Amount)
+	}
+
+	return sum
 }
 
 func (k Keeper) GetDelegationTransientAmount(ctx sdk.Context) sdk.Int {
-	// TODO get amount from transient state
-	return sdk.ZeroInt()
+	icaDelegateAmount := k.GetIBCTransitionStore(ctx).IcaDelegate.Amount
+	if icaDelegateAmount.IsNil() {
+		return sdk.ZeroInt()
+	}
+
+	return icaDelegateAmount
 }
 
 func (k Keeper) GetStakedAmount(ctx sdk.Context) sdk.Int {

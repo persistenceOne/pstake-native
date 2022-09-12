@@ -269,8 +269,10 @@ func (m *HostChainRewardAddress) XXX_DiscardUnknown() {
 var xxx_messageInfo_HostChainRewardAddress proto.InternalMessageInfo
 
 type IbcAmountTransitionStore struct {
+	// ibc_transfer stores only tokens which have ibc denoms "ibc/HEXHASH"
 	IbcTransfer github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=ibc_transfer,json=ibcTransfer,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"ibc_transfer"`
-	IcaDelegate types.Coin                               `protobuf:"bytes,2,opt,name=ica_delegate,json=icaDelegate,proto3" json:"ica_delegate"`
+	// ica_delegate stores only token which has staking baseDenom
+	IcaDelegate types.Coin `protobuf:"bytes,2,opt,name=ica_delegate,json=icaDelegate,proto3" json:"ica_delegate"`
 }
 
 func (m *IbcAmountTransitionStore) Reset()         { *m = IbcAmountTransitionStore{} }
