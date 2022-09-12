@@ -139,11 +139,6 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 	//GetParams
 	hostChainParams := m.GetHostChainParams(ctx)
 
-	//check for minimum deposit amount
-	if msg.Amount.Amount.LT(hostChainParams.MinDeposit) {
-		return nil, types.ErrMinDeposit
-	}
-
 	expectedIBCPrefix := ibctransfertypes.GetDenomPrefix(hostChainParams.TransferPort, hostChainParams.TransferChannel)
 
 	denomTraceStr, err := m.ibcTransferKeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
