@@ -129,6 +129,7 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 		k.Logger(ctx).Error(fmt.Sprintf("could not send transfer msg via MsgServiceRouter, error: %s", err))
 		return err
 	}
+	k.AddIBCTransferToTransientStore(ctx, delegationBalance)
 
 	ctx.EventManager().EmitEvents(res.GetEvents())
 
@@ -220,7 +221,7 @@ func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet chann
 		return ibctransfertypes.ErrInvalidAmount
 	}
 	k.AddBalanceToDelegationState(ctx, sdk.NewCoin(hostChainParams.BaseDenom, amount))
-
+	k.RemoveIBCTransferFromTransientStore(ctx, sdk.NewCoin(data.GetDenom(), amount))
 	return nil
 }
 
