@@ -5,13 +5,13 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-// SetIBCTransitionStore sets allowlisted validator set
+// SetIBCTransitionStore sets tokens that are in ibc transition
 func (k Keeper) SetIBCTransitionStore(ctx sdk.Context, ibcAmountTransitionStore types.IbcAmountTransitionStore) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.IBCTransitionStore, k.cdc.MustMarshal(&ibcAmountTransitionStore))
 }
 
-// GetIBCTransitionStore gets the allow listed validator set
+// GetIBCTransitionStore gets tokens that are in ibc transition
 func (k Keeper) GetIBCTransitionStore(ctx sdk.Context) types.IbcAmountTransitionStore {
 	store := ctx.KVStore(k.storeKey)
 	var ibcAmountTransitionStore types.IbcAmountTransitionStore
