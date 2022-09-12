@@ -67,3 +67,9 @@ message HostAccountDelegation {
 message HostChainRewardAddress {
   string address = 1;
 }
+
+message ibcAmountTransitionStore {
+  repeated cosmos.base.v1beta1.Coin ibc_transfer = 1 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  cosmos.base.v1beta1.Coin ica_delegate = 2  [(gogoproto.nullable) = false];
+}
+
