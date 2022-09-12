@@ -4,6 +4,7 @@ package types
 const (
 	EventTypeTimeout     = "timeout"
 	EventTypeLiquidStake = "liquid-stake"
+	EventTypeRewardBoost = "reward-boost"
 	// this line is used by starport scaffolding # ibc/packet/event
 
 	AttributeKeyAckSuccess    = "success"
@@ -13,5 +14,6 @@ const (
 	AttributeAmountRecieved   = "received"
 	AttributePstakeDepositFee = "pstake-deposit-fee"
 	AttributeDelegatorAddress = "address"
+	AttributeRewarderAddress  = "rewarder-address"
 	AttributeValueCategory    = ModuleName
 )

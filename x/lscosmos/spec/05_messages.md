@@ -4,7 +4,7 @@ order: 5
 
 # Messages
 
-## MsgLiquidStake
+### MsgLiquidStake
 
 LiquidStake whitelisted IBC tokens and mint represntative stkTokens .
 
@@ -27,3 +27,10 @@ Example of a liquid staking transaction :
 $ $BIN_NAME tx lscosmos pstake-lscosmos-liquid-stake 2000000ibc/DENOM_HASH  --from <delegator_key_name> --chain-id <chain_id> --keyring-backend <keyring_backend>
 ```
 
+### MsgJuice
+
+Juice is a transaction to boost rewards on the protocol.
+
+This message will fail under following conditions:
+- The coins are not whitelisted for liquid-staking
+- The rewarder address is restricted

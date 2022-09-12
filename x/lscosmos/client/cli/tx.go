@@ -29,6 +29,7 @@ func GetTxCmd() *cobra.Command {
 	// this line is used by starport scaffolding # 1
 	cmd.AddCommand(
 		NewLiquidStakeCmd(),
+		NewJuiceCmd(),
 	)
 
 	return cmd
@@ -375,4 +376,33 @@ $ %s tx gov submit-proposal pstake-lscosmos-change-allow-listed-validator-set <p
 
 		},
 	}
+}
+
+func NewJuiceCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "juice [amount(whitelisted-ibcDenom coin)]",
+		Short: `Boost rewards by depositing ibc/Atom in rewards booster module account.`,
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			rewarderAddress := clientctx.GetFromAddress()
+			msg := types.NewMsgJuice(amount, rewarderAddress)
+
+			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }

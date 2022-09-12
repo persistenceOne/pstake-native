@@ -31,6 +31,9 @@ const (
 	// MsgTypeLiquidStake is the type of message to liquid stake
 	MsgTypeLiquidStake = "msg_liquid_stake"
 
+	// MsgTypeJuice is the type of message Juice
+	MsgTypeJuice = "msg_juice"
+
 	// DepositModuleAccount DepositModuleAccountName
 	DepositModuleAccount = ModuleName + "_pstake_deposit_account"
 
@@ -43,6 +46,9 @@ const (
 	// UndelegationModuleAccount UndelegationModuleAccountName,
 	// This account will not be a part of maccPerms - Deny list, since it receives undelegated tokens.
 	UndelegationModuleAccount = ModuleName + "_pstake_undelegation_account"
+
+	// RewardBoosterModuleAccount RewardBoosterModuleAccountName
+	RewardBoosterModuleAccount = ModuleName + "_reward_booster_account"
 
 	DelegationEpochIdentifier   = "day"
 	RewardEpochIdentifier       = "day"
