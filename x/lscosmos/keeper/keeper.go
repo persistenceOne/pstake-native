@@ -158,6 +158,11 @@ func (k Keeper) SendTokensToDepositModule(ctx sdk.Context, depositCoin sdk.Coins
 	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddress, types.DepositModuleAccount, depositCoin)
 }
 
+// SendTokensToRewardBoosterModuleAccount sends the tokens to DepositModuleAccount
+func (k Keeper) SendTokensToRewardBoosterModuleAccount(ctx sdk.Context, rewardsBoostCoin sdk.Coins, senderAddress sdk.AccAddress) error {
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddress, types.RewardBoosterModuleAccount, rewardsBoostCoin)
+}
+
 // SendResidueToCommunityPool sends the residue stk token to community pool
 func (k Keeper) SendResidueToCommunityPool(ctx sdk.Context, residue []sdk.DecCoin) {
 	feePool := k.distributionKeeper.GetFeePool(ctx)
