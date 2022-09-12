@@ -321,6 +321,7 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 		}
 		// Add delegation state
 		k.AddHostAccountDelegation(ctx, types.NewHostAccountDelegation(parsedMsg.ValidatorAddress, parsedMsg.Amount))
+		k.RemoveICADelegateFromTransientStore(ctx, parsedMsg.Amount)
 
 		return msgResponse.String(), nil
 
