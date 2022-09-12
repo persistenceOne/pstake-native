@@ -87,7 +87,7 @@ func (k Keeper) OnChanOpenAck(
 	}
 
 	if counterpartyVersionData.Version != icatypes.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, icatypes.Version)
 	}
 	//TODO more checks, capability, channelID??
 

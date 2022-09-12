@@ -22,12 +22,6 @@ const (
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_lscosmos"
 
-	// Version defines the current version the IBC module supports
-	Version = "lscosmos-1"
-
-	// PortID is the default port id that module binds to
-	PortID = "lscosmos"
-
 	// MsgTypeLiquidStake is the type of message to liquid stake
 	MsgTypeLiquidStake = "msg_liquid_stake"
 
@@ -72,4 +66,5 @@ var (
 	AllowListedValidatorsKey  = []byte{0x03}
 	DelegationStateKey        = []byte{0x04}
 	HostChainRewardAddressKey = []byte{0x05}
+	IBCTransitionStore        = []byte{0x06}
 )
