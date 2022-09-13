@@ -1,4 +1,4 @@
-package types
+package types_test
 
 import (
 	"fmt"
@@ -6,14 +6,16 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 func TestMsgLiquidStakeRoute(t *testing.T) {
 	delegatorAddr := sdk.AccAddress([]byte("delegatorAddress"))
 	depositToken := sdk.NewInt64Coin("atom", 10)
-	var msg = NewMsgLiquidStake(depositToken, delegatorAddr)
+	var msg = types.NewMsgLiquidStake(depositToken, delegatorAddr)
 
-	require.Equal(t, msg.Route(), RouterKey)
+	require.Equal(t, msg.Route(), types.RouterKey)
 	require.Equal(t, msg.Type(), "msg_liquid_stake")
 }
 
@@ -32,15 +34,15 @@ func TestMsgLiquidStakeValidation(t *testing.T) {
 	}
 	cases := []struct {
 		expectedErr string // empty means no error expected
-		msg         *MsgLiquidStake
+		msg         *types.MsgLiquidStake
 	}{
-		{"", NewMsgLiquidStake(atom123, addr)}, // valid send
-		{"persistence12p6hyur0wdjkvatvd3ujqmr0denjqctyv3ex2umn4nhuy6: invalid address", NewMsgLiquidStake(atom123, addrLong)}, // invalid send with long addr sender
-		{"0atom: invalid coins", NewMsgLiquidStake(atom0, addr)},                                                              // Zero Coin
-		{": invalid address", NewMsgLiquidStake(atom123, addrEmpty)},                                                          // Nil address
-		{"-1atom: invalid coins", NewMsgLiquidStake(atomNegative, addr)},                                                      // Negative coin
-		{"invalid denom trace hash A: encoding/hex: odd length hex string", NewMsgLiquidStake(InvalidIBCDenom, addr)},         // Invalid IBC hash
-		{"invalid denom trace hash AE: expected size to be 32 bytes, got 1 bytes", NewMsgLiquidStake(InvalidIBCDenom2, addr)}, // Negative IBC hash len
+		{"", types.NewMsgLiquidStake(atom123, addr)}, // valid send
+		{"persistence12p6hyur0wdjkvatvd3ujqmr0denjqctyv3ex2umn4nhuy6: invalid address", types.NewMsgLiquidStake(atom123, addrLong)}, // invalid send with long addr sender
+		{"0atom: invalid coins", types.NewMsgLiquidStake(atom0, addr)},                                                              // Zero Coin
+		{": invalid address", types.NewMsgLiquidStake(atom123, addrEmpty)},                                                          // Nil address
+		{"-1atom: invalid coins", types.NewMsgLiquidStake(atomNegative, addr)},                                                      // Negative coin
+		{"invalid denom trace hash A: encoding/hex: odd length hex string", types.NewMsgLiquidStake(InvalidIBCDenom, addr)},         // Invalid IBC hash
+		{"invalid denom trace hash AE: expected size to be 32 bytes, got 1 bytes", types.NewMsgLiquidStake(InvalidIBCDenom2, addr)}, // Negative IBC hash len
 
 	}
 
@@ -57,7 +59,7 @@ func TestMsgLiquidStakeValidation(t *testing.T) {
 func TestNewMsgLiquidStakeGetSignBytes(t *testing.T) {
 	addr := sdk.AccAddress([]byte("input"))
 	coin := sdk.NewInt64Coin("atom", 10)
-	var msg = NewMsgLiquidStake(coin, addr)
+	var msg = types.NewMsgLiquidStake(coin, addr)
 	res := msg.GetSignBytes()
 	excepted := `{"amount":{"amount":"10","denom":"atom"},"delegator_address":"persistence1d9h8qat5et0urd"}`
 	require.Equal(t, excepted, string(res))
@@ -65,7 +67,7 @@ func TestNewMsgLiquidStakeGetSignBytes(t *testing.T) {
 }
 
 func TestMsgLiquidStakeGetSigners(t *testing.T) {
-	var msg = NewMsgLiquidStake(sdk.NewCoin("atom", sdk.NewInt(10)), sdk.AccAddress([]byte("input111111111111111")))
+	var msg = types.NewMsgLiquidStake(sdk.NewCoin("atom", sdk.NewInt(10)), sdk.AccAddress([]byte("input111111111111111")))
 	res := msg.GetSigners()
 	require.Equal(t, fmt.Sprintf("%v", res), "[696E707574313131313131313131313131313131]")
 }

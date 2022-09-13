@@ -15,6 +15,33 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
+var (
+	allowListedValidators = types.AllowListedValidators{
+		AllowListedValidators: []types.AllowListedValidator{
+			{
+				ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
+				TargetWeight:     sdk.NewDecWithPrec(33, 2),
+			},
+			{
+				ValidatorAddress: "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2",
+				TargetWeight:     sdk.NewDecWithPrec(33, 2),
+			},
+			{
+				ValidatorAddress: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
+				TargetWeight:     sdk.NewDecWithPrec(34, 2),
+			},
+		},
+	}
+	ChainID          = "cosmoshub-4"
+	ConnectionID     = "connection-0"
+	TransferChannel  = "channel-0"
+	TransferPort     = "transfer"
+	BaseDenom        = "uatom"
+	MintDenom        = "ustkatom"
+	MinDeposit       = sdk.NewInt(5)
+	PstakeFeeAddress = "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9"
+)
+
 func init() {
 	ibctesting.DefaultTestingAppInit = helpers.SetupTestingApp
 }
@@ -81,9 +108,21 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	unstakeFee, err := sdk.NewDecFromStr("0.03")
 	suite.NoError(err)
 
-	hostChainParams := types.NewHostChainParams("cosmoshub-4", "connection-0", "channel-0", "transfer",
-		"uatom", "ustkatom", "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", sdk.NewInt(5), depositFee, restakeFee, unstakeFee)
+	hostChainParams := types.NewHostChainParams(
+		ChainID,
+		ConnectionID,
+		TransferChannel,
+		TransferPort,
+		BaseDenom,
+		MintDenom,
+		PstakeFeeAddress,
+		MinDeposit,
+		depositFee,
+		restakeFee,
+		unstakeFee,
+	)
 	suite.app.LSCosmosKeeper.SetHostChainParams(suite.ctx, hostChainParams)
+	suite.app.LSCosmosKeeper.SetAllowListedValidators(ctx, allowListedValidators)
 }
 
 func (suite *IntegrationTestSuite) TestMintToken() {

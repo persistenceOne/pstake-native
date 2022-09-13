@@ -52,24 +52,6 @@ func (suite *IntegrationTestSuite) TestQueryAllowListedValidators() {
 
 	c := sdk.WrapSDKContext(ctx)
 
-	allowListedValidators := types.AllowListedValidators{
-		AllowListedValidators: []types.AllowListedValidator{
-			{
-				ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
-				TargetWeight:     sdk.NewDecWithPrec(33, 2),
-			},
-			{
-				ValidatorAddress: "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2",
-				TargetWeight:     sdk.NewDecWithPrec(33, 2),
-			},
-			{
-				ValidatorAddress: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
-				TargetWeight:     sdk.NewDecWithPrec(34, 2),
-			},
-		},
-	}
-	app.LSCosmosKeeper.SetAllowListedValidators(ctx, allowListedValidators)
-
 	qrysrv := types.QueryServer(app.LSCosmosKeeper)
 
 	res, err := qrysrv.AllowListedValidators(c, &types.QueryAllowListedValidatorsRequest{})

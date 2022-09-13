@@ -1,13 +1,13 @@
 package lscosmos_test
 
 import (
-	"github.com/persistenceOne/pstake-native/app/helpers"
 	"testing"
 
-	"github.com/persistenceOne/pstake-native/x/lscosmos"
-
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/pstake-native/app/helpers"
+	"github.com/persistenceOne/pstake-native/x/lscosmos"
+	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 func TestGenesis(t *testing.T) {

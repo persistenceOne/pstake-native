@@ -1,14 +1,16 @@
 package lscosmos_test
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/persistenceOne/pstake-native/app"
 	"github.com/persistenceOne/pstake-native/app/helpers"
 	"github.com/persistenceOne/pstake-native/x/lscosmos"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
-	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type HandlerTestSuite struct {
