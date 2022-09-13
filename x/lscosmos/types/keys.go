@@ -28,6 +28,9 @@ const (
 	// MsgTypeJuice is the type of message Juice
 	MsgTypeJuice = "msg_juice"
 
+	// MsgTypeLiquidUnstake is the type of message liquid unstake
+	MsgTypeLiquidUnstake = "msg_liquid_unstake"
+
 	// DepositModuleAccount DepositModuleAccountName
 	DepositModuleAccount = ModuleName + "_pstake_deposit_account"
 
