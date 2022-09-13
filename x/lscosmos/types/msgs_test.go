@@ -2,10 +2,10 @@ package types_test
 
 import (
 	"fmt"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 	"github.com/stretchr/testify/require"
 )
 

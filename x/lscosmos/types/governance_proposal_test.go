@@ -9,9 +9,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/persistenceOne/pstake-native/app"
-	"github.com/stretchr/testify/require"
-
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/stretchr/testify/require"
 )
 
 func init() {
