@@ -8,14 +8,14 @@ import (
 // SetIBCTransientStore sets tokens that are in ibc transition
 func (k Keeper) SetIBCTransientStore(ctx sdk.Context, ibcAmountTransientStore types.IBCAmountTransientStore) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.IBCTransitionStore, k.cdc.MustMarshal(&ibcAmountTransientStore))
+	store.Set(types.IBCTransientStoreKey, k.cdc.MustMarshal(&ibcAmountTransientStore))
 }
 
 // GetIBCTransientStore gets tokens that are in ibc transition
 func (k Keeper) GetIBCTransientStore(ctx sdk.Context) types.IBCAmountTransientStore {
 	store := ctx.KVStore(k.storeKey)
 	var ibcAmountTransientStore types.IBCAmountTransientStore
-	k.cdc.MustUnmarshal(store.Get(types.IBCTransitionStore), &ibcAmountTransientStore)
+	k.cdc.MustUnmarshal(store.Get(types.IBCTransientStoreKey), &ibcAmountTransientStore)
 
 	return ibcAmountTransientStore
 }

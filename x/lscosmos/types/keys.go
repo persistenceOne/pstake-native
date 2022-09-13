@@ -69,5 +69,5 @@ var (
 	AllowListedValidatorsKey  = []byte{0x03}
 	DelegationStateKey        = []byte{0x04}
 	HostChainRewardAddressKey = []byte{0x05}
-	IBCTransitionStore        = []byte{0x06}
+	IBCTransientStoreKey      = []byte{0x06}
 )
