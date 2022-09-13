@@ -19,6 +19,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgLiquidStake{},
 		&MsgJuice{},
+		&MsgLiquidUnstake{},
 	) // add the structs that implements sdk.Msg interface
 
 	registry.RegisterImplementations((*govtypes.Content)(nil),
