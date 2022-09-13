@@ -19,7 +19,7 @@ type Keeper interface{
     //Send residue coins to CommunityPool
     SendResidueToCommunityPool(ctx sdk.Context, residue []sdk.DecCoin)
     //Send ProtocolFee to protocol community pool
-    SendProtocolFee(ctx sdk.Context, protocolFee []sdk.Coin, delegatorAddr sdk.AccAddress) error
+    SendProtocolFee(ctx sdk.Context, protocolFee sdk.Coins, delegatorAddr sdk.AccAddress) error
 }
 
 

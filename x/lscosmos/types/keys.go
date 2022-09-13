@@ -28,6 +28,9 @@ const (
 	// MsgTypeJuice is the type of message Juice
 	MsgTypeJuice = "msg_juice"
 
+	// MsgTypeLiquidUnstake is the type of message liquid unstake
+	MsgTypeLiquidUnstake = "msg_liquid_unstake"
+
 	// DepositModuleAccount DepositModuleAccountName
 	DepositModuleAccount = ModuleName + "_pstake_deposit_account"
 
@@ -66,5 +69,5 @@ var (
 	AllowListedValidatorsKey  = []byte{0x03}
 	DelegationStateKey        = []byte{0x04}
 	HostChainRewardAddressKey = []byte{0x05}
-	IBCTransitionStore        = []byte{0x06}
+	IBCTransientStoreKey      = []byte{0x06}
 )

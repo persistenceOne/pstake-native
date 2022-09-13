@@ -183,3 +183,8 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 	)
 	return &types.MsgJuiceResponse{}, nil
 }
+
+func (m msgServer) LiquidUnstake(ctx context.Context, unstake *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
+	// TODO implement this
+	return nil, nil
+}

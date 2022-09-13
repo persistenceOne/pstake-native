@@ -15,6 +15,10 @@ service Msg{
     option (google.api.http).post = "/pstake/lscosmos/v1beta1/LiquidStake";
   }
 
+  rpc LiquidUnstake(MsgLiquidUnstake) returns (MsgLiquidUnstakeResponse){
+    option (google.api.http).post = "/pstake/lscosmos/v1beta1/LiquidUnstake";
+  }
+
   rpc Juice(MsgJuice) returns (MsgJuiceResponse) {
     option (google.api.http).post = "/pstake/lscosmos/v1beta1/Juice";
   }
@@ -26,6 +30,14 @@ message MsgLiquidStake {
 }
 
 message MsgLiquidStakeResponse{}
+
+
+message MsgLiquidUnstake {
+  string delegator_address = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgLiquidUnstakeResponse{}
 
 message MsgJuice {
   string rewarder_address = 1;
