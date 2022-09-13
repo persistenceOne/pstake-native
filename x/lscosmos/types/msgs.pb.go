@@ -119,6 +119,94 @@ func (m *MsgLiquidStakeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgLiquidStakeResponse proto.InternalMessageInfo
 
+type MsgLiquidUnstake struct {
+	DelegatorAddress string     `protobuf:"bytes,1,opt,name=delegator_address,json=delegatorAddress,proto3" json:"delegator_address,omitempty"`
+	Amount           types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount"`
+}
+
+func (m *MsgLiquidUnstake) Reset()         { *m = MsgLiquidUnstake{} }
+func (m *MsgLiquidUnstake) String() string { return proto.CompactTextString(m) }
+func (*MsgLiquidUnstake) ProtoMessage()    {}
+func (*MsgLiquidUnstake) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2c178418d9a52b7e, []int{2}
+}
+func (m *MsgLiquidUnstake) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgLiquidUnstake) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgLiquidUnstake.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgLiquidUnstake) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgLiquidUnstake.Merge(m, src)
+}
+func (m *MsgLiquidUnstake) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgLiquidUnstake) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgLiquidUnstake.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgLiquidUnstake proto.InternalMessageInfo
+
+func (m *MsgLiquidUnstake) GetDelegatorAddress() string {
+	if m != nil {
+		return m.DelegatorAddress
+	}
+	return ""
+}
+
+func (m *MsgLiquidUnstake) GetAmount() types.Coin {
+	if m != nil {
+		return m.Amount
+	}
+	return types.Coin{}
+}
+
+type MsgLiquidUnstakeResponse struct {
+}
+
+func (m *MsgLiquidUnstakeResponse) Reset()         { *m = MsgLiquidUnstakeResponse{} }
+func (m *MsgLiquidUnstakeResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgLiquidUnstakeResponse) ProtoMessage()    {}
+func (*MsgLiquidUnstakeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2c178418d9a52b7e, []int{3}
+}
+func (m *MsgLiquidUnstakeResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgLiquidUnstakeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgLiquidUnstakeResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgLiquidUnstakeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgLiquidUnstakeResponse.Merge(m, src)
+}
+func (m *MsgLiquidUnstakeResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgLiquidUnstakeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgLiquidUnstakeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgLiquidUnstakeResponse proto.InternalMessageInfo
+
 type MsgJuice struct {
 	RewarderAddress string     `protobuf:"bytes,1,opt,name=rewarder_address,json=rewarderAddress,proto3" json:"rewarder_address,omitempty"`
 	Amount          types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount"`
@@ -128,7 +216,7 @@ func (m *MsgJuice) Reset()         { *m = MsgJuice{} }
 func (m *MsgJuice) String() string { return proto.CompactTextString(m) }
 func (*MsgJuice) ProtoMessage()    {}
 func (*MsgJuice) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2c178418d9a52b7e, []int{2}
+	return fileDescriptor_2c178418d9a52b7e, []int{4}
 }
 func (m *MsgJuice) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -178,7 +266,7 @@ func (m *MsgJuiceResponse) Reset()         { *m = MsgJuiceResponse{} }
 func (m *MsgJuiceResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgJuiceResponse) ProtoMessage()    {}
 func (*MsgJuiceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2c178418d9a52b7e, []int{3}
+	return fileDescriptor_2c178418d9a52b7e, []int{5}
 }
 func (m *MsgJuiceResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -210,6 +298,8 @@ var xxx_messageInfo_MsgJuiceResponse proto.InternalMessageInfo
 func init() {
 	proto.RegisterType((*MsgLiquidStake)(nil), "pstake.lscosmos.v1beta1.MsgLiquidStake")
 	proto.RegisterType((*MsgLiquidStakeResponse)(nil), "pstake.lscosmos.v1beta1.MsgLiquidStakeResponse")
+	proto.RegisterType((*MsgLiquidUnstake)(nil), "pstake.lscosmos.v1beta1.MsgLiquidUnstake")
+	proto.RegisterType((*MsgLiquidUnstakeResponse)(nil), "pstake.lscosmos.v1beta1.MsgLiquidUnstakeResponse")
 	proto.RegisterType((*MsgJuice)(nil), "pstake.lscosmos.v1beta1.MsgJuice")
 	proto.RegisterType((*MsgJuiceResponse)(nil), "pstake.lscosmos.v1beta1.MsgJuiceResponse")
 }
@@ -219,34 +309,37 @@ func init() {
 }
 
 var fileDescriptor_2c178418d9a52b7e = []byte{
-	// 419 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x92, 0x41, 0x8b, 0xd3, 0x40,
-	0x14, 0xc7, 0x9b, 0xaa, 0x8b, 0xce, 0x82, 0xd6, 0x20, 0xda, 0x0d, 0x32, 0xd6, 0x20, 0xeb, 0x2e,
-	0xea, 0x0c, 0xbb, 0x1e, 0xf4, 0xea, 0x7a, 0x13, 0x8b, 0x50, 0x6f, 0x5e, 0x64, 0x92, 0x3c, 0xc7,
-	0xc1, 0x66, 0x5e, 0xcc, 0x9b, 0x54, 0xf7, 0xe0, 0xc5, 0x4f, 0x20, 0x88, 0x37, 0x3f, 0xd0, 0x1e,
-	0x17, 0xbc, 0x78, 0x12, 0x69, 0xfd, 0x20, 0xd2, 0x64, 0x12, 0xb7, 0x42, 0x55, 0xf0, 0x96, 0xcc,
-	0xfb, 0xf1, 0xde, 0xef, 0x3f, 0xf3, 0x58, 0x5c, 0x90, 0x53, 0xaf, 0x40, 0x4e, 0x29, 0x45, 0xca,
-	0x91, 0xe4, 0x6c, 0x2f, 0x01, 0xa7, 0xf6, 0x64, 0x4e, 0x9a, 0x44, 0x51, 0xa2, 0xc3, 0xf0, 0x4a,
-	0xc3, 0x88, 0x96, 0x11, 0x9e, 0x89, 0x2e, 0x69, 0xd4, 0x58, 0x33, 0x72, 0xf9, 0xd5, 0xe0, 0xd1,
-	0x55, 0x8d, 0xa8, 0xa7, 0x20, 0x55, 0x61, 0xa4, 0xb2, 0x16, 0x9d, 0x72, 0x06, 0xad, 0x6f, 0x16,
-	0x6d, 0xf9, 0x6a, 0xfd, 0x97, 0x54, 0x2f, 0xa4, 0xb2, 0x87, 0xbe, 0xc4, 0xbd, 0x42, 0xa2, 0x08,
-	0x3a, 0x8f, 0x14, 0x8d, 0x6d, 0xea, 0xf1, 0x8c, 0x9d, 0x1f, 0x93, 0x7e, 0x6c, 0x5e, 0x57, 0x26,
-	0x7b, 0xba, 0x34, 0x0a, 0x6f, 0xb1, 0x8b, 0x19, 0x4c, 0x41, 0x2b, 0x87, 0xe5, 0x73, 0x95, 0x65,
-	0x25, 0x10, 0x0d, 0x83, 0x51, 0xb0, 0x73, 0x6e, 0x32, 0xe8, 0x0a, 0x0f, 0x9a, 0xf3, 0xf0, 0x1e,
-	0xdb, 0x50, 0x39, 0x56, 0xd6, 0x0d, 0xfb, 0xa3, 0x60, 0x67, 0x73, 0x7f, 0x4b, 0xf8, 0x38, 0xcb,
-	0x79, 0x6d, 0x26, 0xf1, 0x10, 0x8d, 0x3d, 0x38, 0x7d, 0xf4, 0xed, 0x5a, 0x6f, 0xe2, 0xf1, 0x78,
-	0xc8, 0x2e, 0xaf, 0xce, 0x9d, 0x00, 0x15, 0x68, 0x09, 0x62, 0xcb, 0xce, 0x8e, 0x49, 0x3f, 0xaa,
-	0x4c, 0x0a, 0xe1, 0x2e, 0x1b, 0x94, 0xf0, 0x46, 0x95, 0x19, 0xfc, 0xae, 0x72, 0xa1, 0x3d, 0xff,
-	0x6f, 0x93, 0x90, 0x0d, 0xda, 0x79, 0xad, 0xc3, 0xfe, 0xe7, 0x3e, 0x3b, 0x35, 0x26, 0x1d, 0x7e,
-	0x0a, 0xd8, 0xe6, 0xc9, 0xbb, 0xb9, 0x29, 0xd6, 0x3c, 0x9b, 0x58, 0x0d, 0x13, 0xc9, 0x7f, 0x04,
-	0xbb, 0xd4, 0xb7, 0xdf, 0x7f, 0xf9, 0xf1, 0xb1, 0xbf, 0x1d, 0xdf, 0x90, 0xeb, 0x96, 0xe7, 0xa4,
-	0xc7, 0x3b, 0x76, 0xa6, 0xb9, 0xa0, 0xeb, 0x7f, 0x9a, 0x53, 0x23, 0xd1, 0xee, 0x5f, 0x91, 0x4e,
-	0x62, 0xbb, 0x96, 0x18, 0xc5, 0x7c, 0xad, 0x44, 0xcd, 0x1f, 0x4c, 0x8e, 0xe6, 0x3c, 0x38, 0x9e,
-	0xf3, 0xe0, 0xfb, 0x9c, 0x07, 0x1f, 0x16, 0xbc, 0x77, 0xbc, 0xe0, 0xbd, 0xaf, 0x0b, 0xde, 0x7b,
-	0x76, 0x5f, 0x1b, 0xf7, 0xb2, 0x4a, 0x44, 0x8a, 0xb9, 0x2c, 0xa0, 0x24, 0x43, 0x0e, 0x6c, 0x0a,
-	0x4f, 0x2c, 0xf8, 0x96, 0x77, 0xac, 0x72, 0x66, 0x06, 0xf2, 0xed, 0xaf, 0xde, 0xee, 0xb0, 0x00,
-	0x4a, 0x36, 0xea, 0x7d, 0xbc, 0xfb, 0x33, 0x00, 0x00, 0xff, 0xff, 0x7b, 0xd7, 0x7a, 0x54, 0x3d,
-	0x03, 0x00, 0x00,
+	// 466 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x93, 0x41, 0x8b, 0xd3, 0x40,
+	0x14, 0xc7, 0x9b, 0x5d, 0x5d, 0x74, 0x16, 0xb5, 0x06, 0xd1, 0x6e, 0x90, 0x58, 0x83, 0xd4, 0x16,
+	0x75, 0x86, 0xae, 0x07, 0xbd, 0xba, 0xde, 0xc4, 0x22, 0x54, 0xbc, 0x78, 0x91, 0x49, 0xf2, 0x1c,
+	0x07, 0xdb, 0x99, 0x98, 0x37, 0xa9, 0xbb, 0x07, 0x2f, 0x7e, 0x02, 0x41, 0x3c, 0xfa, 0x4d, 0xfc,
+	0x00, 0x7b, 0x5c, 0xf0, 0xe2, 0x49, 0xa4, 0xf5, 0x83, 0x48, 0x27, 0x93, 0xb8, 0x5d, 0xa8, 0x2d,
+	0x08, 0x7b, 0x6b, 0xe7, 0xfd, 0x78, 0xff, 0xdf, 0x9b, 0x37, 0x21, 0x51, 0x86, 0x86, 0xbf, 0x05,
+	0x36, 0xc2, 0x44, 0xe3, 0x58, 0x23, 0x9b, 0xf4, 0x63, 0x30, 0xbc, 0xcf, 0xc6, 0x28, 0x90, 0x66,
+	0xb9, 0x36, 0xda, 0xbf, 0x56, 0x32, 0xb4, 0x62, 0xa8, 0x63, 0x82, 0x2b, 0x42, 0x0b, 0x6d, 0x19,
+	0x36, 0xff, 0x55, 0xe2, 0xc1, 0x75, 0xa1, 0xb5, 0x18, 0x01, 0xe3, 0x99, 0x64, 0x5c, 0x29, 0x6d,
+	0xb8, 0x91, 0x5a, 0xb9, 0x66, 0xc1, 0x8e, 0xab, 0xda, 0x7f, 0x71, 0xf1, 0x9a, 0x71, 0x75, 0xe0,
+	0x4a, 0xa1, 0x53, 0x88, 0x39, 0x42, 0xed, 0x91, 0x68, 0xa9, 0xca, 0x7a, 0x34, 0x21, 0x17, 0x07,
+	0x28, 0x9e, 0xca, 0x77, 0x85, 0x4c, 0x9f, 0xcf, 0x8d, 0xfc, 0x3b, 0xe4, 0x72, 0x0a, 0x23, 0x10,
+	0xdc, 0xe8, 0xfc, 0x15, 0x4f, 0xd3, 0x1c, 0x10, 0x5b, 0x5e, 0xdb, 0xeb, 0x9e, 0x1f, 0x36, 0xeb,
+	0xc2, 0xa3, 0xf2, 0xdc, 0x7f, 0x40, 0xb6, 0xf8, 0x58, 0x17, 0xca, 0xb4, 0x36, 0xda, 0x5e, 0x77,
+	0x7b, 0x77, 0x87, 0xba, 0x71, 0xe6, 0x79, 0xd5, 0x4c, 0xf4, 0xb1, 0x96, 0x6a, 0xef, 0xcc, 0xe1,
+	0xcf, 0x1b, 0x8d, 0xa1, 0xc3, 0xa3, 0x16, 0xb9, 0xba, 0x98, 0x3b, 0x04, 0xcc, 0xb4, 0x42, 0x88,
+	0xf6, 0x49, 0xb3, 0xae, 0xbc, 0x50, 0x78, 0x8a, 0x4e, 0x01, 0x69, 0x9d, 0x4c, 0xae, 0xad, 0x14,
+	0x39, 0x37, 0x40, 0xf1, 0xa4, 0x90, 0x09, 0xf8, 0x3d, 0xd2, 0xcc, 0xe1, 0x3d, 0xcf, 0x53, 0x38,
+	0x29, 0x73, 0xa9, 0x3a, 0xff, 0x6f, 0x17, 0xdf, 0xde, 0x82, 0xcd, 0xab, 0x1c, 0x76, 0xbf, 0x6d,
+	0x92, 0xcd, 0x01, 0x0a, 0xff, 0x8b, 0x47, 0xb6, 0x8f, 0x6f, 0xec, 0x36, 0x5d, 0xf2, 0x98, 0xe8,
+	0xe2, 0x15, 0x07, 0x6c, 0x4d, 0xb0, 0x9e, 0xfa, 0xee, 0xc7, 0xef, 0xbf, 0x3f, 0x6f, 0x74, 0xa2,
+	0x5b, 0x6c, 0xd9, 0x93, 0x3e, 0xee, 0xf1, 0xd5, 0x23, 0x17, 0x16, 0xf7, 0xd6, 0x5b, 0x1d, 0xe8,
+	0xd0, 0xa0, 0xbf, 0x36, 0x5a, 0xdb, 0x51, 0x6b, 0xd7, 0x8d, 0x3a, 0x2b, 0xec, 0x2a, 0x9b, 0x0f,
+	0xe4, 0x6c, 0xb9, 0xc0, 0x9b, 0xff, 0xca, 0xb2, 0x48, 0xd0, 0x5b, 0x89, 0xd4, 0x1a, 0x1d, 0xab,
+	0xd1, 0x8e, 0xc2, 0xa5, 0x1a, 0x96, 0xdf, 0x1b, 0x1e, 0x4e, 0x43, 0xef, 0x68, 0x1a, 0x7a, 0xbf,
+	0xa6, 0xa1, 0xf7, 0x69, 0x16, 0x36, 0x8e, 0x66, 0x61, 0xe3, 0xc7, 0x2c, 0x6c, 0xbc, 0x7c, 0x28,
+	0xa4, 0x79, 0x53, 0xc4, 0x34, 0xd1, 0x63, 0x96, 0x41, 0x8e, 0x12, 0x0d, 0xa8, 0x04, 0x9e, 0x29,
+	0x70, 0x2d, 0xef, 0x29, 0x6e, 0xe4, 0x04, 0xd8, 0xfe, 0xdf, 0xde, 0xe6, 0x20, 0x03, 0x8c, 0xb7,
+	0xec, 0x57, 0x7c, 0xff, 0x4f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xeb, 0x60, 0x94, 0x08, 0x73, 0x04,
+	0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -262,6 +355,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
 	LiquidStake(ctx context.Context, in *MsgLiquidStake, opts ...grpc.CallOption) (*MsgLiquidStakeResponse, error)
+	LiquidUnstake(ctx context.Context, in *MsgLiquidUnstake, opts ...grpc.CallOption) (*MsgLiquidUnstakeResponse, error)
 	Juice(ctx context.Context, in *MsgJuice, opts ...grpc.CallOption) (*MsgJuiceResponse, error)
 }
 
@@ -282,6 +376,15 @@ func (c *msgClient) LiquidStake(ctx context.Context, in *MsgLiquidStake, opts ..
 	return out, nil
 }
 
+func (c *msgClient) LiquidUnstake(ctx context.Context, in *MsgLiquidUnstake, opts ...grpc.CallOption) (*MsgLiquidUnstakeResponse, error) {
+	out := new(MsgLiquidUnstakeResponse)
+	err := c.cc.Invoke(ctx, "/pstake.lscosmos.v1beta1.Msg/LiquidUnstake", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) Juice(ctx context.Context, in *MsgJuice, opts ...grpc.CallOption) (*MsgJuiceResponse, error) {
 	out := new(MsgJuiceResponse)
 	err := c.cc.Invoke(ctx, "/pstake.lscosmos.v1beta1.Msg/Juice", in, out, opts...)
@@ -294,6 +397,7 @@ func (c *msgClient) Juice(ctx context.Context, in *MsgJuice, opts ...grpc.CallOp
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	LiquidStake(context.Context, *MsgLiquidStake) (*MsgLiquidStakeResponse, error)
+	LiquidUnstake(context.Context, *MsgLiquidUnstake) (*MsgLiquidUnstakeResponse, error)
 	Juice(context.Context, *MsgJuice) (*MsgJuiceResponse, error)
 }
 
@@ -303,6 +407,9 @@ type UnimplementedMsgServer struct {
 
 func (*UnimplementedMsgServer) LiquidStake(ctx context.Context, req *MsgLiquidStake) (*MsgLiquidStakeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LiquidStake not implemented")
+}
+func (*UnimplementedMsgServer) LiquidUnstake(ctx context.Context, req *MsgLiquidUnstake) (*MsgLiquidUnstakeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LiquidUnstake not implemented")
 }
 func (*UnimplementedMsgServer) Juice(ctx context.Context, req *MsgJuice) (*MsgJuiceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Juice not implemented")
@@ -326,6 +433,24 @@ func _Msg_LiquidStake_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).LiquidStake(ctx, req.(*MsgLiquidStake))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_LiquidUnstake_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgLiquidUnstake)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).LiquidUnstake(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pstake.lscosmos.v1beta1.Msg/LiquidUnstake",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).LiquidUnstake(ctx, req.(*MsgLiquidUnstake))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -355,6 +480,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LiquidStake",
 			Handler:    _Msg_LiquidStake_Handler,
+		},
+		{
+			MethodName: "LiquidUnstake",
+			Handler:    _Msg_LiquidUnstake_Handler,
 		},
 		{
 			MethodName: "Juice",
@@ -421,6 +550,69 @@ func (m *MsgLiquidStakeResponse) MarshalTo(dAtA []byte) (int, error) {
 }
 
 func (m *MsgLiquidStakeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgLiquidUnstake) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgLiquidUnstake) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgLiquidUnstake) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Amount.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintMsgs(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.DelegatorAddress) > 0 {
+		i -= len(m.DelegatorAddress)
+		copy(dAtA[i:], m.DelegatorAddress)
+		i = encodeVarintMsgs(dAtA, i, uint64(len(m.DelegatorAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgLiquidUnstakeResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgLiquidUnstakeResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgLiquidUnstakeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -518,6 +710,30 @@ func (m *MsgLiquidStake) Size() (n int) {
 }
 
 func (m *MsgLiquidStakeResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgLiquidUnstake) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.DelegatorAddress)
+	if l > 0 {
+		n += 1 + l + sovMsgs(uint64(l))
+	}
+	l = m.Amount.Size()
+	n += 1 + l + sovMsgs(uint64(l))
+	return n
+}
+
+func (m *MsgLiquidUnstakeResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -698,6 +914,171 @@ func (m *MsgLiquidStakeResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgLiquidStakeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMsgs(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgLiquidUnstake) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMsgs
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgLiquidUnstake: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgLiquidUnstake: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DelegatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMsgs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DelegatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMsgs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMsgs(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgLiquidUnstakeResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMsgs
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgLiquidUnstakeResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgLiquidUnstakeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
