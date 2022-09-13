@@ -30,6 +30,7 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(
 		NewLiquidStakeCmd(),
 		NewJuiceCmd(),
+		NewLiquidUnstakeCmd(),
 	)
 
 	return cmd
@@ -397,6 +398,35 @@ func NewJuiceCmd() *cobra.Command {
 
 			rewarderAddress := clientctx.GetFromAddress()
 			msg := types.NewMsgJuice(amount, rewarderAddress)
+
+			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewLiquidUnstakeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "liquid-unstake [amount(whitelisted-ibcDenom coin)]",
+		Short: `Liquid Unstake stkAtom to ibc/Atom`,
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			delegatorAddress := clientctx.GetFromAddress()
+			msg := types.NewMsgLiquidUnstake(delegatorAddress, amount)
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
 		},

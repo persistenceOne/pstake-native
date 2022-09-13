@@ -104,6 +104,16 @@ func (m *MsgJuice) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
+// NewMsgLiquidUnstake returns a new MsgLiquidUnstake
+//
+//nolint:interfacer
+func NewMsgLiquidUnstake(address sdk.AccAddress, amount sdk.Coin) *MsgLiquidUnstake {
+	return &MsgLiquidUnstake{
+		DelegatorAddress: address.String(),
+		Amount:           amount,
+	}
+}
+
 func (m *MsgLiquidUnstake) Route() string { return RouterKey }
 
 func (m *MsgLiquidUnstake) Type() string { return MsgTypeLiquidUnstake }
