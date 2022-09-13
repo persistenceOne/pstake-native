@@ -5,6 +5,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/gogo/protobuf/proto"
 	icqtypes "github.com/persistenceOne/persistence-sdk/x/interchainquery/types"
+
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
