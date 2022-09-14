@@ -50,6 +50,7 @@ func (k Keeper) AddHostAccountDelegation(ctx sdk.Context, delegation types.HostA
 	delegationState = appendHostAccountDelegation(delegationState, delegation)
 	k.SetDelegationState(ctx, delegationState)
 }
+
 func (k Keeper) SubtractHostAccountDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) error {
 	delegationState := k.GetDelegationState(ctx)
 	delegationState, err := removeHostAccountDelegation(delegationState, delegation)
@@ -59,6 +60,23 @@ func (k Keeper) SubtractHostAccountDelegation(ctx sdk.Context, delegation types.
 	k.SetDelegationState(ctx, delegationState)
 	return nil
 }
+
+func (k Keeper) AddHostAccountUndelegation(ctx sdk.Context, undelegation types.HostAccountUndelegation) {
+	delegationState := k.GetDelegationState(ctx)
+	delegationState = appendHostAccountUndelegation(delegationState, undelegation)
+	k.SetDelegationState(ctx, delegationState)
+}
+
+func (k Keeper) SubtractHostAccountUndelegation(ctx sdk.Context, undelegation types.HostAccountUndelegation) error {
+	delegationState := k.GetDelegationState(ctx)
+	delegationState, err := removeHostAccountUndelegation(delegationState, undelegation)
+	if err != nil {
+		return err
+	}
+	k.SetDelegationState(ctx, delegationState)
+	return nil
+}
+
 func appendHostAccountDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) types.DelegationState {
 	// optimise this // do we want to have it sorted?
 	for i, existingDelegation := range delegationState.HostAccountDelegations {
@@ -71,6 +89,7 @@ func appendHostAccountDelegation(delegationState types.DelegationState, delegati
 	delegationState.HostAccountDelegations = append(delegationState.HostAccountDelegations, delegation)
 	return delegationState
 }
+
 func removeHostAccountDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) (types.DelegationState, error) {
 	// optimise this // do we want to have it sorted?
 	for i, existingDelegation := range delegationState.HostAccountDelegations {
@@ -80,4 +99,27 @@ func removeHostAccountDelegation(delegationState types.DelegationState, delegati
 		}
 	}
 	return types.DelegationState{}, types.ErrCannotRemoveNonExistentDelegation
+}
+
+func appendHostAccountUndelegation(delegationState types.DelegationState, undelegation types.HostAccountUndelegation) types.DelegationState {
+	// optimise this // do we want to have it sorted?
+	for i, existingUndelegation := range delegationState.HostAccountUndelegations {
+		if existingUndelegation.ValidatorAddress == undelegation.ValidatorAddress {
+			delegationState.HostAccountUndelegations[i].Amount = existingUndelegation.Amount.Add(undelegation.Amount)
+			return delegationState
+		}
+	}
+
+	delegationState.HostAccountUndelegations = append(delegationState.HostAccountUndelegations, undelegation)
+	return delegationState
+}
+func removeHostAccountUndelegation(delegationState types.DelegationState, undelegation types.HostAccountUndelegation) (types.DelegationState, error) {
+	// optimise this // do we want to have it sorted?
+	for i, existingUndelegation := range delegationState.HostAccountUndelegations {
+		if existingUndelegation.ValidatorAddress == undelegation.ValidatorAddress {
+			delegationState.HostAccountUndelegations[i].Amount = existingUndelegation.Amount.Sub(undelegation.Amount) //This will panic if coin goes negative
+			return delegationState, nil
+		}
+	}
+	return types.DelegationState{}, types.ErrCannotRemoveNonExistentUndelegation
 }

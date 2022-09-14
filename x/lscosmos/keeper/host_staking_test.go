@@ -172,6 +172,95 @@ func (suite *IntegrationTestSuite) TestDivideAmountIntoStateValidatorSet() {
 	}
 }
 
+func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() {
+	// Test setup
+	app, ctx := suite.app, suite.ctx
+
+	// Set Params
+	denom := HostStakingDenom
+	state := testStateData(denom)
+	suite.SetupAllowListedValSetAndDelegationState(state)
+
+	// Test data
+	// Test data
+	testMatrix := []struct {
+		given    int64
+		expected map[string]int64
+	}{
+		{
+			given: 1000,
+			expected: map[string]int64{
+				"cosmosvalidatorAddr5": 1000,
+			},
+		},
+		{
+			given: 10000000,
+			expected: map[string]int64{
+				"cosmosvalidatorAddr5": 5000000,
+				"cosmosvalidatorAddr1": 5000000,
+			},
+		},
+		{
+			given:    0,
+			expected: map[string]int64{},
+		},
+		{
+			given: 20000000,
+			expected: map[string]int64{
+				"cosmosvalidatorAddr1": 9000000,
+				"cosmosvalidatorAddr2": 6000000,
+				"cosmosvalidatorAddr5": 5000000,
+			},
+		},
+		{
+			given: 30000000,
+			expected: map[string]int64{
+				"cosmosvalidatorAddr1": 13000000,
+				"cosmosvalidatorAddr2": 9000000,
+				"cosmosvalidatorAddr3": 3000000,
+				"cosmosvalidatorAddr5": 5000000,
+			},
+		},
+		{
+			given: 35000000,
+			expected: map[string]int64{
+				"cosmosvalidatorAddr1": 15000000,
+				"cosmosvalidatorAddr2": 10000000,
+				"cosmosvalidatorAddr3": 5000000,
+				"cosmosvalidatorAddr5": 5000000,
+			},
+		},
+	}
+
+	// Create input parameters
+
+	for _, test := range testMatrix {
+		givenCoin := sdk.NewInt64Coin(HostStakingDenom, test.given)
+		expectedMap := map[string]int64{}
+
+		for k, v := range test.expected {
+			valAddress, _ := Bech32ifyValAddressBytes(types.CosmosValOperPrefix, sdk.ValAddress(k))
+			expectedMap[valAddress] = v
+		}
+
+		allowlistedVals := app.LSCosmosKeeper.GetAllowListedValidators(ctx)
+		delegationState := app.LSCosmosKeeper.GetDelegationState(ctx)
+
+		// Run getIdealCurrentDelegations function with params
+		valAmounts, err := keeper.FetchValidatorsToUndelegate(allowlistedVals, delegationState, givenCoin)
+		suite.Nil(err, "Error is not nil for validator to delegate")
+
+		// Check outputs
+		actualMap := map[string]int64{}
+		for _, va := range valAmounts {
+			actualMap[va.ValidatorAddr] = va.Amount.Amount.Int64()
+		}
+		suite.Equal(expectedMap, actualMap, "Matching val distribution")
+
+	}
+
+}
+
 func TestGetIdealCurrentDelegations(t *testing.T) {
 	denom := HostStakingDenom
 
