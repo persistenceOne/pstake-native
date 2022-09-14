@@ -75,5 +75,3 @@ message IBCAmountTransientStore {
   // ica_delegate stores only token which has staking baseDenom
   cosmos.base.v1beta1.Coin i_c_a_delegate = 2  [(gogoproto.nullable) = false];
 }
-
-
