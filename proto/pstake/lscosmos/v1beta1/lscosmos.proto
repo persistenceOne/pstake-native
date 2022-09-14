@@ -55,6 +55,7 @@ message DelegationState {
   repeated cosmos.base.v1beta1.Coin host_delegation_account_balance = 1 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
   string host_chain_delegation_address = 2 ;
   repeated HostAccountDelegation host_account_delegations = 3 [(gogoproto.nullable) = false];
+  repeated HostAccountUnDelegation host_account_undelegations = 4 [(gogoproto.nullable) = false];
 }
 
 message HostAccountDelegation {
@@ -73,5 +74,12 @@ message IBCAmountTransientStore {
   repeated cosmos.base.v1beta1.Coin i_b_c_transfer = 1 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
   // ica_delegate stores only token which has staking baseDenom
   cosmos.base.v1beta1.Coin i_c_a_delegate = 2  [(gogoproto.nullable) = false];
+}
+
+message HostAccountUnDelegation {
+  option (gogoproto.goproto_stringer) = true;
+
+  string validator_address = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
 }
 
