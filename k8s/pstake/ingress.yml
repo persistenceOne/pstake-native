@@ -5,6 +5,8 @@ metadata:
   name: ingress-pstake
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
 spec:
   tls:
     # This secret must exist beforehand
