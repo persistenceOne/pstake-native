@@ -61,13 +61,13 @@ func (k Keeper) SubtractHostAccountDelegation(ctx sdk.Context, delegation types.
 	return nil
 }
 
-func (k Keeper) AddHostAccountUndelegation(ctx sdk.Context, undelegation types.HostAccountUndelegation) {
+func (k Keeper) AddHostAccountUndelegation(ctx sdk.Context, undelegation types.HostAccountDelegation) {
 	delegationState := k.GetDelegationState(ctx)
 	delegationState = appendHostAccountUndelegation(delegationState, undelegation)
 	k.SetDelegationState(ctx, delegationState)
 }
 
-func (k Keeper) SubtractHostAccountUndelegation(ctx sdk.Context, undelegation types.HostAccountUndelegation) error {
+func (k Keeper) SubtractHostAccountUndelegation(ctx sdk.Context, undelegation types.HostAccountDelegation) error {
 	delegationState := k.GetDelegationState(ctx)
 	delegationState, err := removeHostAccountUndelegation(delegationState, undelegation)
 	if err != nil {
@@ -101,7 +101,7 @@ func removeHostAccountDelegation(delegationState types.DelegationState, delegati
 	return types.DelegationState{}, types.ErrCannotRemoveNonExistentDelegation
 }
 
-func appendHostAccountUndelegation(delegationState types.DelegationState, undelegation types.HostAccountUndelegation) types.DelegationState {
+func appendHostAccountUndelegation(delegationState types.DelegationState, undelegation types.HostAccountDelegation) types.DelegationState {
 	// optimise this // do we want to have it sorted?
 	for i, existingUndelegation := range delegationState.HostAccountUndelegations {
 		if existingUndelegation.ValidatorAddress == undelegation.ValidatorAddress {
@@ -113,7 +113,7 @@ func appendHostAccountUndelegation(delegationState types.DelegationState, undele
 	delegationState.HostAccountUndelegations = append(delegationState.HostAccountUndelegations, undelegation)
 	return delegationState
 }
-func removeHostAccountUndelegation(delegationState types.DelegationState, undelegation types.HostAccountUndelegation) (types.DelegationState, error) {
+func removeHostAccountUndelegation(delegationState types.DelegationState, undelegation types.HostAccountDelegation) (types.DelegationState, error) {
 	// optimise this // do we want to have it sorted?
 	for i, existingUndelegation := range delegationState.HostAccountUndelegations {
 		if existingUndelegation.ValidatorAddress == undelegation.ValidatorAddress {

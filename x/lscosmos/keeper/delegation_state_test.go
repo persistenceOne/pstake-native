@@ -26,6 +26,16 @@ func (suite *IntegrationTestSuite) TestDelegationState() {
 				Amount:           sdk.NewInt64Coin(baseDenom, 75),
 			},
 		},
+		HostAccountUndelegations: []types.HostAccountDelegation{
+			{
+				ValidatorAddress: "address_______________1",
+				Amount:           sdk.NewInt64Coin(baseDenom, 25),
+			},
+			{
+				ValidatorAddress: "address_______________2",
+				Amount:           sdk.NewInt64Coin(baseDenom, 75),
+			},
+		},
 	}
 	app.LSCosmosKeeper.SetDelegationState(ctx, delegationState)
 
@@ -44,9 +54,12 @@ func (suite *IntegrationTestSuite) TestDelegationState() {
 
 	app.LSCosmosKeeper.AddHostAccountDelegation(ctx, types.NewHostAccountDelegation("address_______________1", sdk.NewInt64Coin(baseDenom, 25)))
 	app.LSCosmosKeeper.AddHostAccountDelegation(ctx, types.NewHostAccountDelegation("address_______________2", sdk.NewInt64Coin(baseDenom, 25)))
+	app.LSCosmosKeeper.AddHostAccountUndelegation(ctx, types.NewHostAccountDelegation("address_______________1", sdk.NewInt64Coin(baseDenom, 21)))
+	app.LSCosmosKeeper.AddHostAccountUndelegation(ctx, types.NewHostAccountDelegation("address_______________2", sdk.NewInt64Coin(baseDenom, 21)))
 
 	delegationState = app.LSCosmosKeeper.GetDelegationState(ctx)
 	suite.Equal(sdk.NewInt64Coin(baseDenom, 150), delegationState.HostAccountDelegations[0].Amount.Add(delegationState.HostAccountDelegations[1].Amount))
+	suite.Equal(sdk.NewInt64Coin(baseDenom, 142), delegationState.HostAccountUndelegations[0].Amount.Add(delegationState.HostAccountUndelegations[1].Amount))
 
 	err = app.LSCosmosKeeper.SubtractHostAccountDelegation(ctx, types.NewHostAccountDelegation("address_______________1", sdk.NewInt64Coin(baseDenom, 25)))
 	suite.NoError(err)
@@ -56,8 +69,21 @@ func (suite *IntegrationTestSuite) TestDelegationState() {
 	delegationState = app.LSCosmosKeeper.GetDelegationState(ctx)
 	suite.Equal(sdk.NewInt64Coin(baseDenom, 100), delegationState.HostAccountDelegations[0].Amount.Add(delegationState.HostAccountDelegations[1].Amount))
 
+	err = app.LSCosmosKeeper.SubtractHostAccountUndelegation(ctx, types.NewHostAccountDelegation("address_______________1", sdk.NewInt64Coin(baseDenom, 21)))
+	suite.NoError(err)
+	err = app.LSCosmosKeeper.SubtractHostAccountUndelegation(ctx, types.NewHostAccountDelegation("address_______________2", sdk.NewInt64Coin(baseDenom, 21)))
+	suite.NoError(err)
+
+	delegationState = app.LSCosmosKeeper.GetDelegationState(ctx)
+	suite.Equal(sdk.NewInt64Coin(baseDenom, 100), delegationState.HostAccountUndelegations[0].Amount.Add(delegationState.HostAccountUndelegations[1].Amount))
+
 	err = app.LSCosmosKeeper.SubtractHostAccountDelegation(ctx, types.NewHostAccountDelegation("address_______________", sdk.NewInt64Coin(baseDenom, 25)))
 	suite.Error(err)
 	err = app.LSCosmosKeeper.SubtractHostAccountDelegation(ctx, types.NewHostAccountDelegation("address_______________", sdk.NewInt64Coin(baseDenom, 25)))
+	suite.Error(err)
+
+	err = app.LSCosmosKeeper.SubtractHostAccountUndelegation(ctx, types.NewHostAccountDelegation("address_______________", sdk.NewInt64Coin(baseDenom, 25)))
+	suite.Error(err)
+	err = app.LSCosmosKeeper.SubtractHostAccountUndelegation(ctx, types.NewHostAccountDelegation("address_______________", sdk.NewInt64Coin(baseDenom, 25)))
 	suite.Error(err)
 }

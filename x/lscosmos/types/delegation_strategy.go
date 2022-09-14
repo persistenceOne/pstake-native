@@ -125,7 +125,7 @@ func GetZeroNonZeroWightedAddrAmts(ws WeightedAddressAmounts) (zeroWeighted, non
 }
 
 // GetHostAccountUndelegationMap returns the map of address as key and undelegations as the value
-func GetHostAccountUndelegationMap(hostAccountUndelegations []HostAccountUndelegation) map[string]sdk.Coin {
+func GetHostAccountUndelegationMap(hostAccountUndelegations []HostAccountDelegation) map[string]sdk.Coin {
 	undelegationMap := map[string]sdk.Coin{}
 	for _, del := range hostAccountUndelegations {
 		undelegationMap[del.ValidatorAddress] = del.Amount
