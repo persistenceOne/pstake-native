@@ -20,4 +20,6 @@ message GenesisState {
   DelegationState delegation_state = 5 [(gogoproto.nullable) = false];
   HostChainRewardAddress host_chain_reward_address = 6 [(gogoproto.nullable) = false];
   IBCAmountTransientStore i_b_c_amount_transient_store = 7 [(gogoproto.nullable) = false];
+  repeated UnbondingEpochCValue unbonding_epoch_c_values = 8 [(gogoproto.nullable) = false];
+  repeated UnbondingEpochEntry unbonding_epoch_entries = 9 [(gogoproto.nullable) = false];
 }

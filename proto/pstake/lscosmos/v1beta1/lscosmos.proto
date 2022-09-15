@@ -3,6 +3,7 @@ package pstake.lscosmos.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
 
@@ -60,6 +61,7 @@ message DelegationState {
   repeated cosmos.base.v1beta1.Coin host_delegation_account_balance = 1 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
   string host_chain_delegation_address = 2 ;
   repeated HostAccountDelegation host_account_delegations = 3 [(gogoproto.nullable) = false];
+  repeated HostAccountUndelegation host_account_undelegations = 4 [(gogoproto.nullable) = false];
 }
 
 message HostAccountDelegation {
@@ -67,6 +69,14 @@ message HostAccountDelegation {
 
   string validator_address = 1;
   cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+}
+
+message HostAccountUndelegation {
+  option (gogoproto.goproto_stringer) = true;
+
+  string validator_address = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  google.protobuf.Timestamp completion_time = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 }
 
 message HostChainRewardAddress {
@@ -78,4 +88,18 @@ message IBCAmountTransientStore {
   repeated cosmos.base.v1beta1.Coin i_b_c_transfer = 1 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
   // ica_delegate stores only token which has staking baseDenom
   cosmos.base.v1beta1.Coin i_c_a_delegate = 2  [(gogoproto.nullable) = false];
+}
+
+message UnbondingEpochCValue {
+  int64 epoch_number = 1 ;
+
+  // c_value = stk_burnt.Amount/amount_unbonded.Amount
+  cosmos.base.v1beta1.Coin s_t_k_burnt = 2 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin amount_unbonded = 3 [(gogoproto.nullable) = false];
+}
+
+message UnbondingEpochEntry {
+  int64 epoch_number = 1;
+  string delegator_address = 2 ;
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }

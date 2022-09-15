@@ -199,9 +199,66 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 	return &types.MsgJuiceResponse{}, nil
 }
 
-func (m msgServer) LiquidUnstake(goCtx context.Context, unstake *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
-	// TODO implement this
-	return nil, nil
+func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, types.ErrInvalidMessage
+	}
+
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+	// sanity check for the arguments of message
+	if ctx.IsZero() {
+		return nil, types.ErrInvalidArgs
+	}
+	if !m.GetModuleState(ctx) {
+		return nil, types.ErrModuleDisabled
+	}
+
+	hostChainParams := m.GetHostChainParams(ctx)
+
+	if msg.Amount.Denom != hostChainParams.MintDenom {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidDenom, "Expected %s, got %s", hostChainParams.MintDenom, msg.Amount.Denom)
+	}
+
+	delegatorAddress, err := sdktypes.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil, err
+	}
+	// take deposit into module acc
+	err = m.bankKeeper.SendCoinsFromAccountToModule(ctx, delegatorAddress, types.UndelegationModuleAccount, sdktypes.NewCoins(msg.Amount))
+	if err != nil {
+		return nil, err
+	}
+	// take pstake fees
+	pstakeFeeAmt := hostChainParams.PstakeUnstakeFee.MulInt(msg.Amount.Amount).TruncateInt()
+	pstakeFee := sdktypes.NewCoin(msg.Amount.Denom, pstakeFeeAmt)
+	err = m.SendProtocolFee(ctx, sdktypes.NewCoins(pstakeFee), types.UndelegationModuleAccount, hostChainParams.PstakeFeeAddress)
+	if err != nil {
+		return nil, err
+	}
+	unstakeCoin := msg.Amount.Sub(pstakeFee)
+	// TODO Try redemption and then with remaining unstake
+
+	// Add entry to unbonding db
+	epoch := m.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier)
+	unbondingEntry := types.NewUnbondingEpochEntry(epoch.CurrentEpoch, msg.DelegatorAddress, unstakeCoin)
+	m.SetUnbondingEpochEntry(ctx, unbondingEntry)
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeLiquidUnstake,
+			sdktypes.NewAttribute(types.AttributeDelegatorAddress, msg.GetDelegatorAddress()),
+			//sdktypes.NewAttribute(types.AttributeAmountBurned, ),
+			//sdktypes.NewAttribute(types.AttributeAmountRecieved, mintToken.Sub(protocolCoin).String()),
+			//sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolFee.String()),
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.GetDelegatorAddress()),
+		)},
+	)
+	return &types.MsgLiquidUnstakeResponse{}, nil
 }
 
 func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.MsgRedeemResponse, error) {

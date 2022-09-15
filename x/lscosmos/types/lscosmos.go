@@ -79,3 +79,11 @@ func (ds DelegationState) TotalDelegations(denom string) sdk.Coin {
 	}
 	return total
 }
+
+func NewUnbondingEpochEntry(epochNumber int64, delegatorAddress string, amount sdk.Coin) UnbondingEpochEntry {
+	return UnbondingEpochEntry{
+		EpochNumber:      epochNumber,
+		DelegatorAddress: delegatorAddress,
+		Amount:           amount,
+	}
+}

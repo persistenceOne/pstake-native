@@ -35,6 +35,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		return lscosmostypes.ErrModuleDisabled
 	}
 	hostChainParams := k.GetHostChainParams(ctx)
+	k.Logger(ctx).Info(fmt.Sprintf("Starting AdferEndEpoch for epochIdentifier %s, epochNumber %v", epochIdentifier, epochNumber))
 	if epochIdentifier == lscosmostypes.DelegationEpochIdentifier {
 		wrapperFn := func(ctx sdk.Context) error {
 			return k.DelegationEpochWorkFlow(ctx, hostChainParams)
@@ -53,7 +54,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 			k.Logger(ctx).Error("Failed RewardEpochIdentifier Function with:", "err: ", err)
 		}
 	}
-	if epochIdentifier == lscosmostypes.UndelegationEpochIdentifier {
+	if epochIdentifier == lscosmostypes.UndelegationEpochIdentifier && epochNumber%lscosmostypes.UndelegationEpochNumberFactor == 0 {
 		wrapperFn := func(ctx sdk.Context) error {
 			return k.UndelegationEpochWorkFlow(ctx, hostChainParams)
 		}
@@ -177,6 +178,23 @@ func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosm
 }
 
 func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) error {
+	stkAmountBalance := k.bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(lscosmostypes.UndelegationModuleAccount), hostChainParams.MintDenom)
+	if stkAmountBalance.IsNil() || stkAmountBalance.IsZero() {
+		k.Logger(ctx).Info("No stkatoms to undelegate on epoch")
+		return nil
+	}
+	amountToUnstake, _ := k.ConvertStkToToken(ctx, sdk.NewDecCoinFromCoin(stkAmountBalance))
+	if amountToUnstake.IsNil() || amountToUnstake.IsZero() {
+		k.Logger(ctx).Info("atoms to undelegate too low")
+		return nil
+	}
+	delegationState := k.GetDelegationState(ctx)
+	undelegateMsgs, _ := UndelegateMsgs(delegationState.HostChainDelegationAddress, delegationState.HostAccountDelegations, amountToUnstake.Amount, hostChainParams.BaseDenom)
+	err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, undelegateMsgs)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

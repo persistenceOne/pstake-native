@@ -4,10 +4,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	epochstypes "github.com/persistenceOne/persistence-sdk/x/epochs/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
@@ -44,10 +44,9 @@ type BankKeeper interface {
 	// Methods imported from bank should be defined here
 }
 
-type DistributionKeeper interface {
-	GetFeePool(ctx sdk.Context) (feePool distributiontypes.FeePool)
-	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
-	SetFeePool(ctx sdk.Context, feePool distributiontypes.FeePool)
+// EpochKeeper defines the expected interface needed to retrieve epoch info.
+type EpochKeeper interface {
+	GetEpochInfo(ctx sdk.Context, identifier string) epochstypes.EpochInfo
 }
 
 type ICS4WrapperKeeper interface {
