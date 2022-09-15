@@ -56,8 +56,11 @@ func (suite *IntegrationTestSuite) TestDelegationState() {
 	delegationState = app.LSCosmosKeeper.GetDelegationState(ctx)
 	suite.Equal(sdk.NewInt64Coin(baseDenom, 100), delegationState.HostAccountDelegations[0].Amount.Add(delegationState.HostAccountDelegations[1].Amount))
 
+	delegationState = app.LSCosmosKeeper.GetDelegationState(ctx)
+
 	err = app.LSCosmosKeeper.SubtractHostAccountDelegation(ctx, types.NewHostAccountDelegation("address_______________", sdk.NewInt64Coin(baseDenom, 25)))
 	suite.Error(err)
 	err = app.LSCosmosKeeper.SubtractHostAccountDelegation(ctx, types.NewHostAccountDelegation("address_______________", sdk.NewInt64Coin(baseDenom, 25)))
 	suite.Error(err)
+
 }

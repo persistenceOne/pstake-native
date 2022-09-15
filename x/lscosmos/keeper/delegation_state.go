@@ -50,6 +50,7 @@ func (k Keeper) AddHostAccountDelegation(ctx sdk.Context, delegation types.HostA
 	delegationState = appendHostAccountDelegation(delegationState, delegation)
 	k.SetDelegationState(ctx, delegationState)
 }
+
 func (k Keeper) SubtractHostAccountDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) error {
 	delegationState := k.GetDelegationState(ctx)
 	delegationState, err := removeHostAccountDelegation(delegationState, delegation)
@@ -59,6 +60,7 @@ func (k Keeper) SubtractHostAccountDelegation(ctx sdk.Context, delegation types.
 	k.SetDelegationState(ctx, delegationState)
 	return nil
 }
+
 func appendHostAccountDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) types.DelegationState {
 	// optimise this // do we want to have it sorted?
 	for i, existingDelegation := range delegationState.HostAccountDelegations {
@@ -71,6 +73,7 @@ func appendHostAccountDelegation(delegationState types.DelegationState, delegati
 	delegationState.HostAccountDelegations = append(delegationState.HostAccountDelegations, delegation)
 	return delegationState
 }
+
 func removeHostAccountDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) (types.DelegationState, error) {
 	// optimise this // do we want to have it sorted?
 	for i, existingDelegation := range delegationState.HostAccountDelegations {
