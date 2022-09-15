@@ -79,15 +79,3 @@ func (ds DelegationState) TotalDelegations(denom string) sdk.Coin {
 	}
 	return total
 }
-
-// TotalUnDelegations gives the amount of total undelegations on Host Chain.
-func (ds DelegationState) TotalUnDelegations(denom string) sdk.Coin {
-	total := sdk.NewCoin(denom, sdk.ZeroInt())
-
-	for _, val := range ds.HostAccountUndelegations {
-		if val.Amount.Denom == denom {
-			total.Amount = total.Amount.Add(val.Amount.Amount)
-		}
-	}
-	return total
-}
