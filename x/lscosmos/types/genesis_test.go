@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 func TestGenesisState_Validate(t *testing.T) {

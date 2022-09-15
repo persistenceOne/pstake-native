@@ -13,4 +13,7 @@ func (suite *IntegrationTestSuite) TestParamsQuery() {
 	response, err := app.LSCosmosKeeper.Params(c, &types.QueryParamsRequest{})
 	suite.NoError(err)
 	suite.Equal(&types.QueryParamsResponse{Params: types.DefaultParams()}, response)
+
+	_, err = app.LSCosmosKeeper.Params(c, nil)
+	suite.Error(err)
 }

@@ -3,13 +3,15 @@ package keeper_test
 import (
 	"errors"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
-	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
+	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 var HostStakingDenom = "uatom"
