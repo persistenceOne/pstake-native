@@ -56,3 +56,12 @@ func (k Keeper) ModuleState(c context.Context, request *types.QueryModuleStateRe
 		ModuleState: moduleState,
 	}, nil
 }
+
+func (k Keeper) IBCTransientStore(c context.Context, request *types.QueryIBCTransientStoreRequest) (*types.QueryIBCTransientStoreResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	ibcTransientStore := k.GetIBCTransientStore(ctx)
+
+	return &types.QueryIBCTransientStoreResponse{
+		IBCTransientStore: ibcTransientStore,
+	}, nil
+}

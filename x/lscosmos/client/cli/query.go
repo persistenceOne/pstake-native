@@ -15,7 +15,7 @@ import (
 func GetQueryCmd(queryRoute string) *cobra.Command {
 	// Group lscosmos queries under a subcommand
 	cmd := &cobra.Command{
-		Use:                        types.ModuleName,
+		Use:                        queryRoute,
 		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -29,6 +29,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryAllowListedValidators(),
 		CmdQueryCValue(),
 		CmdQueryModuleState(),
+		CmdQueryIBCTransientStore(),
 	)
 
 	return cmd
@@ -141,6 +142,30 @@ func CmdQueryModuleState() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.ModuleState(context.Background(), &types.QueryModuleStateRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryIBCTransientStore() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "ibc-transient-store",
+		Short: "shows amount in ibc-transient-store",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.IBCTransientStore(context.Background(), &types.QueryIBCTransientStoreRequest{})
 			if err != nil {
 				return err
 			}
