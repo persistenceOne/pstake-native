@@ -18,4 +18,6 @@ message GenesisState {
   HostChainParams host_chain_params = 3 [(gogoproto.nullable) = false];
   AllowListedValidators allow_listed_validators = 4 [(gogoproto.nullable) = false];
   DelegationState delegation_state = 5 [(gogoproto.nullable) = false];
+  HostChainRewardAddress host_chain_reward_address = 6 [(gogoproto.nullable) = false];
+  IBCAmountTransientStore i_b_c_amount_transient_store = 7 [(gogoproto.nullable) = false];
 }

@@ -40,21 +40,27 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 			return k.DelegationEpochWorkFlow(ctx, hostChainParams)
 		}
 		err := utils.ApplyFuncIfNoError(ctx, wrapperFn)
-		k.Logger(ctx).Error("Failed DelegationEpochIdentifier Function with:", "err: ", err)
+		if err != nil {
+			k.Logger(ctx).Error("Failed DelegationEpochIdentifier Function with:", "err: ", err)
+		}
 	}
 	if epochIdentifier == lscosmostypes.RewardEpochIdentifier {
 		wrapperFn := func(ctx sdk.Context) error {
 			return k.RewardEpochEpochWorkFlow(ctx, hostChainParams)
 		}
 		err := utils.ApplyFuncIfNoError(ctx, wrapperFn)
-		k.Logger(ctx).Error("Failed RewardEpochIdentifier Function with:", "err: ", err)
+		if err != nil {
+			k.Logger(ctx).Error("Failed RewardEpochIdentifier Function with:", "err: ", err)
+		}
 	}
 	if epochIdentifier == lscosmostypes.UndelegationEpochIdentifier {
 		wrapperFn := func(ctx sdk.Context) error {
 			return k.UndelegationEpochWorkFlow(ctx, hostChainParams)
 		}
 		err := utils.ApplyFuncIfNoError(ctx, wrapperFn)
-		k.Logger(ctx).Error("Failed UndelegationEpochIdentifier Function with:", "err: ", err)
+		if err != nil {
+			k.Logger(ctx).Error("Failed UndelegationEpochIdentifier Function with:", "err: ", err)
+		}
 	}
 	return nil
 }
@@ -215,13 +221,13 @@ func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet chann
 	}
 	k.Logger(ctx).Info(fmt.Sprintf("pstake tokens successfully transferred to host chain address %s, amount: %s, denom: %s", data.Receiver, data.Amount, data.Denom))
 
-	//do ica delegate.
 	amount, ok := sdk.NewIntFromString(data.GetAmount())
 	if !ok {
 		return ibctransfertypes.ErrInvalidAmount
 	}
+	ibcDenom := ibctransfertypes.ParseDenomTrace(data.GetDenom())
 	k.AddBalanceToDelegationState(ctx, sdk.NewCoin(hostChainParams.BaseDenom, amount))
-	k.RemoveIBCTransferFromTransientStore(ctx, sdk.NewCoin(data.GetDenom(), amount))
+	k.RemoveIBCTransferFromTransientStore(ctx, sdk.NewCoin(ibcDenom.IBCDenom(), amount))
 	return nil
 }
 

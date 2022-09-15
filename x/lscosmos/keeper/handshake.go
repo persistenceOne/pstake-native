@@ -353,11 +353,13 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 		if rewardAddress.Address == parsedMsg.FromAddress && delegationState.HostChainDelegationAddress == parsedMsg.ToAddress {
 			amountOfBaseDenom := parsedMsg.Amount.AmountOf(hostChainParams.BaseDenom)
 			if amountOfBaseDenom.GT(sdk.ZeroInt()) {
+				cValue := k.GetCValue(ctx)
+
 				k.AddBalanceToDelegationState(ctx, sdk.NewCoin(hostChainParams.BaseDenom, amountOfBaseDenom))
 
-				//Mint autocompounding fee
+				//Mint autocompounding fee, use old cValue as we mint tokens at previous cValue.
 				pstakeFeeAmount := hostChainParams.PstakeRestakeFee.MulInt(amountOfBaseDenom)
-				protocolFee, _ := k.ConvertTokenToStk(ctx, sdk.NewDecCoinFromDec(hostChainParams.BaseDenom, pstakeFeeAmount))
+				protocolFee, _ := k.ConvertTokenToStk(ctx, sdk.NewDecCoinFromDec(hostChainParams.BaseDenom, pstakeFeeAmount), cValue)
 
 				err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(protocolFee))
 				if err != nil {
