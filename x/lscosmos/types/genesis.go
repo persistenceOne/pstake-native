@@ -5,11 +5,13 @@ func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 
 		// this line is used by starport scaffolding # genesis/types/default
-		Params:                DefaultParams(),
-		ModuleEnabled:         false,
-		HostChainParams:       HostChainParams{},
-		AllowListedValidators: AllowListedValidators{},
-		DelegationState:       DelegationState{},
+		Params:                  DefaultParams(),
+		ModuleEnabled:           false,
+		HostChainParams:         HostChainParams{},
+		AllowListedValidators:   AllowListedValidators{},
+		DelegationState:         DelegationState{},
+		HostChainRewardAddress:  HostChainRewardAddress{},
+		IBCAmountTransientStore: IBCAmountTransientStore{},
 	}
 }
 

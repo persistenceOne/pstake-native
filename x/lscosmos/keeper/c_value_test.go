@@ -19,11 +19,13 @@ func (suite *IntegrationTestSuite) TestCValue() {
 	cValue := lscosmosKeeper.GetCValue(ctx)
 	suite.Equal(sdk.OneDec(), cValue)
 
-	tokenValue, residue := lscosmosKeeper.ConvertStkToToken(ctx, sdk.NewDecCoin(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, sdk.NewInt(1000000)))
+	cValue = lscosmosKeeper.GetCValue(ctx)
+	tokenValue, residue := lscosmosKeeper.ConvertStkToToken(ctx, sdk.NewDecCoin(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, sdk.NewInt(1000000)), cValue)
 	suite.True(sdk.NewInt64Coin(lscosmosKeeper.GetIBCDenom(ctx), 1000000).IsEqual(tokenValue))
 	suite.True(sdk.NewDecCoinFromDec(lscosmosKeeper.GetIBCDenom(ctx), sdk.ZeroDec()).IsEqual(residue))
 
-	stkValue, residue := lscosmosKeeper.ConvertTokenToStk(ctx, sdk.NewDecCoin(lscosmosKeeper.GetIBCDenom(ctx), sdk.NewInt(1000000)))
+	cValue = lscosmosKeeper.GetCValue(ctx)
+	stkValue, residue := lscosmosKeeper.ConvertTokenToStk(ctx, sdk.NewDecCoin(lscosmosKeeper.GetIBCDenom(ctx), sdk.NewInt(1000000)), cValue)
 	suite.True(sdk.NewInt64Coin(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, 1000000).IsEqual(stkValue))
 	suite.True(sdk.NewDecCoinFromDec(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, sdk.ZeroDec()).IsEqual(residue))
 
@@ -60,11 +62,13 @@ func (suite *IntegrationTestSuite) TestCValue() {
 	cValue = lscosmosKeeper.GetCValue(ctx)
 	suite.Equal(sdk.NewDecWithPrec(999000999000999001, 18), cValue)
 
-	tokenValue, residue = lscosmosKeeper.ConvertStkToToken(ctx, sdk.NewDecCoin(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, sdk.NewInt(1000000)))
+	cValue = lscosmosKeeper.GetCValue(ctx)
+	tokenValue, residue = lscosmosKeeper.ConvertStkToToken(ctx, sdk.NewDecCoin(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, sdk.NewInt(1000000)), cValue)
 	suite.True(sdk.NewInt64Coin(lscosmosKeeper.GetIBCDenom(ctx), 1001000).IsEqual(tokenValue))
 	suite.True(sdk.NewDecCoinFromDec(lscosmosKeeper.GetIBCDenom(ctx), sdk.ZeroDec()).IsEqual(residue))
 
-	stkValue, residue = lscosmosKeeper.ConvertTokenToStk(ctx, sdk.NewDecCoin(lscosmosKeeper.GetIBCDenom(ctx), sdk.NewInt(1000000)))
+	cValue = lscosmosKeeper.GetCValue(ctx)
+	stkValue, residue = lscosmosKeeper.ConvertTokenToStk(ctx, sdk.NewDecCoin(lscosmosKeeper.GetIBCDenom(ctx), sdk.NewInt(1000000)), cValue)
 	suite.True(sdk.NewInt64Coin(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, 999000).IsEqual(stkValue))
 	suite.True(sdk.NewDecCoinFromDec(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, sdk.NewDecWithPrec(999000999001000000, 18)).IsEqual(residue))
 
@@ -95,11 +99,13 @@ func (suite *IntegrationTestSuite) TestCValue() {
 	cValue = lscosmosKeeper.GetCValue(ctx)
 	suite.Equal(sdk.NewDecWithPrec(979431929480901077, 18), cValue)
 
-	tokenValue, residue = lscosmosKeeper.ConvertStkToToken(ctx, sdk.NewDecCoin(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, sdk.NewInt(1000000)))
+	cValue = lscosmosKeeper.GetCValue(ctx)
+	tokenValue, residue = lscosmosKeeper.ConvertStkToToken(ctx, sdk.NewDecCoin(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, sdk.NewInt(1000000)), cValue)
 	suite.True(sdk.NewInt64Coin(lscosmosKeeper.GetIBCDenom(ctx), 1021000).IsEqual(tokenValue))
 	suite.True(sdk.NewDecCoinFromDec(lscosmosKeeper.GetIBCDenom(ctx), sdk.ZeroDec()).IsEqual(residue))
 
-	stkValue, residue = lscosmosKeeper.ConvertTokenToStk(ctx, sdk.NewDecCoin(lscosmosKeeper.GetIBCDenom(ctx), sdk.NewInt(1000000)))
+	cValue = lscosmosKeeper.GetCValue(ctx)
+	stkValue, residue = lscosmosKeeper.ConvertTokenToStk(ctx, sdk.NewDecCoin(lscosmosKeeper.GetIBCDenom(ctx), sdk.NewInt(1000000)), cValue)
 	suite.True(sdk.NewInt64Coin(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, 979431).IsEqual(stkValue))
 	suite.True(sdk.NewDecCoinFromDec(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, sdk.NewDecWithPrec(929480901077000000, 18)).IsEqual(residue))
 }

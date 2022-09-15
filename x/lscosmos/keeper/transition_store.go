@@ -40,7 +40,11 @@ func (k Keeper) RemoveIBCTransferFromTransientStore(ctx sdk.Context, amount sdk.
 // CONTRACT: to be used atomically with RemoveBalanceFromDelegationState
 func (k Keeper) AddICADelegateToTransientStore(ctx sdk.Context, amount sdk.Coin) {
 	transientStore := k.GetIBCTransientStore(ctx)
-	transientStore.ICADelegate = transientStore.ICADelegate.Add(amount)
+	if !transientStore.ICADelegate.IsValid() || transientStore.ICADelegate.IsZero() { // only because initialised coin is invalid
+		transientStore.ICADelegate = amount
+	} else {
+		transientStore.ICADelegate = transientStore.ICADelegate.Add(amount)
+	}
 	k.SetIBCTransientStore(ctx, transientStore)
 }
 

@@ -23,6 +23,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	}
 	k.SetAllowListedValidators(ctx, genState.AllowListedValidators)
 	k.SetDelegationState(ctx, genState.DelegationState)
+	k.SetHostChainRewardAddress(ctx, genState.HostChainRewardAddress)
+	k.SetIBCTransientStore(ctx, genState.IBCAmountTransientStore)
 
 	k.GetDepositModuleAccount(ctx)
 	k.GetDelegationModuleAccount(ctx)
@@ -40,6 +42,8 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.HostChainParams = k.GetHostChainParams(ctx)
 	genesis.AllowListedValidators = k.GetAllowListedValidators(ctx)
 	genesis.DelegationState = k.GetDelegationState(ctx)
+	genesis.HostChainRewardAddress = k.GetHostChainRewardAddress(ctx)
+	genesis.IBCAmountTransientStore = k.GetIBCTransientStore(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis

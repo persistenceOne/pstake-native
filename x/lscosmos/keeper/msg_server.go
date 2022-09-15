@@ -68,16 +68,17 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		return nil, sdkerrors.ErrInvalidAddress
 	}
 
+	// amount of stk tokens to be minted. We calculate this before depositing any amount so as to not affect minting c-value.
+	// We do not care about residue here because it won't be minted and bank.TotalSupply invariant should not be affected
+	cValue := m.GetCValue(ctx)
+	mintToken, _ := m.ConvertTokenToStk(ctx, sdktypes.NewDecCoinFromCoin(msg.Amount), cValue)
+
 	//send the deposit to the deposit-module account
 	depositAmount := sdktypes.NewCoins(msg.Amount)
 	err = m.SendTokensToDepositModule(ctx, depositAmount, delegatorAddress)
 	if err != nil {
 		return nil, types.ErrFailedDeposit
 	}
-
-	// amount of stk tokens to be minted
-	// We do not care about residue here because it won't be minted and bank.TotalSupply invariant should not be affected
-	mintToken, _ := m.ConvertTokenToStk(ctx, sdktypes.NewDecCoinFromCoin(msg.Amount))
 
 	//Mint staked representative tokens in lscosmos module account
 	err = m.bankKeeper.MintCoins(ctx, types.ModuleName, sdktypes.NewCoins(mintToken))
