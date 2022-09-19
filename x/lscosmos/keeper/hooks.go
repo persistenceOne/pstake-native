@@ -183,7 +183,8 @@ func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscos
 		k.Logger(ctx).Info("No stkatoms to undelegate on epoch")
 		return nil
 	}
-	amountToUnstake, _ := k.ConvertStkToToken(ctx, sdk.NewDecCoinFromCoin(stkAmountBalance))
+	cValue := k.GetCValue(ctx)
+	amountToUnstake, _ := k.ConvertStkToToken(ctx, sdk.NewDecCoinFromCoin(stkAmountBalance), cValue)
 	if amountToUnstake.IsNil() || amountToUnstake.IsZero() {
 		k.Logger(ctx).Info("atoms to undelegate too low")
 		return nil

@@ -237,7 +237,6 @@ func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 		return nil, err
 	}
 	unstakeCoin := msg.Amount.Sub(pstakeFee)
-	// TODO Try redemption and then with remaining unstake
 
 	// Add entry to unbonding db
 	epoch := m.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier)

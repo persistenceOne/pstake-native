@@ -374,12 +374,24 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 			}
 		}
 		return msgResponse.String(), nil
+	case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
+		parsedMsg, ok := msg.(*stakingtypes.MsgUndelegate)
+		if !ok {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", msgData.MsgType)
+		}
+		var msgResponse stakingtypes.MsgUndelegateResponse
+		if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+		}
+		k.Logger(ctx).Info(fmt.Sprintf("Started unbonding for val: %s, amount: %s", parsedMsg.ValidatorAddress, parsedMsg.Amount))
+		// add total to db,
+		return msgResponse.String(), nil
 	default:
 		return "", nil
 	}
 }
 
-func (k Keeper) handleTimeoutMsgData(ctx sdk.Context, msg sdk.Msg, _ types.HostChainParams) (string, error) {
+func (k Keeper) handleTimeoutMsgData(ctx sdk.Context, msg sdk.Msg, hostChainParams types.HostChainParams) (string, error) {
 	switch sdk.MsgTypeURL(msg) {
 	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 		parsedMsg, ok := msg.(*stakingtypes.MsgDelegate)
@@ -388,6 +400,21 @@ func (k Keeper) handleTimeoutMsgData(ctx sdk.Context, msg sdk.Msg, _ types.HostC
 		}
 		// Add to host-balance, because delegate txn timed out.
 		k.AddBalanceToDelegationState(ctx, parsedMsg.Amount)
+		return msg.String(), nil
+	case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
+		parsedMsg, ok := msg.(*stakingtypes.MsgUndelegate)
+		if !ok {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
+		}
+		//retry msg since it is timedout, TODO, the txn timedout, may be we do the entire batch instead of individual msgs.
+		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{parsedMsg})
+		if err != nil {
+			k.Logger(ctx).Error(fmt.Sprintf("Failed to retry unbonding msg: %s, err: %s", parsedMsg, err))
+			// disable module if ica txn won't work.
+			k.SetModuleState(ctx, false)
+			return "", sdkerrors.Wrapf(types.ErrICATxFailure, "unable to retry unbonding msg: %s, err: %s", parsedMsg, err)
+		}
+		k.Logger(ctx).Info(fmt.Sprintf("Retrying unbonding msg: %s", parsedMsg))
 		return msg.String(), nil
 	default:
 		return "", nil
