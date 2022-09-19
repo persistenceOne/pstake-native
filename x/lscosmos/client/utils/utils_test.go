@@ -25,6 +25,7 @@ func TestNewRegisterChainJSON(t *testing.T) {
 		"0.0",
 		"0.0",
 		"0.0",
+		"0.1",
 		"1000stake",
 		types.AllowListedValidators{
 			AllowListedValidators: []types.AllowListedValidator{{
@@ -56,6 +57,7 @@ func TestNewMinDepositAndFeeChangeJSON(t *testing.T) {
 		"0.0",
 		"0.0",
 		"0.0",
+		"0.1",
 		"1000stake")
 
 	require.Equal(t, "title", propJSON.Title)

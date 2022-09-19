@@ -54,6 +54,7 @@ func (suite *HandlerTestSuite) TestProposalHandler() {
 				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "addr", TargetWeight: sdk.OneDec()}}},
 				sdk.ZeroDec(),
 				sdk.ZeroDec(),
+				sdk.ZeroDec(),
 				sdk.ZeroDec()),
 			true,
 		},

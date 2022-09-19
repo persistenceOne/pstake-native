@@ -20,6 +20,7 @@
   "pstake_deposit_fee": "0.00",
   "pstake_restake_fee": "0.05",
   "pstake_unstake_fee": "0.00",
+  "pstake_withdrawal_fee": "0.1",
   "pstake_fee_address": "persistence108cqtjz7gqasctvrw74kewg6642062kmfuujsd",
   "deposit": "1000000uxprt"
 }

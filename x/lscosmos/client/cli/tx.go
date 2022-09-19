@@ -62,6 +62,7 @@ Example Proposal :
 	"pstake_deposit_fee": "0.1",
 	"pstake_restake_fee": "0.1",
 	"pstake_unstake_fee": "0.1",
+	"pstake_withdawal_fee": "0.1",
 	"deposit": "100stake"
 }
 
@@ -100,6 +101,10 @@ $ %s tx gov submit-proposal pstake-lscosmos-register-host-chain <path/to/proposa
 			if err != nil {
 				return err
 			}
+			withdrawalFee, err := sdk.NewDecFromStr(proposal.PstakeWithdrawalFee)
+			if err != nil {
+				return err
+			}
 
 			content := types.NewRegisterHostChainProposal(
 				proposal.Title,
@@ -117,6 +122,7 @@ $ %s tx gov submit-proposal pstake-lscosmos-register-host-chain <path/to/proposa
 				depositFee,
 				restakeFee,
 				unstakeFee,
+				withdrawalFee,
 			)
 
 			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
@@ -184,6 +190,7 @@ Example Proposal :
 	"pstake_deposit_fee": "0.1",
 	"pstake_restake_fee": "0.1",
 	"pstake_unstake_fee": "0.1",
+	"pstake_withdrawal_fee": "0.1",
 	"deposit": "100stake"
 }
 
@@ -221,6 +228,10 @@ $ %s tx gov submit-proposal pstake-lscosmos-min-deposit-and-fee-change  <path/to
 			if err != nil {
 				return err
 			}
+			withdrawalFee, err := sdk.NewDecFromStr(proposal.PstakeWithdrawalFee)
+			if err != nil {
+				return err
+			}
 
 			content := types.NewMinDepositAndFeeChangeProposal(
 				proposal.Title,
@@ -229,6 +240,7 @@ $ %s tx gov submit-proposal pstake-lscosmos-min-deposit-and-fee-change  <path/to
 				depositFee,
 				restakeFee,
 				unstakeFee,
+				withdrawalFee,
 			)
 
 			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
