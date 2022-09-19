@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -185,7 +186,82 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 	return &types.MsgJuiceResponse{}, nil
 }
 
-func (m msgServer) LiquidUnstake(ctx context.Context, unstake *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
+func (m msgServer) LiquidUnstake(goCtx context.Context, unstake *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
 	// TODO implement this
 	return nil, nil
+}
+
+func (m msgServer) InstantWithdraw(goCtx context.Context, msg *types.MsgInstantWithdraw) (*types.MsgInstantWithdrawResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	// sanity check for the arguments of message
+	if ctx.IsZero() || !msg.Amount.IsValid() {
+		return nil, types.ErrInvalidArgs
+	}
+	if !m.GetModuleState(ctx) {
+		return nil, types.ErrModuleDisabled
+	}
+
+	// check if address in message is correct or not
+	withdrawerAddress, err := sdktypes.AccAddressFromBech32(msg.WithdrawerAddress)
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress
+	}
+
+	// get the ibc denom and host chain params
+	ibcDenom := m.GetIBCDenom(ctx)
+	hostChainParams := m.GetHostChainParams(ctx)
+
+	// check msg amount denom
+	if msg.Amount.Denom != hostChainParams.MintDenom {
+		return nil, types.ErrInvalidDenom
+	}
+
+	// convert the withdrawal amount to stk amount based on the current c-value
+	cValue := m.GetCValue(ctx)
+	withdrawToken, _ := m.ConvertStkToToken(ctx, sdktypes.NewDecCoinFromCoin(msg.Amount), cValue)
+
+	// get all deposit account balances
+	allDepositBalances := m.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(types.DepositModuleAccount))
+	delegationBalance := sdktypes.NewCoin(ibcDenom, allDepositBalances.AmountOf(ibcDenom))
+
+	// check deposit account has sufficient funds
+	if withdrawToken.IsGTE(delegationBalance) {
+		return nil, types.ErrInsufficientBalance
+	}
+
+	//Calculate protocol fee
+	// TODO : make it withdrawal fee instead of deposit fee
+	protocolFee := hostChainParams.PstakeDepositFee
+	protocolFeeAmount := protocolFee.MulInt(withdrawToken.Amount)
+	// We do not care about residue, as to not break Total calculation invariant.
+	protocolCoin, _ := sdktypes.NewDecCoinFromDec(ibcDenom, protocolFeeAmount).TruncateDecimal()
+
+	err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.DepositModuleAccount, withdrawerAddress,
+		sdktypes.NewCoins(withdrawToken.Sub(protocolCoin)))
+	if err != nil {
+		return nil, types.ErrWithdrawFailed
+	}
+
+	//Send protocol fee to protocol pool
+	err = m.SendProtocolFee(ctx, sdktypes.NewCoins(protocolCoin), types.ModuleName, hostChainParams.PstakeFeeAddress)
+	if err != nil {
+		return nil, types.ErrFailedDeposit
+	}
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeLiquidStake,
+			sdktypes.NewAttribute(types.AttributeWithdrawerAddress, withdrawerAddress.String()),
+			sdktypes.NewAttribute(types.AttributeAmountWithdrawn, msg.Amount.String()),
+			sdktypes.NewAttribute(types.AttributeAmountRecieved, withdrawToken.Sub(protocolCoin).String()),
+			sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolFee.String()),
+		)},
+	)
+	return &types.MsgInstantWithdrawResponse{}, nil
 }

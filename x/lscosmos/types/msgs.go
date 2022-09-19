@@ -145,3 +145,45 @@ func (m *MsgLiquidUnstake) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{acc}
 }
+
+// NewMsgInstantWithdraw returns a new MsgInstantWithdraw
+//
+//nolint:interfacer
+func NewMsgInstantWithdraw(address sdk.AccAddress, amount sdk.Coin) *MsgInstantWithdraw {
+	return &MsgInstantWithdraw{
+		WithdrawerAddress: address.String(),
+		Amount:            amount,
+	}
+}
+
+func (m *MsgInstantWithdraw) Route() string { return RouterKey }
+
+func (m *MsgInstantWithdraw) Type() string { return MsgTypeInstantWithdraw }
+
+func (m *MsgInstantWithdraw) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.WithdrawerAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.WithdrawerAddress)
+	}
+
+	if !m.Amount.IsValid() {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
+	}
+
+	if !m.Amount.IsPositive() {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
+	}
+	return nil
+}
+
+func (m *MsgInstantWithdraw) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+
+}
+
+func (m *MsgInstantWithdraw) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.WithdrawerAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
