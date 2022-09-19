@@ -17,6 +17,7 @@ Host chain register proposal takes the following parameter into account :
 - `PstakeDepositFee` : It is the fraction of fees on liquid staking deposit.
 - `PstakeRestakeFee` : It is the fraction of fees on auto restake of rewards.
 - `PstakeUnstakeFee` : It is the fraction of fees on unstake transaction.
+- `PstakeRedemptionFee` : It is the fraction of fees on instant redemption.
 - `PstakeFeeAddress` : Address on which the above mentioned fees are sent to.
 
 It is to whitelist these params before the modules is able to liquid stake atoms on Persistence Chain.
@@ -46,6 +47,7 @@ Example of a register host chain proposal :
   "pstake_deposit_fee": "0.00",
   "pstake_restake_fee": "0.05",
   "pstake_unstake_fee": "0.00",
+  "pstake_redemption_fee": "0.1",
   "pstake_fee_address": "persistence108cqtjz7gqasctvrw74kewg6642062kmfuujsd",
   "deposit": "1000000uxprt"
 }
@@ -65,6 +67,7 @@ This proposal takes the following parameters into account :
 - `PstakeDepositFee` : of type sdk.Dec
 - `PstakeRestakeFee` : of type sdk.Dec
 - `PstakeUnstakeFee` : of type sdk.Dec
+- `PstakeRedemptionFee` : of type sdk.Dec
 
 Example proposal :
 
@@ -76,6 +79,7 @@ Example proposal :
   "pstake_deposit_fee": "0.1",
   "pstake_restake_fee": "0.1",
   "pstake_unstake_fee": "0.1",
+  "pstake_redemption_fee": "0.1",
   "deposit": "1000000stake"
 }
 ```
@@ -101,7 +105,7 @@ Example proposal :
 {
   "title": "change pstake fee address",
   "description": "this proposal changes pstake fee address in the chain",
-  "pstake_fee_address" : "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9"
+  "pstake_fee_address": "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9"
   "deposit": "10000000stake"
 }
 ```

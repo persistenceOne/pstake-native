@@ -23,12 +23,13 @@ type RegisterHostChainProposalJSON struct {
 	PstakeDepositFee      string                      `json:"pstake_deposit_fee" yaml:"pstake_deposit_fee"`
 	PstakeRestakeFee      string                      `json:"pstake_restake_fee" yaml:"pstake_restake_fee"`
 	PstakeUnstakeFee      string                      `json:"pstake_unstake_fee" yaml:"pstake_unstake_fee"`
+	PstakeRedemptionFee   string                      `json:"pstake_redemption_fee" yaml:"pstake_redemption_fee"`
 	PstakeFeeAddress      string                      `json:"pstake_fee_address" yaml:"pstake_fee_address"`
 	Deposit               string                      `json:"deposit" yaml:"deposit"`
 }
 
 func NewRegisterChainJSON(title, description string, moduleEnabled bool, chainID, connectionID, transferChannel, transferPort,
-	baseDenom, mintDenom, minDeposit, pstakeFeeAddress, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, deposit string, allowListedValidators types.AllowListedValidators) RegisterHostChainProposalJSON {
+	baseDenom, mintDenom, minDeposit, pstakeFeeAddress, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee, deposit string, allowListedValidators types.AllowListedValidators) RegisterHostChainProposalJSON {
 	return RegisterHostChainProposalJSON{
 		Title:                 title,
 		Description:           description,
@@ -44,6 +45,7 @@ func NewRegisterChainJSON(title, description string, moduleEnabled bool, chainID
 		PstakeDepositFee:      pstakeDepositFee,
 		PstakeRestakeFee:      pstakeRestakeFee,
 		PstakeUnstakeFee:      pstakeUnstakeFee,
+		PstakeRedemptionFee:   pstakeRedemptionFee,
 		PstakeFeeAddress:      pstakeFeeAddress,
 		Deposit:               deposit,
 	}
@@ -67,25 +69,27 @@ func ParseRegisterHostChainProposalJSON(cdc *codec.LegacyAmino, proposalFile str
 }
 
 type MinDepositAndFeeChangeProposalJSON struct {
-	Title            string `json:"title" yaml:"title"`
-	Description      string `json:"description" yaml:"description"`
-	MinDeposit       string `json:"min_deposit" yaml:"min_deposit"`
-	PstakeDepositFee string `json:"pstake_deposit_fee" yaml:"pstake_deposit_fee"`
-	PstakeRestakeFee string `json:"pstake_restake_fee" yaml:"pstake_restake_fee"`
-	PstakeUnstakeFee string `json:"pstake_unstake_fee" yaml:"pstake_unstake_fee"`
-	Deposit          string `json:"deposit" yaml:"deposit"`
+	Title               string `json:"title" yaml:"title"`
+	Description         string `json:"description" yaml:"description"`
+	MinDeposit          string `json:"min_deposit" yaml:"min_deposit"`
+	PstakeDepositFee    string `json:"pstake_deposit_fee" yaml:"pstake_deposit_fee"`
+	PstakeRestakeFee    string `json:"pstake_restake_fee" yaml:"pstake_restake_fee"`
+	PstakeUnstakeFee    string `json:"pstake_unstake_fee" yaml:"pstake_unstake_fee"`
+	PstakeRedemptionFee string `json:"pstake_redemption_fee" yaml:"pstake_redemption_fee"`
+	Deposit             string `json:"deposit" yaml:"deposit"`
 }
 
 func NewMinDepositAndFeeChangeJSON(title, description, minDeposit, pstakeDepositFee, pstakeRestakeFee,
-	pstakeUnstakeFee, deposit string) MinDepositAndFeeChangeProposalJSON {
+	pstakeUnstakeFee, pstakeRedemptionFee, deposit string) MinDepositAndFeeChangeProposalJSON {
 	return MinDepositAndFeeChangeProposalJSON{
-		Title:            title,
-		Description:      description,
-		MinDeposit:       minDeposit,
-		PstakeDepositFee: pstakeDepositFee,
-		PstakeRestakeFee: pstakeRestakeFee,
-		PstakeUnstakeFee: pstakeUnstakeFee,
-		Deposit:          deposit,
+		Title:               title,
+		Description:         description,
+		MinDeposit:          minDeposit,
+		PstakeDepositFee:    pstakeDepositFee,
+		PstakeRestakeFee:    pstakeRestakeFee,
+		PstakeUnstakeFee:    pstakeUnstakeFee,
+		PstakeRedemptionFee: pstakeRedemptionFee,
+		Deposit:             deposit,
 	}
 
 }
