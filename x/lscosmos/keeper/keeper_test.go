@@ -108,7 +108,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	unstakeFee, err := sdk.NewDecFromStr("0.03")
 	suite.NoError(err)
 
-	withdrawalFee, err := sdk.NewDecFromStr("0.03")
+	redemptionFee, err := sdk.NewDecFromStr("0.03")
 	suite.NoError(err)
 
 	hostChainParams := types.NewHostChainParams(
@@ -123,7 +123,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 		depositFee,
 		restakeFee,
 		unstakeFee,
-		withdrawalFee,
+		redemptionFee,
 	)
 	suite.app.LSCosmosKeeper.SetHostChainParams(suite.ctx, hostChainParams)
 	suite.app.LSCosmosKeeper.SetAllowListedValidators(ctx, allowListedValidators)

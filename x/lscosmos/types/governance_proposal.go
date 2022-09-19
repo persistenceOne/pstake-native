@@ -37,7 +37,7 @@ func init() {
 // NewRegisterHostChainProposal creates a new multisig change proposal.
 func NewRegisterHostChainProposal(title, description string, moduleEnabled bool, chainID, connectionID, transferChannel,
 	transferPort, baseDenom, mintDenom, pstakeFeeAddress string, minDeposit sdktypes.Int, allowListedValidators AllowListedValidators,
-	pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeWithdrawalFee sdktypes.Dec) *RegisterHostChainProposal {
+	pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee sdktypes.Dec) *RegisterHostChainProposal {
 
 	return &RegisterHostChainProposal{
 		Title:                 title,
@@ -55,7 +55,7 @@ func NewRegisterHostChainProposal(title, description string, moduleEnabled bool,
 		PstakeRestakeFee:      pstakeRestakeFee,
 		PstakeUnstakeFee:      pstakeUnstakeFee,
 		PstakeFeeAddress:      pstakeFeeAddress,
-		PstakeWithdrawalFee:   pstakeWithdrawalFee,
+		PstakeRedemptionFee:   pstakeRedemptionFee,
 	}
 }
 
@@ -107,8 +107,8 @@ func (m *RegisterHostChainProposal) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidFee, "pstake unstake fee must be between 0 and 1")
 	}
 
-	if m.PstakeWithdrawalFee.IsNegative() || m.PstakeWithdrawalFee.GTE(sdktypes.OneDec()) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake withdraw fee must be between 0 and 1")
+	if m.PstakeRedemptionFee.IsNegative() || m.PstakeRedemptionFee.GTE(sdktypes.OneDec()) {
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake redemption fee must be between 0 and 1")
 	}
 
 	if m.MinDeposit.LTE(sdktypes.ZeroInt()) {
@@ -134,7 +134,7 @@ AllowlistedValidators: %s
 PstakeDepositFee:	   %s
 PstakeRestakeFee: 	   %s
 PstakeUnstakeFee: 	   %s
-PstakeWithdrawalFee:   %s
+PstakeRedemptionFee:   %s
 
 `,
 		m.Title,
@@ -149,12 +149,12 @@ PstakeWithdrawalFee:   %s
 		m.PstakeDepositFee,
 		m.PstakeRestakeFee,
 		m.PstakeUnstakeFee,
-		m.PstakeWithdrawalFee),
+		m.PstakeRedemptionFee),
 	)
 	return b.String()
 }
 
-func NewHostChainParams(chainID, connectionID, channel, port, baseDenom, mintDenom, pstakefeeAddress string, minDeposit sdktypes.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeWithdrawalFee sdktypes.Dec) HostChainParams {
+func NewHostChainParams(chainID, connectionID, channel, port, baseDenom, mintDenom, pstakefeeAddress string, minDeposit sdktypes.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee sdktypes.Dec) HostChainParams {
 	return HostChainParams{
 		ChainID:             chainID,
 		ConnectionID:        connectionID,
@@ -167,7 +167,7 @@ func NewHostChainParams(chainID, connectionID, channel, port, baseDenom, mintDen
 		PstakeRestakeFee:    pstakeRestakeFee,
 		PstakeUnstakeFee:    pstakeUnstakeFee,
 		PstakeFeeAddress:    pstakefeeAddress,
-		PstakeWithdrawalFee: pstakeWithdrawalFee,
+		PstakeRedemptionFee: pstakeRedemptionFee,
 	}
 }
 
@@ -189,7 +189,7 @@ func (c *HostChainParams) IsEmpty() bool {
 
 // NewMinDepositAndFeeChangeProposal creates a protocol fee and min deposit change proposal.
 func NewMinDepositAndFeeChangeProposal(title, description string, minDeposit sdktypes.Int, pstakeDepositFee,
-	pstakeRestakeFee, pstakeUnstakeFee, pstakeWithdrawalFee sdktypes.Dec) *MinDepositAndFeeChangeProposal {
+	pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee sdktypes.Dec) *MinDepositAndFeeChangeProposal {
 
 	return &MinDepositAndFeeChangeProposal{
 		Title:               title,
@@ -198,7 +198,7 @@ func NewMinDepositAndFeeChangeProposal(title, description string, minDeposit sdk
 		PstakeDepositFee:    pstakeDepositFee,
 		PstakeRestakeFee:    pstakeRestakeFee,
 		PstakeUnstakeFee:    pstakeUnstakeFee,
-		PstakeWithdrawalFee: pstakeWithdrawalFee,
+		PstakeRedemptionFee: pstakeRedemptionFee,
 	}
 }
 
@@ -241,8 +241,8 @@ func (m *MinDepositAndFeeChangeProposal) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidFee, "pstake unstake fee must be between 0 and 1")
 	}
 
-	if m.PstakeWithdrawalFee.IsNegative() || m.PstakeWithdrawalFee.GTE(sdktypes.OneDec()) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake withdraw fee must be between 0 and 1")
+	if m.PstakeRedemptionFee.IsNegative() || m.PstakeRedemptionFee.GTE(sdktypes.OneDec()) {
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake redemption fee must be between 0 and 1")
 	}
 
 	if m.MinDeposit.LTE(sdktypes.ZeroInt()) {
@@ -262,7 +262,7 @@ MinDeposit:             %s
 PstakeDepositFee:	   %s
 PstakeRestakeFee: 	   %s
 PstakeUnstakeFee: 	   %s
-PstakeWithdrawalFee:   %s
+PstakeRedemptionFee:   %s
 
 `,
 		m.Title,
@@ -271,7 +271,7 @@ PstakeWithdrawalFee:   %s
 		m.PstakeDepositFee,
 		m.PstakeRestakeFee,
 		m.PstakeUnstakeFee,
-		m.PstakeWithdrawalFee),
+		m.PstakeRedemptionFee),
 	)
 	return b.String()
 }

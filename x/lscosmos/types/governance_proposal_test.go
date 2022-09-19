@@ -132,7 +132,7 @@ func TestParameterChangeProposal(t *testing.T) {
 				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
 				sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.NewDec(10),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake withdraw fee must be between 0 and 1"),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake redemption fee must be between 0 and 1"),
 		},
 		{
 			testName: "incorrect deposit",
@@ -157,7 +157,7 @@ func TestParameterChangeProposal(t *testing.T) {
 		if tc.expectedError == nil {
 			require.Equal(t, "title", tc.proposal.GetTitle())
 			require.Equal(t, "description", tc.proposal.GetDescription())
-			require.Equal(t, "Register host chain:\nTitle:                 title\nDescription:           description\nModuleEnabled:\t\t   true\nConnectionID:         connection-0\nTransferChannel:  channel-1\nTransferPort:     transfer\nBaseDenom: \t\t\t   uatom\nMintDenom: \t\t\t   ustkatom\nAllowlistedValidators: {[{cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt 1.000000000000000000}]}\nPstakeDepositFee:\t   0.000000000000000000\nPstakeRestakeFee: \t   0.000000000000000000\nPstakeUnstakeFee: \t   0.000000000000000000\nPstakeWithdrawalFee:   0.000000000000000000\n\n", tc.proposal.String())
+			require.Equal(t, "Register host chain:\nTitle:                 title\nDescription:           description\nModuleEnabled:\t\t   true\nConnectionID:         connection-0\nTransferChannel:  channel-1\nTransferPort:     transfer\nBaseDenom: \t\t\t   uatom\nMintDenom: \t\t\t   ustkatom\nAllowlistedValidators: {[{cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt 1.000000000000000000}]}\nPstakeDepositFee:\t   0.000000000000000000\nPstakeRestakeFee: \t   0.000000000000000000\nPstakeUnstakeFee: \t   0.000000000000000000\nPstakeRedemptionFee:   0.000000000000000000\n\n", tc.proposal.String())
 		}
 	}
 }
@@ -180,7 +180,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.ZeroDec(),
 			),
 			expectedError:  nil,
-			expectedString: "MinDepositAndFeeChange:\nTitle:                 title\nDescription:           description\nMinDeposit:             5\nPstakeDepositFee:\t   0.000000000000000000\nPstakeRestakeFee: \t   0.000000000000000000\nPstakeUnstakeFee: \t   0.000000000000000000\nPstakeWithdrawalFee:   0.000000000000000000\n\n",
+			expectedString: "MinDepositAndFeeChange:\nTitle:                 title\nDescription:           description\nMinDeposit:             5\nPstakeDepositFee:\t   0.000000000000000000\nPstakeRestakeFee: \t   0.000000000000000000\nPstakeUnstakeFee: \t   0.000000000000000000\nPstakeRedemptionFee:   0.000000000000000000\n\n",
 		},
 		{
 			testName: "invalid title length",
@@ -284,7 +284,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.ZeroDec(),
 				sdk.NewDec(10),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake withdraw fee must be between 0 and 1"),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake redemption fee must be between 0 and 1"),
 		},
 		{
 			testName: "incorrect deposit",
