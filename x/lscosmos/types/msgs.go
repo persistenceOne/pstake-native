@@ -151,8 +151,8 @@ func (m *MsgLiquidUnstake) GetSigners() []sdk.AccAddress {
 //nolint:interfacer
 func NewMsgRedeem(address sdk.AccAddress, amount sdk.Coin) *MsgRedeem {
 	return &MsgRedeem{
-		RedeemAddress: address.String(),
-		Amount:        amount,
+		DelegatorAddress: address.String(),
+		Amount:           amount,
 	}
 }
 
@@ -161,8 +161,8 @@ func (m *MsgRedeem) Route() string { return RouterKey }
 func (m *MsgRedeem) Type() string { return MsgTypeRedeem }
 
 func (m *MsgRedeem) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(m.RedeemAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.RedeemAddress)
+	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
 	}
 
 	if !m.Amount.IsValid() {
@@ -181,7 +181,7 @@ func (m *MsgRedeem) GetSignBytes() []byte {
 }
 
 func (m *MsgRedeem) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.RedeemAddress)
+	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
 	if err != nil {
 		panic(err)
 	}

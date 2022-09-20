@@ -51,7 +51,7 @@ message MsgJuice {
 message MsgJuiceResponse {}
 
 message MsgRedeem {
-  string redeem_address = 1;
+  string delegator_address = 1;
   cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
 }
 

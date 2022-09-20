@@ -110,7 +110,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		sdktypes.NewEvent(
 			types.EventTypeLiquidStake,
 			sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
-			sdktypes.NewAttribute(types.AttributeAmountMinted, mintToken.String()),
+			sdktypes.NewAttribute(types.AttributeAmount, mintToken.String()),
 			sdktypes.NewAttribute(types.AttributeAmountRecieved, mintToken.Sub(protocolCoin).String()),
 			sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolFee.String()),
 		),
@@ -207,8 +207,8 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 		return nil, types.ErrModuleDisabled
 	}
 
-	// check if address in message is correct or not
-	redeemAddress, err := sdktypes.AccAddressFromBech32(msg.RedeemAddress)
+	// take redeem address from msg address string
+	redeemAddress, err := sdktypes.AccAddressFromBech32(msg.DelegatorAddress)
 	if err != nil {
 		return nil, sdkerrors.ErrInvalidAddress
 	}
@@ -251,7 +251,7 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 
 	// check deposit account has sufficient funds
 	if redeemToken.IsGTE(delegationBalance) {
-		return nil, types.ErrInsufficientBalance
+		return nil, sdkerrors.ErrInsufficientFunds
 	}
 
 	// send the ibc/Denom token from module to the account
@@ -269,15 +269,15 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 	ctx.EventManager().EmitEvents(sdktypes.Events{
 		sdktypes.NewEvent(
 			types.EventTypeRedeem,
-			sdktypes.NewAttribute(types.AttributeRedeemAddress, redeemAddress.String()),
-			sdktypes.NewAttribute(types.AttributeAmountRedeemed, msg.Amount.String()),
+			sdktypes.NewAttribute(types.AttributeDelegatorAddress, redeemAddress.String()),
+			sdktypes.NewAttribute(types.AttributeAmount, msg.Amount.String()),
 			sdktypes.NewAttribute(types.AttributeAmountRecieved, redeemToken.String()),
 			sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolCoin.String()),
 		),
 		sdktypes.NewEvent(
 			sdktypes.EventTypeMessage,
 			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
-			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.RedeemAddress),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
 		)},
 	)
 	return &types.MsgRedeemResponse{}, nil
