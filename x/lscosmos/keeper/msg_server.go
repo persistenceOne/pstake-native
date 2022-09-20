@@ -2,10 +2,10 @@ package keeper
 
 import (
 	"context"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
