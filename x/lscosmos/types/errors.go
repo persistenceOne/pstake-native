@@ -28,5 +28,5 @@ var (
 	ErrNoHostChainDelegations              = sdkerrors.Register(ModuleName, 78, "no delegations on host chain")
 	ErrCannotRemoveNonExistentUndelegation = sdkerrors.Register(ModuleName, 79, "Cannot remove undelegation from a non existing undelegation")
 	ErrInsufficientBalance                 = sdkerrors.Register(ModuleName, 80, "insufficient balance")
-	ErrWithdrawFailed                      = sdkerrors.Register(ModuleName, 81, "withdraw failed")
+	ErrBurnFailed                          = sdkerrors.Register(ModuleName, 82, "burn coins failed")
 )
