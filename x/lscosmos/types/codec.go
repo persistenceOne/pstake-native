@@ -10,6 +10,9 @@ import (
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&RegisterHostChainProposal{}, "cosmos/RegisterHostChainProposal", nil)
+	cdc.RegisterConcrete(&MinDepositAndFeeChangeProposal{}, "cosmos/MinDepositAndFeeChangeProposal", nil)
+	cdc.RegisterConcrete(&PstakeFeeAddressChangeProposal{}, "cosmos/PstakeFeeAddressChangeProposal", nil)
+	cdc.RegisterConcrete(&AllowListedValidatorSetChangeProposal{}, "cosmos/AllowListedValidatorSetChangeProposal", nil)
 	cdc.RegisterConcrete(&MsgLiquidStake{}, "cosmos/MsgLiquidStake", nil)
 	cdc.RegisterConcrete(&MsgJuice{}, "cosmos/MsgJuice", nil)
 	cdc.RegisterConcrete(&MsgLiquidUnstake{}, "cosmos/MsgLiquidUnstake", nil)
@@ -27,6 +30,9 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*govtypes.Content)(nil),
 		// add the stucts that implements govTypes.Content interface
 		&RegisterHostChainProposal{},
+		&MinDepositAndFeeChangeProposal{},
+		&PstakeFeeAddressChangeProposal{},
+		&AllowListedValidatorSetChangeProposal{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
