@@ -34,7 +34,7 @@ func init() {
 	govtypes.RegisterProposalTypeCodec(&AllowListedValidatorSetChangeProposal{}, "pstake/AllowListedValidatorSetChange")
 }
 
-// NewRegisterHostChainProposal creates a new multisig change proposal.
+// NewRegisterHostChainProposal creates a new host chain register proposal.
 func NewRegisterHostChainProposal(title, description string, moduleEnabled bool, chainID, connectionID, transferChannel,
 	transferPort, baseDenom, mintDenom, pstakeFeeAddress string, minDeposit sdktypes.Int, allowListedValidators AllowListedValidators,
 	pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee sdktypes.Dec) *RegisterHostChainProposal {
@@ -51,30 +51,32 @@ func NewRegisterHostChainProposal(title, description string, moduleEnabled bool,
 		MintDenom:             mintDenom,
 		MinDeposit:            minDeposit,
 		AllowListedValidators: allowListedValidators,
-		PstakeDepositFee:      pstakeDepositFee,
-		PstakeRestakeFee:      pstakeRestakeFee,
-		PstakeUnstakeFee:      pstakeUnstakeFee,
-		PstakeFeeAddress:      pstakeFeeAddress,
-		PstakeRedemptionFee:   pstakeRedemptionFee,
+		PstakeParams: PstakeParams{
+			PstakeDepositFee:    pstakeDepositFee,
+			PstakeRestakeFee:    pstakeRestakeFee,
+			PstakeUnstakeFee:    pstakeUnstakeFee,
+			PstakeRedemptionFee: pstakeRedemptionFee,
+			PstakeFeeAddress:    pstakeFeeAddress,
+		},
 	}
 }
 
-// GetTitle returns the title of the multisig change proposal.
+// GetTitle returns the title of the host chain register proposal.
 func (m *RegisterHostChainProposal) GetTitle() string {
 	return m.Title
 }
 
-// GetDescription returns the description of multisig change proposal.
+// GetDescription returns the description of host chain register proposal.
 func (m *RegisterHostChainProposal) GetDescription() string {
 	return m.Description
 }
 
-// ProposalRoute returns the proposal route of multisig change proposal.
+// ProposalRoute returns the proposal route of host chain register proposal.
 func (m *RegisterHostChainProposal) ProposalRoute() string {
 	return RouterKey
 }
 
-// ProposalType returns the proposal type of multisig change proposal.
+// ProposalType returns the proposal type of host chain register proposal.
 func (m *RegisterHostChainProposal) ProposalType() string {
 	return ProposalTypeRegisterHostChain
 }
@@ -90,24 +92,24 @@ func (m *RegisterHostChainProposal) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInValidAllowListedValidators, "allow listed validators is not valid")
 	}
 
-	_, err = sdktypes.AccAddressFromBech32(m.PstakeFeeAddress)
+	_, err = sdktypes.AccAddressFromBech32(m.PstakeParams.PstakeFeeAddress)
 	if err != nil {
 		return err
 	}
 
-	if m.PstakeDepositFee.IsNegative() || m.PstakeDepositFee.GTE(sdktypes.OneDec()) {
+	if m.PstakeParams.PstakeDepositFee.IsNegative() || m.PstakeParams.PstakeDepositFee.GTE(sdktypes.OneDec()) {
 		return sdkerrors.Wrapf(ErrInvalidFee, "pstake deposit fee must be between 0 and 1")
 	}
 
-	if m.PstakeRestakeFee.IsNegative() || m.PstakeRestakeFee.GTE(sdktypes.OneDec()) {
+	if m.PstakeParams.PstakeRestakeFee.IsNegative() || m.PstakeParams.PstakeRestakeFee.GTE(sdktypes.OneDec()) {
 		return sdkerrors.Wrapf(ErrInvalidFee, "pstake restake fee must be between 0 and 1")
 	}
 
-	if m.PstakeUnstakeFee.IsNegative() || m.PstakeUnstakeFee.GTE(sdktypes.OneDec()) {
+	if m.PstakeParams.PstakeUnstakeFee.IsNegative() || m.PstakeParams.PstakeUnstakeFee.GTE(sdktypes.OneDec()) {
 		return sdkerrors.Wrapf(ErrInvalidFee, "pstake unstake fee must be between 0 and 1")
 	}
 
-	if m.PstakeRedemptionFee.IsNegative() || m.PstakeRedemptionFee.GTE(sdktypes.OneDec()) {
+	if m.PstakeParams.PstakeRedemptionFee.IsNegative() || m.PstakeParams.PstakeRedemptionFee.GTE(sdktypes.OneDec()) {
 		return sdkerrors.Wrapf(ErrInvalidFee, "pstake redemption fee must be between 0 and 1")
 	}
 
@@ -146,28 +148,30 @@ PstakeRedemptionFee:   %s
 		m.BaseDenom,
 		m.MintDenom,
 		m.AllowListedValidators,
-		m.PstakeDepositFee,
-		m.PstakeRestakeFee,
-		m.PstakeUnstakeFee,
-		m.PstakeRedemptionFee),
+		m.PstakeParams.PstakeDepositFee,
+		m.PstakeParams.PstakeRestakeFee,
+		m.PstakeParams.PstakeUnstakeFee,
+		m.PstakeParams.PstakeRedemptionFee),
 	)
 	return b.String()
 }
 
 func NewHostChainParams(chainID, connectionID, channel, port, baseDenom, mintDenom, pstakefeeAddress string, minDeposit sdktypes.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee sdktypes.Dec) HostChainParams {
 	return HostChainParams{
-		ChainID:             chainID,
-		ConnectionID:        connectionID,
-		TransferChannel:     channel,
-		TransferPort:        port,
-		BaseDenom:           baseDenom,
-		MintDenom:           mintDenom,
-		MinDeposit:          minDeposit,
-		PstakeDepositFee:    pstakeDepositFee,
-		PstakeRestakeFee:    pstakeRestakeFee,
-		PstakeUnstakeFee:    pstakeUnstakeFee,
-		PstakeFeeAddress:    pstakefeeAddress,
-		PstakeRedemptionFee: pstakeRedemptionFee,
+		ChainID:         chainID,
+		ConnectionID:    connectionID,
+		TransferChannel: channel,
+		TransferPort:    port,
+		BaseDenom:       baseDenom,
+		MintDenom:       mintDenom,
+		MinDeposit:      minDeposit,
+		PstakeParams: PstakeParams{
+			PstakeDepositFee:    pstakeDepositFee,
+			PstakeRestakeFee:    pstakeRestakeFee,
+			PstakeUnstakeFee:    pstakeUnstakeFee,
+			PstakeFeeAddress:    pstakefeeAddress,
+			PstakeRedemptionFee: pstakeRedemptionFee,
+		},
 	}
 }
 
@@ -179,7 +183,7 @@ func (c *HostChainParams) IsEmpty() bool {
 		c.ChainID == "" ||
 		c.BaseDenom == "" ||
 		c.MintDenom == "" ||
-		c.PstakeFeeAddress == "" {
+		c.PstakeParams.PstakeFeeAddress == "" {
 		return true
 	}
 	// can add more, but this should be good enough
