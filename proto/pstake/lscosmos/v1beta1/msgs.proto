@@ -22,6 +22,10 @@ service Msg{
   rpc Juice(MsgJuice) returns (MsgJuiceResponse) {
     option (google.api.http).post = "/pstake/lscosmos/v1beta1/Juice";
   }
+
+  rpc Redeem(MsgRedeem) returns (MsgRedeemResponse) {
+    option (google.api.http).post = "/pstake/lscosmos/v1beta1/Redeem";
+  }
 }
 
 message MsgLiquidStake {
@@ -45,3 +49,10 @@ message MsgJuice {
 }
 
 message MsgJuiceResponse {}
+
+message MsgRedeem {
+  string delegator_address = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgRedeemResponse {}

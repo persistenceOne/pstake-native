@@ -145,3 +145,45 @@ func (m *MsgLiquidUnstake) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{acc}
 }
+
+// NewMsgRedeem returns a new MsgRedeem
+//
+//nolint:interfacer
+func NewMsgRedeem(address sdk.AccAddress, amount sdk.Coin) *MsgRedeem {
+	return &MsgRedeem{
+		DelegatorAddress: address.String(),
+		Amount:           amount,
+	}
+}
+
+func (m *MsgRedeem) Route() string { return RouterKey }
+
+func (m *MsgRedeem) Type() string { return MsgTypeRedeem }
+
+func (m *MsgRedeem) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
+	}
+
+	if !m.Amount.IsValid() {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
+	}
+
+	if !m.Amount.IsPositive() {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
+	}
+	return nil
+}
+
+func (m *MsgRedeem) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+
+}
+
+func (m *MsgRedeem) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}

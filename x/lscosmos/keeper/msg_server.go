@@ -5,6 +5,7 @@ import (
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
@@ -109,7 +110,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		sdktypes.NewEvent(
 			types.EventTypeLiquidStake,
 			sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
-			sdktypes.NewAttribute(types.AttributeAmountMinted, mintToken.String()),
+			sdktypes.NewAttribute(types.AttributeAmount, mintToken.String()),
 			sdktypes.NewAttribute(types.AttributeAmountRecieved, mintToken.Sub(protocolCoin).String()),
 			sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolFee.String()),
 		),
@@ -185,7 +186,99 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 	return &types.MsgJuiceResponse{}, nil
 }
 
-func (m msgServer) LiquidUnstake(ctx context.Context, unstake *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
+func (m msgServer) LiquidUnstake(goCtx context.Context, unstake *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
 	// TODO implement this
 	return nil, nil
+}
+
+func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.MsgRedeemResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	// sanity check for the arguments of message
+	if ctx.IsZero() || !msg.Amount.IsValid() {
+		return nil, types.ErrInvalidArgs
+	}
+	if !m.GetModuleState(ctx) {
+		return nil, types.ErrModuleDisabled
+	}
+
+	// take redeem address from msg address string
+	redeemAddress, err := sdktypes.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil, sdkerrors.ErrInvalidAddress
+	}
+
+	// get the ibc denom and host chain params
+	ibcDenom := m.GetIBCDenom(ctx)
+	hostChainParams := m.GetHostChainParams(ctx)
+
+	// check msg amount denom
+	if msg.Amount.Denom != hostChainParams.MintDenom {
+		return nil, types.ErrInvalidDenom
+	}
+
+	// We do not care about residue, as to not break Total calculation invariant.
+	// protocolCoin is the redemption fee
+	protocolCoin, _ := sdktypes.NewDecCoinFromDec(
+		hostChainParams.MintDenom,
+		hostChainParams.PstakeRedemptionFee.MulInt(msg.Amount.Amount),
+	).TruncateDecimal()
+
+	// send redeem tokens to module account from redeem account
+	err = m.bankKeeper.SendCoinsFromAccountToModule(ctx, redeemAddress, types.ModuleName, sdktypes.NewCoins(msg.Amount))
+	if err != nil {
+		return nil, err
+	}
+
+	// send protocol fee to protocol pool
+	err = m.SendProtocolFee(ctx, sdktypes.NewCoins(protocolCoin), types.ModuleName, hostChainParams.PstakeFeeAddress)
+	if err != nil {
+		return nil, types.ErrFailedDeposit
+	}
+
+	// convert redeem amount to ibc/whitelisted-denom amount (sub protocolCoin) based on the current c-value
+	redeemStk := msg.Amount.Sub(protocolCoin)
+	redeemToken, _ := m.ConvertStkToToken(ctx, sdktypes.NewDecCoinFromCoin(redeemStk), m.GetCValue(ctx))
+
+	// get all deposit account balances
+	allDepositBalances := m.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(types.DepositModuleAccount))
+	delegationBalance := sdktypes.NewCoin(ibcDenom, allDepositBalances.AmountOf(ibcDenom))
+
+	// check deposit account has sufficient funds
+	if redeemToken.IsGTE(delegationBalance) {
+		return nil, sdkerrors.ErrInsufficientFunds
+	}
+
+	// send the ibc/Denom token from module to the account
+	err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.DepositModuleAccount, redeemAddress, sdktypes.NewCoins(redeemToken))
+	if err != nil {
+		return nil, err
+	}
+
+	// burn the redeemStk token
+	err = m.bankKeeper.BurnCoins(ctx, types.ModuleName, sdktypes.NewCoins(redeemStk))
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeRedeem,
+			sdktypes.NewAttribute(types.AttributeDelegatorAddress, redeemAddress.String()),
+			sdktypes.NewAttribute(types.AttributeAmount, msg.Amount.String()),
+			sdktypes.NewAttribute(types.AttributeAmountRecieved, redeemToken.String()),
+			sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolCoin.String()),
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
+		)},
+	)
+	return &types.MsgRedeemResponse{}, nil
 }
