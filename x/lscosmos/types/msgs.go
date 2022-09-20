@@ -146,23 +146,23 @@ func (m *MsgLiquidUnstake) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
-// NewMsgInstantWithdraw returns a new MsgInstantWithdraw
+// NewMsgRedeem returns a new MsgRedeem
 //
 //nolint:interfacer
-func NewMsgInstantWithdraw(address sdk.AccAddress, amount sdk.Coin) *MsgInstantWithdraw {
-	return &MsgInstantWithdraw{
-		WithdrawerAddress: address.String(),
-		Amount:            amount,
+func NewMsgRedeem(address sdk.AccAddress, amount sdk.Coin) *MsgRedeem {
+	return &MsgRedeem{
+		RedeemAddress: address.String(),
+		Amount:        amount,
 	}
 }
 
-func (m *MsgInstantWithdraw) Route() string { return RouterKey }
+func (m *MsgRedeem) Route() string { return RouterKey }
 
-func (m *MsgInstantWithdraw) Type() string { return MsgTypeInstantWithdraw }
+func (m *MsgRedeem) Type() string { return MsgTypeRedeem }
 
-func (m *MsgInstantWithdraw) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(m.WithdrawerAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.WithdrawerAddress)
+func (m *MsgRedeem) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.RedeemAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.RedeemAddress)
 	}
 
 	if !m.Amount.IsValid() {
@@ -175,13 +175,13 @@ func (m *MsgInstantWithdraw) ValidateBasic() error {
 	return nil
 }
 
-func (m *MsgInstantWithdraw) GetSignBytes() []byte {
+func (m *MsgRedeem) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 
 }
 
-func (m *MsgInstantWithdraw) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.WithdrawerAddress)
+func (m *MsgRedeem) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.RedeemAddress)
 	if err != nil {
 		panic(err)
 	}

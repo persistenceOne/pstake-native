@@ -191,7 +191,7 @@ func (m msgServer) LiquidUnstake(goCtx context.Context, unstake *types.MsgLiquid
 	return nil, nil
 }
 
-func (m msgServer) InstantWithdraw(goCtx context.Context, msg *types.MsgInstantWithdraw) (*types.MsgInstantWithdrawResponse, error) {
+func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.MsgRedeemResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, err
@@ -208,7 +208,7 @@ func (m msgServer) InstantWithdraw(goCtx context.Context, msg *types.MsgInstantW
 	}
 
 	// check if address in message is correct or not
-	withdrawerAddress, err := sdktypes.AccAddressFromBech32(msg.WithdrawerAddress)
+	withdrawerAddress, err := sdktypes.AccAddressFromBech32(msg.RedeemAddress)
 	if err != nil {
 		return nil, sdkerrors.ErrInvalidAddress
 	}
@@ -236,8 +236,7 @@ func (m msgServer) InstantWithdraw(goCtx context.Context, msg *types.MsgInstantW
 	}
 
 	//Calculate protocol fee
-	// TODO : make it withdrawal fee instead of deposit fee
-	protocolFee := hostChainParams.PstakeDepositFee
+	protocolFee := hostChainParams.PstakeRedemptionFee
 	protocolFeeAmount := protocolFee.MulInt(withdrawToken.Amount)
 	// We do not care about residue, as to not break Total calculation invariant.
 	protocolCoin, _ := sdktypes.NewDecCoinFromDec(ibcDenom, protocolFeeAmount).TruncateDecimal()
@@ -263,5 +262,5 @@ func (m msgServer) InstantWithdraw(goCtx context.Context, msg *types.MsgInstantW
 			sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolFee.String()),
 		)},
 	)
-	return &types.MsgInstantWithdrawResponse{}, nil
+	return &types.MsgRedeemResponse{}, nil
 }

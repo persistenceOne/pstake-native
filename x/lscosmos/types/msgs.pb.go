@@ -295,23 +295,23 @@ func (m *MsgJuiceResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgJuiceResponse proto.InternalMessageInfo
 
-type MsgInstantWithdraw struct {
-	WithdrawerAddress string     `protobuf:"bytes,1,opt,name=withdrawer_address,json=withdrawerAddress,proto3" json:"withdrawer_address,omitempty"`
-	Amount            types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount"`
+type MsgRedeem struct {
+	RedeemAddress string     `protobuf:"bytes,1,opt,name=redeem_address,json=redeemAddress,proto3" json:"redeem_address,omitempty"`
+	Amount        types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount"`
 }
 
-func (m *MsgInstantWithdraw) Reset()         { *m = MsgInstantWithdraw{} }
-func (m *MsgInstantWithdraw) String() string { return proto.CompactTextString(m) }
-func (*MsgInstantWithdraw) ProtoMessage()    {}
-func (*MsgInstantWithdraw) Descriptor() ([]byte, []int) {
+func (m *MsgRedeem) Reset()         { *m = MsgRedeem{} }
+func (m *MsgRedeem) String() string { return proto.CompactTextString(m) }
+func (*MsgRedeem) ProtoMessage()    {}
+func (*MsgRedeem) Descriptor() ([]byte, []int) {
 	return fileDescriptor_2c178418d9a52b7e, []int{6}
 }
-func (m *MsgInstantWithdraw) XXX_Unmarshal(b []byte) error {
+func (m *MsgRedeem) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgInstantWithdraw) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRedeem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgInstantWithdraw.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRedeem.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -321,47 +321,47 @@ func (m *MsgInstantWithdraw) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *MsgInstantWithdraw) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgInstantWithdraw.Merge(m, src)
+func (m *MsgRedeem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRedeem.Merge(m, src)
 }
-func (m *MsgInstantWithdraw) XXX_Size() int {
+func (m *MsgRedeem) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgInstantWithdraw) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgInstantWithdraw.DiscardUnknown(m)
+func (m *MsgRedeem) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRedeem.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgInstantWithdraw proto.InternalMessageInfo
+var xxx_messageInfo_MsgRedeem proto.InternalMessageInfo
 
-func (m *MsgInstantWithdraw) GetWithdrawerAddress() string {
+func (m *MsgRedeem) GetRedeemAddress() string {
 	if m != nil {
-		return m.WithdrawerAddress
+		return m.RedeemAddress
 	}
 	return ""
 }
 
-func (m *MsgInstantWithdraw) GetAmount() types.Coin {
+func (m *MsgRedeem) GetAmount() types.Coin {
 	if m != nil {
 		return m.Amount
 	}
 	return types.Coin{}
 }
 
-type MsgInstantWithdrawResponse struct {
+type MsgRedeemResponse struct {
 }
 
-func (m *MsgInstantWithdrawResponse) Reset()         { *m = MsgInstantWithdrawResponse{} }
-func (m *MsgInstantWithdrawResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgInstantWithdrawResponse) ProtoMessage()    {}
-func (*MsgInstantWithdrawResponse) Descriptor() ([]byte, []int) {
+func (m *MsgRedeemResponse) Reset()         { *m = MsgRedeemResponse{} }
+func (m *MsgRedeemResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRedeemResponse) ProtoMessage()    {}
+func (*MsgRedeemResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_2c178418d9a52b7e, []int{7}
 }
-func (m *MsgInstantWithdrawResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgRedeemResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgInstantWithdrawResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRedeemResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgInstantWithdrawResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRedeemResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -371,17 +371,17 @@ func (m *MsgInstantWithdrawResponse) XXX_Marshal(b []byte, deterministic bool) (
 		return b[:n], nil
 	}
 }
-func (m *MsgInstantWithdrawResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgInstantWithdrawResponse.Merge(m, src)
+func (m *MsgRedeemResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRedeemResponse.Merge(m, src)
 }
-func (m *MsgInstantWithdrawResponse) XXX_Size() int {
+func (m *MsgRedeemResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgInstantWithdrawResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgInstantWithdrawResponse.DiscardUnknown(m)
+func (m *MsgRedeemResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRedeemResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgInstantWithdrawResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgRedeemResponse proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*MsgLiquidStake)(nil), "pstake.lscosmos.v1beta1.MsgLiquidStake")
@@ -390,8 +390,8 @@ func init() {
 	proto.RegisterType((*MsgLiquidUnstakeResponse)(nil), "pstake.lscosmos.v1beta1.MsgLiquidUnstakeResponse")
 	proto.RegisterType((*MsgJuice)(nil), "pstake.lscosmos.v1beta1.MsgJuice")
 	proto.RegisterType((*MsgJuiceResponse)(nil), "pstake.lscosmos.v1beta1.MsgJuiceResponse")
-	proto.RegisterType((*MsgInstantWithdraw)(nil), "pstake.lscosmos.v1beta1.MsgInstantWithdraw")
-	proto.RegisterType((*MsgInstantWithdrawResponse)(nil), "pstake.lscosmos.v1beta1.MsgInstantWithdrawResponse")
+	proto.RegisterType((*MsgRedeem)(nil), "pstake.lscosmos.v1beta1.MsgRedeem")
+	proto.RegisterType((*MsgRedeemResponse)(nil), "pstake.lscosmos.v1beta1.MsgRedeemResponse")
 }
 
 func init() {
@@ -399,41 +399,40 @@ func init() {
 }
 
 var fileDescriptor_2c178418d9a52b7e = []byte{
-	// 532 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x94, 0x41, 0x6f, 0xd3, 0x3c,
-	0x18, 0xc7, 0x9b, 0xbd, 0x7b, 0x27, 0xf0, 0x04, 0xeb, 0x22, 0x04, 0x5d, 0x34, 0x85, 0x12, 0xa1,
-	0xd2, 0x32, 0x16, 0xd3, 0xed, 0x00, 0x57, 0xc6, 0x09, 0x44, 0x85, 0x54, 0x84, 0x90, 0xb8, 0x20,
-	0x27, 0x31, 0x9e, 0x45, 0x6b, 0x87, 0x3c, 0x4e, 0xbb, 0x49, 0x70, 0xe1, 0x13, 0x20, 0x21, 0x8e,
-	0x1c, 0xf9, 0x2e, 0x3b, 0x4e, 0xe2, 0xc2, 0x09, 0xa1, 0x76, 0x1f, 0x04, 0x35, 0x71, 0xbc, 0x35,
-	0x53, 0xd7, 0xa1, 0x49, 0xdc, 0x1c, 0x3f, 0xbf, 0xf8, 0xff, 0xb3, 0xf3, 0xc4, 0xc8, 0x8b, 0x41,
-	0x91, 0x77, 0x14, 0xf7, 0x20, 0x94, 0xd0, 0x97, 0x80, 0x07, 0xed, 0x80, 0x2a, 0xd2, 0xc6, 0x7d,
-	0x60, 0xe0, 0xc7, 0x89, 0x54, 0xd2, 0xbe, 0x91, 0x33, 0x7e, 0xc1, 0xf8, 0x9a, 0x71, 0xae, 0x31,
-	0xc9, 0x64, 0xc6, 0xe0, 0xc9, 0x28, 0xc7, 0x9d, 0x75, 0x26, 0x25, 0xeb, 0x51, 0x4c, 0x62, 0x8e,
-	0x89, 0x10, 0x52, 0x11, 0xc5, 0xa5, 0xd0, 0x8b, 0x39, 0x6b, 0xba, 0x9a, 0x3d, 0x05, 0xe9, 0x5b,
-	0x4c, 0xc4, 0xbe, 0x2e, 0xb9, 0x5a, 0x21, 0x20, 0x40, 0x8d, 0x47, 0x28, 0xb9, 0xc8, 0xeb, 0xde,
-	0x00, 0x5d, 0xed, 0x00, 0x7b, 0xc6, 0xdf, 0xa7, 0x3c, 0x7a, 0x31, 0x31, 0xb2, 0x37, 0xd0, 0x6a,
-	0x44, 0x7b, 0x94, 0x11, 0x25, 0x93, 0x37, 0x24, 0x8a, 0x12, 0x0a, 0x50, 0xb3, 0xea, 0x56, 0xf3,
-	0x72, 0xb7, 0x6a, 0x0a, 0x8f, 0xf2, 0x79, 0xfb, 0x01, 0x5a, 0x22, 0x7d, 0x99, 0x0a, 0x55, 0x5b,
-	0xa8, 0x5b, 0xcd, 0xe5, 0xad, 0x35, 0x5f, 0x6f, 0x67, 0x92, 0x57, 0xec, 0xc9, 0x7f, 0x2c, 0xb9,
-	0xd8, 0x59, 0x3c, 0xf8, 0x75, 0xb3, 0xd2, 0xd5, 0xb8, 0x57, 0x43, 0xd7, 0xa7, 0x73, 0xbb, 0x14,
-	0x62, 0x29, 0x80, 0x7a, 0x7b, 0xa8, 0x6a, 0x2a, 0x2f, 0x05, 0xfc, 0x43, 0x27, 0x07, 0xd5, 0xca,
-	0xc9, 0xc6, 0x4a, 0xa0, 0x4b, 0x1d, 0x60, 0x4f, 0x53, 0x1e, 0x52, 0xbb, 0x85, 0xaa, 0x09, 0x1d,
-	0x92, 0x24, 0xa2, 0x65, 0x99, 0x95, 0x62, 0xfe, 0xc2, 0x2e, 0x76, 0x76, 0x0a, 0x59, 0x9e, 0x71,
-	0xf8, 0x80, 0xec, 0x0e, 0xb0, 0x27, 0x13, 0x33, 0xa1, 0x5e, 0x71, 0xb5, 0x1b, 0x25, 0x64, 0x68,
-	0x6f, 0x22, 0x7b, 0xa8, 0xc7, 0xa7, 0x7c, 0x56, 0x8f, 0x2b, 0x17, 0x36, 0x5a, 0x47, 0xce, 0xe9,
-	0xf4, 0xc2, 0x6d, 0xeb, 0x68, 0x11, 0xfd, 0xd7, 0x01, 0x66, 0x7f, 0xb5, 0xd0, 0xf2, 0xc9, 0x6e,
-	0xba, 0xe3, 0xcf, 0x68, 0x74, 0x7f, 0xfa, 0xf3, 0x3b, 0xf8, 0x9c, 0xa0, 0x39, 0x8d, 0x7b, 0x9f,
-	0x7e, 0x1c, 0x7d, 0x59, 0x68, 0x78, 0xb7, 0xf1, 0xac, 0xdf, 0xed, 0xa4, 0xc7, 0x37, 0x0b, 0x5d,
-	0x99, 0xee, 0xa9, 0xd6, 0xfc, 0x40, 0x8d, 0x3a, 0xed, 0x73, 0xa3, 0xc6, 0xce, 0xcf, 0xec, 0x9a,
-	0x5e, 0x63, 0x8e, 0x5d, 0x61, 0xf3, 0x11, 0xfd, 0x9f, 0x37, 0xd7, 0xad, 0xb3, 0xb2, 0x32, 0xc4,
-	0x69, 0xcd, 0x45, 0x8c, 0x46, 0x23, 0xd3, 0xa8, 0x7b, 0xee, 0x4c, 0x8d, 0x3c, 0xf5, 0xbb, 0x85,
-	0x56, 0xca, 0x8d, 0xb5, 0x71, 0x56, 0x4c, 0x09, 0x76, 0xb6, 0xff, 0x02, 0x36, 0x76, 0xf7, 0x33,
-	0xbb, 0xbb, 0x5e, 0x73, 0xa6, 0x5d, 0xe9, 0xcd, 0x9d, 0xee, 0xc1, 0xc8, 0xb5, 0x0e, 0x47, 0xae,
-	0xf5, 0x7b, 0xe4, 0x5a, 0x9f, 0xc7, 0x6e, 0xe5, 0x70, 0xec, 0x56, 0x7e, 0x8e, 0xdd, 0xca, 0xeb,
-	0x87, 0x8c, 0xab, 0xdd, 0x34, 0xf0, 0x43, 0xd9, 0xc7, 0x31, 0x4d, 0x80, 0x83, 0xa2, 0x22, 0xa4,
-	0xcf, 0x05, 0xd5, 0x8b, 0x6f, 0x0a, 0xa2, 0xf8, 0x80, 0xe2, 0xbd, 0xe3, 0x14, 0xb5, 0x1f, 0x53,
-	0x08, 0x96, 0xb2, 0x9b, 0x70, 0xfb, 0x4f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x2c, 0xf0, 0x3c, 0x38,
-	0xb7, 0x05, 0x00, 0x00,
+	// 522 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x94, 0x4f, 0x6f, 0xd3, 0x30,
+	0x18, 0x87, 0x9b, 0x31, 0x2a, 0xe6, 0x69, 0xa3, 0x0b, 0x08, 0xba, 0x08, 0x65, 0x5d, 0x04, 0x5d,
+	0xcb, 0x9f, 0x58, 0x1d, 0x07, 0xb8, 0x32, 0x6e, 0x88, 0x0a, 0xa9, 0x88, 0x0b, 0x17, 0xe4, 0x26,
+	0x2f, 0xc6, 0x5a, 0x63, 0x87, 0xd8, 0x29, 0xdb, 0x81, 0x03, 0x7c, 0x02, 0x24, 0xc4, 0x91, 0xef,
+	0xc2, 0x71, 0xc7, 0x49, 0x5c, 0x38, 0x21, 0xd4, 0xf2, 0x41, 0x50, 0x1d, 0xc7, 0xac, 0x95, 0xba,
+	0x4e, 0x9a, 0xb4, 0x9b, 0xe3, 0xf7, 0xc9, 0xfb, 0x7b, 0x9c, 0xbc, 0x09, 0x0a, 0x52, 0xa9, 0xc8,
+	0x3e, 0xe0, 0x81, 0x8c, 0x84, 0x4c, 0x84, 0xc4, 0xc3, 0x4e, 0x1f, 0x14, 0xe9, 0xe0, 0x44, 0x52,
+	0x19, 0xa6, 0x99, 0x50, 0xc2, 0xbd, 0x59, 0x30, 0x61, 0xc9, 0x84, 0x86, 0xf1, 0xae, 0x53, 0x41,
+	0x85, 0x66, 0xf0, 0x64, 0x55, 0xe0, 0xde, 0x2d, 0x2a, 0x04, 0x1d, 0x00, 0x26, 0x29, 0xc3, 0x84,
+	0x73, 0xa1, 0x88, 0x62, 0x82, 0x9b, 0x66, 0xde, 0xa6, 0xa9, 0xea, 0xab, 0x7e, 0xfe, 0x16, 0x13,
+	0x7e, 0x68, 0x4a, 0xbe, 0x51, 0xe8, 0x13, 0x09, 0xd6, 0x23, 0x12, 0x8c, 0x17, 0xf5, 0x60, 0x88,
+	0xd6, 0xbb, 0x92, 0x3e, 0x67, 0xef, 0x73, 0x16, 0xbf, 0x9c, 0x18, 0xb9, 0xf7, 0xd0, 0x46, 0x0c,
+	0x03, 0xa0, 0x44, 0x89, 0xec, 0x0d, 0x89, 0xe3, 0x0c, 0xa4, 0xac, 0x3b, 0x0d, 0xa7, 0xb5, 0xd2,
+	0xab, 0xd9, 0xc2, 0x93, 0x62, 0xdf, 0x7d, 0x84, 0xaa, 0x24, 0x11, 0x39, 0x57, 0xf5, 0xa5, 0x86,
+	0xd3, 0x5a, 0xdd, 0xdd, 0x0c, 0xcd, 0x71, 0x26, 0x79, 0xe5, 0x99, 0xc2, 0xa7, 0x82, 0xf1, 0xbd,
+	0xe5, 0xa3, 0xdf, 0x5b, 0x95, 0x9e, 0xc1, 0x83, 0x3a, 0xba, 0x31, 0x9d, 0xdb, 0x03, 0x99, 0x0a,
+	0x2e, 0x21, 0x38, 0x40, 0x35, 0x5b, 0x79, 0xc5, 0xe5, 0x05, 0x3a, 0x79, 0xa8, 0x3e, 0x9b, 0x6c,
+	0xad, 0x38, 0xba, 0xd2, 0x95, 0xf4, 0x59, 0xce, 0x22, 0x70, 0xdb, 0xa8, 0x96, 0xc1, 0x07, 0x92,
+	0xc5, 0x30, 0x2b, 0x73, 0xb5, 0xdc, 0x3f, 0xb7, 0x8b, 0xab, 0x9f, 0x82, 0xce, 0xb3, 0x0e, 0xfb,
+	0x68, 0xa5, 0x2b, 0x69, 0x0f, 0x62, 0x80, 0xc4, 0xbd, 0x83, 0xd6, 0x33, 0xbd, 0x9a, 0x51, 0x58,
+	0x2b, 0x76, 0xcf, 0x2d, 0x70, 0x0d, 0x6d, 0xd8, 0xb0, 0xd2, 0x60, 0xf7, 0xc7, 0x32, 0xba, 0xd4,
+	0x95, 0xd4, 0xfd, 0xe6, 0xa0, 0xd5, 0x93, 0x33, 0xb3, 0x13, 0xce, 0x19, 0xe7, 0x70, 0xfa, 0x25,
+	0x7b, 0xf8, 0x8c, 0xa0, 0x3d, 0xf3, 0xfd, 0xcf, 0x3f, 0xff, 0x7e, 0x5d, 0x6a, 0x06, 0xb7, 0xf1,
+	0xbc, 0x8f, 0xea, 0xa4, 0xc7, 0x77, 0x07, 0xad, 0x4d, 0x4f, 0x4e, 0x7b, 0x71, 0xa0, 0x41, 0xbd,
+	0xce, 0x99, 0x51, 0x6b, 0x17, 0x6a, 0xbb, 0x56, 0xd0, 0x5c, 0x60, 0x57, 0xda, 0x7c, 0x44, 0x97,
+	0x8b, 0x11, 0xda, 0x3e, 0x2d, 0x4b, 0x23, 0x5e, 0x7b, 0x21, 0x62, 0x35, 0x9a, 0x5a, 0xa3, 0x11,
+	0xf8, 0x73, 0x35, 0x8a, 0xd4, 0x4f, 0x0e, 0xaa, 0x9a, 0xf1, 0x09, 0x4e, 0xeb, 0x5e, 0x30, 0xde,
+	0xdd, 0xc5, 0x8c, 0x55, 0xd8, 0xd1, 0x0a, 0xdb, 0xc1, 0xd6, 0x5c, 0x85, 0xe2, 0x86, 0xbd, 0xde,
+	0xd1, 0xc8, 0x77, 0x8e, 0x47, 0xbe, 0xf3, 0x67, 0xe4, 0x3b, 0x5f, 0xc6, 0x7e, 0xe5, 0x78, 0xec,
+	0x57, 0x7e, 0x8d, 0xfd, 0xca, 0xeb, 0xc7, 0x94, 0xa9, 0x77, 0x79, 0x3f, 0x8c, 0x44, 0x82, 0x53,
+	0xc8, 0x24, 0x93, 0x0a, 0x78, 0x04, 0x2f, 0x38, 0x98, 0x9e, 0x0f, 0x38, 0x51, 0x6c, 0x08, 0xf8,
+	0xe0, 0x7f, 0x73, 0x75, 0x98, 0x82, 0xec, 0x57, 0xf5, 0xbf, 0xec, 0xe1, 0xbf, 0x00, 0x00, 0x00,
+	0xff, 0xff, 0x6f, 0x6f, 0x82, 0xbe, 0x79, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -451,7 +450,7 @@ type MsgClient interface {
 	LiquidStake(ctx context.Context, in *MsgLiquidStake, opts ...grpc.CallOption) (*MsgLiquidStakeResponse, error)
 	LiquidUnstake(ctx context.Context, in *MsgLiquidUnstake, opts ...grpc.CallOption) (*MsgLiquidUnstakeResponse, error)
 	Juice(ctx context.Context, in *MsgJuice, opts ...grpc.CallOption) (*MsgJuiceResponse, error)
-	InstantWithdraw(ctx context.Context, in *MsgInstantWithdraw, opts ...grpc.CallOption) (*MsgInstantWithdrawResponse, error)
+	Redeem(ctx context.Context, in *MsgRedeem, opts ...grpc.CallOption) (*MsgRedeemResponse, error)
 }
 
 type msgClient struct {
@@ -489,9 +488,9 @@ func (c *msgClient) Juice(ctx context.Context, in *MsgJuice, opts ...grpc.CallOp
 	return out, nil
 }
 
-func (c *msgClient) InstantWithdraw(ctx context.Context, in *MsgInstantWithdraw, opts ...grpc.CallOption) (*MsgInstantWithdrawResponse, error) {
-	out := new(MsgInstantWithdrawResponse)
-	err := c.cc.Invoke(ctx, "/pstake.lscosmos.v1beta1.Msg/InstantWithdraw", in, out, opts...)
+func (c *msgClient) Redeem(ctx context.Context, in *MsgRedeem, opts ...grpc.CallOption) (*MsgRedeemResponse, error) {
+	out := new(MsgRedeemResponse)
+	err := c.cc.Invoke(ctx, "/pstake.lscosmos.v1beta1.Msg/Redeem", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -503,7 +502,7 @@ type MsgServer interface {
 	LiquidStake(context.Context, *MsgLiquidStake) (*MsgLiquidStakeResponse, error)
 	LiquidUnstake(context.Context, *MsgLiquidUnstake) (*MsgLiquidUnstakeResponse, error)
 	Juice(context.Context, *MsgJuice) (*MsgJuiceResponse, error)
-	InstantWithdraw(context.Context, *MsgInstantWithdraw) (*MsgInstantWithdrawResponse, error)
+	Redeem(context.Context, *MsgRedeem) (*MsgRedeemResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -519,8 +518,8 @@ func (*UnimplementedMsgServer) LiquidUnstake(ctx context.Context, req *MsgLiquid
 func (*UnimplementedMsgServer) Juice(ctx context.Context, req *MsgJuice) (*MsgJuiceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Juice not implemented")
 }
-func (*UnimplementedMsgServer) InstantWithdraw(ctx context.Context, req *MsgInstantWithdraw) (*MsgInstantWithdrawResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method InstantWithdraw not implemented")
+func (*UnimplementedMsgServer) Redeem(ctx context.Context, req *MsgRedeem) (*MsgRedeemResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Redeem not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -581,20 +580,20 @@ func _Msg_Juice_Handler(srv interface{}, ctx context.Context, dec func(interface
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_InstantWithdraw_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgInstantWithdraw)
+func _Msg_Redeem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRedeem)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).InstantWithdraw(ctx, in)
+		return srv.(MsgServer).Redeem(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pstake.lscosmos.v1beta1.Msg/InstantWithdraw",
+		FullMethod: "/pstake.lscosmos.v1beta1.Msg/Redeem",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).InstantWithdraw(ctx, req.(*MsgInstantWithdraw))
+		return srv.(MsgServer).Redeem(ctx, req.(*MsgRedeem))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -616,8 +615,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_Juice_Handler,
 		},
 		{
-			MethodName: "InstantWithdraw",
-			Handler:    _Msg_InstantWithdraw_Handler,
+			MethodName: "Redeem",
+			Handler:    _Msg_Redeem_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -813,7 +812,7 @@ func (m *MsgJuiceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgInstantWithdraw) Marshal() (dAtA []byte, err error) {
+func (m *MsgRedeem) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -823,12 +822,12 @@ func (m *MsgInstantWithdraw) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgInstantWithdraw) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRedeem) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgInstantWithdraw) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRedeem) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -843,17 +842,17 @@ func (m *MsgInstantWithdraw) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x12
-	if len(m.WithdrawerAddress) > 0 {
-		i -= len(m.WithdrawerAddress)
-		copy(dAtA[i:], m.WithdrawerAddress)
-		i = encodeVarintMsgs(dAtA, i, uint64(len(m.WithdrawerAddress)))
+	if len(m.RedeemAddress) > 0 {
+		i -= len(m.RedeemAddress)
+		copy(dAtA[i:], m.RedeemAddress)
+		i = encodeVarintMsgs(dAtA, i, uint64(len(m.RedeemAddress)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgInstantWithdrawResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgRedeemResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -863,12 +862,12 @@ func (m *MsgInstantWithdrawResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgInstantWithdrawResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRedeemResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgInstantWithdrawResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRedeemResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -959,13 +958,13 @@ func (m *MsgJuiceResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgInstantWithdraw) Size() (n int) {
+func (m *MsgRedeem) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.WithdrawerAddress)
+	l = len(m.RedeemAddress)
 	if l > 0 {
 		n += 1 + l + sovMsgs(uint64(l))
 	}
@@ -974,7 +973,7 @@ func (m *MsgInstantWithdraw) Size() (n int) {
 	return n
 }
 
-func (m *MsgInstantWithdrawResponse) Size() (n int) {
+func (m *MsgRedeemResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1484,7 +1483,7 @@ func (m *MsgJuiceResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgInstantWithdraw) Unmarshal(dAtA []byte) error {
+func (m *MsgRedeem) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1507,15 +1506,15 @@ func (m *MsgInstantWithdraw) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgInstantWithdraw: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRedeem: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgInstantWithdraw: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRedeem: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field WithdrawerAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RedeemAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1543,7 +1542,7 @@ func (m *MsgInstantWithdraw) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.WithdrawerAddress = string(dAtA[iNdEx:postIndex])
+			m.RedeemAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -1599,7 +1598,7 @@ func (m *MsgInstantWithdraw) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgInstantWithdrawResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgRedeemResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1622,10 +1621,10 @@ func (m *MsgInstantWithdrawResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgInstantWithdrawResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRedeemResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgInstantWithdrawResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRedeemResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

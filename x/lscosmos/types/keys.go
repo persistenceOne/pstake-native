@@ -31,8 +31,8 @@ const (
 	// MsgTypeLiquidUnstake is the type of message liquid unstake
 	MsgTypeLiquidUnstake = "msg_liquid_unstake"
 
-	// MsgTypeInstantWithdraw is the type of message instant withdraw
-	MsgTypeInstantWithdraw = "msg_instant_withdraw"
+	// MsgTypeRedeem is the type of message redeem
+	MsgTypeRedeem = "msg_redeem"
 
 	// DepositModuleAccount DepositModuleAccountName
 	DepositModuleAccount = ModuleName + "_pstake_deposit_account"

@@ -31,6 +31,7 @@ func GetTxCmd() *cobra.Command {
 		NewLiquidStakeCmd(),
 		NewJuiceCmd(),
 		NewLiquidUnstakeCmd(),
+		NewRedeemCmd(),
 	)
 
 	return cmd
@@ -439,6 +440,35 @@ func NewLiquidUnstakeCmd() *cobra.Command {
 
 			delegatorAddress := clientctx.GetFromAddress()
 			msg := types.NewMsgLiquidUnstake(delegatorAddress, amount)
+
+			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewRedeemCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "redeem [amount(stkDenom)]",
+		Short: `Instantly redeem skt tokens`,
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			redeemAddress := clientctx.GetFromAddress()
+			msg := types.NewMsgRedeem(redeemAddress, amount)
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
 		},
