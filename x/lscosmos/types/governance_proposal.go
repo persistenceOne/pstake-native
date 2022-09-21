@@ -169,8 +169,8 @@ func NewHostChainParams(chainID, connectionID, channel, port, baseDenom, mintDen
 			PstakeDepositFee:    pstakeDepositFee,
 			PstakeRestakeFee:    pstakeRestakeFee,
 			PstakeUnstakeFee:    pstakeUnstakeFee,
-			PstakeFeeAddress:    pstakefeeAddress,
 			PstakeRedemptionFee: pstakeRedemptionFee,
+			PstakeFeeAddress:    pstakefeeAddress,
 		},
 	}
 }
