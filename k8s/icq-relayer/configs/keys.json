@@ -1,0 +1,36 @@
+{
+  "chains": [
+    {
+      "keyname": "perKey",
+      "name": "persistence",
+      "id": "pstaked-1",
+      "hdpath": "m/44'/118'/0'/0/0",
+      "port": "transfer",
+      "keys": [
+        {
+          "name": "persistence",
+          "type": "local",
+          "address": "persistence1y3x3uaqnnlhulway8g5dvm4erpd5r4f0d29hn5",
+          "pubkey": "{\"@type\":\"/cosmos.crypto.secp256k1.PubKey\",\"key\":\"Agn5q1U2vLjdAhg4dcKuUKm3ZwdmrrFmVnlnqsqkXoIA\"}",
+          "mnemonic": "tag apart multiply food bleak isolate describe stand guide field session design cable combine excess shrug abuse pause course ketchup umbrella program labor ripple"
+        }
+      ]
+    },
+    {
+      "keyname": "cosKey",
+      "name": "cosmos",
+      "id": "gaiad-1",
+      "hdpath": "m/44'/118'/0'/0/0",
+      "port": "transfer",
+      "keys": [
+        {
+          "name": "cosmos",
+          "type": "local",
+          "address": "cosmos10vcqjzphfdlumas0vp64f0hruhrqxv0cg26cge",
+          "pubkey": "{\"@type\":\"/cosmos.crypto.secp256k1.PubKey\",\"key\":\"A0Iv3dQ0RFENodXd3civXu6pgdfqPnMB9Ss5W5y9gdSc\"}",
+          "mnemonic": "crunch armed fatal agent fat daughter shed draft hundred skin wheat maid dice please universe elbow start fantasy reopen paper relief tumble ability holiday"
+        }
+      ]
+    }
+  ]
+}

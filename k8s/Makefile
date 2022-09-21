@@ -1,4 +1,5 @@
 PROCESS=gaia
+NODES=3
 
 apply:
 	kubectl apply -k $(PROCESS)
