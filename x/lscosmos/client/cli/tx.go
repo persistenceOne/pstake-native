@@ -70,7 +70,7 @@ Example Proposal :
       }
     ]
   },
-  "pstake_param": {
+  "pstake_params": {
     "pstake_deposit_fee": "0.00",
     "pstake_restake_fee": "0.05",
     "pstake_unstake_fee": "0.00",
