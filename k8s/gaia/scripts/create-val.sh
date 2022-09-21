@@ -29,7 +29,6 @@ if [ "$STATUS" != "BOND_STATUS_BONDED" ]; then
 
 
     echo "VALIDATOR PUBKEY: " $VALIDATOR_PUBKEY
-# gaiad tx staking create-validator --home $GAIA_DIR --pubkey=$(gaiad tendermint show-validator --home $GAIA_DIR) --moniker $VAL_NAME --amount 80000000000000000uatom --keyring-backend="test" --chain-id $CHAIN_ID --from $VAL_NAME --commission-rate="0.10" --commission-max-rate="0.20" --commission-max-change-rate="0.01" --min-self-delegation="1000000" --gas="auto" --gas-adjustment 1.5 --yes --fees 50000000uatom> /validator.log
     gaiad tx staking create-validator \
         --home $GAIA_DIR \
         --pubkey=$VALIDATOR_PUBKEY \
