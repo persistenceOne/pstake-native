@@ -24,16 +24,11 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 var _ types.MsgServer = msgServer{}
 
 func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake) (*types.MsgLiquidStakeResponse, error) {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return nil, types.ErrInvalidMessage
-	}
-
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
 	// sanity check for the arguments of message
 	if ctx.IsZero() || !msg.Amount.IsValid() {
-		return nil, types.ErrInvalidArgs
+		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount or ctx")
 	}
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
@@ -43,30 +38,36 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 
 	//check for minimum deposit amount
 	if msg.Amount.Amount.LT(hostChainParams.MinDeposit) {
-		return nil, types.ErrMinDeposit
+		return nil, sdkerrors.Wrapf(
+			types.ErrMinDeposit, "expected amount more than %s, got %s", hostChainParams.MinDeposit, msg.Amount.Amount,
+		)
 	}
 
 	expectedIBCPrefix := ibctransfertypes.GetDenomPrefix(hostChainParams.TransferPort, hostChainParams.TransferChannel)
 
 	denomTraceStr, err := m.ibcTransferKeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrapf(types.ErrInvalidDenom, "got error : %s", err)
 	}
 	denomTrace := ibctransfertypes.ParseDenomTrace(denomTraceStr)
 
 	// Check if ibc path matches allowlisted path.
 	if expectedIBCPrefix != denomTrace.GetPrefix() {
-		return nil, types.ErrInvalidDenomPath
+		return nil, sdkerrors.Wrapf(
+			types.ErrInvalidDenomPath, "expected %s, got %s", expectedIBCPrefix, denomTrace.GetPrefix(),
+		)
 	}
 	//Check if base denom is valid (uatom) , this can be programmed further to accommodate for liquid staked vouchers.
 	if denomTrace.BaseDenom != hostChainParams.BaseDenom {
-		return nil, types.ErrInvalidDenom
+		return nil, sdkerrors.Wrapf(
+			types.ErrInvalidDenom, "expected %s, got %s", hostChainParams.BaseDenom, denomTrace.BaseDenom,
+		)
 	}
 
-	// check if address in message is correct or not
+	// get the delegator address from bech32 string
 	delegatorAddress, err := sdktypes.AccAddressFromBech32(msg.DelegatorAddress)
 	if err != nil {
-		return nil, sdkerrors.ErrInvalidAddress
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "got error : %s", err)
 	}
 
 	// amount of stk tokens to be minted. We calculate this before depositing any amount so as to not affect minting c-value.
@@ -78,13 +79,17 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	depositAmount := sdktypes.NewCoins(msg.Amount)
 	err = m.SendTokensToDepositModule(ctx, depositAmount, delegatorAddress)
 	if err != nil {
-		return nil, types.ErrFailedDeposit
+		return nil, sdkerrors.Wrapf(
+			types.ErrFailedDeposit, "failed to deposit tokens to module account %s, got error : %s", types.DepositModuleAccount, err,
+		)
 	}
 
 	//Mint staked representative tokens in lscosmos module account
 	err = m.bankKeeper.MintCoins(ctx, types.ModuleName, sdktypes.NewCoins(mintToken))
 	if err != nil {
-		return nil, types.ErrMintFailed
+		return nil, sdkerrors.Wrapf(
+			types.ErrMintFailed, "failed to mint coins in module %s, got error %s", types.ModuleName, err,
+		)
 	}
 
 	//Calculate protocol fee
@@ -97,13 +102,19 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, delegatorAddress,
 		sdktypes.NewCoins(mintToken.Sub(protocolCoin)))
 	if err != nil {
-		return nil, types.ErrMintFailed
+		return nil, sdkerrors.Wrapf(
+			types.ErrMintFailed, "failed to send coins from module %s to account %s, got error : %s",
+			types.ModuleName, delegatorAddress.String(), err,
+		)
 	}
 
 	//Send protocol fee to protocol pool
 	err = m.SendProtocolFee(ctx, sdktypes.NewCoins(protocolCoin), types.ModuleName, hostChainParams.PstakeFeeAddress)
 	if err != nil {
-		return nil, types.ErrFailedDeposit
+		return nil, sdkerrors.Wrapf(
+			types.ErrFailedDeposit, "failed to send protocol fee to pstake fee address %s, got error : %s",
+			hostChainParams.PstakeFeeAddress, err,
+		)
 	}
 
 	ctx.EventManager().EmitEvents(sdktypes.Events{
@@ -124,20 +135,16 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 }
 
 func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.MsgJuiceResponse, error) {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return nil, types.ErrInvalidMessage
-	}
-
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
 	// sanity check for the arguments of message
 	if ctx.IsZero() || !msg.Amount.IsValid() {
-		return nil, types.ErrInvalidArgs
+		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount or ctx")
 	}
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
 	}
+
 	//GetParams
 	hostChainParams := m.GetHostChainParams(ctx)
 
@@ -145,30 +152,36 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 
 	denomTraceStr, err := m.ibcTransferKeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrapf(types.ErrInvalidDenom, "got error : %s", err)
 	}
 	denomTrace := ibctransfertypes.ParseDenomTrace(denomTraceStr)
 
 	// Check if ibc path matches allowlisted path.
 	if expectedIBCPrefix != denomTrace.GetPrefix() {
-		return nil, types.ErrInvalidDenomPath
+		return nil, sdkerrors.Wrapf(
+			types.ErrInvalidDenomPath, "expected %s, got %s", expectedIBCPrefix, denomTrace.GetPrefix(),
+		)
 	}
 	//Check if base denom is valid (uatom) , this can be programmed further to accommodate for liquid staked vouchers.
 	if denomTrace.BaseDenom != hostChainParams.BaseDenom {
-		return nil, types.ErrInvalidDenom
+		return nil, sdkerrors.Wrapf(
+			types.ErrInvalidDenom, "expected %s, got %s", hostChainParams.BaseDenom, denomTrace.BaseDenom,
+		)
 	}
 
 	// check if address in message is correct or not
 	rewarderAddress, err := sdktypes.AccAddressFromBech32(msg.RewarderAddress)
 	if err != nil {
-		return nil, sdkerrors.ErrInvalidAddress
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "incorrect address, got error : %s", err)
 	}
 
 	//send the rewards boost amount  to the deposit-module account
 	rewardsBoostAmount := sdktypes.NewCoins(msg.Amount)
 	err = m.SendTokensToRewardBoosterModuleAccount(ctx, rewardsBoostAmount, rewarderAddress)
 	if err != nil {
-		return nil, types.ErrFailedDeposit
+		return nil, sdkerrors.Wrapf(
+			types.ErrFailedDeposit, "failed to deposit tokens to module account %s, got error : %s", types.RewardBoosterModuleAccount, err,
+		)
 	}
 
 	ctx.EventManager().EmitEvents(sdktypes.Events{
@@ -192,16 +205,11 @@ func (m msgServer) LiquidUnstake(goCtx context.Context, unstake *types.MsgLiquid
 }
 
 func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.MsgRedeemResponse, error) {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return nil, err
-	}
-
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
 	// sanity check for the arguments of message
 	if ctx.IsZero() || !msg.Amount.IsValid() {
-		return nil, types.ErrInvalidArgs
+		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount or ctx")
 	}
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
@@ -210,7 +218,7 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 	// take redeem address from msg address string
 	redeemAddress, err := sdktypes.AccAddressFromBech32(msg.DelegatorAddress)
 	if err != nil {
-		return nil, sdkerrors.ErrInvalidAddress
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "got error : %s", err)
 	}
 
 	// get the ibc denom and host chain params
@@ -219,7 +227,7 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 
 	// check msg amount denom
 	if msg.Amount.Denom != hostChainParams.MintDenom {
-		return nil, types.ErrInvalidDenom
+		return nil, sdkerrors.Wrapf(types.ErrInvalidDenom, "expected %s, got %s", hostChainParams.BaseDenom, msg.Amount.Denom)
 	}
 
 	// We do not care about residue, as to not break Total calculation invariant.
@@ -232,13 +240,19 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 	// send redeem tokens to module account from redeem account
 	err = m.bankKeeper.SendCoinsFromAccountToModule(ctx, redeemAddress, types.ModuleName, sdktypes.NewCoins(msg.Amount))
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrapf(
+			types.ErrMintFailed, "failed to send coins from account %s to module %s, got error : %s",
+			redeemAddress.String(), types.ModuleName, err,
+		)
 	}
 
 	// send protocol fee to protocol pool
 	err = m.SendProtocolFee(ctx, sdktypes.NewCoins(protocolCoin), types.ModuleName, hostChainParams.PstakeFeeAddress)
 	if err != nil {
-		return nil, types.ErrFailedDeposit
+		return nil, sdkerrors.Wrapf(
+			types.ErrFailedDeposit, "failed to send protocol fee to pstake fee address %s, got error : %s",
+			hostChainParams.PstakeFeeAddress, err,
+		)
 	}
 
 	// convert redeem amount to ibc/whitelisted-denom amount (sub protocolCoin) based on the current c-value
@@ -251,19 +265,24 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 
 	// check deposit account has sufficient funds
 	if redeemToken.IsGTE(delegationBalance) {
-		return nil, sdkerrors.ErrInsufficientFunds
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "expected tokens under %s, got %s for redeem", delegationBalance.String(), redeemToken.String())
 	}
 
 	// send the ibc/Denom token from module to the account
 	err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.DepositModuleAccount, redeemAddress, sdktypes.NewCoins(redeemToken))
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrapf(
+			types.ErrMintFailed, "failed to send coins from module %s to account %s, got error : %s",
+			types.DepositModuleAccount, redeemAddress.String(), err,
+		)
 	}
 
 	// burn the redeemStk token
 	err = m.bankKeeper.BurnCoins(ctx, types.ModuleName, sdktypes.NewCoins(redeemStk))
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrapf(
+			types.ErrBurnFailed, "failed to burn coins from module %s, got error %s", types.ModuleName, err,
+		)
 	}
 
 	ctx.EventManager().EmitEvents(sdktypes.Events{
