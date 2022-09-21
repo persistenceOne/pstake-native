@@ -42,10 +42,10 @@ func TestNewRegisterChainJSON(t *testing.T) {
 	require.Equal(t, "uatom", propJSON.BaseDenom)
 	require.Equal(t, "ustkatom", propJSON.MintDenom)
 	require.Equal(t, "5", propJSON.MinDeposit)
-	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", propJSON.PstakeFeeAddress)
-	require.Equal(t, "0.0", propJSON.PstakeDepositFee)
-	require.Equal(t, "0.0", propJSON.PstakeRestakeFee)
-	require.Equal(t, "0.0", propJSON.PstakeUnstakeFee)
+	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", propJSON.PstakeParams.PstakeFeeAddress)
+	require.Equal(t, "0.0", propJSON.PstakeParams.PstakeDepositFee)
+	require.Equal(t, "0.0", propJSON.PstakeParams.PstakeRestakeFee)
+	require.Equal(t, "0.0", propJSON.PstakeParams.PstakeUnstakeFee)
 	require.Equal(t, "1000stake", propJSON.Deposit)
 }
 

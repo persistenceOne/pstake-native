@@ -20,12 +20,16 @@ type RegisterHostChainProposalJSON struct {
 	MintDenom             string                      `json:"mint_denom" yaml:"mint_denom"`
 	MinDeposit            string                      `json:"min_deposit" yaml:"min_deposit"`
 	AllowListedValidators types.AllowListedValidators `json:"allow_listed_validators" yaml:"allow_listed_validators"`
-	PstakeDepositFee      string                      `json:"pstake_deposit_fee" yaml:"pstake_deposit_fee"`
-	PstakeRestakeFee      string                      `json:"pstake_restake_fee" yaml:"pstake_restake_fee"`
-	PstakeUnstakeFee      string                      `json:"pstake_unstake_fee" yaml:"pstake_unstake_fee"`
-	PstakeRedemptionFee   string                      `json:"pstake_redemption_fee" yaml:"pstake_redemption_fee"`
-	PstakeFeeAddress      string                      `json:"pstake_fee_address" yaml:"pstake_fee_address"`
+	PstakeParams          PstakeParams                `json:"pstake_params" yaml:"pstake_params"`
 	Deposit               string                      `json:"deposit" yaml:"deposit"`
+}
+
+type PstakeParams struct {
+	PstakeDepositFee    string `json:"pstake_deposit_fee" yaml:"pstake_deposit_fee"`
+	PstakeRestakeFee    string `json:"pstake_restake_fee" yaml:"pstake_restake_fee"`
+	PstakeUnstakeFee    string `json:"pstake_unstake_fee" yaml:"pstake_unstake_fee"`
+	PstakeRedemptionFee string `json:"pstake_redemption_fee" yaml:"pstake_redemption_fee"`
+	PstakeFeeAddress    string `json:"pstake_fee_address" yaml:"pstake_fee_address"`
 }
 
 func NewRegisterChainJSON(title, description string, moduleEnabled bool, chainID, connectionID, transferChannel, transferPort,
@@ -42,12 +46,14 @@ func NewRegisterChainJSON(title, description string, moduleEnabled bool, chainID
 		MintDenom:             mintDenom,
 		MinDeposit:            minDeposit,
 		AllowListedValidators: allowListedValidators,
-		PstakeDepositFee:      pstakeDepositFee,
-		PstakeRestakeFee:      pstakeRestakeFee,
-		PstakeUnstakeFee:      pstakeUnstakeFee,
-		PstakeRedemptionFee:   pstakeRedemptionFee,
-		PstakeFeeAddress:      pstakeFeeAddress,
-		Deposit:               deposit,
+		PstakeParams: PstakeParams{
+			PstakeDepositFee:    pstakeDepositFee,
+			PstakeRestakeFee:    pstakeRestakeFee,
+			PstakeUnstakeFee:    pstakeUnstakeFee,
+			PstakeRedemptionFee: pstakeRedemptionFee,
+			PstakeFeeAddress:    pstakeFeeAddress,
+		},
+		Deposit: deposit,
 	}
 }
 
