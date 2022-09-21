@@ -15,3 +15,6 @@ configMapGenerator:
     files:
       - configs/keys.json
       - configs/validators.json
+  - name: scripts
+    files:
+      - scripts/create-val.sh
