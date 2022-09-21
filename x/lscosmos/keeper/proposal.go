@@ -50,8 +50,9 @@ func HandleRegisterHostChainProposal(ctx sdk.Context, k Keeper, content types.Re
 	}
 
 	paramsProposal := types.NewHostChainParams(content.ChainID, content.ConnectionID, content.TransferChannel,
-		content.TransferPort, content.BaseDenom, content.MintDenom, content.PstakeFeeAddress, content.MinDeposit,
-		content.PstakeDepositFee, content.PstakeRestakeFee, content.PstakeUnstakeFee, content.PstakeRedemptionFee)
+		content.TransferPort, content.BaseDenom, content.MintDenom, content.PstakeParams.PstakeFeeAddress,
+		content.MinDeposit, content.PstakeParams.PstakeDepositFee, content.PstakeParams.PstakeRestakeFee,
+		content.PstakeParams.PstakeUnstakeFee, content.PstakeParams.PstakeRedemptionFee)
 
 	k.SetHostChainParams(ctx, paramsProposal)
 
@@ -75,10 +76,10 @@ func HandleMinDepositAndFeeChangeProposal(ctx sdk.Context, k Keeper, content typ
 
 	// modify oldData with the new proposal content
 	hostChainParams.MinDeposit = content.MinDeposit
-	hostChainParams.PstakeDepositFee = content.PstakeDepositFee
-	hostChainParams.PstakeRestakeFee = content.PstakeRestakeFee
-	hostChainParams.PstakeUnstakeFee = content.PstakeUnstakeFee
-	hostChainParams.PstakeRedemptionFee = content.PstakeRedemptionFee
+	hostChainParams.PstakeParams.PstakeDepositFee = content.PstakeDepositFee
+	hostChainParams.PstakeParams.PstakeRestakeFee = content.PstakeRestakeFee
+	hostChainParams.PstakeParams.PstakeUnstakeFee = content.PstakeUnstakeFee
+	hostChainParams.PstakeParams.PstakeRedemptionFee = content.PstakeRedemptionFee
 
 	k.SetHostChainParams(ctx, hostChainParams)
 
@@ -97,7 +98,7 @@ func HandlePstakeFeeAddressChangeProposal(ctx sdk.Context, k Keeper, content typ
 	}
 
 	// modify oldData with the new proposal content
-	hostChainParams.PstakeFeeAddress = content.PstakeFeeAddress
+	hostChainParams.PstakeParams.PstakeFeeAddress = content.PstakeFeeAddress
 
 	k.SetHostChainParams(ctx, hostChainParams)
 

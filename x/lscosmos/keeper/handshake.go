@@ -358,7 +358,7 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 				k.AddBalanceToDelegationState(ctx, sdk.NewCoin(hostChainParams.BaseDenom, amountOfBaseDenom))
 
 				//Mint autocompounding fee, use old cValue as we mint tokens at previous cValue.
-				pstakeFeeAmount := hostChainParams.PstakeRestakeFee.MulInt(amountOfBaseDenom)
+				pstakeFeeAmount := hostChainParams.PstakeParams.PstakeRestakeFee.MulInt(amountOfBaseDenom)
 				protocolFee, _ := k.ConvertTokenToStk(ctx, sdk.NewDecCoinFromDec(hostChainParams.BaseDenom, pstakeFeeAmount), cValue)
 
 				err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(protocolFee))
@@ -367,7 +367,7 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 				}
 
 				//Send protocol fee to protocol pool
-				err = k.SendProtocolFee(ctx, sdk.NewCoins(protocolFee), types.ModuleName, hostChainParams.PstakeFeeAddress)
+				err = k.SendProtocolFee(ctx, sdk.NewCoins(protocolFee), types.ModuleName, hostChainParams.PstakeParams.PstakeFeeAddress)
 				if err != nil {
 					return "", types.ErrFailedDeposit
 				}

@@ -52,19 +52,32 @@ important that any value change is valid.
 
 Example Proposal :
 {
-	"title": "register host chain proposal",
-	"description": "this proposal register host chain params in the chain",
-	"connection_i_d": "test connection",
-	"transfer_channel": "test-channel-1",
-	"transfer_port": "test-transfer",
-	"base_denom": "uatom",
-	"mint_denom": "ustkatom",
-	"min_deposit": "5",
-	"pstake_deposit_fee": "0.1",
-	"pstake_restake_fee": "0.1",
-	"pstake_unstake_fee": "0.1",
-	"pstake_redemption_fee": "0.1",
-	"deposit": "100stake"
+  "title": "register host chain proposal",
+  "description": "this proposal register host chain params in the chain",
+  "module_enabled": true,
+  "chain_id": "test-1",
+  "connection_id": "connection-0",
+  "transfer_channel": "channel-0",
+  "transfer_port": "transfer",
+  "base_denom": "uatom",
+  "mint_denom": "ustkatom",
+  "min_deposit": "1",
+  "allow_listed_validators": {
+    "allow_listed_validators": [
+      {
+        "validator_address": "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
+        "target_weight": "1"
+      }
+    ]
+  },
+  "pstake_params": {
+    "pstake_deposit_fee": "0.00",
+    "pstake_restake_fee": "0.05",
+    "pstake_unstake_fee": "0.00",
+    "pstake_redemption_fee": "0.1",
+    "pstake_fee_address": "persistence108cqtjz7gqasctvrw74kewg6642062kmfuujsd"
+  }
+  "deposit": "1000000stake"
 }
 
 Example:
@@ -89,20 +102,20 @@ $ %s tx gov submit-proposal pstake-lscosmos-register-host-chain <path/to/proposa
 			if !ok {
 				return types.ErrInvalidIntParse
 			}
-			depositFee, err := sdk.NewDecFromStr(proposal.PstakeDepositFee)
+			depositFee, err := sdk.NewDecFromStr(proposal.PstakeParams.PstakeDepositFee)
 			if err != nil {
 				return err
 			}
 
-			restakeFee, err := sdk.NewDecFromStr(proposal.PstakeRestakeFee)
+			restakeFee, err := sdk.NewDecFromStr(proposal.PstakeParams.PstakeRestakeFee)
 			if err != nil {
 				return err
 			}
-			unstakeFee, err := sdk.NewDecFromStr(proposal.PstakeUnstakeFee)
+			unstakeFee, err := sdk.NewDecFromStr(proposal.PstakeParams.PstakeUnstakeFee)
 			if err != nil {
 				return err
 			}
-			redemptionFee, err := sdk.NewDecFromStr(proposal.PstakeRedemptionFee)
+			redemptionFee, err := sdk.NewDecFromStr(proposal.PstakeParams.PstakeRedemptionFee)
 			if err != nil {
 				return err
 			}
@@ -117,7 +130,7 @@ $ %s tx gov submit-proposal pstake-lscosmos-register-host-chain <path/to/proposa
 				proposal.TransferPort,
 				proposal.BaseDenom,
 				proposal.MintDenom,
-				proposal.PstakeFeeAddress,
+				proposal.PstakeParams.PstakeFeeAddress,
 				minDeposit,
 				proposal.AllowListedValidators,
 				depositFee,

@@ -93,7 +93,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	}
 
 	//Calculate protocol fee
-	protocolFee := hostChainParams.PstakeDepositFee
+	protocolFee := hostChainParams.PstakeParams.PstakeDepositFee
 	protocolFeeAmount := protocolFee.MulInt(mintToken.Amount)
 	// We do not care about residue, as to not break Total calculation invariant.
 	protocolCoin, _ := sdktypes.NewDecCoinFromDec(hostChainParams.MintDenom, protocolFeeAmount).TruncateDecimal()
@@ -109,7 +109,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	}
 
 	//Send protocol fee to protocol pool
-	err = m.SendProtocolFee(ctx, sdktypes.NewCoins(protocolCoin), types.ModuleName, hostChainParams.PstakeFeeAddress)
+	err = m.SendProtocolFee(ctx, sdktypes.NewCoins(protocolCoin), types.ModuleName, hostChainParams.PstakeParams.PstakeFeeAddress)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(
 			types.ErrFailedDeposit, "failed to send protocol fee to pstake fee address %s, got error : %s",
@@ -234,7 +234,7 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 	// protocolCoin is the redemption fee
 	protocolCoin, _ := sdktypes.NewDecCoinFromDec(
 		hostChainParams.MintDenom,
-		hostChainParams.PstakeRedemptionFee.MulInt(msg.Amount.Amount),
+		hostChainParams.PstakeParams.PstakeRedemptionFee.MulInt(msg.Amount.Amount),
 	).TruncateDecimal()
 
 	// send redeem tokens to module account from redeem account
@@ -247,7 +247,7 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 	}
 
 	// send protocol fee to protocol pool
-	err = m.SendProtocolFee(ctx, sdktypes.NewCoins(protocolCoin), types.ModuleName, hostChainParams.PstakeFeeAddress)
+	err = m.SendProtocolFee(ctx, sdktypes.NewCoins(protocolCoin), types.ModuleName, hostChainParams.PstakeParams.PstakeFeeAddress)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(
 			types.ErrFailedDeposit, "failed to send protocol fee to pstake fee address %s, got error : %s",
