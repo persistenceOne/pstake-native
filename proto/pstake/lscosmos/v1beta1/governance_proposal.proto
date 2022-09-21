@@ -28,11 +28,7 @@ message RegisterHostChainProposal {
   string mint_denom = 9;
   string min_deposit = 10 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
   AllowListedValidators allow_listed_validators = 11 [(gogoproto.nullable) = false];
-  string pstake_deposit_fee = 12 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  string pstake_restake_fee = 13 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  string pstake_unstake_fee = 14 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  string pstake_redemption_fee = 15 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  string pstake_fee_address = 16;
+  PstakeParams pstake_params = 12 [(gogoproto.nullable) = false];
 }
 
 message MinDepositAndFeeChangeProposal {
