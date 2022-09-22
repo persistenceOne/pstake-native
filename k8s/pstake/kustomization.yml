@@ -17,4 +17,4 @@ configMapGenerator:
       - configs/validators.json
   - name: pstake-scripts
     files:
-      - scripts/create-val.sh
+      - scripts/register_validator.sh

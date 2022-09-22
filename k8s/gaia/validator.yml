@@ -151,7 +151,6 @@ spec:
             - |
               # Starting
               gaiad start --home $GAIA_DIR
-
           lifecycle:
             postStart:
               exec:
@@ -159,8 +158,7 @@ spec:
                   - bash
                   - "-c"
                   - |
-                   bash /scripts/create-val.sh > "/create-val.log"
-
+                    bash /scripts/create-val.sh
           resources:
             limits:
               cpu: "1"
