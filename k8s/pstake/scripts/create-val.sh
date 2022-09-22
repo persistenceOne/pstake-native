@@ -25,9 +25,8 @@ if [ "$STATUS" != "BOND_STATUS_BONDED" ]; then
     # Run create validator tx command
     echo "Running txn for create-validator"
     export VALIDATOR_PUBKEY=$(pstaked tendermint show-validator --home $PSTAKE_DIR)
-
-
     echo "VALIDATOR PUBKEY: " $VALIDATOR_PUBKEY
+
     pstaked tx staking create-validator \
         --home $PSTAKE_DIR \
         --pubkey=$VALIDATOR_PUBKEY \

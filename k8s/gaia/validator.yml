@@ -174,7 +174,7 @@ spec:
             - mountPath: /configs
               name: addresses
             - mountPath: /scripts
-              name: scripts
+              name: gaia-scripts
         - name: exposer-app
           image: persistenceone/exposer:gaia
           imagePullPolicy: Always
@@ -203,9 +203,9 @@ spec:
         - name: addresses
           configMap:
             name: test-addresses-gaia
-        - name: scripts
+        - name: gaia-scripts
           configMap:
-            name: scripts
+            name: gaia-scripts
 
   volumeClaimTemplates:
     - metadata:

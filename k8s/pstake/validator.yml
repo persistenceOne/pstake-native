@@ -170,7 +170,7 @@ spec:
             - mountPath: /configs
               name: addresses
             - mountPath: /scripts
-              name: scripts
+              name: pstake-scripts
         - name: exposer-app
           image: persistenceone/exposer:pstake
           imagePullPolicy: Always
@@ -198,9 +198,9 @@ spec:
         - name: addresses
           configMap:
             name: test-addresses-pstake
-        - name: scripts
+        - name: pstake-scripts
           configMap:
-            name: scripts
+            name: pstake-scripts
 
   volumeClaimTemplates:
     - metadata:

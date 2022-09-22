@@ -20,14 +20,11 @@ gaiad keys list --home $GAIA_DIR --keyring-backend test
 export VAL_ADDRESS=$(gaiad keys show $VAL_NAME --home $GAIA_DIR --bech val --keyring-backend test --output json | jq -r ".address")
 export STATUS=$(gaiad q staking validator $VAL_ADDRESS --node http://gaia-genesis.dev-native.svc.cluster.local:26657 --output json | jq -r ".status")
 
-
 echo "STATUS:" $STATUS
 if [ "$STATUS" != "BOND_STATUS_BONDED" ]; then
     # Run create validator tx command
     echo "Running txn for create-validator"
     export VALIDATOR_PUBKEY=$(gaiad tendermint show-validator --home $GAIA_DIR)
-
-
     echo "VALIDATOR PUBKEY: " $VALIDATOR_PUBKEY
     gaiad tx staking create-validator \
         --home $GAIA_DIR \
