@@ -1,7 +1,7 @@
 default_chain: persistence
 chains:
   persistence:
-    key: default
+    key: perKey
     chain-id: pstaked-1
     rpc-addr: http://pstake-genesis.dev-native.svc.cluster.local:26657
     grpc-addr: http://pstake-genesis.dev-native.svc.cluster.local:9090
@@ -16,7 +16,7 @@ chains:
     output-format: json
     sign-mode: direct
   cosmos:
-    key: default
+    key: cosKey
     chain-id: gaiad-1
     rpc-addr: http://gaia-genesis.dev-native.svc.cluster.local:26657
     grpc-addr: http://gaia-genesis.dev-native.svc.cluster.local:9090
