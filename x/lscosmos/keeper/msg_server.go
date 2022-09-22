@@ -113,7 +113,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(
 			types.ErrFailedDeposit, "failed to send protocol fee to pstake fee address %s, got error : %s",
-			hostChainParams.PstakeFeeAddress, err,
+			hostChainParams.PstakeParams.PstakeFeeAddress, err,
 		)
 	}
 
@@ -251,7 +251,7 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 	if err != nil {
 		return nil, sdkerrors.Wrapf(
 			types.ErrFailedDeposit, "failed to send protocol fee to pstake fee address %s, got error : %s",
-			hostChainParams.PstakeFeeAddress, err,
+			hostChainParams.PstakeParams.PstakeFeeAddress, err,
 		)
 	}
 
