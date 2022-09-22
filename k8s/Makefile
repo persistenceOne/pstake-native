@@ -13,7 +13,6 @@ delete-pvc:
 	$(PROCESS)-validator-pv-storage-$(PROCESS)-validator-$$i --namespace dev-native;\
 	done;
 
-
 # debug:
     # port-forward
     # init -genesis
