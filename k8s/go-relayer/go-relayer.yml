@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-relayer
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: go-relayer
+      app.kubernetes.io/name: go-relayer
+  template:
+    metadata:
+      annotations:
+        quality: release
+        role: api-gateway
+        sla: high
+        tier: gateway
+      labels:
+        app.kubernetes.io/instance: go-relayer
+        app.kubernetes.io/type: go-relayer
+        app.kubernetes.io/name: go-relayer
+        app.kubernetes.io/version: '0.1'
+    spec:
+      imagePullSecrets:
+        - name: test-docker-creds
+      containers:
+        - name: go-relayer
+          image: persistenceone/go-relayer:latest
+          imagePullPolicy: Always
+          env:
+            - name: RELAYER_DIR
+              value: .rly
+            - name: CONFIG
+              value: "config"
+          command:
+            - bash
+            - "-c"
+            - |
+              mkdir $RELAYER_DIR
+              CONFIG_FILE="$CONFIG.yaml"
+              echo "$CONFIG_FILE"
+              rly config init --home $RELAYER_DIR
+              cp /configs/$CONFIG_FILE $RELAYER_DIR/config/config.yaml
+              cat $RELAYER_DIR/config/config.yaml
+              for ((i=0; i<$(jq -r ".chains | length" /configs/keys.json); i++))
+              do
+                MNEMONIC=$(jq -r ".chains[$i].keys[0].mnemonic" /configs/keys.json) 
+                echo $MNEMONIC
+                echo $(jq -r ".chains[$i].name" /configs/keys.json)
+                rly keys restore $(jq -r ".chains[$i].name" /configs/keys.json) \
+                  $(jq -r ".chains[$i].keys[0].name" /configs/keys.json) "$MNEMONIC" --home $RELAYER_DIR
+                rly q balance $(jq -r ".chains[$i].name" /configs/keys.json) --home $RELAYER_DIR
+              done
+              
+              rly start devnet --home $RELAYER_DIR
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: "0.5"
+              memory: 0.5Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+          volumeMounts:
+            - mountPath: /relayer
+              name: go-relayer
+            - mountPath: /configs
+              name: go-relayer-config
+      volumes:
+        - name: go-relayer
+          emptyDir: { }
+        - name: go-relayer-config
+          configMap:
+            name: test-go-relayer-config

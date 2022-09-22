@@ -1,0 +1,47 @@
+global:
+  api-listen-addr: :5183
+  timeout: 10s
+  memo: ""
+  light-cache-size: 20
+chains:
+  cosmos:
+    type: cosmos
+    value:
+      key: coskey
+      chain-id: gaiad-1
+      rpc-addr: http://gaia-genesis.dev-native.svc.cluster.local:26657
+      account-prefix: cosmos
+      keyring-backend: test
+      gas-adjustment: 1.5
+      gas-prices: 0.001uatom
+      debug: false
+      timeout: 20s
+      output-format: json
+      sign-mode: direct
+  persistence:
+    type: cosmos
+    value:
+      key: perkey
+      chain-id: pstaked-1
+      rpc-addr: 'http://pstake-genesis.dev-native.svc.cluster.local:26657'
+      account-prefix: persistence
+      keyring-backend: test
+      gas-adjustment: 1.5
+      gas-prices: 0.001uxprt
+      debug: false
+      timeout: 20s
+      output-format: json
+      sign-mode: direct
+paths:
+  devnet:
+    src:
+      chain-id: pstaked-1
+      client-id: 07-tendermint-0
+      connection-id: connection-0
+    dst:
+      chain-id: gaiad-1
+      client-id: 07-tendermint-0
+      connection-id: connection-0
+    src-channel-filter:
+      rule: ""
+      channel-list: []

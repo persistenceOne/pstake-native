@@ -1,0 +1,34 @@
+{
+  "chains": [
+    {
+      "name": "persistence",
+      "id": "pstaked-1",
+      "hdpath": "m/44'/118'/0'/0/0",
+      "port": "transfer",
+      "keys": [
+        {
+          "name": "perkey",
+          "type": "local",
+          "address": "persistence1tt2hyaetfzpq7upx3ytujpfqhl5d5ae8phgwtp",
+          "pubkey": "{\"@type\":\"/cosmos.crypto.secp256k1.PubKey\",\"key\":\"AiWS5FfpQKv2c8r49jH7mb3pefclMe4d\"}",
+          "mnemonic": "vault afraid verb lawsuit cannon street census used dress chunk list cream width envelope convince sing net vessel word vivid inherit much remind fade"
+        }
+      ]
+    },
+    {
+      "name": "cosmos",
+      "id": "gaiad-1",
+      "hdpath": "m/44'/118'/0'/0/0",
+      "port": "transfer",
+      "keys": [
+        {
+          "name": "coskey",
+          "type": "local",
+          "address": "cosmos1egflp8stvx4egfq0rpl548f3ptpzhx9u5xtqzw",
+          "pubkey": "{\"@type\":\"/cosmos.crypto.secp256k1.PubKey\",\"key\":\"AjTHX0QRl8JE9Nk7EtLLVdBSd4qPuJcVwkWVirhwkZUi\"}",
+          "mnemonic": "shadow hobby film defense village royal swear fly address ability evoke cash tissue boil valve traffic toy autumn pool salute taste peanut fantasy heavy"
+        }
+      ]
+    }
+  ]
+}
