@@ -6,6 +6,7 @@ apply:
 delete:
 	kubectl delete -k $(PROCESS)
 
+
 # debug:
     # port-forward
     # init -genesis
