@@ -66,18 +66,13 @@ spec:
             - mountPath: /configs
               name: icq-relayer-config
             - mountPath: /scripts
-              name: scripts
+              name: icq-scripts
       volumes:
         - name: icq-relayer
           emptyDir: { }
         - name: icq-relayer-config
           configMap:
             name: test-icq-relayer-config
-        - name: scripts
+        - name: icq-scripts
           configMap:
-            name: scripts
-
-
-#  interchain-queries keys restore --chain $(jq -r ".chains[0].name" /configs/keys.json) --home /icq perKey
-#  interchain-queries keys restore --chain $(jq -r ".chains[1].name" /configs/keys.json) --home /icq cosKey
-#  cp /configs/config.yaml /icq/config.yaml
+            name: icq-scripts

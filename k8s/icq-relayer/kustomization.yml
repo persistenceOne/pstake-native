@@ -11,7 +11,7 @@ configMapGenerator:
     files:
       - configs/config.yaml
       - configs/keys.json
-  - name: scripts
+  - name: icq-scripts
     files:
       - scripts/chain0.sh
       - scripts/chain1.sh
