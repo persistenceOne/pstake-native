@@ -4,7 +4,7 @@ echo "Validator Index: $VAL_INDEX, Key name: $VAL_NAME"
 
 # Wait for the node to be synced
 export max_tries=10
-while [[ $(gaiad status --home $GAIA_DIR 2>&1 | jq ".SyncInfo.catching_up") == true ]]
+while [[ $(pstaked status --home $PSTAKE_DIR 2>&1 | jq ".SyncInfo.catching_up") == true ]]
 do
     if [[ max_tries -lt 0 ]]; then echo "Not able to sync with genesis node"; exit 1; fi
     echo "Still syncing... Sleeping for 15 secs. Tries left $max_tries"
