@@ -21,15 +21,14 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.I
 
 	msgs := make([]sdk.Msg, len(valAddressAmount))
 
-	for _, val := range valAddressAmount {
-		delegationAmount := val.Amount
+	for i, val := range valAddressAmount {
 
 		msg := &stakingtypes.MsgDelegate{
 			DelegatorAddress: delegatorAddr,
 			ValidatorAddress: val.ValidatorAddr,
-			Amount:           delegationAmount,
+			Amount:           val.Amount,
 		}
-		msgs = append(msgs, msg)
+		msgs[i] = msg
 	}
 
 	return msgs, nil
@@ -47,15 +46,14 @@ func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk
 
 	msgs := make([]sdk.Msg, len(valAddressAmount))
 
-	for _, val := range valAddressAmount {
-		undelegationAmount := val.Amount
+	for i, val := range valAddressAmount {
 
 		msg := &stakingtypes.MsgUndelegate{
 			DelegatorAddress: delegatorAddr,
 			ValidatorAddress: val.ValidatorAddr,
-			Amount:           undelegationAmount,
+			Amount:           val.Amount,
 		}
-		msgs = append(msgs, msg)
+		msgs[i] = msg
 	}
 
 	return msgs, nil
