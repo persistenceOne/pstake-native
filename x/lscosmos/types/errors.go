@@ -27,4 +27,5 @@ var (
 	ErrInvalidDeposit                      = sdkerrors.Register(ModuleName, 77, "invalid deposit")
 	ErrNoHostChainDelegations              = sdkerrors.Register(ModuleName, 78, "no delegations on host chain")
 	ErrCannotRemoveNonExistentUndelegation = sdkerrors.Register(ModuleName, 79, "Cannot remove undelegation from a non existing undelegation")
+	ErrBurnFailed                          = sdkerrors.Register(ModuleName, 80, "burn failed")
 )
