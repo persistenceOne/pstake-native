@@ -44,6 +44,6 @@ func (k Keeper) GenerateAndExecuteICATx(ctx sdk.Context, connectionID string, po
 		k.Logger(ctx).Error(fmt.Sprintf("send ica txn of msgs: %s failed with err: %v", msgs, err))
 		return sdkerrors.Wrapf(lscosmostypes.ErrICATxFailure, "Failed to send ica msgs with err: %v", err)
 	}
-	k.Logger(ctx).Info(fmt.Sprintf("sent ICA transactions with seq: %v,  channelID: %s, portId: %s\"", seq, channelID, portID))
+	k.Logger(ctx).Info(fmt.Sprintf("sent ICA transactions with seq: %v,  channelID: %s, portId: %s, msgs: %s", seq, channelID, portID, msgs))
 	return nil
 }

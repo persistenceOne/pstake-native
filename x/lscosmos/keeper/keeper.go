@@ -24,8 +24,8 @@ type Keeper struct {
 	paramstore paramtypes.Subspace
 
 	bankKeeper           types.BankKeeper
-	distributionKeeper   types.DistributionKeeper
 	accountKeeper        types.AccountKeeper
+	epochKeeper          types.EpochKeeper
 	ics4WrapperKeeper    types.ICS4WrapperKeeper
 	channelKeeper        types.ChannelKeeper
 	portKeeper           types.PortKeeper
@@ -43,8 +43,8 @@ func NewKeeper(
 	memKey sdk.StoreKey,
 	ps paramtypes.Subspace,
 	bankKeeper types.BankKeeper,
-	disributionKeeper types.DistributionKeeper,
 	accKeeper types.AccountKeeper,
+	epochKeeper types.EpochKeeper,
 	ics4WrapperKeeper types.ICS4WrapperKeeper,
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
@@ -61,8 +61,8 @@ func NewKeeper(
 
 	return Keeper{
 		bankKeeper:           bankKeeper,
-		distributionKeeper:   disributionKeeper,
 		accountKeeper:        accKeeper,
+		epochKeeper:          epochKeeper,
 		ics4WrapperKeeper:    ics4WrapperKeeper,
 		channelKeeper:        channelKeeper,
 		portKeeper:           portKeeper,
@@ -161,13 +161,6 @@ func (k Keeper) SendTokensToDepositModule(ctx sdk.Context, depositCoin sdk.Coins
 // SendTokensToRewardBoosterModuleAccount sends the tokens to DepositModuleAccount
 func (k Keeper) SendTokensToRewardBoosterModuleAccount(ctx sdk.Context, rewardsBoostCoin sdk.Coins, senderAddress sdk.AccAddress) error {
 	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddress, types.RewardBoosterModuleAccount, rewardsBoostCoin)
-}
-
-// SendResidueToCommunityPool sends the residue stk token to community pool
-func (k Keeper) SendResidueToCommunityPool(ctx sdk.Context, residue []sdk.DecCoin) {
-	feePool := k.distributionKeeper.GetFeePool(ctx)
-	feePool.CommunityPool = feePool.CommunityPool.Add(residue...)
-	k.distributionKeeper.SetFeePool(ctx, feePool)
 }
 
 // SendProtocolFee to the community pool

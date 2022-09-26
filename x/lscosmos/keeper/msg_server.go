@@ -199,9 +199,67 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 	return &types.MsgJuiceResponse{}, nil
 }
 
-func (m msgServer) LiquidUnstake(goCtx context.Context, unstake *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
-	// TODO implement this
-	return nil, nil
+func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+	// sanity check for the arguments of message
+	if ctx.IsZero() {
+		return nil, types.ErrInvalidArgs
+	}
+	if !m.GetModuleState(ctx) {
+		return nil, types.ErrModuleDisabled
+	}
+
+	hostChainParams := m.GetHostChainParams(ctx)
+
+	if msg.Amount.Denom != hostChainParams.MintDenom {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidDenom, "Expected %s, got %s", hostChainParams.MintDenom, msg.Amount.Denom)
+	}
+
+	//TODO check is there are delegations worth the amount to be undelegated
+
+	delegatorAddress, err := sdktypes.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil, err
+	}
+	// take deposit into module acc
+	err = m.bankKeeper.SendCoinsFromAccountToModule(ctx, delegatorAddress, types.UndelegationModuleAccount, sdktypes.NewCoins(msg.Amount))
+	if err != nil {
+		return nil, err
+	}
+	// take pstake fees
+	unstakeCoin := msg.Amount
+	pstakeFeeAmt := hostChainParams.PstakeParams.PstakeUnstakeFee.MulInt(msg.Amount.Amount).TruncateInt()
+	pstakeFee := sdktypes.NewCoin(msg.Amount.Denom, pstakeFeeAmt)
+	if !pstakeFeeAmt.IsZero() {
+		err = m.SendProtocolFee(ctx, sdktypes.NewCoins(pstakeFee), types.UndelegationModuleAccount, hostChainParams.PstakeParams.PstakeFeeAddress)
+		if err != nil {
+			return nil, err
+		}
+		unstakeCoin = msg.Amount.Sub(pstakeFee)
+	}
+
+	// Add entry to unbonding db
+	epoch := m.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier)
+	unbondingEpochNumber := types.CurrentUnbondingEpoch(epoch.CurrentEpoch)
+	unbondingEntry := types.NewDelegatorUnbondingEpochEntry(unbondingEpochNumber, msg.DelegatorAddress, unstakeCoin)
+	m.SetDelegatorUnbondingEpochEntry(ctx, unbondingEntry)
+	m.AddTotalUndelegationForEpoch(ctx, unbondingEpochNumber, unstakeCoin)
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeLiquidUnstake,
+			sdktypes.NewAttribute(types.AttributeDelegatorAddress, msg.GetDelegatorAddress()),
+			sdktypes.NewAttribute(types.AttributeAmountRecieved, msg.Amount.String()),
+			sdktypes.NewAttribute(types.AttributePstakeUnstakeFee, pstakeFee.String()),
+			sdktypes.NewAttribute(types.AttributeUnstakeAmount, unstakeCoin.String()),
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.GetDelegatorAddress()),
+		)},
+	)
+	return &types.MsgLiquidUnstakeResponse{}, nil
 }
 
 func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.MsgRedeemResponse, error) {

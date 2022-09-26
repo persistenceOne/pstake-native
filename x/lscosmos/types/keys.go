@@ -1,8 +1,11 @@
 package types
 
 import (
+	"strconv"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 )
 
@@ -50,9 +53,11 @@ const (
 	// RewardBoosterModuleAccount RewardBoosterModuleAccountName
 	RewardBoosterModuleAccount = ModuleName + "_reward_booster_account"
 
-	DelegationEpochIdentifier   = "day"
-	RewardEpochIdentifier       = "day"
-	UndelegationEpochIdentifier = "week"
+	DelegationEpochIdentifier              = "day"
+	RewardEpochIdentifier                  = "day"
+	UndelegationEpochIdentifier            = "day"
+	UndelegationEpochNumberFactor    int64 = 4
+	UndelegationCompletionTimeBuffer       = time.Second * 10 //TODO change
 
 	IBCTimeoutHeightIncrement uint64 = 100
 	ICATimeoutTimestamp              = time.Minute * 5
@@ -67,10 +72,22 @@ var (
 var (
 	// PortKey defines the key to store the port ID in store
 
-	ModuleEnableKey           = []byte{0x01}
-	HostChainParamsKey        = []byte{0x02}
-	AllowListedValidatorsKey  = []byte{0x03}
-	DelegationStateKey        = []byte{0x04}
-	HostChainRewardAddressKey = []byte{0x05}
-	IBCTransientStoreKey      = []byte{0x06}
+	ModuleEnableKey                 = []byte{0x01}
+	HostChainParamsKey              = []byte{0x02}
+	AllowListedValidatorsKey        = []byte{0x03}
+	DelegationStateKey              = []byte{0x04}
+	HostChainRewardAddressKey       = []byte{0x05}
+	IBCTransientStoreKey            = []byte{0x06}
+	UnbondingEpochCValueKey         = []byte{0x07}
+	DelegatorUnbondingEpochEntryKey = []byte{0x08}
 )
+
+func GetUnbondingEpochCValueKey(epochNumber int64) []byte {
+	return append(UnbondingEpochCValueKey, []byte(strconv.FormatInt(epochNumber, 10))...)
+
+}
+
+func GetDelegatorUnbondingEpochEntryKey(delegatorAddress sdk.AccAddress, epochNumber int64) []byte {
+	return append(append(DelegatorUnbondingEpochEntryKey, address.MustLengthPrefix(delegatorAddress)...), []byte(strconv.FormatInt(epochNumber, 10))...)
+
+}
