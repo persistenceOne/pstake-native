@@ -1,0 +1,19 @@
+namespace: dev-native
+
+resources:
+  - icq-relayer.yml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: test-icq-relayer-config
+    files:
+      - configs/config.yaml
+      - configs/keys.json
+  - name: icq-scripts
+    files:
+      - scripts/chain0.sh
+      - scripts/chain1.sh
+      - scripts/key-exp-script0.exp
+      - scripts/key-exp-script1.exp
