@@ -35,16 +35,17 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.I
 }
 
 // UndelegateMsgs gives the list of Undelegate Txs to be executed based on the current state and params.
-func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.Int, denom string) ([]sdk.Msg, error) {
+func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.Int, denom string) ([]sdk.Msg, []types.UndelegationEntry, error) {
 	valList := k.GetAllowListedValidators(ctx)
 	delegationState := k.GetDelegationState(ctx)
 
 	valAddressAmount, err := FetchValidatorsToUndelegate(valList, delegationState, sdk.NewCoin(denom, amount))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	msgs := make([]sdk.Msg, len(valAddressAmount))
+	undelegationEntries := make([]types.UndelegationEntry, len(valAddressAmount))
 
 	for i, val := range valAddressAmount {
 
@@ -54,9 +55,15 @@ func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk
 			Amount:           val.Amount,
 		}
 		msgs[i] = msg
+
+		undelegationEntry := types.UndelegationEntry{
+			ValidatorAddress: val.ValidatorAddr,
+			Amount:           val.Amount,
+		}
+		undelegationEntries[i] = undelegationEntry
 	}
 
-	return msgs, nil
+	return msgs, undelegationEntries, nil
 }
 
 // FetchValidatorsToDelegate gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch

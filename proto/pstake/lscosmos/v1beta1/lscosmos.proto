@@ -71,12 +71,17 @@ message HostAccountDelegation {
   cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
 }
 
-message HostAccountUndelegation {
-  option (gogoproto.goproto_stringer) = true;
+message HostAccountUndelegation{
+  int64 epoch_number = 1;
+  cosmos.base.v1beta1.Coin total_undelegation_amount = 2 [(gogoproto.nullable) = false];
+  google.protobuf.Timestamp completion_time = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  repeated UndelegationEntry undelegation_entries = 4 [(gogoproto.nullable) = false];
+}
 
+message UndelegationEntry {
+  option (gogoproto.goproto_stringer) = true;
   string validator_address = 1;
   cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
-  google.protobuf.Timestamp completion_time = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 }
 
 message HostChainRewardAddress {
@@ -88,18 +93,26 @@ message IBCAmountTransientStore {
   repeated cosmos.base.v1beta1.Coin i_b_c_transfer = 1 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
   // ica_delegate stores only token which has staking baseDenom
   cosmos.base.v1beta1.Coin i_c_a_delegate = 2  [(gogoproto.nullable) = false];
+
+  repeated TransientUndelegationTransfer undelegaton_complete_i_b_c_transfer = 3 [(gogoproto.nullable) = false];
+}
+
+message TransientUndelegationTransfer {
+  int64 epoch_number = 1;
+  cosmos.base.v1beta1.Coin amount_unbonded = 2  [(gogoproto.nullable) = false];
 }
 
 message UnbondingEpochCValue {
-  int64 epoch_number = 1 ;
+  int64 epoch_number = 1;
 
-  // c_value = stk_burnt.Amount/amount_unbonded.Amount
-  cosmos.base.v1beta1.Coin s_t_k_burnt = 2 [(gogoproto.nullable) = false];
+  // c_value = stk_burn.Amount/amount_unbonded.Amount
+  cosmos.base.v1beta1.Coin s_t_k_burn = 2 [(gogoproto.nullable) = false];
   cosmos.base.v1beta1.Coin amount_unbonded = 3 [(gogoproto.nullable) = false];
+  bool is_matured = 4;
 }
 
-message UnbondingEpochEntry {
-  int64 epoch_number = 1;
-  string delegator_address = 2 ;
+message DelegatorUnbondingEpochEntry {
+  string delegator_address = 1 ;
+  int64 epoch_number = 2;
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }

@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 
@@ -83,4 +85,91 @@ func removeHostAccountDelegation(delegationState types.DelegationState, delegati
 		}
 	}
 	return types.DelegationState{}, types.ErrCannotRemoveNonExistentDelegation
+}
+
+func (k Keeper) AddHostAccountUndelegation(ctx sdk.Context, undelegationEntry types.HostAccountUndelegation) {
+	delegationState := k.GetDelegationState(ctx)
+	delegationState.HostAccountUndelegations = append(delegationState.HostAccountUndelegations, undelegationEntry)
+	k.SetDelegationState(ctx, delegationState)
+}
+
+func (k Keeper) AddTotalUndelegationForEpoch(ctx sdk.Context, epochNumber int64, amount sdk.Coin) {
+	delegationState := k.GetDelegationState(ctx)
+	found := false
+	for i, undelegation := range delegationState.HostAccountUndelegations {
+		if undelegation.EpochNumber == epochNumber && !found {
+			delegationState.HostAccountUndelegations[i].TotalUndelegationAmount = delegationState.HostAccountUndelegations[i].TotalUndelegationAmount.Add(amount)
+			found = true
+		}
+	}
+	if !found {
+		delegationState.HostAccountUndelegations = append(delegationState.HostAccountUndelegations, types.HostAccountUndelegation{
+			EpochNumber:             epochNumber,
+			TotalUndelegationAmount: amount,
+			CompletionTime:          time.Time{},
+			UndelegationEntries:     []types.UndelegationEntry{},
+		})
+	}
+	k.SetDelegationState(ctx, delegationState)
+}
+
+func (k Keeper) AddEntriesForUndelegationEpoch(ctx sdk.Context, epochNumber int64, entries []types.UndelegationEntry) {
+	delegationState := k.GetDelegationState(ctx)
+	found := false
+	for i, undelegation := range delegationState.HostAccountUndelegations {
+		if undelegation.EpochNumber == epochNumber && !found {
+			delegationState.HostAccountUndelegations[i].UndelegationEntries = append(delegationState.HostAccountUndelegations[i].UndelegationEntries, entries...)
+			found = true
+		}
+	}
+	if !found {
+		panic("Adding Unbonding entries for non existing epoch")
+	}
+	k.SetDelegationState(ctx, delegationState)
+}
+
+func (k Keeper) UpdateCompletionTimeForUndelegationEpoch(ctx sdk.Context, epochNumber int64, completionTime time.Time) {
+	delegationState := k.GetDelegationState(ctx)
+	found := false
+	for i, undelegation := range delegationState.HostAccountUndelegations {
+		if undelegation.EpochNumber == epochNumber && !found {
+			delegationState.HostAccountUndelegations[i].CompletionTime = completionTime
+			found = true
+		}
+	}
+
+	k.SetDelegationState(ctx, delegationState)
+}
+
+func (k Keeper) RemoveHostAccountUndelegation(ctx sdk.Context, epochNumber int64) error {
+	delegationState := k.GetDelegationState(ctx)
+	for i, undelegation := range delegationState.HostAccountUndelegations {
+		if undelegation.EpochNumber == epochNumber {
+			delegationState.HostAccountUndelegations = append(delegationState.HostAccountUndelegations[:i], delegationState.HostAccountUndelegations[i+1:]...)
+			k.SetDelegationState(ctx, delegationState)
+			return nil
+		}
+	}
+	return types.ErrCannotRemoveNonExistentUndelegation
+}
+
+func (k Keeper) GetHostAccountUndelegationForEpoch(ctx sdk.Context, epochNumber int64) (types.HostAccountUndelegation, error) {
+	delegationState := k.GetDelegationState(ctx)
+	for _, undelegation := range delegationState.HostAccountUndelegations {
+		if undelegation.EpochNumber == epochNumber {
+			return undelegation, nil
+		}
+	}
+	return types.HostAccountUndelegation{}, types.ErrUndelegationEpochNotFound
+}
+
+func (k Keeper) GetHostAccountMaturedUndelegations(ctx sdk.Context) []types.HostAccountUndelegation {
+	undelegations := k.GetDelegationState(ctx).HostAccountUndelegations
+	var maturedUndelegations []types.HostAccountUndelegation
+	for _, undelegation := range undelegations {
+		if ctx.BlockTime().After(undelegation.CompletionTime) && !undelegation.CompletionTime.Equal(time.Time{}) {
+			maturedUndelegations = append(maturedUndelegations, undelegation)
+		}
+	}
+	return maturedUndelegations
 }

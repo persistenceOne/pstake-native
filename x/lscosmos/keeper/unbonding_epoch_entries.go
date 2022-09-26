@@ -5,22 +5,22 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-// SetUnbondingEpochCValue sets cvalue for unbonding epoch
-func (k Keeper) SetUnbondingEpochEntry(ctx sdk.Context, unbondingEpochEntry types.UnbondingEpochEntry) {
+// SetDelegatorUnbondingEpochEntry sets delegator entry for unbondign stkatom for an unbonding epoch
+func (k Keeper) SetDelegatorUnbondingEpochEntry(ctx sdk.Context, unbondingEpochEntry types.DelegatorUnbondingEpochEntry) {
 	store := ctx.KVStore(k.storeKey)
 	delAddr, err := sdk.AccAddressFromBech32(unbondingEpochEntry.DelegatorAddress)
 	if err != nil {
 		panic(err)
 	}
 	bz := k.cdc.MustMarshal(&unbondingEpochEntry)
-	store.Set(types.GetUnbondingEpochEntryKey(unbondingEpochEntry.EpochNumber, delAddr), bz)
+	store.Set(types.GetDelegatorUnbondingEpochEntryKey(delAddr, unbondingEpochEntry.EpochNumber), bz)
 }
 
-// GetUnbondingEpochCValue sets cvalue for unbonding epoch
-func (k Keeper) GetUnbondingEpochEntry(ctx sdk.Context, epochNumber int64, delegatorAddress sdk.AccAddress) types.UnbondingEpochEntry {
+// GetDelegatorUnbondingEpochEntry gets delegator entry for unbondign stkatom for an unbonding epoch
+func (k Keeper) GetDelegatorUnbondingEpochEntry(ctx sdk.Context, delegatorAddress sdk.AccAddress, epochNumber int64) types.DelegatorUnbondingEpochEntry {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetUnbondingEpochEntryKey(epochNumber, delegatorAddress))
-	var unbondingEpochEntry types.UnbondingEpochEntry
+	bz := store.Get(types.GetDelegatorUnbondingEpochEntryKey(delegatorAddress, epochNumber))
+	var unbondingEpochEntry types.DelegatorUnbondingEpochEntry
 	k.cdc.MustUnmarshal(bz, &unbondingEpochEntry)
 
 	return unbondingEpochEntry

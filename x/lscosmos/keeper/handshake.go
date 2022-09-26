@@ -10,6 +10,8 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
@@ -197,7 +199,7 @@ func (k Keeper) OnAcknowledgementPacket(
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot Deserialise icapacket data: %v", err)
 	}
-	var eventType string
+	eventType := "lscosmos-ack" //TODO rename
 
 	// Dispatch packet
 	switch len(txMsgData.Data) {
@@ -235,6 +237,22 @@ func (k Keeper) OnAcknowledgementPacket(
 					0,
 				)
 			}
+			if i == 0 && msgData.MsgType == sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}) {
+				previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
+				//May be also match amount with previous epoch incase host chain is down for multiple entire epoch duration. (or add epochnumber in memo ~ not clean, or store (sequenceNumber,epoch of the ica txn) )
+				previousEpochUnbondings := k.GetUnbondingEpochCValue(ctx, previousEpochNumber)
+				err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(previousEpochUnbondings.STKBurn))
+				if err != nil {
+					return err
+				}
+
+				//update completionTime
+				var msgResponse stakingtypes.MsgUndelegateResponse
+				if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
+					return err
+				}
+				k.UpdateCompletionTimeForUndelegationEpoch(ctx, previousEpochNumber, msgResponse.CompletionTime.Add(types.UndelegationCompletionTimeBuffer))
+			}
 		}
 	}
 
@@ -242,7 +260,7 @@ func (k Keeper) OnAcknowledgementPacket(
 		sdk.NewEvent(
 			eventType,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(types.AttributeKeyAck, fmt.Sprintf("%v", ack)),
+			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
 	)
 
@@ -251,7 +269,7 @@ func (k Keeper) OnAcknowledgementPacket(
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				eventType,
-				sdk.NewAttribute(types.AttributeKeyAckSuccess, string(resp.Result)),
+				sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintln(ack.Success())),
 			),
 		)
 	case *channeltypes.Acknowledgement_Error:
@@ -384,8 +402,22 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
 		}
 		k.Logger(ctx).Info(fmt.Sprintf("Started unbonding for val: %s, amount: %s", parsedMsg.ValidatorAddress, parsedMsg.Amount))
-		// add total to db,
+		//burn stkatom (DONE OUTSIDE THE LOOP), remove from delegations, add unbonding entry completion time
+		err := k.SubtractHostAccountDelegation(ctx, types.NewHostAccountDelegation(parsedMsg.ValidatorAddress, parsedMsg.Amount))
+		if err != nil {
+			return "", err
+		}
+
 		return msgResponse.String(), nil
+	case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
+		var msgResponse ibctransfertypes.MsgTransferResponse
+		if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+		}
+		k.Logger(ctx).Info(fmt.Sprintf("Initiated IBC transfer from %s to %s with msg: %s", hostChainParams.ChainID, ctx.ChainID(), msg))
+		// handle rest in ibc hooks.
+		return msgResponse.String(), nil
+
 	default:
 		return "", nil
 	}
@@ -406,7 +438,7 @@ func (k Keeper) handleTimeoutMsgData(ctx sdk.Context, msg sdk.Msg, hostChainPara
 		if !ok {
 			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
 		}
-		//retry msg since it is timedout, TODO, the txn timedout, may be we do the entire batch instead of individual msgs.
+		//retry msg since it is timedout, TODO, the txn timedout, we should do the entire batch instead of individual msgs.
 		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{parsedMsg})
 		if err != nil {
 			k.Logger(ctx).Error(fmt.Sprintf("Failed to retry unbonding msg: %s, err: %s", parsedMsg, err))
@@ -415,6 +447,21 @@ func (k Keeper) handleTimeoutMsgData(ctx sdk.Context, msg sdk.Msg, hostChainPara
 			return "", sdkerrors.Wrapf(types.ErrICATxFailure, "unable to retry unbonding msg: %s, err: %s", parsedMsg, err)
 		}
 		k.Logger(ctx).Info(fmt.Sprintf("Retrying unbonding msg: %s", parsedMsg))
+		return msg.String(), nil
+	case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
+		parsedMsg, ok := msg.(*ibctransfertypes.MsgTransfer)
+		if !ok {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
+		}
+		selfHeight := clienttypes.GetSelfHeight(ctx)
+		timeoutHeight := clienttypes.NewHeight(selfHeight.GetRevisionNumber(), selfHeight.GetRevisionHeight()+types.IBCTimeoutHeightIncrement)
+		parsedMsg.TimeoutHeight = timeoutHeight
+		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{parsedMsg})
+		if err != nil {
+			//TODO disable module?
+			return "", err
+		}
+
 		return msg.String(), nil
 	default:
 		return "", nil

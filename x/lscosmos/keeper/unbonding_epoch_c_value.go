@@ -18,6 +18,12 @@ func (k Keeper) GetUnbondingEpochCValue(ctx sdk.Context, epochNumber int64) type
 	bz := store.Get(types.GetUnbondingEpochCValueKey(epochNumber))
 	var unbondingEpochCValue types.UnbondingEpochCValue
 	k.cdc.MustUnmarshal(bz, &unbondingEpochCValue)
-
 	return unbondingEpochCValue
+}
+
+// MatureUnbondingEpochCValue sets unbonding epochCValue as matured
+func (k Keeper) MatureUnbondingEpochCValue(ctx sdk.Context, epochNumber int64) {
+	unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, epochNumber)
+	unbondingEpochCValue.IsMatured = true
+	k.SetUnbondingEpochCValue(ctx, unbondingEpochCValue)
 }

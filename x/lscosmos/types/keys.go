@@ -53,10 +53,11 @@ const (
 	// RewardBoosterModuleAccount RewardBoosterModuleAccountName
 	RewardBoosterModuleAccount = ModuleName + "_reward_booster_account"
 
-	DelegationEpochIdentifier           = "day"
-	RewardEpochIdentifier               = "day"
-	UndelegationEpochIdentifier         = "day"
-	UndelegationEpochNumberFactor int64 = 4
+	DelegationEpochIdentifier              = "day"
+	RewardEpochIdentifier                  = "day"
+	UndelegationEpochIdentifier            = "day"
+	UndelegationEpochNumberFactor    int64 = 4
+	UndelegationCompletionTimeBuffer       = time.Second * 10 //TODO change
 
 	IBCTimeoutHeightIncrement uint64 = 100
 	ICATimeoutTimestamp              = time.Minute * 5
@@ -71,14 +72,14 @@ var (
 var (
 	// PortKey defines the key to store the port ID in store
 
-	ModuleEnableKey           = []byte{0x01}
-	HostChainParamsKey        = []byte{0x02}
-	AllowListedValidatorsKey  = []byte{0x03}
-	DelegationStateKey        = []byte{0x04}
-	HostChainRewardAddressKey = []byte{0x05}
-	IBCTransientStoreKey      = []byte{0x06}
-	UnbondingEpochCValueKey   = []byte{0x07}
-	UnbondingEpochEntryKey    = []byte{0x08}
+	ModuleEnableKey                 = []byte{0x01}
+	HostChainParamsKey              = []byte{0x02}
+	AllowListedValidatorsKey        = []byte{0x03}
+	DelegationStateKey              = []byte{0x04}
+	HostChainRewardAddressKey       = []byte{0x05}
+	IBCTransientStoreKey            = []byte{0x06}
+	UnbondingEpochCValueKey         = []byte{0x07}
+	DelegatorUnbondingEpochEntryKey = []byte{0x08}
 )
 
 func GetUnbondingEpochCValueKey(epochNumber int64) []byte {
@@ -86,7 +87,7 @@ func GetUnbondingEpochCValueKey(epochNumber int64) []byte {
 
 }
 
-func GetUnbondingEpochEntryKey(epochNumber int64, delegatorAddress sdk.AccAddress) []byte {
-	return append(append(UnbondingEpochEntryKey, []byte(strconv.FormatInt(epochNumber, 10))...), address.MustLengthPrefix(delegatorAddress)...)
+func GetDelegatorUnbondingEpochEntryKey(delegatorAddress sdk.AccAddress, epochNumber int64) []byte {
+	return append(append(DelegatorUnbondingEpochEntryKey, address.MustLengthPrefix(delegatorAddress)...), []byte(strconv.FormatInt(epochNumber, 10))...)
 
 }
