@@ -16,6 +16,7 @@ const (
 	AttributeAmountRecieved   = "received"
 	AttributeUnstakeAmount    = "undelegation-amount"
 	AttributePstakeDepositFee = "pstake-deposit-fee"
+	AttributePstakeRedeemFee  = "pstake-redeem-fee"
 	AttributePstakeUnstakeFee = "pstake-unstake-fee"
 	AttributeDelegatorAddress = "address"
 	AttributeRewarderAddress  = "rewarder-address"

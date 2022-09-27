@@ -123,7 +123,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 			sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
 			sdktypes.NewAttribute(types.AttributeAmount, mintToken.String()),
 			sdktypes.NewAttribute(types.AttributeAmountRecieved, mintToken.Sub(protocolCoin).String()),
-			sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolFee.String()),
+			sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolCoin.String()),
 		),
 		sdktypes.NewEvent(
 			sdktypes.EventTypeMessage,
@@ -349,7 +349,7 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 			sdktypes.NewAttribute(types.AttributeDelegatorAddress, redeemAddress.String()),
 			sdktypes.NewAttribute(types.AttributeAmount, msg.Amount.String()),
 			sdktypes.NewAttribute(types.AttributeAmountRecieved, redeemToken.String()),
-			sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolCoin.String()),
+			sdktypes.NewAttribute(types.AttributePstakeRedeemFee, protocolCoin.String()),
 		),
 		sdktypes.NewEvent(
 			sdktypes.EventTypeMessage,
