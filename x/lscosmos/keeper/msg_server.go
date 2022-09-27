@@ -109,14 +109,15 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	}
 
 	//Send protocol fee to protocol pool
-	err = m.SendProtocolFee(ctx, sdktypes.NewCoins(protocolCoin), types.ModuleName, hostChainParams.PstakeParams.PstakeFeeAddress)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(
-			types.ErrFailedDeposit, "failed to send protocol fee to pstake fee address %s, got error : %s",
-			hostChainParams.PstakeParams.PstakeFeeAddress, err,
-		)
+	if protocolCoin.IsPositive() {
+		err = m.SendProtocolFee(ctx, sdktypes.NewCoins(protocolCoin), types.ModuleName, hostChainParams.PstakeParams.PstakeFeeAddress)
+		if err != nil {
+			return nil, sdkerrors.Wrapf(
+				types.ErrFailedDeposit, "failed to send protocol fee to pstake fee address %s, got error : %s",
+				hostChainParams.PstakeParams.PstakeFeeAddress, err,
+			)
+		}
 	}
-
 	ctx.EventManager().EmitEvents(sdktypes.Events{
 		sdktypes.NewEvent(
 			types.EventTypeLiquidStake,
@@ -230,7 +231,7 @@ func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 	unstakeCoin := msg.Amount
 	pstakeFeeAmt := hostChainParams.PstakeParams.PstakeUnstakeFee.MulInt(msg.Amount.Amount).TruncateInt()
 	pstakeFee := sdktypes.NewCoin(msg.Amount.Denom, pstakeFeeAmt)
-	if !pstakeFeeAmt.IsZero() {
+	if pstakeFeeAmt.IsPositive() {
 		err = m.SendProtocolFee(ctx, sdktypes.NewCoins(pstakeFee), types.UndelegationModuleAccount, hostChainParams.PstakeParams.PstakeFeeAddress)
 		if err != nil {
 			return nil, err
@@ -305,14 +306,15 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 	}
 
 	// send protocol fee to protocol pool
-	err = m.SendProtocolFee(ctx, sdktypes.NewCoins(protocolCoin), types.ModuleName, hostChainParams.PstakeParams.PstakeFeeAddress)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(
-			types.ErrFailedDeposit, "failed to send protocol fee to pstake fee address %s, got error : %s",
-			hostChainParams.PstakeParams.PstakeFeeAddress, err,
-		)
+	if protocolCoin.IsPositive() {
+		err = m.SendProtocolFee(ctx, sdktypes.NewCoins(protocolCoin), types.ModuleName, hostChainParams.PstakeParams.PstakeFeeAddress)
+		if err != nil {
+			return nil, sdkerrors.Wrapf(
+				types.ErrFailedDeposit, "failed to send protocol fee to pstake fee address %s, got error : %s",
+				hostChainParams.PstakeParams.PstakeFeeAddress, err,
+			)
+		}
 	}
-
 	// convert redeem amount to ibc/whitelisted-denom amount (sub protocolCoin) based on the current c-value
 	redeemStk := msg.Amount.Sub(protocolCoin)
 	redeemToken, _ := m.ConvertStkToToken(ctx, sdktypes.NewDecCoinFromCoin(redeemStk), m.GetCValue(ctx))
