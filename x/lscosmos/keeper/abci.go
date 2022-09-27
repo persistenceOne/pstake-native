@@ -37,8 +37,11 @@ func (k Keeper) DoDelegate(ctx sdk.Context) error {
 		// amount to delegate is too low, return early
 		return nil
 	}
-	msgs := DelegateMsgs(delegationState.HostChainDelegationAddress, allowlistedValidators, delegatableAmount, hostChainParams.BaseDenom)
-	err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, msgs)
+	msgs, err := k.DelegateMsgs(ctx, delegationState.HostChainDelegationAddress, delegatableAmount, hostChainParams.BaseDenom)
+	if err != nil {
+		return err
+	}
+	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, msgs)
 	if err != nil {
 		return err
 	}
