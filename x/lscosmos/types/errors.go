@@ -30,4 +30,5 @@ var (
 	ErrBurnFailed                            = sdkerrors.Register(ModuleName, 80, "burn failed")
 	ErrUndelegationEpochNotFound             = sdkerrors.Register(ModuleName, 81, "undelegation epoch not found")
 	ErrTransientUndelegationTransferNotFound = sdkerrors.Register(ModuleName, 82, "Transient undelegation transfer not found")
+	ErrHostChainDelegationsLTUndelegations   = sdkerrors.Register(ModuleName, 83, "Host chain delegated amount is less than undelegations requested.")
 )

@@ -215,8 +215,6 @@ func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 		return nil, sdkerrors.Wrapf(types.ErrInvalidDenom, "Expected %s, got %s", hostChainParams.MintDenom, msg.Amount.Denom)
 	}
 
-	//TODO check is there are delegations worth the amount to be undelegated
-
 	delegatorAddress, err := sdktypes.AccAddressFromBech32(msg.DelegatorAddress)
 	if err != nil {
 		return nil, err
@@ -244,6 +242,19 @@ func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 	unbondingEntry := types.NewDelegatorUnbondingEpochEntry(unbondingEpochNumber, msg.DelegatorAddress, unstakeCoin)
 	m.SetDelegatorUnbondingEpochEntry(ctx, unbondingEntry)
 	m.AddTotalUndelegationForEpoch(ctx, unbondingEpochNumber, unstakeCoin)
+
+	// check is there are delegations worth the amount to be undelegated.
+	// there are chances where the delegation epoch is not yet done so stkAtom are more than delegated amount
+	// in this case users should just redeem tokens. (as tokens should be present as part of deposit tokens)
+	delegationState := m.GetDelegationState(ctx)
+	undelegations, err := m.GetHostAccountUndelegationForEpoch(ctx, unbondingEpochNumber)
+	if err != nil {
+		return nil, err
+	}
+	totalDelegations := delegationState.TotalDelegations(hostChainParams.BaseDenom)
+	if totalDelegations.IsLT(undelegations.TotalUndelegationAmount) {
+		return nil, sdkerrors.Wrapf(types.ErrHostChainDelegationsLTUndelegations, "Delegated amount: %s is less than total undelegations for the epoch: %s", totalDelegations, undelegations.TotalUndelegationAmount)
+	}
 
 	ctx.EventManager().EmitEvents(sdktypes.Events{
 		sdktypes.NewEvent(
