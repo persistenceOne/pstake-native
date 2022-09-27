@@ -79,3 +79,24 @@ func (ds DelegationState) TotalDelegations(denom string) sdk.Coin {
 	}
 	return total
 }
+
+func NewDelegatorUnbondingEpochEntry(epochNumber int64, delegatorAddress string, amount sdk.Coin) DelegatorUnbondingEpochEntry {
+	return DelegatorUnbondingEpochEntry{
+		EpochNumber:      epochNumber,
+		DelegatorAddress: delegatorAddress,
+		Amount:           amount,
+	}
+}
+
+func CurrentUnbondingEpoch(epochNumber int64) int64 {
+	if epochNumber%UndelegationEpochNumberFactor == 0 {
+		return epochNumber
+	}
+	return epochNumber + UndelegationEpochNumberFactor - epochNumber%UndelegationEpochNumberFactor
+}
+func PreviousUnbondingEpoch(epochNumber int64) int64 {
+	if epochNumber%UndelegationEpochNumberFactor == 0 {
+		return epochNumber - UndelegationEpochNumberFactor
+	}
+	return epochNumber - epochNumber%UndelegationEpochNumberFactor
+}

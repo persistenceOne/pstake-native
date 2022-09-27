@@ -26,6 +26,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	k.SetHostChainRewardAddress(ctx, genState.HostChainRewardAddress)
 	k.SetIBCTransientStore(ctx, genState.IBCAmountTransientStore)
 
+	//TODO add all stores here and in export.
+
 	k.GetDepositModuleAccount(ctx)
 	k.GetDelegationModuleAccount(ctx)
 	k.GetRewardModuleAccount(ctx)

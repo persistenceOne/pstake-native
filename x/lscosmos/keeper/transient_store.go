@@ -55,3 +55,25 @@ func (k Keeper) RemoveICADelegateFromTransientStore(ctx sdk.Context, amount sdk.
 	transientStore.ICADelegate = transientStore.ICADelegate.Sub(amount)
 	k.SetIBCTransientStore(ctx, transientStore)
 }
+
+// AddUndelegationTransferToTransientStore adds ibctransfer tokens that are in ibc transition from host chain to controller chain
+// CONTRACT: to be used atomically with RemoveHostAccountUndelegation
+func (k Keeper) AddUndelegationTransferToTransientStore(ctx sdk.Context, undelegationTransfer types.TransientUndelegationTransfer) {
+	transientStore := k.GetIBCTransientStore(ctx)
+	transientStore.UndelegatonCompleteIBCTransfer = append(transientStore.UndelegatonCompleteIBCTransfer, undelegationTransfer)
+	k.SetIBCTransientStore(ctx, transientStore)
+}
+
+// RemoveUndelegationTransferFromTransientStore removes ibctransfer tokens that are in ibc transition from host chain to controller chain
+// Contract: to be used atomically with MatureUnbondingEpochCValue
+func (k Keeper) RemoveUndelegationTransferFromTransientStore(ctx sdk.Context, amount sdk.Coin) (types.TransientUndelegationTransfer, error) {
+	transientStore := k.GetIBCTransientStore(ctx)
+	for i, undelegationTransfer := range transientStore.UndelegatonCompleteIBCTransfer {
+		if undelegationTransfer.AmountUnbonded.IsEqual(amount) {
+			transientStore.UndelegatonCompleteIBCTransfer = append(transientStore.UndelegatonCompleteIBCTransfer[:i], transientStore.UndelegatonCompleteIBCTransfer[i+1:]...)
+			k.SetIBCTransientStore(ctx, transientStore)
+			return undelegationTransfer, nil
+		}
+	}
+	return types.TransientUndelegationTransfer{}, types.ErrTransientUndelegationTransferNotFound
+}

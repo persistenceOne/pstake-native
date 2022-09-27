@@ -35,6 +35,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		return lscosmostypes.ErrModuleDisabled
 	}
 	hostChainParams := k.GetHostChainParams(ctx)
+	k.Logger(ctx).Info(fmt.Sprintf("Starting AdferEndEpoch for epochIdentifier %s, epochNumber %v", epochIdentifier, epochNumber))
 	if epochIdentifier == lscosmostypes.DelegationEpochIdentifier {
 		wrapperFn := func(ctx sdk.Context) error {
 			return k.DelegationEpochWorkFlow(ctx, hostChainParams)
@@ -53,9 +54,9 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 			k.Logger(ctx).Error("Failed RewardEpochIdentifier Function with:", "err: ", err)
 		}
 	}
-	if epochIdentifier == lscosmostypes.UndelegationEpochIdentifier {
+	if epochIdentifier == lscosmostypes.UndelegationEpochIdentifier && epochNumber%lscosmostypes.UndelegationEpochNumberFactor == 0 {
 		wrapperFn := func(ctx sdk.Context) error {
-			return k.UndelegationEpochWorkFlow(ctx, hostChainParams)
+			return k.UndelegationEpochWorkFlow(ctx, hostChainParams, epochNumber)
 		}
 		err := utils.ApplyFuncIfNoError(ctx, wrapperFn)
 		if err != nil {
@@ -116,29 +117,30 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 	}
 	allDelegationBalances := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount))
 	delegationBalance := sdk.NewCoin(ibcDenom, allDelegationBalances.AmountOf(ibcDenom))
-	delegationState := k.GetDelegationState(ctx)
-	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, hostChainParams.TransferPort, hostChainParams.TransferChannel)
-	if err != nil {
-		k.Logger(ctx).Error(fmt.Sprintf("Error getting client state %s", err))
-		return err
+	if delegationBalance.IsPositive() {
+		delegationState := k.GetDelegationState(ctx)
+		_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, hostChainParams.TransferPort, hostChainParams.TransferChannel)
+		if err != nil {
+			k.Logger(ctx).Error(fmt.Sprintf("Error getting client state %s", err))
+			return err
+		}
+		timeoutHeight := clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), clientState.GetLatestHeight().GetRevisionHeight()+lscosmostypes.IBCTimeoutHeightIncrement)
+
+		msg := ibctransfertypes.NewMsgTransfer(hostChainParams.TransferPort, hostChainParams.TransferChannel,
+			delegationBalance, authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount).String(),
+			delegationState.HostChainDelegationAddress, timeoutHeight, 0)
+
+		handler := k.msgRouter.Handler(msg)
+
+		res, err := handler(ctx, msg)
+		if err != nil {
+			k.Logger(ctx).Error(fmt.Sprintf("could not send transfer msg via MsgServiceRouter, error: %s", err))
+			return err
+		}
+		k.AddIBCTransferToTransientStore(ctx, delegationBalance)
+
+		ctx.EventManager().EmitEvents(res.GetEvents())
 	}
-	timeoutHeight := clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), clientState.GetLatestHeight().GetRevisionHeight()+lscosmostypes.IBCTimeoutHeightIncrement)
-
-	msg := ibctransfertypes.NewMsgTransfer(hostChainParams.TransferPort, hostChainParams.TransferChannel,
-		delegationBalance, authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount).String(),
-		delegationState.HostChainDelegationAddress, timeoutHeight, 0)
-
-	handler := k.msgRouter.Handler(msg)
-
-	res, err := handler(ctx, msg)
-	if err != nil {
-		k.Logger(ctx).Error(fmt.Sprintf("could not send transfer msg via MsgServiceRouter, error: %s", err))
-		return err
-	}
-	k.AddIBCTransferToTransientStore(ctx, delegationBalance)
-
-	ctx.EventManager().EmitEvents(res.GetEvents())
-
 	// move extra tokens to pstake address - anyone can send tokens to delegation address.
 	// deposit address is deny-listed address - can only accept tokens via transactions, so should not have any extra tokens
 	// should be transferred to pstake address.
@@ -146,7 +148,7 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 
 	if !remainingDelegationBalance.Empty() {
 		feeAddr := sdk.MustAccAddressFromBech32(hostChainParams.PstakeParams.PstakeFeeAddress)
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, lscosmostypes.DelegationModuleAccount, feeAddr, remainingDelegationBalance)
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, lscosmostypes.DelegationModuleAccount, feeAddr, remainingDelegationBalance)
 		if err != nil {
 			k.Logger(ctx).Error(fmt.Sprintf("could not send remaining balance: %s in delegationModuleAccount: %s with error: %s", remainingDelegationBalance, lscosmostypes.DelegationModuleAccount, err))
 			return err
@@ -176,19 +178,114 @@ func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosm
 	// on Ack delegate txn
 }
 
-func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) error {
+func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams, epochNumber int64) error {
+	stkAmountBalance := k.bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(lscosmostypes.UndelegationModuleAccount), hostChainParams.MintDenom)
+	if stkAmountBalance.IsNil() || stkAmountBalance.IsZero() {
+		k.Logger(ctx).Info("No stkatoms to undelegate on epoch")
+		return nil
+	}
+	// currentEpoch always equals epochNumber during undelegation.
+	currentEpoch := lscosmostypes.CurrentUnbondingEpoch(epochNumber)
+	hostAccountUndelegationForEpoch, err := k.GetHostAccountUndelegationForEpoch(ctx, currentEpoch)
+	if err != nil {
+		k.Logger(ctx).Info(fmt.Sprintf("No undelegations for epochNumber: %v", epochNumber))
+		return nil
+	}
+	invalidDeposits := stkAmountBalance.Sub(hostAccountUndelegationForEpoch.TotalUndelegationAmount)
+	if invalidDeposits.IsPositive() {
+		err := k.SendProtocolFee(ctx, sdk.NewCoins(invalidDeposits), lscosmostypes.UndelegationModuleAccount, hostChainParams.PstakeParams.PstakeFeeAddress)
+		if err != nil {
+			k.Logger(ctx).Info(fmt.Sprintf("Failed to send invalid stkDeposit amount: %s, with error: %s", invalidDeposits, err))
+
+		}
+	}
+
+	cValue := k.GetCValue(ctx)
+	amountToUnstake, _ := k.ConvertStkToToken(ctx, sdk.NewDecCoinFromCoin(hostAccountUndelegationForEpoch.TotalUndelegationAmount), cValue)
+	amountToUnstake = sdk.NewCoin(hostChainParams.BaseDenom, amountToUnstake.Amount)
+	if amountToUnstake.IsNil() || amountToUnstake.IsZero() {
+		k.Logger(ctx).Info("atoms to undelegate too low")
+		return nil
+	}
+	delegationState := k.GetDelegationState(ctx)
+	undelegateMsgs, undelegationEntries, err := k.UndelegateMsgs(ctx, delegationState.HostChainDelegationAddress, amountToUnstake.Amount, hostChainParams.BaseDenom)
+	if err != nil {
+		// Disable module
+		return err
+	}
+	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, undelegateMsgs)
+	if err != nil {
+		// Disable module
+		return err
+	}
+	// add undelegation entries to db (update completion time onAck)
+	k.AddEntriesForUndelegationEpoch(ctx, currentEpoch, undelegationEntries)
+	//optimistic about this -> it retries till the ICA passes, if ICA undelegate fails the module is paused.
+	k.SetUnbondingEpochCValue(ctx, lscosmostypes.UnbondingEpochCValue{
+		EpochNumber:    currentEpoch,
+		STKBurn:        stkAmountBalance,
+		AmountUnbonded: amountToUnstake,
+		IsMatured:      false,
+	})
+	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, lscosmostypes.UndelegationModuleAccount, lscosmostypes.ModuleName, sdk.NewCoins(stkAmountBalance))
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // ___________________________________________________________________________________________________
 
 func (k Keeper) OnRecvIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferAck ibcexported.Acknowledgement) error {
+	//TODO Handle ibc recv of undelegationTransfer
+	if !k.GetModuleState(ctx) {
+		return nil
+	}
+	if !transferAck.Success() {
+		// Do nothing
+		return nil
+	}
+	var transferPacketData ibctransfertypes.FungibleTokenPacketData
+	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &transferPacketData); err != nil {
+		return err
+	}
+	hostChainParams := k.GetHostChainParams(ctx)
+	delegationState := k.GetDelegationState(ctx)
+	//Checks
+	channel, found := k.channelKeeper.GetChannel(ctx, hostChainParams.TransferPort, hostChainParams.TransferChannel)
+	if !found {
+		return channeltypes.ErrChannelNotFound
+	}
+	if packet.GetSourceChannel() != channel.Counterparty.ChannelId ||
+		packet.GetSourcePort() != channel.Counterparty.PortId {
+		// no need to return err, since most likely code is expected to enter this condition
+		return nil
+	}
+
+	if transferPacketData.GetSender() != delegationState.HostChainDelegationAddress ||
+		transferPacketData.GetReceiver() != k.GetUndelegationModuleAccount(ctx).GetAddress().String() ||
+		transferPacketData.GetDenom() != hostChainParams.BaseDenom {
+		// no need to return err, since most likely code is expected to enter this condition
+		return nil
+	}
+	amount, ok := sdk.NewIntFromString(transferPacketData.GetAmount())
+	if !ok {
+		return ibctransfertypes.ErrInvalidAmount
+	}
+	k.Logger(ctx).Info(fmt.Sprintf("atoms tokens successfully transferred to controller chain address %s, amount: %s, denom: %s", transferPacketData.Receiver, transferPacketData.Amount, transferPacketData.Denom))
+
+	removedTransientUndelegationTransfer, err := k.RemoveUndelegationTransferFromTransientStore(ctx, sdk.NewCoin(transferPacketData.GetDenom(), amount))
+	if err != nil {
+		return err
+	}
+	k.MatureUnbondingEpochCValue(ctx, removedTransientUndelegationTransfer.EpochNumber)
 	return nil
 }
 
 func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress, transferAckErr error) error {
 	if !k.GetModuleState(ctx) {
-		return lscosmostypes.ErrModuleDisabled
+		return nil
 	}
 	if transferAckErr != nil {
 		return transferAckErr
@@ -219,7 +316,7 @@ func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet chann
 		// no need to return err, since most likely code is expected to enter this condition
 		return nil
 	}
-	k.Logger(ctx).Info(fmt.Sprintf("pstake tokens successfully transferred to host chain address %s, amount: %s, denom: %s", data.Receiver, data.Amount, data.Denom))
+	k.Logger(ctx).Info(fmt.Sprintf("atoms tokens successfully transferred to host chain address %s, amount: %s, denom: %s", data.Receiver, data.Amount, data.Denom))
 
 	amount, ok := sdk.NewIntFromString(data.GetAmount())
 	if !ok {
