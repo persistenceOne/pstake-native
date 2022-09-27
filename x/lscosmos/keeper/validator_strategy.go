@@ -95,7 +95,11 @@ func GetIdealCurrentDelegations(valList types.AllowListedValidators, delegationS
 			totalAmt = totalDelegations.Amount.Sub(amt.Amount)
 		}
 		idealTokens = valT.TargetWeight.Mul(sdk.NewDecFromInt(totalAmt)).TruncateInt()
-		curTokens = delegationMap[valT.ValidatorAddress].Amount
+		curCoins, ok := delegationMap[valT.ValidatorAddress]
+		if !ok {
+			curCoins = sdk.NewCoin(amt.Denom, sdk.ZeroInt())
+		}
+		curTokens = curCoins.Amount
 		diffAmt := idealTokens.Sub(curTokens)
 		if reverse {
 			diffAmt = curTokens.Sub(idealTokens)
