@@ -459,7 +459,7 @@ func (k Keeper) handleTimeoutMsgData(ctx sdk.Context, msg sdk.Msg, hostChainPara
 		parsedMsg.TimeoutHeight = timeoutHeight
 		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{parsedMsg})
 		if err != nil {
-			//TODO disable module?
+			k.SetModuleState(ctx, false)
 			return "", err
 		}
 
