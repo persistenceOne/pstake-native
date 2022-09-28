@@ -32,7 +32,7 @@ and shift the amount to next epoch if the min amount is not reached
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	//params := k.GetParams(ctx)
 	if !k.GetModuleState(ctx) {
-		return lscosmostypes.ErrModuleDisabled
+		return nil
 	}
 	hostChainParams := k.GetHostChainParams(ctx)
 	k.Logger(ctx).Info(fmt.Sprintf("Starting AdferEndEpoch for epochIdentifier %s, epochNumber %v", epochIdentifier, epochNumber))
@@ -210,12 +210,12 @@ func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscos
 	delegationState := k.GetDelegationState(ctx)
 	undelegateMsgs, undelegationEntries, err := k.UndelegateMsgs(ctx, delegationState.HostChainDelegationAddress, amountToUnstake.Amount, hostChainParams.BaseDenom)
 	if err != nil {
-		// Disable module
+		k.SetModuleState(ctx, false)
 		return err
 	}
 	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, undelegateMsgs)
 	if err != nil {
-		// Disable module
+		k.SetModuleState(ctx, false)
 		return err
 	}
 	// add undelegation entries to db (update completion time onAck)
@@ -238,10 +238,6 @@ func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscos
 // ___________________________________________________________________________________________________
 
 func (k Keeper) OnRecvIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferAck ibcexported.Acknowledgement) error {
-	//TODO Handle ibc recv of undelegationTransfer
-	if !k.GetModuleState(ctx) {
-		return nil
-	}
 	if !transferAck.Success() {
 		// Do nothing
 		return nil
@@ -284,9 +280,7 @@ func (k Keeper) OnRecvIBCTransferPacket(ctx sdk.Context, packet channeltypes.Pac
 }
 
 func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress, transferAckErr error) error {
-	if !k.GetModuleState(ctx) {
-		return nil
-	}
+
 	if transferAckErr != nil {
 		return transferAckErr
 	}
