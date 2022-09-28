@@ -26,6 +26,10 @@ service Msg{
   rpc Redeem(MsgRedeem) returns (MsgRedeemResponse) {
     option (google.api.http).post = "/pstake/lscosmos/v1beta1/Redeem";
   }
+
+  rpc Claim(MsgClaim) returns (MsgClaimResponse) {
+    option (google.api.http).post = "/pstake/lscosmos/v1beta1/Claim";
+  }
 }
 
 message MsgLiquidStake {
@@ -56,3 +60,9 @@ message MsgRedeem {
 }
 
 message MsgRedeemResponse {}
+
+message MsgClaim {
+  string delegator_address = 1;
+}
+
+message MsgClaimResponse {}

@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -371,4 +370,83 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 		)},
 	)
 	return &types.MsgRedeemResponse{}, nil
+}
+
+func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+	// sanity check for the arguments of message
+	if ctx.IsZero() {
+		return nil, types.ErrInvalidArgs
+	}
+	if !m.GetModuleState(ctx) {
+		return nil, types.ErrModuleDisabled
+	}
+
+	// get AccAddress from bech32 string
+	delegatorAddress, err := sdktypes.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	// get all the entries corresponding to the delegator address
+	delegatorUnbondingEntries := m.IterateDelegatorUnbondingEpochEntry(ctx, delegatorAddress)
+
+	// loop through all the epoch and send tokens if an entry has matured.
+	for _, unbondingEntry := range delegatorUnbondingEntries {
+		unbondingEpochCValue := m.GetUnbondingEpochCValue(ctx, unbondingEntry.EpochNumber)
+		if unbondingEpochCValue.IsMatured {
+			// get c value from the UnbondingEpochCValue struct
+			// calculate claimable amount from un inverse c value
+			claimableAmount := unbondingEntry.Amount.Amount.ToDec().Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
+			burnAmount := unbondingEntry.Amount.Amount.ToDec().Mul(unbondingEpochCValue.GetUnbondingEpochCValue())
+
+			// calculate claimable coin and community coin to be sent to delegator account and community pool respectively
+			claimableCoin, communityPoolAmount := sdktypes.NewDecCoinFromDec(m.GetIBCDenom(ctx), claimableAmount).TruncateDecimal()
+			burnCoin, _ := sdktypes.NewDecCoinFromDec(m.GetHostChainParams(ctx).MintDenom, burnAmount).TruncateDecimal()
+
+			// send coin to delegator address from undelegation module account
+			err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.UndelegationModuleAccount, delegatorAddress, sdktypes.NewCoins(claimableCoin))
+			if err != nil {
+				return nil, err
+			}
+
+			// send coin to community pool
+			feePool := m.distrKeepr.GetFeePool(ctx)
+			feePool.CommunityPool = feePool.CommunityPool.Add(communityPoolAmount)
+			m.distrKeepr.SetFeePool(ctx, feePool)
+
+			// burn mint tokens present in undelegation module account
+			err = m.bankKeeper.SendCoinsFromModuleToModule(ctx, types.UndelegationModuleAccount, types.ModuleName, sdktypes.NewCoins(burnCoin))
+			if err != nil {
+				return nil, err
+			}
+			err = m.bankKeeper.BurnCoins(ctx, types.ModuleName, sdktypes.NewCoins(burnCoin))
+			if err != nil {
+				return nil, err
+			}
+
+			ctx.EventManager().EmitEvents(sdktypes.Events{
+				sdktypes.NewEvent(
+					types.EventTypeClaim,
+					sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
+					sdktypes.NewAttribute(types.AttributeAmount, unbondingEntry.Amount.String()),
+					sdktypes.NewAttribute(types.AttributeClaimedAmount, claimableAmount.String()),
+					sdktypes.NewAttribute(types.AttributeCommunityPoolAmount, communityPoolAmount.String()),
+				)},
+			)
+
+			m.RemoveDelegatorUnbondingEpochEntry(ctx, delegatorAddress, unbondingEntry.EpochNumber)
+		}
+	}
+
+	// emit event
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
+		)},
+	)
+
+	return &types.MsgClaimResponse{}, nil
 }

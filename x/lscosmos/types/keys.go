@@ -37,6 +37,9 @@ const (
 	// MsgTypeRedeem is the type of message redeem
 	MsgTypeRedeem = "msg_redeem"
 
+	// MsgTypeClaim is the type of message claim
+	MsgTypeClaim = "msg_claim"
+
 	// DepositModuleAccount DepositModuleAccountName
 	DepositModuleAccount = ModuleName + "_pstake_deposit_account"
 
@@ -84,10 +87,12 @@ var (
 
 func GetUnbondingEpochCValueKey(epochNumber int64) []byte {
 	return append(UnbondingEpochCValueKey, []byte(strconv.FormatInt(epochNumber, 10))...)
-
 }
 
 func GetDelegatorUnbondingEpochEntryKey(delegatorAddress sdk.AccAddress, epochNumber int64) []byte {
 	return append(append(DelegatorUnbondingEpochEntryKey, address.MustLengthPrefix(delegatorAddress)...), []byte(strconv.FormatInt(epochNumber, 10))...)
+}
 
+func GetPartialDelegatorUnbondingEpochEntryKey(delegatorAddress sdk.AccAddress) []byte {
+	return append(append(DelegatorUnbondingEpochEntryKey), address.MustLengthPrefix(delegatorAddress)...)
 }

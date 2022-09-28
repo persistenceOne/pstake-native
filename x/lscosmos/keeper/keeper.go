@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -33,6 +34,7 @@ type Keeper struct {
 	icaControllerKeeper  types.ICAControllerKeeper
 	icqKeeper            types.ICQKeeper
 	lscosmosScopedKeeper types.ScopedKeeper
+	distrKeepr           distrkeeper.Keeper
 
 	msgRouter *baseapp.MsgServiceRouter
 }

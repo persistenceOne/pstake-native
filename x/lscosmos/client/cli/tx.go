@@ -32,6 +32,7 @@ func GetTxCmd() *cobra.Command {
 		NewJuiceCmd(),
 		NewLiquidUnstakeCmd(),
 		NewRedeemCmd(),
+		NewClaimCmd(),
 	)
 
 	return cmd
@@ -482,6 +483,30 @@ func NewRedeemCmd() *cobra.Command {
 
 			redeemAddress := clientctx.GetFromAddress()
 			msg := types.NewMsgRedeem(redeemAddress, amount)
+
+			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewClaimCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "claim",
+		Short: `Claim matured tokens`,
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			delegatorAddress := clientctx.GetFromAddress()
+			msg := types.NewMsgClaim(delegatorAddress)
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
 		},
