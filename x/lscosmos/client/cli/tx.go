@@ -437,7 +437,7 @@ func NewJuiceCmd() *cobra.Command {
 
 func NewLiquidUnstakeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "liquid-unstake [amount(whitelisted-ibcDenom coin)]",
+		Use:   "liquid-unstake [amount(stkAtom)]",
 		Short: `Liquid Unstake stkAtom to ibc/Atom`,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
