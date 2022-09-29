@@ -252,7 +252,8 @@ func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 		return nil, err
 	}
 	totalDelegations := delegationState.TotalDelegations(hostChainParams.BaseDenom)
-	if totalDelegations.IsLT(undelegations.TotalUndelegationAmount) {
+	baseDenomUndelegtions, _ := m.ConvertStkToToken(ctx, sdktypes.NewDecCoinFromCoin(undelegations.TotalUndelegationAmount), m.GetCValue(ctx))
+	if totalDelegations.IsLT(sdktypes.NewCoin(hostChainParams.BaseDenom, baseDenomUndelegtions.Amount)) {
 		return nil, sdkerrors.Wrapf(types.ErrHostChainDelegationsLTUndelegations, "Delegated amount: %s is less than total undelegations for the epoch: %s", totalDelegations, undelegations.TotalUndelegationAmount)
 	}
 
