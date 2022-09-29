@@ -398,11 +398,9 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 			// get c value from the UnbondingEpochCValue struct
 			// calculate claimable amount from un inverse c value
 			claimableAmount := unbondingEntry.Amount.Amount.ToDec().Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
-			burnAmount := unbondingEntry.Amount.Amount.ToDec().Mul(unbondingEpochCValue.GetUnbondingEpochCValue())
 
 			// calculate claimable coin and community coin to be sent to delegator account and community pool respectively
 			claimableCoin, communityPoolAmount := sdktypes.NewDecCoinFromDec(m.GetIBCDenom(ctx), claimableAmount).TruncateDecimal()
-			burnCoin, _ := sdktypes.NewDecCoinFromDec(m.GetHostChainParams(ctx).MintDenom, burnAmount).TruncateDecimal()
 
 			// send coin to delegator address from undelegation module account
 			err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.UndelegationModuleAccount, delegatorAddress, sdktypes.NewCoins(claimableCoin))
@@ -414,16 +412,6 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 			feePool := m.distrKeepr.GetFeePool(ctx)
 			feePool.CommunityPool = feePool.CommunityPool.Add(communityPoolAmount)
 			m.distrKeepr.SetFeePool(ctx, feePool)
-
-			// burn mint tokens present in undelegation module account
-			err = m.bankKeeper.SendCoinsFromModuleToModule(ctx, types.UndelegationModuleAccount, types.ModuleName, sdktypes.NewCoins(burnCoin))
-			if err != nil {
-				return nil, err
-			}
-			err = m.bankKeeper.BurnCoins(ctx, types.ModuleName, sdktypes.NewCoins(burnCoin))
-			if err != nil {
-				return nil, err
-			}
 
 			ctx.EventManager().EmitEvents(sdktypes.Events{
 				sdktypes.NewEvent(

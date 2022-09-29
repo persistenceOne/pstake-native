@@ -497,7 +497,7 @@ func NewClaimCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "claim",
 		Short: `Claim matured tokens`,
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			clientctx, err := client.GetClientTxContext(cmd)

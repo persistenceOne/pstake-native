@@ -473,6 +473,7 @@ func NewpStakeApp(
 		app.ICAControllerKeeper,
 		&app.InterchainQueryKeeper,
 		scopedLSCosmosKeeper,
+		app.DistrKeeper,
 		app.MsgServiceRouter(),
 	)
 

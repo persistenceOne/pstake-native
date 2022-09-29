@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -34,7 +32,7 @@ type Keeper struct {
 	icaControllerKeeper  types.ICAControllerKeeper
 	icqKeeper            types.ICQKeeper
 	lscosmosScopedKeeper types.ScopedKeeper
-	distrKeepr           distrkeeper.Keeper
+	distrKeepr           types.DistributionKeeper
 
 	msgRouter *baseapp.MsgServiceRouter
 }
@@ -54,6 +52,7 @@ func NewKeeper(
 	icaControllerKeeper types.ICAControllerKeeper,
 	icqKeeper types.ICQKeeper,
 	lscosmosScopedKeeper types.ScopedKeeper,
+	distrkeeper types.DistributionKeeper,
 	msgRouter *baseapp.MsgServiceRouter,
 ) Keeper {
 	// set KeyTable if it has not already been set
@@ -76,6 +75,7 @@ func NewKeeper(
 		storeKey:             storeKey,
 		memKey:               memKey,
 		paramstore:           ps,
+		distrKeepr:           distrkeeper,
 		msgRouter:            msgRouter,
 	}
 }

@@ -124,6 +124,8 @@ spec:
               mv $GAIA_DIR/config/genesis.new.json $GAIA_DIR/config/genesis.json
               jq '.app_state.gov.deposit_params.min_deposit[0].amount |= "10"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesis.new.json
               mv $GAIA_DIR/config/genesis.new.json $GAIA_DIR/config/genesis.json
+              jq '.app_state.staking.params.unbonding_time |= "600s"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesis.new.json
+              mv $GAIA_DIR/config/genesis.new.json $GAIA_DIR/config/genesis.json
               
               jq '.app_state.crisis.constant_fee.denom |= "uatom"' $GAIA_DIR/config/genesis.json | tee $GAIA_DIR/config/genesis.new.json
               mv $GAIA_DIR/config/genesis.new.json $GAIA_DIR/config/genesis.json
