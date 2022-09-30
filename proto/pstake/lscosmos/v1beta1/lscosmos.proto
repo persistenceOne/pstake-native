@@ -109,6 +109,7 @@ message UnbondingEpochCValue {
   cosmos.base.v1beta1.Coin s_t_k_burn = 2 [(gogoproto.nullable) = false];
   cosmos.base.v1beta1.Coin amount_unbonded = 3 [(gogoproto.nullable) = false];
   bool is_matured = 4;
+  bool is_timed_out = 5;
 }
 
 message DelegatorUnbondingEpochEntry {

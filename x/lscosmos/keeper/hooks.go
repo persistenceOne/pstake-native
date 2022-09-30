@@ -179,25 +179,12 @@ func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosm
 }
 
 func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams, epochNumber int64) error {
-	stkAmountBalance := k.bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(lscosmostypes.UndelegationModuleAccount), hostChainParams.MintDenom)
-	if stkAmountBalance.IsNil() || stkAmountBalance.IsZero() {
-		k.Logger(ctx).Info("No stkatoms to undelegate on epoch")
-		return nil
-	}
 	// currentEpoch always equals epochNumber during undelegation.
 	currentEpoch := lscosmostypes.CurrentUnbondingEpoch(epochNumber)
 	hostAccountUndelegationForEpoch, err := k.GetHostAccountUndelegationForEpoch(ctx, currentEpoch)
 	if err != nil {
 		k.Logger(ctx).Info(fmt.Sprintf("No undelegations for epochNumber: %v", epochNumber))
 		return nil
-	}
-	invalidDeposits := stkAmountBalance.Sub(hostAccountUndelegationForEpoch.TotalUndelegationAmount)
-	if invalidDeposits.IsPositive() {
-		err := k.SendProtocolFee(ctx, sdk.NewCoins(invalidDeposits), lscosmostypes.UndelegationModuleAccount, hostChainParams.PstakeParams.PstakeFeeAddress)
-		if err != nil {
-			k.Logger(ctx).Info(fmt.Sprintf("Failed to send invalid stkDeposit amount: %s, with error: %s", invalidDeposits, err))
-
-		}
 	}
 
 	cValue := k.GetCValue(ctx)
@@ -223,14 +210,11 @@ func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscos
 	//optimistic about this -> it retries till the ICA passes, if ICA undelegate fails the module is paused.
 	k.SetUnbondingEpochCValue(ctx, lscosmostypes.UnbondingEpochCValue{
 		EpochNumber:    currentEpoch,
-		STKBurn:        stkAmountBalance,
+		STKBurn:        hostAccountUndelegationForEpoch.TotalUndelegationAmount,
 		AmountUnbonded: amountToUnstake,
 		IsMatured:      false,
+		IsTimedOut:     false,
 	})
-	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, lscosmostypes.UndelegationModuleAccount, lscosmostypes.ModuleName, sdk.NewCoins(stkAmountBalance))
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
