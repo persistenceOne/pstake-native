@@ -33,7 +33,6 @@ type Keeper struct {
 	icaControllerKeeper  types.ICAControllerKeeper
 	icqKeeper            types.ICQKeeper
 	lscosmosScopedKeeper types.ScopedKeeper
-	distrKeepr           types.DistributionKeeper
 
 	msgRouter *baseapp.MsgServiceRouter
 }
@@ -53,7 +52,6 @@ func NewKeeper(
 	icaControllerKeeper types.ICAControllerKeeper,
 	icqKeeper types.ICQKeeper,
 	lscosmosScopedKeeper types.ScopedKeeper,
-	distrkeeper types.DistributionKeeper,
 	msgRouter *baseapp.MsgServiceRouter,
 ) Keeper {
 	// set KeyTable if it has not already been set
@@ -76,7 +74,6 @@ func NewKeeper(
 		storeKey:             storeKey,
 		memKey:               memKey,
 		paramstore:           ps,
-		distrKeepr:           distrkeeper,
 		msgRouter:            msgRouter,
 	}
 }

@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
@@ -88,9 +87,4 @@ type ICAControllerKeeper interface {
 
 type ICQKeeper interface {
 	MakeRequest(ctx sdk.Context, connectionID string, chainID string, queryType string, request []byte, period sdk.Int, module string, callbackID string, ttl uint64)
-}
-
-type DistributionKeeper interface {
-	GetFeePool(ctx sdk.Context) distributiontypes.FeePool
-	SetFeePool(ctx sdk.Context, feePool distributiontypes.FeePool)
 }
