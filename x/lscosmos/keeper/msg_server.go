@@ -240,8 +240,7 @@ func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 	// Add entry to unbonding db
 	epoch := m.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier)
 	unbondingEpochNumber := types.CurrentUnbondingEpoch(epoch.CurrentEpoch)
-	unbondingEntry := types.NewDelegatorUnbondingEpochEntry(unbondingEpochNumber, msg.DelegatorAddress, unstakeCoin)
-	m.SetDelegatorUnbondingEpochEntry(ctx, unbondingEntry)
+	m.AddDelegatorUnbondingEpochEntry(ctx, delegatorAddress, unbondingEpochNumber, unstakeCoin)
 	m.AddTotalUndelegationForEpoch(ctx, unbondingEpochNumber, unstakeCoin)
 
 	// check is there are delegations worth the amount to be undelegated.
