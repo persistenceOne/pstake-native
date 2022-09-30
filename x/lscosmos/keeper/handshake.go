@@ -330,7 +330,7 @@ func (k Keeper) OnTimeoutPacket(
 					return err
 				}
 				k.TimeoutUnbondingEpochCValue(ctx, previousEpochNumber)
-				k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %s", msgs, previousEpochNumber))
+				k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %v", msgs, previousEpochNumber))
 			}
 			k.Logger(ctx).Info("ICA msg timed out, ", "msg", msg)
 		}
