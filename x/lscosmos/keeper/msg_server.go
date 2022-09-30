@@ -423,6 +423,16 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 				)},
 			)
 
+			// remove entry from unbonding epoch entry
+			m.RemoveDelegatorUnbondingEpochEntry(ctx, delegatorAddress, unbondingEntry.EpochNumber)
+		}
+		if unbondingEpochCValue.IsTimedOut {
+			err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.UndelegationModuleAccount, delegatorAddress, sdktypes.NewCoins(unbondingEntry.Amount))
+			if err != nil {
+				return nil, err
+			}
+
+			// remove entry from unbonding epoch entry
 			m.RemoveDelegatorUnbondingEpochEntry(ctx, delegatorAddress, unbondingEntry.EpochNumber)
 		}
 	}
