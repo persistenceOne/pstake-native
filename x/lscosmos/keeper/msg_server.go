@@ -401,7 +401,7 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 			claimableAmount := unbondingEntry.Amount.Amount.ToDec().Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
 
 			// calculate claimable coin and community coin to be sent to delegator account and community pool respectively
-			claimableCoin, communityPoolAmount := sdktypes.NewDecCoinFromDec(m.GetIBCDenom(ctx), claimableAmount).TruncateDecimal()
+			claimableCoin, _ := sdktypes.NewDecCoinFromDec(m.GetIBCDenom(ctx), claimableAmount).TruncateDecimal()
 
 			// send coin to delegator address from undelegation module account
 			err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.UndelegationModuleAccount, delegatorAddress, sdktypes.NewCoins(claimableCoin))
@@ -409,18 +409,12 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 				return nil, err
 			}
 
-			// send coin to community pool
-			feePool := m.distrKeepr.GetFeePool(ctx)
-			feePool.CommunityPool = feePool.CommunityPool.Add(communityPoolAmount)
-			m.distrKeepr.SetFeePool(ctx, feePool)
-
 			ctx.EventManager().EmitEvents(sdktypes.Events{
 				sdktypes.NewEvent(
 					types.EventTypeClaim,
 					sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
 					sdktypes.NewAttribute(types.AttributeAmount, unbondingEntry.Amount.String()),
 					sdktypes.NewAttribute(types.AttributeClaimedAmount, claimableAmount.String()),
-					sdktypes.NewAttribute(types.AttributeCommunityPoolAmount, communityPoolAmount.String()),
 				)},
 			)
 
