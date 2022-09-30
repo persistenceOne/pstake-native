@@ -94,5 +94,5 @@ func GetDelegatorUnbondingEpochEntryKey(delegatorAddress sdk.AccAddress, epochNu
 }
 
 func GetPartialDelegatorUnbondingEpochEntryKey(delegatorAddress sdk.AccAddress) []byte {
-	return append(append(DelegatorUnbondingEpochEntryKey), address.MustLengthPrefix(delegatorAddress)...)
+	return append(DelegatorUnbondingEpochEntryKey, address.MustLengthPrefix(delegatorAddress)...)
 }
