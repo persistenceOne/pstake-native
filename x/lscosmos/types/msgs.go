@@ -10,6 +10,7 @@ var (
 	_ sdk.Msg = &MsgLiquidStake{}
 	_ sdk.Msg = &MsgJuice{}
 	_ sdk.Msg = &MsgLiquidUnstake{}
+	_ sdk.Msg = &MsgClaim{}
 )
 
 // NewMsgLiquidStake returns a new MsgLiquidStake
@@ -181,6 +182,44 @@ func (m *MsgRedeem) GetSignBytes() []byte {
 }
 
 func (m *MsgRedeem) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// NewMsgClaim returns a new MsgClaim
+//
+//nolint:interfacer
+func NewMsgClaim(address sdk.AccAddress) *MsgClaim {
+	return &MsgClaim{
+		DelegatorAddress: address.String(),
+	}
+}
+
+// Route should return the name of the module
+func (m *MsgClaim) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgClaim) Type() string { return MsgTypeClaim }
+
+// ValidateBasic performs stateless checks
+func (m *MsgClaim) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
+	}
+
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgClaim) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgClaim) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
 	if err != nil {
 		panic(err)

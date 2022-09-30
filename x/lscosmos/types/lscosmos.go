@@ -88,6 +88,11 @@ func NewDelegatorUnbondingEpochEntry(delegatorAddress string, epochNumber int64,
 	}
 }
 
+// GetUnbondingEpochCValue returns the calculated c value from the UnbondingEpochCValue struct entries.
+func (uec *UnbondingEpochCValue) GetUnbondingEpochCValue() sdk.Dec {
+	return uec.STKBurn.Amount.ToDec().Quo(uec.AmountUnbonded.Amount.ToDec())
+}
+
 func CurrentUnbondingEpoch(epochNumber int64) int64 {
 	if epochNumber%UndelegationEpochNumberFactor == 0 {
 		return epochNumber

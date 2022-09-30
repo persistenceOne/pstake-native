@@ -372,3 +372,74 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 	)
 	return &types.MsgRedeemResponse{}, nil
 }
+
+func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+	// sanity check for the arguments of message
+	if ctx.IsZero() {
+		return nil, types.ErrInvalidArgs
+	}
+	if !m.GetModuleState(ctx) {
+		return nil, types.ErrModuleDisabled
+	}
+
+	// get AccAddress from bech32 string
+	delegatorAddress, err := sdktypes.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	// get all the entries corresponding to the delegator address
+	delegatorUnbondingEntries := m.IterateDelegatorUnbondingEpochEntry(ctx, delegatorAddress)
+
+	// loop through all the epoch and send tokens if an entry has matured.
+	for _, unbondingEntry := range delegatorUnbondingEntries {
+		unbondingEpochCValue := m.GetUnbondingEpochCValue(ctx, unbondingEntry.EpochNumber)
+		if unbondingEpochCValue.IsMatured {
+			// get c value from the UnbondingEpochCValue struct
+			// calculate claimable amount from un inverse c value
+			claimableAmount := unbondingEntry.Amount.Amount.ToDec().Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
+
+			// calculate claimable coin and community coin to be sent to delegator account and community pool respectively
+			claimableCoin, _ := sdktypes.NewDecCoinFromDec(m.GetIBCDenom(ctx), claimableAmount).TruncateDecimal()
+
+			// send coin to delegator address from undelegation module account
+			err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.UndelegationModuleAccount, delegatorAddress, sdktypes.NewCoins(claimableCoin))
+			if err != nil {
+				return nil, err
+			}
+
+			ctx.EventManager().EmitEvents(sdktypes.Events{
+				sdktypes.NewEvent(
+					types.EventTypeClaim,
+					sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
+					sdktypes.NewAttribute(types.AttributeAmount, unbondingEntry.Amount.String()),
+					sdktypes.NewAttribute(types.AttributeClaimedAmount, claimableAmount.String()),
+				)},
+			)
+
+			// remove entry from unbonding epoch entry
+			m.RemoveDelegatorUnbondingEpochEntry(ctx, delegatorAddress, unbondingEntry.EpochNumber)
+		}
+		if unbondingEpochCValue.IsTimedOut {
+			err = m.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.UndelegationModuleAccount, delegatorAddress, sdktypes.NewCoins(unbondingEntry.Amount))
+			if err != nil {
+				return nil, err
+			}
+
+			// remove entry from unbonding epoch entry
+			m.RemoveDelegatorUnbondingEpochEntry(ctx, delegatorAddress, unbondingEntry.EpochNumber)
+		}
+	}
+
+	// emit event
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
+		)},
+	)
+
+	return &types.MsgClaimResponse{}, nil
+}
