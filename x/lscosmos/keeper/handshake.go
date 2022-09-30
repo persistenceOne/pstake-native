@@ -241,6 +241,10 @@ func (k Keeper) OnAcknowledgementPacket(
 				previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
 				//May be also match amount with previous epoch incase host chain is down for multiple entire epoch duration. (or add epochnumber in memo ~ not clean, or store (sequenceNumber,epoch of the ica txn) )
 				previousEpochUnbondings := k.GetUnbondingEpochCValue(ctx, previousEpochNumber)
+				err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.UndelegationModuleAccount, types.ModuleName, sdk.NewCoins(previousEpochUnbondings.STKBurn))
+				if err != nil {
+					return err
+				}
 				err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(previousEpochUnbondings.STKBurn))
 				if err != nil {
 					return err
@@ -314,22 +318,21 @@ func (k Keeper) OnTimeoutPacket(
 		return nil
 	default:
 		for i, msg := range msgs {
-			response, err := k.handleTimeoutMsgData(ctx, msg, hostChainParams)
+			err := k.handleTimeoutMsgData(ctx, msg, hostChainParams)
 			if err != nil {
 				return err
 			}
 			if i == 0 && sdk.MsgTypeURL(msg) == sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}) {
 				//retry entire batch of msgs since it is timedout
-				err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, types.DelegationAccountPortID, msgs)
+				previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
+				err := k.RemoveHostAccountUndelegation(ctx, previousEpochNumber)
 				if err != nil {
-					k.Logger(ctx).Error(fmt.Sprintf("Failed to retry unbonding msgs: %s, err: %s", msgs, err))
-					// disable module if ica txn won't work.
-					k.SetModuleState(ctx, false)
-					return sdkerrors.Wrapf(types.ErrICATxFailure, "unable to retry unbonding msgs: %s, err: %s", msgs, err)
+					return err
 				}
-				k.Logger(ctx).Info(fmt.Sprintf("Retrying unbonding msgs: %s", msgs))
+				k.TimeoutUnbondingEpochCValue(ctx, previousEpochNumber)
+				k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %v", msgs, previousEpochNumber))
 			}
-			k.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
+			k.Logger(ctx).Info("ICA msg timed out, ", "msg", msg)
 		}
 	}
 
@@ -433,20 +436,20 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 	}
 }
 
-func (k Keeper) handleTimeoutMsgData(ctx sdk.Context, msg sdk.Msg, hostChainParams types.HostChainParams) (string, error) {
+func (k Keeper) handleTimeoutMsgData(ctx sdk.Context, msg sdk.Msg, hostChainParams types.HostChainParams) error {
 	switch sdk.MsgTypeURL(msg) {
 	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 		parsedMsg, ok := msg.(*stakingtypes.MsgDelegate)
 		if !ok {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
 		}
 		// Add to host-balance, because delegate txn timed out.
 		k.AddBalanceToDelegationState(ctx, parsedMsg.Amount)
-		return msg.String(), nil
+		return nil
 	case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
 		parsedMsg, ok := msg.(*ibctransfertypes.MsgTransfer)
 		if !ok {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
 		}
 		selfHeight := clienttypes.GetSelfHeight(ctx)
 		timeoutHeight := clienttypes.NewHeight(selfHeight.GetRevisionNumber(), selfHeight.GetRevisionHeight()+types.IBCTimeoutHeightIncrement)
@@ -454,11 +457,11 @@ func (k Keeper) handleTimeoutMsgData(ctx sdk.Context, msg sdk.Msg, hostChainPara
 		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{parsedMsg})
 		if err != nil {
 			//TODO disable module?
-			return "", err
+			return err
 		}
 
-		return msg.String(), nil
+		return nil
 	default:
-		return "", nil
+		return nil
 	}
 }

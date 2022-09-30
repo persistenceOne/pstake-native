@@ -57,7 +57,7 @@ func (k Keeper) RemoveICADelegateFromTransientStore(ctx sdk.Context, amount sdk.
 }
 
 // AddUndelegationTransferToTransientStore adds ibctransfer tokens that are in ibc transition from host chain to controller chain
-// CONTRACT: to be used atomically with RemoveHostAccountUndelegation
+// CONTRACT: to be used atomically with RemoveHostAccountUndelegation (after successful undelegations)
 func (k Keeper) AddUndelegationTransferToTransientStore(ctx sdk.Context, undelegationTransfer types.TransientUndelegationTransfer) {
 	transientStore := k.GetIBCTransientStore(ctx)
 	transientStore.UndelegatonCompleteIBCTransfer = append(transientStore.UndelegatonCompleteIBCTransfer, undelegationTransfer)

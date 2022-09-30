@@ -20,6 +20,9 @@ func (k Keeper) SetDelegatorUnbondingEpochEntry(ctx sdk.Context, unbondingEpochE
 func (k Keeper) GetDelegatorUnbondingEpochEntry(ctx sdk.Context, delegatorAddress sdk.AccAddress, epochNumber int64) types.DelegatorUnbondingEpochEntry {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetDelegatorUnbondingEpochEntryKey(delegatorAddress, epochNumber))
+	if bz == nil {
+		return types.DelegatorUnbondingEpochEntry{}
+	}
 	var unbondingEpochEntry types.DelegatorUnbondingEpochEntry
 	k.cdc.MustUnmarshal(bz, &unbondingEpochEntry)
 
@@ -47,4 +50,15 @@ func (k Keeper) IterateDelegatorUnbondingEpochEntry(ctx sdk.Context, delegatorAd
 	}
 
 	return delegatorUnbondingEntries
+}
+
+// AddDelegatorUnbondingEpochEntry adds delegator entry for unbondign stkatom for an unbonding epoch
+func (k Keeper) AddDelegatorUnbondingEpochEntry(ctx sdk.Context, delegatorAddress sdk.AccAddress, epochNumber int64, amount sdk.Coin) {
+	unbondingEntry := k.GetDelegatorUnbondingEpochEntry(ctx, delegatorAddress, epochNumber)
+	if unbondingEntry.Equal(types.DelegatorUnbondingEpochEntry{}) {
+		unbondingEntry = types.NewDelegatorUnbondingEpochEntry(delegatorAddress.String(), epochNumber, amount)
+	} else {
+		unbondingEntry.Amount = unbondingEntry.Amount.Add(amount)
+	}
+	k.SetDelegatorUnbondingEpochEntry(ctx, unbondingEntry)
 }
