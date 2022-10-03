@@ -31,7 +31,7 @@ func (k Keeper) GetDelegatorUnbondingEpochEntry(ctx sdk.Context, delegatorAddres
 
 func (k Keeper) RemoveDelegatorUnbondingEpochEntry(ctx sdk.Context, delegatorAddress sdk.AccAddress, epochNumber int64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(store.Get(types.GetDelegatorUnbondingEpochEntryKey(delegatorAddress, epochNumber)))
+	store.Delete(types.GetDelegatorUnbondingEpochEntryKey(delegatorAddress, epochNumber))
 }
 
 func (k Keeper) IterateDelegatorUnbondingEpochEntry(ctx sdk.Context, delegatorAddress sdk.AccAddress) []types.DelegatorUnbondingEpochEntry {
