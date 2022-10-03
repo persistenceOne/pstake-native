@@ -66,7 +66,7 @@ func (k Keeper) IBCTransientStore(c context.Context, request *types.QueryIBCTran
 	}, nil
 }
 
-func (k Keeper) ReadyToClaim(c context.Context, request *types.QueryReadyToClaimRequest) (*types.QueryReadyToClaimResponse, error) {
+func (k Keeper) Unclaimed(c context.Context, request *types.QueryUnclaimedRequest) (*types.QueryUnclaimedResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// get delegator account address from request
@@ -75,7 +75,7 @@ func (k Keeper) ReadyToClaim(c context.Context, request *types.QueryReadyToClaim
 		return nil, err
 	}
 
-	var queryResponse types.QueryReadyToClaimResponse
+	var queryResponse types.QueryUnclaimedResponse
 
 	delegatorUnbondingEpochEntries := k.IterateDelegatorUnbondingEpochEntry(ctx, delegatorAddress)
 	for _, entry := range delegatorUnbondingEpochEntries {
@@ -83,7 +83,7 @@ func (k Keeper) ReadyToClaim(c context.Context, request *types.QueryReadyToClaim
 
 		// sort for all the cases
 		if unbondingEpochCValue.IsMatured {
-			var responseEntry types.Entry
+			var response types.QueryUnclaimedResponse_Unclaimed
 
 			// get c value from the UnbondingEpochCValue struct
 			// calculate claimable amount from un inverse c value
@@ -94,20 +94,20 @@ func (k Keeper) ReadyToClaim(c context.Context, request *types.QueryReadyToClaim
 
 			// fill in the details of responseEntry
 			// amount : claimable coin
-			responseEntry.DelegatorAddress = entry.DelegatorAddress
-			responseEntry.Amount = claimableCoin
-			responseEntry.EpochNumber = entry.EpochNumber
-			responseEntry.BatchCValue = unbondingEpochCValue.GetUnbondingEpochCValue()
+			response.DelegatorAddress = entry.DelegatorAddress
+			response.Amount = claimableCoin
+			response.EpochNumber = entry.EpochNumber
+			response.BatchCValue = unbondingEpochCValue.GetUnbondingEpochCValue()
 
 			// append to ready to claim entries
-			queryResponse.ReadyToClaim = append(queryResponse.ReadyToClaim, responseEntry)
+			queryResponse.Unclaimed = append(queryResponse.Unclaimed, response)
 		}
 	}
 
 	return &queryResponse, nil
 }
 
-func (k Keeper) UnbondingFailed(c context.Context, request *types.QueryUnbondFailRequest) (*types.QueryUnbondFailResponse, error) {
+func (k Keeper) FailedUnbondings(c context.Context, request *types.QueryFailedUnbondingsRequest) (*types.QueryFailedUnbondingsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// get delegator account address from request
@@ -116,28 +116,28 @@ func (k Keeper) UnbondingFailed(c context.Context, request *types.QueryUnbondFai
 		return nil, err
 	}
 
-	var queryResponse types.QueryUnbondFailResponse
+	var queryResponse types.QueryFailedUnbondingsResponse
 
 	delegatorUnbondingEpochEntries := k.IterateDelegatorUnbondingEpochEntry(ctx, delegatorAddress)
 	for _, entry := range delegatorUnbondingEpochEntries {
 		unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, entry.EpochNumber)
 		if unbondingEpochCValue.IsTimedOut {
-			var responseEntry types.Entry
+			var response types.QueryFailedUnbondingsResponse_FailedUnbondings
 
 			// fill in the details of responseEntry
 			// amount : entry amount (failed unbonding)
-			responseEntry.DelegatorAddress = entry.DelegatorAddress
-			responseEntry.Amount = entry.Amount
+			response.DelegatorAddress = entry.DelegatorAddress
+			response.Amount = entry.Amount
 
 			// append to failed entries for which stkAtom should be claimed again
-			queryResponse.UnbondFail = append(queryResponse.UnbondFail, responseEntry)
+			queryResponse.FailedUnbondings = append(queryResponse.FailedUnbondings, response)
 		}
 	}
 
 	return &queryResponse, nil
 }
 
-func (k Keeper) UnbondInProgress(c context.Context, request *types.QueryUnbondInProgressRequest) (*types.QueryUnbondInProgressResponse, error) {
+func (k Keeper) PendingUnbondings(c context.Context, request *types.QueryPendingUnbondingsRequest) (*types.QueryPendingUnbondingsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// get delegator account address from request
@@ -146,14 +146,14 @@ func (k Keeper) UnbondInProgress(c context.Context, request *types.QueryUnbondIn
 		return nil, err
 	}
 
-	var queryResponse types.QueryUnbondInProgressResponse
+	var queryResponse types.QueryPendingUnbondingsResponse
 
 	delegatorUnbondingEpochEntries := k.IterateDelegatorUnbondingEpochEntry(ctx, delegatorAddress)
 	for _, entry := range delegatorUnbondingEpochEntries {
 		unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, entry.EpochNumber)
 
 		if !unbondingEpochCValue.IsTimedOut && !unbondingEpochCValue.IsMatured {
-			var responseEntry types.Entry
+			var response types.QueryPendingUnbondingsResponse_PendingUnbondings
 
 			// get c value from the UnbondingEpochCValue struct
 			// calculate claimable amount from un inverse c value
@@ -169,14 +169,14 @@ func (k Keeper) UnbondInProgress(c context.Context, request *types.QueryUnbondIn
 
 			// fill in the details of responseEntry
 			// amount : claimable amount
-			responseEntry.DelegatorAddress = entry.DelegatorAddress
-			responseEntry.Amount = claimableCoin
-			responseEntry.BatchCValue = unbondingEpochCValue.GetUnbondingEpochCValue()
-			responseEntry.EpochNumber = entry.EpochNumber
-			responseEntry.CompletionTime = hostAccountUndelegationForEpoch.CompletionTime
+			response.DelegatorAddress = entry.DelegatorAddress
+			response.Amount = claimableCoin
+			response.BatchCValue = unbondingEpochCValue.GetUnbondingEpochCValue()
+			response.EpochNumber = entry.EpochNumber
+			response.CompletionTime = hostAccountUndelegationForEpoch.CompletionTime
 
 			// append to in progress entries
-			queryResponse.InProgress = append(queryResponse.InProgress, responseEntry)
+			queryResponse.PendingUnbondings = append(queryResponse.PendingUnbondings, response)
 		}
 	}
 

@@ -117,11 +117,3 @@ message DelegatorUnbondingEpochEntry {
   int64 epoch_number = 2;
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
-
-message Entry {
-  string delegator_address = 1;
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
-  google.protobuf.Timestamp completion_time = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
-  int64 epoch_number = 4;
-  string batch_c_value = 5 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-}

@@ -44,16 +44,16 @@ service Query {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/ibc_transient_store";
   }
 
-  rpc ReadyToClaim(QueryReadyToClaimRequest) returns (QueryReadyToClaimResponse) {
-    option (google.api.http).get = "/pstake/lscosmos/v1beta1/ready_to_claim";
+  rpc Unclaimed(QueryUnclaimedRequest) returns (QueryUnclaimedResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/unclaimed";
   }
 
-  rpc UnbondingFailed(QueryUnbondFailRequest) returns (QueryUnbondFailResponse) {
-    option (google.api.http).get = "/pstake/lscosmos/v1beta1/unbond_fail";
+  rpc FailedUnbondings(QueryFailedUnbondingsRequest) returns (QueryFailedUnbondingsResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/failed_unbondings";
   }
 
-  rpc UnbondInProgress(QueryUnbondInProgressRequest) returns (QueryUnbondInProgressResponse) {
-    option (google.api.http).get = "/pstake/lscosmos/v1beta1/unbond_in_progress";
+    rpc PendingUnbondings(QueryPendingUnbondingsRequest) returns (QueryPendingUnbondingsResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/pending_unbondings";
   }
 }
 
@@ -114,31 +114,48 @@ message QueryIBCTransientStoreResponse {
   IBCAmountTransientStore i_b_c_transient_store = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryReadyToClaimRequest is a request for the Query/ReadyToClaim methods.
-message QueryReadyToClaimRequest {
+// QueryUnclaimedRequest is a request for the Query/Unclaimed methods.
+message QueryUnclaimedRequest {
   string delegator_address = 1;
 }
-// QueryReadyToClaimResponse is a response for the Query/ReadyToClaim methods.
-message QueryReadyToClaimResponse {
-  repeated Entry ready_to_claim = 1 [(gogoproto.nullable) = false];
+// QueryUnclaimedResponse is a response for the Query/Unclaimed methods.
+message QueryUnclaimedResponse {
+  message Unclaimed {
+    string delegator_address = 1;
+    cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+    int64 epoch_number = 3;
+    string batch_c_value = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  }
+  repeated Unclaimed unclaimed = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryUnbondFailRequest is a request for the Query/UnbondFail methods.
-message QueryUnbondFailRequest {
-  string delegator_address = 1;
-}
-
-// QueryUnbondFailResponse a response for the Query/UnbondFail methods.
-message QueryUnbondFailResponse {
-  repeated Entry unbond_fail = 1 [(gogoproto.nullable) = false];
-}
-
-// QueryUnbondInProgressRequest is a request for the Query/UnbondInProgress methods.
-message QueryUnbondInProgressRequest {
+// QueryFailedUnbondingsRequest is a request for the Query/FailedUnbondings methods.
+message QueryFailedUnbondingsRequest {
   string delegator_address = 1;
 }
 
-// QueryUnbondInProgressResponse is a response for the Query/UnbondInProgress methods.
-message QueryUnbondInProgressResponse {
-  repeated Entry in_progress = 3 [(gogoproto.nullable) = false];
+// QueryFailedUnbondingsResponse a response for the Query/FailedUnbondings methods.
+message QueryFailedUnbondingsResponse {
+  message FailedUnbondings {
+    string delegator_address = 1;
+    cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  }
+  repeated FailedUnbondings failed_unbondings = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryPendingUnbondingsRequest is a request for the Query/PendingUnbondings methods.
+message QueryPendingUnbondingsRequest {
+  string delegator_address = 1;
+}
+
+// QueryPendingUnbondingsResponse is a response for the Query/PendingUnbondings methods.
+message QueryPendingUnbondingsResponse {
+  message PendingUnbondings {
+    string delegator_address = 1;
+    cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+    google.protobuf.Timestamp completion_time = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+    int64 epoch_number = 4;
+    string batch_c_value = 5 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  }
+  repeated PendingUnbondings pending_unbondings = 1 [(gogoproto.nullable) = false];
 }
