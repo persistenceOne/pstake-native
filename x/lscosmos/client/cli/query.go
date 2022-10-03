@@ -31,9 +31,9 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryCValue(),
 		CmdQueryModuleState(),
 		CmdQueryIBCTransientStore(),
-		CmdQueryReadyToClaim(),
-		CmdQueryUnbondingFailed(),
-		CmdQueryUnbondInProgress(),
+		CmdQueryUnclaimed(),
+		CmdQueryFailedUnbondings(),
+		CmdQueryPendingUnbondings(),
 	)
 
 	return cmd
@@ -183,11 +183,11 @@ func CmdQueryIBCTransientStore() *cobra.Command {
 	return cmd
 }
 
-func CmdQueryReadyToClaim() *cobra.Command {
+func CmdQueryUnclaimed() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "ready-to-claim [delegator-address]",
+		Use:   "unclaimed [delegator-address]",
 		Args:  cobra.ExactArgs(1),
-		Short: "shows ready to claim for the given delegator address",
+		Short: "shows unclaimed amounts",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -212,11 +212,11 @@ func CmdQueryReadyToClaim() *cobra.Command {
 	return cmd
 }
 
-func CmdQueryUnbondingFailed() *cobra.Command {
+func CmdQueryFailedUnbondings() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "unbonding-fail [delegator-address]",
+		Use:   "failed-unbondings [delegator-address]",
 		Args:  cobra.ExactArgs(1),
-		Short: "shows failed unbonding request",
+		Short: "shows failed unbondings request",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -241,11 +241,11 @@ func CmdQueryUnbondingFailed() *cobra.Command {
 	return cmd
 }
 
-func CmdQueryUnbondInProgress() *cobra.Command {
+func CmdQueryPendingUnbondings() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "unbond-in-progress [delegator-address]",
+		Use:   "pending-unbondings [delegator-address]",
 		Args:  cobra.ExactArgs(1),
-		Short: "shows entries unboning amount",
+		Short: "shows pending unbondings",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
