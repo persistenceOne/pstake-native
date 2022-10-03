@@ -83,23 +83,8 @@ func (k Keeper) Unclaimed(c context.Context, request *types.QueryUnclaimedReques
 
 		// sort for all the cases
 		if unbondingEpochCValue.IsMatured {
-			var response types.QueryUnclaimedResponse_Unclaimed
-
-			// get c value from the UnbondingEpochCValue struct
-			// calculate claimable amount from un inverse c value
-			claimableAmount := entry.Amount.Amount.ToDec().Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
-
-			// calculate claimable coin and community coin to be sent to delegator account and community pool respectively
-			claimableCoin, _ := sdk.NewDecCoinFromDec(k.GetIBCDenom(ctx), claimableAmount).TruncateDecimal()
-
-			// fill in the details of responseEntry
-			// amount : claimable coin
-			response.DelegatorAddress = entry.DelegatorAddress
-			response.Amount = claimableCoin
-			response.EpochNumber = entry.EpochNumber
-
 			// append to ready to claim entries
-			queryResponse.Unclaimed = append(queryResponse.Unclaimed, response)
+			queryResponse.Unclaimed = append(queryResponse.Unclaimed, unbondingEpochCValue)
 		}
 	}
 
@@ -121,15 +106,8 @@ func (k Keeper) FailedUnbondings(c context.Context, request *types.QueryFailedUn
 	for _, entry := range delegatorUnbondingEpochEntries {
 		unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, entry.EpochNumber)
 		if unbondingEpochCValue.IsTimedOut {
-			var response types.QueryFailedUnbondingsResponse_FailedUnbondings
-
-			// fill in the details of responseEntry
-			// amount : entry amount (failed unbonding)
-			response.DelegatorAddress = entry.DelegatorAddress
-			response.Amount = entry.Amount
-
 			// append to failed entries for which stkAtom should be claimed again
-			queryResponse.FailedUnbondings = append(queryResponse.FailedUnbondings, response)
+			queryResponse.FailedUnbondings = append(queryResponse.FailedUnbondings, unbondingEpochCValue)
 		}
 	}
 
@@ -150,31 +128,9 @@ func (k Keeper) PendingUnbondings(c context.Context, request *types.QueryPending
 	delegatorUnbondingEpochEntries := k.IterateDelegatorUnbondingEpochEntry(ctx, delegatorAddress)
 	for _, entry := range delegatorUnbondingEpochEntries {
 		unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, entry.EpochNumber)
-
 		if !unbondingEpochCValue.IsTimedOut && !unbondingEpochCValue.IsMatured {
-			var response types.QueryPendingUnbondingsResponse_PendingUnbondings
-
-			// get c value from the UnbondingEpochCValue struct
-			// calculate claimable amount from un inverse c value
-			claimableAmount := entry.Amount.Amount.ToDec().Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
-
-			// calculate claimable coin and community coin to be sent to delegator account and community pool respectively
-			claimableCoin, _ := sdk.NewDecCoinFromDec(k.GetIBCDenom(ctx), claimableAmount).TruncateDecimal()
-
-			hostAccountUndelegationForEpoch, err := k.GetHostAccountUndelegationForEpoch(ctx, entry.EpochNumber)
-			if err != nil {
-				return nil, err
-			}
-
-			// fill in the details of responseEntry
-			// amount : claimable amount
-			response.DelegatorAddress = entry.DelegatorAddress
-			response.Amount = claimableCoin
-			response.EpochNumber = entry.EpochNumber
-			response.CompletionTime = hostAccountUndelegationForEpoch.CompletionTime
-
 			// append to in progress entries
-			queryResponse.PendingUnbondings = append(queryResponse.PendingUnbondings, response)
+			queryResponse.PendingUnbondings = append(queryResponse.PendingUnbondings, unbondingEpochCValue)
 		}
 	}
 

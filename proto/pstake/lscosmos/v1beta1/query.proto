@@ -120,12 +120,7 @@ message QueryUnclaimedRequest {
 }
 // QueryUnclaimedResponse is a response for the Query/Unclaimed methods.
 message QueryUnclaimedResponse {
-  message Unclaimed {
-    string delegator_address = 1;
-    cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
-    int64 epoch_number = 3;
-  }
-  repeated Unclaimed unclaimed = 1 [(gogoproto.nullable) = false];
+  repeated UnbondingEpochCValue unclaimed = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryFailedUnbondingsRequest is a request for the Query/FailedUnbondings methods.
@@ -135,11 +130,7 @@ message QueryFailedUnbondingsRequest {
 
 // QueryFailedUnbondingsResponse a response for the Query/FailedUnbondings methods.
 message QueryFailedUnbondingsResponse {
-  message FailedUnbondings {
-    string delegator_address = 1;
-    cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
-  }
-  repeated FailedUnbondings failed_unbondings = 1 [(gogoproto.nullable) = false];
+  repeated UnbondingEpochCValue failed_unbondings = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryPendingUnbondingsRequest is a request for the Query/PendingUnbondings methods.
@@ -149,11 +140,5 @@ message QueryPendingUnbondingsRequest {
 
 // QueryPendingUnbondingsResponse is a response for the Query/PendingUnbondings methods.
 message QueryPendingUnbondingsResponse {
-  message PendingUnbondings {
-    string delegator_address = 1;
-    cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
-    google.protobuf.Timestamp completion_time = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
-    int64 epoch_number = 4;
-  }
-  repeated PendingUnbondings pending_unbondings = 1 [(gogoproto.nullable) = false];
+  repeated UnbondingEpochCValue pending_unbondings = 1 [(gogoproto.nullable) = false];
 }
