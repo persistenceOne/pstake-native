@@ -7,6 +7,8 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "pstake/lscosmos/v1beta1/params.proto";
 import "pstake/lscosmos/v1beta1/governance_proposal.proto";
 import "pstake/lscosmos/v1beta1/lscosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/timestamp.proto";
 // this line is used by starport scaffolding # 1
 
 option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
@@ -40,6 +42,18 @@ service Query {
 
   rpc IBCTransientStore(QueryIBCTransientStoreRequest) returns (QueryIBCTransientStoreResponse) {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/ibc_transient_store";
+  }
+
+  rpc ReadyToClaim(QueryReadyToClaimRequest) returns (QueryReadyToClaimResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/ready_to_claim";
+  }
+
+  rpc UnbondingFailed(QueryUnbondFailRequest) returns (QueryUnbondFailResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/unbond_fail";
+  }
+
+  rpc UnbondInProgress(QueryUnbondInProgressRequest) returns (QueryUnbondInProgressResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/unbond_in_progress";
   }
 }
 
@@ -98,4 +112,33 @@ message QueryIBCTransientStoreRequest {}
 // QueryIBCTransientStoreRequest is a response for the Query/IBCTransientStore methods.
 message QueryIBCTransientStoreResponse {
   IBCAmountTransientStore i_b_c_transient_store = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryReadyToClaimRequest is a request for the Query/ReadyToClaim methods.
+message QueryReadyToClaimRequest {
+  string delegator_address = 1;
+}
+// QueryReadyToClaimResponse is a response for the Query/ReadyToClaim methods.
+message QueryReadyToClaimResponse {
+  repeated Entry ready_to_claim = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryUnbondFailRequest is a request for the Query/UnbondFail methods.
+message QueryUnbondFailRequest {
+  string delegator_address = 1;
+}
+
+// QueryUnbondFailResponse a response for the Query/UnbondFail methods.
+message QueryUnbondFailResponse {
+  repeated Entry unbond_fail = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryUnbondInProgressRequest is a request for the Query/UnbondInProgress methods.
+message QueryUnbondInProgressRequest {
+  string delegator_address = 1;
+}
+
+// QueryUnbondInProgressResponse is a response for the Query/UnbondInProgress methods.
+message QueryUnbondInProgressResponse {
+  repeated Entry in_progress = 3 [(gogoproto.nullable) = false];
 }
