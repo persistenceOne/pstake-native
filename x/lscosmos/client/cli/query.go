@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -34,6 +35,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryUnclaimed(),
 		CmdQueryFailedUnbondings(),
 		CmdQueryPendingUnbondings(),
+		CmdQueryUnbondingEpoch(),
 	)
 
 	return cmd
@@ -257,6 +259,35 @@ func CmdQueryPendingUnbondings() *cobra.Command {
 			}
 
 			res, err := queryClient.PendingUnbondings(context.Background(), &types.QueryPendingUnbondingsRequest{DelegatorAddress: args[0]})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryUnbondingEpoch() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "unbonding-epoch [epoch-number]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Shows unbonding epoch details",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			epochNumber, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.UnbondingEpochCValue(context.Background(), &types.QueryUnbondingEpochCValueRequest{EpochNumber: epochNumber})
 			if err != nil {
 				return err
 			}
