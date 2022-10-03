@@ -97,7 +97,6 @@ func (k Keeper) Unclaimed(c context.Context, request *types.QueryUnclaimedReques
 			response.DelegatorAddress = entry.DelegatorAddress
 			response.Amount = claimableCoin
 			response.EpochNumber = entry.EpochNumber
-			response.BatchCValue = unbondingEpochCValue.GetUnbondingEpochCValue()
 
 			// append to ready to claim entries
 			queryResponse.Unclaimed = append(queryResponse.Unclaimed, response)
@@ -171,7 +170,6 @@ func (k Keeper) PendingUnbondings(c context.Context, request *types.QueryPending
 			// amount : claimable amount
 			response.DelegatorAddress = entry.DelegatorAddress
 			response.Amount = claimableCoin
-			response.BatchCValue = unbondingEpochCValue.GetUnbondingEpochCValue()
 			response.EpochNumber = entry.EpochNumber
 			response.CompletionTime = hostAccountUndelegationForEpoch.CompletionTime
 

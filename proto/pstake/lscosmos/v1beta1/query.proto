@@ -124,7 +124,6 @@ message QueryUnclaimedResponse {
     string delegator_address = 1;
     cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
     int64 epoch_number = 3;
-    string batch_c_value = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
   }
   repeated Unclaimed unclaimed = 1 [(gogoproto.nullable) = false];
 }
@@ -155,7 +154,6 @@ message QueryPendingUnbondingsResponse {
     cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
     google.protobuf.Timestamp completion_time = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
     int64 epoch_number = 4;
-    string batch_c_value = 5 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
   }
   repeated PendingUnbondings pending_unbondings = 1 [(gogoproto.nullable) = false];
 }
