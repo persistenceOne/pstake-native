@@ -198,7 +198,7 @@ func CmdQueryReadyToClaim() *cobra.Command {
 				return err
 			}
 
-			res, err := queryClient.ReadyToClaim(context.Background(), &types.QueryReadyToClaimRequest{DelegatorAddress: args[0]})
+			res, err := queryClient.Unclaimed(context.Background(), &types.QueryUnclaimedRequest{DelegatorAddress: args[0]})
 			if err != nil {
 				return err
 			}
@@ -227,7 +227,7 @@ func CmdQueryUnbondingFailed() *cobra.Command {
 				return err
 			}
 
-			res, err := queryClient.UnbondingFailed(context.Background(), &types.QueryUnbondFailRequest{DelegatorAddress: args[0]})
+			res, err := queryClient.FailedUnbondings(context.Background(), &types.QueryFailedUnbondingsRequest{DelegatorAddress: args[0]})
 			if err != nil {
 				return err
 			}
@@ -256,7 +256,7 @@ func CmdQueryUnbondInProgress() *cobra.Command {
 				return err
 			}
 
-			res, err := queryClient.UnbondInProgress(context.Background(), &types.QueryUnbondInProgressRequest{DelegatorAddress: args[0]})
+			res, err := queryClient.PendingUnbondings(context.Background(), &types.QueryPendingUnbondingsRequest{DelegatorAddress: args[0]})
 			if err != nil {
 				return err
 			}
