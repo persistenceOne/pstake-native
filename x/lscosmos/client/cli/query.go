@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
@@ -30,6 +31,9 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryCValue(),
 		CmdQueryModuleState(),
 		CmdQueryIBCTransientStore(),
+		CmdQueryUnclaimed(),
+		CmdQueryFailedUnbondings(),
+		CmdQueryPendingUnbondings(),
 	)
 
 	return cmd
@@ -166,6 +170,93 @@ func CmdQueryIBCTransientStore() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.IBCTransientStore(context.Background(), &types.QueryIBCTransientStoreRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryUnclaimed() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "unclaimed [delegator-address]",
+		Args:  cobra.ExactArgs(1),
+		Short: "shows unclaimed amounts",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			_, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.Unclaimed(context.Background(), &types.QueryUnclaimedRequest{DelegatorAddress: args[0]})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryFailedUnbondings() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "failed-unbondings [delegator-address]",
+		Args:  cobra.ExactArgs(1),
+		Short: "shows failed unbondings request",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			_, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.FailedUnbondings(context.Background(), &types.QueryFailedUnbondingsRequest{DelegatorAddress: args[0]})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryPendingUnbondings() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pending-unbondings [delegator-address]",
+		Args:  cobra.ExactArgs(1),
+		Short: "shows pending unbondings",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			_, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.PendingUnbondings(context.Background(), &types.QueryPendingUnbondingsRequest{DelegatorAddress: args[0]})
 			if err != nil {
 				return err
 			}

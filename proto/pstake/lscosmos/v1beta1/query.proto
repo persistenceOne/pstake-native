@@ -7,6 +7,8 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "pstake/lscosmos/v1beta1/params.proto";
 import "pstake/lscosmos/v1beta1/governance_proposal.proto";
 import "pstake/lscosmos/v1beta1/lscosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/timestamp.proto";
 // this line is used by starport scaffolding # 1
 
 option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
@@ -40,6 +42,18 @@ service Query {
 
   rpc IBCTransientStore(QueryIBCTransientStoreRequest) returns (QueryIBCTransientStoreResponse) {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/ibc_transient_store";
+  }
+
+  rpc Unclaimed(QueryUnclaimedRequest) returns (QueryUnclaimedResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/unclaimed";
+  }
+
+  rpc FailedUnbondings(QueryFailedUnbondingsRequest) returns (QueryFailedUnbondingsResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/failed_unbondings";
+  }
+
+    rpc PendingUnbondings(QueryPendingUnbondingsRequest) returns (QueryPendingUnbondingsResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/pending_unbondings";
   }
 }
 
@@ -98,4 +112,33 @@ message QueryIBCTransientStoreRequest {}
 // QueryIBCTransientStoreRequest is a response for the Query/IBCTransientStore methods.
 message QueryIBCTransientStoreResponse {
   IBCAmountTransientStore i_b_c_transient_store = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryUnclaimedRequest is a request for the Query/Unclaimed methods.
+message QueryUnclaimedRequest {
+  string delegator_address = 1;
+}
+// QueryUnclaimedResponse is a response for the Query/Unclaimed methods.
+message QueryUnclaimedResponse {
+  repeated UnbondingEpochCValue unclaimed = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryFailedUnbondingsRequest is a request for the Query/FailedUnbondings methods.
+message QueryFailedUnbondingsRequest {
+  string delegator_address = 1;
+}
+
+// QueryFailedUnbondingsResponse a response for the Query/FailedUnbondings methods.
+message QueryFailedUnbondingsResponse {
+  repeated UnbondingEpochCValue failed_unbondings = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryPendingUnbondingsRequest is a request for the Query/PendingUnbondings methods.
+message QueryPendingUnbondingsRequest {
+  string delegator_address = 1;
+}
+
+// QueryPendingUnbondingsResponse is a response for the Query/PendingUnbondings methods.
+message QueryPendingUnbondingsResponse {
+  repeated UnbondingEpochCValue pending_unbondings = 1 [(gogoproto.nullable) = false];
 }

@@ -65,3 +65,74 @@ func (k Keeper) IBCTransientStore(c context.Context, request *types.QueryIBCTran
 		IBCTransientStore: ibcTransientStore,
 	}, nil
 }
+
+func (k Keeper) Unclaimed(c context.Context, request *types.QueryUnclaimedRequest) (*types.QueryUnclaimedResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	// get delegator account address from request
+	delegatorAddress, err := sdk.AccAddressFromBech32(request.DelegatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	var queryResponse types.QueryUnclaimedResponse
+
+	delegatorUnbondingEpochEntries := k.IterateDelegatorUnbondingEpochEntry(ctx, delegatorAddress)
+	for _, entry := range delegatorUnbondingEpochEntries {
+		unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, entry.EpochNumber)
+
+		// sort for all the cases
+		if unbondingEpochCValue.IsMatured {
+			// append to ready to claim entries
+			queryResponse.Unclaimed = append(queryResponse.Unclaimed, unbondingEpochCValue)
+		}
+	}
+
+	return &queryResponse, nil
+}
+
+func (k Keeper) FailedUnbondings(c context.Context, request *types.QueryFailedUnbondingsRequest) (*types.QueryFailedUnbondingsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	// get delegator account address from request
+	delegatorAddress, err := sdk.AccAddressFromBech32(request.DelegatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	var queryResponse types.QueryFailedUnbondingsResponse
+
+	delegatorUnbondingEpochEntries := k.IterateDelegatorUnbondingEpochEntry(ctx, delegatorAddress)
+	for _, entry := range delegatorUnbondingEpochEntries {
+		unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, entry.EpochNumber)
+		if unbondingEpochCValue.IsTimedOut {
+			// append to failed entries for which stkAtom should be claimed again
+			queryResponse.FailedUnbondings = append(queryResponse.FailedUnbondings, unbondingEpochCValue)
+		}
+	}
+
+	return &queryResponse, nil
+}
+
+func (k Keeper) PendingUnbondings(c context.Context, request *types.QueryPendingUnbondingsRequest) (*types.QueryPendingUnbondingsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	// get delegator account address from request
+	delegatorAddress, err := sdk.AccAddressFromBech32(request.DelegatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	var queryResponse types.QueryPendingUnbondingsResponse
+
+	delegatorUnbondingEpochEntries := k.IterateDelegatorUnbondingEpochEntry(ctx, delegatorAddress)
+	for _, entry := range delegatorUnbondingEpochEntries {
+		unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, entry.EpochNumber)
+		if !unbondingEpochCValue.IsTimedOut && !unbondingEpochCValue.IsMatured {
+			// append to in progress entries
+			queryResponse.PendingUnbondings = append(queryResponse.PendingUnbondings, unbondingEpochCValue)
+		}
+	}
+
+	return &queryResponse, nil
+}
