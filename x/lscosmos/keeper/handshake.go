@@ -251,7 +251,7 @@ func (k Keeper) OnTimeoutPacket(
 	return k.resetToPreICATx(ctx, modulePacket)
 }
 
-//
+// handleSuccessfulAck handles successful acknowledgements.
 func (k Keeper) handleSuccessfulAck(ctx sdk.Context, ack channeltypes.Acknowledgement, icaPacket icatypes.InterchainAccountPacketData, hostChainParams types.HostChainParams) error {
 	txMsgData := &sdk.TxMsgData{}
 	if err := k.cdc.Unmarshal(ack.GetResult(), txMsgData); err != nil {
