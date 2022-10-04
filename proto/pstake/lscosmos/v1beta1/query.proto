@@ -59,6 +59,10 @@ service Query {
   rpc UnbondingEpochCValue(QueryUnbondingEpochCValueRequest) returns (QueryUnbondingEpochCValueResponse) {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/unbonding_epoch_c_value";
   }
+
+  rpc HostAccountUndelegation(QueryHostAccountUndelegationRequest) returns (QueryHostAccountUndelegationResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/host_account_undelegation";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -155,4 +159,14 @@ message QueryUnbondingEpochCValueRequest {
 // QueryUnbondingEpochCValueResponse is a response for the Query/UnbondingEpochCValue methods.
 message QueryUnbondingEpochCValueResponse {
   UnbondingEpochCValue unbonding_epoch_c_value = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryHostAccountUndelegationRequest is a request for the Query/HostAccountUndelegation methods.
+message QueryHostAccountUndelegationRequest {
+  int64 epoch_number = 1;
+}
+
+// QueryHostAccountUndelegationResponse is a response for the Query/HostAccountUndelegation methods.
+message QueryHostAccountUndelegationResponse {
+  HostAccountUndelegation host_account_undelegation = 1 [(gogoproto.nullable) = false];
 }
