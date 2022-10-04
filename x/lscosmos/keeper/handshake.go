@@ -183,7 +183,17 @@ func (k Keeper) OnAcknowledgementPacket(
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet acknowledgement: %v", err)
 	}
 	if !ack.Success() {
-		return sdkerrors.Wrapf(channeltypes.ErrInvalidAcknowledgement, "acknowledgement failed")
+		k.Logger(ctx).Error("ICA execute has returned error")
+		switch ack.Response.(type) {
+		case *channeltypes.Acknowledgement_Error:
+			k.Logger(ctx).Info(fmt.Sprintln("ICA tx ack failed with ack:", ack.String()))
+			return k.resetToPreICATx(ctx, modulePacket)
+		default:
+			// the acknowledgement succeeded on the receiving chain so nothing
+			// needs to be executed and no error needs to be returned
+			return nil
+		}
+		//Return nil here
 	}
 	// this line is used by starport scaffolding # oracle/packet/module/ack
 	txMsgData := &sdk.TxMsgData{}
@@ -300,43 +310,7 @@ func (k Keeper) OnTimeoutPacket(
 		return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "capability not found for port: %s channel: %s in module: %s", modulePacket.GetSourcePort(), modulePacket.GetSourceChannel(), types.ModuleName)
 	}
 
-	// TODO add checks for capabilities, ports, channels
-	hostChainParams := k.GetHostChainParams(ctx)
-
-	icaPacket := &icatypes.InterchainAccountPacketData{}
-	if err := icatypes.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), icaPacket); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
-	}
-	msgs, err := icatypes.DeserializeCosmosTx(k.cdc, icaPacket.GetData())
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot Deserialise icapacket data: %v", err)
-	}
-	// Dispatch packet
-	switch len(icaPacket.Data) {
-	case 0:
-		// TODO: handle for sdk 0.46.x
-		return nil
-	default:
-		for i, msg := range msgs {
-			err := k.handleTimeoutMsgData(ctx, msg, hostChainParams)
-			if err != nil {
-				return err
-			}
-			if i == 0 && sdk.MsgTypeURL(msg) == sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}) {
-				//retry entire batch of msgs since it is timedout
-				previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
-				err := k.RemoveHostAccountUndelegation(ctx, previousEpochNumber)
-				if err != nil {
-					return err
-				}
-				k.TimeoutUnbondingEpochCValue(ctx, previousEpochNumber)
-				k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %v", msgs, previousEpochNumber))
-			}
-			k.Logger(ctx).Info("ICA msg timed out, ", "msg", msg)
-		}
-	}
-
-	return nil
+	return k.resetToPreICATx(ctx, modulePacket)
 }
 
 func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.Msg, hostChainParams types.HostChainParams) (string, error) {
@@ -436,7 +410,47 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 	}
 }
 
-func (k Keeper) handleTimeoutMsgData(ctx sdk.Context, msg sdk.Msg, hostChainParams types.HostChainParams) error {
+// When ICA execution fails
+func (k Keeper) resetToPreICATx(ctx sdk.Context, modulePacket channeltypes.Packet) error {
+	hostChainParams := k.GetHostChainParams(ctx)
+
+	icaPacket := &icatypes.InterchainAccountPacketData{}
+	if err := icatypes.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), icaPacket); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
+	}
+
+	msgs, err := icatypes.DeserializeCosmosTx(k.cdc, icaPacket.GetData())
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot Deserialise icapacket data: %v", err)
+	}
+	// Dispatch packet
+	switch len(icaPacket.Data) {
+	case 0:
+		// TODO: handle for sdk 0.46.x
+		return nil
+	default:
+		for i, msg := range msgs {
+			err := k.handleResetMsgs(ctx, msg, hostChainParams)
+			if err != nil {
+				return err
+			}
+			if i == 0 && sdk.MsgTypeURL(msg) == sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}) {
+				//retry entire batch of msgs since it is timedout
+				previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
+				err := k.RemoveHostAccountUndelegation(ctx, previousEpochNumber)
+				if err != nil {
+					return err
+				}
+				k.TimeoutUnbondingEpochCValue(ctx, previousEpochNumber)
+				k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %v", msgs, previousEpochNumber))
+			}
+			k.Logger(ctx).Info("ICA msg timed out, ", "msg", msg)
+		}
+		return nil
+	}
+}
+
+func (k Keeper) handleResetMsgs(ctx sdk.Context, msg sdk.Msg, hostChainParams types.HostChainParams) error {
 	switch sdk.MsgTypeURL(msg) {
 	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 		parsedMsg, ok := msg.(*stakingtypes.MsgDelegate)
