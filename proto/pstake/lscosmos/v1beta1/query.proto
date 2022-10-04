@@ -45,27 +45,27 @@ service Query {
   }
 
   rpc Unclaimed(QueryUnclaimedRequest) returns (QueryUnclaimedResponse) {
-    option (google.api.http).get = "/pstake/lscosmos/v1beta1/unclaimed";
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/unclaimed/{delegator_address}";
   }
 
   rpc FailedUnbondings(QueryFailedUnbondingsRequest) returns (QueryFailedUnbondingsResponse) {
-    option (google.api.http).get = "/pstake/lscosmos/v1beta1/failed_unbondings";
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/failed_unbondings/{delegator_address}";
   }
 
   rpc PendingUnbondings(QueryPendingUnbondingsRequest) returns (QueryPendingUnbondingsResponse) {
-    option (google.api.http).get = "/pstake/lscosmos/v1beta1/pending_unbondings";
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/pending_unbondings/{delegator_address}";
   }
 
   rpc UnbondingEpochCValue(QueryUnbondingEpochCValueRequest) returns (QueryUnbondingEpochCValueResponse) {
-    option (google.api.http).get = "/pstake/lscosmos/v1beta1/unbonding_epoch_c_value";
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/unbonding_epoch_c_value/{epoch_number}";
   }
 
   rpc HostAccountUndelegation(QueryHostAccountUndelegationRequest) returns (QueryHostAccountUndelegationResponse) {
-    option (google.api.http).get = "/pstake/lscosmos/v1beta1/host_account_undelegation";
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/host_account_undelegation/{epoch_number}";
   }
 
   rpc DelegatorUnbondingEpochEntry(QueryDelegatorUnbondingEpochEntryRequest) returns (QueryDelegatorUnbondingEpochEntryResponse) {
-    option (google.api.http).get = "/pstake/lscosmos/v1beta1/delegator_unbonding_epoch_entry";
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/delegator_unbonding_epoch_entry/{delegator_address}/{epoch_number}";
   }
 }
 
