@@ -182,34 +182,86 @@ func (k Keeper) OnAcknowledgementPacket(
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet acknowledgement: %v", err)
 	}
-	if !ack.Success() {
-		k.Logger(ctx).Error("ICA execute has returned error")
-		switch ack.Response.(type) {
-		case *channeltypes.Acknowledgement_Error:
-			k.Logger(ctx).Info(fmt.Sprintln("ICA tx ack failed with ack:", ack.String()))
-			return k.resetToPreICATx(ctx, modulePacket)
-		default:
-			// the acknowledgement succeeded on the receiving chain so nothing
-			// needs to be executed and no error needs to be returned
-			return nil
-		}
-		//Return nil here
+
+	var icaPacket icatypes.InterchainAccountPacketData
+	if err := icatypes.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), &icaPacket); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
 	}
+
+	switch ack.Response.(type) {
+	case *channeltypes.Acknowledgement_Error:
+		k.Logger(ctx).Info(fmt.Sprintln("ICA tx ack failed with ack:", ack.String()))
+		err := k.resetToPreICATx(ctx, modulePacket)
+		if err != nil {
+			return err
+		}
+	case *channeltypes.Acknowledgement_Result:
+		// this line is used by starport scaffolding # oracle/packet/module/ack
+		err := k.handleSuccessfulAck(ctx, ack, icaPacket, hostChainParams)
+		if err != nil {
+			return err
+		}
+	default:
+		// the acknowledgement succeeded on the receiving chain so nothing
+		// needs to be executed and no error needs to be returned
+		return nil
+	}
+	//Return nil here
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypePacket,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
+		),
+	)
+
+	switch resp := ack.Response.(type) {
+	case *channeltypes.Acknowledgement_Result:
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypePacket,
+				sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintln(ack.Success())),
+			),
+		)
+	case *channeltypes.Acknowledgement_Error:
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypePacket,
+				sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
+			),
+		)
+	}
+
+	return nil
+}
+
+// OnTimeoutPacket implements the IBCModule interface
+func (k Keeper) OnTimeoutPacket(
+	ctx sdk.Context,
+	modulePacket channeltypes.Packet,
+	relayer sdk.AccAddress,
+) error {
 	// this line is used by starport scaffolding # oracle/packet/module/ack
+	_, ok := k.lscosmosScopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(modulePacket.GetSourcePort(), modulePacket.GetSourceChannel()))
+	if !ok {
+		return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "capability not found for port: %s channel: %s in module: %s", modulePacket.GetSourcePort(), modulePacket.GetSourceChannel(), types.ModuleName)
+	}
+
+	return k.resetToPreICATx(ctx, modulePacket)
+}
+
+//
+func (k Keeper) handleSuccessfulAck(ctx sdk.Context, ack channeltypes.Acknowledgement, icaPacket icatypes.InterchainAccountPacketData, hostChainParams types.HostChainParams) error {
 	txMsgData := &sdk.TxMsgData{}
 	if err := k.cdc.Unmarshal(ack.GetResult(), txMsgData); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
 	}
 
-	icaPacket := &icatypes.InterchainAccountPacketData{}
-	if err := icatypes.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), icaPacket); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
-	}
 	msgs, err := icatypes.DeserializeCosmosTx(k.cdc, icaPacket.GetData())
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot Deserialise icapacket data: %v", err)
 	}
-	eventType := "lscosmos-ack" //TODO rename
 
 	// Dispatch packet
 	switch len(txMsgData.Data) {
@@ -269,50 +321,8 @@ func (k Keeper) OnAcknowledgementPacket(
 			}
 		}
 	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			eventType,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
-		),
-	)
-
-	switch resp := ack.Response.(type) {
-	case *channeltypes.Acknowledgement_Result:
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				eventType,
-				sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintln(ack.Success())),
-			),
-		)
-	case *channeltypes.Acknowledgement_Error:
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				eventType,
-				sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
-			),
-		)
-	}
-
 	return nil
 }
-
-// OnTimeoutPacket implements the IBCModule interface
-func (k Keeper) OnTimeoutPacket(
-	ctx sdk.Context,
-	modulePacket channeltypes.Packet,
-	relayer sdk.AccAddress,
-) error {
-	// this line is used by starport scaffolding # oracle/packet/module/ack
-	_, ok := k.lscosmosScopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(modulePacket.GetSourcePort(), modulePacket.GetSourceChannel()))
-	if !ok {
-		return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "capability not found for port: %s channel: %s in module: %s", modulePacket.GetSourcePort(), modulePacket.GetSourceChannel(), types.ModuleName)
-	}
-
-	return k.resetToPreICATx(ctx, modulePacket)
-}
-
 func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.Msg, hostChainParams types.HostChainParams) (string, error) {
 	switch msgData.MsgType {
 	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
