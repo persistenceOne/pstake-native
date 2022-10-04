@@ -52,8 +52,12 @@ service Query {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/failed_unbondings";
   }
 
-    rpc PendingUnbondings(QueryPendingUnbondingsRequest) returns (QueryPendingUnbondingsResponse) {
+  rpc PendingUnbondings(QueryPendingUnbondingsRequest) returns (QueryPendingUnbondingsResponse) {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/pending_unbondings";
+  }
+
+  rpc UnbondingEpochCValue(QueryUnbondingEpochCValueRequest) returns (QueryUnbondingEpochCValueResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/unbonding_epoch_c_value";
   }
 }
 
@@ -141,4 +145,14 @@ message QueryPendingUnbondingsRequest {
 // QueryPendingUnbondingsResponse is a response for the Query/PendingUnbondings methods.
 message QueryPendingUnbondingsResponse {
   repeated UnbondingEpochCValue pending_unbondings = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryUnbondingEpochCValueRequest is a request for the Query/UnbondingEpochCValue methods.
+message QueryUnbondingEpochCValueRequest {
+  int64 epoch_number = 1;
+}
+
+// QueryUnbondingEpochCValueResponse is a response for the Query/UnbondingEpochCValue methods.
+message QueryUnbondingEpochCValueResponse {
+  UnbondingEpochCValue unbonding_epoch_c_value = 1 [(gogoproto.nullable) = false];
 }

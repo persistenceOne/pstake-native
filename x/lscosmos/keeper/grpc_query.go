@@ -136,3 +136,11 @@ func (k Keeper) PendingUnbondings(c context.Context, request *types.QueryPending
 
 	return &queryResponse, nil
 }
+
+func (k Keeper) UnbondingEpochCValue(c context.Context, request *types.QueryUnbondingEpochCValueRequest) (*types.QueryUnbondingEpochCValueResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, request.EpochNumber)
+
+	return &types.QueryUnbondingEpochCValueResponse{UnbondingEpochCValue: unbondingEpochCValue}, nil
+}
