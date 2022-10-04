@@ -191,7 +191,7 @@ func (k Keeper) OnAcknowledgementPacket(
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Error:
 		k.Logger(ctx).Info(fmt.Sprintln("ICA tx ack failed with ack:", ack.String()))
-		err := k.resetToPreICATx(ctx, modulePacket)
+		err := k.resetToPreICATx(ctx, icaPacket)
 		if err != nil {
 			return err
 		}
@@ -248,7 +248,23 @@ func (k Keeper) OnTimeoutPacket(
 		return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "capability not found for port: %s channel: %s in module: %s", modulePacket.GetSourcePort(), modulePacket.GetSourceChannel(), types.ModuleName)
 	}
 
-	return k.resetToPreICATx(ctx, modulePacket)
+	var icaPacket icatypes.InterchainAccountPacketData
+	if err := icatypes.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), &icaPacket); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
+	}
+
+	err := k.resetToPreICATx(ctx, icaPacket)
+	if err != nil {
+		return err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeTimeout,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	)
+	return nil
 }
 
 // handleSuccessfulAck handles successful acknowledgements.
@@ -421,13 +437,8 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 }
 
 // When ICA execution fails
-func (k Keeper) resetToPreICATx(ctx sdk.Context, modulePacket channeltypes.Packet) error {
+func (k Keeper) resetToPreICATx(ctx sdk.Context, icaPacket icatypes.InterchainAccountPacketData) error {
 	hostChainParams := k.GetHostChainParams(ctx)
-
-	icaPacket := &icatypes.InterchainAccountPacketData{}
-	if err := icatypes.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), icaPacket); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
-	}
 
 	msgs, err := icatypes.DeserializeCosmosTx(k.cdc, icaPacket.GetData())
 	if err != nil {
