@@ -192,3 +192,27 @@ func (k Keeper) HostAccountUndelegation(c context.Context, request *types.QueryH
 
 	return &types.QueryHostAccountUndelegationResponse{HostAccountUndelegation: hostAccountUndelegation}, nil
 }
+
+func (k Keeper) DelegatorUnbondingEpochEntry(c context.Context, request *types.QueryDelegatorUnbondingEpochEntryRequest) (*types.QueryDelegatorUnbondingEpochEntryResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.EpochNumber <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "epoch number less than equal to 0")
+	}
+	if request.DelegatorAddress == "" {
+		return nil, status.Error(codes.InvalidArgument, "address cannot be empty")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	// get delegator account address from request
+	delegatorAddress, err := sdk.AccAddressFromBech32(request.DelegatorAddress)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid address: %s", err.Error())
+	}
+
+	unbondingEpochEntry := k.GetDelegatorUnbondingEpochEntry(ctx, delegatorAddress, request.EpochNumber)
+
+	return &types.QueryDelegatorUnbondingEpochEntryResponse{DelegatorUnbodingEpochEntry: unbondingEpochEntry}, nil
+}

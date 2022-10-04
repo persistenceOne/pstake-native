@@ -63,6 +63,10 @@ service Query {
   rpc HostAccountUndelegation(QueryHostAccountUndelegationRequest) returns (QueryHostAccountUndelegationResponse) {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/host_account_undelegation";
   }
+
+  rpc DelegatorUnbondingEpochEntry(QueryDelegatorUnbondingEpochEntryRequest) returns (QueryDelegatorUnbondingEpochEntryResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/delegator_unbonding_epoch_entry";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -169,4 +173,15 @@ message QueryHostAccountUndelegationRequest {
 // QueryHostAccountUndelegationResponse is a response for the Query/HostAccountUndelegation methods.
 message QueryHostAccountUndelegationResponse {
   HostAccountUndelegation host_account_undelegation = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDelegatorUnbondingEpochEntryRequest is a request for the Query/DelegatorUnbondingEpochEntry methods.
+message QueryDelegatorUnbondingEpochEntryRequest {
+  string delegator_address = 1;
+  int64 epoch_number = 2;
+}
+
+// QueryDelegatorUnbondingEpochEntryResponse is a response for the Query/DelegatorUnbondingEpochEntry methods.
+message QueryDelegatorUnbondingEpochEntryResponse {
+  DelegatorUnbondingEpochEntry delegator_unboding_epoch_entry = 1 [(gogoproto.nullable) = false];
 }

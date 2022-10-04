@@ -37,6 +37,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryPendingUnbondings(),
 		CmdQueryUnbondingEpoch(),
 		CmdQueryHostAccountUndelegation(),
+		CmdQueryDelegatorUnbodingEpochEntry(),
 	)
 
 	return cmd
@@ -196,12 +197,12 @@ func CmdQueryUnclaimed() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			_, err := sdk.AccAddressFromBech32(args[0])
+			delegatorAddress, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 
-			res, err := queryClient.Unclaimed(context.Background(), &types.QueryUnclaimedRequest{DelegatorAddress: args[0]})
+			res, err := queryClient.Unclaimed(context.Background(), &types.QueryUnclaimedRequest{DelegatorAddress: delegatorAddress.String()})
 			if err != nil {
 				return err
 			}
@@ -318,6 +319,40 @@ func CmdQueryHostAccountUndelegation() *cobra.Command {
 			}
 
 			res, err := queryClient.HostAccountUndelegation(context.Background(), &types.QueryHostAccountUndelegationRequest{EpochNumber: epochNumber})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryDelegatorUnbodingEpochEntry() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delegator-unbonding-epoch-entry [delegator-address] [epoch-number]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Shows host account undelegation for the given epoch number",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			delegatorAddress, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			epochNumber, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.DelegatorUnbondingEpochEntry(context.Background(), &types.QueryDelegatorUnbondingEpochEntryRequest{DelegatorAddress: delegatorAddress.String(), EpochNumber: epochNumber})
 			if err != nil {
 				return err
 			}
