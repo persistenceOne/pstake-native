@@ -2,6 +2,7 @@ package types
 
 // IBC events
 const (
+	EventTypePacket        = "ics27_packet"
 	EventTypeTimeout       = "timeout"
 	EventTypeLiquidStake   = "liquid-stake"
 	EventTypeRedeem        = "redeem"
