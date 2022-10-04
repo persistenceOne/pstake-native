@@ -36,6 +36,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryFailedUnbondings(),
 		CmdQueryPendingUnbondings(),
 		CmdQueryUnbondingEpoch(),
+		CmdQueryHostAccountUndelegation(),
 	)
 
 	return cmd
@@ -288,6 +289,35 @@ func CmdQueryUnbondingEpoch() *cobra.Command {
 			}
 
 			res, err := queryClient.UnbondingEpochCValue(context.Background(), &types.QueryUnbondingEpochCValueRequest{EpochNumber: epochNumber})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryHostAccountUndelegation() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "host-acconunt-undelegation [epoch-number]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Shows host account udelegation for the given epoch number",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			epochNumber, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.HostAccountUndelegation(context.Background(), &types.QueryHostAccountUndelegationRequest{EpochNumber: epochNumber})
 			if err != nil {
 				return err
 			}

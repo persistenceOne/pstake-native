@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -67,12 +69,19 @@ func (k Keeper) IBCTransientStore(c context.Context, request *types.QueryIBCTran
 }
 
 func (k Keeper) Unclaimed(c context.Context, request *types.QueryUnclaimedRequest) (*types.QueryUnclaimedResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.DelegatorAddress == "" {
+		return nil, status.Error(codes.InvalidArgument, "address cannot be empty")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// get delegator account address from request
 	delegatorAddress, err := sdk.AccAddressFromBech32(request.DelegatorAddress)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "invalid address: %s", err.Error())
 	}
 
 	var queryResponse types.QueryUnclaimedResponse
@@ -92,12 +101,19 @@ func (k Keeper) Unclaimed(c context.Context, request *types.QueryUnclaimedReques
 }
 
 func (k Keeper) FailedUnbondings(c context.Context, request *types.QueryFailedUnbondingsRequest) (*types.QueryFailedUnbondingsResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.DelegatorAddress == "" {
+		return nil, status.Error(codes.InvalidArgument, "address cannot be empty")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// get delegator account address from request
 	delegatorAddress, err := sdk.AccAddressFromBech32(request.DelegatorAddress)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "invalid address: %s", err.Error())
 	}
 
 	var queryResponse types.QueryFailedUnbondingsResponse
@@ -115,12 +131,19 @@ func (k Keeper) FailedUnbondings(c context.Context, request *types.QueryFailedUn
 }
 
 func (k Keeper) PendingUnbondings(c context.Context, request *types.QueryPendingUnbondingsRequest) (*types.QueryPendingUnbondingsResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.DelegatorAddress == "" {
+		return nil, status.Error(codes.InvalidArgument, "address cannot be empty")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// get delegator account address from request
 	delegatorAddress, err := sdk.AccAddressFromBech32(request.DelegatorAddress)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "invalid address: %s", err.Error())
 	}
 
 	var queryResponse types.QueryPendingUnbondingsResponse
@@ -138,9 +161,34 @@ func (k Keeper) PendingUnbondings(c context.Context, request *types.QueryPending
 }
 
 func (k Keeper) UnbondingEpochCValue(c context.Context, request *types.QueryUnbondingEpochCValueRequest) (*types.QueryUnbondingEpochCValueResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.EpochNumber <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "epoch number less than equal to 0")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 
 	unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, request.EpochNumber)
 
 	return &types.QueryUnbondingEpochCValueResponse{UnbondingEpochCValue: unbondingEpochCValue}, nil
+}
+
+func (k Keeper) HostAccountUndelegation(c context.Context, request *types.QueryHostAccountUndelegationRequest) (*types.QueryHostAccountUndelegationResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.EpochNumber <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "epoch number less than equal to 0")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	hostAccountUndelegation, err := k.GetHostAccountUndelegationForEpoch(ctx, request.EpochNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryHostAccountUndelegationResponse{HostAccountUndelegation: hostAccountUndelegation}, nil
 }
