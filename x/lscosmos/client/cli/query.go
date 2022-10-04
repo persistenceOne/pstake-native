@@ -304,9 +304,9 @@ func CmdQueryUnbondingEpoch() *cobra.Command {
 
 func CmdQueryHostAccountUndelegation() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "host-acconunt-undelegation [epoch-number]",
+		Use:   "host-account-undelegation [epoch-number]",
 		Args:  cobra.ExactArgs(1),
-		Short: "Shows host account udelegation for the given epoch number",
+		Short: "Shows host account undelegation for the given epoch number",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
