@@ -130,9 +130,9 @@ spec:
               mv $PSTAKE_DIR/config/genesis.new.json $PSTAKE_DIR/config/genesis.json
               jq '.app_state.staking.params.bond_denom |= "uxprt"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesis.new.json
               mv $PSTAKE_DIR/config/genesis.new.json $PSTAKE_DIR/config/genesis.json
-              jq -r '.app_state.epochs.epochs[0].duration |= "30s"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesis.new.json
+              jq -r '.app_state.epochs.epochs[0].duration |= "90s"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesis.new.json
               mv $PSTAKE_DIR/config/genesis.new.json $PSTAKE_DIR/config/genesis.json
-              jq -r '.app_state.epochs.epochs[2].duration |= "120s"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesis.new.json
+              jq -r '.app_state.epochs.epochs[2].duration |= "100s"' $PSTAKE_DIR/config/genesis.json | tee $PSTAKE_DIR/config/genesis.new.json
               mv $PSTAKE_DIR/config/genesis.new.json $PSTAKE_DIR/config/genesis.json
               
               echo "TRYING TO PRINT GENESIS JSON"
