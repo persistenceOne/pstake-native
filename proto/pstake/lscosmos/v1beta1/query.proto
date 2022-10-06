@@ -71,6 +71,11 @@ service Query {
   rpc RewardsBoosterAccount(QueryRewardBoosterAccountRequest) returns (QueryRewardBoosterAccountResponse) {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/rewards_booster_account";
   }
+
+  rpc HostAccounts(QueryHostAccountsRequest) returns (QueryHostAccountsResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/host_accounts";
+  }
+
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -196,4 +201,12 @@ message QueryRewardBoosterAccountRequest {}
 // QueryRewardBoosterAccountResponse is a response for the Query/RewardsBoosterAccount methods.
 message QueryRewardBoosterAccountResponse {
   cosmos.base.v1beta1.Coin balance = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryHostAccountsRequest is a request for the Query/HostAccounts methods.
+message QueryHostAccountsRequest {}
+
+// QueryHostAccountsResponse is a response for the Query/HostAccounts methods.
+message QueryHostAccountsResponse {
+  HostAccounts host_accounts = 1 [(gogoproto.nullable) = false];
 }
