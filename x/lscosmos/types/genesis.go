@@ -15,8 +15,8 @@ func DefaultGenesis() *GenesisState {
 		UnbondingEpochCValues:          nil,
 		DelegatorUnbondingEpochEntries: nil,
 		HostAccounts: HostAccounts{
-			DelegatorAccountOwnerID: "DelegationModuleAccount",
-			RewardsAccountOwnerID:   "RewardModuleAccount",
+			DelegatorAccountOwnerID: DelegationModuleAccount,
+			RewardsAccountOwnerID:   RewardModuleAccount,
 		},
 	}
 }
