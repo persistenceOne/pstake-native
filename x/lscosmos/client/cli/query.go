@@ -39,6 +39,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryHostAccountUndelegation(),
 		CmdQueryDelegatorUnbodingEpochEntry(),
 		CmdQueryRewardsBoosterAccount(),
+		CmdQueryHostAccounts(),
 	)
 
 	return cmd
@@ -378,6 +379,30 @@ func CmdQueryRewardsBoosterAccount() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.RewardsBoosterAccount(context.Background(), &types.QueryRewardBoosterAccountRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryHostAccounts() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "host-accounts",
+		Short: "shows the host accounts (delegation and reward) ica owner id",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.HostAccounts(context.Background(), &types.QueryHostAccountsRequest{})
 			if err != nil {
 				return err
 			}
