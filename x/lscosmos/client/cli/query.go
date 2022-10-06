@@ -38,6 +38,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryUnbondingEpoch(),
 		CmdQueryHostAccountUndelegation(),
 		CmdQueryDelegatorUnbodingEpochEntry(),
+		CmdQueryRewardsBoosterAccount(),
 	)
 
 	return cmd
@@ -353,6 +354,30 @@ func CmdQueryDelegatorUnbodingEpochEntry() *cobra.Command {
 			}
 
 			res, err := queryClient.DelegatorUnbondingEpochEntry(context.Background(), &types.QueryDelegatorUnbondingEpochEntryRequest{DelegatorAddress: delegatorAddress.String(), EpochNumber: epochNumber})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryRewardsBoosterAccount() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "rewards-booster-account",
+		Short: "shows the balance of rewards booster account",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.RewardsBoosterAccount(context.Background(), &types.QueryRewardBoosterAccountRequest{})
 			if err != nil {
 				return err
 			}

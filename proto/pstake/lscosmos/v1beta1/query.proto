@@ -67,6 +67,10 @@ service Query {
   rpc DelegatorUnbondingEpochEntry(QueryDelegatorUnbondingEpochEntryRequest) returns (QueryDelegatorUnbondingEpochEntryResponse) {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/delegator_unbonding_epoch_entry/{delegator_address}/{epoch_number}";
   }
+
+  rpc RewardsBoosterAccount(QueryRewardBoosterAccountRequest) returns (QueryRewardBoosterAccountResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/rewards_booster_account";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -184,4 +188,13 @@ message QueryDelegatorUnbondingEpochEntryRequest {
 // QueryDelegatorUnbondingEpochEntryResponse is a response for the Query/DelegatorUnbondingEpochEntry methods.
 message QueryDelegatorUnbondingEpochEntryResponse {
   DelegatorUnbondingEpochEntry delegator_unboding_epoch_entry = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryRewardBoosterAccountRequest is a request for the Query/RewardsBoosterAccount methods.
+message QueryRewardBoosterAccountRequest {}
+
+// QueryRewardBoosterAccountResponse is a response for the Query/RewardsBoosterAccount methods.
+message QueryRewardBoosterAccountResponse {
+  repeated cosmos.base.v1beta1.Coin balances = 1
+  [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }
