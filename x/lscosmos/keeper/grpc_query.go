@@ -231,3 +231,11 @@ func (k Keeper) HostAccounts(c context.Context, request *types.QueryHostAccounts
 	hostAccounts := k.GetHostAccounts(ctx)
 	return &types.QueryHostAccountsResponse{HostAccounts: hostAccounts}, nil
 }
+
+func (k Keeper) DepositModuleAccount(c context.Context, request *types.QueryDepositModuleAccountRequest) (*types.QueryDepositModuleAccountResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	balance := k.bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(types.DepositModuleAccount), k.GetIBCDenom(ctx))
+
+	return &types.QueryDepositModuleAccountResponse{Balance: balance}, nil
+}
