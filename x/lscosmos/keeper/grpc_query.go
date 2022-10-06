@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -215,4 +216,12 @@ func (k Keeper) DelegatorUnbondingEpochEntry(c context.Context, request *types.Q
 	unbondingEpochEntry := k.GetDelegatorUnbondingEpochEntry(ctx, delegatorAddress, request.EpochNumber)
 
 	return &types.QueryDelegatorUnbondingEpochEntryResponse{DelegatorUnbodingEpochEntry: unbondingEpochEntry}, nil
+}
+
+func (k Keeper) RewardsBoosterAccount(c context.Context, request *types.QueryRewardBoosterAccountRequest) (*types.QueryRewardBoosterAccountResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	balance := k.bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(types.RewardBoosterModuleAccount), k.GetIBCDenom(ctx))
+
+	return &types.QueryRewardBoosterAccountResponse{Balance: balance}, nil
 }
