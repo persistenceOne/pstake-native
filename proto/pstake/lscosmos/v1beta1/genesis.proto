@@ -22,4 +22,5 @@ message GenesisState {
   IBCAmountTransientStore i_b_c_amount_transient_store = 7 [(gogoproto.nullable) = false];
   repeated UnbondingEpochCValue unbonding_epoch_c_values = 8 [(gogoproto.nullable) = false];
   repeated DelegatorUnbondingEpochEntry delegator_unbonding_epoch_entries = 9 [(gogoproto.nullable) = false];
+  HostAccounts host_accounts = 10 [(gogoproto.nullable) = false];
 }

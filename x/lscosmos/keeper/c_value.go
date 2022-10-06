@@ -2,6 +2,8 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 // GetMintedAmount gets minted amount
@@ -12,7 +14,7 @@ func (k Keeper) GetMintedAmount(ctx sdk.Context) sdk.Int {
 func (k Keeper) GetDepositAccountAmount(ctx sdk.Context) sdk.Int {
 	return k.bankKeeper.GetBalance(
 		ctx,
-		k.GetDepositModuleAccount(ctx).GetAddress(),
+		authtypes.NewModuleAddress(types.DepositModuleAccount),
 		k.GetIBCDenom(ctx),
 	).Amount
 }
@@ -20,7 +22,7 @@ func (k Keeper) GetDepositAccountAmount(ctx sdk.Context) sdk.Int {
 func (k Keeper) GetDelegationAccountAmount(ctx sdk.Context) sdk.Int {
 	return k.bankKeeper.GetBalance(
 		ctx,
-		k.GetDelegationModuleAccount(ctx).GetAddress(),
+		authtypes.NewModuleAddress(types.DelegationModuleAccount),
 		k.GetIBCDenom(ctx),
 	).Amount
 }

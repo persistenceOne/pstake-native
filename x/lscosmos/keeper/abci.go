@@ -30,6 +30,7 @@ func (k Keeper) BeginBlock(ctx sdk.Context) {
 func (k Keeper) DoDelegate(ctx sdk.Context) error {
 	hostChainParams := k.GetHostChainParams(ctx)
 	delegationState := k.GetDelegationState(ctx)
+	hostAccounts := k.GetHostAccounts(ctx)
 
 	delegatableAmount := delegationState.HostDelegationAccountBalance.AmountOf(hostChainParams.BaseDenom)
 	allowlistedValidators := k.GetAllowListedValidators(ctx)
@@ -41,7 +42,7 @@ func (k Keeper) DoDelegate(ctx sdk.Context) error {
 	if err != nil {
 		return err
 	}
-	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, msgs)
+	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), msgs)
 	if err != nil {
 		return err
 	}
@@ -56,6 +57,7 @@ func (k Keeper) DoDelegate(ctx sdk.Context) error {
 func (k Keeper) ProcessMaturedUndelegation(ctx sdk.Context) error {
 	hostChainParams := k.GetHostChainParams(ctx)
 	delegationState := k.GetDelegationState(ctx)
+	hostAccounts := k.GetHostAccounts(ctx)
 
 	maturedUndelegations := k.GetHostAccountMaturedUndelegations(ctx)
 	if len(maturedUndelegations) == 0 {
@@ -76,7 +78,7 @@ func (k Keeper) ProcessMaturedUndelegation(ctx sdk.Context) error {
 
 		msg := ibctransfertypes.NewMsgTransfer(channel.Counterparty.PortId, channel.Counterparty.ChannelId,
 			atomsUnbonded, delegationState.HostChainDelegationAddress, authtypes.NewModuleAddress(lscosmostypes.UndelegationModuleAccount).String(), timeoutHeight, 0)
-		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, []sdk.Msg{msg})
+		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), []sdk.Msg{msg})
 		if err != nil {
 			return err
 		}

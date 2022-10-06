@@ -31,12 +31,13 @@ func (k Keeper) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
+	hostAccounts := k.GetHostAccounts(ctx)
 
 	// Require portID is the portID module is bound to
-	if portID != types.DelegationAccountPortID &&
-		portID != types.RewardAccountPortID {
+	if portID != hostAccounts.DelegatorAccountPortID() &&
+		portID != hostAccounts.RewardsAccountPortID() {
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s or %s",
-			portID, types.DelegationAccountPortID, types.RewardAccountPortID)
+			portID, hostAccounts.DelegatorAccountPortID(), hostAccounts.RewardsAccountPortID())
 	}
 	var versionData icatypes.Metadata
 	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(version), &versionData); err != nil {
@@ -77,10 +78,11 @@ func (k Keeper) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	if portID != types.DelegationAccountPortID &&
-		portID != types.RewardAccountPortID {
+	hostAccounts := k.GetHostAccounts(ctx)
+	if portID != hostAccounts.DelegatorAccountPortID() &&
+		portID != hostAccounts.RewardsAccountPortID() {
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s or %s",
-			portID, types.DelegationAccountPortID, types.RewardAccountPortID)
+			portID, hostAccounts.DelegatorAccountPortID(), hostAccounts.RewardsAccountPortID())
 	}
 
 	var counterpartyVersionData icatypes.Metadata
@@ -95,20 +97,20 @@ func (k Keeper) OnChanOpenAck(
 
 	hostChainParams := k.GetHostChainParams(ctx)
 
-	if portID == types.DelegationAccountPortID {
-		delegationAddress, delegationAddrfound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostChainParams.ConnectionID, types.DelegationAccountPortID)
+	if portID == hostAccounts.DelegatorAccountPortID() {
+		delegationAddress, delegationAddrfound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID())
 		if delegationAddrfound {
 			if err := k.SetHostChainDelegationAddress(ctx, delegationAddress); err != nil {
 				return err
 			}
-			if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, types.RewardModuleAccount); err != nil {
+			if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID); err != nil {
 				return sdkerrors.Wrap(err, "Could not register ica reward Address")
 			}
 
 		}
 	}
-	if portID == types.RewardAccountPortID {
-		rewardAddress, rewardAddrFound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostChainParams.ConnectionID, types.RewardAccountPortID)
+	if portID == hostAccounts.RewardsAccountPortID() {
+		rewardAddress, rewardAddrFound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountPortID())
 		delegationAddress := k.GetDelegationState(ctx).HostChainDelegationAddress
 		if rewardAddrFound {
 			_ = k.SetHostChainRewardAddressIfEmpty(ctx, types.NewHostChainRewardAddress(rewardAddress))
@@ -116,7 +118,7 @@ func (k Keeper) OnChanOpenAck(
 				DelegatorAddress: delegationAddress,
 				WithdrawAddress:  rewardAddress,
 			}
-			err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{setWithdrawAddrMsg})
+			err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), []sdk.Msg{setWithdrawAddrMsg})
 			if err != nil {
 				return err
 			}
@@ -489,7 +491,8 @@ func (k Keeper) handleResetMsgs(ctx sdk.Context, msg sdk.Msg, hostChainParams ty
 		selfHeight := clienttypes.GetSelfHeight(ctx)
 		timeoutHeight := clienttypes.NewHeight(selfHeight.GetRevisionNumber(), selfHeight.GetRevisionHeight()+types.IBCTimeoutHeightIncrement)
 		parsedMsg.TimeoutHeight = timeoutHeight
-		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, types.DelegationAccountPortID, []sdk.Msg{parsedMsg})
+		hostAccounts := k.GetHostAccounts(ctx)
+		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), []sdk.Msg{parsedMsg})
 		if err != nil {
 			//TODO disable module?
 			return err

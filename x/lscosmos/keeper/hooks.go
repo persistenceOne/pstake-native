@@ -170,6 +170,7 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) error {
 	// send withdraw rewards from delegators.
 	delegationState := k.GetDelegationState(ctx)
+	hostAccounts := k.GetHostAccounts(ctx)
 	if len(delegationState.HostAccountDelegations) == 0 {
 		return lscosmostypes.ErrNoHostChainDelegations
 	}
@@ -180,7 +181,7 @@ func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosm
 			ValidatorAddress: delegation.ValidatorAddress,
 		}
 	}
-	err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, withdrawRewardMsgs)
+	err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), withdrawRewardMsgs)
 	return err
 	// on Ack do icq for reward acc. balance of uatom
 	// callback for sending it to delegation account
@@ -209,7 +210,8 @@ func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscos
 		k.SetModuleState(ctx, false)
 		return err
 	}
-	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, lscosmostypes.DelegationAccountPortID, undelegateMsgs)
+	hostAccounts := k.GetHostAccounts(ctx)
+	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), undelegateMsgs)
 	if err != nil {
 		k.SetModuleState(ctx, false)
 		return err
@@ -253,7 +255,7 @@ func (k Keeper) OnRecvIBCTransferPacket(ctx sdk.Context, packet channeltypes.Pac
 	}
 
 	if transferPacketData.GetSender() != delegationState.HostChainDelegationAddress ||
-		transferPacketData.GetReceiver() != k.GetUndelegationModuleAccount(ctx).GetAddress().String() ||
+		transferPacketData.GetReceiver() != authtypes.NewModuleAddress(lscosmostypes.UndelegationModuleAccount).String() ||
 		transferPacketData.GetDenom() != hostChainParams.BaseDenom {
 		// no need to return err, since most likely code is expected to enter this condition
 		return nil
@@ -297,7 +299,7 @@ func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet chann
 		return nil
 	}
 
-	if data.GetSender() != k.GetDelegationModuleAccount(ctx).GetAddress().String() ||
+	if data.GetSender() != authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount).String() ||
 		data.GetReceiver() != delegationState.HostChainDelegationAddress ||
 		data.GetDenom() != ibctransfertypes.GetPrefixedDenom(hostChainParams.TransferPort, hostChainParams.TransferChannel, hostChainParams.BaseDenom) {
 		// no need to return err, since most likely code is expected to enter this condition

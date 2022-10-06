@@ -117,3 +117,8 @@ message DelegatorUnbondingEpochEntry {
   int64 epoch_number = 2;
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
+
+message HostAccounts{
+  string delegator_account_owner_i_d = 1;
+  string rewards_account_owner_i_d = 2;
+}
