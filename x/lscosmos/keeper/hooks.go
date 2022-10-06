@@ -61,6 +61,15 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		err := utils.ApplyFuncIfNoError(ctx, wrapperFn)
 		if err != nil {
 			k.Logger(ctx).Error("Failed UndelegationEpochIdentifier Function with:", "err: ", err)
+			// Fail the unbonding for current epoch
+			currentUnbondingEpochNumber := lscosmostypes.CurrentUnbondingEpoch(epochNumber)
+			err := k.RemoveHostAccountUndelegation(ctx, currentUnbondingEpochNumber)
+			if err != nil {
+				return err
+			}
+			k.FailUnbondingEpochCValue(ctx, currentUnbondingEpochNumber)
+			k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding for undelegationEpoch: %v", currentUnbondingEpochNumber))
+
 		}
 	}
 	return nil
@@ -213,7 +222,7 @@ func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscos
 		STKBurn:        hostAccountUndelegationForEpoch.TotalUndelegationAmount,
 		AmountUnbonded: amountToUnstake,
 		IsMatured:      false,
-		IsTimedOut:     false,
+		IsFailed:       false,
 	})
 
 	return nil

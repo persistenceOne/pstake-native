@@ -462,7 +462,7 @@ func (k Keeper) resetToPreICATx(ctx sdk.Context, icaPacket icatypes.InterchainAc
 				if err != nil {
 					return err
 				}
-				k.TimeoutUnbondingEpochCValue(ctx, previousEpochNumber)
+				k.FailUnbondingEpochCValue(ctx, previousEpochNumber)
 				k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %v", msgs, previousEpochNumber))
 			}
 			k.Logger(ctx).Info("ICA msg timed out, ", "msg", msg)

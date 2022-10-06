@@ -122,7 +122,7 @@ func (k Keeper) FailedUnbondings(c context.Context, request *types.QueryFailedUn
 	delegatorUnbondingEpochEntries := k.IterateDelegatorUnbondingEpochEntry(ctx, delegatorAddress)
 	for _, entry := range delegatorUnbondingEpochEntries {
 		unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, entry.EpochNumber)
-		if unbondingEpochCValue.IsTimedOut && unbondingEpochCValue.EpochNumber > 0 {
+		if unbondingEpochCValue.IsFailed && unbondingEpochCValue.EpochNumber > 0 {
 			// append to failed entries for which stkAtom should be claimed again
 			queryResponse.FailedUnbondings = append(queryResponse.FailedUnbondings, unbondingEpochCValue)
 		}
@@ -152,7 +152,7 @@ func (k Keeper) PendingUnbondings(c context.Context, request *types.QueryPending
 	delegatorUnbondingEpochEntries := k.IterateDelegatorUnbondingEpochEntry(ctx, delegatorAddress)
 	for _, entry := range delegatorUnbondingEpochEntries {
 		unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, entry.EpochNumber)
-		if !unbondingEpochCValue.IsTimedOut && !unbondingEpochCValue.IsMatured && unbondingEpochCValue.EpochNumber > 0 {
+		if !unbondingEpochCValue.IsFailed && !unbondingEpochCValue.IsMatured && unbondingEpochCValue.EpochNumber > 0 {
 			// append to in progress entries
 			queryResponse.PendingUnbondings = append(queryResponse.PendingUnbondings, unbondingEpochCValue)
 		}
