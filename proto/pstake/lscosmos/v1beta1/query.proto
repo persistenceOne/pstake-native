@@ -76,6 +76,10 @@ service Query {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/host_accounts";
   }
 
+  rpc DepositModuleAccount(QueryDepositModuleAccountRequest) returns (QueryDepositModuleAccountResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/deposit_module_account";
+  }
+
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -209,4 +213,12 @@ message QueryHostAccountsRequest {}
 // QueryHostAccountsResponse is a response for the Query/HostAccounts methods.
 message QueryHostAccountsResponse {
   HostAccounts host_accounts = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDepositModuleAccountRequest is a request for the Query/DepositModuleAccount methods.
+message QueryDepositModuleAccountRequest {}
+
+// QueryDepositModuleAccountResponse is a response for the Query/DepositModuleAccount methods.
+message QueryDepositModuleAccountResponse {
+  cosmos.base.v1beta1.Coin balance = 1 [(gogoproto.nullable) = false];
 }

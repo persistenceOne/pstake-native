@@ -40,6 +40,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryDelegatorUnbodingEpochEntry(),
 		CmdQueryRewardsBoosterAccount(),
 		CmdQueryHostAccounts(),
+		CmdQueryDepositModuleAccount(),
 	)
 
 	return cmd
@@ -403,6 +404,30 @@ func CmdQueryHostAccounts() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.HostAccounts(context.Background(), &types.QueryHostAccountsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryDepositModuleAccount() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deposit-module-account",
+		Short: "shows the balance of deposit module account",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.DepositModuleAccount(context.Background(), &types.QueryDepositModuleAccountRequest{})
 			if err != nil {
 				return err
 			}
