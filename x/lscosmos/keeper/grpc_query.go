@@ -225,3 +225,9 @@ func (k Keeper) RewardsBoosterAccount(c context.Context, request *types.QueryRew
 
 	return &types.QueryRewardBoosterAccountResponse{Balance: balance}, nil
 }
+
+func (k Keeper) HostAccounts(c context.Context, request *types.QueryHostAccountsRequest) (*types.QueryHostAccountsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	hostAccounts := k.GetHostAccounts(ctx)
+	return &types.QueryHostAccountsResponse{HostAccounts: hostAccounts}, nil
+}
