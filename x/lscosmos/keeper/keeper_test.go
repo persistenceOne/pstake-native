@@ -126,6 +126,10 @@ func (suite *IntegrationTestSuite) SetupTest() {
 		redemptionFee,
 	)
 	suite.app.LSCosmosKeeper.SetHostChainParams(suite.ctx, hostChainParams)
+	suite.app.LSCosmosKeeper.SetHostAccounts(suite.ctx, types.HostAccounts{
+		DelegatorAccountOwnerID: "Del_acc",
+		RewardsAccountOwnerID:   "Rew_acc",
+	})
 	suite.app.LSCosmosKeeper.SetAllowListedValidators(ctx, allowListedValidators)
 }
 
