@@ -195,6 +195,5 @@ message QueryRewardBoosterAccountRequest {}
 
 // QueryRewardBoosterAccountResponse is a response for the Query/RewardsBoosterAccount methods.
 message QueryRewardBoosterAccountResponse {
-  repeated cosmos.base.v1beta1.Coin balances = 1
-  [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  cosmos.base.v1beta1.Coin balance = 1 [(gogoproto.nullable) = false];
 }
