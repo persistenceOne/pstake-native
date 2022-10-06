@@ -4,8 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	icqtypes "github.com/persistenceOne/persistence-sdk/x/interchainquery/types"
-
-	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 const (
@@ -67,11 +65,13 @@ func (k Keeper) HandleRewardsAccountBalanceCallback(ctx sdk.Context, response []
 	hostChainParams := k.GetHostChainParams(ctx)
 	delegationState := k.GetDelegationState(ctx)
 	rewardsAddress := k.GetHostChainRewardAddress(ctx)
+	hostAccounts := k.GetHostAccounts(ctx)
+
 	//send coins to delegation account.
 	msg := &banktypes.MsgSend{
 		FromAddress: rewardsAddress.Address,
 		ToAddress:   delegationState.HostChainDelegationAddress,
 		Amount:      sdk.NewCoins(*resp.GetBalance()),
 	}
-	return k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, lscosmostypes.RewardAccountPortID, []sdk.Msg{msg})
+	return k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountPortID(), []sdk.Msg{msg})
 }

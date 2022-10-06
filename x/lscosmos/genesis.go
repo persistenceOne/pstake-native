@@ -25,14 +25,19 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	k.SetDelegationState(ctx, genState.DelegationState)
 	k.SetHostChainRewardAddress(ctx, genState.HostChainRewardAddress)
 	k.SetIBCTransientStore(ctx, genState.IBCAmountTransientStore)
-
-	//TODO add all stores here and in export.
+	for _, unbondingCValue := range genState.UnbondingEpochCValues {
+		k.SetUnbondingEpochCValue(ctx, unbondingCValue)
+	}
+	for _, delegatorUnbondingEntry := range genState.DelegatorUnbondingEpochEntries {
+		k.SetDelegatorUnbondingEpochEntry(ctx, delegatorUnbondingEntry)
+	}
+	k.SetHostAccounts(ctx, genState.HostAccounts)
 
 	k.GetDepositModuleAccount(ctx)
 	k.GetDelegationModuleAccount(ctx)
 	k.GetRewardModuleAccount(ctx)
 	k.GetUndelegationModuleAccount(ctx)
-
+	k.GetRewardBoosterModuleAccount(ctx)
 }
 
 // ExportGenesis returns the capability module's exported genesis.
@@ -46,6 +51,10 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.DelegationState = k.GetDelegationState(ctx)
 	genesis.HostChainRewardAddress = k.GetHostChainRewardAddress(ctx)
 	genesis.IBCAmountTransientStore = k.GetIBCTransientStore(ctx)
+	genesis.UnbondingEpochCValues = k.IterateAllUnbondingEpochCValues(ctx)
+	genesis.DelegatorUnbondingEpochEntries = k.IterateAllDelegatorUnbondingEpochEntry(ctx)
+	genesis.HostAccounts = k.GetHostAccounts(ctx)
+
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis

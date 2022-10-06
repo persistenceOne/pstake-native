@@ -21,6 +21,24 @@ func (k Keeper) GetUnbondingEpochCValue(ctx sdk.Context, epochNumber int64) type
 	return unbondingEpochCValue
 }
 
+// IterateAllUnbondingEpochCValues sets cvalue for all epochs
+func (k Keeper) IterateAllUnbondingEpochCValues(ctx sdk.Context) []types.UnbondingEpochCValue {
+	store := ctx.KVStore(k.storeKey)
+	var unbondingEpochCValues []types.UnbondingEpochCValue
+	iterator := sdk.KVStorePrefixIterator(store, types.UnbondingEpochCValueKey)
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var unbondingEpochCValue types.UnbondingEpochCValue
+		k.cdc.MustUnmarshal(iterator.Value(), &unbondingEpochCValue)
+
+		unbondingEpochCValues = append(unbondingEpochCValues, unbondingEpochCValue)
+	}
+
+	return unbondingEpochCValues
+}
+
 // MatureUnbondingEpochCValue sets unbonding epochCValue as matured
 func (k Keeper) MatureUnbondingEpochCValue(ctx sdk.Context, epochNumber int64) {
 	unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, epochNumber)

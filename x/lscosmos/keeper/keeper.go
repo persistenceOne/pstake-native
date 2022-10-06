@@ -137,6 +137,10 @@ func (k Keeper) GetUndelegationModuleAccount(ctx sdk.Context) authtypes.ModuleAc
 	return k.accountKeeper.GetModuleAccount(ctx, types.UndelegationModuleAccount)
 }
 
+func (k Keeper) GetRewardBoosterModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+	return k.accountKeeper.GetModuleAccount(ctx, types.RewardBoosterModuleAccount)
+}
+
 // MintTokens in the given account
 func (k Keeper) MintTokens(ctx sdk.Context, mintCoin sdk.Coin, delegatorAddress sdk.AccAddress) error {
 

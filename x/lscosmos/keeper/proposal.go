@@ -43,8 +43,12 @@ func HandleRegisterHostChainProposal(ctx sdk.Context, k Keeper, content types.Re
 		return sdkerrors.Wrapf(err, "Failed to create and claim capability for ibc transfer port and channel")
 	}
 
+	hostAccounts := k.GetHostAccounts(ctx)
+	if err := hostAccounts.Validate(); err != nil {
+		return err
+	}
 	// This checks for channel being active
-	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, content.ConnectionID, types.DelegationModuleAccount)
+	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, content.ConnectionID, hostAccounts.DelegatorAccountOwnerID)
 	if err != nil {
 		return sdkerrors.Wrap(err, "Could not register ica delegation Address")
 	}

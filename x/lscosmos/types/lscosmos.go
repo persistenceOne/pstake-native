@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -104,4 +105,27 @@ func PreviousUnbondingEpoch(epochNumber int64) int64 {
 		return epochNumber - UndelegationEpochNumberFactor
 	}
 	return epochNumber - epochNumber%UndelegationEpochNumberFactor
+}
+
+func (hostAccounts *HostAccounts) DelegatorAccountPortID() string {
+	delegatorAccountPortID, err := icatypes.NewControllerPortID(hostAccounts.DelegatorAccountOwnerID)
+	if err != nil {
+		panic(err)
+	}
+	return delegatorAccountPortID
+}
+
+func (hostAccounts *HostAccounts) RewardsAccountPortID() string {
+	rewardsAccountPortID, err := icatypes.NewControllerPortID(hostAccounts.RewardsAccountOwnerID)
+	if err != nil {
+		panic(err)
+	}
+	return rewardsAccountPortID
+}
+
+func (hostAccounts *HostAccounts) Validate() error {
+	if hostAccounts.RewardsAccountOwnerID == "" || hostAccounts.DelegatorAccountOwnerID == "" {
+		return ErrInvalidHostAccountOwnerIDs
+	}
+	return nil
 }

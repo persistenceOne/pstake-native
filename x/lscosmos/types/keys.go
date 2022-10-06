@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 )
 
 const (
@@ -69,10 +68,6 @@ const (
 )
 
 var (
-	DelegationAccountPortID, _ = icatypes.NewControllerPortID(DelegationModuleAccount)
-	RewardAccountPortID, _     = icatypes.NewControllerPortID(RewardModuleAccount)
-)
-var (
 	// PortKey defines the key to store the port ID in store
 
 	ModuleEnableKey                 = []byte{0x01}
@@ -83,6 +78,7 @@ var (
 	IBCTransientStoreKey            = []byte{0x06}
 	UnbondingEpochCValueKey         = []byte{0x07}
 	DelegatorUnbondingEpochEntryKey = []byte{0x08}
+	HostAccountsKey                 = []byte{0x09}
 )
 
 func GetUnbondingEpochCValueKey(epochNumber int64) []byte {
