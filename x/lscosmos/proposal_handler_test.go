@@ -48,7 +48,7 @@ func (suite *HandlerTestSuite) TestProposalHandler() {
 				"channel-1",
 				"transfer",
 				"uatom",
-				"ustkatom",
+				"stk/atom",
 				"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
 				sdk.OneInt().MulRaw(5),
 				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "addr", TargetWeight: sdk.OneDec()}}},

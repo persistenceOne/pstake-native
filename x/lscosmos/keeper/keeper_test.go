@@ -37,7 +37,7 @@ var (
 	TransferChannel  = "channel-0"
 	TransferPort     = "transfer"
 	BaseDenom        = "uatom"
-	MintDenom        = "ustkatom"
+	MintDenom        = "stk/uatom"
 	MinDeposit       = sdk.NewInt(5)
 	PstakeFeeAddress = "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9"
 )

@@ -19,7 +19,7 @@ func TestNewRegisterChainJSON(t *testing.T) {
 		"channel-1",
 		"transfer",
 		"uatom",
-		"ustkatom",
+		"stk/uatom",
 		"5",
 		"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
 		"0.0",
@@ -40,7 +40,7 @@ func TestNewRegisterChainJSON(t *testing.T) {
 	require.Equal(t, "channel-1", propJSON.TransferChannel)
 	require.Equal(t, "transfer", propJSON.TransferPort)
 	require.Equal(t, "uatom", propJSON.BaseDenom)
-	require.Equal(t, "ustkatom", propJSON.MintDenom)
+	require.Equal(t, "stk/uatom", propJSON.MintDenom)
 	require.Equal(t, "5", propJSON.MinDeposit)
 	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", propJSON.PstakeParams.PstakeFeeAddress)
 	require.Equal(t, "0.0", propJSON.PstakeParams.PstakeDepositFee)
