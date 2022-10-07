@@ -61,7 +61,7 @@ Example Proposal :
   "transfer_channel": "channel-0",
   "transfer_port": "transfer",
   "base_denom": "uatom",
-  "mint_denom": "ustkatom",
+  "mint_denom": "stk/uatom",
   "min_deposit": "1",
   "allow_listed_validators": {
     "allow_listed_validators": [
@@ -158,7 +158,7 @@ $ %s tx gov submit-proposal pstake-lscosmos-register-host-chain <path/to/proposa
 func NewLiquidStakeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "liquid-stake [amount(whitelisted-ibcDenom coin)]",
-		Short: `Liquid Stake ibc/Atom to stkAtom`,
+		Short: `Liquid Stake ibc/Atom to stk/Atom`,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
@@ -437,7 +437,7 @@ func NewJuiceCmd() *cobra.Command {
 
 func NewLiquidUnstakeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "liquid-unstake [amount(stkAtom)]",
+		Use:   "liquid-unstake [amount(stk/Atom)]",
 		Short: `Liquid Unstake stkAtom to ibc/Atom`,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -34,7 +34,7 @@ Example of a register host chain proposal :
   "transfer_channel": "channel-0",
   "transfer_port": "transfer",
   "base_denom": "uatom",
-  "mint_denom": "ustkatom",
+  "mint_denom": "stk/uatom",
   "min_deposit": "1",
   "allow_listed_validators": {
     "allow_listed_validators": [
