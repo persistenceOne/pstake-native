@@ -10,7 +10,9 @@ var (
 	_ sdk.Msg = &MsgLiquidStake{}
 	_ sdk.Msg = &MsgJuice{}
 	_ sdk.Msg = &MsgLiquidUnstake{}
+	_ sdk.Msg = &MsgRedeem{}
 	_ sdk.Msg = &MsgClaim{}
+	_ sdk.Msg = &MsgJumpStart{}
 )
 
 // NewMsgLiquidStake returns a new MsgLiquidStake
@@ -221,6 +223,44 @@ func (m *MsgClaim) GetSignBytes() []byte {
 // GetSigners defines whose signature is required
 func (m *MsgClaim) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// NewMsgLiquidStake returns a new MsgLiquidStake
+//
+//nolint:interfacer
+func NewMsgJumpStart(address sdk.AccAddress) *MsgJumpStart {
+	return &MsgJumpStart{
+		PstakeAddress: address.String(),
+	}
+}
+
+// Route should return the name of the module
+func (m *MsgJumpStart) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgJumpStart) Type() string { return MsgTypeJumpStart }
+
+// ValidateBasic performs stateless checks
+func (m *MsgJumpStart) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.PstakeAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.PstakeAddress)
+	}
+
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgJumpStart) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgJumpStart) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.PstakeAddress)
 	if err != nil {
 		panic(err)
 	}

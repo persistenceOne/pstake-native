@@ -443,3 +443,8 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 
 	return &types.MsgClaimResponse{}, nil
 }
+
+func (m msgServer) JumpStart(ctx context.Context, msg *types.MsgJumpStart) (*types.MsgJumpStartResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

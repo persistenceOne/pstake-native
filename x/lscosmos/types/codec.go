@@ -18,6 +18,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgLiquidUnstake{}, "cosmos/MsgLiquidUnstake", nil)
 	cdc.RegisterConcrete(&MsgRedeem{}, "cosmos/MsgRedeem", nil)
 	cdc.RegisterConcrete(&MsgClaim{}, "cosmos/MsgClaim", nil)
+	cdc.RegisterConcrete(&MsgJumpStart{}, "cosmos/MsgJumpStart", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -27,6 +28,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgLiquidUnstake{},
 		&MsgRedeem{},
 		&MsgClaim{},
+		&MsgJumpStart{},
 	) // add the structs that implements sdk.Msg interface
 
 	registry.RegisterImplementations((*govtypes.Content)(nil),

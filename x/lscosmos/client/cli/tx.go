@@ -33,6 +33,7 @@ func GetTxCmd() *cobra.Command {
 		NewLiquidUnstakeCmd(),
 		NewRedeemCmd(),
 		NewClaimCmd(),
+		NewJumpStartCmd(),
 	)
 
 	return cmd
@@ -507,6 +508,30 @@ func NewClaimCmd() *cobra.Command {
 
 			delegatorAddress := clientctx.GetFromAddress()
 			msg := types.NewMsgClaim(delegatorAddress)
+
+			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewJumpStartCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "jump-start",
+		Short: `jump start the module using allowlisted address`,
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			delegatorAddress := clientctx.GetFromAddress()
+			msg := types.NewMsgJumpStart(delegatorAddress)
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
 		},
