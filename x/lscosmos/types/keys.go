@@ -39,6 +39,9 @@ const (
 	// MsgTypeClaim is the type of message claim
 	MsgTypeClaim = "msg_claim"
 
+	// MsgTypeJumpStart is the type of message Jump start
+	MsgTypeJumpStart = "msg_jump_start"
+
 	// DepositModuleAccount DepositModuleAccountName
 	DepositModuleAccount = ModuleName + "_pstake_deposit_account"
 

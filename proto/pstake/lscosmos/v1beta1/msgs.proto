@@ -30,6 +30,10 @@ service Msg{
   rpc Claim(MsgClaim) returns (MsgClaimResponse) {
     option (google.api.http).post = "/pstake/lscosmos/v1beta1/Claim";
   }
+
+  rpc JumpStart(MsgJumpStart) returns (MsgJumpStartResponse) {
+    option (google.api.http).post = "/pstake/lscosmos/v1beta1/JumpStart";
+  }
 }
 
 message MsgLiquidStake {
@@ -66,3 +70,9 @@ message MsgClaim {
 }
 
 message MsgClaimResponse {}
+
+message MsgJumpStart {
+  string pstake_address = 1;
+}
+
+message MsgJumpStartResponse {}
