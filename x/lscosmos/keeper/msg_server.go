@@ -3,14 +3,14 @@ package keeper
 import (
 	"context"
 	"fmt"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	ibcporttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	ibcporttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
@@ -449,11 +449,16 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 }
 
 func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*types.MsgJumpStartResponse, error) {
-	// check pstake fee address == from addr
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 	// sanity check for the arguments of message
 	if ctx.IsZero() {
 		return nil, types.ErrInvalidArgs
+	}
+
+	// check pstake fee address == from addr
+	hostChainParams := m.GetHostChainParams(ctx)
+	if msg.PstakeAddress != hostChainParams.PstakeParams.PstakeFeeAddress {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("msg.pstakeAddress should be equal to msg.PstakeParams.PstakeFeeAddress, got %s expected %s", msg.PstakeAddress, hostChainParams.PstakeParams.PstakeFeeAddress))
 	}
 	// check module disabled
 	if m.GetModuleState(ctx) {
@@ -495,16 +500,29 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 		return nil, sdkerrors.Wrap(err, "Could not register ica delegation Address")
 	}
 
-	paramsProposal := types.NewHostChainParams(msg.ChainID, msg.ConnectionID, msg.TransferChannel,
+	newHostChainParams := types.NewHostChainParams(msg.ChainID, msg.ConnectionID, msg.TransferChannel,
 		msg.TransferPort, msg.BaseDenom, msg.MintDenom, msg.PstakeParams.PstakeFeeAddress,
 		msg.MinDeposit, msg.PstakeParams.PstakeDepositFee, msg.PstakeParams.PstakeRestakeFee,
 		msg.PstakeParams.PstakeUnstakeFee, msg.PstakeParams.PstakeRedemptionFee)
 
-	m.SetHostChainParams(ctx, paramsProposal)
+	m.SetHostChainParams(ctx, newHostChainParams)
 
 	if !msg.AllowListedValidators.Valid() {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Allow listed validators is invalid")
 	}
 	m.SetAllowListedValidators(ctx, msg.AllowListedValidators)
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeJumpStart,
+			sdktypes.NewAttribute(types.AttributePstakeAddress, msg.PstakeAddress),
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.PstakeAddress),
+		)},
+	)
+
 	return &types.MsgJumpStartResponse{}, nil
 }
