@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
@@ -232,9 +234,20 @@ func (m *MsgClaim) GetSigners() []sdk.AccAddress {
 // NewMsgLiquidStake returns a new MsgLiquidStake
 //
 //nolint:interfacer
-func NewMsgJumpStart(address sdk.AccAddress) *MsgJumpStart {
+func NewMsgJumpStart(address sdk.AccAddress, chainID, connectionID, transferChannel, transferPort, baseDenom, mintDenom string,
+	minDeposit sdk.Int, allowListedValidators AllowListedValidators, pstakeParams PstakeParams, hostAccounts HostAccounts) *MsgJumpStart {
 	return &MsgJumpStart{
-		PstakeAddress: address.String(),
+		PstakeAddress:         address.String(),
+		ChainID:               chainID,
+		ConnectionID:          connectionID,
+		TransferChannel:       transferChannel,
+		TransferPort:          transferPort,
+		BaseDenom:             baseDenom,
+		MintDenom:             mintDenom,
+		MinDeposit:            minDeposit,
+		AllowListedValidators: allowListedValidators,
+		PstakeParams:          pstakeParams,
+		HostAccounts:          hostAccounts,
 	}
 }
 
@@ -249,8 +262,25 @@ func (m *MsgJumpStart) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.PstakeAddress); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.PstakeAddress)
 	}
+	if m.ChainID == "" ||
+		m.ConnectionID == "" ||
+		m.TransferChannel == "" ||
+		m.TransferPort == "" ||
+		m.BaseDenom == "" ||
+		m.MintDenom == "" {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidRequest, "params cannot be empty")
+	}
 
-	return nil
+	if !m.AllowListedValidators.Valid() {
+		return ErrInValidAllowListedValidators
+	}
+	if _, err := sdk.AccAddressFromBech32(m.PstakeParams.PstakeFeeAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.PstakeParams.PstakeFeeAddress)
+	}
+	if m.PstakeParams.PstakeFeeAddress != m.PstakeAddress {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, fmt.Sprintf("pstakeAddress should be equal to PstakeParams.PstakeFeeAddress, got %s, %s", m.PstakeParams.PstakeFeeAddress, m.PstakeAddress))
+	}
+	return m.HostAccounts.Validate()
 }
 
 // GetSignBytes encodes the message for signing

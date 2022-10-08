@@ -92,14 +92,9 @@ func HandleMinDepositAndFeeChangeProposal(ctx sdk.Context, k Keeper, content typ
 
 // HandlePstakeFeeAddressChangeProposal changes fee collector address
 func HandlePstakeFeeAddressChangeProposal(ctx sdk.Context, k Keeper, content types.PstakeFeeAddressChangeProposal) error {
-	if !k.GetModuleState(ctx) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
-	}
+	//Do not check ModuleEnabled state or host chain params here because non-critical proposal and will help not hardcode address inside default genesis
 
 	hostChainParams := k.GetHostChainParams(ctx)
-	if hostChainParams.IsEmpty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
-	}
 
 	// modify oldData with the new proposal content
 	hostChainParams.PstakeParams.PstakeFeeAddress = content.PstakeFeeAddress

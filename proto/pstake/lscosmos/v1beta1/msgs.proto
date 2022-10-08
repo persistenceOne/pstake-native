@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "pstake/lscosmos/v1beta1/lscosmos.proto";
 
 
 option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
@@ -73,6 +74,16 @@ message MsgClaimResponse {}
 
 message MsgJumpStart {
   string pstake_address = 1;
+  string chain_i_d = 2;
+  string connection_i_d = 3;
+  string transfer_channel = 4;
+  string transfer_port = 5;
+  string base_denom = 6;
+  string mint_denom = 7;
+  string min_deposit = 8 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  AllowListedValidators allow_listed_validators = 9 [(gogoproto.nullable) = false];
+  PstakeParams pstake_params = 10 [(gogoproto.nullable) = false];
+  HostAccounts host_accounts = 11 [(gogoproto.nullable) = false];
 }
 
 message MsgJumpStartResponse {}

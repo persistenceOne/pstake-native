@@ -2,11 +2,15 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	ibcporttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
@@ -444,7 +448,81 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	return &types.MsgClaimResponse{}, nil
 }
 
-func (m msgServer) JumpStart(ctx context.Context, msg *types.MsgJumpStart) (*types.MsgJumpStartResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*types.MsgJumpStartResponse, error) {
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+	// sanity check for the arguments of message
+	if ctx.IsZero() {
+		return nil, types.ErrInvalidArgs
+	}
+
+	// check pstake fee address == from addr
+	hostChainParams := m.GetHostChainParams(ctx)
+	if msg.PstakeAddress != hostChainParams.PstakeParams.PstakeFeeAddress {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("msg.pstakeAddress should be equal to msg.PstakeParams.PstakeFeeAddress, got %s expected %s", msg.PstakeAddress, hostChainParams.PstakeParams.PstakeFeeAddress))
+	}
+	// check module disabled
+	if m.GetModuleState(ctx) {
+		return nil, types.ErrModuleAlreadyEnabled
+	}
+	// reset db, no need to release capability
+	m.SetDelegationState(ctx, types.DelegationState{})
+	m.SetHostChainRewardAddress(ctx, types.HostChainRewardAddress{})
+	if err := msg.HostAccounts.Validate(); err != nil {
+		return nil, err
+	}
+	m.SetHostAccounts(ctx, msg.HostAccounts)
+	// do proposal things
+	if msg.TransferPort != ibctransfertypes.PortID {
+		return nil, sdkerrors.Wrap(ibcporttypes.ErrInvalidPort, "Only acceptable TransferPort is \"transfer\"")
+	}
+
+	// checks for valid and active channel
+	channel, found := m.channelKeeper.GetChannel(ctx, msg.TransferPort, msg.TransferChannel)
+	if !found {
+		return nil, sdkerrors.Wrap(ibcchanneltypes.ErrChannelNotFound, fmt.Sprintf("channel for ibc transfer: %s not found", msg.TransferChannel))
+	}
+	if channel.State != ibcchanneltypes.OPEN {
+		return nil, sdkerrors.Wrapf(
+			ibcchanneltypes.ErrInvalidChannelState,
+			"channel state is not OPEN (got %s)", channel.State.String(),
+		)
+	}
+	// TODO Understand capabilities and see if it has to be/ should be claimed in lsscopedkeeper. If it even matters.
+	_, err := m.lscosmosScopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(msg.TransferPort, msg.TransferChannel))
+	if err != nil {
+		return nil, sdkerrors.Wrapf(err, "Failed to create and claim capability for ibc transfer port and channel")
+	}
+
+	hostAccounts := m.GetHostAccounts(ctx)
+	// This checks for channel being active
+	err = m.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionID, hostAccounts.DelegatorAccountOwnerID)
+	if err != nil {
+		return nil, sdkerrors.Wrap(err, "Could not register ica delegation Address")
+	}
+
+	newHostChainParams := types.NewHostChainParams(msg.ChainID, msg.ConnectionID, msg.TransferChannel,
+		msg.TransferPort, msg.BaseDenom, msg.MintDenom, msg.PstakeParams.PstakeFeeAddress,
+		msg.MinDeposit, msg.PstakeParams.PstakeDepositFee, msg.PstakeParams.PstakeRestakeFee,
+		msg.PstakeParams.PstakeUnstakeFee, msg.PstakeParams.PstakeRedemptionFee)
+
+	m.SetHostChainParams(ctx, newHostChainParams)
+
+	if !msg.AllowListedValidators.Valid() {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Allow listed validators is invalid")
+	}
+	m.SetAllowListedValidators(ctx, msg.AllowListedValidators)
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeJumpStart,
+			sdktypes.NewAttribute(types.AttributePstakeAddress, msg.PstakeAddress),
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.PstakeAddress),
+		)},
+	)
+
+	return &types.MsgJumpStartResponse{}, nil
 }

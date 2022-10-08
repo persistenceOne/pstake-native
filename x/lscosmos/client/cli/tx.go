@@ -522,7 +522,7 @@ func NewJumpStartCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "jump-start",
 		Short: `jump start the module using allowlisted address`,
-		Args:  cobra.ExactArgs(0),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			clientctx, err := client.GetClientTxContext(cmd)
@@ -530,13 +530,48 @@ func NewJumpStartCmd() *cobra.Command {
 				return err
 			}
 
-			delegatorAddress := clientctx.GetFromAddress()
-			msg := types.NewMsgJumpStart(delegatorAddress)
+			pstakeAddress := clientctx.GetFromAddress()
+
+			msgDetails, err := utils.ParseJumpstartTxnJSON(clientctx.LegacyAmino, args[0])
+			if err != nil {
+				return err
+			}
+
+			minDeposit, ok := sdk.NewIntFromString(msgDetails.MinDeposit)
+			if !ok {
+				return types.ErrInvalidIntParse
+			}
+			depositFee, err := sdk.NewDecFromStr(msgDetails.PstakeParams.PstakeDepositFee)
+			if err != nil {
+				return err
+			}
+			restakeFee, err := sdk.NewDecFromStr(msgDetails.PstakeParams.PstakeRestakeFee)
+			if err != nil {
+				return err
+			}
+			unstakeFee, err := sdk.NewDecFromStr(msgDetails.PstakeParams.PstakeUnstakeFee)
+			if err != nil {
+				return err
+			}
+			redemptionFee, err := sdk.NewDecFromStr(msgDetails.PstakeParams.PstakeRedemptionFee)
+			if err != nil {
+				return err
+			}
+			pstakeParams := types.PstakeParams{
+				PstakeDepositFee:    depositFee,
+				PstakeRestakeFee:    restakeFee,
+				PstakeUnstakeFee:    unstakeFee,
+				PstakeRedemptionFee: redemptionFee,
+				PstakeFeeAddress:    pstakeAddress.String(),
+			}
+
+			msg := types.NewMsgJumpStart(pstakeAddress, msgDetails.ChainID, msgDetails.ConnectionID, msgDetails.TransferChannel,
+				msgDetails.TransferPort, msgDetails.BaseDenom, msgDetails.MintDenom, minDeposit, msgDetails.AllowListedValidators,
+				pstakeParams, msgDetails.HostAccounts)
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
 		},
 	}
-
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

@@ -9,6 +9,7 @@ const (
 	EventTypeRewardBoost   = "reward-boost"
 	EventTypeLiquidUnstake = "liquid-unstake"
 	EventTypeClaim         = "claim"
+	EventTypeJumpStart     = "jump-start"
 	// this line is used by starport scaffolding # ibc/packet/event
 
 	AttributeKeyAckSuccess    = "success"
@@ -23,5 +24,6 @@ const (
 	AttributeDelegatorAddress = "address"
 	AttributeRewarderAddress  = "rewarder-address"
 	AttributeClaimedAmount    = "claimed-amount"
+	AttributePstakeAddress    = "pstake-address"
 	AttributeValueCategory    = ModuleName
 )

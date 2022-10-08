@@ -181,3 +181,32 @@ func ParseAllowListedValidatorSetChangeProposalJSON(cdc *codec.LegacyAmino, prop
 
 	return proposal, nil
 }
+
+type JumpstartTxnJSON struct {
+	ChainID               string                      `json:"chain_id" yaml:"chain_id"`
+	ConnectionID          string                      `json:"connection_id" yaml:"connection_id"`
+	TransferChannel       string                      `json:"transfer_channel" yaml:"transfer_channel"`
+	TransferPort          string                      `json:"transfer_port" yaml:"transfer_port"`
+	BaseDenom             string                      `json:"base_denom" yaml:"base_denom"`
+	MintDenom             string                      `json:"mint_denom" yaml:"mint_denom"`
+	MinDeposit            string                      `json:"min_deposit" yaml:"min_deposit"`
+	AllowListedValidators types.AllowListedValidators `json:"allow_listed_validators" yaml:"allow_listed_validators"`
+	PstakeParams          PstakeParams                `json:"pstake_params" yaml:"pstake_params"`
+	HostAccounts          types.HostAccounts          `json:"host_accounts" yaml:"host_accounts"`
+}
+
+// ParseJumpstartTxnJSON  reads and parses a JumpstartTxnJSON  from
+// file.
+func ParseJumpstartTxnJSON(cdc *codec.LegacyAmino, file string) (JumpstartTxnJSON, error) {
+	jsonTxn := JumpstartTxnJSON{}
+
+	contents, err := os.ReadFile(file)
+	if err != nil {
+		return jsonTxn, err
+	}
+	if err := cdc.UnmarshalJSON(contents, &jsonTxn); err != nil {
+		return jsonTxn, err
+	}
+
+	return jsonTxn, nil
+}
