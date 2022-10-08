@@ -207,13 +207,11 @@ func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscos
 	delegationState := k.GetDelegationState(ctx)
 	undelegateMsgs, undelegationEntries, err := k.UndelegateMsgs(ctx, delegationState.HostChainDelegationAddress, amountToUnstake.Amount, hostChainParams.BaseDenom)
 	if err != nil {
-		k.SetModuleState(ctx, false)
 		return err
 	}
 	hostAccounts := k.GetHostAccounts(ctx)
 	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), undelegateMsgs)
 	if err != nil {
-		k.SetModuleState(ctx, false)
 		return err
 	}
 	// add undelegation entries to db (update completion time onAck)
