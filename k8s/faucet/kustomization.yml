@@ -1,0 +1,16 @@
+namespace: dev-native
+
+resources:
+- faucet.yml
+- ingress.yml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: faucet-pstake
+    envs:
+      - configs/.persistence.env
+  - name: faucet-gaia
+    envs:
+      - configs/.cosmos.env

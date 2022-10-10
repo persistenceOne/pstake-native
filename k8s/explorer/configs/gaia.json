@@ -1,0 +1,19 @@
+{
+  "chain_name": "gaia",
+  "coingecko": "cosmos",
+  "api": "https://rest.devnet.cosmos.pstake.finance",
+  "rpc": ["https://rpc.devnet.cosmos.pstake.finance:443", "https://rpc.devnet.cosmos.pstake.finance:443"],
+  "snapshot_provider": "",
+  "sdk_version": "0.45.6",
+  "coin_type": "118",
+  "min_tx_fee": "3000",
+  "addr_prefix": "cosmos",
+  "logo": "",
+  "assets": [{
+    "base": "uatom",
+    "symbol": "ATOM",
+    "exponent": "6",
+    "coingecko_id": "cosmos",
+    "logo": ""
+  }]
+}

@@ -1,0 +1,15 @@
+namespace: dev-native
+
+resources:
+  - configmap.yml
+  - explorer.yml
+  - ingress.yml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: chain-configs
+    files:
+      - configs/gaia.json
+      - configs/pstake.json

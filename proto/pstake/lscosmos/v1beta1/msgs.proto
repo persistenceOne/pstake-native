@@ -1,0 +1,89 @@
+syntax = "proto3";
+package pstake.lscosmos.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "pstake/lscosmos/v1beta1/lscosmos.proto";
+
+
+option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
+
+//Msg defines the lsCosmos services.
+service Msg{
+  rpc LiquidStake(MsgLiquidStake) returns (MsgLiquidStakeResponse){
+    option (google.api.http).post = "/pstake/lscosmos/v1beta1/LiquidStake";
+  }
+
+  rpc LiquidUnstake(MsgLiquidUnstake) returns (MsgLiquidUnstakeResponse){
+    option (google.api.http).post = "/pstake/lscosmos/v1beta1/LiquidUnstake";
+  }
+
+  rpc Juice(MsgJuice) returns (MsgJuiceResponse) {
+    option (google.api.http).post = "/pstake/lscosmos/v1beta1/Juice";
+  }
+
+  rpc Redeem(MsgRedeem) returns (MsgRedeemResponse) {
+    option (google.api.http).post = "/pstake/lscosmos/v1beta1/Redeem";
+  }
+
+  rpc Claim(MsgClaim) returns (MsgClaimResponse) {
+    option (google.api.http).post = "/pstake/lscosmos/v1beta1/Claim";
+  }
+
+  rpc JumpStart(MsgJumpStart) returns (MsgJumpStartResponse) {
+    option (google.api.http).post = "/pstake/lscosmos/v1beta1/JumpStart";
+  }
+}
+
+message MsgLiquidStake {
+  string delegator_address = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgLiquidStakeResponse{}
+
+
+message MsgLiquidUnstake {
+  string delegator_address = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgLiquidUnstakeResponse{}
+
+message MsgJuice {
+  string rewarder_address = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgJuiceResponse {}
+
+message MsgRedeem {
+  string delegator_address = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgRedeemResponse {}
+
+message MsgClaim {
+  string delegator_address = 1;
+}
+
+message MsgClaimResponse {}
+
+message MsgJumpStart {
+  string pstake_address = 1;
+  string chain_i_d = 2;
+  string connection_i_d = 3;
+  string transfer_channel = 4;
+  string transfer_port = 5;
+  string base_denom = 6;
+  string mint_denom = 7;
+  string min_deposit = 8 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  AllowListedValidators allow_listed_validators = 9 [(gogoproto.nullable) = false];
+  PstakeParams pstake_params = 10 [(gogoproto.nullable) = false];
+  HostAccounts host_accounts = 11 [(gogoproto.nullable) = false];
+}
+
+message MsgJumpStartResponse {}

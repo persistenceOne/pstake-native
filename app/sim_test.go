@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	gaia "github.com/persistenceOne/pstake-native/app"
+	pstake "github.com/persistenceOne/pstake-native/app"
 
 	"github.com/persistenceOne/pstake-native/app/helpers"
 	"github.com/stretchr/testify/require"
@@ -41,7 +41,7 @@ func BenchmarkFullAppSimulation(b *testing.B) {
 		}
 	}()
 
-	app := gaia.NewGaiaApp(logger, db, nil, true, map[int64]bool{}, gaia.DefaultNodeHome, simapp.FlagPeriodValue, gaia.MakeEncodingConfig(), simapp.EmptyAppOptions{}, interBlockCacheOpt())
+	app := pstake.NewpStakeApp(logger, db, nil, true, map[int64]bool{}, pstake.DefaultNodeHome, simapp.FlagPeriodValue, pstake.MakeEncodingConfig(), simapp.EmptyAppOptions{}, interBlockCacheOpt())
 
 	// Run randomized simulation:w
 	_, simParams, simErr := simulation.SimulateFromSeed(
@@ -76,8 +76,8 @@ func interBlockCacheOpt() func(*baseapp.BaseApp) {
 	return baseapp.SetInterBlockCache(store.NewCommitKVStoreCacheManager())
 }
 
-//// TODO: Make another test for the fuzzer itself, which just has noOp txs
-//// and doesn't depend on the application.
+// // TODO: Make another test for the fuzzer itself, which just has noOp txs
+// // and doesn't depend on the application.
 func TestAppStateDeterminism(t *testing.T) {
 	if !simapp.FlagEnabledValue {
 		t.Skip("skipping application simulation")
@@ -106,7 +106,7 @@ func TestAppStateDeterminism(t *testing.T) {
 			}
 
 			db := dbm.NewMemDB()
-			app := gaia.NewGaiaApp(logger, db, nil, true, map[int64]bool{}, gaia.DefaultNodeHome, simapp.FlagPeriodValue, gaia.MakeEncodingConfig(), simapp.EmptyAppOptions{}, interBlockCacheOpt())
+			app := pstake.NewpStakeApp(logger, db, nil, true, map[int64]bool{}, pstake.DefaultNodeHome, simapp.FlagPeriodValue, pstake.MakeEncodingConfig(), simapp.EmptyAppOptions{}, interBlockCacheOpt())
 
 			fmt.Printf(
 				"running non-determinism simulation; seed %d: %d/%d, attempt: %d/%d\n",
