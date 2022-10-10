@@ -74,7 +74,14 @@ func (k Keeper) GetCValue(ctx sdk.Context) sdk.Dec {
 		return sdk.OneDec()
 	}
 
-	return sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(stakedAmount))
+	cValue := sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(stakedAmount))
+	if cValue.IsNegative() {
+		// disable module if c value becomes negative.
+		k.SetModuleState(ctx, false)
+		return cValue
+	}
+
+	return cValue
 }
 
 func (k Keeper) ConvertStkToToken(ctx sdk.Context, stkCoin sdk.DecCoin, cValue sdk.Dec) (sdk.Coin, sdk.DecCoin) {
