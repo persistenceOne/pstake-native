@@ -71,6 +71,10 @@ const (
 )
 
 var (
+	MaxCValue = sdk.MustNewDecFromStr("1.1")
+)
+
+var (
 	// PortKey defines the key to store the port ID in store
 
 	ModuleEnableKey                 = []byte{0x01}
