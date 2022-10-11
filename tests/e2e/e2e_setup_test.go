@@ -234,6 +234,7 @@ func (s *IntegrationTestSuite) initValidatorConfigs(c *chain) {
 		valConfig.RPC.ListenAddress = "tcp://0.0.0.0:26657"
 		valConfig.StateSync.Enable = false
 		valConfig.LogLevel = "info"
+		valConfig.Storage = &tmconfig.StorageConfig{}
 
 		var peers []string
 
