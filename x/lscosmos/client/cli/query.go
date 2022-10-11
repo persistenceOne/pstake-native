@@ -41,6 +41,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryRewardsBoosterAccount(),
 		CmdQueryHostAccounts(),
 		CmdQueryDepositModuleAccount(),
+		CmdDelegatorUnbondingEpochEntries(),
 	)
 
 	return cmd
@@ -428,6 +429,35 @@ func CmdQueryDepositModuleAccount() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.DepositModuleAccount(context.Background(), &types.QueryDepositModuleAccountRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdDelegatorUnbondingEpochEntries() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delegator-unbonding-epoch-entries [delegator-address]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Shows host account undelegations for all the epoch number the entry has been made.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			delegatorAddress, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.DelegatorUnbondingEpochEntries(context.Background(), &types.QueryAllDelegatorUnbondingEpochEntriesRequest{DelegatorAddress: delegatorAddress.String()})
 			if err != nil {
 				return err
 			}
