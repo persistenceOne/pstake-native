@@ -80,6 +80,10 @@ service Query {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/deposit_module_account";
   }
 
+  rpc DelegatorUnbondingEpochEntries(QueryAllDelegatorUnbondingEpochEntriesRequest) returns (QueryAllDelegatorUnbondingEpochEntriesResponse) {
+    option (google.api.http).get = "/pstake/lscosmos/v1beta1/delegator_unbonding_epoch_entries/{delegator_address}";
+  }
+
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -221,4 +225,14 @@ message QueryDepositModuleAccountRequest {}
 // QueryDepositModuleAccountResponse is a response for the Query/DepositModuleAccount methods.
 message QueryDepositModuleAccountResponse {
   cosmos.base.v1beta1.Coin balance = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryAllDelegatorUnbondingEpochEntriesRequest is a request for the Query/DelegatorUnbondingEpochEntries methods.
+message QueryAllDelegatorUnbondingEpochEntriesRequest {
+  string delegator_address = 1;
+}
+
+// QueryAllDelegatorUnbondingEpochEntriesResponse is a response for the Query/DelegatorUnbondingEpochEntries methods.
+message QueryAllDelegatorUnbondingEpochEntriesResponse {
+  repeated  DelegatorUnbondingEpochEntry delegator_unbonding_epoch_entries = 1 [(gogoproto.nullable) = false];
 }
