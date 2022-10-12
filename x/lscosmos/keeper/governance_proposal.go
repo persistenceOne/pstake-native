@@ -115,10 +115,28 @@ func HandleAllowListedValidatorSetChangeProposal(ctx sdk.Context, k Keeper, cont
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
 	}
 
-	if !content.AllowListedValidators.Valid() {
+	newValidatorSetMap := make(map[string]sdk.Dec)
+	for _, val := range content.AllowListedValidators.AllowListedValidators {
+		newValidatorSetMap[val.ValidatorAddress] = val.TargetWeight
+	}
+
+	oldValidatorSet := k.GetAllowListedValidators(ctx)
+	for _, val := range oldValidatorSet.AllowListedValidators {
+		_, ok := newValidatorSetMap[val.ValidatorAddress]
+		if !ok {
+			newValidatorSetMap[val.ValidatorAddress] = sdk.ZeroDec()
+		}
+	}
+
+	var newValidatorSet types.AllowListedValidators
+	for key, value := range newValidatorSetMap {
+		newValidatorSet.AllowListedValidators = append(newValidatorSet.AllowListedValidators, types.AllowListedValidator{ValidatorAddress: key, TargetWeight: value})
+	}
+
+	if !newValidatorSet.Valid() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Allow listed validators is invalid")
 	}
 
-	k.SetAllowListedValidators(ctx, content.AllowListedValidators)
+	k.SetAllowListedValidators(ctx, newValidatorSet)
 	return nil
 }
