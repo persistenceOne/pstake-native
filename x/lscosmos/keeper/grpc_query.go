@@ -239,3 +239,24 @@ func (k Keeper) DepositModuleAccount(c context.Context, request *types.QueryDepo
 
 	return &types.QueryDepositModuleAccountResponse{Balance: balance}, nil
 }
+
+func (k Keeper) DelegatorUnbondingEpochEntries(c context.Context, request *types.QueryAllDelegatorUnbondingEpochEntriesRequest) (*types.QueryAllDelegatorUnbondingEpochEntriesResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.DelegatorAddress == "" {
+		return nil, status.Error(codes.InvalidArgument, "address cannot be empty")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	// get delegator account address from request
+	delegatorAddress, err := sdk.AccAddressFromBech32(request.DelegatorAddress)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid address: %s", err.Error())
+	}
+
+	list := k.IterateDelegatorUnbondingEpochEntry(ctx, delegatorAddress)
+
+	return &types.QueryAllDelegatorUnbondingEpochEntriesResponse{DelegatorUnbondingEpochEntries: list}, nil
+}
