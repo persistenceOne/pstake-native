@@ -42,15 +42,15 @@ func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedValidat
 	}
 
 	// get validator list from allow listed validators
-	var delList []string
-	for _, delegation := range currentAllowListedValSet.AllowListedValidators {
-		delList = append(delList, delegation.ValidatorAddress)
+	delList := make([]string, len(currentAllowListedValSet.AllowListedValidators))
+	for i, delegation := range currentAllowListedValSet.AllowListedValidators {
+		delList[i] = delegation.ValidatorAddress
 	}
 
 	// get validator list from current delegation state
-	var valList []string
-	for _, val := range currentDelegationState.HostAccountDelegations {
-		valList = append(valList, val.ValidatorAddress)
+	valList := make([]string, len(currentDelegationState.HostAccountDelegations))
+	for i, val := range currentDelegationState.HostAccountDelegations {
+		valList[i] = val.ValidatorAddress
 	}
 
 	// Assign zero weights to all the validators not present in the current allow listed validator set map
@@ -62,6 +62,7 @@ func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedValidat
 	}
 
 	// Convert the updated val set map to a slice of types.AllowListedValidator
+	//nolint:prealloc,len_not_fixed
 	var updatedValSet []types.AllowListedValidator
 	for key, value := range currentAllowListedValSetMap {
 		updatedValSet = append(updatedValSet, types.AllowListedValidator{ValidatorAddress: key, TargetWeight: value})
@@ -76,6 +77,7 @@ func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedValidat
 	}
 
 	// Convert the updated delegation state map to slice of types.HostChainDelegation
+	//nolint:prealloc,len_not_fixed
 	var updatedDelegationState []types.HostAccountDelegation
 	for key, value := range currentDelegationStateMap {
 		updatedDelegationState = append(updatedDelegationState, types.HostAccountDelegation{ValidatorAddress: key, Amount: value})
