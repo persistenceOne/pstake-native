@@ -1,6 +1,8 @@
 package keeper_test
 
-import "github.com/persistenceOne/pstake-native/x/lscosmos/types"
+import (
+	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+)
 
 func (suite *IntegrationTestSuite) TestAllowListedValidators() {
 	app, ctx := suite.app, suite.ctx
