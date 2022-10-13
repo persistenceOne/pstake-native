@@ -458,13 +458,13 @@ func (k Keeper) resetToPreICATx(ctx sdk.Context, icaPacket icatypes.InterchainAc
 				return err
 			}
 			if i == 0 && sdk.MsgTypeURL(msg) == sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}) {
-				//retry entire batch of msgs since it is timedout
+				//retry entire batch of msgs since it is timed out
 				previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
 				err := k.RemoveHostAccountUndelegation(ctx, previousEpochNumber)
 				if err != nil {
 					return err
 				}
-				k.FailUnbondingEpochCValue(ctx, previousEpochNumber)
+				k.FailUnbondingEpochCValue(ctx, previousEpochNumber, sdk.NewCoin(hostChainParams.MintDenom, sdk.ZeroInt()))
 				k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %v", msgs, previousEpochNumber))
 			}
 			k.Logger(ctx).Info("ICA msg timed out, ", "msg", msg)
