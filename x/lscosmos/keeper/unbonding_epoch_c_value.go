@@ -47,8 +47,12 @@ func (k Keeper) MatureUnbondingEpochCValue(ctx sdk.Context, epochNumber int64) {
 }
 
 // FailUnbondingEpochCValue sets unbonding epochCValue as timeout for undelegation
-func (k Keeper) FailUnbondingEpochCValue(ctx sdk.Context, epochNumber int64) {
+func (k Keeper) FailUnbondingEpochCValue(ctx sdk.Context, epochNumber int64, undelegationAmount sdk.Coin) {
 	unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, epochNumber)
+	if unbondingEpochCValue.EpochNumber != epochNumber {
+		unbondingEpochCValue.EpochNumber = epochNumber
+		unbondingEpochCValue.STKBurn = undelegationAmount
+	}
 	unbondingEpochCValue.IsFailed = true
 	k.SetUnbondingEpochCValue(ctx, unbondingEpochCValue)
 }
