@@ -33,8 +33,7 @@ func (k Keeper) DoDelegate(ctx sdk.Context) error {
 	hostAccounts := k.GetHostAccounts(ctx)
 
 	delegatableAmount := delegationState.HostDelegationAccountBalance.AmountOf(hostChainParams.BaseDenom)
-	allowlistedValidators := k.GetAllowListedValidators(ctx)
-	if !delegatableAmount.GT(sdk.NewInt(int64(len(allowlistedValidators.AllowListedValidators)))) {
+	if delegatableAmount.LT(hostChainParams.MinDeposit) {
 		// amount to delegate is too low, return early
 		return nil
 	}

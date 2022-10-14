@@ -458,13 +458,13 @@ func (k Keeper) resetToPreICATx(ctx sdk.Context, icaPacket icatypes.InterchainAc
 				return err
 			}
 			if i == 0 && sdk.MsgTypeURL(msg) == sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}) {
-				//retry entire batch of msgs since it is timedout
+				//retry entire batch of msgs since it is timed out
 				previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
 				err := k.RemoveHostAccountUndelegation(ctx, previousEpochNumber)
 				if err != nil {
 					return err
 				}
-				k.FailUnbondingEpochCValue(ctx, previousEpochNumber)
+				k.FailUnbondingEpochCValue(ctx, previousEpochNumber, sdk.NewCoin(hostChainParams.MintDenom, sdk.ZeroInt()))
 				k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %v", msgs, previousEpochNumber))
 			}
 			k.Logger(ctx).Info("ICA msg timed out, ", "msg", msg)
@@ -482,6 +482,7 @@ func (k Keeper) handleResetMsgs(ctx sdk.Context, msg sdk.Msg, hostChainParams ty
 		}
 		// Add to host-balance, because delegate txn timed out.
 		k.AddBalanceToDelegationState(ctx, parsedMsg.Amount)
+		k.RemoveICADelegateFromTransientStore(ctx, parsedMsg.Amount)
 		return nil
 	case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
 		parsedMsg, ok := msg.(*ibctransfertypes.MsgTransfer)

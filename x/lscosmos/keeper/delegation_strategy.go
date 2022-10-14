@@ -11,10 +11,15 @@ import (
 
 // DelegateMsgs gives the list of Delegate Txs to be executed based on the current state and params.
 func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.Int, denom string) ([]sdk.Msg, error) {
-	valList := k.GetAllowListedValidators(ctx)
-	delegationState := k.GetDelegationState(ctx)
+	// fetch a combined updated val set list and delegation state
+	updateValList, updatedDelegationState := k.GetAllValidatorsState(ctx)
 
-	valAddressAmount, err := FetchValidatorsToDelegate(valList, delegationState, sdk.NewCoin(denom, amount))
+	// get the current delegation state and
+	// assign the updated validator delegation state to the current delegation state
+	delegationState := k.GetDelegationState(ctx)
+	delegationState.HostAccountDelegations = updatedDelegationState.HostAccountDelegations
+
+	valAddressAmount, err := FetchValidatorsToDelegate(updateValList, delegationState, sdk.NewCoin(denom, amount))
 	if err != nil {
 		return nil, err
 	}
@@ -36,10 +41,15 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.I
 
 // UndelegateMsgs gives the list of Undelegate Txs to be executed based on the current state and params.
 func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.Int, denom string) ([]sdk.Msg, []types.UndelegationEntry, error) {
-	valList := k.GetAllowListedValidators(ctx)
-	delegationState := k.GetDelegationState(ctx)
+	// fetch a combined updated val set list and delegation state
+	updateValList, updatedDelegationState := k.GetAllValidatorsState(ctx)
 
-	valAddressAmount, err := FetchValidatorsToUndelegate(valList, delegationState, sdk.NewCoin(denom, amount))
+	// get the current delegation state and
+	// assign the updated validator delegation state to the current delegation state
+	delegationState := k.GetDelegationState(ctx)
+	delegationState.HostAccountDelegations = updatedDelegationState.HostAccountDelegations
+
+	valAddressAmount, err := FetchValidatorsToUndelegate(updateValList, delegationState, sdk.NewCoin(denom, amount))
 	if err != nil {
 		return nil, nil, err
 	}
