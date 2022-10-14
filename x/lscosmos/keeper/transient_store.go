@@ -49,7 +49,7 @@ func (k Keeper) AddICADelegateToTransientStore(ctx sdk.Context, amount sdk.Coin)
 }
 
 // RemoveICADelegateFromTransientStore removes ibctransfer tokens that are in ibc transition
-// Contract: to be used atomically with AddHostAccountDelegation
+// Contract: to be used atomically with AddHostAccountDelegation and AddBalanceToDelegationState(incase of failed txns)
 func (k Keeper) RemoveICADelegateFromTransientStore(ctx sdk.Context, amount sdk.Coin) {
 	transientStore := k.GetIBCTransientStore(ctx)
 	transientStore.ICADelegate = transientStore.ICADelegate.Sub(amount)

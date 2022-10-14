@@ -482,6 +482,7 @@ func (k Keeper) handleResetMsgs(ctx sdk.Context, msg sdk.Msg, hostChainParams ty
 		}
 		// Add to host-balance, because delegate txn timed out.
 		k.AddBalanceToDelegationState(ctx, parsedMsg.Amount)
+		k.RemoveICADelegateFromTransientStore(ctx, parsedMsg.Amount)
 		return nil
 	case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
 		parsedMsg, ok := msg.(*ibctransfertypes.MsgTransfer)
