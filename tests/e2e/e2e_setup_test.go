@@ -225,7 +225,7 @@ func (s *IntegrationTestSuite) initValidatorConfigs(c *chain) {
 		vpr.SetConfigFile(tmCfgPath)
 		s.Require().NoError(vpr.ReadInConfig())
 
-		valConfig := &tmconfig.Config{}
+		valConfig := tmconfig.DefaultConfig()
 		s.Require().NoError(vpr.Unmarshal(valConfig))
 
 		valConfig.P2P.ListenAddress = "tcp://0.0.0.0:26656"
@@ -234,7 +234,6 @@ func (s *IntegrationTestSuite) initValidatorConfigs(c *chain) {
 		valConfig.RPC.ListenAddress = "tcp://0.0.0.0:26657"
 		valConfig.StateSync.Enable = false
 		valConfig.LogLevel = "info"
-		valConfig.Storage = &tmconfig.StorageConfig{}
 
 		var peers []string
 

@@ -176,7 +176,8 @@ func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosm
 	delegationState := k.GetDelegationState(ctx)
 	hostAccounts := k.GetHostAccounts(ctx)
 	if len(delegationState.HostAccountDelegations) == 0 {
-		return lscosmostypes.ErrNoHostChainDelegations
+		//return early
+		return nil
 	}
 	withdrawRewardMsgs := make([]sdk.Msg, len(delegationState.HostAccountDelegations))
 	for i, delegation := range delegationState.HostAccountDelegations {
@@ -204,9 +205,13 @@ func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscos
 	cValue := k.GetCValue(ctx)
 	amountToUnstake, _ := k.ConvertStkToToken(ctx, sdk.NewDecCoinFromCoin(hostAccountUndelegationForEpoch.TotalUndelegationAmount), cValue)
 	amountToUnstake = sdk.NewCoin(hostChainParams.BaseDenom, amountToUnstake.Amount)
-	if amountToUnstake.IsNil() || amountToUnstake.IsZero() {
+	if amountToUnstake.IsNil() || !amountToUnstake.IsPositive() {
 		k.Logger(ctx).Info("atoms to undelegate too low")
 		return nil
+	}
+	allowListedValidators := k.GetAllowListedValidators(ctx)
+	if len(allowListedValidators.AllowListedValidators) == 0 {
+		return lscosmostypes.ErrInValidAllowListedValidators
 	}
 	delegationState := k.GetDelegationState(ctx)
 	undelegateMsgs, undelegationEntries, err := k.UndelegateMsgs(ctx, delegationState.HostChainDelegationAddress, amountToUnstake.Amount, hostChainParams.BaseDenom)
@@ -279,7 +284,7 @@ func (k Keeper) OnRecvIBCTransferPacket(ctx sdk.Context, packet channeltypes.Pac
 func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress, transferAckErr error) error {
 
 	if transferAckErr != nil {
-		return transferAckErr
+		return nil
 	}
 	var ack channeltypes.Acknowledgement
 	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
