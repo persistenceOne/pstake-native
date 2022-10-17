@@ -33,4 +33,5 @@ var (
 	ErrHostChainDelegationsLTUndelegations   = sdkerrors.Register(ModuleName, 83, "Host chain delegated amount is less than undelegations requested.")
 	ErrInvalidHostAccountOwnerIDs            = sdkerrors.Register(ModuleName, 84, "Host account owner ids are not set, was it present in default genesis?")
 	ErrModuleAlreadyEnabled                  = sdkerrors.Register(ModuleName, 85, "Module is already enabled")
+	ErrInvalidMsgs                           = sdkerrors.Register(ModuleName, 86, "Invalid Msgs")
 )

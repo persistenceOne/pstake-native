@@ -4,12 +4,14 @@ import (
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 // DelegateMsgs gives the list of Delegate Txs to be executed based on the current state and params.
+// CONTRACT: allowlistedValList.len > 0, amount > 0
 func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.Int, denom string) ([]sdk.Msg, error) {
 	// fetch a combined updated val set list and delegation state
 	updateValList, updatedDelegationState := k.GetAllValidatorsState(ctx)
@@ -24,22 +26,27 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.I
 		return nil, err
 	}
 
-	msgs := make([]sdk.Msg, len(valAddressAmount))
-
-	for i, val := range valAddressAmount {
-
-		msg := &stakingtypes.MsgDelegate{
-			DelegatorAddress: delegatorAddr,
-			ValidatorAddress: val.ValidatorAddr,
-			Amount:           val.Amount,
+	var msgs []sdk.Msg
+	for _, val := range valAddressAmount {
+		if val.Amount.IsPositive() {
+			msg := &stakingtypes.MsgDelegate{
+				DelegatorAddress: delegatorAddr,
+				ValidatorAddress: val.ValidatorAddr,
+				Amount:           val.Amount,
+			}
+			msgs = append(msgs, msg)
 		}
-		msgs[i] = msg
+	}
+
+	if len(msgs) == 0 {
+		return nil, sdkerrors.Wrap(types.ErrInvalidMsgs, "No msgs to delegate")
 	}
 
 	return msgs, nil
 }
 
 // UndelegateMsgs gives the list of Undelegate Txs to be executed based on the current state and params.
+// CONTRACT: allowlistedValList.len > 0, amount > 0
 func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.Int, denom string) ([]sdk.Msg, []types.UndelegationEntry, error) {
 	// fetch a combined updated val set list and delegation state
 	updateValList, updatedDelegationState := k.GetAllValidatorsState(ctx)
@@ -54,23 +61,29 @@ func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk
 		return nil, nil, err
 	}
 
-	msgs := make([]sdk.Msg, len(valAddressAmount))
-	undelegationEntries := make([]types.UndelegationEntry, len(valAddressAmount))
-
-	for i, val := range valAddressAmount {
+	//nolint:prealloc,len_not_fixed
+	var msgs []sdk.Msg
+	//nolint:prealloc,len_not_fixed
+	var undelegationEntries []types.UndelegationEntry
+	for _, val := range valAddressAmount {
 
 		msg := &stakingtypes.MsgUndelegate{
 			DelegatorAddress: delegatorAddr,
 			ValidatorAddress: val.ValidatorAddr,
 			Amount:           val.Amount,
 		}
-		msgs[i] = msg
+		msgs = append(msgs, msg)
 
 		undelegationEntry := types.UndelegationEntry{
 			ValidatorAddress: val.ValidatorAddr,
 			Amount:           val.Amount,
 		}
-		undelegationEntries[i] = undelegationEntry
+		undelegationEntries = append(undelegationEntries, undelegationEntry)
+	}
+
+	// should never come ideally
+	if len(msgs) == 0 || len(undelegationEntries) == 0 {
+		return nil, nil, sdkerrors.Wrap(types.ErrInvalidMsgs, "No msgs to undelegate")
 	}
 
 	return msgs, undelegationEntries, nil
