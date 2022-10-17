@@ -61,9 +61,10 @@ func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk
 		return nil, nil, err
 	}
 
+	//nolint:prealloc,len_not_fixed
 	var msgs []sdk.Msg
+	//nolint:prealloc,len_not_fixed
 	var undelegationEntries []types.UndelegationEntry
-
 	for _, val := range valAddressAmount {
 
 		msg := &stakingtypes.MsgUndelegate{
