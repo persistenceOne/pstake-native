@@ -176,7 +176,8 @@ func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosm
 	delegationState := k.GetDelegationState(ctx)
 	hostAccounts := k.GetHostAccounts(ctx)
 	if len(delegationState.HostAccountDelegations) == 0 {
-		return lscosmostypes.ErrNoHostChainDelegations
+		//return early
+		return nil
 	}
 	withdrawRewardMsgs := make([]sdk.Msg, len(delegationState.HostAccountDelegations))
 	for i, delegation := range delegationState.HostAccountDelegations {
