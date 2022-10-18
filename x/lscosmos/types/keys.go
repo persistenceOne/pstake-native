@@ -65,7 +65,7 @@ const (
 	UndelegationCompletionTimeBuffer       = time.Second * 10 //TODO change
 
 	IBCTimeoutHeightIncrement uint64 = 100
-	ICATimeoutTimestamp              = time.Minute * 1
+	ICATimeoutTimestamp              = time.Minute
 
 	CosmosValOperPrefix = "cosmosvaloper"
 )
