@@ -61,7 +61,7 @@ func TestNewMsgLiquidStakeGetSignBytes(t *testing.T) {
 	coin := sdk.NewInt64Coin("atom", 10)
 	var msg = types.NewMsgLiquidStake(coin, addr)
 	res := msg.GetSignBytes()
-	excepted := `{"amount":{"amount":"10","denom":"atom"},"delegator_address":"persistence1d9h8qat5et0urd"}`
+	excepted := `{"type":"cosmos/MsgLiquidStake","value":{"amount":{"amount":"10","denom":"atom"},"delegator_address":"persistence1d9h8qat5et0urd"}}`
 	require.Equal(t, excepted, string(res))
 
 }
