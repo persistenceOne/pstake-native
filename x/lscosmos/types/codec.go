@@ -3,12 +3,13 @@ package types
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
-func RegisterCodec(cdc *codec.LegacyAmino) {
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&RegisterHostChainProposal{}, "cosmos/RegisterHostChainProposal", nil)
 	cdc.RegisterConcrete(&MinDepositAndFeeChangeProposal{}, "cosmos/MinDepositAndFeeChangeProposal", nil)
 	cdc.RegisterConcrete(&PstakeFeeAddressChangeProposal{}, "cosmos/PstakeFeeAddressChangeProposal", nil)
@@ -45,4 +46,11 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 var (
 	Amino     = codec.NewLegacyAmino()
 	ModuleCdc = codec.NewProtoCodec(cdctypes.NewInterfaceRegistry())
+	AminoCdc  = codec.NewAminoCodec(Amino)
 )
+
+func init() {
+	RegisterLegacyAminoCodec(Amino)
+	cryptocodec.RegisterCrypto(Amino)
+	Amino.Seal()
+}

@@ -51,7 +51,7 @@ func (m *MsgLiquidStake) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing
 func (m *MsgLiquidStake) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
@@ -97,7 +97,7 @@ func (m *MsgJuice) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing
 func (m *MsgJuice) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
@@ -139,7 +139,7 @@ func (m *MsgLiquidUnstake) ValidateBasic() error {
 }
 
 func (m *MsgLiquidUnstake) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(m))
 
 }
 
@@ -181,7 +181,7 @@ func (m *MsgRedeem) ValidateBasic() error {
 }
 
 func (m *MsgRedeem) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(m))
 
 }
 
@@ -219,7 +219,7 @@ func (m *MsgClaim) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing
 func (m *MsgClaim) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
@@ -285,7 +285,7 @@ func (m *MsgJumpStart) ValidateBasic() error {
 
 // GetSignBytes encodes the message for signing
 func (m *MsgJumpStart) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
