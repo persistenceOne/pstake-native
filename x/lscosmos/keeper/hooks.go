@@ -348,7 +348,7 @@ func (k Keeper) OnTimeoutIBCTransferPacket(ctx sdk.Context, packet channeltypes.
 		// no need to return err, since most likely code is expected to enter this condition
 		return nil
 	}
-	k.Logger(ctx).Info(fmt.Sprintf("atoms tokens successfully transferred to host chain address %s, amount: %s, denom: %s", data.Receiver, data.Amount, data.Denom))
+	k.Logger(ctx).Info(fmt.Sprintf("atoms tokens timedout while transfering to host chain address %s, amount: %s, denom: %s", data.Receiver, data.Amount, data.Denom))
 
 	amount, ok := sdk.NewIntFromString(data.GetAmount())
 	if !ok {
