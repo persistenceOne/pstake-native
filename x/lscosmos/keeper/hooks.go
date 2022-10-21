@@ -325,7 +325,37 @@ func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet chann
 }
 
 func (k Keeper) OnTimeoutIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferTimeoutErr error) error {
-	// Do nothing because amount will be reverted to delegationModuleAccount.
+	// transient store needs to be reverted here.
+	if transferTimeoutErr != nil {
+		return transferTimeoutErr
+	}
+	var data ibctransfertypes.FungibleTokenPacketData
+	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return err
+	}
+	// check for tokens moved from delegationModuleAccount to it's ica counterpart.
+	hostChainParams := k.GetHostChainParams(ctx)
+	delegationState := k.GetDelegationState(ctx)
+	if packet.GetSourceChannel() != hostChainParams.TransferChannel ||
+		packet.GetSourcePort() != hostChainParams.TransferPort {
+		// no need to return err, since most likely code is expected to enter this condition
+		return nil
+	}
+
+	if data.GetSender() != authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount).String() ||
+		data.GetReceiver() != delegationState.HostChainDelegationAddress ||
+		data.GetDenom() != ibctransfertypes.GetPrefixedDenom(hostChainParams.TransferPort, hostChainParams.TransferChannel, hostChainParams.BaseDenom) {
+		// no need to return err, since most likely code is expected to enter this condition
+		return nil
+	}
+	k.Logger(ctx).Info(fmt.Sprintf("atoms tokens timedout while transferring to host chain address %s, amount: %s, denom: %s", data.Receiver, data.Amount, data.Denom))
+
+	amount, ok := sdk.NewIntFromString(data.GetAmount())
+	if !ok {
+		return ibctransfertypes.ErrInvalidAmount
+	}
+	ibcDenom := ibctransfertypes.ParseDenomTrace(data.GetDenom())
+	k.RemoveIBCTransferFromTransientStore(ctx, sdk.NewCoin(ibcDenom.IBCDenom(), amount))
 	return nil
 }
 
