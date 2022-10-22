@@ -35,7 +35,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		return nil
 	}
 	hostChainParams := k.GetHostChainParams(ctx)
-	k.Logger(ctx).Info(fmt.Sprintf("Starting AdferEndEpoch for epochIdentifier %s, epochNumber %v", epochIdentifier, epochNumber))
+	k.Logger(ctx).Info(fmt.Sprintf("Starting AfterEndEpoch for epochIdentifier %s, epochNumber %v", epochIdentifier, epochNumber))
 	if epochIdentifier == lscosmostypes.DelegationEpochIdentifier {
 		wrapperFn := func(ctx sdk.Context) error {
 			return k.DelegationEpochWorkFlow(ctx, hostChainParams)
