@@ -127,7 +127,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 			types.EventTypeLiquidStake,
 			sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
 			sdktypes.NewAttribute(types.AttributeAmount, mintToken.String()),
-			sdktypes.NewAttribute(types.AttributeAmountRecieved, mintToken.Sub(protocolCoin).String()),
+			sdktypes.NewAttribute(types.AttributeAmountReceived, mintToken.Sub(protocolCoin).String()),
 			sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolCoin.String()),
 		),
 		sdktypes.NewEvent(
@@ -193,7 +193,7 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 		sdktypes.NewEvent(
 			types.EventTypeRewardBoost,
 			sdktypes.NewAttribute(types.AttributeRewarderAddress, rewarderAddress.String()),
-			sdktypes.NewAttribute(types.AttributeAmountRecieved, rewardsBoostAmount.String()),
+			sdktypes.NewAttribute(types.AttributeAmountReceived, rewardsBoostAmount.String()),
 		),
 		sdktypes.NewEvent(
 			sdktypes.EventTypeMessage,
@@ -256,8 +256,8 @@ func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 		return nil, err
 	}
 	totalDelegations := delegationState.TotalDelegations(hostChainParams.BaseDenom)
-	baseDenomUndelegtions, _ := m.ConvertStkToToken(ctx, sdktypes.NewDecCoinFromCoin(undelegations.TotalUndelegationAmount), m.GetCValue(ctx))
-	if totalDelegations.IsLT(sdktypes.NewCoin(hostChainParams.BaseDenom, baseDenomUndelegtions.Amount)) {
+	baseDenomUndelegations, _ := m.ConvertStkToToken(ctx, sdktypes.NewDecCoinFromCoin(undelegations.TotalUndelegationAmount), m.GetCValue(ctx))
+	if totalDelegations.IsLT(sdktypes.NewCoin(hostChainParams.BaseDenom, baseDenomUndelegations.Amount)) {
 		return nil, sdkerrors.Wrapf(types.ErrHostChainDelegationsLTUndelegations, "Delegated amount: %s is less than total undelegations for the epoch: %s", totalDelegations, undelegations.TotalUndelegationAmount)
 	}
 
@@ -265,7 +265,7 @@ func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 		sdktypes.NewEvent(
 			types.EventTypeLiquidUnstake,
 			sdktypes.NewAttribute(types.AttributeDelegatorAddress, msg.GetDelegatorAddress()),
-			sdktypes.NewAttribute(types.AttributeAmountRecieved, msg.Amount.String()),
+			sdktypes.NewAttribute(types.AttributeAmountReceived, msg.Amount.String()),
 			sdktypes.NewAttribute(types.AttributePstakeUnstakeFee, pstakeFee.String()),
 			sdktypes.NewAttribute(types.AttributeUnstakeAmount, unstakeCoin.String()),
 		),
@@ -365,7 +365,7 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 			types.EventTypeRedeem,
 			sdktypes.NewAttribute(types.AttributeDelegatorAddress, redeemAddress.String()),
 			sdktypes.NewAttribute(types.AttributeAmount, msg.Amount.String()),
-			sdktypes.NewAttribute(types.AttributeAmountRecieved, redeemToken.String()),
+			sdktypes.NewAttribute(types.AttributeAmountReceived, redeemToken.String()),
 			sdktypes.NewAttribute(types.AttributePstakeRedeemFee, protocolCoin.String()),
 		),
 		sdktypes.NewEvent(
