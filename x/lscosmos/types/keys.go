@@ -62,9 +62,9 @@ const (
 	RewardEpochIdentifier                  = "day"
 	UndelegationEpochIdentifier            = "day"
 	UndelegationEpochNumberFactor    int64 = 4
-	UndelegationCompletionTimeBuffer       = time.Second * 10 //TODO change
+	UndelegationCompletionTimeBuffer       = time.Second * 60 //Does tendermint still have time drifts?
 
-	IBCTimeoutHeightIncrement uint64 = 100
+	IBCTimeoutHeightIncrement uint64 = 1000
 	ICATimeoutTimestamp              = time.Minute
 
 	CosmosValOperPrefix = "cosmosvaloper"

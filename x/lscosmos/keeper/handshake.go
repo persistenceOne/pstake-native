@@ -495,7 +495,6 @@ func (k Keeper) handleResetMsgs(ctx sdk.Context, msg sdk.Msg, hostChainParams ty
 		hostAccounts := k.GetHostAccounts(ctx)
 		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), []sdk.Msg{parsedMsg})
 		if err != nil {
-			//TODO disable module?
 			return err
 		}
 

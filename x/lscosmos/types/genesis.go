@@ -26,6 +26,15 @@ func DefaultGenesis() *GenesisState {
 func (gs GenesisState) Validate() error {
 
 	// this line is used by starport scaffolding # genesis/types/validate
-
+	if !gs.AllowListedValidators.Equal(AllowListedValidators{}) {
+		ok := gs.AllowListedValidators.Valid()
+		if !ok {
+			return ErrInValidAllowListedValidators
+		}
+	}
+	err := gs.HostAccounts.Validate()
+	if err != nil {
+		return err
+	}
 	return gs.Params.Validate()
 }

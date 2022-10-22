@@ -16,7 +16,7 @@ const (
 	AttributeKeyAck           = "acknowledgement"
 	AttributeKeyAckError      = "error"
 	AttributeAmount           = "amount"
-	AttributeAmountRecieved   = "received"
+	AttributeAmountReceived   = "received"
 	AttributeUnstakeAmount    = "undelegation-amount"
 	AttributePstakeDepositFee = "pstake-deposit-fee"
 	AttributePstakeRedeemFee  = "pstake-redeem-fee"
