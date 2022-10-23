@@ -218,19 +218,19 @@ func (m *MinDepositAndFeeChangeProposal) ValidateBasic() error {
 	}
 
 	if m.PstakeDepositFee.IsNegative() || m.PstakeDepositFee.GTE(MaxPstakeDepositFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake deposit fee must be between %s and $s", sdktypes.ZeroDec(), MaxPstakeDepositFee)
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake deposit fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeDepositFee)
 	}
 
 	if m.PstakeRestakeFee.IsNegative() || m.PstakeRestakeFee.GTE(MaxPstakeRestakeFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake restake fee must be between %s and $s", sdktypes.ZeroDec(), MaxPstakeRestakeFee)
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake restake fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeRestakeFee)
 	}
 
 	if m.PstakeUnstakeFee.IsNegative() || m.PstakeUnstakeFee.GTE(MaxPstakeUnstakeFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake unstake fee must be between %s and $s", sdktypes.ZeroDec(), MaxPstakeUnstakeFee)
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake unstake fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeUnstakeFee)
 	}
 
 	if m.PstakeRedemptionFee.IsNegative() || m.PstakeRedemptionFee.GTE(MaxPstakeRedemptionFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake redemption fee must be between %s and $s", sdktypes.ZeroDec(), MaxPstakeRedemptionFee)
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake redemption fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeRedemptionFee)
 	}
 
 	if m.MinDeposit.LTE(sdktypes.ZeroInt()) {
