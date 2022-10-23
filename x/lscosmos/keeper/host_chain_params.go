@@ -23,6 +23,7 @@ func (k Keeper) GetHostChainParams(ctx sdk.Context) types.HostChainParams {
 	return hostChainParams
 }
 
+// GetIBCDenom returns IBC denom in form of string
 func (k Keeper) GetIBCDenom(ctx sdk.Context) string {
 	hostChainParams := k.GetHostChainParams(ctx)
 	ibcDenom := ibctransfertypes.ParseDenomTrace(

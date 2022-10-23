@@ -29,11 +29,15 @@ func (k Keeper) GetDelegatorUnbondingEpochEntry(ctx sdk.Context, delegatorAddres
 	return unbondingEpochEntry
 }
 
+// RemoveDelegatorUnbondingEpochEntry removes the delegator unbonding epoch entry for the input
+// delegator address and epoch number
 func (k Keeper) RemoveDelegatorUnbondingEpochEntry(ctx sdk.Context, delegatorAddress sdk.AccAddress, epochNumber int64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetDelegatorUnbondingEpochEntryKey(delegatorAddress, epochNumber))
 }
 
+// IterateDelegatorUnbondingEpochEntry returns a list of types.DelegatorUnbondingEpochEntry by using
+// prefix for iterating through the KV store entries using the input delegator address
 func (k Keeper) IterateDelegatorUnbondingEpochEntry(ctx sdk.Context, delegatorAddress sdk.AccAddress) []types.DelegatorUnbondingEpochEntry {
 	store := ctx.KVStore(k.storeKey)
 	var delegatorUnbondingEntries []types.DelegatorUnbondingEpochEntry
@@ -52,6 +56,8 @@ func (k Keeper) IterateDelegatorUnbondingEpochEntry(ctx sdk.Context, delegatorAd
 	return delegatorUnbondingEntries
 }
 
+// IterateAllDelegatorUnbondingEpochEntry returns a list of all epoch entries ever created in the KV store
+// by using the prefix iterator
 func (k Keeper) IterateAllDelegatorUnbondingEpochEntry(ctx sdk.Context) []types.DelegatorUnbondingEpochEntry {
 	store := ctx.KVStore(k.storeKey)
 	var delegatorUnbondingEntries []types.DelegatorUnbondingEpochEntry

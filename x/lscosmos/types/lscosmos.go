@@ -9,6 +9,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 )
 
+// Valid performs validity checks on AllowListedValidators and returns bool
 func (av *AllowListedValidators) Valid() bool {
 	if av == nil {
 		return false
@@ -33,6 +34,7 @@ func (av *AllowListedValidators) Valid() bool {
 	return sum.Equal(sdk.OneDec())
 }
 
+// GetAddressMap returns a map of AllowListedValidators address as key and weights as values
 func GetAddressMap(validators AllowListedValidators) map[string]sdk.Dec {
 	addressMap := map[string]sdk.Dec{}
 
@@ -42,6 +44,7 @@ func GetAddressMap(validators AllowListedValidators) map[string]sdk.Dec {
 	return addressMap
 }
 
+// NewHostAccountDelegation returns new HostAccountDelegation
 func NewHostAccountDelegation(validatorAddress string, amount sdk.Coin) HostAccountDelegation {
 	return HostAccountDelegation{
 		ValidatorAddress: validatorAddress,
@@ -49,6 +52,7 @@ func NewHostAccountDelegation(validatorAddress string, amount sdk.Coin) HostAcco
 	}
 }
 
+// NewHostChainRewardAddress returns new HostChainRewardAddress
 func NewHostChainRewardAddress(address string) HostChainRewardAddress {
 	return HostChainRewardAddress{
 		Address: address,
@@ -88,6 +92,7 @@ func (ds DelegationState) TotalDelegations(denom string) sdk.Coin {
 	return total
 }
 
+// NewDelegatorUnbondingEpochEntry returns new DelegatorUnbondingEpochEntry
 func NewDelegatorUnbondingEpochEntry(delegatorAddress string, epochNumber int64, amount sdk.Coin) DelegatorUnbondingEpochEntry {
 	return DelegatorUnbondingEpochEntry{
 		DelegatorAddress: delegatorAddress,
@@ -101,12 +106,17 @@ func (uec *UnbondingEpochCValue) GetUnbondingEpochCValue() sdk.Dec {
 	return uec.STKBurn.Amount.ToDec().Quo(uec.AmountUnbonded.Amount.ToDec())
 }
 
+// CurrentUnbondingEpoch computes and returns current unbonding epoch to the next nearest multiple
+// 4 UndelegationEpochNumberFactor
 func CurrentUnbondingEpoch(epochNumber int64) int64 {
 	if epochNumber%UndelegationEpochNumberFactor == 0 {
 		return epochNumber
 	}
 	return epochNumber + UndelegationEpochNumberFactor - epochNumber%UndelegationEpochNumberFactor
 }
+
+// PreviousUnbondingEpoch computes and returns previous unbonding epoch to the previous nearest
+// multiple of UndelegationEpochNumberFactor
 func PreviousUnbondingEpoch(epochNumber int64) int64 {
 	if epochNumber%UndelegationEpochNumberFactor == 0 {
 		return epochNumber - UndelegationEpochNumberFactor
@@ -114,6 +124,7 @@ func PreviousUnbondingEpoch(epochNumber int64) int64 {
 	return epochNumber - epochNumber%UndelegationEpochNumberFactor
 }
 
+// DelegatorAccountPortID returns  delegator account port ID
 func (hostAccounts *HostAccounts) DelegatorAccountPortID() string {
 	delegatorAccountPortID, err := icatypes.NewControllerPortID(hostAccounts.DelegatorAccountOwnerID)
 	if err != nil {
@@ -122,6 +133,7 @@ func (hostAccounts *HostAccounts) DelegatorAccountPortID() string {
 	return delegatorAccountPortID
 }
 
+// RewardsAccountPortID returns rewards account port ID
 func (hostAccounts *HostAccounts) RewardsAccountPortID() string {
 	rewardsAccountPortID, err := icatypes.NewControllerPortID(hostAccounts.RewardsAccountOwnerID)
 	if err != nil {
@@ -130,6 +142,7 @@ func (hostAccounts *HostAccounts) RewardsAccountPortID() string {
 	return rewardsAccountPortID
 }
 
+// Validate returns error if contents do not pass the expected checks
 func (hostAccounts *HostAccounts) Validate() error {
 	if hostAccounts.RewardsAccountOwnerID == "" || hostAccounts.DelegatorAccountOwnerID == "" {
 		return ErrInvalidHostAccountOwnerIDs

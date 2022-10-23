@@ -10,9 +10,7 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
-// NewHandler ...
 func NewHandler(k keeper.Keeper) sdk.Handler {
-	// this line is used by starport scaffolding # handler/msgServer
 
 	msgServer := keeper.NewMsgServerImpl(k)
 

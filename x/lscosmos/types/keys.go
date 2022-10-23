@@ -58,18 +58,32 @@ const (
 	// RewardBoosterModuleAccount RewardBoosterModuleAccountName
 	RewardBoosterModuleAccount = ModuleName + "_reward_booster_account"
 
-	DelegationEpochIdentifier              = "day"
-	RewardEpochIdentifier                  = "day"
-	UndelegationEpochIdentifier            = "day"
-	UndelegationEpochNumberFactor    int64 = 4
-	UndelegationCompletionTimeBuffer       = time.Second * 60 //Does tendermint still have time drifts?
+	// DelegationEpochIdentifier is the identifier for delegation epoch
+	DelegationEpochIdentifier = "day"
 
+	// RewardEpochIdentifier is the identifier for rewards epoch
+	RewardEpochIdentifier = "day"
+
+	// UndelegationEpochIdentifier is the identifier for undelegation epoch
+	UndelegationEpochIdentifier = "day"
+
+	// UndelegationEpochNumberFactor is the undelegation epoch number factor
+	UndelegationEpochNumberFactor int64 = 4
+
+	// UndelegationCompletionTimeBuffer is the undeleagation completion time buffer
+	UndelegationCompletionTimeBuffer = time.Second * 60 //Does tendermint still have time drifts?
+
+	// IBCTimeoutHeightIncrement is the IBC timeout height incerement
 	IBCTimeoutHeightIncrement uint64 = 1000
-	ICATimeoutTimestamp              = time.Minute
 
+	// ICATimeoutTimestamp is the ICA timeout time stamp
+	ICATimeoutTimestamp = time.Minute
+
+	// CosmosValOperPrefix is the prefix for cosmos validator address
 	CosmosValOperPrefix = "cosmosvaloper"
 )
 
+// fee limits
 var (
 	MaxPstakeDepositFee    = sdk.MustNewDecFromStr("0.5")
 	MaxPstakeRestakeFee    = sdk.MustNewDecFromStr("0.2")
@@ -81,25 +95,31 @@ var (
 var (
 	// PortKey defines the key to store the port ID in store
 
-	ModuleEnableKey                 = []byte{0x01}
-	HostChainParamsKey              = []byte{0x02}
-	AllowListedValidatorsKey        = []byte{0x03}
-	DelegationStateKey              = []byte{0x04}
-	HostChainRewardAddressKey       = []byte{0x05}
-	IBCTransientStoreKey            = []byte{0x06}
-	UnbondingEpochCValueKey         = []byte{0x07}
-	DelegatorUnbondingEpochEntryKey = []byte{0x08}
-	HostAccountsKey                 = []byte{0x09}
+	ModuleEnableKey                 = []byte{0x01} // key for module state
+	HostChainParamsKey              = []byte{0x02} // key for host chain params
+	AllowListedValidatorsKey        = []byte{0x03} // key for allow listed validators
+	DelegationStateKey              = []byte{0x04} // key for delegation state
+	HostChainRewardAddressKey       = []byte{0x05} // key for host chain address
+	IBCTransientStoreKey            = []byte{0x06} // key for IBC transient store
+	UnbondingEpochCValueKey         = []byte{0x07} // prefix for unbodning epoch c value store
+	DelegatorUnbondingEpochEntryKey = []byte{0x08} // prefix for delegator unbonding epoch entry
+	HostAccountsKey                 = []byte{0x09} // key for host accounts
 )
 
+// GetUnbondingEpochCValueKey returns a slice of byte made of UnbondingEpochCValueKey and epoch number
+// coverted to bytes
 func GetUnbondingEpochCValueKey(epochNumber int64) []byte {
 	return append(UnbondingEpochCValueKey, []byte(strconv.FormatInt(epochNumber, 10))...)
 }
 
+// GetDelegatorUnbondingEpochEntryKey returns a slice of byte made of DelegatorUnbondingEpochEntryKey,
+// delegator address as bytes and epoch number converted to bytes
 func GetDelegatorUnbondingEpochEntryKey(delegatorAddress sdk.AccAddress, epochNumber int64) []byte {
 	return append(append(DelegatorUnbondingEpochEntryKey, address.MustLengthPrefix(delegatorAddress)...), []byte(strconv.FormatInt(epochNumber, 10))...)
 }
 
+// GetPartialDelegatorUnbondingEpochEntryKey returns a slice of byte made of DelegatorUnbondingEpochEntryKey
+// and delegator address as bytes
 func GetPartialDelegatorUnbondingEpochEntryKey(delegatorAddress sdk.AccAddress) []byte {
 	return append(DelegatorUnbondingEpochEntryKey, address.MustLengthPrefix(delegatorAddress)...)
 }

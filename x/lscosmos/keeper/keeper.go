@@ -17,6 +17,7 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
+// Keeper of this module maintains the state of whole module
 type Keeper struct {
 	cdc        codec.BinaryCodec
 	storeKey   sdk.StoreKey
@@ -37,6 +38,7 @@ type Keeper struct {
 	msgRouter *baseapp.MsgServiceRouter
 }
 
+// NewKeeper returns a new instance of ls cosmos module keeper
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey,
@@ -78,6 +80,7 @@ func NewKeeper(
 	}
 }
 
+// Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
@@ -121,22 +124,27 @@ func (k Keeper) NewCapability(ctx sdk.Context, name string) error {
 	return err
 }
 
+// GetDepositModuleAccount returns deposit module account interface
 func (k Keeper) GetDepositModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.DepositModuleAccount)
 }
 
+// GetDelegationModuleAccount returns the delegation module account interface
 func (k Keeper) GetDelegationModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.DelegationModuleAccount)
 }
 
+// GetRewardModuleAccount returns the reward module account interface
 func (k Keeper) GetRewardModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.RewardModuleAccount)
 }
 
+// GetUndelegationModuleAccount returns the undelegation module account interface
 func (k Keeper) GetUndelegationModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.UndelegationModuleAccount)
 }
 
+// GetRewardBoosterModuleAccount returns the rewards booster module account interface
 func (k Keeper) GetRewardBoosterModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.RewardBoosterModuleAccount)
 }

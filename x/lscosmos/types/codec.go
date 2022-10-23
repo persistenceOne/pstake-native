@@ -9,6 +9,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
+// RegisterLegacyAminoCodec registers the necessary x/lscosmos interfaces and concrete types
+// on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&RegisterHostChainProposal{}, "cosmos/RegisterHostChainProposal", nil)
 	cdc.RegisterConcrete(&MinDepositAndFeeChangeProposal{}, "cosmos/MinDepositAndFeeChangeProposal", nil)
@@ -22,6 +24,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgJumpStart{}, "cosmos/MsgJumpStart", nil)
 }
 
+// RegisterInterfaces registers the x/lscosmos interfaces types with the interface registry
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgLiquidStake{},
@@ -44,7 +47,14 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 }
 
 var (
-	Amino     = codec.NewLegacyAmino()
+	Amino = codec.NewLegacyAmino()
+
+	// ModuleCdc references the global x/lscosmos module codec. Note, the codec should
+	// ONLY be used in certain instances of tests and for JSON encoding as Amino is
+	// still used for that purpose.
+	//
+	// The actual codec used for serialization should be provided to x/lscosmos and
+	// defined at the application level.
 	ModuleCdc = codec.NewProtoCodec(cdctypes.NewInterfaceRegistry())
 	AminoCdc  = codec.NewAminoCodec(Amino)
 )

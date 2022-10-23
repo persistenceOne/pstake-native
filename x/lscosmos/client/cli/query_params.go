@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// CmdQueryParams implements the params query command
 func CmdQueryParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "params",

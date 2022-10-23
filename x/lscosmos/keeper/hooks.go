@@ -22,13 +22,11 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 	return nil
 }
 
-/*
-AfterEpochEnd handle the "stake", "reward" and "undelegate" epoch and their respective actions
-1. "stake" generates delegate transaction for delegating the amount of stake accumulated over the "stake" epoch
-2. "reward" generates delegate transaction for withdrawing and restaking the amount of stake accumulated over the "reward" epochs
-and shift the amount to next epoch if the min amount is not reached
-3. "undelegate" generated the undelegate transaction for undelegating the amount accumulated over the "undelegate" epoch
-*/
+// AfterEpochEnd handle the "stake", "reward" and "undelegate" epoch and their respective actions
+// 1. "stake" generates delegate transaction for delegating the amount of stake accumulated over the "stake" epoch
+// 2. "reward" generates delegate transaction for withdrawing and restaking the amount of stake accumulated over the "reward" epochs
+// and shift the amount to next epoch if the min amount is not reached
+// 3. "undelegate" generated the undelegate transaction for undelegating the amount accumulated over the "undelegate" epoch
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	//params := k.GetParams(ctx)
 	if !k.GetModuleState(ctx) {
@@ -88,20 +86,27 @@ type EpochsHooks struct {
 
 var _ epochstypes.EpochHooks = EpochsHooks{}
 
-// Return the wrapper struct
+// NewEpochHooks Return the wrapper struct
 func (k Keeper) NewEpochHooks() EpochsHooks {
 	return EpochsHooks{k}
 }
 
-// epochs hooks
+// BeforeEpochStart new epoch is next block of epoch end block
 func (h EpochsHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	return h.k.BeforeEpochStart(ctx, epochIdentifier, epochNumber)
 }
 
+// AfterEpochEnd gets called at the end of the epoch, end of epoch is the timestamp of first block
+// produced after epoch duration.
 func (h EpochsHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	return h.k.AfterEpochEnd(ctx, epochIdentifier, epochNumber)
 }
 
+// DelegationEpochWorkFlow handles the delegation epoch work flow :
+// 1. Checks and adds balance present in the rewards module account to delegation module account
+// 2. Checks and adds balance present in the deposit module account to delegation module account
+// 3. Checks and IBC transfers the balance present in the delegation module account to other chain
+// 4. Transfer fees to the fee address in the host chain params
 func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) error {
 	// greater than min amount, transfer from deposit to delegation, to ibctransfer.
 	// Right now we only do baseDenom
@@ -174,6 +179,8 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 	return nil
 }
 
+// RewardEpochEpochWorkFlow handles the rewards epoch work flow generates and executes the
+// ICA transaction for claiming rewards
 func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams) error {
 	// send withdraw rewards from delegators.
 	delegationState := k.GetDelegationState(ctx)
@@ -196,6 +203,13 @@ func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosm
 	// on Ack delegate txn
 }
 
+// UndelegationEpochWorkFlow handles the undelegation epoch work flow :
+// 1. Fetches host account undelegations using in GetHostAccountUndelegationForEpoch
+// 2. Convert stk coin to token using ConvertStkToToken based on the current c value
+// 3. Form undelegation messages using the current delegation state
+// 4. Generate and execute the ICA transaction for the undelegation messages
+// 5. Perform KV store changes based on the previous actions
+// Returns nil or an error based on the checks in the function
 func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmostypes.HostChainParams, epochNumber int64) error {
 	// currentEpoch always equals epochNumber during undelegation.
 	currentEpoch := lscosmostypes.CurrentUnbondingEpoch(epochNumber)
@@ -242,6 +256,10 @@ func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscos
 
 // ___________________________________________________________________________________________________
 
+// OnRecvIBCTransferPacket performs the following steps :
+// 1. Checks if the acknowledgment was a success or not
+// 2. Clears transient entries based on packet contents
+// 3. Update the matured unbonding epoch c value using MatureUnbondingEpochCValue
 func (k Keeper) OnRecvIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferAck ibcexported.Acknowledgement) error {
 	if !transferAck.Success() {
 		// Do nothing
@@ -284,6 +302,11 @@ func (k Keeper) OnRecvIBCTransferPacket(ctx sdk.Context, packet channeltypes.Pac
 	return nil
 }
 
+// OnAcknowledgementIBCTransferPacket performs the following steps :
+// 1. Returns early if there is an error
+// 2. Performs health checks the packet received
+// 3. Updates balance in the delegation state  by using AddBalanceToDelegationState
+// 4. Removes amount from IBCTransferFromTransientStore
 func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress, transferAckErr error) error {
 
 	if transferAckErr != nil {
@@ -327,6 +350,10 @@ func (k Keeper) OnAcknowledgementIBCTransferPacket(ctx sdk.Context, packet chann
 	return nil
 }
 
+// OnTimeoutIBCTransferPacket performs the following actions :
+// 1. Returns early if there is a packet timeout error
+// 2. Perform health checks on the packet received
+// 3. Remove the amount from IBCTransferFromTransientStore
 func (k Keeper) OnTimeoutIBCTransferPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferTimeoutErr error) error {
 	// transient store needs to be reverted here.
 	if transferTimeoutErr != nil {
