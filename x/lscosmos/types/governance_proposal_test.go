@@ -99,7 +99,7 @@ func TestParameterChangeProposal(t *testing.T) {
 				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
 				sdk.NewDec(10), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake deposit fee must be between 0 and 1"),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake deposit fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeDepositFee),
 		},
 		{
 			testName: "incorrect pstake restake fee",
@@ -110,7 +110,7 @@ func TestParameterChangeProposal(t *testing.T) {
 				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
 				sdk.ZeroDec(), sdk.NewDec(10), sdk.ZeroDec(), sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake restake fee must be between 0 and 1"),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake restake fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeRestakeFee),
 		},
 		{
 			testName: "incorrect pstake unstake fee",
@@ -121,7 +121,7 @@ func TestParameterChangeProposal(t *testing.T) {
 				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
 				sdk.ZeroDec(), sdk.ZeroDec(), sdk.NewDec(10), sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake unstake fee must be between 0 and 1"),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake unstake fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeUnstakeFee),
 		},
 		{
 			testName: "incorrect pstake unstake fee",
@@ -132,7 +132,7 @@ func TestParameterChangeProposal(t *testing.T) {
 				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
 				sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.NewDec(10),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake redemption fee must be between 0 and 1"),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake redemption fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeRedemptionFee),
 		},
 		{
 			testName: "incorrect deposit",
@@ -245,7 +245,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.ZeroDec(),
 				sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake deposit fee must be between 0 and 1"),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake deposit fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeDepositFee),
 		},
 		{
 			testName: "incorrect pstake restake fee",
@@ -258,7 +258,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.ZeroDec(),
 				sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake restake fee must be between 0 and 1"),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake restake fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeRestakeFee),
 		},
 		{
 			testName: "incorrect pstake unstake fee",
@@ -271,7 +271,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.NewDec(10),
 				sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake unstake fee must be between 0 and 1"),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake unstake fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeUnstakeFee),
 		},
 		{
 			testName: "incorrect pstake unstake fee",
@@ -284,7 +284,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.ZeroDec(),
 				sdk.NewDec(10),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake redemption fee must be between 0 and 1"),
+			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake redemption fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeRedemptionFee),
 		},
 		{
 			testName: "incorrect deposit",
