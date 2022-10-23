@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 )
 
@@ -16,11 +17,17 @@ func (av *AllowListedValidators) Valid() bool {
 		return false
 	}
 
+	noDuplicate := make(map[string]bool)
 	sum := sdk.ZeroDec()
 	for _, v := range av.AllowListedValidators {
 		if _, err := ValAddressFromBech32(v.ValidatorAddress); err != nil {
 			return false
 		}
+		_, ok := noDuplicate[v.ValidatorAddress]
+		if ok {
+			return false
+		}
+		noDuplicate[v.ValidatorAddress] = true
 		sum = sum.Add(v.TargetWeight)
 	}
 	return sum.Equal(sdk.OneDec())
@@ -126,6 +133,30 @@ func (hostAccounts *HostAccounts) RewardsAccountPortID() string {
 func (hostAccounts *HostAccounts) Validate() error {
 	if hostAccounts.RewardsAccountOwnerID == "" || hostAccounts.DelegatorAccountOwnerID == "" {
 		return ErrInvalidHostAccountOwnerIDs
+	}
+	return nil
+}
+
+func (pstakeParams *PstakeParams) Validate() error {
+	_, err := sdk.AccAddressFromBech32(pstakeParams.PstakeFeeAddress)
+	if err != nil {
+		return err
+	}
+
+	if pstakeParams.PstakeDepositFee.IsNegative() || pstakeParams.PstakeDepositFee.GTE(MaxPstakeDepositFee) {
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake deposit fee must be between %s and %s", sdk.ZeroDec(), MaxPstakeDepositFee)
+	}
+
+	if pstakeParams.PstakeRestakeFee.IsNegative() || pstakeParams.PstakeRestakeFee.GTE(MaxPstakeRestakeFee) {
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake restake fee must be between %s and %s", sdk.ZeroDec(), MaxPstakeRestakeFee)
+	}
+
+	if pstakeParams.PstakeUnstakeFee.IsNegative() || pstakeParams.PstakeUnstakeFee.GTE(MaxPstakeUnstakeFee) {
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake unstake fee must be between %s and %s", sdk.ZeroDec(), MaxPstakeUnstakeFee)
+	}
+
+	if pstakeParams.PstakeRedemptionFee.IsNegative() || pstakeParams.PstakeRedemptionFee.GTE(MaxPstakeRedemptionFee) {
+		return sdkerrors.Wrapf(ErrInvalidFee, "pstake redemption fee must be between %s and %s", sdk.ZeroDec(), MaxPstakeRedemptionFee)
 	}
 	return nil
 }

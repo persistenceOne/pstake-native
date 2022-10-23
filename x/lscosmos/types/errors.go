@@ -34,4 +34,5 @@ var (
 	ErrInvalidHostAccountOwnerIDs            = sdkerrors.Register(ModuleName, 84, "Host account owner ids are not set, was it present in default genesis?")
 	ErrModuleAlreadyEnabled                  = sdkerrors.Register(ModuleName, 85, "Module is already enabled")
 	ErrInvalidMsgs                           = sdkerrors.Register(ModuleName, 86, "Invalid Msgs")
+	ErrEqualBaseAndMintDenom                 = sdkerrors.Register(ModuleName, 87, "BaseDenom and mintDenom cannot be same")
 )
