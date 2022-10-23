@@ -107,7 +107,7 @@ var (
 )
 
 // GetUnbondingEpochCValueKey returns a slice of byte made of UnbondingEpochCValueKey and epoch number
-// coverted to bytes
+// converted to bytes
 func GetUnbondingEpochCValueKey(epochNumber int64) []byte {
 	return append(UnbondingEpochCValueKey, []byte(strconv.FormatInt(epochNumber, 10))...)
 }
