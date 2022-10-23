@@ -160,8 +160,11 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 	remainingDelegationBalance := allDelegationBalances.Sub(sdk.NewCoins(delegationBalance))
 
 	if !remainingDelegationBalance.Empty() {
-		feeAddr := sdk.MustAccAddressFromBech32(hostChainParams.PstakeParams.PstakeFeeAddress)
-		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, lscosmostypes.DelegationModuleAccount, feeAddr, remainingDelegationBalance)
+		feeAddr, err := sdk.AccAddressFromBech32(hostChainParams.PstakeParams.PstakeFeeAddress)
+		if err != nil {
+			return err
+		}
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, lscosmostypes.DelegationModuleAccount, feeAddr, remainingDelegationBalance)
 		if err != nil {
 			k.Logger(ctx).Error(fmt.Sprintf("could not send remaining balance: %s in delegationModuleAccount: %s with error: %s", remainingDelegationBalance, lscosmostypes.DelegationModuleAccount, err))
 			return err
