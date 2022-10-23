@@ -471,6 +471,12 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 		return nil, err
 	}
 	m.SetHostAccounts(ctx, msg.HostAccounts)
+
+	// check fees limits
+	if err := msg.PstakeParams.Validate(); err != nil {
+		return nil, err
+	}
+
 	// do proposal things
 	if msg.TransferPort != ibctransfertypes.PortID {
 		return nil, sdkerrors.Wrap(ibcporttypes.ErrInvalidPort, "Only acceptable TransferPort is \"transfer\"")

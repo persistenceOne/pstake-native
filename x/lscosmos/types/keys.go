@@ -71,7 +71,11 @@ const (
 )
 
 var (
-	MaxCValue = sdk.MustNewDecFromStr("1.1")
+	MaxPstakeDepositFee    = sdk.MustNewDecFromStr("0.5")
+	MaxPstakeRestakeFee    = sdk.MustNewDecFromStr("0.2")
+	MaxPstakeUnstakeFee    = sdk.MustNewDecFromStr("0.5")
+	MaxPstakeRedemptionFee = sdk.MustNewDecFromStr("0.2")
+	MaxCValue              = sdk.MustNewDecFromStr("1.1")
 )
 
 var (
