@@ -28,7 +28,7 @@ func TestNewRegisterChainJSON(t *testing.T) {
 		"0.1",
 		"1000stake",
 		types.AllowListedValidators{
-			AllowListedValidators: types.AllowListedVals{{
+			AllowListedValidators: []types.AllowListedValidator{{
 				ValidatorAddress: "Valaddr",
 				TargetWeight:     sdk.OneDec(),
 			}}},
@@ -88,7 +88,7 @@ func TestNewAllowListedValidatorSetChangeProposalJSON(t *testing.T) {
 		"description",
 		"1000stake",
 		types.AllowListedValidators{
-			AllowListedValidators: types.AllowListedVals{{
+			AllowListedValidators: []types.AllowListedValidator{{
 				ValidatorAddress: "Valaddr",
 				TargetWeight:     sdk.OneDec(),
 			}}},
