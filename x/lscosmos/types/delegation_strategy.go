@@ -6,7 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// WeightedAddressAmount :
+// WeightedAddressAmount defines address and their corresponding weight, amount, denom
+// unbonding tokens
 type WeightedAddressAmount struct {
 	Address         string
 	Weight          sdk.Dec
@@ -15,7 +16,7 @@ type WeightedAddressAmount struct {
 	UnbondingTokens sdk.Coin
 }
 
-// ValAddressAmount :
+// ValAddressAmount defines validator address and it's corresponding amount
 type ValAddressAmount struct {
 	ValidatorAddr string
 	Amount        sdk.Coin

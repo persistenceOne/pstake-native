@@ -74,10 +74,12 @@ type ScopedKeeper interface {
 	NewCapability(ctx sdk.Context, name string) (*capabilitytypes.Capability, error)
 }
 
+// IBCTransferKeeper defines the expected IBC transfer keeper
 type IBCTransferKeeper interface {
 	DenomPathFromHash(ctx sdk.Context, denom string) (string, error)
 }
 
+// ICAControllerKeeper defines the expected ICA controller keeper
 type ICAControllerKeeper interface {
 	RegisterInterchainAccount(ctx sdk.Context, connectionID, owner string) error
 	GetInterchainAccountAddress(ctx sdk.Context, connectionID, portID string) (string, bool)
@@ -85,6 +87,7 @@ type ICAControllerKeeper interface {
 	GetOpenActiveChannel(ctx sdk.Context, connectionID, portID string) (string, bool)
 }
 
+// ICQKeeper defines the expected ICQ keeper
 type ICQKeeper interface {
 	MakeRequest(ctx sdk.Context, connectionID string, chainID string, queryType string, request []byte, period sdk.Int, module string, callbackID string, ttl uint64)
 }

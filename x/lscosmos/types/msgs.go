@@ -119,10 +119,13 @@ func NewMsgLiquidUnstake(address sdk.AccAddress, amount sdk.Coin) *MsgLiquidUnst
 	}
 }
 
+// Route should return the name of the module
 func (m *MsgLiquidUnstake) Route() string { return RouterKey }
 
+// Type should return the action
 func (m *MsgLiquidUnstake) Type() string { return MsgTypeLiquidUnstake }
 
+// ValidateBasic performs stateless checks
 func (m *MsgLiquidUnstake) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
@@ -138,11 +141,13 @@ func (m *MsgLiquidUnstake) ValidateBasic() error {
 	return nil
 }
 
+// GetSignBytes encodes the message for signing
 func (m *MsgLiquidUnstake) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(m))
 
 }
 
+// GetSigners defines whose signature is required
 func (m *MsgLiquidUnstake) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
 	if err != nil {
@@ -161,10 +166,13 @@ func NewMsgRedeem(address sdk.AccAddress, amount sdk.Coin) *MsgRedeem {
 	}
 }
 
+// Route should return the name of the module
 func (m *MsgRedeem) Route() string { return RouterKey }
 
+// Type should return the action
 func (m *MsgRedeem) Type() string { return MsgTypeRedeem }
 
+// ValidateBasic performs stateless checks
 func (m *MsgRedeem) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
@@ -180,11 +188,13 @@ func (m *MsgRedeem) ValidateBasic() error {
 	return nil
 }
 
+// GetSignBytes encodes the message for signing
 func (m *MsgRedeem) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(m))
 
 }
 
+// GetSigners defines whose signature is required
 func (m *MsgRedeem) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
 	if err != nil {
