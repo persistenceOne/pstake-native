@@ -47,6 +47,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	return cmd
 }
 
+// CmdQueryHostChainParams implements the host chain params query command
 func CmdQueryHostChainParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "host-chain-params",
@@ -71,6 +72,7 @@ func CmdQueryHostChainParams() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryDelegationState implments the delegation state query command
 func CmdQueryDelegationState() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delegation-state",
@@ -95,6 +97,7 @@ func CmdQueryDelegationState() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryAllowListedValidators implements the allow listed validators query command.
 func CmdQueryAllowListedValidators() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "allow-listed-validators",
@@ -119,6 +122,7 @@ func CmdQueryAllowListedValidators() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryCValue implements the c value query command
 func CmdQueryCValue() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "c-value",
@@ -143,6 +147,7 @@ func CmdQueryCValue() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryModuleState implements the module state query command
 func CmdQueryModuleState() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "module-state",
@@ -167,6 +172,7 @@ func CmdQueryModuleState() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryIBCTransientStore implements the IBC transient store query command
 func CmdQueryIBCTransientStore() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ibc-transient-store",
@@ -191,6 +197,7 @@ func CmdQueryIBCTransientStore() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryUnclaimed implements the unclaimed unbondings query command
 func CmdQueryUnclaimed() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unclaimed [delegator-address]",
@@ -220,6 +227,7 @@ func CmdQueryUnclaimed() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryFailedUnbondings implements the failed unbondings query command
 func CmdQueryFailedUnbondings() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "failed-unbondings [delegator-address]",
@@ -249,6 +257,7 @@ func CmdQueryFailedUnbondings() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryPendingUnbondings implements the pending unbondings query command
 func CmdQueryPendingUnbondings() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pending-unbondings [delegator-address]",
@@ -278,6 +287,7 @@ func CmdQueryPendingUnbondings() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryUnbondingEpoch implements the unbonding epoch query command
 func CmdQueryUnbondingEpoch() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unbonding-epoch [epoch-number]",
@@ -307,6 +317,7 @@ func CmdQueryUnbondingEpoch() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryHostAccountUndelegation implements the host account undelegation query command
 func CmdQueryHostAccountUndelegation() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "host-account-undelegation [epoch-number]",
@@ -336,6 +347,7 @@ func CmdQueryHostAccountUndelegation() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryDelegatorUnbodingEpochEntry implements the delegation unbonding epoch entry query command
 func CmdQueryDelegatorUnbodingEpochEntry() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delegator-unbonding-epoch-entry [delegator-address] [epoch-number]",
@@ -370,6 +382,7 @@ func CmdQueryDelegatorUnbodingEpochEntry() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryRewardsBoosterAccount implements the rewards booster query command
 func CmdQueryRewardsBoosterAccount() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rewards-booster-account",
@@ -394,6 +407,7 @@ func CmdQueryRewardsBoosterAccount() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryHostAccounts implements the host accounts query command
 func CmdQueryHostAccounts() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "host-accounts",
@@ -418,6 +432,7 @@ func CmdQueryHostAccounts() *cobra.Command {
 	return cmd
 }
 
+// CmdQueryDepositModuleAccount implements the deposit module account query command
 func CmdQueryDepositModuleAccount() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deposit-module-account",
@@ -442,6 +457,7 @@ func CmdQueryDepositModuleAccount() *cobra.Command {
 	return cmd
 }
 
+// CmdDelegatorUnbondingEpochEntries implements the delegator unbonding epoch entries query command
 func CmdDelegatorUnbondingEpochEntries() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delegator-unbonding-epoch-entries [delegator-address]",

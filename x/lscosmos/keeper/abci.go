@@ -11,6 +11,8 @@ import (
 	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
+// BeginBlock will use utils.ApplyFuncIfNoError to apply the changes made by the functions
+// passed as parameters
 func (k Keeper) BeginBlock(ctx sdk.Context) {
 	if !k.GetModuleState(ctx) {
 		return
@@ -27,6 +29,8 @@ func (k Keeper) BeginBlock(ctx sdk.Context) {
 
 }
 
+// DoDelegate generates and executes ICA transactions based on the generated delegation state
+// from DelegateMsgs
 func (k Keeper) DoDelegate(ctx sdk.Context) error {
 	hostChainParams := k.GetHostChainParams(ctx)
 	delegationState := k.GetDelegationState(ctx)
@@ -38,6 +42,9 @@ func (k Keeper) DoDelegate(ctx sdk.Context) error {
 		// amount to delegate is too low, return early
 		return nil
 	}
+
+	// generate delegate messages based on the delegatable amount and current validators
+	// delegation state
 	msgs, err := k.DelegateMsgs(ctx, delegationState.HostChainDelegationAddress, delegatableAmount, hostChainParams.BaseDenom)
 	if err != nil {
 		return err
@@ -54,6 +61,8 @@ func (k Keeper) DoDelegate(ctx sdk.Context) error {
 	return nil
 }
 
+// ProcessMaturedUndelegation processes all the matured delegations by fetching all the host
+// account matired delegations and processing them one by one
 func (k Keeper) ProcessMaturedUndelegation(ctx sdk.Context) error {
 	hostChainParams := k.GetHostChainParams(ctx)
 	delegationState := k.GetDelegationState(ctx)

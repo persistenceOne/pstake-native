@@ -27,6 +27,7 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
+// LiquidStake defines a method for liquid staking tokens
 func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake) (*types.MsgLiquidStakeResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
@@ -139,6 +140,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	return &types.MsgLiquidStakeResponse{}, nil
 }
 
+// Juice defines a method for boosting rewards without minting more stk tokens
 func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.MsgJuiceResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
@@ -204,6 +206,7 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 	return &types.MsgJuiceResponse{}, nil
 }
 
+// LiquidUnstake defines a method for unstaking the liquid staked tokens
 func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 	// sanity check for the arguments of message
@@ -278,6 +281,7 @@ func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 	return &types.MsgLiquidUnstakeResponse{}, nil
 }
 
+// Redeem defines a method for redeeming liquid staked tokens instantly
 func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.MsgRedeemResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
@@ -377,6 +381,7 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 	return &types.MsgRedeemResponse{}, nil
 }
 
+// Claim defines a method for claiming unstaked mature tokens or failed unbondings
 func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 	// sanity check for the arguments of message
@@ -448,6 +453,7 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	return &types.MsgClaimResponse{}, nil
 }
 
+// JumpStart defines a method for jump-starting the module thorugh fee address account
 func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*types.MsgJumpStartResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 	// sanity check for the arguments of message

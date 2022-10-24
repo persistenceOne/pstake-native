@@ -145,6 +145,7 @@ PstakeRedemptionFee:   %s
 	return b.String()
 }
 
+// NewHostChainParams returns HostChainParams with the input provided
 func NewHostChainParams(chainID, connectionID, channel, port, baseDenom, mintDenom, pstakefeeAddress string, minDeposit sdktypes.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee sdktypes.Dec) HostChainParams {
 	return HostChainParams{
 		ChainID:         chainID,

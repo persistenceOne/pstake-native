@@ -438,7 +438,7 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 	}
 }
 
-// When ICA execution fails
+// resetToPreICATx is called when ICA execution fails
 func (k Keeper) resetToPreICATx(ctx sdk.Context, icaPacket icatypes.InterchainAccountPacketData) error {
 	hostChainParams := k.GetHostChainParams(ctx)
 
@@ -473,6 +473,7 @@ func (k Keeper) resetToPreICATx(ctx sdk.Context, icaPacket icatypes.InterchainAc
 	}
 }
 
+// handleResetMsgs is a helper function for handling reset messages in resetToPreICATx
 func (k Keeper) handleResetMsgs(ctx sdk.Context, msg sdk.Msg, hostChainParams types.HostChainParams) error {
 	switch sdk.MsgTypeURL(msg) {
 	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):

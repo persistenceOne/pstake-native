@@ -13,7 +13,7 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
-// HostChainParams returns the stored host chain params set through proposal.
+// HostChainParams queries the host chain params
 func (k Keeper) HostChainParams(c context.Context, in *types.QueryHostChainParamsRequest) (*types.QueryHostChainParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	hostChainParams := k.GetHostChainParams(ctx)
@@ -23,6 +23,7 @@ func (k Keeper) HostChainParams(c context.Context, in *types.QueryHostChainParam
 	}, nil
 }
 
+// DelegationState queries the current delegation state
 func (k Keeper) DelegationState(c context.Context, request *types.QueryDelegationStateRequest) (*types.QueryDelegationStateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	delegationState := k.GetDelegationState(ctx)
@@ -33,6 +34,7 @@ func (k Keeper) DelegationState(c context.Context, request *types.QueryDelegatio
 
 }
 
+// AllowListedValidators queries the current allow listed validators set
 func (k Keeper) AllowListedValidators(c context.Context, request *types.QueryAllowListedValidatorsRequest) (*types.QueryAllowListedValidatorsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	allowListedValidators := k.GetAllowListedValidators(ctx)
@@ -42,6 +44,7 @@ func (k Keeper) AllowListedValidators(c context.Context, request *types.QueryAll
 	}, nil
 }
 
+// CValue computes and returns the c value
 func (k Keeper) CValue(c context.Context, request *types.QueryCValueRequest) (*types.QueryCValueResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	cValue := k.GetCValue(ctx)
@@ -51,6 +54,7 @@ func (k Keeper) CValue(c context.Context, request *types.QueryCValueRequest) (*t
 	}, nil
 }
 
+// ModuleState queries the current module state
 func (k Keeper) ModuleState(c context.Context, request *types.QueryModuleStateRequest) (*types.QueryModuleStateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	moduleState := k.GetModuleState(ctx)
@@ -60,6 +64,7 @@ func (k Keeper) ModuleState(c context.Context, request *types.QueryModuleStateRe
 	}, nil
 }
 
+// IBCTransientStore queries the current IBC transient store
 func (k Keeper) IBCTransientStore(c context.Context, request *types.QueryIBCTransientStoreRequest) (*types.QueryIBCTransientStoreResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	ibcTransientStore := k.GetIBCTransientStore(ctx)
@@ -69,6 +74,7 @@ func (k Keeper) IBCTransientStore(c context.Context, request *types.QueryIBCTran
 	}, nil
 }
 
+// Unclaimed queries the unclaimed entries corresponding to the input delegator address in types.QueryUnclaimedRequest
 func (k Keeper) Unclaimed(c context.Context, request *types.QueryUnclaimedRequest) (*types.QueryUnclaimedResponse, error) {
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -101,6 +107,8 @@ func (k Keeper) Unclaimed(c context.Context, request *types.QueryUnclaimedReques
 	return &queryResponse, nil
 }
 
+// FailedUnbondings queries the failed unbonding entries corresponding to the input delegator address in
+// types.QueryUnclaimedRequest
 func (k Keeper) FailedUnbondings(c context.Context, request *types.QueryFailedUnbondingsRequest) (*types.QueryFailedUnbondingsResponse, error) {
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -131,6 +139,8 @@ func (k Keeper) FailedUnbondings(c context.Context, request *types.QueryFailedUn
 	return &queryResponse, nil
 }
 
+// PendingUnbondings queries the pending unbonding entries corresponding to the input delegator address in
+// types.QueryUnclaimedRequest
 func (k Keeper) PendingUnbondings(c context.Context, request *types.QueryPendingUnbondingsRequest) (*types.QueryPendingUnbondingsResponse, error) {
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -161,6 +171,8 @@ func (k Keeper) PendingUnbondings(c context.Context, request *types.QueryPending
 	return &queryResponse, nil
 }
 
+// UnbondingEpochCValue queries the unbonding epoch c value details corresponding to the input epoch number
+// in types.QueryUnbondingEpochCValueRequest
 func (k Keeper) UnbondingEpochCValue(c context.Context, request *types.QueryUnbondingEpochCValueRequest) (*types.QueryUnbondingEpochCValueResponse, error) {
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -176,6 +188,8 @@ func (k Keeper) UnbondingEpochCValue(c context.Context, request *types.QueryUnbo
 	return &types.QueryUnbondingEpochCValueResponse{UnbondingEpochCValue: unbondingEpochCValue}, nil
 }
 
+// HostAccountUndelegation queries the host account undelegation details corresponding to the input epoch number
+// in types.QueryHostAccountUndelegationRequest
 func (k Keeper) HostAccountUndelegation(c context.Context, request *types.QueryHostAccountUndelegationRequest) (*types.QueryHostAccountUndelegationResponse, error) {
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -194,6 +208,8 @@ func (k Keeper) HostAccountUndelegation(c context.Context, request *types.QueryH
 	return &types.QueryHostAccountUndelegationResponse{HostAccountUndelegation: hostAccountUndelegation}, nil
 }
 
+// DelegatorUnbondingEpochEntry queries the delegator unbonding epoch entry details corresponding to the
+// input epoch number and delegator address in types.QueryDelegatorUnbondingEpochEntryRequest
 func (k Keeper) DelegatorUnbondingEpochEntry(c context.Context, request *types.QueryDelegatorUnbondingEpochEntryRequest) (*types.QueryDelegatorUnbondingEpochEntryResponse, error) {
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -218,6 +234,7 @@ func (k Keeper) DelegatorUnbondingEpochEntry(c context.Context, request *types.Q
 	return &types.QueryDelegatorUnbondingEpochEntryResponse{DelegatorUnbodingEpochEntry: unbondingEpochEntry}, nil
 }
 
+// RewardsBoosterAccount queries the rewards booster account balance
 func (k Keeper) RewardsBoosterAccount(c context.Context, request *types.QueryRewardBoosterAccountRequest) (*types.QueryRewardBoosterAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
@@ -226,12 +243,14 @@ func (k Keeper) RewardsBoosterAccount(c context.Context, request *types.QueryRew
 	return &types.QueryRewardBoosterAccountResponse{Balance: balance}, nil
 }
 
+// HostAccounts queries the host accounts
 func (k Keeper) HostAccounts(c context.Context, request *types.QueryHostAccountsRequest) (*types.QueryHostAccountsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	hostAccounts := k.GetHostAccounts(ctx)
 	return &types.QueryHostAccountsResponse{HostAccounts: hostAccounts}, nil
 }
 
+// DepositModuleAccount queries the deposit module account balance
 func (k Keeper) DepositModuleAccount(c context.Context, request *types.QueryDepositModuleAccountRequest) (*types.QueryDepositModuleAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
@@ -240,6 +259,8 @@ func (k Keeper) DepositModuleAccount(c context.Context, request *types.QueryDepo
 	return &types.QueryDepositModuleAccountResponse{Balance: balance}, nil
 }
 
+// DelegatorUnbondingEpochEntries queries all the delegator unbonding epoch entries corresponding to
+// the input delegator address in types.QueryAllDelegatorUnbondingEpochEntriesRequest
 func (k Keeper) DelegatorUnbondingEpochEntries(c context.Context, request *types.QueryAllDelegatorUnbondingEpochEntriesRequest) (*types.QueryAllDelegatorUnbondingEpochEntriesResponse, error) {
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")

@@ -12,6 +12,7 @@ func (k Keeper) GetMintedAmount(ctx sdk.Context) sdk.Int {
 	return k.bankKeeper.GetSupply(ctx, k.GetHostChainParams(ctx).MintDenom).Amount
 }
 
+// GetDepositAccountAmount returns the deposit account amount of the IBC denom
 func (k Keeper) GetDepositAccountAmount(ctx sdk.Context) sdk.Int {
 	return k.bankKeeper.GetBalance(
 		ctx,
@@ -20,6 +21,7 @@ func (k Keeper) GetDepositAccountAmount(ctx sdk.Context) sdk.Int {
 	).Amount
 }
 
+// GetDelegationAccountAmount returns the delegation account amount of the IBC denom
 func (k Keeper) GetDelegationAccountAmount(ctx sdk.Context) sdk.Int {
 	return k.bankKeeper.GetBalance(
 		ctx,
@@ -28,6 +30,7 @@ func (k Keeper) GetDelegationAccountAmount(ctx sdk.Context) sdk.Int {
 	).Amount
 }
 
+// GetIBCTransferTransientAmount returns the IBC transfer transient amount of the IBC denom
 func (k Keeper) GetIBCTransferTransientAmount(ctx sdk.Context) sdk.Int {
 	transferAmount := k.GetIBCTransientStore(ctx).IBCTransfer
 
@@ -39,6 +42,7 @@ func (k Keeper) GetIBCTransferTransientAmount(ctx sdk.Context) sdk.Int {
 	return sum
 }
 
+// GetDelegationTransientAmount returns the delegation transient amount of the IBC denom
 func (k Keeper) GetDelegationTransientAmount(ctx sdk.Context) sdk.Int {
 	icaDelegateAmount := k.GetIBCTransientStore(ctx).ICADelegate.Amount
 	if icaDelegateAmount.IsNil() {
@@ -48,6 +52,7 @@ func (k Keeper) GetDelegationTransientAmount(ctx sdk.Context) sdk.Int {
 	return icaDelegateAmount
 }
 
+// GetStakedAmount returns the total staked amount stored in delegation state
 func (k Keeper) GetStakedAmount(ctx sdk.Context) sdk.Int {
 	sum := sdk.ZeroInt()
 	for _, delegation := range k.GetDelegationState(ctx).HostAccountDelegations {
@@ -56,6 +61,7 @@ func (k Keeper) GetStakedAmount(ctx sdk.Context) sdk.Int {
 	return sum
 }
 
+// GetHostDelegationAccountAmount returns the host account delegation account amount of IBC denom
 func (k Keeper) GetHostDelegationAccountAmount(ctx sdk.Context) sdk.Int {
 	return k.GetDelegationState(ctx).HostDelegationAccountBalance.AmountOf(k.GetHostChainParams(ctx).BaseDenom)
 }
@@ -78,6 +84,7 @@ func (k Keeper) GetCValue(ctx sdk.Context) sdk.Dec {
 	return sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(stakedAmount))
 }
 
+// ConvertStkToToken converts a stk coin to token with the c value provided in the input.
 func (k Keeper) ConvertStkToToken(ctx sdk.Context, stkCoin sdk.DecCoin, cValue sdk.Dec) (sdk.Coin, sdk.DecCoin) {
 
 	// calculate the current stkToken value
@@ -86,6 +93,7 @@ func (k Keeper) ConvertStkToToken(ctx sdk.Context, stkCoin sdk.DecCoin, cValue s
 	return sdk.NewDecCoinFromDec(k.GetIBCDenom(ctx), tokenValue).TruncateDecimal()
 }
 
+// ConvertTokenToStk converts a token coin to stk coin with the c value provided in the input.
 func (k Keeper) ConvertTokenToStk(ctx sdk.Context, token sdk.DecCoin, cValue sdk.Dec) (sdk.Coin, sdk.DecCoin) {
 	mintDenom := k.GetHostChainParams(ctx).MintDenom
 

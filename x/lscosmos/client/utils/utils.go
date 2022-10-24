@@ -8,6 +8,8 @@ import (
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
+// RegisterHostChainProposalJSON defines a RegisterHostChainParamsProposal JSON input to be parsed
+// from a JSON file. Deposit is used by gov module to change status of proposal.
 type RegisterHostChainProposalJSON struct {
 	Title                 string                      `json:"title" yaml:"title"`
 	Description           string                      `json:"description" yaml:"description"`
@@ -24,6 +26,7 @@ type RegisterHostChainProposalJSON struct {
 	Deposit               string                      `json:"deposit" yaml:"deposit"`
 }
 
+// PstakeParams defines the fees and address for register host chain proposal's PstakeParams
 type PstakeParams struct {
 	PstakeDepositFee    string `json:"pstake_deposit_fee" yaml:"pstake_deposit_fee"`
 	PstakeRestakeFee    string `json:"pstake_restake_fee" yaml:"pstake_restake_fee"`
@@ -32,6 +35,7 @@ type PstakeParams struct {
 	PstakeFeeAddress    string `json:"pstake_fee_address" yaml:"pstake_fee_address"`
 }
 
+// NewRegisterChainJSON returns RegisterHostChainProposalJSON struct with input values
 func NewRegisterChainJSON(title, description string, moduleEnabled bool, chainID, connectionID, transferChannel, transferPort,
 	baseDenom, mintDenom, minDeposit, pstakeFeeAddress, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee, deposit string, allowListedValidators types.AllowListedValidators) RegisterHostChainProposalJSON {
 	return RegisterHostChainProposalJSON{
@@ -74,6 +78,8 @@ func ParseRegisterHostChainProposalJSON(cdc *codec.LegacyAmino, proposalFile str
 	return proposal, nil
 }
 
+// MinDepositAndFeeChangeProposalJSON defines a MinDepositAndFeeChangeProposal JSON input to be parsed
+// from a JSON file. Deposit is used by gov module to change status of proposal.
 type MinDepositAndFeeChangeProposalJSON struct {
 	Title               string `json:"title" yaml:"title"`
 	Description         string `json:"description" yaml:"description"`
@@ -85,6 +91,7 @@ type MinDepositAndFeeChangeProposalJSON struct {
 	Deposit             string `json:"deposit" yaml:"deposit"`
 }
 
+// NewMinDepositAndFeeChangeJSON returns MinDepositAndFeeChangeProposalJSON struct with input values
 func NewMinDepositAndFeeChangeJSON(title, description, minDeposit, pstakeDepositFee, pstakeRestakeFee,
 	pstakeUnstakeFee, pstakeRedemptionFee, deposit string) MinDepositAndFeeChangeProposalJSON {
 	return MinDepositAndFeeChangeProposalJSON{
@@ -100,7 +107,7 @@ func NewMinDepositAndFeeChangeJSON(title, description, minDeposit, pstakeDeposit
 
 }
 
-// ParseMinDepositAndFeeChangeProposalJSON reads and parses a MinDepositAndFeeChangeProposal from
+// ParseMinDepositAndFeeChangeProposalJSON reads and parses a MinDepositAndFeeChangeProposalJSON from
 // file.
 func ParseMinDepositAndFeeChangeProposalJSON(cdc *codec.LegacyAmino, proposalFile string) (MinDepositAndFeeChangeProposalJSON, error) {
 	proposal := MinDepositAndFeeChangeProposalJSON{}
@@ -116,6 +123,8 @@ func ParseMinDepositAndFeeChangeProposalJSON(cdc *codec.LegacyAmino, proposalFil
 	return proposal, nil
 }
 
+// PstakeFeeAddressChangeProposalJSON defines a PstakeFeeAddressChangeProposal JSON input to be parsed
+// from a JSON file. Deposit is used by gov module to change status of proposal.
 type PstakeFeeAddressChangeProposalJSON struct {
 	Title            string `json:"title" yaml:"title"`
 	Description      string `json:"description" yaml:"description"`
@@ -123,6 +132,7 @@ type PstakeFeeAddressChangeProposalJSON struct {
 	Deposit          string `json:"deposit" yaml:"deposit"`
 }
 
+// NewPstakeFeeAddressChangeProposalJSON returns PstakeFeeAddressChangeProposalJSON struct with input values
 func NewPstakeFeeAddressChangeProposalJSON(title, description, pstakeFeeAddress, deposit string) PstakeFeeAddressChangeProposalJSON {
 	return PstakeFeeAddressChangeProposalJSON{
 		Title:            title,
@@ -149,6 +159,8 @@ func ParsePstakeFeeAddressChangeProposalJSON(cdc *codec.LegacyAmino, proposalFil
 	return proposal, nil
 }
 
+// JumpstartTxnJSON defines a JumpStart JSON input to be parsed
+// from a JSON file.
 type AllowListedValidatorSetChangeProposalJSON struct {
 	Title                 string                      `json:"title" yaml:"title"`
 	Description           string                      `json:"description" yaml:"description"`
@@ -156,6 +168,7 @@ type AllowListedValidatorSetChangeProposalJSON struct {
 	Deposit               string                      `json:"deposit" yaml:"deposit"`
 }
 
+// NewAllowListedValidatorSetChangeProposalJSON returns AllowListedValidatorSetChangeProposalJSON struct with input values
 func NewAllowListedValidatorSetChangeProposalJSON(title, description, deposit string, allowListedValidators types.AllowListedValidators) AllowListedValidatorSetChangeProposalJSON {
 	return AllowListedValidatorSetChangeProposalJSON{
 		Title:                 title,
@@ -182,6 +195,8 @@ func ParseAllowListedValidatorSetChangeProposalJSON(cdc *codec.LegacyAmino, prop
 	return proposal, nil
 }
 
+// JumpstartTxnJSON defines a Jump start JSON input to be parsed
+// from a JSON file.
 type JumpstartTxnJSON struct {
 	ChainID               string                      `json:"chain_id" yaml:"chain_id"`
 	ConnectionID          string                      `json:"connection_id" yaml:"connection_id"`
