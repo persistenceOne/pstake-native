@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sort"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -259,6 +260,66 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 
 	}
 
+}
+
+func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSetEqual() {
+	_, ctx := suite.app, suite.ctx
+
+	denom := HostStakingDenom
+	state := testStateDataEqual(denom)
+	suite.SetupAllowListedValSetAndDelegationState(state)
+
+	// Test data
+	testMatrix := []struct {
+		given    int64
+		expected map[string]int64
+	}{
+		{
+			given: 50000000,
+			expected: map[string]int64{
+				"cosmosvalidatorAddr1": 10000000,
+				"cosmosvalidatorAddr2": 10000000,
+				"cosmosvalidatorAddr3": 10000000,
+				"cosmosvalidatorAddr4": 10000000,
+				"cosmosvalidatorAddr5": 10000000,
+			},
+		},
+	}
+
+	for _, test := range testMatrix {
+		givenCoin := sdk.NewInt64Coin(HostStakingDenom, test.given)
+		expectedMap := map[string]int64{}
+
+		for k, v := range test.expected {
+			valAddress, _ := Bech32ifyValAddressBytes(types.CosmosValOperPrefix, sdk.ValAddress(k))
+			expectedMap[valAddress] = v
+		}
+
+		allowlistedVals := suite.app.LSCosmosKeeper.GetAllowListedValidators(ctx)
+		delegationState := suite.app.LSCosmosKeeper.GetDelegationState(ctx)
+
+		// Run getIdealCurrentDelegations function with params
+		valAmounts, err := keeper.FetchValidatorsToDelegate(allowlistedVals, delegationState, givenCoin)
+		suite.Nil(err, "Error is not nil for validator to delegate")
+
+		// sort the val address amount based on address to avoid generating different lists
+		// by all validators
+		sort.Sort(valAmounts)
+
+		for i := 1; i < len(valAmounts); i++ {
+			if valAmounts[i-1].ValidatorAddr > valAmounts[i].ValidatorAddr {
+				panic("not sorted by string")
+			}
+		}
+
+		// Check outputs
+		actualMap := map[string]int64{}
+		for _, va := range valAmounts {
+			actualMap[va.ValidatorAddr] = va.Amount.Amount.Int64()
+		}
+		suite.Equal(expectedMap, actualMap, "Matching val distribution")
+
+	}
 }
 
 func TestGetIdealCurrentDelegations(t *testing.T) {
@@ -569,4 +630,157 @@ func createStateFromMap(stateMap map[string][]string, denom string) types.Weight
 		})
 	}
 	return state
+}
+
+func testStateDataEqual(denom string) types.WeightedAddressAmounts {
+	testStruct := []struct {
+		name   string
+		weight string
+		amount int64
+	}{
+		{
+			name:   "cosmosvalidatorAddr1",
+			weight: "0.2",
+			amount: 15000000, // ideal: 14000000
+		},
+		{
+			name:   "cosmosvalidatorAddr2",
+			weight: "0.2",
+			amount: 15000000, // ideal: 7000000
+		},
+		{
+			name:   "cosmosvalidatorAddr3",
+			weight: "0.2",
+			amount: 15000000, // ideal: 10500000
+		},
+		{
+			name:   "cosmosvalidatorAddr4",
+			weight: "0.2",
+			amount: 15000000, // ideal: 3500000
+		},
+		{
+			name:   "cosmosvalidatorAddr5",
+			weight: "0.2",
+			amount: 15000000, // ideal: 0
+		},
+	}
+	// Create state
+	state := types.WeightedAddressAmounts{}
+	for _, ts := range testStruct {
+		weight, _ := sdk.NewDecFromStr(ts.weight)
+		valAddress, _ := Bech32ifyValAddressBytes(types.CosmosValOperPrefix, sdk.ValAddress(ts.name))
+		state = append(state, types.WeightedAddressAmount{
+			Weight:  weight,
+			Amount:  sdk.NewInt(ts.amount),
+			Address: valAddress,
+			Denom:   denom,
+		})
+	}
+	return state
+}
+
+func (suite *IntegrationTestSuite) TestGetAllValidatorsState() {
+	app, ctx := suite.app, suite.ctx
+
+	k := app.LSCosmosKeeper
+
+	hostChainParams := k.GetHostChainParams(ctx)
+
+	allowListedValidatorsSet := types.AllowListedValidators{
+		AllowListedValidators: []types.AllowListedValidator{
+			{
+				ValidatorAddress: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2",
+				TargetWeight:     sdk.NewDecWithPrec(3, 1),
+			},
+			{
+				ValidatorAddress: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
+				TargetWeight:     sdk.NewDecWithPrec(7, 1),
+			},
+		},
+	}
+
+	k.SetAllowListedValidators(ctx, allowListedValidatorsSet)
+
+	delegationState := types.DelegationState{
+		HostAccountDelegations: []types.HostAccountDelegation{
+			{
+				ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
+				Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 200),
+			},
+			{
+				ValidatorAddress: "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2",
+				Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 100),
+			},
+			{
+				ValidatorAddress: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
+				Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 400),
+			},
+		},
+	}
+	k.SetDelegationState(ctx, delegationState)
+
+	// fetch a combined updated val set list and delegation state
+	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx)
+
+	// sort both updatedValList and hostAccountDelegations
+	sort.Sort(updateValList)
+	sort.Sort(hostAccountDelegations)
+
+	// get the current delegation state and
+	// assign the updated validator delegation state to the current delegation state
+	delegationStateS := k.GetDelegationState(ctx)
+	delegationStateS.HostAccountDelegations = hostAccountDelegations
+
+	allowListerValidators := types.AllowListedValidators{AllowListedValidators: updateValList}
+
+	list, err := keeper.FetchValidatorsToUndelegate(allowListerValidators, delegationStateS, sdk.NewInt64Coin(hostChainParams.BaseDenom, 600))
+	suite.NoError(err)
+	suite.Equal(sdk.NewInt64Coin(hostChainParams.BaseDenom, 200), list[0].Amount)
+	suite.Equal(sdk.NewInt64Coin(hostChainParams.BaseDenom, 100), list[1].Amount)
+	suite.Equal(sdk.NewInt64Coin(hostChainParams.BaseDenom, 300), list[2].Amount)
+
+	list, err = keeper.FetchValidatorsToDelegate(allowListerValidators, delegationStateS, sdk.NewInt64Coin(hostChainParams.BaseDenom, 2000))
+	suite.NoError(err)
+	suite.Equal(sdk.NewInt64Coin(hostChainParams.BaseDenom, 1490), list[0].Amount)
+	suite.Equal(sdk.NewInt64Coin(hostChainParams.BaseDenom, 510), list[1].Amount)
+
+	delegationState = types.DelegationState{
+		HostAccountDelegations: []types.HostAccountDelegation{
+			{
+				ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
+				Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 0),
+			},
+			{
+				ValidatorAddress: "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2",
+				Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 0),
+			},
+			{
+				ValidatorAddress: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
+				Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1890),
+			},
+			{
+				ValidatorAddress: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2",
+				Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 510),
+			},
+		},
+	}
+	k.SetDelegationState(ctx, delegationState)
+
+	// fetch a combined updated val set list and delegation state
+	updateValList, hostAccountDelegations = k.GetAllValidatorsState(ctx)
+
+	// sort both updatedValList and hostAccountDelegations
+	sort.Sort(updateValList)
+	sort.Sort(hostAccountDelegations)
+
+	// get the current delegation state and
+	// assign the updated validator delegation state to the current delegation state
+	delegationStateS = k.GetDelegationState(ctx)
+	delegationStateS.HostAccountDelegations = hostAccountDelegations
+
+	allowListerValidators = types.AllowListedValidators{AllowListedValidators: updateValList}
+
+	list, err = keeper.FetchValidatorsToDelegate(allowListerValidators, delegationStateS, sdk.NewInt64Coin(hostChainParams.BaseDenom, 0))
+	suite.NoError(err)
+	suite.Equal(0, len(list))
 }
