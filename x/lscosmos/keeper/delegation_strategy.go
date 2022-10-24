@@ -14,14 +14,16 @@ import (
 // CONTRACT: allowlistedValList.len > 0, amount > 0
 func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.Int, denom string) ([]sdk.Msg, error) {
 	// fetch a combined updated val set list and delegation state
-	updateValList, updatedDelegationState := k.GetAllValidatorsState(ctx)
+	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx)
 
 	// get the current delegation state and
 	// assign the updated validator delegation state to the current delegation state
 	delegationState := k.GetDelegationState(ctx)
-	delegationState.HostAccountDelegations = updatedDelegationState.HostAccountDelegations
+	delegationState.HostAccountDelegations = hostAccountDelegations
 
-	valAddressAmount, err := FetchValidatorsToDelegate(updateValList, delegationState, sdk.NewCoin(denom, amount))
+	updatedAllowListedValidators := types.AllowListedValidators{AllowListedValidators: updateValList}
+
+	valAddressAmount, err := FetchValidatorsToDelegate(updatedAllowListedValidators, delegationState, sdk.NewCoin(denom, amount))
 	if err != nil {
 		return nil, err
 	}
@@ -49,14 +51,16 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.I
 // CONTRACT: allowlistedValList.len > 0, amount > 0
 func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.Int, denom string) ([]sdk.Msg, []types.UndelegationEntry, error) {
 	// fetch a combined updated val set list and delegation state
-	updateValList, updatedDelegationState := k.GetAllValidatorsState(ctx)
+	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx)
 
 	// get the current delegation state and
 	// assign the updated validator delegation state to the current delegation state
 	delegationState := k.GetDelegationState(ctx)
-	delegationState.HostAccountDelegations = updatedDelegationState.HostAccountDelegations
+	delegationState.HostAccountDelegations = hostAccountDelegations
 
-	valAddressAmount, err := FetchValidatorsToUndelegate(updateValList, delegationState, sdk.NewCoin(denom, amount))
+	updatedAllowListedValidators := types.AllowListedValidators{AllowListedValidators: updateValList}
+
+	valAddressAmount, err := FetchValidatorsToUndelegate(updatedAllowListedValidators, delegationState, sdk.NewCoin(denom, amount))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -90,7 +94,7 @@ func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk
 }
 
 // FetchValidatorsToDelegate gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
-func FetchValidatorsToDelegate(valList types.AllowListedValidators, delegationState types.DelegationState, amount sdk.Coin) ([]types.ValAddressAmount, error) {
+func FetchValidatorsToDelegate(valList types.AllowListedValidators, delegationState types.DelegationState, amount sdk.Coin) (types.ValAddressAmounts, error) {
 	curDiffDistribution := GetIdealCurrentDelegations(valList, delegationState, amount, false)
 	sort.Sort(sort.Reverse(curDiffDistribution))
 
@@ -98,7 +102,7 @@ func FetchValidatorsToDelegate(valList types.AllowListedValidators, delegationSt
 }
 
 // FetchValidatorsToUndelegate gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
-func FetchValidatorsToUndelegate(valList types.AllowListedValidators, delegationState types.DelegationState, amount sdk.Coin) ([]types.ValAddressAmount, error) {
+func FetchValidatorsToUndelegate(valList types.AllowListedValidators, delegationState types.DelegationState, amount sdk.Coin) (types.ValAddressAmounts, error) {
 	currDiffDistribution := GetIdealCurrentDelegations(valList, delegationState, amount, true)
 	sort.Sort(sort.Reverse(currDiffDistribution))
 	return DivideUndelegateAmountIntoValidatorSet(currDiffDistribution, amount)
@@ -139,10 +143,8 @@ func GetIdealCurrentDelegations(valList types.AllowListedValidators, delegationS
 }
 
 // divideAmountWeightedSet : divides amount to be delegated or undelegated w.r.t weights.
-//
-//nolint:prealloc,len_not_fixed
-func divideAmountWeightedSet(valAmounts []types.ValAddressAmount, coin sdk.Coin, valAddressWeightMap map[string]sdk.Dec) []types.ValAddressAmount {
-	var newValAmounts []types.ValAddressAmount
+func divideAmountWeightedSet(valAmounts types.ValAddressAmounts, coin sdk.Coin, valAddressWeightMap map[string]sdk.Dec) types.ValAddressAmounts {
+	var newValAmounts types.ValAddressAmounts
 
 	totalWeight := sdk.ZeroDec()
 	for _, weight := range valAddressWeightMap {
@@ -162,10 +164,8 @@ func divideAmountWeightedSet(valAmounts []types.ValAddressAmount, coin sdk.Coin,
 
 // distributeCoinsAmongstValSet takes the validator distribution and coins to distribute and returns the
 // validator address amount to distribute and the remaining amount to make
-//
-//nolint:prealloc,len_not_fixed
-func distributeCoinsAmongstValSet(ws types.WeightedAddressAmounts, coin sdk.Coin) ([]types.ValAddressAmount, sdk.Coin) {
-	var valAddrAmts []types.ValAddressAmount
+func distributeCoinsAmongstValSet(ws types.WeightedAddressAmounts, coin sdk.Coin) (types.ValAddressAmounts, sdk.Coin) {
+	var valAddrAmts types.ValAddressAmounts
 
 	for _, w := range ws {
 		if coin.Amount.LTE(w.Amount) {
@@ -180,7 +180,7 @@ func distributeCoinsAmongstValSet(ws types.WeightedAddressAmounts, coin sdk.Coin
 }
 
 // DivideAmountIntoValidatorSet : divides amount into validator set
-func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) ([]types.ValAddressAmount, error) {
+func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) (types.ValAddressAmounts, error) {
 	if coin.IsZero() {
 		return nil, nil
 	}
@@ -201,13 +201,15 @@ func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, co
 	// validator with index zero.
 	valAmounts[0].Amount = valAmounts[0].Amount.Add(remainderCoin)
 
+	sort.Sort(valAmounts)
+
 	return valAmounts, nil
 }
 
 // DivideUndelegateAmountIntoValidatorSet : divides undelegation amount into validator set
 //
 //nolint:gocritic,len_not_fixed
-func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) ([]types.ValAddressAmount, error) {
+func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) (types.ValAddressAmounts, error) {
 	if coin.IsZero() {
 		return nil, nil
 	}
@@ -230,5 +232,77 @@ func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressA
 	valAddressMap := types.GetWeightedAddressMap(zeroValued)
 	valAmounts = divideAmountWeightedSet(valAmounts, remainderCoin, valAddressMap)
 
+	// sort the val address amount based on address to avoid generating different lists
+	// by all validators
+	sort.Sort(valAmounts)
+
 	return valAmounts, nil
+}
+
+// GetAllValidatorsState returns the combined allowed listed validators set and combined
+// delegation state. It is done to keep the old validators in the loop while calculating weighted amounts
+// for delegation and undelegation
+func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedVals, types.HostAccountDelegations) {
+	hostChainParams := k.GetHostChainParams(ctx)
+
+	// Get current active val set and make a map of it
+	currentAllowListedValSet := k.GetAllowListedValidators(ctx)
+	currentAllowListedValSetMap := make(map[string]sdk.Dec)
+	for _, val := range currentAllowListedValSet.AllowListedValidators {
+		currentAllowListedValSetMap[val.ValidatorAddress] = val.TargetWeight
+	}
+
+	// get delegation state and make a map with address as
+	currentDelegationState := k.GetDelegationState(ctx)
+	currentDelegationStateMap := make(map[string]sdk.Coin)
+	for _, delegation := range currentDelegationState.HostAccountDelegations {
+		currentDelegationStateMap[delegation.ValidatorAddress] = delegation.Amount
+	}
+
+	// get validator list from allow listed validators
+	delList := make([]string, len(currentAllowListedValSet.AllowListedValidators))
+	for i, delegation := range currentAllowListedValSet.AllowListedValidators {
+		delList[i] = delegation.ValidatorAddress
+	}
+
+	// get validator list from current delegation state
+	valList := make([]string, len(currentDelegationState.HostAccountDelegations))
+	for i, val := range currentDelegationState.HostAccountDelegations {
+		valList[i] = val.ValidatorAddress
+	}
+
+	// Assign zero weights to all the validators not present in the current allow listed validator set map
+	for _, val := range valList {
+		_, ok := currentAllowListedValSetMap[val]
+		if !ok {
+			currentAllowListedValSetMap[val] = sdk.ZeroDec()
+		}
+	}
+
+	// Convert the updated val set map to a slice of types.AllowListedValidator
+	var updatedValSet types.AllowListedVals
+	for key, value := range currentAllowListedValSetMap {
+		updatedValSet = append(updatedValSet, types.AllowListedValidator{ValidatorAddress: key, TargetWeight: value})
+	}
+
+	// Assign zero coin to all the validators not present in the current delegation state map
+	for _, val := range delList {
+		_, ok := currentDelegationStateMap[val]
+		if !ok {
+			currentDelegationStateMap[val] = sdk.NewCoin(hostChainParams.BaseDenom, sdk.ZeroInt())
+		}
+	}
+
+	// Convert the updated delegation state map to slice of types.HostChainDelegation
+	var updatedDelegationState types.HostAccountDelegations
+	for key, value := range currentDelegationStateMap {
+		updatedDelegationState = append(updatedDelegationState, types.HostAccountDelegation{ValidatorAddress: key, Amount: value})
+	}
+
+	// sort both updatedValList and hostAccountDelegations
+	sort.Sort(updatedValSet)
+	sort.Sort(updatedDelegationState)
+
+	// returns the two updated lists
+	return updatedValSet, updatedDelegationState
 }
