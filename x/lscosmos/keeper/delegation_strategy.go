@@ -280,7 +280,6 @@ func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedVals, t
 	}
 
 	// Convert the updated val set map to a slice of types.AllowListedValidator
-	//nolint:prealloc,len_not_fixed
 	var updatedValSet types.AllowListedVals
 	for key, value := range currentAllowListedValSetMap {
 		updatedValSet = append(updatedValSet, types.AllowListedValidator{ValidatorAddress: key, TargetWeight: value})
@@ -295,7 +294,6 @@ func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedVals, t
 	}
 
 	// Convert the updated delegation state map to slice of types.HostChainDelegation
-	//nolint:prealloc,len_not_fixed
 	var updatedDelegationState types.HostAccountDelegations
 	for key, value := range currentDelegationStateMap {
 		updatedDelegationState = append(updatedDelegationState, types.HostAccountDelegation{ValidatorAddress: key, Amount: value})
