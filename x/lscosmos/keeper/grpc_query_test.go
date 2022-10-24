@@ -25,7 +25,7 @@ func (suite *IntegrationTestSuite) TestQueryDelegationState() {
 	delegationState := types.DelegationState{
 		HostDelegationAccountBalance: sdk.NewCoins(sdk.NewInt64Coin(baseDenom, 100)),
 		HostChainDelegationAddress:   "address________________",
-		HostAccountDelegations: types.HostAccountDelegations{
+		HostAccountDelegations: []types.HostAccountDelegation{
 			{
 				ValidatorAddress: "address________________",
 				Amount:           sdk.NewInt64Coin(baseDenom, 25),

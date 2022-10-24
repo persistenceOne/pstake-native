@@ -24,7 +24,7 @@ func (suite *IntegrationTestSuite) TestAfterEpochEnd() {
 
 	// create delegations state for reward epoch
 	delegationState := types.DelegationState{
-		HostAccountDelegations: types.HostAccountDelegations{
+		HostAccountDelegations: []types.HostAccountDelegation{
 			{
 				ValidatorAddress: "",
 				Amount:           sdk.NewInt64Coin(lscosmosKeeper.GetHostChainParams(ctx).BaseDenom, 600000),

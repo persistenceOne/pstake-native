@@ -17,7 +17,7 @@ import (
 
 var (
 	allowListedValidators = types.AllowListedValidators{
-		AllowListedValidators: types.AllowListedVals{
+		AllowListedValidators: []types.AllowListedValidator{
 			{
 				ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
 				TargetWeight:     sdk.NewDecWithPrec(33, 2),

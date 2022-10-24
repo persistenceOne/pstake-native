@@ -19,10 +19,10 @@ var HostStakingDenom = "uatom"
 
 func (suite *IntegrationTestSuite) SetupAllowListedValSetAndDelegationState(ws types.WeightedAddressAmounts) {
 	app, ctx := suite.app, suite.ctx
-	allList := make(types.AllowListedVals, ws.Len())
+	allList := make([]types.AllowListedValidator, ws.Len())
 	allowListedVal := types.AllowListedValidators{AllowListedValidators: allList}
 
-	delList := make(types.HostAccountDelegations, ws.Len())
+	delList := make([]types.HostAccountDelegation, ws.Len())
 	delegationState := types.DelegationState{HostAccountDelegations: delList}
 	delegationState.HostAccountDelegations = delList
 	delegationState.HostChainDelegationAddress = "cosmosdelegationAddr1"
@@ -340,14 +340,14 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 		{
 			amount: 5000000,
 			givenValset: types.AllowListedValidators{
-				AllowListedValidators: types.AllowListedVals{
+				AllowListedValidators: []types.AllowListedValidator{
 					{"cosmosvalidatorAddr1", sdk.MustNewDecFromStr("0.5")},
 					{"cosmosvalidatorAddr2", sdk.MustNewDecFromStr("0.5")}},
 			},
 			givenDelegationState: types.DelegationState{
 				HostDelegationAccountBalance: sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(0))),
 				HostChainDelegationAddress:   "cosmosdelegationAddr1",
-				HostAccountDelegations: types.HostAccountDelegations{
+				HostAccountDelegations: []types.HostAccountDelegation{
 					{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2",
 						sdk.NewCoin(denom, sdk.NewInt(5000000))}},
 			},
@@ -359,14 +359,14 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 		{
 			amount: -5000000,
 			givenValset: types.AllowListedValidators{
-				AllowListedValidators: types.AllowListedVals{
+				AllowListedValidators: []types.AllowListedValidator{
 					{"cosmosvalidatorAddr1", sdk.MustNewDecFromStr("0.5")},
 					{"cosmosvalidatorAddr2", sdk.MustNewDecFromStr("0.5")}},
 			},
 			givenDelegationState: types.DelegationState{
 				HostDelegationAccountBalance: sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(0))),
 				HostChainDelegationAddress:   "cosmosdelegationAddr1",
-				HostAccountDelegations: types.HostAccountDelegations{
+				HostAccountDelegations: []types.HostAccountDelegation{
 					{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))},
 					{"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(5000000))}},
 			},
@@ -378,14 +378,14 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 		{
 			amount: 5000000,
 			givenValset: types.AllowListedValidators{
-				AllowListedValidators: types.AllowListedVals{
+				AllowListedValidators: []types.AllowListedValidator{
 					{"cosmosvalidatorAddr1", sdk.MustNewDecFromStr("0.9")},
 					{"cosmosvalidatorAddr2", sdk.MustNewDecFromStr("0.1")}},
 			},
 			givenDelegationState: types.DelegationState{
 				HostDelegationAccountBalance: sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(0))),
 				HostChainDelegationAddress:   "cosmosdelegationAddr1",
-				HostAccountDelegations:       types.HostAccountDelegations{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(40000000))}},
+				HostAccountDelegations:       []types.HostAccountDelegation{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(40000000))}},
 			},
 			expected: []testValState{
 				{"cosmosvalidatorAddr1", "", 39500000},
@@ -395,14 +395,14 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 		{
 			amount: 0,
 			givenValset: types.AllowListedValidators{
-				AllowListedValidators: types.AllowListedVals{
+				AllowListedValidators: []types.AllowListedValidator{
 					{"cosmosvalidatorAddr1", sdk.MustNewDecFromStr("0.5")},
 					{"cosmosvalidatorAddr2", sdk.MustNewDecFromStr("0.5")}},
 			},
 			givenDelegationState: types.DelegationState{
 				HostDelegationAccountBalance: sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(0))),
 				HostChainDelegationAddress:   "cosmosdelegationAddr1",
-				HostAccountDelegations:       types.HostAccountDelegations{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(10000000))}},
+				HostAccountDelegations:       []types.HostAccountDelegation{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(10000000))}},
 			},
 			expected: []testValState{
 				{"cosmosvalidatorAddr1", "", 0},
@@ -412,7 +412,7 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 		{
 			amount: 30000000,
 			givenValset: types.AllowListedValidators{
-				AllowListedValidators: types.AllowListedVals{
+				AllowListedValidators: []types.AllowListedValidator{
 					{"cosmosvalidatorAddr1", sdk.MustNewDecFromStr("0.5")},
 					{"cosmosvalidatorAddr2", sdk.MustNewDecFromStr("0.3")},
 					{"cosmosvalidatorAddr3", sdk.MustNewDecFromStr("0.2")}},
@@ -420,7 +420,7 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 			givenDelegationState: types.DelegationState{
 				HostDelegationAccountBalance: sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(0))),
 				HostChainDelegationAddress:   "cosmosdelegationAddr1",
-				HostAccountDelegations:       types.HostAccountDelegations{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr3", sdk.NewCoin(denom, sdk.NewInt(10000000))}},
+				HostAccountDelegations:       []types.HostAccountDelegation{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr3", sdk.NewCoin(denom, sdk.NewInt(10000000))}},
 			},
 			expected: []testValState{
 				{"cosmosvalidatorAddr1", "", 20000000},
@@ -431,7 +431,7 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 		{
 			amount: -10000000,
 			givenValset: types.AllowListedValidators{
-				AllowListedValidators: types.AllowListedVals{
+				AllowListedValidators: []types.AllowListedValidator{
 					{"cosmosvalidatorAddr1", sdk.MustNewDecFromStr("0.5")},
 					{"cosmosvalidatorAddr2", sdk.MustNewDecFromStr("0.3")},
 					{"cosmosvalidatorAddr3", sdk.MustNewDecFromStr("0.2")}},
@@ -439,7 +439,7 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 			givenDelegationState: types.DelegationState{
 				HostDelegationAccountBalance: sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(0))),
 				HostChainDelegationAddress:   "cosmosdelegationAddr1",
-				HostAccountDelegations:       types.HostAccountDelegations{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr3", sdk.NewCoin(denom, sdk.NewInt(10000000))}},
+				HostAccountDelegations:       []types.HostAccountDelegation{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr3", sdk.NewCoin(denom, sdk.NewInt(10000000))}},
 			},
 			expected: []testValState{
 				{"cosmosvalidatorAddr1", "", 0},
@@ -450,7 +450,7 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 		{
 			amount: -20000000,
 			givenValset: types.AllowListedValidators{
-				AllowListedValidators: types.AllowListedVals{
+				AllowListedValidators: []types.AllowListedValidator{
 					{"cosmosvalidatorAddr1", sdk.MustNewDecFromStr("0.5")},
 					{"cosmosvalidatorAddr2", sdk.MustNewDecFromStr("0.3")},
 					{"cosmosvalidatorAddr3", sdk.MustNewDecFromStr("0.2")}},
@@ -458,7 +458,7 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 			givenDelegationState: types.DelegationState{
 				HostDelegationAccountBalance: sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(0))),
 				HostChainDelegationAddress:   "cosmosdelegationAddr1",
-				HostAccountDelegations:       types.HostAccountDelegations{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr3", sdk.NewCoin(denom, sdk.NewInt(10000000))}},
+				HostAccountDelegations:       []types.HostAccountDelegation{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr3", sdk.NewCoin(denom, sdk.NewInt(10000000))}},
 			},
 			expected: []testValState{
 				{"cosmosvalidatorAddr1", "", 5000000},
@@ -469,7 +469,7 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 		{
 			amount: 10000000,
 			givenValset: types.AllowListedValidators{
-				AllowListedValidators: types.AllowListedVals{
+				AllowListedValidators: []types.AllowListedValidator{
 					{"cosmosvalidatorAddr1", sdk.MustNewDecFromStr("0.5")},
 					{"cosmosvalidatorAddr2", sdk.MustNewDecFromStr("0.5")},
 					{"cosmosvalidatorAddr3", sdk.MustNewDecFromStr("0")}},
@@ -477,7 +477,7 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 			givenDelegationState: types.DelegationState{
 				HostDelegationAccountBalance: sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(0))),
 				HostChainDelegationAddress:   "cosmosdelegationAddr1",
-				HostAccountDelegations:       types.HostAccountDelegations{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr3", sdk.NewCoin(denom, sdk.NewInt(10000000))}},
+				HostAccountDelegations:       []types.HostAccountDelegation{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr3", sdk.NewCoin(denom, sdk.NewInt(10000000))}},
 			},
 			expected: []testValState{
 				{"cosmosvalidatorAddr1", "", 10000000},
@@ -488,7 +488,7 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 		{
 			amount: 10000000,
 			givenValset: types.AllowListedValidators{
-				AllowListedValidators: types.AllowListedVals{
+				AllowListedValidators: []types.AllowListedValidator{
 					{"cosmosvalidatorAddr1", sdk.MustNewDecFromStr("0.5")},
 					{"cosmosvalidatorAddr2", sdk.MustNewDecFromStr("0.4")},
 					{"cosmosvalidatorAddr3", sdk.MustNewDecFromStr("0")},
@@ -497,7 +497,7 @@ func TestGetIdealCurrentDelegations(t *testing.T) {
 			givenDelegationState: types.DelegationState{
 				HostDelegationAccountBalance: sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(0))),
 				HostChainDelegationAddress:   "cosmosdelegationAddr1",
-				HostAccountDelegations:       types.HostAccountDelegations{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr3", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr4", sdk.NewCoin(denom, sdk.NewInt(10000000))}},
+				HostAccountDelegations:       []types.HostAccountDelegation{{"cosmosvalidatorAddr1", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr2", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr3", sdk.NewCoin(denom, sdk.NewInt(10000000))}, {"cosmosvalidatorAddr4", sdk.NewCoin(denom, sdk.NewInt(10000000))}},
 			},
 			expected: []testValState{
 				{"cosmosvalidatorAddr1", "", 15000000},

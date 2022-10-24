@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"sort"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
@@ -31,7 +32,7 @@ func (suite *IntegrationTestSuite) TestGetAllValidatorsState() {
 	hostChainParams := k.GetHostChainParams(ctx)
 
 	allowListedValidatorsSet := types.AllowListedValidators{
-		AllowListedValidators: types.AllowListedVals{
+		AllowListedValidators: []types.AllowListedValidator{
 			{
 				ValidatorAddress: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2",
 				TargetWeight:     sdk.NewDecWithPrec(3, 1),
@@ -46,7 +47,7 @@ func (suite *IntegrationTestSuite) TestGetAllValidatorsState() {
 	k.SetAllowListedValidators(ctx, allowListedValidatorsSet)
 
 	delegationState := types.DelegationState{
-		HostAccountDelegations: types.HostAccountDelegations{
+		HostAccountDelegations: []types.HostAccountDelegation{
 			{
 				ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
 				Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 200),
@@ -64,26 +65,32 @@ func (suite *IntegrationTestSuite) TestGetAllValidatorsState() {
 	k.SetDelegationState(ctx, delegationState)
 
 	// fetch a combined updated val set list and delegation state
-	updateValList, updatedDelegationState := k.GetAllValidatorsState(ctx)
+	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx)
+
+	// sort both updatedValList and hostAccountDelegations
+	sort.Sort(updateValList)
+	sort.Sort(hostAccountDelegations)
 
 	// get the current delegation state and
 	// assign the updated validator delegation state to the current delegation state
 	delegationStateS := k.GetDelegationState(ctx)
-	delegationStateS.HostAccountDelegations = updatedDelegationState.HostAccountDelegations
+	delegationStateS.HostAccountDelegations = hostAccountDelegations
 
-	list, err := keeper.FetchValidatorsToUndelegate(updateValList, delegationStateS, sdk.NewInt64Coin(hostChainParams.BaseDenom, 600))
+	allowListerValidators := types.AllowListedValidators{AllowListedValidators: updateValList}
+
+	list, err := keeper.FetchValidatorsToUndelegate(allowListerValidators, delegationStateS, sdk.NewInt64Coin(hostChainParams.BaseDenom, 600))
 	suite.NoError(err)
 	suite.Equal(sdk.NewInt64Coin(hostChainParams.BaseDenom, 200), list[0].Amount)
 	suite.Equal(sdk.NewInt64Coin(hostChainParams.BaseDenom, 100), list[1].Amount)
 	suite.Equal(sdk.NewInt64Coin(hostChainParams.BaseDenom, 300), list[2].Amount)
 
-	list, err = keeper.FetchValidatorsToDelegate(updateValList, delegationStateS, sdk.NewInt64Coin(hostChainParams.BaseDenom, 2000))
+	list, err = keeper.FetchValidatorsToDelegate(allowListerValidators, delegationStateS, sdk.NewInt64Coin(hostChainParams.BaseDenom, 2000))
 	suite.NoError(err)
 	suite.Equal(sdk.NewInt64Coin(hostChainParams.BaseDenom, 1490), list[0].Amount)
 	suite.Equal(sdk.NewInt64Coin(hostChainParams.BaseDenom, 510), list[1].Amount)
 
 	delegationState = types.DelegationState{
-		HostAccountDelegations: types.HostAccountDelegations{
+		HostAccountDelegations: []types.HostAccountDelegation{
 			{
 				ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
 				Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 0),
@@ -105,14 +112,20 @@ func (suite *IntegrationTestSuite) TestGetAllValidatorsState() {
 	k.SetDelegationState(ctx, delegationState)
 
 	// fetch a combined updated val set list and delegation state
-	updateValList, updatedDelegationState = k.GetAllValidatorsState(ctx)
+	updateValList, hostAccountDelegations = k.GetAllValidatorsState(ctx)
+
+	// sort both updatedValList and hostAccountDelegations
+	sort.Sort(updateValList)
+	sort.Sort(hostAccountDelegations)
 
 	// get the current delegation state and
 	// assign the updated validator delegation state to the current delegation state
 	delegationStateS = k.GetDelegationState(ctx)
-	delegationStateS.HostAccountDelegations = updatedDelegationState.HostAccountDelegations
+	delegationStateS.HostAccountDelegations = hostAccountDelegations
 
-	list, err = keeper.FetchValidatorsToDelegate(updateValList, delegationStateS, sdk.NewInt64Coin(hostChainParams.BaseDenom, 0))
+	allowListerValidators = types.AllowListedValidators{AllowListedValidators: updateValList}
+
+	list, err = keeper.FetchValidatorsToDelegate(allowListerValidators, delegationStateS, sdk.NewInt64Coin(hostChainParams.BaseDenom, 0))
 	suite.NoError(err)
 	suite.Equal(0, len(list))
 }

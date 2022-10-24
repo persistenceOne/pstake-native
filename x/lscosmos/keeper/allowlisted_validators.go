@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"sort"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
@@ -26,7 +24,7 @@ func (k Keeper) GetAllowListedValidators(ctx sdk.Context) types.AllowListedValid
 // GetAllValidatorsState returns the combined allowed listed validators set and combined
 // delegation state. It is done to keep the old validators in the loop while calculating weighted amounts
 // for delegation and undelegation
-func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedValidators, types.DelegationState) {
+func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedVals, types.HostAccountDelegations) {
 	hostChainParams := k.GetHostChainParams(ctx)
 
 	// Get current active val set and make a map of it
@@ -64,7 +62,7 @@ func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedValidat
 	}
 
 	// Convert the updated val set map to a slice of types.AllowListedValidator
-	var updatedValSet types.AllowListedVals
+	var updatedValSet []types.AllowListedValidator
 	for key, value := range currentAllowListedValSetMap {
 		updatedValSet = append(updatedValSet, types.AllowListedValidator{ValidatorAddress: key, TargetWeight: value})
 	}
@@ -78,15 +76,11 @@ func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedValidat
 	}
 
 	// Convert the updated delegation state map to slice of types.HostChainDelegation
-	var updatedDelegationState types.HostAccountDelegations
+	var updatedDelegationState []types.HostAccountDelegation
 	for key, value := range currentDelegationStateMap {
 		updatedDelegationState = append(updatedDelegationState, types.HostAccountDelegation{ValidatorAddress: key, Amount: value})
 	}
 
-	// sort the generated lists for a deterministic output
-	sort.Sort(updatedDelegationState)
-	sort.Sort(updatedValSet)
-
 	// returns the two updated lists
-	return types.AllowListedValidators{AllowListedValidators: updatedValSet}, types.DelegationState{HostAccountDelegations: updatedDelegationState}
+	return updatedValSet, updatedDelegationState
 }

@@ -14,14 +14,20 @@ import (
 // CONTRACT: allowlistedValList.len > 0, amount > 0
 func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.Int, denom string) ([]sdk.Msg, error) {
 	// fetch a combined updated val set list and delegation state
-	updateValList, updatedDelegationState := k.GetAllValidatorsState(ctx)
+	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx)
+
+	// sort both updatedValList and hostAccountDelegations
+	sort.Sort(updateValList)
+	sort.Sort(hostAccountDelegations)
 
 	// get the current delegation state and
 	// assign the updated validator delegation state to the current delegation state
 	delegationState := k.GetDelegationState(ctx)
-	delegationState.HostAccountDelegations = updatedDelegationState.HostAccountDelegations
+	delegationState.HostAccountDelegations = hostAccountDelegations
 
-	valAddressAmount, err := FetchValidatorsToDelegate(updateValList, delegationState, sdk.NewCoin(denom, amount))
+	updatedAllowListedValidators := types.AllowListedValidators{AllowListedValidators: updateValList}
+
+	valAddressAmount, err := FetchValidatorsToDelegate(updatedAllowListedValidators, delegationState, sdk.NewCoin(denom, amount))
 	if err != nil {
 		return nil, err
 	}
@@ -53,14 +59,20 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.I
 // CONTRACT: allowlistedValList.len > 0, amount > 0
 func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.Int, denom string) ([]sdk.Msg, []types.UndelegationEntry, error) {
 	// fetch a combined updated val set list and delegation state
-	updateValList, updatedDelegationState := k.GetAllValidatorsState(ctx)
+	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx)
+
+	// sort both updatedValList and hostAccountDelegations
+	sort.Sort(updateValList)
+	sort.Sort(hostAccountDelegations)
 
 	// get the current delegation state and
 	// assign the updated validator delegation state to the current delegation state
 	delegationState := k.GetDelegationState(ctx)
-	delegationState.HostAccountDelegations = updatedDelegationState.HostAccountDelegations
+	delegationState.HostAccountDelegations = hostAccountDelegations
 
-	valAddressAmount, err := FetchValidatorsToUndelegate(updateValList, delegationState, sdk.NewCoin(denom, amount))
+	updatedAllowListedValidators := types.AllowListedValidators{AllowListedValidators: updateValList}
+
+	valAddressAmount, err := FetchValidatorsToUndelegate(updatedAllowListedValidators, delegationState, sdk.NewCoin(denom, amount))
 	if err != nil {
 		return nil, nil, err
 	}
