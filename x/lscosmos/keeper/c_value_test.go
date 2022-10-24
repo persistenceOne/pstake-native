@@ -33,7 +33,7 @@ func (suite *IntegrationTestSuite) TestCValue() {
 	suite.True(amounts.AmountOf(lscosmosKeeper.GetHostChainParams(ctx).MintDenom).Equal(supply))
 
 	delegationState := types.DelegationState{
-		HostAccountDelegations: []types.HostAccountDelegation{
+		HostAccountDelegations: types.HostAccountDelegations{
 			{
 				ValidatorAddress: "",
 				Amount:           sdk.NewInt64Coin(lscosmosKeeper.GetHostChainParams(ctx).BaseDenom, 600000),

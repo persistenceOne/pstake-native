@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"sort"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
@@ -62,8 +64,7 @@ func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedValidat
 	}
 
 	// Convert the updated val set map to a slice of types.AllowListedValidator
-	//nolint:prealloc,len_not_fixed
-	var updatedValSet []types.AllowListedValidator
+	var updatedValSet types.AllowListedVals
 	for key, value := range currentAllowListedValSetMap {
 		updatedValSet = append(updatedValSet, types.AllowListedValidator{ValidatorAddress: key, TargetWeight: value})
 	}
@@ -77,11 +78,14 @@ func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedValidat
 	}
 
 	// Convert the updated delegation state map to slice of types.HostChainDelegation
-	//nolint:prealloc,len_not_fixed
-	var updatedDelegationState []types.HostAccountDelegation
+	var updatedDelegationState types.HostAccountDelegations
 	for key, value := range currentDelegationStateMap {
 		updatedDelegationState = append(updatedDelegationState, types.HostAccountDelegation{ValidatorAddress: key, Amount: value})
 	}
+
+	// sort the generated lists for a deterministic output
+	sort.Sort(updatedDelegationState)
+	sort.Sort(updatedValSet)
 
 	// returns the two updated lists
 	return types.AllowListedValidators{AllowListedValidators: updatedValSet}, types.DelegationState{HostAccountDelegations: updatedDelegationState}

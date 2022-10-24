@@ -25,7 +25,7 @@ func (suite *IntegrationTestSuite) TestHandleRewardsAccountCallbacks() {
 	delegationState := types.DelegationState{
 		HostDelegationAccountBalance: sdk.NewCoins(sdk.NewInt64Coin(hostChainParams.BaseDenom, 100)),
 		HostChainDelegationAddress:   "address_________________",
-		HostAccountDelegations: []types.HostAccountDelegation{
+		HostAccountDelegations: types.HostAccountDelegations{
 			{
 				ValidatorAddress: "address_______________1",
 				Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 25),

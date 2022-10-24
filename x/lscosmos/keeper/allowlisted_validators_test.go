@@ -31,7 +31,7 @@ func (suite *IntegrationTestSuite) TestGetAllValidatorsState() {
 	hostChainParams := k.GetHostChainParams(ctx)
 
 	allowListedValidatorsSet := types.AllowListedValidators{
-		AllowListedValidators: []types.AllowListedValidator{
+		AllowListedValidators: types.AllowListedVals{
 			{
 				ValidatorAddress: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2",
 				TargetWeight:     sdk.NewDecWithPrec(3, 1),
@@ -46,7 +46,7 @@ func (suite *IntegrationTestSuite) TestGetAllValidatorsState() {
 	k.SetAllowListedValidators(ctx, allowListedValidatorsSet)
 
 	delegationState := types.DelegationState{
-		HostAccountDelegations: []types.HostAccountDelegation{
+		HostAccountDelegations: types.HostAccountDelegations{
 			{
 				ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
 				Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 200),
@@ -83,7 +83,7 @@ func (suite *IntegrationTestSuite) TestGetAllValidatorsState() {
 	suite.Equal(sdk.NewInt64Coin(hostChainParams.BaseDenom, 510), list[1].Amount)
 
 	delegationState = types.DelegationState{
-		HostAccountDelegations: []types.HostAccountDelegation{
+		HostAccountDelegations: types.HostAccountDelegations{
 			{
 				ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
 				Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 0),
