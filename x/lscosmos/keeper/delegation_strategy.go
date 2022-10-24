@@ -16,10 +16,6 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.I
 	// fetch a combined updated val set list and delegation state
 	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx)
 
-	// sort both updatedValList and hostAccountDelegations
-	sort.Sort(updateValList)
-	sort.Sort(hostAccountDelegations)
-
 	// get the current delegation state and
 	// assign the updated validator delegation state to the current delegation state
 	delegationState := k.GetDelegationState(ctx)
@@ -31,10 +27,6 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.I
 	if err != nil {
 		return nil, err
 	}
-
-	// sort the val address amount based on address to avoid generating different lists
-	// by all validators
-	sort.Sort(valAddressAmount)
 
 	var msgs []sdk.Msg
 	for _, val := range valAddressAmount {
@@ -61,10 +53,6 @@ func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk
 	// fetch a combined updated val set list and delegation state
 	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx)
 
-	// sort both updatedValList and hostAccountDelegations
-	sort.Sort(updateValList)
-	sort.Sort(hostAccountDelegations)
-
 	// get the current delegation state and
 	// assign the updated validator delegation state to the current delegation state
 	delegationState := k.GetDelegationState(ctx)
@@ -76,10 +64,6 @@ func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk
 	if err != nil {
 		return nil, nil, err
 	}
-
-	// sort the val address amount based on address to avoid generating different lists
-	// by all validators
-	sort.Sort(valAddressAmount)
 
 	//nolint:prealloc,len_not_fixed
 	var msgs []sdk.Msg
@@ -217,6 +201,8 @@ func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, co
 	// validator with index zero.
 	valAmounts[0].Amount = valAmounts[0].Amount.Add(remainderCoin)
 
+	sort.Sort(valAmounts)
+
 	return valAmounts, nil
 }
 
@@ -245,6 +231,10 @@ func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressA
 	zeroValued := sortedValDiff.GetZeroValued()
 	valAddressMap := types.GetWeightedAddressMap(zeroValued)
 	valAmounts = divideAmountWeightedSet(valAmounts, remainderCoin, valAddressMap)
+
+	// sort the val address amount based on address to avoid generating different lists
+	// by all validators
+	sort.Sort(valAmounts)
 
 	return valAmounts, nil
 }
@@ -291,7 +281,7 @@ func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedVals, t
 
 	// Convert the updated val set map to a slice of types.AllowListedValidator
 	//nolint:prealloc,len_not_fixed
-	var updatedValSet []types.AllowListedValidator
+	var updatedValSet types.AllowListedVals
 	for key, value := range currentAllowListedValSetMap {
 		updatedValSet = append(updatedValSet, types.AllowListedValidator{ValidatorAddress: key, TargetWeight: value})
 	}
@@ -306,10 +296,14 @@ func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedVals, t
 
 	// Convert the updated delegation state map to slice of types.HostChainDelegation
 	//nolint:prealloc,len_not_fixed
-	var updatedDelegationState []types.HostAccountDelegation
+	var updatedDelegationState types.HostAccountDelegations
 	for key, value := range currentDelegationStateMap {
 		updatedDelegationState = append(updatedDelegationState, types.HostAccountDelegation{ValidatorAddress: key, Amount: value})
 	}
+
+	// sort both updatedValList and hostAccountDelegations
+	sort.Sort(updatedValSet)
+	sort.Sort(updatedDelegationState)
 
 	// returns the two updated lists
 	return updatedValSet, updatedDelegationState
