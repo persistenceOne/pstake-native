@@ -21,7 +21,10 @@ type ValAddressAmount struct {
 	Amount        sdk.Coin
 }
 
-type WeightedAddressAmounts []WeightedAddressAmount
+type (
+	WeightedAddressAmounts []WeightedAddressAmount
+	ValAddressAmounts      []ValAddressAmount
+)
 
 // NewWeightedAddressAmount returns WeightedAddressAmount struct populated with given details
 func NewWeightedAddressAmount(address string, weight sdk.Dec, coin sdk.Coin, unbondingTokens sdk.Coin) WeightedAddressAmount {
@@ -34,12 +37,10 @@ func NewWeightedAddressAmount(address string, weight sdk.Dec, coin sdk.Coin, unb
 	}
 }
 
-var _ sort.Interface = WeightedAddressAmounts{}
-
-// Coin returns the sdk.Coin amount from WeightedAddressAmount struct
-func (w WeightedAddressAmount) Coin() sdk.Coin {
-	return sdk.NewCoin(w.Denom, w.Amount)
-}
+var (
+	_ sort.Interface = WeightedAddressAmounts{}
+	_ sort.Interface = ValAddressAmounts{}
+)
 
 // NewWeightedAddressAmounts returns WeightedAddressAmounts array
 func NewWeightedAddressAmounts(w []WeightedAddressAmount) WeightedAddressAmounts {
@@ -58,6 +59,11 @@ func (ws WeightedAddressAmounts) Less(i, j int) bool {
 }
 func (ws WeightedAddressAmounts) Swap(i, j int) {
 	ws[i], ws[j] = ws[j], ws[i]
+}
+
+// Coin returns the sdk.Coin amount from WeightedAddressAmount struct
+func (w WeightedAddressAmount) Coin() sdk.Coin {
+	return sdk.NewCoin(w.Denom, w.Amount)
 }
 
 // TotalAmount returns the total amount for a given denom
@@ -92,6 +98,16 @@ func (ws WeightedAddressAmounts) GetZeroValued() WeightedAddressAmounts {
 		}
 	}
 	return zeroValuedAddrAmts
+}
+
+func (ws ValAddressAmounts) Len() int {
+	return len(ws)
+}
+func (ws ValAddressAmounts) Less(i, j int) bool {
+	return ws[i].ValidatorAddr < ws[j].ValidatorAddr
+}
+func (ws ValAddressAmounts) Swap(i, j int) {
+	ws[i], ws[j] = ws[j], ws[i]
 }
 
 // GetHostAccountDelegationMap returns the map of address as key and delegations as the value

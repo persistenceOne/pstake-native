@@ -26,6 +26,10 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.I
 		return nil, err
 	}
 
+	// sort the val address amount based on address to avoid generating different lists
+	// by all validators
+	sort.Sort(valAddressAmount)
+
 	var msgs []sdk.Msg
 	for _, val := range valAddressAmount {
 		if val.Amount.IsPositive() {
@@ -61,6 +65,10 @@ func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk
 		return nil, nil, err
 	}
 
+	// sort the val address amount based on address to avoid generating different lists
+	// by all validators
+	sort.Sort(valAddressAmount)
+
 	//nolint:prealloc,len_not_fixed
 	var msgs []sdk.Msg
 	//nolint:prealloc,len_not_fixed
@@ -90,7 +98,7 @@ func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk
 }
 
 // FetchValidatorsToDelegate gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
-func FetchValidatorsToDelegate(valList types.AllowListedValidators, delegationState types.DelegationState, amount sdk.Coin) ([]types.ValAddressAmount, error) {
+func FetchValidatorsToDelegate(valList types.AllowListedValidators, delegationState types.DelegationState, amount sdk.Coin) (types.ValAddressAmounts, error) {
 	curDiffDistribution := GetIdealCurrentDelegations(valList, delegationState, amount, false)
 	sort.Sort(sort.Reverse(curDiffDistribution))
 
@@ -98,7 +106,7 @@ func FetchValidatorsToDelegate(valList types.AllowListedValidators, delegationSt
 }
 
 // FetchValidatorsToUndelegate gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
-func FetchValidatorsToUndelegate(valList types.AllowListedValidators, delegationState types.DelegationState, amount sdk.Coin) ([]types.ValAddressAmount, error) {
+func FetchValidatorsToUndelegate(valList types.AllowListedValidators, delegationState types.DelegationState, amount sdk.Coin) (types.ValAddressAmounts, error) {
 	currDiffDistribution := GetIdealCurrentDelegations(valList, delegationState, amount, true)
 	sort.Sort(sort.Reverse(currDiffDistribution))
 	return DivideUndelegateAmountIntoValidatorSet(currDiffDistribution, amount)
@@ -139,10 +147,8 @@ func GetIdealCurrentDelegations(valList types.AllowListedValidators, delegationS
 }
 
 // divideAmountWeightedSet : divides amount to be delegated or undelegated w.r.t weights.
-//
-//nolint:prealloc,len_not_fixed
-func divideAmountWeightedSet(valAmounts []types.ValAddressAmount, coin sdk.Coin, valAddressWeightMap map[string]sdk.Dec) []types.ValAddressAmount {
-	var newValAmounts []types.ValAddressAmount
+func divideAmountWeightedSet(valAmounts types.ValAddressAmounts, coin sdk.Coin, valAddressWeightMap map[string]sdk.Dec) types.ValAddressAmounts {
+	var newValAmounts types.ValAddressAmounts
 
 	totalWeight := sdk.ZeroDec()
 	for _, weight := range valAddressWeightMap {
@@ -162,10 +168,8 @@ func divideAmountWeightedSet(valAmounts []types.ValAddressAmount, coin sdk.Coin,
 
 // distributeCoinsAmongstValSet takes the validator distribution and coins to distribute and returns the
 // validator address amount to distribute and the remaining amount to make
-//
-//nolint:prealloc,len_not_fixed
-func distributeCoinsAmongstValSet(ws types.WeightedAddressAmounts, coin sdk.Coin) ([]types.ValAddressAmount, sdk.Coin) {
-	var valAddrAmts []types.ValAddressAmount
+func distributeCoinsAmongstValSet(ws types.WeightedAddressAmounts, coin sdk.Coin) (types.ValAddressAmounts, sdk.Coin) {
+	var valAddrAmts types.ValAddressAmounts
 
 	for _, w := range ws {
 		if coin.Amount.LTE(w.Amount) {
@@ -180,7 +184,7 @@ func distributeCoinsAmongstValSet(ws types.WeightedAddressAmounts, coin sdk.Coin
 }
 
 // DivideAmountIntoValidatorSet : divides amount into validator set
-func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) ([]types.ValAddressAmount, error) {
+func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) (types.ValAddressAmounts, error) {
 	if coin.IsZero() {
 		return nil, nil
 	}
@@ -207,7 +211,7 @@ func DivideAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, co
 // DivideUndelegateAmountIntoValidatorSet : divides undelegation amount into validator set
 //
 //nolint:gocritic,len_not_fixed
-func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) ([]types.ValAddressAmount, error) {
+func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressAmounts, coin sdk.Coin) (types.ValAddressAmounts, error) {
 	if coin.IsZero() {
 		return nil, nil
 	}

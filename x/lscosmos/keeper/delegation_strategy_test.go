@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sort"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -259,6 +260,66 @@ func (suite *IntegrationTestSuite) TestUndelegateDivideAmountIntoValidatorSet() 
 
 	}
 
+}
+
+func (suite *IntegrationTestSuite) TestDivideAmountIntoValidatorSetEqual() {
+	_, ctx := suite.app, suite.ctx
+
+	denom := HostStakingDenom
+	state := testStateDataEqual(denom)
+	suite.SetupAllowListedValSetAndDelegationState(state)
+
+	// Test data
+	testMatrix := []struct {
+		given    int64
+		expected map[string]int64
+	}{
+		{
+			given: 50000000,
+			expected: map[string]int64{
+				"cosmosvalidatorAddr1": 10000000,
+				"cosmosvalidatorAddr2": 10000000,
+				"cosmosvalidatorAddr3": 10000000,
+				"cosmosvalidatorAddr4": 10000000,
+				"cosmosvalidatorAddr5": 10000000,
+			},
+		},
+	}
+
+	for _, test := range testMatrix {
+		givenCoin := sdk.NewInt64Coin(HostStakingDenom, test.given)
+		expectedMap := map[string]int64{}
+
+		for k, v := range test.expected {
+			valAddress, _ := Bech32ifyValAddressBytes(types.CosmosValOperPrefix, sdk.ValAddress(k))
+			expectedMap[valAddress] = v
+		}
+
+		allowlistedVals := suite.app.LSCosmosKeeper.GetAllowListedValidators(ctx)
+		delegationState := suite.app.LSCosmosKeeper.GetDelegationState(ctx)
+
+		// Run getIdealCurrentDelegations function with params
+		valAmounts, err := keeper.FetchValidatorsToDelegate(allowlistedVals, delegationState, givenCoin)
+		suite.Nil(err, "Error is not nil for validator to delegate")
+
+		// sort the val address amount based on address to avoid generating different lists
+		// by all validators
+		sort.Sort(valAmounts)
+
+		for i := 1; i < len(valAmounts); i++ {
+			if valAmounts[i-1].ValidatorAddr > valAmounts[i].ValidatorAddr {
+				panic("not sorted by string")
+			}
+		}
+
+		// Check outputs
+		actualMap := map[string]int64{}
+		for _, va := range valAmounts {
+			actualMap[va.ValidatorAddr] = va.Amount.Amount.Int64()
+		}
+		suite.Equal(expectedMap, actualMap, "Matching val distribution")
+
+	}
 }
 
 func TestGetIdealCurrentDelegations(t *testing.T) {
@@ -564,6 +625,53 @@ func createStateFromMap(stateMap map[string][]string, denom string) types.Weight
 		state = append(state, types.WeightedAddressAmount{
 			Weight:  weight,
 			Amount:  amt,
+			Address: valAddress,
+			Denom:   denom,
+		})
+	}
+	return state
+}
+
+func testStateDataEqual(denom string) types.WeightedAddressAmounts {
+	testStruct := []struct {
+		name   string
+		weight string
+		amount int64
+	}{
+		{
+			name:   "cosmosvalidatorAddr1",
+			weight: "0.2",
+			amount: 15000000, // ideal: 14000000
+		},
+		{
+			name:   "cosmosvalidatorAddr2",
+			weight: "0.2",
+			amount: 15000000, // ideal: 7000000
+		},
+		{
+			name:   "cosmosvalidatorAddr3",
+			weight: "0.2",
+			amount: 15000000, // ideal: 10500000
+		},
+		{
+			name:   "cosmosvalidatorAddr4",
+			weight: "0.2",
+			amount: 15000000, // ideal: 3500000
+		},
+		{
+			name:   "cosmosvalidatorAddr5",
+			weight: "0.2",
+			amount: 15000000, // ideal: 0
+		},
+	}
+	// Create state
+	state := types.WeightedAddressAmounts{}
+	for _, ts := range testStruct {
+		weight, _ := sdk.NewDecFromStr(ts.weight)
+		valAddress, _ := Bech32ifyValAddressBytes(types.CosmosValOperPrefix, sdk.ValAddress(ts.name))
+		state = append(state, types.WeightedAddressAmount{
+			Weight:  weight,
+			Amount:  sdk.NewInt(ts.amount),
 			Address: valAddress,
 			Denom:   denom,
 		})
