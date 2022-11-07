@@ -32,6 +32,10 @@ service Msg{
     option (google.api.http).post = "/pstake/lscosmos/v1beta1/Claim";
   }
 
+  rpc RecreateICA(MsgRecreateICA) returns (MsgRecreateICAResponse) {
+    option (google.api.http).post = "/pstake/lscosmos/v1beta1/RecreateICA";
+  }
+
   rpc JumpStart(MsgJumpStart) returns (MsgJumpStartResponse) {
     option (google.api.http).post = "/pstake/lscosmos/v1beta1/JumpStart";
   }
@@ -71,6 +75,12 @@ message MsgClaim {
 }
 
 message MsgClaimResponse {}
+
+message MsgRecreateICA {
+  string from_address = 1;
+}
+
+message MsgRecreateICAResponse {}
 
 message MsgJumpStart {
   string pstake_address = 1;

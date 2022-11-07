@@ -39,6 +39,9 @@ const (
 	// MsgTypeClaim is the type of message claim
 	MsgTypeClaim = "msg_claim"
 
+	// MsgTypeRecreateICA is the type of message RecreateICA
+	MsgTypeRecreateICA = "msg_recreate_ica"
+
 	// MsgTypeJumpStart is the type of message Jump start
 	MsgTypeJumpStart = "msg_jump_start"
 

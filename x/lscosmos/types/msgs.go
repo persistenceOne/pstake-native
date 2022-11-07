@@ -14,6 +14,7 @@ var (
 	_ sdk.Msg = &MsgLiquidUnstake{}
 	_ sdk.Msg = &MsgRedeem{}
 	_ sdk.Msg = &MsgClaim{}
+	_ sdk.Msg = &MsgRecreateICA{}
 	_ sdk.Msg = &MsgJumpStart{}
 )
 
@@ -241,7 +242,45 @@ func (m *MsgClaim) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
-// NewMsgLiquidStake returns a new MsgLiquidStake
+// NewMsgRecreateICA returns a new MsgRecreateICA
+//
+//nolint:interfacer
+func NewMsgRecreateICA(address sdk.AccAddress) *MsgRecreateICA {
+	return &MsgRecreateICA{
+		FromAddress: address.String(),
+	}
+}
+
+// Route should return the name of the module
+func (m *MsgRecreateICA) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgRecreateICA) Type() string { return MsgTypeRecreateICA }
+
+// ValidateBasic performs stateless checks
+func (m *MsgRecreateICA) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.FromAddress); err != nil {
+		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.FromAddress)
+	}
+
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgRecreateICA) GetSignBytes() []byte {
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgRecreateICA) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.FromAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// NewMsgJumpStart returns a new MsgJumpStart
 //
 //nolint:interfacer
 func NewMsgJumpStart(address sdk.AccAddress, chainID, connectionID, transferChannel, transferPort, baseDenom, mintDenom string,
