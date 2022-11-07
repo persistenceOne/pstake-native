@@ -552,6 +552,24 @@ func (m msgServer) RecreateICA(goCtx context.Context, msg *types.MsgRecreateICA)
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
 	}
+	hostAccounts := m.Keeper.GetHostAccounts(ctx)
+	hostChainParams := m.Keeper.GetHostChainParams(ctx)
+
+	_, ok := m.icaControllerKeeper.GetOpenActiveChannel(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID())
+	if !ok {
+		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID)
+		if err != nil {
+			return nil, sdkerrors.Wrap(err, "Could not register ica delegation Address")
+		}
+	}
+	_, ok = m.icaControllerKeeper.GetOpenActiveChannel(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountPortID())
+	if !ok {
+		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID)
+		if err != nil {
+			return nil, sdkerrors.Wrap(err, "Could not register ica reward Address")
+		}
+	}
+
 	return &types.MsgRecreateICAResponse{}, nil
 
 }
