@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik" //nolint:nolintlint,used_for_swagger_ui_docs
+	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -195,9 +196,10 @@ var (
 )
 
 var (
-	_ simapp.App              = (*PstakeApp)(nil)
-	_ servertypes.Application = (*PstakeApp)(nil)
-	_ ibctesting.TestingApp   = (*PstakeApp)(nil)
+	_ simapp.App                          = (*PstakeApp)(nil)
+	_ servertypes.Application             = (*PstakeApp)(nil)
+	_ ibctesting.TestingApp               = (*PstakeApp)(nil)
+	_ servertypes.ApplicationQueryService = (*PstakeApp)(nil)
 )
 
 // PstakeApp extends an ABCI application, but with most of its parameters exported.
@@ -863,6 +865,8 @@ func (app *PstakeApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register new tendermint queries routes from grpc-gateway.
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	// Register node gRPC service for grpc-gateway.
+	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register legacy and grpc-gateway routes for all modules.
 	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
@@ -882,6 +886,10 @@ func (app *PstakeApp) RegisterTxService(clientCtx client.Context) {
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (app *PstakeApp) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
+}
+
+func (app *PstakeApp) RegisterNodeService(clientCtx client.Context) {
+	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter())
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
