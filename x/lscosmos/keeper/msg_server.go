@@ -32,8 +32,8 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
 	// sanity check for the arguments of message
-	if ctx.IsZero() || !msg.Amount.IsValid() {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount or ctx")
+	if !msg.Amount.IsValid() {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount")
 	}
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
@@ -145,8 +145,8 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
 	// sanity check for the arguments of message
-	if ctx.IsZero() || !msg.Amount.IsValid() {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount or ctx")
+	if !msg.Amount.IsValid() {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount")
 	}
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
@@ -209,10 +209,7 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 // LiquidUnstake defines a method for unstaking the liquid staked tokens
 func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
-	// sanity check for the arguments of message
-	if ctx.IsZero() {
-		return nil, types.ErrInvalidArgs
-	}
+
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
 	}
@@ -286,8 +283,8 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
 	// sanity check for the arguments of message
-	if ctx.IsZero() || !msg.Amount.IsValid() {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount or ctx")
+	if !msg.Amount.IsValid() {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount")
 	}
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
@@ -384,10 +381,7 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 // Claim defines a method for claiming unstaked mature tokens or failed unbondings
 func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
-	// sanity check for the arguments of message
-	if ctx.IsZero() {
-		return nil, types.ErrInvalidArgs
-	}
+
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
 	}
@@ -456,10 +450,6 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 // JumpStart defines a method for jump-starting the module thorugh fee address account
 func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*types.MsgJumpStartResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
-	// sanity check for the arguments of message
-	if ctx.IsZero() {
-		return nil, types.ErrInvalidArgs
-	}
 
 	// check pstake fee address == from addr
 	hostChainParams := m.GetHostChainParams(ctx)
@@ -545,10 +535,7 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 // RecreateICA defines a method for recreating closed ica channels
 func (m msgServer) RecreateICA(goCtx context.Context, msg *types.MsgRecreateICA) (*types.MsgRecreateICAResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
-	// sanity check for the arguments of message
-	if ctx.IsZero() {
-		return nil, types.ErrInvalidArgs
-	}
+
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
 	}
