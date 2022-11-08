@@ -555,12 +555,15 @@ func (m msgServer) RecreateICA(goCtx context.Context, msg *types.MsgRecreateICA)
 	hostAccounts := m.Keeper.GetHostAccounts(ctx)
 	hostChainParams := m.Keeper.GetHostChainParams(ctx)
 
+	msgAttributes := []sdktypes.Attribute{sdktypes.NewAttribute(types.AttributeFromAddress, msg.FromAddress)}
+
 	_, ok := m.icaControllerKeeper.GetOpenActiveChannel(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID())
 	if !ok {
 		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID)
 		if err != nil {
 			return nil, sdkerrors.Wrap(err, "Could not register ica delegation Address")
 		}
+		msgAttributes = append(msgAttributes, sdktypes.NewAttribute(types.AttributeRecreateDelegationICA, hostAccounts.DelegatorAccountPortID()))
 	}
 	_, ok = m.icaControllerKeeper.GetOpenActiveChannel(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountPortID())
 	if !ok {
@@ -568,7 +571,20 @@ func (m msgServer) RecreateICA(goCtx context.Context, msg *types.MsgRecreateICA)
 		if err != nil {
 			return nil, sdkerrors.Wrap(err, "Could not register ica reward Address")
 		}
+		msgAttributes = append(msgAttributes, sdktypes.NewAttribute(types.AttributeRecreateRewardsICA, hostAccounts.RewardsAccountPortID()))
 	}
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeRecreateICA,
+			msgAttributes...,
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.FromAddress),
+		)},
+	)
 
 	return &types.MsgRecreateICAResponse{}, nil
 
