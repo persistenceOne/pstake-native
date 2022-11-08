@@ -80,7 +80,7 @@ const (
 	IBCTimeoutHeightIncrement uint64 = 1000
 
 	// ICATimeoutTimestamp is the ICA timeout time stamp
-	ICATimeoutTimestamp = time.Minute
+	ICATimeoutTimestamp = 15 * time.Minute
 
 	// CosmosValOperPrefix is the prefix for cosmos validator address
 	CosmosValOperPrefix = "cosmosvaloper"
