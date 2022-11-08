@@ -97,33 +97,38 @@ func (k Keeper) OnChanOpenAck(
 
 	hostChainParams := k.GetHostChainParams(ctx)
 
-	if portID == hostAccounts.DelegatorAccountPortID() {
-		delegationAddress, delegationAddrfound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID())
-		if delegationAddrfound {
-			if err := k.SetHostChainDelegationAddress(ctx, delegationAddress); err != nil {
-				return err
-			}
-			if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID); err != nil {
-				return sdkerrors.Wrap(err, "Could not register ica reward Address")
-			}
+	if !k.GetModuleState(ctx) {
+		if portID == hostAccounts.DelegatorAccountPortID() {
+			delegationAddress, delegationAddrfound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID())
+			if delegationAddrfound {
+				if err := k.SetHostChainDelegationAddress(ctx, delegationAddress); err != nil {
+					return err
+				}
+				if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID); err != nil {
+					return sdkerrors.Wrap(err, "Could not register ica reward Address")
+				}
 
-		}
-	}
-	if portID == hostAccounts.RewardsAccountPortID() {
-		rewardAddress, rewardAddrFound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountPortID())
-		delegationAddress := k.GetDelegationState(ctx).HostChainDelegationAddress
-		if rewardAddrFound {
-			_ = k.SetHostChainRewardAddressIfEmpty(ctx, types.NewHostChainRewardAddress(rewardAddress))
-			setWithdrawAddrMsg := &distributiontypes.MsgSetWithdrawAddress{
-				DelegatorAddress: delegationAddress,
-				WithdrawAddress:  rewardAddress,
-			}
-			err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), []sdk.Msg{setWithdrawAddrMsg})
-			if err != nil {
-				return err
 			}
 		}
+		if portID == hostAccounts.RewardsAccountPortID() {
+			rewardAddress, rewardAddrFound := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountPortID())
+			delegationAddress := k.GetDelegationState(ctx).HostChainDelegationAddress
+			if rewardAddrFound {
+				_ = k.SetHostChainRewardAddressIfEmpty(ctx, types.NewHostChainRewardAddress(rewardAddress))
+				setWithdrawAddrMsg := &distributiontypes.MsgSetWithdrawAddress{
+					DelegatorAddress: delegationAddress,
+					WithdrawAddress:  rewardAddress,
+				}
+				err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), []sdk.Msg{setWithdrawAddrMsg})
+				if err != nil {
+					return err
+				}
+			}
+		}
+		return nil
 	}
+	k.Logger(ctx).Info(fmt.Sprintf("Recreating ICA channel with channelID: %s, portID: %s, counterpartyID: %s", channelID, portID, counterpartyChannelID))
+
 	return nil
 }
 

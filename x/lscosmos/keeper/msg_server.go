@@ -32,8 +32,8 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
 	// sanity check for the arguments of message
-	if ctx.IsZero() || !msg.Amount.IsValid() {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount or ctx")
+	if !msg.Amount.IsValid() {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount")
 	}
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
@@ -145,8 +145,8 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
 	// sanity check for the arguments of message
-	if ctx.IsZero() || !msg.Amount.IsValid() {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount or ctx")
+	if !msg.Amount.IsValid() {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount")
 	}
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
@@ -209,10 +209,7 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 // LiquidUnstake defines a method for unstaking the liquid staked tokens
 func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
-	// sanity check for the arguments of message
-	if ctx.IsZero() {
-		return nil, types.ErrInvalidArgs
-	}
+
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
 	}
@@ -286,8 +283,8 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
 	// sanity check for the arguments of message
-	if ctx.IsZero() || !msg.Amount.IsValid() {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount or ctx")
+	if !msg.Amount.IsValid() {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount")
 	}
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
@@ -384,10 +381,7 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 // Claim defines a method for claiming unstaked mature tokens or failed unbondings
 func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
-	// sanity check for the arguments of message
-	if ctx.IsZero() {
-		return nil, types.ErrInvalidArgs
-	}
+
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
 	}
@@ -456,10 +450,6 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 // JumpStart defines a method for jump-starting the module thorugh fee address account
 func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*types.MsgJumpStartResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
-	// sanity check for the arguments of message
-	if ctx.IsZero() {
-		return nil, types.ErrInvalidArgs
-	}
 
 	// check pstake fee address == from addr
 	hostChainParams := m.GetHostChainParams(ctx)
@@ -540,4 +530,49 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 	)
 
 	return &types.MsgJumpStartResponse{}, nil
+}
+
+// RecreateICA defines a method for recreating closed ica channels
+func (m msgServer) RecreateICA(goCtx context.Context, msg *types.MsgRecreateICA) (*types.MsgRecreateICAResponse, error) {
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	if !m.GetModuleState(ctx) {
+		return nil, types.ErrModuleDisabled
+	}
+	hostAccounts := m.Keeper.GetHostAccounts(ctx)
+	hostChainParams := m.Keeper.GetHostChainParams(ctx)
+
+	msgAttributes := []sdktypes.Attribute{sdktypes.NewAttribute(types.AttributeFromAddress, msg.FromAddress)}
+
+	_, ok := m.icaControllerKeeper.GetOpenActiveChannel(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID())
+	if !ok {
+		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID)
+		if err != nil {
+			return nil, sdkerrors.Wrap(err, "Could not register ica delegation Address")
+		}
+		msgAttributes = append(msgAttributes, sdktypes.NewAttribute(types.AttributeRecreateDelegationICA, hostAccounts.DelegatorAccountPortID()))
+	}
+	_, ok = m.icaControllerKeeper.GetOpenActiveChannel(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountPortID())
+	if !ok {
+		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID)
+		if err != nil {
+			return nil, sdkerrors.Wrap(err, "Could not register ica reward Address")
+		}
+		msgAttributes = append(msgAttributes, sdktypes.NewAttribute(types.AttributeRecreateRewardsICA, hostAccounts.RewardsAccountPortID()))
+	}
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeRecreateICA,
+			msgAttributes...,
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.FromAddress),
+		)},
+	)
+
+	return &types.MsgRecreateICAResponse{}, nil
+
 }

@@ -34,6 +34,7 @@ func GetTxCmd() *cobra.Command {
 		NewRedeemCmd(),
 		NewClaimCmd(),
 		NewJumpStartCmd(),
+		NewRecreateICACmd(),
 	)
 
 	return cmd
@@ -518,10 +519,34 @@ func NewClaimCmd() *cobra.Command {
 	return cmd
 }
 
+func NewRecreateICACmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "recreate-ica",
+		Short: "Recreate ICA accounts",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			fromAddress := clientctx.GetFromAddress()
+			msg := types.NewMsgRecreateICA(fromAddress)
+
+			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
 func NewJumpStartCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "jump-start",
-		Short: `jump start the module using allowlisted address`,
+		Short: "jump start the module using allowlisted address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
