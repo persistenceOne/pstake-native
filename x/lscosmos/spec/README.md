@@ -14,10 +14,27 @@ able to liquid-stake ATOM tokens and get representative stkATOM tokens in return
 
 ## Contents
 
+0. **[Introduction](00_introduction.md)
 1. **[Concept](01_concepts.md)**
-2. **[State](02_state.md)**
-3. **[Events](03_events.md)**
-4. **[Keeper](04_keeper.md)**
-5. **[Hooks](05_messages.md)**
-6. **[Queries](06_queries.md)**
-7. **[Future improvements](07_future_improvements.md)**
+2. **[Proposal](02_proposal.md)
+3. **[State](03_state.md)**
+4. **[Events](04_events.md)**
+   - [MsgLiquidStake](04_events.md#msgliquidstake)
+   - [MsgJuice](04_events.md#msgjuice)
+   - [MsgLiquidUnstake](04_events.md#msgliquidunstake)
+   - [MsgRedeem](04_events.md#msgredeem)
+   - [MsgClaim](04_events.md#msgclaim)
+   - [MsgJumpStart](04_events.md#msgjumpstart)
+   - [MsgRecreateICA](04_events.md#msgrecreateica)
+5. **[Keeper](05_keeper.md)**
+      [KeeperFunctions](05_keeper.md#keeper-functions)
+6. **[Messages](06_messages.md)**
+    - [MsgLiquidStake](06_messages.md#msgliquidstake)
+    - [MsgJuice](06_messages.md#msgjuice)
+    - [MsgLiquidUnstake](06_messages.md#msgliquidunstake)
+    - [MsgRedeem](06_messages.md#msgredeem)
+    - [MsgClaim](06_messages.md#msgclaim)
+    - [MsgJumpStart](06_messages.md#msgjumpstart)
+    - [MsgRecreateICA](06_messages.md#msgrecreateica)
+7. **[Queries](07_queries.md)**
+8. **[Future improvements](08_future_improvements.md)**

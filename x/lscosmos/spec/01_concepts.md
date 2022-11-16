@@ -1,3 +1,7 @@
+<!--
+order: 1
+-->
+
 # Liquid Staking
 
 Liquid staking, as a concept, is a mechanism in which these delegations are made liquid and can be transformed, traded, or otherwise utilised. Often this is implemented as a set of smart contracts, whereby the user deposits tokens in the smart contract and some validators acting on behalf of the protocol are then delegated to by the smart contract itself.
