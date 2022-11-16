@@ -1,3 +1,7 @@
+<!--
+order: 0
+-->
+
 # Introduction
 In a proof-of-stake blockchain, asset holders wishing to stake their tokens in order to earn staking rewards are required to lock their capital. This locked capital, known as a delegation, acts as a slashable security deposit in the event that the chosen validator should misbehave.
 
