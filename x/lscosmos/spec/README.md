@@ -17,6 +17,10 @@ able to liquid-stake ATOM tokens and get representative stkATOM tokens in return
 0. **[Introduction](00_introduction.md)
 1. **[Concept](01_concepts.md)**
 2. **[Proposal](02_proposal.md)
+   - [Register Host Chain Proposal](02_proposal.md#register-host-chain-proposal)
+   - [Change Min Deposit and Fee Proposal](02_proposal.md#change-min-deposit-and-fee-proposal)
+   - [Change Pstake Fee Address Proposal](02_proposal.md#change-pstake-fee-address-proposal)
+   - [Change Allow Listed Validators Proposal](02_proposal.md#change-allow-listed-validators-proposal)
 3. **[State](03_state.md)**
 4. **[Events](04_events.md)**
    - [MsgLiquidStake](04_events.md#msgliquidstake)
