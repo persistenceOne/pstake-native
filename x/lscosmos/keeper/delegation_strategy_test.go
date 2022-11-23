@@ -720,7 +720,7 @@ func (suite *IntegrationTestSuite) TestGetAllValidatorsState() {
 	k.SetDelegationState(ctx, delegationState)
 
 	// fetch a combined updated val set list and delegation state
-	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx)
+	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx, hostChainParams.BaseDenom)
 
 	// sort both updatedValList and hostAccountDelegations
 	sort.Sort(updateValList)
@@ -767,7 +767,7 @@ func (suite *IntegrationTestSuite) TestGetAllValidatorsState() {
 	k.SetDelegationState(ctx, delegationState)
 
 	// fetch a combined updated val set list and delegation state
-	updateValList, hostAccountDelegations = k.GetAllValidatorsState(ctx)
+	updateValList, hostAccountDelegations = k.GetAllValidatorsState(ctx, hostChainParams.BaseDenom)
 
 	// sort both updatedValList and hostAccountDelegations
 	sort.Sort(updateValList)

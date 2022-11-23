@@ -31,13 +31,11 @@ var _ types.MsgServer = msgServer{}
 func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake) (*types.MsgLiquidStakeResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
-	// sanity check for the arguments of message
-	if !msg.Amount.IsValid() {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount")
-	}
+	// check if module is inactive or active
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
 	}
+
 	//GetParams
 	hostChainParams := m.GetHostChainParams(ctx)
 
@@ -144,10 +142,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.MsgJuiceResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
-	// sanity check for the arguments of message
-	if !msg.Amount.IsValid() {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount")
-	}
+	// check if module is inactive or active
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
 	}
@@ -210,6 +205,7 @@ func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.Msg
 func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
+	// check if module is inactive or active
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
 	}
@@ -282,10 +278,7 @@ func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.MsgRedeemResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
-	// sanity check for the arguments of message
-	if !msg.Amount.IsValid() {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidArgs, "got invalid amount")
-	}
+	// check if module is inactive or active
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
 	}
@@ -382,6 +375,7 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
+	// check if module is inactive or active
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
 	}
@@ -536,9 +530,11 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 func (m msgServer) RecreateICA(goCtx context.Context, msg *types.MsgRecreateICA) (*types.MsgRecreateICAResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
+	// check if module is inactive or active
 	if !m.GetModuleState(ctx) {
 		return nil, types.ErrModuleDisabled
 	}
+
 	hostAccounts := m.Keeper.GetHostAccounts(ctx)
 	hostChainParams := m.Keeper.GetHostChainParams(ctx)
 

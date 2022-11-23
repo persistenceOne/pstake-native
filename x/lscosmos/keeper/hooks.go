@@ -164,7 +164,7 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 	// should be transferred to pstake address.
 	remainingDelegationBalance := allDelegationBalances.Sub(sdk.NewCoins(delegationBalance))
 
-	if !remainingDelegationBalance.Empty() {
+	if remainingDelegationBalance.IsAllPositive() {
 		feeAddr, err := sdk.AccAddressFromBech32(hostChainParams.PstakeParams.PstakeFeeAddress)
 		if err != nil {
 			return err
