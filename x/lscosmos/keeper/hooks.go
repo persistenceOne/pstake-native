@@ -231,7 +231,7 @@ func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscos
 		return lscosmostypes.ErrInValidAllowListedValidators
 	}
 	delegationState := k.GetDelegationState(ctx)
-	undelegateMsgs, undelegationEntries, err := k.UndelegateMsgs(ctx, delegationState.HostChainDelegationAddress, amountToUnstake.Amount, hostChainParams.BaseDenom)
+	undelegateMsgs, undelegationEntries, err := k.UndelegateMsgs(ctx, amountToUnstake.Amount, hostChainParams.BaseDenom, delegationState)
 	if err != nil {
 		return err
 	}

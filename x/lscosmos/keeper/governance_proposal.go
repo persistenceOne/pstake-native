@@ -47,7 +47,8 @@ func HandleRegisterHostChainProposal(ctx sdk.Context, k Keeper, content types.Re
 	if err := hostAccounts.Validate(); err != nil {
 		return err
 	}
-	// This checks for channel being active
+
+	// register the ICA delegator account
 	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, content.ConnectionID, hostAccounts.DelegatorAccountOwnerID)
 	if err != nil {
 		return sdkerrors.Wrap(err, "Could not register ica delegation Address")
