@@ -329,6 +329,9 @@ func (m *MsgJumpStart) ValidateBasic() error {
 	if m.PstakeParams.PstakeFeeAddress != m.PstakeAddress {
 		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, fmt.Sprintf("pstakeAddress should be equal to PstakeParams.PstakeFeeAddress, got %s, %s", m.PstakeParams.PstakeFeeAddress, m.PstakeAddress))
 	}
+	if m.MinDeposit.LTE(sdk.ZeroInt()) {
+		return sdkErrors.Wrapf(ErrInvalidDeposit, "min deposit must be positive")
+	}
 	return m.HostAccounts.Validate()
 }
 

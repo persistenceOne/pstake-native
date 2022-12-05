@@ -24,7 +24,7 @@ func (k Keeper) BeginBlock(ctx sdk.Context) {
 	}
 	err = utils.ApplyFuncIfNoError(ctx, k.ProcessMaturedUndelegation)
 	if err != nil {
-		k.Logger(ctx).Error("Unable to Delegate tokens with ", "err: ", err)
+		k.Logger(ctx).Error("Unable to process matured undelegations with ", "err: ", err)
 	}
 
 }
@@ -34,10 +34,9 @@ func (k Keeper) BeginBlock(ctx sdk.Context) {
 func (k Keeper) DoDelegate(ctx sdk.Context) error {
 	hostChainParams := k.GetHostChainParams(ctx)
 	delegationState := k.GetDelegationState(ctx)
-	hostAccounts := k.GetHostAccounts(ctx)
+	delegatableAmount := delegationState.HostDelegationAccountBalance.AmountOf(hostChainParams.BaseDenom)
 
 	allowListedValidators := k.GetAllowListedValidators(ctx)
-	delegatableAmount := delegationState.HostDelegationAccountBalance.AmountOf(hostChainParams.BaseDenom)
 	if !delegatableAmount.IsPositive() || len(allowListedValidators.AllowListedValidators) == 0 {
 		// amount to delegate is too low, return early
 		return nil
@@ -45,10 +44,13 @@ func (k Keeper) DoDelegate(ctx sdk.Context) error {
 
 	// generate delegate messages based on the delegatable amount and current validators
 	// delegation state
-	msgs, err := k.DelegateMsgs(ctx, delegationState.HostChainDelegationAddress, delegatableAmount, hostChainParams.BaseDenom)
+	msgs, err := k.DelegateMsgs(ctx, delegatableAmount, hostChainParams.BaseDenom, delegationState)
 	if err != nil {
 		return err
 	}
+
+	// get host accounts and use them to generate and execute ICA tx for delegations.
+	hostAccounts := k.GetHostAccounts(ctx)
 	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), msgs)
 	if err != nil {
 		return err
@@ -61,18 +63,20 @@ func (k Keeper) DoDelegate(ctx sdk.Context) error {
 	return nil
 }
 
-// ProcessMaturedUndelegation processes all the matured delegations by fetching all the host
-// account matired delegations and processing them one by one
+// ProcessMaturedUndelegation processes all the matured undelegations by fetching all the host
+// account matured undelegations and processing them one by one
 func (k Keeper) ProcessMaturedUndelegation(ctx sdk.Context) error {
-	hostChainParams := k.GetHostChainParams(ctx)
-	delegationState := k.GetDelegationState(ctx)
-	hostAccounts := k.GetHostAccounts(ctx)
-
+	// check if there are any matured undelegations
 	maturedUndelegations := k.GetHostAccountMaturedUndelegations(ctx)
 	if len(maturedUndelegations) == 0 {
 		// No matured delegations
 		return nil
 	}
+
+	hostChainParams := k.GetHostChainParams(ctx)
+	delegationState := k.GetDelegationState(ctx)
+	hostAccounts := k.GetHostAccounts(ctx)
+
 	for _, maturedUndelegation := range maturedUndelegations {
 		//do ica ibc transfer + delete the entries
 		atomsUnbonded := k.GetUnbondingEpochCValue(ctx, maturedUndelegation.EpochNumber).AmountUnbonded

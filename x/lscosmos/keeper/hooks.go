@@ -164,7 +164,7 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 	// should be transferred to pstake address.
 	remainingDelegationBalance := allDelegationBalances.Sub(sdk.NewCoins(delegationBalance))
 
-	if !remainingDelegationBalance.Empty() {
+	if remainingDelegationBalance.IsAllPositive() {
 		feeAddr, err := sdk.AccAddressFromBech32(hostChainParams.PstakeParams.PstakeFeeAddress)
 		if err != nil {
 			return err
@@ -231,7 +231,7 @@ func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscos
 		return lscosmostypes.ErrInValidAllowListedValidators
 	}
 	delegationState := k.GetDelegationState(ctx)
-	undelegateMsgs, undelegationEntries, err := k.UndelegateMsgs(ctx, delegationState.HostChainDelegationAddress, amountToUnstake.Amount, hostChainParams.BaseDenom)
+	undelegateMsgs, undelegationEntries, err := k.UndelegateMsgs(ctx, amountToUnstake.Amount, hostChainParams.BaseDenom, delegationState)
 	if err != nil {
 		return err
 	}

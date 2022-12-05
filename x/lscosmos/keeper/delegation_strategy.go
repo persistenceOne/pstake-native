@@ -12,13 +12,11 @@ import (
 
 // DelegateMsgs gives the list of Delegate Txs to be executed based on the current state and params.
 // CONTRACT: allowlistedValList.len > 0, amount > 0
-func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.Int, denom string) ([]sdk.Msg, error) {
+func (k Keeper) DelegateMsgs(ctx sdk.Context, amount sdk.Int, denom string, delegationState types.DelegationState) ([]sdk.Msg, error) {
 	// fetch a combined updated val set list and delegation state
-	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx)
+	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx, denom)
 
-	// get the current delegation state and
 	// assign the updated validator delegation state to the current delegation state
-	delegationState := k.GetDelegationState(ctx)
 	delegationState.HostAccountDelegations = hostAccountDelegations
 
 	updatedAllowListedValidators := types.AllowListedValidators{AllowListedValidators: updateValList}
@@ -32,7 +30,7 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.I
 	for _, val := range valAddressAmount {
 		if val.Amount.IsPositive() {
 			msg := &stakingtypes.MsgDelegate{
-				DelegatorAddress: delegatorAddr,
+				DelegatorAddress: delegationState.HostChainDelegationAddress,
 				ValidatorAddress: val.ValidatorAddr,
 				Amount:           val.Amount,
 			}
@@ -49,13 +47,11 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.I
 
 // UndelegateMsgs gives the list of Undelegate Txs to be executed based on the current state and params.
 // CONTRACT: allowlistedValList.len > 0, amount > 0
-func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk.Int, denom string) ([]sdk.Msg, []types.UndelegationEntry, error) {
+func (k Keeper) UndelegateMsgs(ctx sdk.Context, amount sdk.Int, denom string, delegationState types.DelegationState) ([]sdk.Msg, []types.UndelegationEntry, error) {
 	// fetch a combined updated val set list and delegation state
-	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx)
+	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx, denom)
 
-	// get the current delegation state and
 	// assign the updated validator delegation state to the current delegation state
-	delegationState := k.GetDelegationState(ctx)
 	delegationState.HostAccountDelegations = hostAccountDelegations
 
 	updatedAllowListedValidators := types.AllowListedValidators{AllowListedValidators: updateValList}
@@ -72,7 +68,7 @@ func (k Keeper) UndelegateMsgs(ctx sdk.Context, delegatorAddr string, amount sdk
 	for _, val := range valAddressAmount {
 
 		msg := &stakingtypes.MsgUndelegate{
-			DelegatorAddress: delegatorAddr,
+			DelegatorAddress: delegationState.HostChainDelegationAddress,
 			ValidatorAddress: val.ValidatorAddr,
 			Amount:           val.Amount,
 		}
@@ -242,9 +238,7 @@ func DivideUndelegateAmountIntoValidatorSet(sortedValDiff types.WeightedAddressA
 // GetAllValidatorsState returns the combined allowed listed validators set and combined
 // delegation state. It is done to keep the old validators in the loop while calculating weighted amounts
 // for delegation and undelegation
-func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedVals, types.HostAccountDelegations) {
-	hostChainParams := k.GetHostChainParams(ctx)
-
+func (k Keeper) GetAllValidatorsState(ctx sdk.Context, denom string) (types.AllowListedVals, types.HostAccountDelegations) {
 	// Get current active val set and make a map of it
 	currentAllowListedValSet := k.GetAllowListedValidators(ctx)
 	currentAllowListedValSetMap := make(map[string]sdk.Dec)
@@ -289,7 +283,7 @@ func (k Keeper) GetAllValidatorsState(ctx sdk.Context) (types.AllowListedVals, t
 	for _, val := range delList {
 		_, ok := currentDelegationStateMap[val]
 		if !ok {
-			currentDelegationStateMap[val] = sdk.NewCoin(hostChainParams.BaseDenom, sdk.ZeroInt())
+			currentDelegationStateMap[val] = sdk.NewCoin(denom, sdk.ZeroInt())
 		}
 	}
 
