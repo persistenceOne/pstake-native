@@ -505,10 +505,6 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 		msg.PstakeParams.PstakeUnstakeFee, msg.PstakeParams.PstakeRedemptionFee)
 
 	m.SetHostChainParams(ctx, newHostChainParams)
-
-	if !msg.AllowListedValidators.Valid() {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Allow listed validators is invalid")
-	}
 	m.SetAllowListedValidators(ctx, msg.AllowListedValidators)
 
 	ctx.EventManager().EmitEvents(sdktypes.Events{
