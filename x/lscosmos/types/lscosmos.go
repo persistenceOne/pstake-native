@@ -40,6 +40,11 @@ func (av *AllowListedValidators) Valid() bool {
 			return false
 		}
 		noDuplicate[v.ValidatorAddress] = true
+
+		if v.TargetWeight.IsNegative() {
+			return false
+		}
+
 		sum = sum.Add(v.TargetWeight)
 	}
 	return sum.Equal(sdk.OneDec())
