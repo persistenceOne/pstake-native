@@ -140,65 +140,7 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 
 // Juice defines a method for boosting rewards without minting more stk tokens
 func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.MsgJuiceResponse, error) {
-	ctx := sdktypes.UnwrapSDKContext(goCtx)
-
-	// check if module is inactive or active
-	if !m.GetModuleState(ctx) {
-		return nil, types.ErrModuleDisabled
-	}
-
-	//GetParams
-	hostChainParams := m.GetHostChainParams(ctx)
-
-	expectedIBCPrefix := ibctransfertypes.GetDenomPrefix(hostChainParams.TransferPort, hostChainParams.TransferChannel)
-
-	denomTraceStr, err := m.ibcTransferKeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidDenom, "got error : %s", err)
-	}
-	denomTrace := ibctransfertypes.ParseDenomTrace(denomTraceStr)
-
-	// Check if ibc path matches allowlisted path.
-	if expectedIBCPrefix != denomTrace.GetPrefix() {
-		return nil, sdkerrors.Wrapf(
-			types.ErrInvalidDenomPath, "expected %s, got %s", expectedIBCPrefix, denomTrace.GetPrefix(),
-		)
-	}
-	//Check if base denom is valid (uatom) , this can be programmed further to accommodate for liquid staked vouchers.
-	if denomTrace.BaseDenom != hostChainParams.BaseDenom {
-		return nil, sdkerrors.Wrapf(
-			types.ErrInvalidDenom, "expected %s, got %s", hostChainParams.BaseDenom, denomTrace.BaseDenom,
-		)
-	}
-
-	// check if address in message is correct or not
-	rewarderAddress, err := sdktypes.AccAddressFromBech32(msg.RewarderAddress)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "incorrect address, got error : %s", err)
-	}
-
-	//send the rewards boost amount  to the deposit-module account
-	rewardsBoostAmount := sdktypes.NewCoins(msg.Amount)
-	err = m.SendTokensToRewardBoosterModuleAccount(ctx, rewardsBoostAmount, rewarderAddress)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(
-			types.ErrFailedDeposit, "failed to deposit tokens to module account %s, got error : %s", types.RewardBoosterModuleAccount, err,
-		)
-	}
-
-	ctx.EventManager().EmitEvents(sdktypes.Events{
-		sdktypes.NewEvent(
-			types.EventTypeRewardBoost,
-			sdktypes.NewAttribute(types.AttributeRewarderAddress, rewarderAddress.String()),
-			sdktypes.NewAttribute(types.AttributeAmountReceived, rewardsBoostAmount.String()),
-		),
-		sdktypes.NewEvent(
-			sdktypes.EventTypeMessage,
-			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
-			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.RewarderAddress),
-		)},
-	)
-	return &types.MsgJuiceResponse{}, nil
+	return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "MsgJuice is blocked as of now")
 }
 
 // LiquidUnstake defines a method for unstaking the liquid staked tokens
