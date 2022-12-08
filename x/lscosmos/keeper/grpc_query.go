@@ -234,15 +234,6 @@ func (k Keeper) DelegatorUnbondingEpochEntry(c context.Context, request *types.Q
 	return &types.QueryDelegatorUnbondingEpochEntryResponse{DelegatorUnbodingEpochEntry: unbondingEpochEntry}, nil
 }
 
-// RewardsBoosterAccount queries the rewards booster account balance
-func (k Keeper) RewardsBoosterAccount(c context.Context, request *types.QueryRewardBoosterAccountRequest) (*types.QueryRewardBoosterAccountResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-
-	balance := k.bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(types.RewardBoosterModuleAccount), k.GetIBCDenom(ctx))
-
-	return &types.QueryRewardBoosterAccountResponse{Balance: balance}, nil
-}
-
 // HostAccounts queries the host accounts
 func (k Keeper) HostAccounts(c context.Context, request *types.QueryHostAccountsRequest) (*types.QueryHostAccountsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)

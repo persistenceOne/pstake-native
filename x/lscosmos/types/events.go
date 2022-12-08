@@ -6,7 +6,6 @@ const (
 	EventTypeTimeout       = "timeout"
 	EventTypeLiquidStake   = "liquid-stake"
 	EventTypeRedeem        = "redeem"
-	EventTypeRewardBoost   = "reward-boost"
 	EventTypeLiquidUnstake = "liquid-unstake"
 	EventTypeClaim         = "claim"
 	EventTypeJumpStart     = "jump-start"

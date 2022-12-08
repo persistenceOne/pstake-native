@@ -21,9 +21,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgLiquidStake:
 			res, err := msgServer.LiquidStake(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgJuice:
-			res, err := msgServer.Juice(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
 		case *types.MsgLiquidUnstake:
 			res, err := msgServer.LiquidUnstake(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)

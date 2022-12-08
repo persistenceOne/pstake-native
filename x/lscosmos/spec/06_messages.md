@@ -34,29 +34,6 @@ Example of a liquid staking transaction :
 $ pstaked tx lscosmos liquid-stake 2000000ibc/DENOM_HASH  --from <delegator_key_name> --chain-id <chain_id> --keyring-backend <keyring_backend>
 ```
 
-### MsgJuice
-
-Juice is a transaction to boost rewards on the protocol without minting more stk tokens.
-
-It performs the following operations :
-
-- Validate if the amount is valid and returns an error of invalid arguments.
-- Checks if the module is active and returns an error that the module is disabled if condition is not matched.
-- Fetches host chain params and check if the amount deposited is more than min deposit set in store. If less, returns an error that the expected amount is more than certain limit set in store.
-- Computes expected IBC prefix and checks if prefix from user and prefix in store matches. If it does not match then it returns an error of invalid denom path.
-- Similar step for checking denom trace from user and stored value. If not equal, returns an error of invalid denom.
-- Rewarder address is checked and returns if address is invalid.
-- Tokens from rewarder address are sent to the rewards booster module account. If unable to send, returns an error : failed to deposit tokens to the rewards booster module account.
-
-Inputs for this message :
-
-- `RewarderAddress` : Address of the rewarder.
-- `Amount` : It is the amount of IBC tokens submitted by the rewarder.
-
-```
-$ pstaked tx lscosmos juice 5000000000ibc/DENOM_HASH  --from <rewarder_key_name> --chain-id <chain-id> --keyring-backend <keyring_backend>
-```
-
 ### MsgLiquidUnstake
 
 LiquidUnstake is a transactions to unstake liquid staked assets.

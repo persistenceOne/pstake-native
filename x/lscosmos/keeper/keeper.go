@@ -170,11 +170,6 @@ func (k Keeper) SendTokensToDepositModule(ctx sdk.Context, depositCoin sdk.Coins
 	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddress, types.DepositModuleAccount, depositCoin)
 }
 
-// SendTokensToRewardBoosterModuleAccount sends the tokens to DepositModuleAccount
-func (k Keeper) SendTokensToRewardBoosterModuleAccount(ctx sdk.Context, rewardsBoostCoin sdk.Coins, senderAddress sdk.AccAddress) error {
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddress, types.RewardBoosterModuleAccount, rewardsBoostCoin)
-}
-
 // SendProtocolFee to the community pool
 func (k Keeper) SendProtocolFee(ctx sdk.Context, protocolFee sdk.Coins, moduleAccount, pstakeFeeAddressString string) error {
 	addr, err := sdk.AccAddressFromBech32(pstakeFeeAddressString)

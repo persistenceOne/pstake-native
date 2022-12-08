@@ -17,7 +17,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&PstakeFeeAddressChangeProposal{}, "cosmos/PstakeFeeAddressChangeProposal", nil)
 	cdc.RegisterConcrete(&AllowListedValidatorSetChangeProposal{}, "cosmos/AllowListedValidatorSetChangeProposal", nil)
 	cdc.RegisterConcrete(&MsgLiquidStake{}, "cosmos/MsgLiquidStake", nil)
-	cdc.RegisterConcrete(&MsgJuice{}, "cosmos/MsgJuice", nil)
 	cdc.RegisterConcrete(&MsgLiquidUnstake{}, "cosmos/MsgLiquidUnstake", nil)
 	cdc.RegisterConcrete(&MsgRedeem{}, "cosmos/MsgRedeem", nil)
 	cdc.RegisterConcrete(&MsgClaim{}, "cosmos/MsgClaim", nil)
@@ -29,7 +28,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgLiquidStake{},
-		&MsgJuice{},
 		&MsgLiquidUnstake{},
 		&MsgRedeem{},
 		&MsgClaim{},

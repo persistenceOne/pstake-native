@@ -138,11 +138,6 @@ func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 	return &types.MsgLiquidStakeResponse{}, nil
 }
 
-// Juice defines a method for boosting rewards without minting more stk tokens
-func (m msgServer) Juice(goCtx context.Context, msg *types.MsgJuice) (*types.MsgJuiceResponse, error) {
-	return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "MsgJuice is blocked as of now")
-}
-
 // LiquidUnstake defines a method for unstaking the liquid staked tokens
 func (m msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
