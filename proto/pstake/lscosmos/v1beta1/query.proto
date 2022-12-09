@@ -68,10 +68,6 @@ service Query {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/delegator_unbonding_epoch_entry/{delegator_address}/{epoch_number}";
   }
 
-  rpc RewardsBoosterAccount(QueryRewardBoosterAccountRequest) returns (QueryRewardBoosterAccountResponse) {
-    option (google.api.http).get = "/pstake/lscosmos/v1beta1/rewards_booster_account";
-  }
-
   rpc HostAccounts(QueryHostAccountsRequest) returns (QueryHostAccountsResponse) {
     option (google.api.http).get = "/pstake/lscosmos/v1beta1/host_accounts";
   }
@@ -201,14 +197,6 @@ message QueryDelegatorUnbondingEpochEntryRequest {
 // QueryDelegatorUnbondingEpochEntryResponse is a response for the Query/DelegatorUnbondingEpochEntry methods.
 message QueryDelegatorUnbondingEpochEntryResponse {
   DelegatorUnbondingEpochEntry delegator_unboding_epoch_entry = 1 [(gogoproto.nullable) = false];
-}
-
-// QueryRewardBoosterAccountRequest is a request for the Query/RewardsBoosterAccount methods.
-message QueryRewardBoosterAccountRequest {}
-
-// QueryRewardBoosterAccountResponse is a response for the Query/RewardsBoosterAccount methods.
-message QueryRewardBoosterAccountResponse {
-  cosmos.base.v1beta1.Coin balance = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryHostAccountsRequest is a request for the Query/HostAccounts methods.

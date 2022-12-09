@@ -25,7 +25,6 @@ type Keeper interface{
 	UnbondingEpochCValue(c context.Context, request *types.QueryUnbondingEpochCValueRequest) (*types.QueryUnbondingEpochCValueResponse, error)
 	HostAccountUndelegation(c context.Context, request *types.QueryHostAccountUndelegationRequest) (*types.QueryHostAccountUndelegationResponse, error)
 	DelegatorUnbondingEpochEntry(c context.Context, request *types.QueryDelegatorUnbondingEpochEntryRequest) (*types.QueryDelegatorUnbondingEpochEntryResponse, error)
-	RewardsBoosterAccount(c context.Context, request *types.QueryRewardBoosterAccountRequest) (*types.QueryRewardBoosterAccountResponse, error)
 	HostAccounts(c context.Context, request *types.QueryHostAccountsRequest) (*types.QueryHostAccountsResponse, error)
 	DepositModuleAccount(c context.Context, request *types.QueryDepositModuleAccountRequest) (*types.QueryDepositModuleAccountResponse, error)
 	DelegatorUnbondingEpochEntries(c context.Context, request *types.QueryAllDelegatorUnbondingEpochEntriesRequest) (*types.QueryAllDelegatorUnbondingEpochEntriesResponse, error)
@@ -87,7 +86,6 @@ type Keeper interface{
 	GetRewardBoosterModuleAccount(ctx types.Context) types.ModuleAccountI
 	MintTokens(ctx types.Context, mintCoin types.Coin, delegatorAddress types.AccAddress) error
 	SendTokensToDepositModule(ctx types.Context, depositCoin types.Coins, senderAddress types.AccAddress) error
-	SendTokensToRewardBoosterModuleAccount(ctx types.Context, rewardsBoostCoin types.Coins, senderAddress types.AccAddress) error
 	SendProtocolFee(ctx types.Context, protocolFee types.Coins, moduleAccount string, pstakeFeeAddressString string) error
 	
 	// Delegator unbonding epoch entry

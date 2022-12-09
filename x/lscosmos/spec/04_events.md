@@ -58,27 +58,6 @@ Last event
 | message      | module             | lscosmos                            |
 | message      | sender             | {address}                           |
 
-### MsgJuice
-
-Send juice tokens from account to module (transfer IBC tokens to rewards booster module account)
-
-| Type     | Attribute Key | Attribute Value    |
-|----------|---------------|--------------------|
-| transfer | recipient     | {recipientAddress} |
-| transfer | amount        | {amount}           |
-| message  | action        | send               |
-| transfer | sender        | {senderAddress}    |
-| message  | sender        | {fromAddress}      |
-
-Last event
-
-| Type         | Attribute Key      | Attribute Value                     |
-|--------------|--------------------|-------------------------------------|
-| reward-boost | rewarder-address   | {rewarderAddress}                   |
-| reward-boost | received           | {boostAmount}                       |
-| message      | module             | lscosmos                            |
-| message      | sender             | {rewarderAddress}                   |
-
 ### MsgLiquidUnstake
 
 Send liquid unstake tokens from account to module (transfer stkTokens to module account)

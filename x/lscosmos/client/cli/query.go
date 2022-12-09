@@ -38,7 +38,6 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdQueryUnbondingEpoch(),
 		CmdQueryHostAccountUndelegation(),
 		CmdQueryDelegatorUnbodingEpochEntry(),
-		CmdQueryRewardsBoosterAccount(),
 		CmdQueryHostAccounts(),
 		CmdQueryDepositModuleAccount(),
 		CmdDelegatorUnbondingEpochEntries(),
@@ -97,7 +96,7 @@ func CmdQueryDelegationState() *cobra.Command {
 	return cmd
 }
 
-// CmdQueryAllowListedValidators implements the allow listed validators query command.
+// CmdQueryAllowListedValidators implements allow listed validators query command.
 func CmdQueryAllowListedValidators() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "allow-listed-validators",
@@ -369,31 +368,6 @@ func CmdQueryDelegatorUnbodingEpochEntry() *cobra.Command {
 			}
 
 			res, err := queryClient.DelegatorUnbondingEpochEntry(context.Background(), &types.QueryDelegatorUnbondingEpochEntryRequest{DelegatorAddress: delegatorAddress.String(), EpochNumber: epochNumber})
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// CmdQueryRewardsBoosterAccount implements the rewards booster query command
-func CmdQueryRewardsBoosterAccount() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "rewards-booster-account",
-		Short: "shows the balance of rewards booster account",
-		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-
-			queryClient := types.NewQueryClient(clientCtx)
-
-			res, err := queryClient.RewardsBoosterAccount(context.Background(), &types.QueryRewardBoosterAccountRequest{})
 			if err != nil {
 				return err
 			}

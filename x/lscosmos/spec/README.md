@@ -24,7 +24,6 @@ able to liquid-stake ATOM tokens and get representative stkATOM tokens in return
 3. **[State](03_state.md)**
 4. **[Events](04_events.md)**
    - [MsgLiquidStake](04_events.md#msgliquidstake)
-   - [MsgJuice](04_events.md#msgjuice)
    - [MsgLiquidUnstake](04_events.md#msgliquidunstake)
    - [MsgRedeem](04_events.md#msgredeem)
    - [MsgClaim](04_events.md#msgclaim)
@@ -34,7 +33,6 @@ able to liquid-stake ATOM tokens and get representative stkATOM tokens in return
       [KeeperFunctions](05_keeper.md#keeper-functions)
 6. **[Messages](06_messages.md)**
     - [MsgLiquidStake](06_messages.md#msgliquidstake)
-    - [MsgJuice](06_messages.md#msgjuice)
     - [MsgLiquidUnstake](06_messages.md#msgliquidunstake)
     - [MsgRedeem](06_messages.md#msgredeem)
     - [MsgClaim](06_messages.md#msgclaim)

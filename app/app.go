@@ -186,7 +186,7 @@ var (
 		lscosmostypes.DelegationModuleAccount:    nil,
 		lscosmostypes.RewardModuleAccount:        nil,
 		lscosmostypes.UndelegationModuleAccount:  nil,
-		lscosmostypes.RewardBoosterModuleAccount: nil,
+		lscosmostypes.RewardBoosterModuleAccount: nil, //legacy, blocklist, no permissions
 	}
 
 	receiveAllowedMAcc = map[string]bool{
