@@ -90,6 +90,7 @@ var (
 	MaxPstakeUnstakeFee    = sdk.MustNewDecFromStr("0.5")
 	MaxPstakeRedemptionFee = sdk.MustNewDecFromStr("0.2")
 	MaxCValue              = sdk.MustNewDecFromStr("1.1")
+	RestakeCapPerDay       = sdk.MustNewDecFromStr("0.00069") //0.25185 or ~25% APY
 )
 
 var (
