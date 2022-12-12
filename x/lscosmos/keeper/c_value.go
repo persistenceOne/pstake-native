@@ -21,15 +21,6 @@ func (k Keeper) GetDepositAccountAmount(ctx sdk.Context) sdk.Int {
 	).Amount
 }
 
-// GetDelegationAccountAmount returns the delegation account amount of the IBC denom
-func (k Keeper) GetDelegationAccountAmount(ctx sdk.Context) sdk.Int {
-	return k.bankKeeper.GetBalance(
-		ctx,
-		authtypes.NewModuleAddress(types.DelegationModuleAccount),
-		k.GetIBCDenom(ctx),
-	).Amount
-}
-
 // GetIBCTransferTransientAmount returns the IBC transfer transient amount of the IBC denom
 func (k Keeper) GetIBCTransferTransientAmount(ctx sdk.Context) sdk.Int {
 	transferAmount := k.GetIBCTransientStore(ctx).IBCTransfer
@@ -70,7 +61,6 @@ func (k Keeper) GetHostDelegationAccountAmount(ctx sdk.Context) sdk.Int {
 // function is called. Returns 1 if stakedAmount or mintedAmount is zero.
 func (k Keeper) GetCValue(ctx sdk.Context) sdk.Dec {
 	stakedAmount := k.GetDepositAccountAmount(ctx).
-		Add(k.GetDelegationAccountAmount(ctx)).
 		Add(k.GetIBCTransferTransientAmount(ctx)).
 		Add(k.GetDelegationTransientAmount(ctx)).
 		Add(k.GetStakedAmount(ctx)).
