@@ -1884,7 +1884,6 @@ func (suite *IntegrationTestSuite) TestDelegateStrategy() {
 			// get list of validator with respective amounts to delegate
 			list, err := keeper.DelegateStrategy(allowListerValidators, delegationStateS, amount)
 			suite.NoError(err)
-			fmt.Println(list)
 			suite.Equal(len(list), len(tc.ExpectedListWithDistribution[i]))
 			for j := range list {
 				suite.Equal(list[j].Amount, tc.ExpectedListWithDistribution[i][j].Amount)
