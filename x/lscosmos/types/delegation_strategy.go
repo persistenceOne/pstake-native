@@ -22,6 +22,13 @@ type ValAddressAmount struct {
 	Amount        sdk.Coin
 }
 
+type DifferenceCurrentAndIdealAmount struct {
+	Address string
+	Current sdk.Dec
+	Ideal   sdk.Dec
+	Diff    sdk.Dec
+}
+
 type (
 	WeightedAddressAmounts []WeightedAddressAmount
 	ValAddressAmounts      []ValAddressAmount
@@ -139,4 +146,23 @@ func GetZeroNonZeroWightedAddrAmts(ws WeightedAddressAmounts) (zeroWeighted, non
 		}
 	}
 	return zeroWeighted, nonZeroWeighted
+}
+
+// GetDelegationStateMap returns delegations state map
+func GetDelegationStateMap(delegationState DelegationState) map[string]sdk.Coin {
+	delegationStateMap := make(map[string]sdk.Coin)
+	for _, i := range delegationState.HostAccountDelegations {
+		delegationStateMap[i.ValidatorAddress] = i.Amount
+	}
+
+	return delegationStateMap
+}
+
+// GetValidatorWeightsMap return validators weights map
+func GetValidatorWeightsMap(valList AllowListedValidators) map[string]sdk.Dec {
+	validatorWeightsMap := make(map[string]sdk.Dec)
+	for _, v := range valList.AllowListedValidators {
+		validatorWeightsMap[v.ValidatorAddress] = v.TargetWeight
+	}
+	return validatorWeightsMap
 }

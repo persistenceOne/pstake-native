@@ -784,3 +784,1111 @@ func (suite *IntegrationTestSuite) TestGetAllValidatorsState() {
 	suite.NoError(err)
 	suite.Equal(0, len(list))
 }
+
+func (suite *IntegrationTestSuite) TestDelegateStrategy() {
+	app, ctx := suite.app, suite.ctx
+
+	k := app.LSCosmosKeeper
+
+	hostChainParams := k.GetHostChainParams(ctx)
+
+	testCases := []struct {
+		types.AllowListedValidators
+		types.DelegationState
+		Amounts                      []sdk.Coin
+		ExpectedListWithDistribution []types.ValAddressAmounts
+	}{
+		{
+			AllowListedValidators: types.AllowListedValidators{
+				AllowListedValidators: []types.AllowListedValidator{
+					{
+						ValidatorAddress: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2",
+						TargetWeight:     sdk.NewDecWithPrec(3, 1),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
+						TargetWeight:     sdk.NewDecWithPrec(7, 1),
+					},
+				},
+			},
+			DelegationState: types.DelegationState{
+				HostAccountDelegations: []types.HostAccountDelegation{
+					{
+						ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 200),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 100),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 400),
+					},
+				},
+			},
+			Amounts: []sdk.Coin{
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 1),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 2),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 3),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 40),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 222),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 223),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 4000),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 4001),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 4002),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 4003),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 4004),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 4005),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 4006),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 4007),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 4008),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 4009),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 4010),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 4011),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 1000000000),
+			},
+			ExpectedListWithDistribution: []types.ValAddressAmounts{
+				{
+					types.ValAddressAmount{
+						ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2",
+						Amount:        sdk.NewCoin("uatom", sdk.OneInt()),
+					},
+				},
+				{
+					types.ValAddressAmount{
+						ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
+						Amount:        sdk.NewCoin("uatom", sdk.NewInt(2)),
+					},
+				},
+				{
+					types.ValAddressAmount{
+						ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
+						Amount:        sdk.NewCoin("uatom", sdk.NewInt(3)),
+					},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(28))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(12))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(156))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(66))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(157))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(66))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(2800))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1200))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(2801))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1200))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(2802))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1200))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(2803))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1200))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(2803))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1201))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(2804))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1201))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(2805))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1201))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(2805))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1202))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(2806))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1202))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(2807))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1202))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(2807))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1203))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(2808))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1203))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5", Amount: sdk.NewCoin("uatom", sdk.NewInt(700000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2", Amount: sdk.NewCoin("uatom", sdk.NewInt(300000000))},
+				},
+			},
+		},
+		{
+			AllowListedValidators: types.AllowListedValidators{
+				AllowListedValidators: []types.AllowListedValidator{
+					{
+						ValidatorAddress: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0",
+						TargetWeight:     sdk.NewDecWithPrec(16131000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper196ax4vc0lwpxndu9dyhvca7jhxp70rmcvrj90c",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1v5y0tg0jllvxf5c3afml8s3awue0ymju89frut",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1qaa9zej9a0ge3ugpx3pxyx602lxh3ztqgfnp42",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1hjct6q7npsspsg3dgvzk3sdf89spmlpfdn6m9d",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1clpqr4nrk4khgkxj78fcwwh6dl3uw4epsluffn",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper132juzk0gdmwuxvx4phug7m3ymyatxlh9734g4w",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper15urq2dtp9qce4fyc85m6upwm9xul3049e02707",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1vf44d85es37hwl9f4h9gv0e064m0lla60j9luj",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1lzhlnpahvznwfv4jmay2tgaha5kmz5qxerarrl",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1g48268mu5vfp4wk7dk89r0wdrakm9p5xk0q50k",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper16k579jk6yt2cwmqx9dz5xvq9fug2tekvlu9qdv",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1gpx52r9h3zeul45amvcy2pysgvcwddxrgx6cnv",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1grgelyng2v6v3t8z87wu3sxgt9m5s03xfytvz7",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper14kn0kk33szpwus9nh8n87fjel8djx0y070ymmj",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1vvwtk805lxehwle9l4yudmq6mn0g32px9xtkhc",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1rpgtz9pskr5geavkjz02caqmeep7cwwpv73axj",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1y0us8xvsvfvqkk9c6nt5cfyu5au5tww2ztve7q",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper130mdu9a0etmeuw52qfxk73pn0ga6gawkxsrlwf",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper10e4vsut6suau8tk9m6dnrm0slgd6npe3jx5xpv",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1kgddca7qj96z0qcxr2c45z73cfl0c75p7f3s2e",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper199mlc7fr6ll5t54w7tts7f4s0cvnqgc59nmuxf",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1k2d9ed9vgfuk2m58a2d80q9u6qljkh4vfaqjfq",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1uutuwrwt3z2a5z8z3uasml3rftlpmu25aga5c6",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1ssm0d433seakyak8kcf93yefhknjleeds4y3em",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1ehkfl7palwrh6w2hhr2yfrgrq8jetgucudztfe",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1n3mhyp9fvcmuu8l0q8qvjy07x0rql8q46fe2xk",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1gxju9ky3hwxvqqagrl3dxtl49kjpxq6wlqe6m5",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper157v7tczs40axfgejp2m43kwuzqe0wsy0rv8puv",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper14l0fp639yudfl46zauvv8rkzjgd4u0zk2aseys",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1lktjhnzkpkz3ehrg8psvmwhafg56kfss3q3t8m",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1udpsgkgyutgsglauk9vk9rs03a3skc62gup9ny",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper124maqmcqv8tquy764ktz7cu0gxnzfw54n3vww8",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1uhnsxv6m83jj3328mhrql7yax3nge5svrv6t6c",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1083svrca4t350mphfv9x45wq9asrs60cdmrflj",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper17mggn4znyeyg25wd7498qxl7r2jhgue8u4qjcq",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1pjmngrwcsatsuyy8m3qrunaun67sr9x7z5r2qs",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1gjtvly9lel6zskvwtvlg5vhwpu9c9waw7sxzwx",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1ptyzewnns2kn37ewtmv6ppsvhdnmeapvtfc9y5",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1gf4wlkutql95j7wwsxz490s6fahlvk2s9xpwax",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1m73mgwn3cm2e8x9a9axa0kw8nqz8a492ms63vn",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1hdrlqvyjfy5sdrseecjrutyws9khtxxaux62l7",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper17h2x3j7u44qkrq0sk8ul0r2qr440rwgjkfg0gh",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1gp957czryfgyvxwn3tfnyy2f0t9g2p4pqeemx8",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper10nzaaeh2kq28t3nqsh5m8kmyv90vx7ym5mpakx",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1ddle9tczl87gsvmeva3c48nenyng4n56nghmjk",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1fhr7e04ct0zslmkzqt9smakg3sxrdve6ulclj2",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper18extdhzzl5c8tr6453e5hzaj3exrdlea90fj3y",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1e859xaue4k2jzqw20cv6l7p3tmc378pc3k8g2u",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1jlr62guqwrwkdt4m3y00zh2rrsamhjf9num5xr",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper16yupepagywvlk7uhpfchtwa0stu5f8cyhh54f2",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1485u80fdxjan4sd3esrvyw6cyurpvddvzuh48y",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1rcp29q3hpd246n6qak7jluqep4v006cdsc2kkl",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1fqzqejwkk898fcslw4z4eeqjzesynvrdfr5hte",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1e0plfg475phrsvrlzw8gwppeva0zk5yg9fgg8c",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1xwazl8ftks4gn00y5x3c47auquc62ssuqlj02r",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1jmykcq8gylmy5tgqtel4xj4q62fdt49sl584xd",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper14qazscc80zgzx3m0m0aa30ths0p9hg8vdglqrc",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper13x77yexvf6qexfjg9czp6jhpv7vpjdwwkyhe4p",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1jxv0u20scum4trha72c7ltfgfqef6nsch7q6cu",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1ualhu3fjgg77g485gmyswkq3w0dp7gys6qzwrv",
+						TargetWeight:     sdk.NewDecWithPrec(16129000000000000, 18),
+					},
+				},
+			},
+			DelegationState: types.DelegationState{
+				HostAccountDelegations: []types.HostAccountDelegation{
+					{
+						ValidatorAddress: "cosmosvaloper1083svrca4t350mphfv9x45wq9asrs60cdmrflj",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper10e4vsut6suau8tk9m6dnrm0slgd6npe3jx5xpv",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339554),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper10nzaaeh2kq28t3nqsh5m8kmyv90vx7ym5mpakx",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper124maqmcqv8tquy764ktz7cu0gxnzfw54n3vww8",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper130mdu9a0etmeuw52qfxk73pn0ga6gawkxsrlwf",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper132juzk0gdmwuxvx4phug7m3ymyatxlh9734g4w",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper13x77yexvf6qexfjg9czp6jhpv7vpjdwwkyhe4p",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1485u80fdxjan4sd3esrvyw6cyurpvddvzuh48y",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper14kn0kk33szpwus9nh8n87fjel8djx0y070ymmj",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper14l0fp639yudfl46zauvv8rkzjgd4u0zk2aseys",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper14qazscc80zgzx3m0m0aa30ths0p9hg8vdglqrc",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper157v7tczs40axfgejp2m43kwuzqe0wsy0rv8puv",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper15urq2dtp9qce4fyc85m6upwm9xul3049e02707",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper16k579jk6yt2cwmqx9dz5xvq9fug2tekvlu9qdv",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper16yupepagywvlk7uhpfchtwa0stu5f8cyhh54f2",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper17h2x3j7u44qkrq0sk8ul0r2qr440rwgjkfg0gh",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper17mggn4znyeyg25wd7498qxl7r2jhgue8u4qjcq",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper18extdhzzl5c8tr6453e5hzaj3exrdlea90fj3y",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper196ax4vc0lwpxndu9dyhvca7jhxp70rmcvrj90c",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper199mlc7fr6ll5t54w7tts7f4s0cvnqgc59nmuxf",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1clpqr4nrk4khgkxj78fcwwh6dl3uw4epsluffn",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1ddle9tczl87gsvmeva3c48nenyng4n56nghmjk",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1e0plfg475phrsvrlzw8gwppeva0zk5yg9fgg8c",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1e859xaue4k2jzqw20cv6l7p3tmc378pc3k8g2u",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1ehkfl7palwrh6w2hhr2yfrgrq8jetgucudztfe",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1fhr7e04ct0zslmkzqt9smakg3sxrdve6ulclj2",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1fqzqejwkk898fcslw4z4eeqjzesynvrdfr5hte",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1g48268mu5vfp4wk7dk89r0wdrakm9p5xk0q50k",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1gf4wlkutql95j7wwsxz490s6fahlvk2s9xpwax",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1gjtvly9lel6zskvwtvlg5vhwpu9c9waw7sxzwx",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1gp957czryfgyvxwn3tfnyy2f0t9g2p4pqeemx8",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1gpx52r9h3zeul45amvcy2pysgvcwddxrgx6cnv",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1grgelyng2v6v3t8z87wu3sxgt9m5s03xfytvz7",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1gxju9ky3hwxvqqagrl3dxtl49kjpxq6wlqe6m5",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1hdrlqvyjfy5sdrseecjrutyws9khtxxaux62l7",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1hjct6q7npsspsg3dgvzk3sdf89spmlpfdn6m9d",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1jlr62guqwrwkdt4m3y00zh2rrsamhjf9num5xr",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1jmykcq8gylmy5tgqtel4xj4q62fdt49sl584xd",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1jxv0u20scum4trha72c7ltfgfqef6nsch7q6cu",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1k2d9ed9vgfuk2m58a2d80q9u6qljkh4vfaqjfq",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1kgddca7qj96z0qcxr2c45z73cfl0c75p7f3s2e",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1lktjhnzkpkz3ehrg8psvmwhafg56kfss3q3t8m",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1lzhlnpahvznwfv4jmay2tgaha5kmz5qxerarrl",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1m73mgwn3cm2e8x9a9axa0kw8nqz8a492ms63vn",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1n3mhyp9fvcmuu8l0q8qvjy07x0rql8q46fe2xk",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1pjmngrwcsatsuyy8m3qrunaun67sr9x7z5r2qs",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1ptyzewnns2kn37ewtmv6ppsvhdnmeapvtfc9y5",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1qaa9zej9a0ge3ugpx3pxyx602lxh3ztqgfnp42",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1rcp29q3hpd246n6qak7jluqep4v006cdsc2kkl",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1rpgtz9pskr5geavkjz02caqmeep7cwwpv73axj",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339690),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1ssm0d433seakyak8kcf93yefhknjleeds4y3em",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1ualhu3fjgg77g485gmyswkq3w0dp7gys6qzwrv",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1udpsgkgyutgsglauk9vk9rs03a3skc62gup9ny",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1uhnsxv6m83jj3328mhrql7yax3nge5svrv6t6c",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1uutuwrwt3z2a5z8z3uasml3rftlpmu25aga5c6",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1v5y0tg0jllvxf5c3afml8s3awue0ymju89frut",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1vf44d85es37hwl9f4h9gv0e064m0lla60j9luj",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1vvwtk805lxehwle9l4yudmq6mn0g32px9xtkhc",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1xwazl8ftks4gn00y5x3c47auquc62ssuqlj02r",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+					{
+						ValidatorAddress: "cosmosvaloper1y0us8xvsvfvqkk9c6nt5cfyu5au5tww2ztve7q",
+						Amount:           sdk.NewInt64Coin(hostChainParams.BaseDenom, 1339524),
+					},
+				},
+			},
+			Amounts: []sdk.Coin{
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 1),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 2),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 10),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 40),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 70),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 222),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 4000),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 1000000000),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 10000000000001),
+				sdk.NewInt64Coin(hostChainParams.BaseDenom, 1000000000100000),
+			},
+			ExpectedListWithDistribution: []types.ValAddressAmounts{
+				{
+					types.ValAddressAmount{
+						ValidatorAddr: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0",
+						Amount:        sdk.NewCoin("uatom", sdk.OneInt()),
+					},
+				},
+				{
+					types.ValAddressAmount{
+						ValidatorAddr: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0",
+						Amount:        sdk.NewCoin("uatom", sdk.NewInt(2)),
+					},
+				},
+				{
+					types.ValAddressAmount{
+						ValidatorAddr: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0",
+						Amount:        sdk.NewCoin("uatom", sdk.NewInt(10)),
+					},
+				},
+				{
+					types.ValAddressAmount{
+						ValidatorAddr: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0 40uatom",
+						Amount:        sdk.NewCoin("uatom", sdk.NewInt(40)),
+					},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1083svrca4t350mphfv9x45wq9asrs60cdmrflj", Amount: sdk.NewCoin("uatom", sdk.NewInt(9))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10e4vsut6suau8tk9m6dnrm0slgd6npe3jx5xpv", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10nzaaeh2kq28t3nqsh5m8kmyv90vx7ym5mpakx", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper124maqmcqv8tquy764ktz7cu0gxnzfw54n3vww8", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper130mdu9a0etmeuw52qfxk73pn0ga6gawkxsrlwf", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper132juzk0gdmwuxvx4phug7m3ymyatxlh9734g4w", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper13x77yexvf6qexfjg9czp6jhpv7vpjdwwkyhe4p", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1485u80fdxjan4sd3esrvyw6cyurpvddvzuh48y", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14kn0kk33szpwus9nh8n87fjel8djx0y070ymmj", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14l0fp639yudfl46zauvv8rkzjgd4u0zk2aseys", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14qazscc80zgzx3m0m0aa30ths0p9hg8vdglqrc", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper157v7tczs40axfgejp2m43kwuzqe0wsy0rv8puv", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper15urq2dtp9qce4fyc85m6upwm9xul3049e02707", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper16k579jk6yt2cwmqx9dz5xvq9fug2tekvlu9qdv", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper16yupepagywvlk7uhpfchtwa0stu5f8cyhh54f2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper17h2x3j7u44qkrq0sk8ul0r2qr440rwgjkfg0gh", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper17mggn4znyeyg25wd7498qxl7r2jhgue8u4qjcq", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper18extdhzzl5c8tr6453e5hzaj3exrdlea90fj3y", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper196ax4vc0lwpxndu9dyhvca7jhxp70rmcvrj90c", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper199mlc7fr6ll5t54w7tts7f4s0cvnqgc59nmuxf", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1clpqr4nrk4khgkxj78fcwwh6dl3uw4epsluffn", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ddle9tczl87gsvmeva3c48nenyng4n56nghmjk", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1e0plfg475phrsvrlzw8gwppeva0zk5yg9fgg8c", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1e859xaue4k2jzqw20cv6l7p3tmc378pc3k8g2u", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ehkfl7palwrh6w2hhr2yfrgrq8jetgucudztfe", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1fhr7e04ct0zslmkzqt9smakg3sxrdve6ulclj2", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1fqzqejwkk898fcslw4z4eeqjzesynvrdfr5hte", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1g48268mu5vfp4wk7dk89r0wdrakm9p5xk0q50k", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gf4wlkutql95j7wwsxz490s6fahlvk2s9xpwax", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gjtvly9lel6zskvwtvlg5vhwpu9c9waw7sxzwx", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gp957czryfgyvxwn3tfnyy2f0t9g2p4pqeemx8", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gpx52r9h3zeul45amvcy2pysgvcwddxrgx6cnv", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1grgelyng2v6v3t8z87wu3sxgt9m5s03xfytvz7", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gxju9ky3hwxvqqagrl3dxtl49kjpxq6wlqe6m5", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1hdrlqvyjfy5sdrseecjrutyws9khtxxaux62l7", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1hjct6q7npsspsg3dgvzk3sdf89spmlpfdn6m9d", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jlr62guqwrwkdt4m3y00zh2rrsamhjf9num5xr", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jmykcq8gylmy5tgqtel4xj4q62fdt49sl584xd", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jxv0u20scum4trha72c7ltfgfqef6nsch7q6cu", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1k2d9ed9vgfuk2m58a2d80q9u6qljkh4vfaqjfq", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1kgddca7qj96z0qcxr2c45z73cfl0c75p7f3s2e", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1lktjhnzkpkz3ehrg8psvmwhafg56kfss3q3t8m", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1lzhlnpahvznwfv4jmay2tgaha5kmz5qxerarrl", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1m73mgwn3cm2e8x9a9axa0kw8nqz8a492ms63vn", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1n3mhyp9fvcmuu8l0q8qvjy07x0rql8q46fe2xk", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1pjmngrwcsatsuyy8m3qrunaun67sr9x7z5r2qs", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ptyzewnns2kn37ewtmv6ppsvhdnmeapvtfc9y5", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1qaa9zej9a0ge3ugpx3pxyx602lxh3ztqgfnp42", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1rcp29q3hpd246n6qak7jluqep4v006cdsc2kkl", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1rpgtz9pskr5geavkjz02caqmeep7cwwpv73axj", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ssm0d433seakyak8kcf93yefhknjleeds4y3em", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ualhu3fjgg77g485gmyswkq3w0dp7gys6qzwrv", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1udpsgkgyutgsglauk9vk9rs03a3skc62gup9ny", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1uhnsxv6m83jj3328mhrql7yax3nge5svrv6t6c", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1uutuwrwt3z2a5z8z3uasml3rftlpmu25aga5c6", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1v5y0tg0jllvxf5c3afml8s3awue0ymju89frut", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1vf44d85es37hwl9f4h9gv0e064m0lla60j9luj", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1vvwtk805lxehwle9l4yudmq6mn0g32px9xtkhc", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1xwazl8ftks4gn00y5x3c47auquc62ssuqlj02r", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1y0us8xvsvfvqkk9c6nt5cfyu5au5tww2ztve7q", Amount: sdk.NewCoin("uatom", sdk.NewInt(1))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1083svrca4t350mphfv9x45wq9asrs60cdmrflj", Amount: sdk.NewCoin("uatom", sdk.NewInt(39))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10e4vsut6suau8tk9m6dnrm0slgd6npe3jx5xpv", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10nzaaeh2kq28t3nqsh5m8kmyv90vx7ym5mpakx", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper124maqmcqv8tquy764ktz7cu0gxnzfw54n3vww8", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper130mdu9a0etmeuw52qfxk73pn0ga6gawkxsrlwf", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper132juzk0gdmwuxvx4phug7m3ymyatxlh9734g4w", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper13x77yexvf6qexfjg9czp6jhpv7vpjdwwkyhe4p", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1485u80fdxjan4sd3esrvyw6cyurpvddvzuh48y", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14kn0kk33szpwus9nh8n87fjel8djx0y070ymmj", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14l0fp639yudfl46zauvv8rkzjgd4u0zk2aseys", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14qazscc80zgzx3m0m0aa30ths0p9hg8vdglqrc", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper157v7tczs40axfgejp2m43kwuzqe0wsy0rv8puv", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper15urq2dtp9qce4fyc85m6upwm9xul3049e02707", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper16k579jk6yt2cwmqx9dz5xvq9fug2tekvlu9qdv", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper16yupepagywvlk7uhpfchtwa0stu5f8cyhh54f2", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper17h2x3j7u44qkrq0sk8ul0r2qr440rwgjkfg0gh", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper17mggn4znyeyg25wd7498qxl7r2jhgue8u4qjcq", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper18extdhzzl5c8tr6453e5hzaj3exrdlea90fj3y", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper196ax4vc0lwpxndu9dyhvca7jhxp70rmcvrj90c", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper199mlc7fr6ll5t54w7tts7f4s0cvnqgc59nmuxf", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1clpqr4nrk4khgkxj78fcwwh6dl3uw4epsluffn", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ddle9tczl87gsvmeva3c48nenyng4n56nghmjk", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1e0plfg475phrsvrlzw8gwppeva0zk5yg9fgg8c", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1e859xaue4k2jzqw20cv6l7p3tmc378pc3k8g2u", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ehkfl7palwrh6w2hhr2yfrgrq8jetgucudztfe", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1fhr7e04ct0zslmkzqt9smakg3sxrdve6ulclj2", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1fqzqejwkk898fcslw4z4eeqjzesynvrdfr5hte", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1g48268mu5vfp4wk7dk89r0wdrakm9p5xk0q50k", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gf4wlkutql95j7wwsxz490s6fahlvk2s9xpwax", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gjtvly9lel6zskvwtvlg5vhwpu9c9waw7sxzwx", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gp957czryfgyvxwn3tfnyy2f0t9g2p4pqeemx8", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gpx52r9h3zeul45amvcy2pysgvcwddxrgx6cnv", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1grgelyng2v6v3t8z87wu3sxgt9m5s03xfytvz7", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gxju9ky3hwxvqqagrl3dxtl49kjpxq6wlqe6m5", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1hdrlqvyjfy5sdrseecjrutyws9khtxxaux62l7", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1hjct6q7npsspsg3dgvzk3sdf89spmlpfdn6m9d", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jlr62guqwrwkdt4m3y00zh2rrsamhjf9num5xr", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jmykcq8gylmy5tgqtel4xj4q62fdt49sl584xd", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jxv0u20scum4trha72c7ltfgfqef6nsch7q6cu", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1k2d9ed9vgfuk2m58a2d80q9u6qljkh4vfaqjfq", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1kgddca7qj96z0qcxr2c45z73cfl0c75p7f3s2e", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1lktjhnzkpkz3ehrg8psvmwhafg56kfss3q3t8m", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1lzhlnpahvznwfv4jmay2tgaha5kmz5qxerarrl", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1m73mgwn3cm2e8x9a9axa0kw8nqz8a492ms63vn", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1n3mhyp9fvcmuu8l0q8qvjy07x0rql8q46fe2xk", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1pjmngrwcsatsuyy8m3qrunaun67sr9x7z5r2qs", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ptyzewnns2kn37ewtmv6ppsvhdnmeapvtfc9y5", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1qaa9zej9a0ge3ugpx3pxyx602lxh3ztqgfnp42", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1rcp29q3hpd246n6qak7jluqep4v006cdsc2kkl", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1rpgtz9pskr5geavkjz02caqmeep7cwwpv73axj", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ssm0d433seakyak8kcf93yefhknjleeds4y3em", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ualhu3fjgg77g485gmyswkq3w0dp7gys6qzwrv", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1udpsgkgyutgsglauk9vk9rs03a3skc62gup9ny", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1uhnsxv6m83jj3328mhrql7yax3nge5svrv6t6c", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1uutuwrwt3z2a5z8z3uasml3rftlpmu25aga5c6", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1v5y0tg0jllvxf5c3afml8s3awue0ymju89frut", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1vf44d85es37hwl9f4h9gv0e064m0lla60j9luj", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1vvwtk805lxehwle9l4yudmq6mn0g32px9xtkhc", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1xwazl8ftks4gn00y5x3c47auquc62ssuqlj02r", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1y0us8xvsvfvqkk9c6nt5cfyu5au5tww2ztve7q", Amount: sdk.NewCoin("uatom", sdk.NewInt(3))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1083svrca4t350mphfv9x45wq9asrs60cdmrflj", Amount: sdk.NewCoin("uatom", sdk.NewInt(96))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10e4vsut6suau8tk9m6dnrm0slgd6npe3jx5xpv", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10nzaaeh2kq28t3nqsh5m8kmyv90vx7ym5mpakx", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper124maqmcqv8tquy764ktz7cu0gxnzfw54n3vww8", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper130mdu9a0etmeuw52qfxk73pn0ga6gawkxsrlwf", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper132juzk0gdmwuxvx4phug7m3ymyatxlh9734g4w", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper13x77yexvf6qexfjg9czp6jhpv7vpjdwwkyhe4p", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1485u80fdxjan4sd3esrvyw6cyurpvddvzuh48y", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14kn0kk33szpwus9nh8n87fjel8djx0y070ymmj", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14l0fp639yudfl46zauvv8rkzjgd4u0zk2aseys", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14qazscc80zgzx3m0m0aa30ths0p9hg8vdglqrc", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper157v7tczs40axfgejp2m43kwuzqe0wsy0rv8puv", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper15urq2dtp9qce4fyc85m6upwm9xul3049e02707", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper16k579jk6yt2cwmqx9dz5xvq9fug2tekvlu9qdv", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper16yupepagywvlk7uhpfchtwa0stu5f8cyhh54f2", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper17h2x3j7u44qkrq0sk8ul0r2qr440rwgjkfg0gh", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper17mggn4znyeyg25wd7498qxl7r2jhgue8u4qjcq", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper18extdhzzl5c8tr6453e5hzaj3exrdlea90fj3y", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper196ax4vc0lwpxndu9dyhvca7jhxp70rmcvrj90c", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper199mlc7fr6ll5t54w7tts7f4s0cvnqgc59nmuxf", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1clpqr4nrk4khgkxj78fcwwh6dl3uw4epsluffn", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ddle9tczl87gsvmeva3c48nenyng4n56nghmjk", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1e0plfg475phrsvrlzw8gwppeva0zk5yg9fgg8c", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1e859xaue4k2jzqw20cv6l7p3tmc378pc3k8g2u", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ehkfl7palwrh6w2hhr2yfrgrq8jetgucudztfe", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1fhr7e04ct0zslmkzqt9smakg3sxrdve6ulclj2", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1fqzqejwkk898fcslw4z4eeqjzesynvrdfr5hte", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1g48268mu5vfp4wk7dk89r0wdrakm9p5xk0q50k", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gf4wlkutql95j7wwsxz490s6fahlvk2s9xpwax", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gjtvly9lel6zskvwtvlg5vhwpu9c9waw7sxzwx", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gp957czryfgyvxwn3tfnyy2f0t9g2p4pqeemx8", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gpx52r9h3zeul45amvcy2pysgvcwddxrgx6cnv", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1grgelyng2v6v3t8z87wu3sxgt9m5s03xfytvz7", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gxju9ky3hwxvqqagrl3dxtl49kjpxq6wlqe6m5", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1hdrlqvyjfy5sdrseecjrutyws9khtxxaux62l7", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1hjct6q7npsspsg3dgvzk3sdf89spmlpfdn6m9d", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jlr62guqwrwkdt4m3y00zh2rrsamhjf9num5xr", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jmykcq8gylmy5tgqtel4xj4q62fdt49sl584xd", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jxv0u20scum4trha72c7ltfgfqef6nsch7q6cu", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1k2d9ed9vgfuk2m58a2d80q9u6qljkh4vfaqjfq", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1kgddca7qj96z0qcxr2c45z73cfl0c75p7f3s2e", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1lktjhnzkpkz3ehrg8psvmwhafg56kfss3q3t8m", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1lzhlnpahvznwfv4jmay2tgaha5kmz5qxerarrl", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1m73mgwn3cm2e8x9a9axa0kw8nqz8a492ms63vn", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1n3mhyp9fvcmuu8l0q8qvjy07x0rql8q46fe2xk", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1pjmngrwcsatsuyy8m3qrunaun67sr9x7z5r2qs", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ptyzewnns2kn37ewtmv6ppsvhdnmeapvtfc9y5", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1qaa9zej9a0ge3ugpx3pxyx602lxh3ztqgfnp42", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1rcp29q3hpd246n6qak7jluqep4v006cdsc2kkl", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1rpgtz9pskr5geavkjz02caqmeep7cwwpv73axj", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ssm0d433seakyak8kcf93yefhknjleeds4y3em", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ualhu3fjgg77g485gmyswkq3w0dp7gys6qzwrv", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1udpsgkgyutgsglauk9vk9rs03a3skc62gup9ny", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1uhnsxv6m83jj3328mhrql7yax3nge5svrv6t6c", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1uutuwrwt3z2a5z8z3uasml3rftlpmu25aga5c6", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1v5y0tg0jllvxf5c3afml8s3awue0ymju89frut", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1vf44d85es37hwl9f4h9gv0e064m0lla60j9luj", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1vvwtk805lxehwle9l4yudmq6mn0g32px9xtkhc", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1xwazl8ftks4gn00y5x3c47auquc62ssuqlj02r", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1y0us8xvsvfvqkk9c6nt5cfyu5au5tww2ztve7q", Amount: sdk.NewCoin("uatom", sdk.NewInt(64))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1083svrca4t350mphfv9x45wq9asrs60cdmrflj", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10e4vsut6suau8tk9m6dnrm0slgd6npe3jx5xpv", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10nzaaeh2kq28t3nqsh5m8kmyv90vx7ym5mpakx", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper124maqmcqv8tquy764ktz7cu0gxnzfw54n3vww8", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper130mdu9a0etmeuw52qfxk73pn0ga6gawkxsrlwf", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper132juzk0gdmwuxvx4phug7m3ymyatxlh9734g4w", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper13x77yexvf6qexfjg9czp6jhpv7vpjdwwkyhe4p", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1485u80fdxjan4sd3esrvyw6cyurpvddvzuh48y", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14kn0kk33szpwus9nh8n87fjel8djx0y070ymmj", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14l0fp639yudfl46zauvv8rkzjgd4u0zk2aseys", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14qazscc80zgzx3m0m0aa30ths0p9hg8vdglqrc", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper157v7tczs40axfgejp2m43kwuzqe0wsy0rv8puv", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper15urq2dtp9qce4fyc85m6upwm9xul3049e02707", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper16k579jk6yt2cwmqx9dz5xvq9fug2tekvlu9qdv", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper16yupepagywvlk7uhpfchtwa0stu5f8cyhh54f2", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper17h2x3j7u44qkrq0sk8ul0r2qr440rwgjkfg0gh", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper17mggn4znyeyg25wd7498qxl7r2jhgue8u4qjcq", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper18extdhzzl5c8tr6453e5hzaj3exrdlea90fj3y", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper196ax4vc0lwpxndu9dyhvca7jhxp70rmcvrj90c", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper199mlc7fr6ll5t54w7tts7f4s0cvnqgc59nmuxf", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1clpqr4nrk4khgkxj78fcwwh6dl3uw4epsluffn", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ddle9tczl87gsvmeva3c48nenyng4n56nghmjk", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1e0plfg475phrsvrlzw8gwppeva0zk5yg9fgg8c", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1e859xaue4k2jzqw20cv6l7p3tmc378pc3k8g2u", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ehkfl7palwrh6w2hhr2yfrgrq8jetgucudztfe", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1fhr7e04ct0zslmkzqt9smakg3sxrdve6ulclj2", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1fqzqejwkk898fcslw4z4eeqjzesynvrdfr5hte", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1g48268mu5vfp4wk7dk89r0wdrakm9p5xk0q50k", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gf4wlkutql95j7wwsxz490s6fahlvk2s9xpwax", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gjtvly9lel6zskvwtvlg5vhwpu9c9waw7sxzwx", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gp957czryfgyvxwn3tfnyy2f0t9g2p4pqeemx8", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gpx52r9h3zeul45amvcy2pysgvcwddxrgx6cnv", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1grgelyng2v6v3t8z87wu3sxgt9m5s03xfytvz7", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gxju9ky3hwxvqqagrl3dxtl49kjpxq6wlqe6m5", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1hdrlqvyjfy5sdrseecjrutyws9khtxxaux62l7", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1hjct6q7npsspsg3dgvzk3sdf89spmlpfdn6m9d", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jlr62guqwrwkdt4m3y00zh2rrsamhjf9num5xr", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jmykcq8gylmy5tgqtel4xj4q62fdt49sl584xd", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jxv0u20scum4trha72c7ltfgfqef6nsch7q6cu", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1k2d9ed9vgfuk2m58a2d80q9u6qljkh4vfaqjfq", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1kgddca7qj96z0qcxr2c45z73cfl0c75p7f3s2e", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1lktjhnzkpkz3ehrg8psvmwhafg56kfss3q3t8m", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1lzhlnpahvznwfv4jmay2tgaha5kmz5qxerarrl", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1m73mgwn3cm2e8x9a9axa0kw8nqz8a492ms63vn", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1n3mhyp9fvcmuu8l0q8qvjy07x0rql8q46fe2xk", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1pjmngrwcsatsuyy8m3qrunaun67sr9x7z5r2qs", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ptyzewnns2kn37ewtmv6ppsvhdnmeapvtfc9y5", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1qaa9zej9a0ge3ugpx3pxyx602lxh3ztqgfnp42", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1rcp29q3hpd246n6qak7jluqep4v006cdsc2kkl", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1rpgtz9pskr5geavkjz02caqmeep7cwwpv73axj", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0", Amount: sdk.NewCoin("uatom", sdk.NewInt(16131000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ssm0d433seakyak8kcf93yefhknjleeds4y3em", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ualhu3fjgg77g485gmyswkq3w0dp7gys6qzwrv", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1udpsgkgyutgsglauk9vk9rs03a3skc62gup9ny", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1uhnsxv6m83jj3328mhrql7yax3nge5svrv6t6c", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1uutuwrwt3z2a5z8z3uasml3rftlpmu25aga5c6", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1v5y0tg0jllvxf5c3afml8s3awue0ymju89frut", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1vf44d85es37hwl9f4h9gv0e064m0lla60j9luj", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1vvwtk805lxehwle9l4yudmq6mn0g32px9xtkhc", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1xwazl8ftks4gn00y5x3c47auquc62ssuqlj02r", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1y0us8xvsvfvqkk9c6nt5cfyu5au5tww2ztve7q", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1083svrca4t350mphfv9x45wq9asrs60cdmrflj", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000001))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10e4vsut6suau8tk9m6dnrm0slgd6npe3jx5xpv", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10nzaaeh2kq28t3nqsh5m8kmyv90vx7ym5mpakx", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper124maqmcqv8tquy764ktz7cu0gxnzfw54n3vww8", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper130mdu9a0etmeuw52qfxk73pn0ga6gawkxsrlwf", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper132juzk0gdmwuxvx4phug7m3ymyatxlh9734g4w", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper13x77yexvf6qexfjg9czp6jhpv7vpjdwwkyhe4p", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1485u80fdxjan4sd3esrvyw6cyurpvddvzuh48y", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14kn0kk33szpwus9nh8n87fjel8djx0y070ymmj", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14l0fp639yudfl46zauvv8rkzjgd4u0zk2aseys", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14qazscc80zgzx3m0m0aa30ths0p9hg8vdglqrc", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper157v7tczs40axfgejp2m43kwuzqe0wsy0rv8puv", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper15urq2dtp9qce4fyc85m6upwm9xul3049e02707", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper16k579jk6yt2cwmqx9dz5xvq9fug2tekvlu9qdv", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper16yupepagywvlk7uhpfchtwa0stu5f8cyhh54f2", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper17h2x3j7u44qkrq0sk8ul0r2qr440rwgjkfg0gh", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper17mggn4znyeyg25wd7498qxl7r2jhgue8u4qjcq", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper18extdhzzl5c8tr6453e5hzaj3exrdlea90fj3y", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper196ax4vc0lwpxndu9dyhvca7jhxp70rmcvrj90c", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper199mlc7fr6ll5t54w7tts7f4s0cvnqgc59nmuxf", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1clpqr4nrk4khgkxj78fcwwh6dl3uw4epsluffn", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ddle9tczl87gsvmeva3c48nenyng4n56nghmjk", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1e0plfg475phrsvrlzw8gwppeva0zk5yg9fgg8c", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1e859xaue4k2jzqw20cv6l7p3tmc378pc3k8g2u", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ehkfl7palwrh6w2hhr2yfrgrq8jetgucudztfe", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1fhr7e04ct0zslmkzqt9smakg3sxrdve6ulclj2", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1fqzqejwkk898fcslw4z4eeqjzesynvrdfr5hte", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1g48268mu5vfp4wk7dk89r0wdrakm9p5xk0q50k", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gf4wlkutql95j7wwsxz490s6fahlvk2s9xpwax", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gjtvly9lel6zskvwtvlg5vhwpu9c9waw7sxzwx", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gp957czryfgyvxwn3tfnyy2f0t9g2p4pqeemx8", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gpx52r9h3zeul45amvcy2pysgvcwddxrgx6cnv", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1grgelyng2v6v3t8z87wu3sxgt9m5s03xfytvz7", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gxju9ky3hwxvqqagrl3dxtl49kjpxq6wlqe6m5", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1hdrlqvyjfy5sdrseecjrutyws9khtxxaux62l7", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1hjct6q7npsspsg3dgvzk3sdf89spmlpfdn6m9d", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jlr62guqwrwkdt4m3y00zh2rrsamhjf9num5xr", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jmykcq8gylmy5tgqtel4xj4q62fdt49sl584xd", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jxv0u20scum4trha72c7ltfgfqef6nsch7q6cu", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1k2d9ed9vgfuk2m58a2d80q9u6qljkh4vfaqjfq", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1kgddca7qj96z0qcxr2c45z73cfl0c75p7f3s2e", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1lktjhnzkpkz3ehrg8psvmwhafg56kfss3q3t8m", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1lzhlnpahvznwfv4jmay2tgaha5kmz5qxerarrl", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1m73mgwn3cm2e8x9a9axa0kw8nqz8a492ms63vn", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1n3mhyp9fvcmuu8l0q8qvjy07x0rql8q46fe2xk", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1pjmngrwcsatsuyy8m3qrunaun67sr9x7z5r2qs", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ptyzewnns2kn37ewtmv6ppsvhdnmeapvtfc9y5", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1qaa9zej9a0ge3ugpx3pxyx602lxh3ztqgfnp42", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1rcp29q3hpd246n6qak7jluqep4v006cdsc2kkl", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1rpgtz9pskr5geavkjz02caqmeep7cwwpv73axj", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0", Amount: sdk.NewCoin("uatom", sdk.NewInt(161310000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ssm0d433seakyak8kcf93yefhknjleeds4y3em", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ualhu3fjgg77g485gmyswkq3w0dp7gys6qzwrv", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1udpsgkgyutgsglauk9vk9rs03a3skc62gup9ny", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1uhnsxv6m83jj3328mhrql7yax3nge5svrv6t6c", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1uutuwrwt3z2a5z8z3uasml3rftlpmu25aga5c6", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1v5y0tg0jllvxf5c3afml8s3awue0ymju89frut", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1vf44d85es37hwl9f4h9gv0e064m0lla60j9luj", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1vvwtk805lxehwle9l4yudmq6mn0g32px9xtkhc", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1xwazl8ftks4gn00y5x3c47auquc62ssuqlj02r", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1y0us8xvsvfvqkk9c6nt5cfyu5au5tww2ztve7q", Amount: sdk.NewCoin("uatom", sdk.NewInt(161290000000))},
+				},
+				{
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1083svrca4t350mphfv9x45wq9asrs60cdmrflj", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001667))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10e4vsut6suau8tk9m6dnrm0slgd6npe3jx5xpv", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper10nzaaeh2kq28t3nqsh5m8kmyv90vx7ym5mpakx", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper124maqmcqv8tquy764ktz7cu0gxnzfw54n3vww8", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper130mdu9a0etmeuw52qfxk73pn0ga6gawkxsrlwf", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper132juzk0gdmwuxvx4phug7m3ymyatxlh9734g4w", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper13x77yexvf6qexfjg9czp6jhpv7vpjdwwkyhe4p", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1485u80fdxjan4sd3esrvyw6cyurpvddvzuh48y", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14kn0kk33szpwus9nh8n87fjel8djx0y070ymmj", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14l0fp639yudfl46zauvv8rkzjgd4u0zk2aseys", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper14qazscc80zgzx3m0m0aa30ths0p9hg8vdglqrc", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper157v7tczs40axfgejp2m43kwuzqe0wsy0rv8puv", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper15urq2dtp9qce4fyc85m6upwm9xul3049e02707", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper16k579jk6yt2cwmqx9dz5xvq9fug2tekvlu9qdv", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper16yupepagywvlk7uhpfchtwa0stu5f8cyhh54f2", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper17h2x3j7u44qkrq0sk8ul0r2qr440rwgjkfg0gh", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper17mggn4znyeyg25wd7498qxl7r2jhgue8u4qjcq", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper18extdhzzl5c8tr6453e5hzaj3exrdlea90fj3y", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper196ax4vc0lwpxndu9dyhvca7jhxp70rmcvrj90c", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper199mlc7fr6ll5t54w7tts7f4s0cvnqgc59nmuxf", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1clpqr4nrk4khgkxj78fcwwh6dl3uw4epsluffn", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ddle9tczl87gsvmeva3c48nenyng4n56nghmjk", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1e0plfg475phrsvrlzw8gwppeva0zk5yg9fgg8c", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1e859xaue4k2jzqw20cv6l7p3tmc378pc3k8g2u", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ehkfl7palwrh6w2hhr2yfrgrq8jetgucudztfe", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1fhr7e04ct0zslmkzqt9smakg3sxrdve6ulclj2", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1fqzqejwkk898fcslw4z4eeqjzesynvrdfr5hte", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1g48268mu5vfp4wk7dk89r0wdrakm9p5xk0q50k", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gf4wlkutql95j7wwsxz490s6fahlvk2s9xpwax", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gjtvly9lel6zskvwtvlg5vhwpu9c9waw7sxzwx", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gp957czryfgyvxwn3tfnyy2f0t9g2p4pqeemx8", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gpx52r9h3zeul45amvcy2pysgvcwddxrgx6cnv", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1grgelyng2v6v3t8z87wu3sxgt9m5s03xfytvz7", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1gxju9ky3hwxvqqagrl3dxtl49kjpxq6wlqe6m5", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1hdrlqvyjfy5sdrseecjrutyws9khtxxaux62l7", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1hjct6q7npsspsg3dgvzk3sdf89spmlpfdn6m9d", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jlr62guqwrwkdt4m3y00zh2rrsamhjf9num5xr", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jmykcq8gylmy5tgqtel4xj4q62fdt49sl584xd", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1jxv0u20scum4trha72c7ltfgfqef6nsch7q6cu", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1k2d9ed9vgfuk2m58a2d80q9u6qljkh4vfaqjfq", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1kgddca7qj96z0qcxr2c45z73cfl0c75p7f3s2e", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1lktjhnzkpkz3ehrg8psvmwhafg56kfss3q3t8m", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1lzhlnpahvznwfv4jmay2tgaha5kmz5qxerarrl", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1m73mgwn3cm2e8x9a9axa0kw8nqz8a492ms63vn", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1n3mhyp9fvcmuu8l0q8qvjy07x0rql8q46fe2xk", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1pjmngrwcsatsuyy8m3qrunaun67sr9x7z5r2qs", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ptyzewnns2kn37ewtmv6ppsvhdnmeapvtfc9y5", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1qaa9zej9a0ge3ugpx3pxyx602lxh3ztqgfnp42", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1rcp29q3hpd246n6qak7jluqep4v006cdsc2kkl", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1rpgtz9pskr5geavkjz02caqmeep7cwwpv73axj", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0", Amount: sdk.NewCoin("uatom", sdk.NewInt(16131000001613))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ssm0d433seakyak8kcf93yefhknjleeds4y3em", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1ualhu3fjgg77g485gmyswkq3w0dp7gys6qzwrv", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1udpsgkgyutgsglauk9vk9rs03a3skc62gup9ny", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1uhnsxv6m83jj3328mhrql7yax3nge5svrv6t6c", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1uutuwrwt3z2a5z8z3uasml3rftlpmu25aga5c6", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1v5y0tg0jllvxf5c3afml8s3awue0ymju89frut", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1vf44d85es37hwl9f4h9gv0e064m0lla60j9luj", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1vvwtk805lxehwle9l4yudmq6mn0g32px9xtkhc", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1xwazl8ftks4gn00y5x3c47auquc62ssuqlj02r", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+					types.ValAddressAmount{ValidatorAddr: "cosmosvaloper1y0us8xvsvfvqkk9c6nt5cfyu5au5tww2ztve7q", Amount: sdk.NewCoin("uatom", sdk.NewInt(16129000001612))},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		k.SetDelegationState(ctx, tc.DelegationState)
+		k.SetAllowListedValidators(ctx, tc.AllowListedValidators)
+		for i, amount := range tc.Amounts {
+			// fetch a combined updated val set list and delegation state
+			updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx, hostChainParams.BaseDenom)
+
+			// sort both updatedValList and hostAccountDelegations
+			sort.Sort(updateValList)
+			sort.Sort(hostAccountDelegations)
+
+			// get the current delegation state and
+			// assign the updated validator delegation state to the current delegation state
+			delegationStateS := k.GetDelegationState(ctx)
+			delegationStateS.HostAccountDelegations = hostAccountDelegations
+
+			allowListerValidators := types.AllowListedValidators{AllowListedValidators: updateValList}
+
+			// get list of validator with respective amounts to delegate
+			list, err := keeper.DelegateStrategy(allowListerValidators, delegationStateS, amount)
+			suite.NoError(err)
+			fmt.Println(list)
+			suite.Equal(len(list), len(tc.ExpectedListWithDistribution[i]))
+			for j := range list {
+				suite.Equal(list[j].Amount, tc.ExpectedListWithDistribution[i][j].Amount)
+			}
+		}
+	}
+}

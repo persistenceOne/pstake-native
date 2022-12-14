@@ -300,3 +300,123 @@ func (k Keeper) GetAllValidatorsState(ctx sdk.Context, denom string) (types.Allo
 	// returns the two updated lists
 	return updatedValSet, updatedDelegationState
 }
+
+// DelegateStrategy returns a list of types.ValAddressAmounts when provided with an input
+// types.DelegationState, types.AllowListedValidators and amount to be delegated
+func DelegateStrategy(valList types.AllowListedValidators, delegationState types.DelegationState, newAmount sdk.Coin) (types.ValAddressAmounts, error) {
+	// return nil if the new amount to be delegated is already zero
+	if newAmount.IsZero() {
+		return nil, nil
+	}
+
+	// get validators weight map
+	validatorWeightsMap := types.GetValidatorWeightsMap(valList)
+
+	// get total delegations post adding more to it
+	totalDelegationAfterAddingNewAmount := delegationState.TotalDelegations(newAmount.Denom).Add(newAmount).Amount
+
+	// get the difference, current and ideally delegated amounts for each validator
+	differenceCurrentAndIdealAmounts := GetDifferenceCurrentAndIdealAmounts(valList, delegationState, totalDelegationAfterAddingNewAmount)
+
+	// sort the difference, current and ideally delegated amounts for each validator based
+	// on the difference in descending order
+	sort.SliceStable(
+		differenceCurrentAndIdealAmounts,
+		func(i, j int) bool {
+			return differenceCurrentAndIdealAmounts[i].Diff.GT(differenceCurrentAndIdealAmounts[j].Diff)
+		},
+	)
+
+	// this is the first round of distribution to all the validators who are not
+	// yet matched to the ideal distribution
+	finalDistribution := make(map[string]sdk.Coin)
+	for _, i := range differenceCurrentAndIdealAmounts {
+
+		if i.Diff.GT(sdk.ZeroDec()) {
+			if newAmount.Amount.ToDec().LT(i.Diff.Abs()) && newAmount.Amount.Sub(newAmount.Amount).GTE(sdk.OneInt()) {
+				finalDistribution[i.Address] = newAmount
+				newAmount.Amount = newAmount.Amount.Sub(newAmount.Amount)
+			} else if newAmount.Amount.ToDec().GTE(i.Diff.Abs()) && newAmount.Amount.Sub(newAmount.Amount).GTE(sdk.OneInt()) {
+				finalDistribution[i.Address] = sdk.NewCoin(newAmount.Denom, i.Diff.Abs().TruncateInt())
+				newAmount.Amount = newAmount.Amount.Sub(i.Diff.Abs().TruncateInt())
+			}
+		}
+	}
+
+	// this is the second round of distribution to all the validators based on their
+	// current weights
+	temporaryCoin := sdk.NewCoin(newAmount.Denom, sdk.ZeroInt())
+	for _, i := range differenceCurrentAndIdealAmounts {
+		if newAmount.IsZero() {
+			break
+		}
+		amountForValidator := newAmount.Amount.ToDec().Mul(validatorWeightsMap[i.Address]).TruncateInt()
+		if !amountForValidator.IsZero() {
+			finalDistribution[i.Address] = sdk.NewCoin(newAmount.Denom, amountForValidator)
+			temporaryCoin.Amount = temporaryCoin.Amount.Add(amountForValidator)
+		}
+	}
+
+	// convert distribution map into types.ValAddressAmounts array
+	var finalValAddressAmounts types.ValAddressAmounts
+	for key, value := range finalDistribution {
+		finalValAddressAmounts = append(finalValAddressAmounts, types.ValAddressAmount{
+			ValidatorAddr: key,
+			Amount:        value,
+		})
+	}
+
+	// sort the types.ValAddressAmounts based on the validator addresses
+	sort.SliceStable(finalValAddressAmounts, func(i, j int) bool {
+		return finalValAddressAmounts[i].ValidatorAddr < finalValAddressAmounts[j].ValidatorAddr
+	})
+
+	// this is a boundary case when there is still some residue left after
+	// distributing it to all the validators
+	if !newAmount.Sub(temporaryCoin).IsZero() && len(finalValAddressAmounts) > 0 {
+		// give all the leftover to the first validator in the above computed list
+		finalValAddressAmounts[0].Amount = finalValAddressAmounts[0].Amount.Add(newAmount.Sub(temporaryCoin))
+	} else if !newAmount.Sub(temporaryCoin).IsZero() && len(finalValAddressAmounts) == 0 {
+		// give all the leftover to the very first validator to the sorted
+		// differenceCurrentAndIdealAmounts slice
+		return types.ValAddressAmounts{{ValidatorAddr: differenceCurrentAndIdealAmounts[0].Address, Amount: newAmount.Sub(temporaryCoin)}}, nil
+	}
+
+	return finalValAddressAmounts, nil
+}
+
+// GetDifferenceCurrentAndIdealAmounts return an array of types.DifferenceCurrentAndIdealAmount from the given
+// types.AllowListedValidators, delegation state map and
+func GetDifferenceCurrentAndIdealAmounts(valList types.AllowListedValidators, delegationState types.DelegationState, totalDelegationAfterAddingNewAmount sdk.Int) []types.DifferenceCurrentAndIdealAmount {
+	// get the delegation state map
+	delegationStateMap := types.GetDelegationStateMap(delegationState)
+
+	// find out current ideal and difference in delegations for every validator
+	var differenceCurrentAndIdealAmounts []types.DifferenceCurrentAndIdealAmount
+	for _, i := range valList.AllowListedValidators {
+		// if validator address not present in current delegation state then introduce it in the
+		// if is present then continue as normal addition
+		currentDelegation, ok := delegationStateMap[i.ValidatorAddress]
+		if !ok {
+			idealDelegation := totalDelegationAfterAddingNewAmount.ToDec().Mul(i.TargetWeight)
+			diff := idealDelegation.Sub(sdk.ZeroDec())
+			differenceCurrentAndIdealAmounts = append(differenceCurrentAndIdealAmounts, types.DifferenceCurrentAndIdealAmount{
+				Current: sdk.ZeroDec(),
+				Ideal:   idealDelegation,
+				Diff:    diff,
+				Address: i.ValidatorAddress,
+			})
+		} else {
+			idealDelegation := totalDelegationAfterAddingNewAmount.ToDec().Mul(i.TargetWeight)
+			diff := idealDelegation.Sub(currentDelegation.Amount.ToDec())
+			differenceCurrentAndIdealAmounts = append(differenceCurrentAndIdealAmounts, types.DifferenceCurrentAndIdealAmount{
+				Current: currentDelegation.Amount.ToDec(),
+				Ideal:   idealDelegation,
+				Diff:    diff,
+				Address: i.ValidatorAddress,
+			})
+		}
+	}
+
+	return differenceCurrentAndIdealAmounts
+}
