@@ -168,8 +168,14 @@ func distributeCoinsAmongstValSet(ws types.WeightedAddressAmounts, coin sdk.Coin
 			valAddrAmts = append(valAddrAmts, types.ValAddressAmount{ValidatorAddr: w.Address, Amount: coin})
 			return valAddrAmts, sdk.NewInt64Coin(coin.Denom, 0)
 		}
-		valAddrAmts = append(valAddrAmts, types.ValAddressAmount{ValidatorAddr: w.Address, Amount: w.Coin()})
-		coin = coin.SubAmount(w.Amount)
+
+		tempAmount := w.Amount
+		if w.Amount.IsNegative() {
+			tempAmount = sdk.ZeroInt()
+		}
+
+		valAddrAmts = append(valAddrAmts, types.ValAddressAmount{ValidatorAddr: w.Address, Amount: sdk.NewCoin(w.Denom, tempAmount)})
+		coin = coin.SubAmount(tempAmount)
 	}
 
 	return valAddrAmts, coin
