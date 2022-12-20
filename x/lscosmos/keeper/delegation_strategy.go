@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -116,7 +115,7 @@ func GetIdealCurrentDelegations(valList types.AllowListedValidators, delegationS
 	totalDelegations := delegationState.TotalDelegations(amt.Denom)
 
 	if reverse && totalDelegations.IsLT(amt) {
-		return nil, fmt.Errorf("undelegation amount greater than already staked, staked:  %s, undelegate : %s", totalDelegations, amt)
+		return nil, sdkerrors.Wrapf(types.ErrInsufficientFundsToUndelegate, "staked:  %s, undelegate : %s", totalDelegations, amt)
 	}
 
 	curDiffDistribution := types.WeightedAddressAmounts{}
