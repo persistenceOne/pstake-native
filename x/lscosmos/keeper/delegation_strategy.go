@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -91,7 +92,10 @@ func (k Keeper) UndelegateMsgs(ctx sdk.Context, amount sdk.Int, denom string, de
 
 // FetchValidatorsToDelegate gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
 func FetchValidatorsToDelegate(valList types.AllowListedValidators, delegationState types.DelegationState, amount sdk.Coin) (types.ValAddressAmounts, error) {
-	curDiffDistribution := GetIdealCurrentDelegations(valList, delegationState, amount, false)
+	curDiffDistribution, err := GetIdealCurrentDelegations(valList, delegationState, amount, false)
+	if err != nil {
+		return nil, err
+	}
 	sort.Sort(sort.Reverse(curDiffDistribution))
 
 	return DivideAmountIntoValidatorSet(curDiffDistribution, amount)
@@ -99,14 +103,21 @@ func FetchValidatorsToDelegate(valList types.AllowListedValidators, delegationSt
 
 // FetchValidatorsToUndelegate gives a list of all validators having weighted amount for few and 1uatom for rest in order to auto claim all rewards accumulated in current epoch
 func FetchValidatorsToUndelegate(valList types.AllowListedValidators, delegationState types.DelegationState, amount sdk.Coin) (types.ValAddressAmounts, error) {
-	currDiffDistribution := GetIdealCurrentDelegations(valList, delegationState, amount, true)
+	currDiffDistribution, err := GetIdealCurrentDelegations(valList, delegationState, amount, true)
+	if err != nil {
+		return nil, err
+	}
 	sort.Sort(sort.Reverse(currDiffDistribution))
 	return DivideUndelegateAmountIntoValidatorSet(currDiffDistribution, amount)
 }
 
 // GetIdealCurrentDelegations returns ideal amount of delegations to validators on host chain
-func GetIdealCurrentDelegations(valList types.AllowListedValidators, delegationState types.DelegationState, amt sdk.Coin, reverse bool) types.WeightedAddressAmounts {
+func GetIdealCurrentDelegations(valList types.AllowListedValidators, delegationState types.DelegationState, amt sdk.Coin, reverse bool) (types.WeightedAddressAmounts, error) {
 	totalDelegations := delegationState.TotalDelegations(amt.Denom)
+
+	if reverse && totalDelegations.IsLT(amt) {
+		return nil, fmt.Errorf("undelegation amount greater than already staked, staked:  %s, undelegate : %s", totalDelegations, amt)
+	}
 
 	curDiffDistribution := types.WeightedAddressAmounts{}
 	delegationMap := types.GetHostAccountDelegationMap(delegationState.HostAccountDelegations)
@@ -135,7 +146,7 @@ func GetIdealCurrentDelegations(valList types.AllowListedValidators, delegationS
 		})
 	}
 
-	return curDiffDistribution
+	return curDiffDistribution, nil
 }
 
 // divideAmountWeightedSet : divides amount to be delegated or undelegated w.r.t weights.
