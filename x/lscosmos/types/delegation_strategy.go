@@ -56,7 +56,13 @@ func (ws WeightedAddressAmounts) Len() int {
 	return len(ws)
 }
 func (ws WeightedAddressAmounts) Less(i, j int) bool {
-	return ws[i].Amount.LT(ws[j].Amount)
+	if ws[i].Amount.LT(ws[j].Amount) {
+		return true
+	}
+	if ws[i].Amount.GT(ws[j].Amount) {
+		return false
+	}
+	return ws[i].Address < ws[j].Address
 }
 func (ws WeightedAddressAmounts) Swap(i, j int) {
 	ws[i], ws[j] = ws[j], ws[i]
