@@ -124,7 +124,7 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 	}
 	allDelegationBalances := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount))
 	delegationBalance := sdk.NewCoin(ibcDenom, allDelegationBalances.AmountOf(ibcDenom))
-	if delegationBalance.IsPositive() {
+	if delegationBalance.IsPositive() && depositBalance.IsPositive() && delegationBalance.IsGTE(depositBalance) {
 		delegationState := k.GetDelegationState(ctx)
 		_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, hostChainParams.TransferPort, hostChainParams.TransferChannel)
 		if err != nil {
@@ -134,7 +134,7 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 		timeoutHeight := clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), clientState.GetLatestHeight().GetRevisionHeight()+lscosmostypes.IBCTimeoutHeightIncrement)
 
 		msg := ibctransfertypes.NewMsgTransfer(hostChainParams.TransferPort, hostChainParams.TransferChannel,
-			delegationBalance, authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount).String(),
+			depositBalance, authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount).String(),
 			delegationState.HostChainDelegationAddress, timeoutHeight, 0)
 
 		handler := k.msgRouter.Handler(msg)
@@ -144,14 +144,14 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 			k.Logger(ctx).Error(fmt.Sprintf("could not send transfer msg via MsgServiceRouter, error: %s", err))
 			return err
 		}
-		k.AddIBCTransferToTransientStore(ctx, delegationBalance)
+		k.AddIBCTransferToTransientStore(ctx, depositBalance)
 
 		ctx.EventManager().EmitEvents(res.GetEvents())
 	}
 	// move extra tokens to pstake address - anyone can send tokens to delegation address.
 	// deposit address is deny-listed address - can only accept tokens via transactions, so should not have any extra tokens
 	// should be transferred to pstake address.
-	remainingDelegationBalance := allDelegationBalances.Sub(sdk.NewCoins(delegationBalance))
+	remainingDelegationBalance := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount))
 
 	if remainingDelegationBalance.IsAllPositive() {
 		feeAddr, err := sdk.AccAddressFromBech32(hostChainParams.PstakeParams.PstakeFeeAddress)
@@ -375,7 +375,8 @@ func (k Keeper) OnTimeoutIBCTransferPacket(ctx sdk.Context, packet channeltypes.
 	}
 	ibcDenom := ibctransfertypes.ParseDenomTrace(data.GetDenom())
 	k.RemoveIBCTransferFromTransientStore(ctx, sdk.NewCoin(ibcDenom.IBCDenom(), amount))
-	return nil
+	//move tokens to deposit account
+	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, lscosmostypes.DelegationModuleAccount, lscosmostypes.DepositModuleAccount, sdk.NewCoins(sdk.NewCoin(ibcDenom.IBCDenom(), amount)))
 }
 
 type IBCTransferHooks struct {

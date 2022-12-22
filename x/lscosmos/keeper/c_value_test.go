@@ -89,6 +89,7 @@ func (suite *IntegrationTestSuite) TestCValue() {
 	)
 	suite.NoError(err)
 
+	// Delegation module account should not be counted in c_value.
 	err = app.BankKeeper.SendCoinsFromModuleToModule(ctx,
 		types.ModuleName,
 		types.DelegationModuleAccount,
@@ -97,15 +98,15 @@ func (suite *IntegrationTestSuite) TestCValue() {
 	suite.NoError(err)
 
 	cValue = lscosmosKeeper.GetCValue(ctx)
-	suite.Equal(sdk.NewDecWithPrec(979431929480901077, 18), cValue)
+	suite.Equal(sdk.NewDecWithPrec(989119683481701286, 18), cValue)
 
 	cValue = lscosmosKeeper.GetCValue(ctx)
 	tokenValue, residue = lscosmosKeeper.ConvertStkToToken(ctx, sdk.NewDecCoin(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, sdk.NewInt(1000000)), cValue)
-	suite.True(sdk.NewInt64Coin(lscosmosKeeper.GetIBCDenom(ctx), 1021000).IsEqual(tokenValue))
+	suite.True(sdk.NewInt64Coin(lscosmosKeeper.GetIBCDenom(ctx), 1011000).IsEqual(tokenValue))
 	suite.True(sdk.NewDecCoinFromDec(lscosmosKeeper.GetIBCDenom(ctx), sdk.ZeroDec()).IsEqual(residue))
 
 	cValue = lscosmosKeeper.GetCValue(ctx)
 	stkValue, residue = lscosmosKeeper.ConvertTokenToStk(ctx, sdk.NewDecCoin(lscosmosKeeper.GetIBCDenom(ctx), sdk.NewInt(1000000)), cValue)
-	suite.True(sdk.NewInt64Coin(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, 979431).IsEqual(stkValue))
-	suite.True(sdk.NewDecCoinFromDec(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, sdk.NewDecWithPrec(929480901077000000, 18)).IsEqual(residue))
+	suite.True(sdk.NewInt64Coin(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, 989119).IsEqual(stkValue))
+	suite.True(sdk.NewDecCoinFromDec(lscosmosKeeper.GetHostChainParams(ctx).MintDenom, sdk.NewDecWithPrec(683481701286000000, 18)).IsEqual(residue))
 }
