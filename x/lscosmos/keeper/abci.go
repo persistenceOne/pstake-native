@@ -19,7 +19,7 @@ func (k Keeper) BeginBlock(ctx sdk.Context) {
 	}
 
 	//fork logic, halt height + 1
-	if ctx.BlockHeight() == 9602701 {
+	if ctx.BlockHeight() == 9616501 {
 		err := MintPstakeTokens(ctx, &k)
 		if err != nil {
 			panic(err)
