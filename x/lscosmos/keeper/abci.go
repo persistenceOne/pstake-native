@@ -20,7 +20,7 @@ func (k Keeper) BeginBlock(ctx sdk.Context) {
 
 	//fork logic, halt height + 1
 	if ctx.BlockHeight() == 9616501 {
-		err := MintPstakeTokens(ctx, &k)
+		err := MintPstakeTokens(ctx, k)
 		if err != nil {
 			panic(err)
 		}
@@ -115,7 +115,7 @@ func (k Keeper) ProcessMaturedUndelegation(ctx sdk.Context) error {
 	return nil
 }
 
-func MintPstakeTokens(ctx sdk.Context, k *Keeper) error {
+func MintPstakeTokens(ctx sdk.Context, k Keeper) error {
 	if ctx.ChainID() != "core-1" {
 		return nil
 	}
