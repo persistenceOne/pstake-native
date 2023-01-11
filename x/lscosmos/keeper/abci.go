@@ -18,6 +18,14 @@ func (k Keeper) BeginBlock(ctx sdk.Context) {
 		return
 	}
 
+	//fork logic, halt height + 1
+	if ctx.BlockHeight() == 9616501 {
+		err := MintPstakeTokens(ctx, k)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	err := utils.ApplyFuncIfNoError(ctx, k.DoDelegate)
 	if err != nil {
 		k.Logger(ctx).Error("Unable to Delegate tokens with ", "err: ", err)
@@ -105,4 +113,37 @@ func (k Keeper) ProcessMaturedUndelegation(ctx sdk.Context) error {
 		})
 	}
 	return nil
+}
+
+func MintPstakeTokens(ctx sdk.Context, k Keeper) error {
+	if ctx.ChainID() != "core-1" {
+		return nil
+	}
+
+	atomTVU := k.GetDepositAccountAmount(ctx).
+		Add(k.GetIBCTransferTransientAmount(ctx)).
+		Add(k.GetDelegationTransientAmount(ctx)).
+		Add(k.GetStakedAmount(ctx)).
+		Add(k.GetHostDelegationAccountAmount(ctx))
+
+	mintedAmount := k.GetMintedAmount(ctx)
+	mintDenom := k.GetHostChainParams(ctx).MintDenom
+	if atomTVU.LTE(mintedAmount) {
+		return nil
+	}
+
+	toNewMint := atomTVU.Sub(mintedAmount)
+
+	switch ctx.ChainID() {
+	case "core-1":
+		pstakeFeeAddress := sdk.MustAccAddressFromBech32(k.GetHostChainParams(ctx).PstakeParams.PstakeFeeAddress)
+		err := k.MintTokens(ctx, sdk.NewCoin(mintDenom, toNewMint), pstakeFeeAddress)
+		if err != nil {
+			k.Logger(ctx).Error("Failed to mint and send remainingAmount to pstakeFeeAddress")
+			return err
+		}
+		return nil
+	default:
+		return nil
+	}
 }
