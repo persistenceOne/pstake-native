@@ -2,7 +2,7 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
@@ -89,7 +89,6 @@ func (suite *IntegrationTestSuite) TestCValue() {
 	)
 	suite.NoError(err)
 
-	// Delegation module account should not be counted in c_value.
 	err = app.BankKeeper.SendCoinsFromModuleToModule(ctx,
 		types.ModuleName,
 		types.DelegationModuleAccount,

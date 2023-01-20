@@ -5,10 +5,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	ibcporttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	ibcporttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
@@ -49,7 +49,7 @@ func HandleRegisterHostChainProposal(ctx sdk.Context, k Keeper, content types.Re
 	}
 
 	// register the ICA delegator account
-	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, content.ConnectionID, hostAccounts.DelegatorAccountOwnerID)
+	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, content.ConnectionID, hostAccounts.DelegatorAccountOwnerID, "")
 	if err != nil {
 		return sdkerrors.Wrap(err, "Could not register ica delegation Address")
 	}

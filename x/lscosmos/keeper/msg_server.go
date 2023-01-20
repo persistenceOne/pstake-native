@@ -7,10 +7,10 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	ibcporttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	ibcporttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
@@ -444,7 +444,7 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 
 	hostAccounts := m.GetHostAccounts(ctx)
 	// This checks for channel being active
-	err = m.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionID, hostAccounts.DelegatorAccountOwnerID)
+	err = m.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionID, hostAccounts.DelegatorAccountOwnerID, "")
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "Could not register ica delegation Address")
 	}
@@ -488,7 +488,7 @@ func (m msgServer) RecreateICA(goCtx context.Context, msg *types.MsgRecreateICA)
 
 	_, ok := m.icaControllerKeeper.GetOpenActiveChannel(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID())
 	if !ok {
-		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID)
+		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID, "")
 		if err != nil {
 			return nil, sdkerrors.Wrap(err, "Could not register ica delegation Address")
 		}
@@ -496,7 +496,7 @@ func (m msgServer) RecreateICA(goCtx context.Context, msg *types.MsgRecreateICA)
 	}
 	_, ok = m.icaControllerKeeper.GetOpenActiveChannel(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountPortID())
 	if !ok {
-		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID)
+		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID, "")
 		if err != nil {
 			return nil, sdkerrors.Wrap(err, "Could not register ica reward Address")
 		}

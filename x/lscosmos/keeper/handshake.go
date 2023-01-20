@@ -9,13 +9,13 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v3/modules/core/exported"
+	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v4/modules/core/exported"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
@@ -30,29 +30,29 @@ func (k Keeper) OnChanOpenInit(
 	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
-) error {
+) (string, error) {
 	hostAccounts := k.GetHostAccounts(ctx)
 
 	// Require portID is the portID module is bound to
 	if portID != hostAccounts.DelegatorAccountPortID() &&
 		portID != hostAccounts.RewardsAccountPortID() {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s or %s",
+		return "", sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s or %s",
 			portID, hostAccounts.DelegatorAccountPortID(), hostAccounts.RewardsAccountPortID())
 	}
 	var versionData icatypes.Metadata
 	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(version), &versionData); err != nil {
-		return err
+		return "", err
 	}
 	if versionData.Version != icatypes.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", versionData.Version, icatypes.Version)
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", versionData.Version, icatypes.Version)
 	}
 
 	// Claim channel capability passed back by IBC module
 	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return version, nil
 }
 
 // OnChanOpenTry implements the IBCModule interface
@@ -104,7 +104,7 @@ func (k Keeper) OnChanOpenAck(
 				if err := k.SetHostChainDelegationAddress(ctx, delegationAddress); err != nil {
 					return err
 				}
-				if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID); err != nil {
+				if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID, ""); err != nil {
 					return sdkerrors.Wrap(err, "Could not register ica reward Address")
 				}
 

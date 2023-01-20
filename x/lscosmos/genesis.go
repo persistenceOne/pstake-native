@@ -2,7 +2,7 @@ package lscosmos
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
