@@ -194,7 +194,7 @@ func (k Keeper) GetHostAccountMaturedUndelegations(ctx sdk.Context) []types.Host
 	undelegations := k.GetDelegationState(ctx).HostAccountUndelegations
 	var maturedUndelegations []types.HostAccountUndelegation
 	for _, undelegation := range undelegations {
-		if ctx.BlockTime().After(undelegation.CompletionTime) && !undelegation.CompletionTime.Equal(time.Time{}) {
+		if !ctx.BlockTime().Before(undelegation.CompletionTime) && !undelegation.CompletionTime.Equal(time.Time{}) {
 			maturedUndelegations = append(maturedUndelegations, undelegation)
 		}
 	}
