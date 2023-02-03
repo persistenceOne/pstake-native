@@ -403,9 +403,8 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 	if err := msg.PstakeParams.Validate(); err != nil {
 		return nil, err
 	}
-	if msg.BaseDenom == msg.MintDenom {
-		//TODO enforce mintdenom => stk/basedenom it in future versions
-		return nil, types.ErrEqualBaseAndMintDenom
+	if types.ConvertBaseDenomToMintDenom(msg.BaseDenom) != msg.MintDenom {
+		return nil, types.ErrInvalidMintDenom
 	}
 	// do proposal things
 	if msg.TransferPort != ibctransfertypes.PortID {
