@@ -81,6 +81,8 @@ const (
 
 	// CosmosValOperPrefix is the prefix for cosmos validator address
 	CosmosValOperPrefix = "cosmosvaloper"
+
+	LiquidStakedDenomPrefix = "stk"
 )
 
 // fee limits

@@ -285,6 +285,9 @@ func (m *MsgJumpStart) ValidateBasic() error {
 	if m.MinDeposit.LTE(sdk.ZeroInt()) {
 		return sdkErrors.Wrapf(ErrInvalidDeposit, "min deposit must be positive")
 	}
+	if ConvertBaseDenomToMintDenom(m.BaseDenom) != m.MintDenom {
+		return ErrInvalidMintDenom
+	}
 	return m.HostAccounts.Validate()
 }
 

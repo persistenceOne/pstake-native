@@ -121,6 +121,9 @@ $ %s tx gov submit-proposal pstake-lscosmos-register-host-chain <path/to/proposa
 			if err != nil {
 				return err
 			}
+			if types.ConvertBaseDenomToMintDenom(proposal.BaseDenom) != proposal.MintDenom {
+				return types.ErrInvalidMintDenom
+			}
 
 			content := types.NewRegisterHostChainProposal(
 				proposal.Title,
@@ -558,6 +561,10 @@ func NewJumpStartCmd() *cobra.Command {
 				PstakeUnstakeFee:    unstakeFee,
 				PstakeRedemptionFee: redemptionFee,
 				PstakeFeeAddress:    pstakeAddress.String(),
+			}
+
+			if types.ConvertBaseDenomToMintDenom(msgDetails.BaseDenom) != msgDetails.MintDenom {
+				return types.ErrInvalidMintDenom
 			}
 
 			msg := types.NewMsgJumpStart(pstakeAddress, msgDetails.ChainID, msgDetails.ConnectionID, msgDetails.TransferChannel,

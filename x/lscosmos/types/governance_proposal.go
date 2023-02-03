@@ -92,9 +92,8 @@ func (m *RegisterHostChainProposal) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInValidAllowListedValidators, "allow listed validators is not valid")
 	}
 
-	if m.BaseDenom == m.MintDenom {
-		//TODO enforce mintdenom => stk/basedenom it in future versions
-		return ErrEqualBaseAndMintDenom
+	if ConvertBaseDenomToMintDenom(m.BaseDenom) != m.MintDenom {
+		return ErrInvalidMintDenom
 	}
 
 	err = m.PstakeParams.Validate()
