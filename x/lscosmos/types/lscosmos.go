@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 	"strings"
 
@@ -212,4 +213,18 @@ func (pstakeParams *PstakeParams) Validate() error {
 		return sdkerrors.Wrapf(ErrInvalidFee, "pstake redemption fee must be between %s and %s", sdk.ZeroDec(), MaxPstakeRedemptionFee)
 	}
 	return nil
+}
+
+func ConvertMintDenomToBaseDenom(mintDenom string) (string, error) {
+	denomSplit := strings.Split(mintDenom, "/")
+
+	if denomSplit[0] != LiquidStakedDenomPrefix || len(denomSplit) != 2 {
+		return "", ErrInvalidMintDenom
+	}
+	return denomSplit[1], nil
+
+}
+
+func ConvertBaseDenomToMintDenom(baseDenom string) string {
+	return fmt.Sprintf("%s/%s", LiquidStakedDenomPrefix, baseDenom)
 }
