@@ -261,7 +261,7 @@ func (m msgServer) Redeem(goCtx context.Context, msg *types.MsgRedeem) (*types.M
 			)
 		}
 	}
-	// convert redeem amount to ibc/whitelisted-denom amount (sub protocolCoin) based on the current c-value
+	// convert redeem amount to ibc/allow-listed-denom amount (sub protocolCoin) based on the current c-value
 	redeemStk := msg.Amount.Sub(protocolCoin)
 	redeemToken, _ := m.ConvertStkToToken(ctx, sdktypes.NewDecCoinFromCoin(redeemStk), m.GetCValue(ctx))
 
@@ -378,7 +378,7 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	return &types.MsgClaimResponse{}, nil
 }
 
-// JumpStart defines a method for jump-starting the module thorugh fee address account
+// JumpStart defines a method for jump-starting the module through fee address account.
 func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*types.MsgJumpStartResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
@@ -387,9 +387,22 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 	if msg.PstakeAddress != hostChainParams.PstakeParams.PstakeFeeAddress {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("msg.pstakeAddress should be equal to msg.PstakeParams.PstakeFeeAddress, got %s expected %s", msg.PstakeAddress, hostChainParams.PstakeParams.PstakeFeeAddress))
 	}
+
 	// check module disabled
 	if m.GetModuleState(ctx) {
 		return nil, types.ErrModuleAlreadyEnabled
+	}
+	// ensure if params were set before never allow the denoms to be reset/changed, so tvu can always be checked
+	if !hostChainParams.IsEmpty() && hostChainParams.BaseDenom != msg.BaseDenom {
+		return nil, types.ErrInvalidDenom
+	}
+	if types.ConvertBaseDenomToMintDenom(msg.BaseDenom) != msg.MintDenom {
+		return nil, types.ErrInvalidMintDenom
+	}
+	// check if there is any mints.
+	stkSupply := m.bankKeeper.GetSupply(ctx, msg.MintDenom)
+	if stkSupply.Amount.GT(sdktypes.ZeroInt()) {
+		return nil, sdkerrors.Wrap(types.ErrModuleAlreadyEnabled, fmt.Sprintf("Module cannot be reset once via admin once it has positive delegations."))
 	}
 	// reset db, no need to release capability
 	m.SetDelegationState(ctx, types.DelegationState{})
@@ -403,9 +416,7 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 	if err := msg.PstakeParams.Validate(); err != nil {
 		return nil, err
 	}
-	if types.ConvertBaseDenomToMintDenom(msg.BaseDenom) != msg.MintDenom {
-		return nil, types.ErrInvalidMintDenom
-	}
+
 	// do proposal things
 	if msg.TransferPort != ibctransfertypes.PortID {
 		return nil, sdkerrors.Wrap(ibcporttypes.ErrInvalidPort, "Only acceptable TransferPort is \"transfer\"")
@@ -425,7 +436,7 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 	// TODO Understand capabilities and see if it has to be/ should be claimed in lsscopedkeeper. If it even matters.
 	_, err := m.lscosmosScopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(msg.TransferPort, msg.TransferChannel))
 	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "Failed to create and claim capability for ibc transfer port and channel")
+		ctx.Logger().Info(fmt.Sprintf("err: %s, Capability already exists", err.Error()))
 	}
 
 	hostAccounts := m.GetHostAccounts(ctx)

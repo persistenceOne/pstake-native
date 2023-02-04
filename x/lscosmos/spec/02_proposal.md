@@ -6,10 +6,10 @@ order: 2
 
 Host chain register proposal takes the following parameter into account :
 
-- `ConnectionID` : IBC Connection to be whitelisted for module use.
-- `TransferChannel` : Channel whitelisted for token transfer.
-- `TransferPort` : Port whitelisted for token transfer.
-- `BaseDenom` : Base denom to be matched with the base denom present in IBC/Denom and stake only the whitelisted base
+- `ConnectionID` : IBC Connection to be allowlisted for module use.
+- `TransferChannel` : Channel allowlisted for token transfer.
+- `TransferPort` : Port allowlisted for token transfer.
+- `BaseDenom` : Base denom to be matched with the base denom present in IBC/Denom and stake only the allowlisted base
   denom.
 - `MintDenom` : Mint denom which is to be used for minting the liquid staked representative of staked token.
 - `MinDeposit` : It is the amount that a user needs to deposit in order to do a liquid stake transaction.
@@ -20,7 +20,7 @@ Host chain register proposal takes the following parameter into account :
 - `PstakeRedemptionFee` : It is the fraction of fees on instant redemption.
 - `PstakeFeeAddress` : Address on which the above mentioned fees are sent to.
 
-It is to whitelist these params before the modules is able to liquid stake atoms on Persistence Chain.
+It is to allowlist these params before the modules is able to liquid stake atoms on Persistence Chain.
 
 Example of a register host chain proposal :
 
@@ -50,7 +50,7 @@ Example of a register host chain proposal :
     "pstake_unstake_fee": "0.00",
     "pstake_redemption_fee": "0.1",
     "pstake_fee_address": "persistence108cqtjz7gqasctvrw74kewg6642062kmfuujsd"
-  }
+  },
   "deposit": "1000000stake"
 }
 ```
@@ -107,7 +107,7 @@ Example proposal :
 {
   "title": "change pstake fee address",
   "description": "this proposal changes pstake fee address in the chain",
-  "pstake_fee_address": "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9"
+  "pstake_fee_address": "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
   "deposit": "10000000stake"
 }
 ```
