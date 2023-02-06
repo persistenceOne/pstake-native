@@ -402,7 +402,7 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 	// check if there is any mints.
 	stkSupply := m.bankKeeper.GetSupply(ctx, msg.MintDenom)
 	if stkSupply.Amount.GT(sdktypes.ZeroInt()) {
-		return nil, sdkerrors.Wrap(types.ErrModuleAlreadyEnabled, fmt.Sprintf("Module cannot be reset once via admin once it has positive delegations."))
+		return nil, sdkerrors.Wrap(types.ErrModuleAlreadyEnabled, "Module cannot be reset once via admin once it has positive delegations.")
 	}
 	// reset db, no need to release capability
 	m.SetDelegationState(ctx, types.DelegationState{})
@@ -417,6 +417,9 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 		return nil, err
 	}
 
+	if msg.MinDeposit.LTE(sdktypes.ZeroInt()) {
+		return nil, sdkerrors.Wrap(types.ErrInvalidDeposit, "MinDeposit should be GT 0")
+	}
 	// do proposal things
 	if msg.TransferPort != ibctransfertypes.PortID {
 		return nil, sdkerrors.Wrap(ibcporttypes.ErrInvalidPort, "Only acceptable TransferPort is \"transfer\"")
