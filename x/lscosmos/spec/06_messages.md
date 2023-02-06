@@ -8,7 +8,7 @@ In this section we describe process of the liquid staking module messages and th
 
 ### MsgLiquidStake
 
-LiquidStake whitelisted IBC tokens and mint represntative stkTokens .
+LiquidStake allowlisted IBC tokens and mint represntative stkTokens .
 
 It does the following operations : 
 
@@ -128,7 +128,7 @@ Inputs for this message :
 - `BaseDenom` : BaseDenom is denom of the host chain.
 - `MintDenom` : Mint denom is denom to be minted.
 - `MinDeposit` : Min deposit is the lower cap of the deposit that can be made while liquid staking.
-- `AllowListedValidators` : Set of validators whitelisted for delegation on host chain. It also consists of weights given to each validator. 
+- `AllowListedValidators` : Set of validators allowlisted for delegation on host chain. It also consists of weights given to each validator. 
 - `PstakeParams` : Pstake params consists of different types of fees and pstake fee address
 - `HostAccounts` : It is made of names for the ICA accounts to be created on host chain.
 

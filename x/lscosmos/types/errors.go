@@ -12,7 +12,7 @@ var (
 	ErrInvalidPacketTimeout                  = sdkerrors.Register(ModuleName, 1500, "invalid packet timeout")
 	ErrInvalidVersion                        = sdkerrors.Register(ModuleName, 1501, "invalid version")
 	ErrInvalidMessage                        = sdkerrors.Register(ModuleName, 64, "invalid message")
-	ErrInvalidDenom                          = sdkerrors.Register(ModuleName, 65, "denom not whitelisted/ invalid denom")
+	ErrInvalidDenom                          = sdkerrors.Register(ModuleName, 65, "denom not allow-listed/ invalid denom")
 	ErrInvalidArgs                           = sdkerrors.Register(ModuleName, 66, "invalid arguments")
 	ErrFailedDeposit                         = sdkerrors.Register(ModuleName, 67, "deposit failed")
 	ErrMintFailed                            = sdkerrors.Register(ModuleName, 68, "minting failed")

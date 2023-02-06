@@ -161,7 +161,7 @@ $ %s tx gov submit-proposal pstake-lscosmos-register-host-chain <path/to/proposa
 
 func NewLiquidStakeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "liquid-stake [amount(whitelisted-ibcDenom coin)]",
+		Use:   "liquid-stake [amount(allow-listed-ibcDenom coin)]",
 		Short: `Liquid Stake ibc/Atom to stk/Atom`,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
