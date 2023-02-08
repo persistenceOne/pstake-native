@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	govv1beta1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -9,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/spf13/cobra"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/client/utils"
@@ -149,7 +149,7 @@ $ %s tx gov submit-proposal pstake-lscosmos-register-host-chain <path/to/proposa
 				return err
 			}
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			msg, err := govv1beta1types.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
 				return err
 			}
@@ -267,7 +267,7 @@ $ %s tx gov submit-proposal pstake-lscosmos-min-deposit-and-fee-change  <path/to
 				return err
 			}
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			msg, err := govv1beta1types.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
 				return err
 			}
@@ -333,7 +333,7 @@ $ %s tx gov submit-proposal pstake-lscosmos-change-pstake-fee-address <path/to/p
 				return err
 			}
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			msg, err := govv1beta1types.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
 				return err
 			}
@@ -399,7 +399,7 @@ $ %s tx gov submit-proposal pstake-lscosmos-change-allow-listed-validator-set <p
 				return err
 			}
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			msg, err := govv1beta1types.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
 				return err
 			}
