@@ -6,7 +6,7 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 // RegisterLegacyAminoCodec registers the necessary x/lscosmos interfaces and concrete types
@@ -35,7 +35,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgJumpStart{},
 	) // add the structs that implements sdk.Msg interface
 
-	registry.RegisterImplementations((*govtypes.Content)(nil),
+	registry.RegisterImplementations((*govv1beta1types.Content)(nil),
 		// add the stucts that implements govTypes.Content interface
 		&RegisterHostChainProposal{},
 		&MinDepositAndFeeChangeProposal{},
