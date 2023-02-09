@@ -79,7 +79,9 @@ func (k Keeper) HandleRewardsAccountBalanceCallback(ctx sdk.Context, response []
 	// Cap the re-staking amount so exchange rate doesn't change drastically.
 	cValue := k.GetCValue(ctx)
 	stkAssetSupply := k.bankKeeper.GetSupply(ctx, hostChainParams.MintDenom)
-	atomTVU := stkAssetSupply.Amount.ToDec().Quo(cValue)
+	var x = sdk.Dec{}
+	amt := x.QuoInt(stkAssetSupply.Amount)
+	atomTVU := amt.Quo(cValue)
 	atomTVUCap := atomTVU.Mul(types.RestakeCapPerDay).TruncateInt()
 	sendCoinAmt := resp.Balance.Amount
 	if resp.Balance.Amount.GT(atomTVUCap) {
