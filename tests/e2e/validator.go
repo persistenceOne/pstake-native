@@ -32,7 +32,7 @@ type validator struct {
 	index            int
 	moniker          string
 	mnemonic         string
-	keyInfo          keyring.Info
+	keyInfo          keyring.LegacyInfo
 	privateKey       cryptotypes.PrivKey
 	consensusKey     privval.FilePVKey
 	consensusPrivKey cryptotypes.PrivKey
@@ -125,7 +125,7 @@ func (v *validator) createConsensusKey() error {
 }
 
 func (v *validator) createKeyFromMnemonic(name, mnemonic string) error {
-	kb, err := keyring.New(keyringAppName, keyring.BackendTest, v.configDir(), nil)
+	kb, err := keyring.New(keyringAppName, keyring.BackendTest, v.configDir(), nil, nil)
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,10 @@ func (v *validator) createKeyFromMnemonic(name, mnemonic string) error {
 		return err
 	}
 
-	v.keyInfo = info
+	pubkey, err := info.GetPubKey()
+	legInfo, err := keyring.NewLegacyMultiInfo(info.Name, pubkey)
+
+	v.keyInfo = legInfo
 	v.mnemonic = mnemonic
 	v.privateKey = privKey
 
