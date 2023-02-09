@@ -21,7 +21,7 @@ func createMnemonic() (string, error) {
 	return mnemonic, nil
 }
 
-func createMemoryKey() (mnemonic string, info *keyring.Info, err error) {
+func createMemoryKey() (mnemonic string, info *keyring.LegacyInfo, err error) {
 	mnemonic, err = createMnemonic()
 	if err != nil {
 		return "", nil, err
@@ -35,8 +35,8 @@ func createMemoryKey() (mnemonic string, info *keyring.Info, err error) {
 	return mnemonic, account, nil
 }
 
-func createMemoryKeyFromMnemonic(mnemonic string) (*keyring.Info, error) {
-	kb, err := keyring.New("testnet", keyring.BackendMemory, "", nil)
+func createMemoryKeyFromMnemonic(mnemonic string) (*keyring.LegacyInfo, error) {
+	kb, err := keyring.New("testnet", keyring.BackendMemory, "", nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -48,9 +48,11 @@ func createMemoryKeyFromMnemonic(mnemonic string) (*keyring.Info, error) {
 	}
 
 	account, err := kb.NewAccount("", mnemonic, "", sdk.FullFundraiserPath, algo)
+	pubKey, err := account.GetPubKey()
+	info, err := keyring.NewLegacyMultiInfo(account.Name, pubKey)
 	if err != nil {
 		return nil, err
 	}
 
-	return &account, nil
+	return &info, nil
 }
