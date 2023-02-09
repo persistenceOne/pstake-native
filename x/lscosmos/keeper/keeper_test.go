@@ -1,11 +1,12 @@
 package keeper_test
 
 import (
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	govv1beta1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/stretchr/testify/suite"
@@ -51,7 +52,7 @@ type IntegrationTestSuite struct {
 
 	app        *app.PstakeApp
 	ctx        sdk.Context
-	govHandler govtypes.Handler
+	govHandler govv1beta1types.Handler
 
 	coordinator *ibctesting.Coordinator
 	chainA      *ibctesting.TestChain
@@ -133,19 +134,29 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	suite.app.LSCosmosKeeper.SetAllowListedValidators(ctx, allowListedValidators)
 }
 
+func FundAccount(bankKeeper bankkeeper.Keeper, ctx sdk.Context, addr sdk.AccAddress, amounts sdk.Coins) error {
+	if err := bankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
+		return err
+	}
+
+	return bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, amounts)
+}
+
 func (suite *IntegrationTestSuite) TestMintToken() {
 	pstakeApp, ctx := suite.app, suite.ctx
 	testParams := pstakeApp.LSCosmosKeeper.GetHostChainParams(ctx)
 
 	ibcDenom := ibctransfertypes.GetPrefixedDenom(testParams.TransferPort, testParams.TransferChannel, testParams.BaseDenom)
 	balanceOfIbcToken := sdk.NewInt64Coin(ibcDenom, 100)
-	mintAmountDec := balanceOfIbcToken.Amount.ToDec().Mul(pstakeApp.LSCosmosKeeper.GetCValue(ctx))
+	var x = sdk.Dec{}
+	amt := x.QuoInt(balanceOfIbcToken.Amount)
+	mintAmountDec := amt.Mul(pstakeApp.LSCosmosKeeper.GetCValue(ctx))
 	toBeMintedTokens, _ := sdk.NewDecCoinFromDec(testParams.MintDenom, mintAmountDec).TruncateDecimal()
 
 	addr := sdk.AccAddress("addr_______________")
 	acc := pstakeApp.AccountKeeper.NewAccountWithAddress(ctx, addr)
 	pstakeApp.AccountKeeper.SetAccount(ctx, acc)
-	suite.Require().NoError(simapp.FundAccount(pstakeApp.BankKeeper, ctx, addr, sdk.NewCoins(balanceOfIbcToken)))
+	suite.Require().NoError(FundAccount(pstakeApp.BankKeeper, ctx, addr, sdk.NewCoins(balanceOfIbcToken)))
 
 	suite.Require().NoError(pstakeApp.LSCosmosKeeper.MintTokens(ctx, toBeMintedTokens, addr))
 
