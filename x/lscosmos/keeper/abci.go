@@ -90,7 +90,7 @@ func (k Keeper) ProcessMaturedUndelegation(ctx sdk.Context) error {
 		timeoutHeight := clienttypes.NewHeight(selfHeight.GetRevisionNumber(), selfHeight.GetRevisionHeight()+lscosmostypes.IBCTimeoutHeightIncrement)
 
 		msg := ibctransfertypes.NewMsgTransfer(channel.Counterparty.PortId, channel.Counterparty.ChannelId,
-			atomsUnbonded, delegationState.HostChainDelegationAddress, authtypes.NewModuleAddress(lscosmostypes.UndelegationModuleAccount).String(), timeoutHeight, 0)
+			atomsUnbonded, delegationState.HostChainDelegationAddress, authtypes.NewModuleAddress(lscosmostypes.UndelegationModuleAccount).String(), timeoutHeight, 0, "")
 		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), []sdk.Msg{msg})
 		if err != nil {
 			return err
