@@ -2,19 +2,34 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/gogo/protobuf/proto"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-
+	"github.com/gogo/protobuf/proto"
 	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
 // GenerateAndExecuteICATx does ica transactions with messages,
 // optimistic bool does not check for channel to be open. only use to do icatxns when channel is getting created.
+type mockSdkMsg struct {
+	sdk.Msg
+}
+
+// Reset implements sdk.Msg
+func (mockSdkMsg) Reset() {
+}
+
+// String implements sdk.Msg
+func (mockSdkMsg) String() string {
+	return ""
+}
+
+// ProtoMessage implements sdk.Msg
+func (mockSdkMsg) ProtoMessage() {
+}
+
 func (k Keeper) GenerateAndExecuteICATx(ctx sdk.Context, connectionID string, portID string, msgs []sdk.Msg) error {
 
 	channelID, found := k.icaControllerKeeper.GetOpenActiveChannel(ctx, connectionID, portID)
@@ -28,8 +43,13 @@ func (k Keeper) GenerateAndExecuteICATx(ctx sdk.Context, connectionID string, po
 		k.Logger(ctx).Error(fmt.Sprintf("module does not own channel capability, module: %s, channelID: %s, portId: %s", lscosmostypes.ModuleName, channelID, portID))
 		return channeltypes.ErrChannelCapabilityNotFound
 	}
-	x := []proto.Message{msgs[0].ProtoMessage()}
-	msgData, err := icatypes.SerializeCosmosTx(k.cdc, msgs)
+
+	protoMsg := []proto.Message{}
+	for _, x := range msgs {
+		protoMsg = append(protoMsg, mockSdkMsg{x})
+	}
+
+	msgData, err := icatypes.SerializeCosmosTx(k.cdc, protoMsg)
 	if err != nil {
 		k.Logger(ctx).Error(fmt.Sprintf("could not serialize cosmostx err %v", err))
 		return err
