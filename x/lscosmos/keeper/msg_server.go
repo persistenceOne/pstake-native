@@ -333,8 +333,8 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 			// get c value from the UnbondingEpochCValue struct
 			// calculate claimable amount from un inverse c value
 			var x = sdktypes.Dec{}
-			claimableAmount := x.Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
-			//claimableAmount := unbondingEntry.Amount.Amount.Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
+			amt := x.QuoInt(unbondingEntry.Amount.Amount)
+			claimableAmount := amt.Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
 
 			// calculate claimable coin and community coin to be sent to delegator account and community pool respectively
 			claimableCoin, _ := sdktypes.NewDecCoinFromDec(m.GetIBCDenom(ctx), claimableAmount).TruncateDecimal()
