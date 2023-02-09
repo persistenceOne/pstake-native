@@ -7,7 +7,6 @@ import (
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 const (
@@ -19,20 +18,20 @@ const (
 
 var (
 	_ govv1beta1types.Content = &RegisterHostChainProposal{}
-	_ govtypes.Content        = &MinDepositAndFeeChangeProposal{}
-	_ govtypes.Content        = &PstakeFeeAddressChangeProposal{}
-	_ govtypes.Content        = &AllowListedValidatorSetChangeProposal{}
+	_ govv1beta1types.Content = &MinDepositAndFeeChangeProposal{}
+	_ govv1beta1types.Content = &PstakeFeeAddressChangeProposal{}
+	_ govv1beta1types.Content = &AllowListedValidatorSetChangeProposal{}
 )
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeRegisterHostChain)
+	govv1beta1types.RegisterProposalType(ProposalTypeRegisterHostChain)
 	govv1beta1types.RegisterProposalTypeCodec(&RegisterHostChainProposal{}, "pstake/RegisterHostChain")
-	govtypes.RegisterProposalType(ProposalTypeMinDepositAndFeeChange)
-	govtypes.RegisterProposalTypeCodec(&MinDepositAndFeeChangeProposal{}, "pstake/MinDepositAndFeeChange")
-	govtypes.RegisterProposalType(ProposalPstakeFeeAddressChange)
-	govtypes.RegisterProposalTypeCodec(&PstakeFeeAddressChangeProposal{}, "pstake/PstakeFeeAddressChange")
-	govtypes.RegisterProposalType(ProposalAllowListedValidatorSetChange)
-	govtypes.RegisterProposalTypeCodec(&AllowListedValidatorSetChangeProposal{}, "pstake/AllowListedValidatorSetChange")
+	govv1beta1types.RegisterProposalType(ProposalTypeMinDepositAndFeeChange)
+	govv1beta1types.RegisterProposalTypeCodec(&MinDepositAndFeeChangeProposal{}, "pstake/MinDepositAndFeeChange")
+	govv1beta1types.RegisterProposalType(ProposalPstakeFeeAddressChange)
+	govv1beta1types.RegisterProposalTypeCodec(&PstakeFeeAddressChangeProposal{}, "pstake/PstakeFeeAddressChange")
+	govv1beta1types.RegisterProposalType(ProposalAllowListedValidatorSetChange)
+	govv1beta1types.RegisterProposalTypeCodec(&AllowListedValidatorSetChangeProposal{}, "pstake/AllowListedValidatorSetChange")
 }
 
 // NewRegisterHostChainProposal creates a new host chain register proposal.
@@ -84,7 +83,7 @@ func (m *RegisterHostChainProposal) ProposalType() string {
 
 // ValidateBasic runs basic stateless validity checks
 func (m *RegisterHostChainProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(m)
+	err := govv1beta1types.ValidateAbstract(m)
 	if err != nil {
 		return err
 	}
@@ -218,7 +217,7 @@ func (m *MinDepositAndFeeChangeProposal) ProposalType() string {
 
 // ValidateBasic runs basic stateless validity checks
 func (m *MinDepositAndFeeChangeProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(m)
+	err := govv1beta1types.ValidateAbstract(m)
 	if err != nil {
 		return err
 	}
@@ -302,7 +301,7 @@ func (m *PstakeFeeAddressChangeProposal) ProposalType() string {
 
 // ValidateBasic runs basic stateless validity checks
 func (m *PstakeFeeAddressChangeProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(m)
+	err := govv1beta1types.ValidateAbstract(m)
 	if err != nil {
 		return err
 	}
@@ -363,7 +362,7 @@ func (m *AllowListedValidatorSetChangeProposal) ProposalType() string {
 
 // ValidateBasic runs basic stateless validity checks
 func (m *AllowListedValidatorSetChangeProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(m)
+	err := govv1beta1types.ValidateAbstract(m)
 	if err != nil {
 		return err
 	}
