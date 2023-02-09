@@ -1,10 +1,10 @@
 package lscosmos_test
 
 import (
+	govv1beta1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/persistenceOne/pstake-native/app"
@@ -18,7 +18,7 @@ type HandlerTestSuite struct {
 
 	app        *app.PstakeApp
 	ctx        sdk.Context
-	govHandler govtypes.Handler
+	govHandler govv1beta1types.Handler
 }
 
 func (suite *HandlerTestSuite) SetupTest() {
