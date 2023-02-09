@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	govv1beta1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"strings"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
@@ -17,15 +18,15 @@ const (
 )
 
 var (
-	_ govtypes.Content = &RegisterHostChainProposal{}
-	_ govtypes.Content = &MinDepositAndFeeChangeProposal{}
-	_ govtypes.Content = &PstakeFeeAddressChangeProposal{}
-	_ govtypes.Content = &AllowListedValidatorSetChangeProposal{}
+	_ govv1beta1types.Content = &RegisterHostChainProposal{}
+	_ govtypes.Content        = &MinDepositAndFeeChangeProposal{}
+	_ govtypes.Content        = &PstakeFeeAddressChangeProposal{}
+	_ govtypes.Content        = &AllowListedValidatorSetChangeProposal{}
 )
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeRegisterHostChain)
-	govtypes.RegisterProposalTypeCodec(&RegisterHostChainProposal{}, "pstake/RegisterHostChain")
+	govv1beta1types.RegisterProposalTypeCodec(&RegisterHostChainProposal{}, "pstake/RegisterHostChain")
 	govtypes.RegisterProposalType(ProposalTypeMinDepositAndFeeChange)
 	govtypes.RegisterProposalTypeCodec(&MinDepositAndFeeChangeProposal{}, "pstake/MinDepositAndFeeChange")
 	govtypes.RegisterProposalType(ProposalPstakeFeeAddressChange)

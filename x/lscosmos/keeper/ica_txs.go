@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"github.com/gogo/protobuf/proto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -27,7 +28,7 @@ func (k Keeper) GenerateAndExecuteICATx(ctx sdk.Context, connectionID string, po
 		k.Logger(ctx).Error(fmt.Sprintf("module does not own channel capability, module: %s, channelID: %s, portId: %s", lscosmostypes.ModuleName, channelID, portID))
 		return channeltypes.ErrChannelCapabilityNotFound
 	}
-
+	x := []proto.Message{msgs[0].ProtoMessage()}
 	msgData, err := icatypes.SerializeCosmosTx(k.cdc, msgs)
 	if err != nil {
 		k.Logger(ctx).Error(fmt.Sprintf("could not serialize cosmostx err %v", err))

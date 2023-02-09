@@ -145,8 +145,9 @@ func NewDelegatorUnbondingEpochEntry(delegatorAddress string, epochNumber int64,
 // GetUnbondingEpochCValue returns the calculated c value from the UnbondingEpochCValue struct entries.
 func (uec *UnbondingEpochCValue) GetUnbondingEpochCValue() sdk.Dec {
 	//return uec.STKBurn.Amount.ToDec().Quo(uec.AmountUnbonded.Amount.ToDec())
-	var x = sdk.Dec{}
-	return x.QuoInt(uec.AmountUnbonded.Amount)
+	x := sdk.Dec{}
+	amt := x.QuoInt(uec.STKBurn.Amount)
+	return amt.QuoInt(uec.AmountUnbonded.Amount)
 }
 
 // CurrentUnbondingEpoch computes and returns current unbonding epoch to the next nearest multiple

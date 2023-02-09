@@ -332,7 +332,7 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 		if unbondingEpochCValue.IsMatured {
 			// get c value from the UnbondingEpochCValue struct
 			// calculate claimable amount from un inverse c value
-			var x = sdktypes.Dec{}
+			x := sdktypes.Dec{}
 			amt := x.QuoInt(unbondingEntry.Amount.Amount)
 			claimableAmount := amt.Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
 

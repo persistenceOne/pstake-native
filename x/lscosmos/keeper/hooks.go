@@ -135,7 +135,7 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 
 		msg := ibctransfertypes.NewMsgTransfer(hostChainParams.TransferPort, hostChainParams.TransferChannel,
 			depositBalance, authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount).String(),
-			delegationState.HostChainDelegationAddress, timeoutHeight, 0)
+			delegationState.HostChainDelegationAddress, timeoutHeight, 0, "")
 
 		handler := k.msgRouter.Handler(msg)
 
