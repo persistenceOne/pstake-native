@@ -1,7 +1,7 @@
 package lscosmos
 
 import (
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -10,8 +10,8 @@ import (
 )
 
 // NewLSCosmosProposalHandler creates a new governance Handler for lscosmos module
-func NewLSCosmosProposalHandler(k keeper.Keeper) govtypes.Handler {
-	return func(ctx sdk.Context, content govtypes.Content) error {
+func NewLSCosmosProposalHandler(k keeper.Keeper) govv1beta1types.Handler {
+	return func(ctx sdk.Context, content govv1beta1types.Content) error {
 		switch c := content.(type) {
 		case *types.RegisterHostChainProposal:
 			return keeper.HandleRegisterHostChainProposal(ctx, k, *c)
