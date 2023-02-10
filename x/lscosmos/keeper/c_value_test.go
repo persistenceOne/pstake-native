@@ -89,6 +89,7 @@ func (suite *IntegrationTestSuite) TestCValue() {
 	)
 	suite.NoError(err)
 
+	// Delegation module account should not be counted in c_value.
 	err = app.BankKeeper.SendCoinsFromModuleToModule(ctx,
 		types.ModuleName,
 		types.DelegationModuleAccount,
