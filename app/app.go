@@ -114,9 +114,9 @@ import (
 	interchainquerytypes "github.com/persistenceOne/persistence-sdk/x/interchainquery/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
-	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
-	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v2/router/keeper"
-	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v2/router/types"
+	"github.com/strangelove-ventures/packet-forward-middleware/v6/router"
+	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v6/router/keeper"
+	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v6/router/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
@@ -515,7 +515,7 @@ func NewpStakeApp(
 	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(ibchookertypes.NewMultiStakingHooks(app.LSCosmosKeeper.NewIBCTransferHooks()))
 	ibcTransferHooksMiddleware := ibchooker.NewAppModule(app.TransferHooksKeeper, transferIBCModule)
 
-	app.RouterKeeper = routerkeeper.NewKeeper(appCodec, keys[routertypes.StoreKey], app.GetSubspace(routertypes.ModuleName), app.TransferKeeper, app.DistrKeeper)
+	app.RouterKeeper = *routerkeeper.NewKeeper(appCodec, keys[routertypes.StoreKey], app.GetSubspace(routertypes.ModuleName), app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.DistrKeeper, app.BankKeeper, app.IBCFeeKeeper)
 
 	mockModule := ibcmock.NewAppModule(&app.IBCKeeper.PortKeeper)
 	// Information will flow: ibc-port -> icaController -> lscosmos.
@@ -529,7 +529,7 @@ func NewpStakeApp(
 
 	// This module is not being used for any routing, can be removed, only part of ModuleManager.
 	// using ibcTransferHooksMiddleware instead.
-	routerModule := router.NewAppModule(app.RouterKeeper, transferIBCModule)
+	routerModule := router.NewAppModule(&app.RouterKeeper)
 	// create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
