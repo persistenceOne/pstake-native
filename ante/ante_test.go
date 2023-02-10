@@ -16,8 +16,8 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	pstakeapp "github.com/persistenceOne/pstake-native/app"
-	pstakehelpers "github.com/persistenceOne/pstake-native/app/helpers"
+	pstakeapp "github.com/persistenceOne/pstake-native/v2/app"
+	pstakehelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
 )
 
 type IntegrationTestSuite struct {

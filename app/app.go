@@ -115,12 +115,12 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
-	pstakeante "github.com/persistenceOne/pstake-native/ante"
-	pstakeappparams "github.com/persistenceOne/pstake-native/app/params"
-	"github.com/persistenceOne/pstake-native/x/lscosmos"
-	lscosmosclient "github.com/persistenceOne/pstake-native/x/lscosmos/client"
-	lscosmoskeeper "github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
-	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	pstakeante "github.com/persistenceOne/pstake-native/v2/ante"
+	pstakeappparams "github.com/persistenceOne/pstake-native/v2/app/params"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos"
+	lscosmosclient "github.com/persistenceOne/pstake-native/v2/x/lscosmos/client"
+	lscosmoskeeper "github.com/persistenceOne/pstake-native/v2/x/lscosmos/keeper"
+	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 var (

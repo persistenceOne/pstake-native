@@ -24,7 +24,7 @@ import (
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
 
-	pstake "github.com/persistenceOne/pstake-native/app"
+	pstake "github.com/persistenceOne/pstake-native/v2/app"
 )
 
 type validator struct {

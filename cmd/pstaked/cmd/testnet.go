@@ -36,7 +36,7 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 
-	"github.com/persistenceOne/pstake-native/app/params"
+	"github.com/persistenceOne/pstake-native/v2/app/params"
 )
 
 var (

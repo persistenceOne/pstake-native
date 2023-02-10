@@ -8,7 +8,7 @@ import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
 
-	"github.com/persistenceOne/pstake-native/x/lscosmos/client/cli"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/client/cli"
 )
 
 var (

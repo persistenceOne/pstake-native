@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	pstake "github.com/persistenceOne/pstake-native/app"
+	pstake "github.com/persistenceOne/pstake-native/v2/app"
 
-	"github.com/persistenceOne/pstake-native/app/helpers"
+	"github.com/persistenceOne/pstake-native/v2/app/helpers"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/libs/rand"

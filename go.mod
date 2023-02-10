@@ -1,4 +1,4 @@
-module github.com/persistenceOne/pstake-native
+module github.com/persistenceOne/pstake-native/v2
 
 go 1.19
 

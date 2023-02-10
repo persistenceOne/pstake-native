@@ -12,8 +12,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/spf13/cobra"
 
-	"github.com/persistenceOne/pstake-native/x/lscosmos/client/utils"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/client/utils"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 // GetTxCmd returns the transaction commands for this module

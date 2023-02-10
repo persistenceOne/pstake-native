@@ -12,8 +12,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	pstakeApp "github.com/persistenceOne/pstake-native/app"
-	"github.com/persistenceOne/pstake-native/app/params"
+	pstakeApp "github.com/persistenceOne/pstake-native/v2/app"
+	"github.com/persistenceOne/pstake-native/v2/app/params"
 )
 
 const (
