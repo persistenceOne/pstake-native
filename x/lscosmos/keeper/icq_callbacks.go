@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	icqtypes "github.com/persistenceOne/persistence-sdk/x/interchainquery/types"
+	icqtypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
 
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )

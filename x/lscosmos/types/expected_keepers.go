@@ -7,7 +7,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v4/modules/core/exported"
-	epochstypes "github.com/persistenceOne/persistence-sdk/x/epochs/types"
+	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

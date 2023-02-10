@@ -98,15 +98,15 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v4/modules/core/keeper"
 	ibctesting "github.com/cosmos/ibc-go/v4/testing"
 	"github.com/gorilla/mux"
-	"github.com/persistenceOne/persistence-sdk/x/epochs"
-	epochskeeper "github.com/persistenceOne/persistence-sdk/x/epochs/keeper"
-	epochstypes "github.com/persistenceOne/persistence-sdk/x/epochs/types"
-	"github.com/persistenceOne/persistence-sdk/x/ibchooker"
-	ibchookerkeeper "github.com/persistenceOne/persistence-sdk/x/ibchooker/keeper"
-	ibchookertypes "github.com/persistenceOne/persistence-sdk/x/ibchooker/types"
-	"github.com/persistenceOne/persistence-sdk/x/interchainquery"
-	interchainquerykeeper "github.com/persistenceOne/persistence-sdk/x/interchainquery/keeper"
-	interchainquerytypes "github.com/persistenceOne/persistence-sdk/x/interchainquery/types"
+	"github.com/persistenceOne/persistence-sdk/v2/x/epochs"
+	epochskeeper "github.com/persistenceOne/persistence-sdk/v2/x/epochs/keeper"
+	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
+	"github.com/persistenceOne/persistence-sdk/v2/x/ibchooker"
+	ibchookerkeeper "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/keeper"
+	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
+	"github.com/persistenceOne/persistence-sdk/v2/x/interchainquery"
+	interchainquerykeeper "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/keeper"
+	interchainquerytypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -391,7 +391,6 @@ func NewpStakeApp(
 		authtypes.FeeCollectorName,
 	)
 	epochsKeeper := *epochskeeper.NewKeeper(
-		appCodec,
 		keys[epochstypes.StoreKey],
 	)
 
