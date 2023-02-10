@@ -7,10 +7,10 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/persistenceOne/pstake-native/app"
-	"github.com/persistenceOne/pstake-native/app/helpers"
-	"github.com/persistenceOne/pstake-native/x/lscosmos"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/app"
+	"github.com/persistenceOne/pstake-native/v2/app/helpers"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 type HandlerTestSuite struct {

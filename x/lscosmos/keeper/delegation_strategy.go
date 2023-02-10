@@ -7,7 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 // DelegateMsgs gives the list of Delegate Txs to be executed based on the current state and params.

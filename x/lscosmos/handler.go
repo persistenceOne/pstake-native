@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 func NewHandler(k keeper.Keeper) sdk.Handler {

@@ -9,7 +9,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
 
-	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 // GenerateAndExecuteICATx does ica transactions with messages,

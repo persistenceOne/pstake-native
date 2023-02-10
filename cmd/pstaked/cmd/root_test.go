@@ -6,8 +6,8 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/stretchr/testify/require"
 
-	app "github.com/persistenceOne/pstake-native/app"
-	"github.com/persistenceOne/pstake-native/cmd/pstaked/cmd"
+	app "github.com/persistenceOne/pstake-native/v2/app"
+	"github.com/persistenceOne/pstake-native/v2/cmd/pstaked/cmd"
 )
 
 func TestRootCmdConfig(t *testing.T) {

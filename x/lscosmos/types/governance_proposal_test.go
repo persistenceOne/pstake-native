@@ -10,8 +10,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/persistenceOne/pstake-native/app"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/app"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 func init() {

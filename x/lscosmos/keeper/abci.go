@@ -8,7 +8,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 	"github.com/persistenceOne/persistence-sdk/v2/utils"
 
-	lscosmostypes "github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 // BeginBlock will use utils.ApplyFuncIfNoError to apply the changes made by the functions

@@ -3,7 +3,7 @@ package pstake.lscosmos.v1beta1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/persistenceOne/pstake-native/x/lscosmos/types";
+option go_package = "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types";
 
 // Params defines the parameters for the module.
 message Params {

@@ -16,9 +16,9 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/persistenceOne/pstake-native/x/lscosmos/client/cli"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/client/cli"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 var (

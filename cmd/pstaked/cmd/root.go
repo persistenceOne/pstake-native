@@ -32,8 +32,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	pstakeApp "github.com/persistenceOne/pstake-native/app"
-	"github.com/persistenceOne/pstake-native/app/params"
+	pstakeApp "github.com/persistenceOne/pstake-native/v2/app"
+	"github.com/persistenceOne/pstake-native/v2/app/params"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the

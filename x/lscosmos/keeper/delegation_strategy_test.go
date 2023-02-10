@@ -11,8 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 var HostStakingDenom = "uatom"

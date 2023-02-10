@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 // RegisterHostChainProposalJSON defines a RegisterHostChainParamsProposal JSON input to be parsed

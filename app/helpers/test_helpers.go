@@ -16,7 +16,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 
-	"github.com/persistenceOne/pstake-native/app"
+	"github.com/persistenceOne/pstake-native/v2/app"
 )
 
 // SimAppChainID hardcoded chainID for simulation

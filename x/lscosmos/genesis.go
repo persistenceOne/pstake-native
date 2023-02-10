@@ -3,8 +3,8 @@ package lscosmos
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/keeper"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 // InitGenesis initializes the capability module's state from a provided genesis

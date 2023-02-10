@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/persistenceOne/pstake-native/app/helpers"
-	"github.com/persistenceOne/pstake-native/x/lscosmos"
-	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/app/helpers"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 func TestGenesis(t *testing.T) {
