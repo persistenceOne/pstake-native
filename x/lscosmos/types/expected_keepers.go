@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	epochstypes "github.com/persistenceOne/persistence-sdk/x/epochs/types"
@@ -50,7 +51,7 @@ type EpochKeeper interface {
 }
 
 type ICS4WrapperKeeper interface {
-	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet exported.PacketI) error
+	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, sourcePort string, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (uint64, error)
 }
 
 // ChannelKeeper defines the expected IBC channel keeper
@@ -81,7 +82,7 @@ type IBCTransferKeeper interface {
 
 // ICAControllerKeeper defines the expected ICA controller keeper
 type ICAControllerKeeper interface {
-	RegisterInterchainAccount(ctx sdk.Context, connectionID, owner string) error
+	RegisterInterchainAccount(ctx sdk.Context, connectionID, owner string, version string) error
 	GetInterchainAccountAddress(ctx sdk.Context, connectionID, portID string) (string, bool)
 	SendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error)
 	GetOpenActiveChannel(ctx sdk.Context, connectionID, portID string) (string, bool)
