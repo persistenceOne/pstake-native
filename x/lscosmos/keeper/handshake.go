@@ -30,29 +30,29 @@ func (k Keeper) OnChanOpenInit(
 	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
-) error {
+) (string, error) {
 	hostAccounts := k.GetHostAccounts(ctx)
 
 	// Require portID is the portID module is bound to
 	if portID != hostAccounts.DelegatorAccountPortID() &&
 		portID != hostAccounts.RewardsAccountPortID() {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s or %s",
+		return "", sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s or %s",
 			portID, hostAccounts.DelegatorAccountPortID(), hostAccounts.RewardsAccountPortID())
 	}
 	var versionData icatypes.Metadata
 	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(version), &versionData); err != nil {
-		return err
+		return "",err
 	}
 	if versionData.Version != icatypes.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", versionData.Version, icatypes.Version)
+		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", versionData.Version, icatypes.Version)
 	}
 
 	// Claim channel capability passed back by IBC module
 	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return err
+		return "",err
 	}
 
-	return nil
+	return string(icatypes.ModuleCdc.MustMarshalJSON(&versionData)), nil
 }
 
 // OnChanOpenTry implements the IBCModule interface
