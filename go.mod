@@ -12,7 +12,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/ory/dockertest/v3 v3.9.1
-	github.com/persistenceOne/persistence-sdk/v2 v2.0.0-20230210053206-4d36d39704ec
+	github.com/persistenceOne/persistence-sdk/v2 v2.0.0-rc0
 	github.com/rakyll/statik v0.1.7
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.6.1
