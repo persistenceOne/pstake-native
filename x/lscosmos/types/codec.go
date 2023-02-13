@@ -22,6 +22,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgClaim{}, "cosmos/MsgClaim", nil)
 	cdc.RegisterConcrete(&MsgRecreateICA{}, "cosmos/MsgRecreateICA", nil)
 	cdc.RegisterConcrete(&MsgJumpStart{}, "cosmos/MsgJumpStart", nil)
+	cdc.RegisterConcrete(&MsgChangeModuleState{}, "cosmos/MsgChangeModuleState", nil)
 }
 
 // RegisterInterfaces registers the x/lscosmos interfaces types with the interface registry
@@ -33,6 +34,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgClaim{},
 		&MsgRecreateICA{},
 		&MsgJumpStart{},
+		&MsgChangeModuleState{},
 	) // add the structs that implements sdk.Msg interface
 
 	registry.RegisterImplementations((*govtypes.Content)(nil),

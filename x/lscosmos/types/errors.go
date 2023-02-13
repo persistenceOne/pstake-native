@@ -37,4 +37,6 @@ var (
 	ErrEqualBaseAndMintDenom                 = sdkerrors.Register(ModuleName, 87, "BaseDenom and mintDenom cannot be same")
 	ErrInsufficientFundsToUndelegate         = sdkerrors.Register(ModuleName, 88, "undelegation amount greater than already staked")
 	ErrInvalidMintDenom                      = sdkerrors.Register(ModuleName, 89, "InvalidMintDenom, MintDenom should be stk/BaseDenom")
+	ErrModuleNotInitialised                  = sdkerrors.Register(ModuleName, 90, "ErrModuleNotInitialised, Module was never initialised")
+	ErrModuleAlreadyInExpectedState          = sdkerrors.Register(ModuleName, 91, "ModuleAlreadyInExpectedState, Module is already in expected state")
 )
