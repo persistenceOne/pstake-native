@@ -10,138 +10,24 @@ import (
 )
 
 const (
-	ProposalTypeRegisterHostChain         = "RegisterHostChain"
 	ProposalTypeMinDepositAndFeeChange    = "MinDepositAndFeeChange"
 	ProposalPstakeFeeAddressChange        = "PstakeFeeAddressChange"
 	ProposalAllowListedValidatorSetChange = "AllowListedValidatorSetChange"
 )
 
 var (
-	_ govtypes.Content = &RegisterHostChainProposal{}
 	_ govtypes.Content = &MinDepositAndFeeChangeProposal{}
 	_ govtypes.Content = &PstakeFeeAddressChangeProposal{}
 	_ govtypes.Content = &AllowListedValidatorSetChangeProposal{}
 )
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeRegisterHostChain)
-	govtypes.RegisterProposalTypeCodec(&RegisterHostChainProposal{}, "pstake/RegisterHostChain")
 	govtypes.RegisterProposalType(ProposalTypeMinDepositAndFeeChange)
 	govtypes.RegisterProposalTypeCodec(&MinDepositAndFeeChangeProposal{}, "pstake/MinDepositAndFeeChange")
 	govtypes.RegisterProposalType(ProposalPstakeFeeAddressChange)
 	govtypes.RegisterProposalTypeCodec(&PstakeFeeAddressChangeProposal{}, "pstake/PstakeFeeAddressChange")
 	govtypes.RegisterProposalType(ProposalAllowListedValidatorSetChange)
 	govtypes.RegisterProposalTypeCodec(&AllowListedValidatorSetChangeProposal{}, "pstake/AllowListedValidatorSetChange")
-}
-
-// NewRegisterHostChainProposal creates a new host chain register proposal.
-func NewRegisterHostChainProposal(title, description string, moduleEnabled bool, chainID, connectionID, transferChannel,
-	transferPort, baseDenom, mintDenom, pstakeFeeAddress string, minDeposit sdktypes.Int, allowListedValidators AllowListedValidators,
-	pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee sdktypes.Dec) *RegisterHostChainProposal {
-
-	return &RegisterHostChainProposal{
-		Title:                 title,
-		Description:           description,
-		ModuleEnabled:         moduleEnabled,
-		ChainID:               chainID,
-		ConnectionID:          connectionID,
-		TransferChannel:       transferChannel,
-		TransferPort:          transferPort,
-		BaseDenom:             baseDenom,
-		MintDenom:             mintDenom,
-		MinDeposit:            minDeposit,
-		AllowListedValidators: allowListedValidators,
-		PstakeParams: PstakeParams{
-			PstakeDepositFee:    pstakeDepositFee,
-			PstakeRestakeFee:    pstakeRestakeFee,
-			PstakeUnstakeFee:    pstakeUnstakeFee,
-			PstakeRedemptionFee: pstakeRedemptionFee,
-			PstakeFeeAddress:    pstakeFeeAddress,
-		},
-	}
-}
-
-// GetTitle returns the title of the host chain register proposal.
-func (m *RegisterHostChainProposal) GetTitle() string {
-	return m.Title
-}
-
-// GetDescription returns the description of host chain register proposal.
-func (m *RegisterHostChainProposal) GetDescription() string {
-	return m.Description
-}
-
-// ProposalRoute returns the proposal route of host chain register proposal.
-func (m *RegisterHostChainProposal) ProposalRoute() string {
-	return RouterKey
-}
-
-// ProposalType returns the proposal type of host chain register proposal.
-func (m *RegisterHostChainProposal) ProposalType() string {
-	return ProposalTypeRegisterHostChain
-}
-
-// ValidateBasic runs basic stateless validity checks
-func (m *RegisterHostChainProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(m)
-	if err != nil {
-		return err
-	}
-
-	if !m.AllowListedValidators.Valid() {
-		return sdkerrors.Wrapf(ErrInValidAllowListedValidators, "allow listed validators is not valid")
-	}
-
-	if ConvertBaseDenomToMintDenom(m.BaseDenom) != m.MintDenom {
-		return ErrInvalidMintDenom
-	}
-
-	err = m.PstakeParams.Validate()
-	if err != nil {
-		return err
-	}
-
-	if m.MinDeposit.LTE(sdktypes.ZeroInt()) {
-		return sdkerrors.Wrapf(ErrInvalidDeposit, "min deposit must be positive")
-	}
-
-	return nil
-}
-
-// String returns the string of proposal details
-func (m *RegisterHostChainProposal) String() string {
-	var b strings.Builder
-	b.WriteString(fmt.Sprintf(`Register host chain:
-Title:                 %s
-Description:           %s
-ModuleEnabled:		   %v
-ConnectionID:         %s
-TransferChannel:  %s
-TransferPort:     %s
-BaseDenom: 			   %s
-MintDenom: 			   %s
-AllowlistedValidators: %s
-PstakeDepositFee:	   %s
-PstakeRestakeFee: 	   %s
-PstakeUnstakeFee: 	   %s
-PstakeRedemptionFee:   %s
-
-`,
-		m.Title,
-		m.Description,
-		m.ModuleEnabled,
-		m.ConnectionID,
-		m.TransferChannel,
-		m.TransferPort,
-		m.BaseDenom,
-		m.MintDenom,
-		m.AllowListedValidators,
-		m.PstakeParams.PstakeDepositFee,
-		m.PstakeParams.PstakeRestakeFee,
-		m.PstakeParams.PstakeUnstakeFee,
-		m.PstakeParams.PstakeRedemptionFee),
-	)
-	return b.String()
 }
 
 // NewHostChainParams returns HostChainParams with the input provided

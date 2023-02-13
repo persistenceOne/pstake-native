@@ -145,7 +145,6 @@ var (
 			upgradeclient.CancelProposalHandler,
 			ibcclientclient.UpdateClientProposalHandler,
 			ibcclientclient.UpgradeProposalHandler,
-			lscosmosclient.RegisterHostChainProposalHandler,
 			lscosmosclient.MinDepositAndFeeChangeProposalHandler,
 			lscosmosclient.PstakeFeeAddressChangeProposalHandler,
 			lscosmosclient.AllowListValidatorSetChangeProposalHandler,
