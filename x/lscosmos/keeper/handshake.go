@@ -353,6 +353,7 @@ func (k Keeper) handleSuccessfulAck(ctx sdk.Context, ack channeltypes.Acknowledg
 		}
 		if msgsCount != len(txMsgData.Data) {
 			k.SetModuleState(ctx, false) //Disable module, we assert single type of msg throughout the tx.
+			k.Logger(ctx).Error(fmt.Sprintf("%s module has been disabled due to different msg types in a ica txn", types.ModuleName))
 			return nil
 		}
 
