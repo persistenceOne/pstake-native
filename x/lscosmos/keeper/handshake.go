@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -491,7 +492,7 @@ func (k Keeper) resetToPreICATx(ctx sdk.Context, icaPacket icatypes.InterchainAc
 }
 
 // handleResetMsgs is a helper function for handling reset messages in resetToPreICATx
-func (k Keeper) handleResetMsgs(ctx sdk.Context, msg sdk.Msg, hostChainParams types.HostChainParams) error {
+func (k Keeper) handleResetMsgs(ctx sdk.Context, msg sdk.Msg, _ types.HostChainParams) error {
 	switch sdk.MsgTypeURL(msg) {
 	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 		parsedMsg, ok := msg.(*stakingtypes.MsgDelegate)
