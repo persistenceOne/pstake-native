@@ -148,3 +148,22 @@ Inputs for this message :
 ```
 $ pstaked tx lscosmos recreate-ica --from <from_address> --chain-id <chain-id> --keyring-backend <keyring_backend>
 ```
+
+### MsgChangeModuleState
+
+ChangeModuleState is a transaction for disabling/ reenabling the module.
+
+It performs  the following operations :
+
+- Checks if the module was initiated before, if no returns error
+- Checks if the sender is admin
+- Checks if the state is being changed.
+
+Inputs for this message :
+
+- `PstakeAddress` : Address from which this transaction is being sent (should be pstakeAddress).
+- `ModuleState` : The boolean value true/false to which the module state is to be set.
+
+```
+$ pstaked tx lscosmos change-module-state false --from <from_address> --chain-id <chain-id> --keyring-backend <keyring_backend>
+```
