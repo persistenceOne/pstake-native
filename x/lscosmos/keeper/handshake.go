@@ -292,57 +292,71 @@ func (k Keeper) handleSuccessfulAck(ctx sdk.Context, ack channeltypes.Acknowledg
 		// TODO: handle for sdk 0.46.x
 		return nil
 	default:
+		msgsCount := 0
+		expectedMsgType := txMsgData.Data[0].MsgType
 		for i, msgData := range txMsgData.Data {
 			response, err := k.handleAckMsgData(ctx, msgData, msgs[i], hostChainParams)
 			if err != nil {
 				return err
 			}
 			k.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
-
-			// if the packet has withdrawrewards msgs
-			if i == 0 && msgData.MsgType == sdk.MsgTypeURL(&distributiontypes.MsgWithdrawDelegatorReward{}) {
-				rewardAddr := k.GetHostChainRewardAddress(ctx)
-
-				balanceQuery := banktypes.QueryBalanceRequest{Address: rewardAddr.Address, Denom: hostChainParams.BaseDenom}
-				bz, err := k.cdc.Marshal(&balanceQuery)
-				if err != nil {
-					return err
-				}
-
-				// total rewards balance withdrawn
-				k.icqKeeper.MakeRequest(
-					ctx,
-					hostChainParams.ConnectionID,
-					hostChainParams.ChainID,
-					"cosmos.bank.v1beta1.Query/Balance",
-					bz,
-					sdk.NewInt(int64(-1)),
-					types.ModuleName,
-					RewardsAccountBalance,
-					0,
-				)
+			if expectedMsgType == msgData.MsgType {
+				msgsCount++
 			}
-			if i == 0 && msgData.MsgType == sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}) {
-				previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
-				//May be also match amount with previous epoch incase host chain is down for multiple entire epoch duration. (or add epochnumber in memo ~ not clean, or store (sequenceNumber,epoch of the ica txn) )
-				previousEpochUnbondings := k.GetUnbondingEpochCValue(ctx, previousEpochNumber)
-				err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.UndelegationModuleAccount, types.ModuleName, sdk.NewCoins(previousEpochUnbondings.STKBurn))
-				if err != nil {
-					return err
-				}
-				err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(previousEpochUnbondings.STKBurn))
-				if err != nil {
-					return err
-				}
+			// assert all msgs are of same type.
+			if len(txMsgData.Data) == msgsCount {
+				switch expectedMsgType {
+				case sdk.MsgTypeURL(&distributiontypes.MsgWithdrawDelegatorReward{}):
+					rewardAddr := k.GetHostChainRewardAddress(ctx)
 
-				//update completionTime
-				var msgResponse stakingtypes.MsgUndelegateResponse
-				if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
-					return err
+					balanceQuery := banktypes.QueryBalanceRequest{Address: rewardAddr.Address, Denom: hostChainParams.BaseDenom}
+					bz, err := k.cdc.Marshal(&balanceQuery)
+					if err != nil {
+						return err
+					}
+
+					// total rewards balance withdrawn
+					k.icqKeeper.MakeRequest(
+						ctx,
+						hostChainParams.ConnectionID,
+						hostChainParams.ChainID,
+						"cosmos.bank.v1beta1.Query/Balance",
+						bz,
+						sdk.NewInt(int64(-1)),
+						types.ModuleName,
+						RewardsAccountBalance,
+						0,
+					)
+				case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
+					previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
+					//May be also match amount with previous epoch incase host chain is down for multiple entire epoch duration. (or add epochnumber in memo ~ not clean, or store (sequenceNumber,epoch of the ica txn) )
+					previousEpochUnbondings := k.GetUnbondingEpochCValue(ctx, previousEpochNumber)
+					err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.UndelegationModuleAccount, types.ModuleName, sdk.NewCoins(previousEpochUnbondings.STKBurn))
+					if err != nil {
+						return err
+					}
+					err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(previousEpochUnbondings.STKBurn))
+					if err != nil {
+						return err
+					}
+
+					//update completionTime
+					var msgResponse stakingtypes.MsgUndelegateResponse
+					if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
+						return err
+					}
+					k.UpdateCompletionTimeForUndelegationEpoch(ctx, previousEpochNumber, msgResponse.CompletionTime.Add(types.UndelegationCompletionTimeBuffer))
+				default:
+
 				}
-				k.UpdateCompletionTimeForUndelegationEpoch(ctx, previousEpochNumber, msgResponse.CompletionTime.Add(types.UndelegationCompletionTimeBuffer))
 			}
 		}
+		if msgsCount != len(txMsgData.Data) {
+			k.SetModuleState(ctx, false) //Disable module, we assert single type of msg throughout the tx.
+			k.Logger(ctx).Error(fmt.Sprintf("%s module has been disabled due to different msg types in a ica txn", types.ModuleName))
+			return nil
+		}
+
 	}
 	return nil
 }
