@@ -9,46 +9,6 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
-func TestNewRegisterChainJSON(t *testing.T) {
-	propJSON := NewRegisterChainJSON(
-		"title",
-		"description",
-		true,
-		"cosmoshub-4",
-		"connection",
-		"channel-1",
-		"transfer",
-		"uatom",
-		"stk/uatom",
-		"5",
-		"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
-		"0.0",
-		"0.0",
-		"0.0",
-		"0.1",
-		"1000stake",
-		types.AllowListedValidators{
-			AllowListedValidators: []types.AllowListedValidator{{
-				ValidatorAddress: "Valaddr",
-				TargetWeight:     sdk.OneDec(),
-			}}},
-	)
-	require.Equal(t, "title", propJSON.Title)
-	require.Equal(t, "description", propJSON.Description)
-	require.Equal(t, "cosmoshub-4", propJSON.ChainID)
-	require.Equal(t, "connection", propJSON.ConnectionID)
-	require.Equal(t, "channel-1", propJSON.TransferChannel)
-	require.Equal(t, "transfer", propJSON.TransferPort)
-	require.Equal(t, "uatom", propJSON.BaseDenom)
-	require.Equal(t, "stk/uatom", propJSON.MintDenom)
-	require.Equal(t, "5", propJSON.MinDeposit)
-	require.Equal(t, "persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9", propJSON.PstakeParams.PstakeFeeAddress)
-	require.Equal(t, "0.0", propJSON.PstakeParams.PstakeDepositFee)
-	require.Equal(t, "0.0", propJSON.PstakeParams.PstakeRestakeFee)
-	require.Equal(t, "0.0", propJSON.PstakeParams.PstakeUnstakeFee)
-	require.Equal(t, "1000stake", propJSON.Deposit)
-}
-
 func TestNewMinDepositAndFeeChangeJSON(t *testing.T) {
 	propJSON := NewMinDepositAndFeeChangeJSON(
 		"title",
