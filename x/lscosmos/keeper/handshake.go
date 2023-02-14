@@ -471,22 +471,35 @@ func (k Keeper) resetToPreICATx(ctx sdk.Context, icaPacket icatypes.InterchainAc
 		// TODO: handle for sdk 0.46.x
 		return nil
 	default:
-		for i, msg := range msgs {
+		msgsCount := 0
+		expectedMsgType := sdk.MsgTypeURL(msgs[0])
+		for _, msg := range msgs {
 			err := k.handleResetMsgs(ctx, msg, hostChainParams)
 			if err != nil {
 				return err
 			}
-			if i == 0 && sdk.MsgTypeURL(msg) == sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}) {
-				//retry entire batch of msgs since it is timed out
-				previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
-				err := k.RemoveHostAccountUndelegation(ctx, previousEpochNumber)
-				if err != nil {
-					return err
+			if expectedMsgType == sdk.MsgTypeURL(msg) {
+				msgsCount++
+			}
+			// assert all msgs are of same type.
+			if len(msgs) == msgsCount {
+				switch expectedMsgType {
+				case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
+					previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
+					err := k.RemoveHostAccountUndelegation(ctx, previousEpochNumber)
+					if err != nil {
+						return err
+					}
+					k.FailUnbondingEpochCValue(ctx, previousEpochNumber, sdk.NewCoin(hostChainParams.MintDenom, sdk.ZeroInt()))
+					k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %v", msgs, previousEpochNumber))
 				}
-				k.FailUnbondingEpochCValue(ctx, previousEpochNumber, sdk.NewCoin(hostChainParams.MintDenom, sdk.ZeroInt()))
-				k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %v", msgs, previousEpochNumber))
 			}
 			k.Logger(ctx).Info("ICA msg timed out, ", "msg", msg)
+		}
+		if msgsCount != len(msgs) {
+			k.SetModuleState(ctx, false) //Disable module, we assert single type of msg throughout the tx.
+			k.Logger(ctx).Error(fmt.Sprintf("%s module has been disabled due to different msg types in a ica txn", types.ModuleName))
+			return nil
 		}
 		return nil
 	}
