@@ -181,7 +181,6 @@ func (k Keeper) OnAcknowledgementPacket(
 	if !ok {
 		return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "capability not found for port: %s channel: %s in module: %s", modulePacket.GetSourcePort(), modulePacket.GetSourceChannel(), types.ModuleName)
 	}
-
 	// TODO add checks for capabilities, ports, channels
 	hostChainParams := k.GetHostChainParams(ctx)
 
@@ -482,18 +481,16 @@ func (k Keeper) resetToPreICATx(ctx sdk.Context, icaPacket icatypes.InterchainAc
 				msgsCount++
 			}
 			// assert all msgs are of same type.
-			if len(msgs) == msgsCount {
-				switch expectedMsgType {
-				case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
-					previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
-					err := k.RemoveHostAccountUndelegation(ctx, previousEpochNumber)
-					if err != nil {
-						return err
-					}
-					k.FailUnbondingEpochCValue(ctx, previousEpochNumber, sdk.NewCoin(hostChainParams.MintDenom, sdk.ZeroInt()))
-					k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %v", msgs, previousEpochNumber))
+			if len(msgs) == msgsCount && expectedMsgType == sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}) {
+				previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
+				err := k.RemoveHostAccountUndelegation(ctx, previousEpochNumber)
+				if err != nil {
+					return err
 				}
+				k.FailUnbondingEpochCValue(ctx, previousEpochNumber, sdk.NewCoin(hostChainParams.MintDenom, sdk.ZeroInt()))
+				k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %v", msgs, previousEpochNumber))
 			}
+
 			k.Logger(ctx).Info("ICA msg timed out, ", "msg", msg)
 		}
 		if msgsCount != len(msgs) {
