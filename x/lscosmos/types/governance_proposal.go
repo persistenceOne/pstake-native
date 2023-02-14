@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/codec"
 	govv1beta1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"strings"
 
@@ -22,16 +23,28 @@ var (
 	_ govv1beta1types.Content = &PstakeFeeAddressChangeProposal{}
 	_ govv1beta1types.Content = &AllowListedValidatorSetChangeProposal{}
 )
+var (
+	amino = codec.NewLegacyAmino()
+)
 
+// RegisterProposalTypeCodec registers an external proposal content type defined
+// in another module for the internal ModuleCdc. This allows the MsgSubmitProposal
+// to be correctly Amino encoded and decoded.
+//
+// NOTE: This should only be used for applications that are still using a concrete
+// Amino codec for serialization.
+func RegisterProposalTypeCodec(o interface{}, name string) {
+	amino.RegisterConcrete(o, name, nil)
+}
 func init() {
 	govv1beta1types.RegisterProposalType(ProposalTypeRegisterHostChain)
-	govv1beta1types.RegisterProposalTypeCodec(&RegisterHostChainProposal{}, "pstake/RegisterHostChain")
+	RegisterProposalTypeCodec(&RegisterHostChainProposal{}, "pstake/RegisterHostChain")
 	govv1beta1types.RegisterProposalType(ProposalTypeMinDepositAndFeeChange)
-	govv1beta1types.RegisterProposalTypeCodec(&MinDepositAndFeeChangeProposal{}, "pstake/MinDepositAndFeeChange")
+	RegisterProposalTypeCodec(&MinDepositAndFeeChangeProposal{}, "pstake/MinDepositAndFeeChange")
 	govv1beta1types.RegisterProposalType(ProposalPstakeFeeAddressChange)
-	govv1beta1types.RegisterProposalTypeCodec(&PstakeFeeAddressChangeProposal{}, "pstake/PstakeFeeAddressChange")
+	RegisterProposalTypeCodec(&PstakeFeeAddressChangeProposal{}, "pstake/PstakeFeeAddressChange")
 	govv1beta1types.RegisterProposalType(ProposalAllowListedValidatorSetChange)
-	govv1beta1types.RegisterProposalTypeCodec(&AllowListedValidatorSetChangeProposal{}, "pstake/AllowListedValidatorSetChange")
+	RegisterProposalTypeCodec(&AllowListedValidatorSetChangeProposal{}, "pstake/AllowListedValidatorSetChange")
 }
 
 // NewRegisterHostChainProposal creates a new host chain register proposal.
