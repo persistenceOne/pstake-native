@@ -23,28 +23,17 @@ var (
 	_ govv1beta1types.Content = &PstakeFeeAddressChangeProposal{}
 	_ govv1beta1types.Content = &AllowListedValidatorSetChangeProposal{}
 )
-var (
-	amino = codec.NewLegacyAmino()
-)
 
-// RegisterProposalTypeCodec registers an external proposal content type defined
-// in another module for the internal ModuleCdc. This allows the MsgSubmitProposal
-// to be correctly Amino encoded and decoded.
-//
-// NOTE: This should only be used for applications that are still using a concrete
-// Amino codec for serialization.
-func RegisterProposalTypeCodec(o interface{}, name string) {
-	amino.RegisterConcrete(o, name, nil)
-}
 func init() {
+	amino := codec.NewLegacyAmino()
 	govv1beta1types.RegisterProposalType(ProposalTypeRegisterHostChain)
-	RegisterProposalTypeCodec(&RegisterHostChainProposal{}, "pstake/RegisterHostChain")
+	amino.RegisterConcrete(&RegisterHostChainProposal{}, "pstake/RegisterHostChain", nil)
 	govv1beta1types.RegisterProposalType(ProposalTypeMinDepositAndFeeChange)
-	RegisterProposalTypeCodec(&MinDepositAndFeeChangeProposal{}, "pstake/MinDepositAndFeeChange")
+	amino.RegisterConcrete(&MinDepositAndFeeChangeProposal{}, "pstake/MinDepositAndFeeChange", nil)
 	govv1beta1types.RegisterProposalType(ProposalPstakeFeeAddressChange)
-	RegisterProposalTypeCodec(&PstakeFeeAddressChangeProposal{}, "pstake/PstakeFeeAddressChange")
+	amino.RegisterConcrete(&PstakeFeeAddressChangeProposal{}, "pstake/PstakeFeeAddressChange", nil)
 	govv1beta1types.RegisterProposalType(ProposalAllowListedValidatorSetChange)
-	RegisterProposalTypeCodec(&AllowListedValidatorSetChangeProposal{}, "pstake/AllowListedValidatorSetChange")
+	amino.RegisterConcrete(&AllowListedValidatorSetChangeProposal{}, "pstake/AllowListedValidatorSetChange", nil)
 }
 
 // NewRegisterHostChainProposal creates a new host chain register proposal.
