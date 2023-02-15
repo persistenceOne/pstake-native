@@ -12,7 +12,6 @@ import (
 // RegisterLegacyAminoCodec registers the necessary x/lscosmos interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&RegisterHostChainProposal{}, "cosmos/RegisterHostChainProposal", nil)
 	cdc.RegisterConcrete(&MinDepositAndFeeChangeProposal{}, "cosmos/MinDepositAndFeeChangeProposal", nil)
 	cdc.RegisterConcrete(&PstakeFeeAddressChangeProposal{}, "cosmos/PstakeFeeAddressChangeProposal", nil)
 	cdc.RegisterConcrete(&AllowListedValidatorSetChangeProposal{}, "cosmos/AllowListedValidatorSetChangeProposal", nil)
@@ -39,7 +38,6 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 
 	registry.RegisterImplementations((*govtypes.Content)(nil),
 		// add the stucts that implements govTypes.Content interface
-		&RegisterHostChainProposal{},
 		&MinDepositAndFeeChangeProposal{},
 		&PstakeFeeAddressChangeProposal{},
 		&AllowListedValidatorSetChangeProposal{},

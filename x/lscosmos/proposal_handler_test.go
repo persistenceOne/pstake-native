@@ -10,7 +10,6 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/app"
 	"github.com/persistenceOne/pstake-native/v2/app/helpers"
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos"
-	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 type HandlerTestSuite struct {
@@ -30,45 +29,4 @@ func (suite *HandlerTestSuite) SetupTest() {
 
 func TestHandlerTestSuite(t *testing.T) {
 	suite.Run(t, new(HandlerTestSuite))
-}
-
-func (suite *HandlerTestSuite) TestProposalHandler() {
-	testCases := []struct {
-		name     string
-		proposal *types.RegisterHostChainProposal
-		expErr   bool
-	}{
-		{
-			"all fields",
-			types.NewRegisterHostChainProposal("title",
-				"description",
-				true,
-				"cosmoshub-4",
-				"connection-0",
-				"channel-1",
-				"transfer",
-				"uatom",
-				"stk/atom",
-				"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
-				sdk.OneInt().MulRaw(5),
-				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "addr", TargetWeight: sdk.OneDec()}}},
-				sdk.ZeroDec(),
-				sdk.ZeroDec(),
-				sdk.ZeroDec(),
-				sdk.ZeroDec()),
-			true,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			err := suite.govHandler(suite.ctx, tc.proposal)
-			if tc.expErr {
-				suite.Require().Error(err)
-			} else {
-				suite.Require().NoError(err)
-			}
-		})
-	}
 }

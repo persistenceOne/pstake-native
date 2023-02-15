@@ -12,7 +12,6 @@ import (
 )
 
 var (
-	RegisterHostChainProposalHandler           = govclient.NewProposalHandler(cli.NewRegisterHostChainCmd, emptyRestHandler)
 	MinDepositAndFeeChangeProposalHandler      = govclient.NewProposalHandler(cli.NewMinDepositAndFeeChangeCmd, emptyRestHandler)
 	PstakeFeeAddressChangeProposalHandler      = govclient.NewProposalHandler(cli.NewPstakeFeeAddressChangeCmd, emptyRestHandler)
 	AllowListValidatorSetChangeProposalHandler = govclient.NewProposalHandler(cli.NewAllowListedValidatorSetChangeProposalCmd, emptyRestHandler)
