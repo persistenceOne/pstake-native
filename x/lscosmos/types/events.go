@@ -2,14 +2,15 @@ package types
 
 // IBC events
 const (
-	EventTypePacket        = "ics27_packet"
-	EventTypeTimeout       = "timeout"
-	EventTypeLiquidStake   = "liquid-stake"
-	EventTypeRedeem        = "redeem"
-	EventTypeLiquidUnstake = "liquid-unstake"
-	EventTypeClaim         = "claim"
-	EventTypeJumpStart     = "jump-start"
-	EventTypeRecreateICA   = "recreate-ica"
+	EventTypePacket            = "ics27_packet"
+	EventTypeTimeout           = "timeout"
+	EventTypeLiquidStake       = "liquid-stake"
+	EventTypeRedeem            = "redeem"
+	EventTypeLiquidUnstake     = "liquid-unstake"
+	EventTypeClaim             = "claim"
+	EventTypeJumpStart         = "jump-start"
+	EventTypeRecreateICA       = "recreate-ica"
+	EventTypeChangeModuleState = "change-module-state"
 	// this line is used by starport scaffolding # ibc/packet/event
 
 	AttributeKeyAckSuccess         = "success"
@@ -28,5 +29,6 @@ const (
 	AttributeFromAddress           = "from-address"
 	AttributeRecreateDelegationICA = "recreate-delegation-ica"
 	AttributeRecreateRewardsICA    = "recreate-rewards-ica"
+	AttributeChangedModuleState    = "module-state"
 	AttributeValueCategory         = ModuleName
 )

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -34,6 +35,7 @@ func GetTxCmd() *cobra.Command {
 		NewClaimCmd(),
 		NewJumpStartCmd(),
 		NewRecreateICACmd(),
+		NewChangeModuleStateCmd(),
 	)
 
 	return cmd
@@ -574,6 +576,33 @@ func NewJumpStartCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
 		},
 	}
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewChangeModuleStateCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "change-module-state",
+		Short: "Admin functionality to disable/enable the functionality incase of failures",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			moduleState, err := strconv.ParseBool(args[0])
+			if err != nil {
+				return err
+			}
+			fromAddress := clientctx.GetFromAddress()
+			msg := types.NewMsgChangeModuleState(fromAddress, moduleState)
+
+			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+		},
+	}
+
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

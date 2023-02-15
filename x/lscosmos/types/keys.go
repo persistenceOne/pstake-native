@@ -42,6 +42,9 @@ const (
 	// MsgTypeJumpStart is the type of message Jump start
 	MsgTypeJumpStart = "msg_jump_start"
 
+	// MsgTypeChangeModuleState is the type of message Change Module State
+	MsgTypeChangeModuleState = "msg_change_module_state"
+
 	// DepositModuleAccount DepositModuleAccountName
 	DepositModuleAccount = ModuleName + "_pstake_deposit_account"
 
