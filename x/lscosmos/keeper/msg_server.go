@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -516,5 +517,37 @@ func (m msgServer) RecreateICA(goCtx context.Context, msg *types.MsgRecreateICA)
 	)
 
 	return &types.MsgRecreateICAResponse{}, nil
+
+}
+
+// ChangeModuleState defines an admin method for disabling or re-enabling module state
+func (m msgServer) ChangeModuleState(goCtx context.Context, msg *types.MsgChangeModuleState) (*types.MsgChangeModuleStateResponse, error) {
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	hostChainParams := m.Keeper.GetHostChainParams(ctx)
+	if hostChainParams.IsEmpty() {
+		return nil, types.ErrModuleNotInitialised
+	}
+	if hostChainParams.PstakeParams.PstakeFeeAddress != msg.PstakeAddress {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, fmt.Sprintf("Only admin address is allowed to call this method, current admin address: %s", hostChainParams.PstakeParams.PstakeFeeAddress))
+	}
+	moduleState := m.Keeper.GetModuleState(ctx)
+	if moduleState == msg.ModuleState {
+		return nil, sdkerrors.Wrap(types.ErrModuleNotInitialised, fmt.Sprintf("currentState: %v", moduleState))
+	}
+	m.Keeper.SetModuleState(ctx, msg.ModuleState)
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeChangeModuleState,
+			sdktypes.NewAttribute(types.AttributeChangedModuleState, strconv.FormatBool(msg.ModuleState)),
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.PstakeAddress),
+		)},
+	)
+	return &types.MsgChangeModuleStateResponse{}, nil
 
 }
