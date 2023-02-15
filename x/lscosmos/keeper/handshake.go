@@ -11,7 +11,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v4/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v4/modules/core/24-host"
@@ -503,7 +502,7 @@ func (k Keeper) resetToPreICATx(ctx sdk.Context, icaPacket icatypes.InterchainAc
 }
 
 // handleResetMsgs is a helper function for handling reset messages in resetToPreICATx
-func (k Keeper) handleResetMsgs(ctx sdk.Context, msg sdk.Msg, hostChainParams types.HostChainParams) error {
+func (k Keeper) handleResetMsgs(ctx sdk.Context, msg sdk.Msg, _ types.HostChainParams) error {
 	switch sdk.MsgTypeURL(msg) {
 	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 		parsedMsg, ok := msg.(*stakingtypes.MsgDelegate)
@@ -519,14 +518,16 @@ func (k Keeper) handleResetMsgs(ctx sdk.Context, msg sdk.Msg, hostChainParams ty
 		if !ok {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
 		}
-		selfHeight := clienttypes.GetSelfHeight(ctx)
-		timeoutHeight := clienttypes.NewHeight(selfHeight.GetRevisionNumber(), selfHeight.GetRevisionHeight()+types.IBCTimeoutHeightIncrement)
-		parsedMsg.TimeoutHeight = timeoutHeight
-		hostAccounts := k.GetHostAccounts(ctx)
-		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), []sdk.Msg{parsedMsg})
+		removedTransientUndelegationTransfer, err := k.RemoveUndelegationTransferFromTransientStore(ctx, parsedMsg.Token)
 		if err != nil {
-			return err
+			ctx.Logger().Error("Failed to do ICA + IBC transfer from host chain to controller chain", "Err: ", err)
 		}
+		k.AddHostAccountUndelegation(ctx, types.HostAccountUndelegation{
+			EpochNumber:             removedTransientUndelegationTransfer.EpochNumber,
+			TotalUndelegationAmount: parsedMsg.Token,
+			CompletionTime:          ctx.BlockTime(),
+			UndelegationEntries:     nil,
+		})
 
 		return nil
 	default:
