@@ -35,6 +35,11 @@ service Msg{
   rpc JumpStart(MsgJumpStart) returns (MsgJumpStartResponse) {
     option (google.api.http).post = "/pstake/lscosmos/v1beta1/JumpStart";
   }
+
+  rpc ChangeModuleState(MsgChangeModuleState) returns (MsgChangeModuleStateResponse) {
+    option (google.api.http).post = "/pstake/lscosmos/v1beta1/ChangeModuleState";
+  }
+
 }
 
 message MsgLiquidStake {
@@ -86,3 +91,10 @@ message MsgJumpStart {
 }
 
 message MsgJumpStartResponse {}
+
+message MsgChangeModuleState {
+  string pstake_address = 1;
+  bool module_state = 2;
+}
+
+message MsgChangeModuleStateResponse {}
