@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -446,7 +447,7 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 
 	hostAccounts := m.GetHostAccounts(ctx)
 	// This checks for channel being active
-	err = m.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionID, hostAccounts.DelegatorAccountOwnerID)
+	err = m.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionID, hostAccounts.DelegatorAccountOwnerID, icatypes.Version)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "Could not register ica delegation Address")
 	}
@@ -490,7 +491,7 @@ func (m msgServer) RecreateICA(goCtx context.Context, msg *types.MsgRecreateICA)
 
 	_, ok := m.icaControllerKeeper.GetOpenActiveChannel(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID())
 	if !ok {
-		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID)
+		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID, icatypes.Version)
 		if err != nil {
 			return nil, sdkerrors.Wrap(err, "Could not register ica delegation Address")
 		}
@@ -498,7 +499,7 @@ func (m msgServer) RecreateICA(goCtx context.Context, msg *types.MsgRecreateICA)
 	}
 	_, ok = m.icaControllerKeeper.GetOpenActiveChannel(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountPortID())
 	if !ok {
-		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID)
+		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID, icatypes.Version)
 		if err != nil {
 			return nil, sdkerrors.Wrap(err, "Could not register ica reward Address")
 		}

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -49,7 +50,7 @@ func HandleRegisterHostChainProposal(ctx sdk.Context, k Keeper, content types.Re
 	}
 
 	// register the ICA delegator account
-	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, content.ConnectionID, hostAccounts.DelegatorAccountOwnerID)
+	err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, content.ConnectionID, hostAccounts.DelegatorAccountOwnerID, icatypes.Version)
 	if err != nil {
 		return sdkerrors.Wrap(err, "Could not register ica delegation Address")
 	}

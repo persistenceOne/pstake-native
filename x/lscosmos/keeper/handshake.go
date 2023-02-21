@@ -41,7 +41,7 @@ func (k Keeper) OnChanOpenInit(
 	}
 	var versionData icatypes.Metadata
 	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(version), &versionData); err != nil {
-		return "",err
+		return "", err
 	}
 	if versionData.Version != icatypes.Version {
 		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", versionData.Version, icatypes.Version)
@@ -49,7 +49,7 @@ func (k Keeper) OnChanOpenInit(
 
 	// Claim channel capability passed back by IBC module
 	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return "",err
+		return "", err
 	}
 
 	return string(icatypes.ModuleCdc.MustMarshalJSON(&versionData)), nil
@@ -104,7 +104,7 @@ func (k Keeper) OnChanOpenAck(
 				if err := k.SetHostChainDelegationAddress(ctx, delegationAddress); err != nil {
 					return err
 				}
-				if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID); err != nil {
+				if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID, icatypes.Version); err != nil {
 					return sdkerrors.Wrap(err, "Could not register ica reward Address")
 				}
 
