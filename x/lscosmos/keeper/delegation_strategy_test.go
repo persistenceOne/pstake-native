@@ -2569,10 +2569,7 @@ func (suite *IntegrationTestSuite) TestDelegateAndUndelegate() {
 			suite.NoError(err)
 			suite.Equal(len(list), len(tc.ExpectedListWithDelegateDistribution[i]))
 			for j := range list {
-				x := sdk.Dec{}
-				amt := x.QuoInt(list[j].Amount.Amount)
-				tcAmt := x.QuoInt(tc.ExpectedListWithDelegateDistribution[i][j].Amount.Amount)
-				suite.Equal(amt, tcAmt)
+				suite.Equal(list[j].Amount.Amount.String(), tc.ExpectedListWithDelegateDistribution[i][j].Amount.Amount.String())
 				suite.Equal(list[j].ValidatorAddr, tc.ExpectedListWithDelegateDistribution[i][j].ValidatorAddr)
 			}
 		}
@@ -2595,10 +2592,7 @@ func (suite *IntegrationTestSuite) TestDelegateAndUndelegate() {
 			list, err := keeper.FetchValidatorsToUndelegate(allowListerValidators, delegationStateS, amount)
 			suite.NoError(err)
 			for j := range list {
-				x := sdk.Dec{}
-				amt := x.QuoInt(list[j].Amount.Amount)
-				tcAmt := x.QuoInt(tc.ExpectedListWithDelegateDistribution[i][j].Amount.Amount)
-				suite.Equal(amt, tcAmt)
+				suite.Equal(list[j].Amount.Amount.String(), tc.ExpectedListWithUndelegateDistribution[i][j].Amount.Amount.String())
 				suite.Equal(list[j].ValidatorAddr, tc.ExpectedListWithUndelegateDistribution[i][j].ValidatorAddr)
 			}
 		}
