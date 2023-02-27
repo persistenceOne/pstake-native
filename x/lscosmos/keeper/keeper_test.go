@@ -148,8 +148,8 @@ func (suite *IntegrationTestSuite) TestMintToken() {
 
 	ibcDenom := ibctransfertypes.GetPrefixedDenom(testParams.TransferPort, testParams.TransferChannel, testParams.BaseDenom)
 	balanceOfIbcToken := sdk.NewInt64Coin(ibcDenom, 100)
-	x := sdk.Dec{}
-	amt := x.QuoInt(balanceOfIbcToken.Amount)
+
+	amt := sdk.NewDecFromInt(balanceOfIbcToken.Amount)
 	mintAmountDec := amt.Mul(pstakeApp.LSCosmosKeeper.GetCValue(ctx))
 	toBeMintedTokens, _ := sdk.NewDecCoinFromDec(testParams.MintDenom, mintAmountDec).TruncateDecimal()
 

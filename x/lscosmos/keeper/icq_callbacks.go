@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	icqtypes "github.com/persistenceOne/persistence-sdk/x/interchainquery/types"
-
 	"github.com/persistenceOne/pstake-native/x/lscosmos/types"
 )
 
@@ -79,8 +78,8 @@ func (k Keeper) HandleRewardsAccountBalanceCallback(ctx sdk.Context, response []
 	// Cap the re-staking amount so exchange rate doesn't change drastically.
 	cValue := k.GetCValue(ctx)
 	stkAssetSupply := k.bankKeeper.GetSupply(ctx, hostChainParams.MintDenom)
-	x := sdk.Dec{}
-	amt := x.QuoInt(stkAssetSupply.Amount)
+	//x := sdk.NewDecFromInt()
+	amt := sdk.NewDecFromInt(stkAssetSupply.Amount)
 	atomTVU := amt.Quo(cValue)
 	atomTVUCap := atomTVU.Mul(types.RestakeCapPerDay).TruncateInt()
 	sendCoinAmt := resp.Balance.Amount
