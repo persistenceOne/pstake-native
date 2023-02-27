@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/gogo/protobuf/proto"
 	icqtypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
@@ -79,7 +80,8 @@ func (k Keeper) HandleRewardsAccountBalanceCallback(ctx sdk.Context, response []
 	// Cap the re-staking amount so exchange rate doesn't change drastically.
 	cValue := k.GetCValue(ctx)
 	stkAssetSupply := k.bankKeeper.GetSupply(ctx, hostChainParams.MintDenom)
-	atomTVU := stkAssetSupply.Amount.ToDec().Quo(cValue)
+
+	atomTVU := sdk.NewDecFromInt(stkAssetSupply.Amount).Quo(cValue)
 	atomTVUCap := atomTVU.Mul(types.RestakeCapPerDay).TruncateInt()
 	sendCoinAmt := resp.Balance.Amount
 	if resp.Balance.Amount.GT(atomTVUCap) {
@@ -92,5 +94,5 @@ func (k Keeper) HandleRewardsAccountBalanceCallback(ctx sdk.Context, response []
 		ToAddress:   delegationState.HostChainDelegationAddress,
 		Amount:      sdk.NewCoins(sdk.NewCoin(resp.Balance.Denom, sendCoinAmt)),
 	}
-	return k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountPortID(), []sdk.Msg{msg})
+	return k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountPortID(), []proto.Message{msg})
 }

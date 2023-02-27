@@ -6,13 +6,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 // DelegateMsgs gives the list of Delegate Txs to be executed based on the current state and params.
 // CONTRACT: allowlistedValList.len > 0, amount > 0
-func (k Keeper) DelegateMsgs(ctx sdk.Context, amount sdk.Int, denom string, delegationState types.DelegationState) ([]sdk.Msg, error) {
+func (k Keeper) DelegateMsgs(ctx sdk.Context, amount sdk.Int, denom string, delegationState types.DelegationState) ([]proto.Message, error) {
 	// fetch a combined updated val set list and delegation state
 	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx, denom)
 
@@ -26,7 +27,7 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, amount sdk.Int, denom string, dele
 		return nil, err
 	}
 
-	var msgs []sdk.Msg
+	var msgs []proto.Message
 	for _, val := range valAddressAmount {
 		if val.Amount.IsPositive() {
 			msg := &stakingtypes.MsgDelegate{
@@ -47,7 +48,7 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, amount sdk.Int, denom string, dele
 
 // UndelegateMsgs gives the list of Undelegate Txs to be executed based on the current state and params.
 // CONTRACT: allowlistedValList.len > 0, amount > 0
-func (k Keeper) UndelegateMsgs(ctx sdk.Context, amount sdk.Int, denom string, delegationState types.DelegationState) ([]sdk.Msg, []types.UndelegationEntry, error) {
+func (k Keeper) UndelegateMsgs(ctx sdk.Context, amount sdk.Int, denom string, delegationState types.DelegationState) ([]proto.Message, []types.UndelegationEntry, error) {
 	// fetch a combined updated val set list and delegation state
 	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx, denom)
 
@@ -62,7 +63,7 @@ func (k Keeper) UndelegateMsgs(ctx sdk.Context, amount sdk.Int, denom string, de
 	}
 
 	//nolint:prealloc,len_not_fixed
-	var msgs []sdk.Msg
+	var msgs []proto.Message
 	//nolint:prealloc,len_not_fixed
 	var undelegationEntries []types.UndelegationEntry
 	for _, val := range valAddressAmount {

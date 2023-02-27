@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 )
 
 type (
@@ -144,7 +144,7 @@ func NewDelegatorUnbondingEpochEntry(delegatorAddress string, epochNumber int64,
 
 // GetUnbondingEpochCValue returns the calculated c value from the UnbondingEpochCValue struct entries.
 func (uec *UnbondingEpochCValue) GetUnbondingEpochCValue() sdk.Dec {
-	return uec.STKBurn.Amount.ToDec().Quo(uec.AmountUnbonded.Amount.ToDec())
+	return sdk.NewDecFromInt(uec.STKBurn.Amount).Quo(sdk.NewDecFromInt(uec.AmountUnbonded.Amount))
 }
 
 // CurrentUnbondingEpoch computes and returns current unbonding epoch to the next nearest multiple

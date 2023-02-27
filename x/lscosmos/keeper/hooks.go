@@ -2,14 +2,15 @@ package keeper
 
 import (
 	"fmt"
+	"github.com/gogo/protobuf/proto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v4/modules/core/exported"
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/persistenceOne/persistence-sdk/v2/utils"
 	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
@@ -135,7 +136,7 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 
 		msg := ibctransfertypes.NewMsgTransfer(hostChainParams.TransferPort, hostChainParams.TransferChannel,
 			depositBalance, authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount).String(),
-			delegationState.HostChainDelegationAddress, timeoutHeight, 0)
+			delegationState.HostChainDelegationAddress, timeoutHeight, 0, "")
 
 		handler := k.msgRouter.Handler(msg)
 
@@ -178,7 +179,7 @@ func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosm
 		//return early
 		return nil
 	}
-	withdrawRewardMsgs := make([]sdk.Msg, len(delegationState.HostAccountDelegations))
+	withdrawRewardMsgs := make([]proto.Message, len(delegationState.HostAccountDelegations))
 	for i, delegation := range delegationState.HostAccountDelegations {
 		withdrawRewardMsgs[i] = &distributiontypes.MsgWithdrawDelegatorReward{
 			DelegatorAddress: delegationState.HostChainDelegationAddress,

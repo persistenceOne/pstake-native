@@ -4,7 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
@@ -36,7 +36,7 @@ func (k Keeper) AddBalanceToDelegationState(ctx sdk.Context, coin sdk.Coin) {
 // of types.DelegationState
 func (k Keeper) RemoveBalanceFromDelegationState(ctx sdk.Context, coins sdk.Coins) {
 	delegationState := k.GetDelegationState(ctx)
-	delegationState.HostDelegationAccountBalance = delegationState.HostDelegationAccountBalance.Sub(coins)
+	delegationState.HostDelegationAccountBalance = delegationState.HostDelegationAccountBalance.Sub(coins...)
 	k.SetDelegationState(ctx, delegationState)
 }
 

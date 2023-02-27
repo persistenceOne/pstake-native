@@ -12,9 +12,10 @@ func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
 	var ibcStakeDenom string
 
 	s.Run("send_photon_to_chainB", func() {
-		recipient := s.chainB.validators[0].keyInfo.GetAddress().String()
+		recipient, er := s.chainB.validators[0].keyInfo.GetAddress()
+		s.Require().Nil(er)
 		token := sdk.NewInt64Coin(photonDenom, 3300000000) // 3,300photon
-		s.sendIBC(s.chainA.id, s.chainB.id, recipient, token)
+		s.sendIBC(s.chainA.id, s.chainB.id, recipient.String(), token)
 
 		chainBAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainB.id][0].GetHostPort("1317/tcp"))
 
@@ -25,7 +26,7 @@ func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
 		)
 		s.Require().Eventually(
 			func() bool {
-				balances, err = queryPStakeAllBalances(chainBAPIEndpoint, recipient)
+				balances, err = queryPStakeAllBalances(chainBAPIEndpoint, recipient.String())
 				s.Require().NoError(err)
 
 				return balances.Len() == 3
