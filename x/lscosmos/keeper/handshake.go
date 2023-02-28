@@ -285,91 +285,101 @@ func (k Keeper) handleSuccessfulAck(ctx sdk.Context, ack channeltypes.Acknowledg
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot Deserialise icapacket data: %v", err)
 	}
 
-	// Dispatch packet
-	switch len(txMsgData.Data) {
-	case 0:
-		// TODO: handle for sdk 0.46.x
-		return nil
-	default:
-		msgsCount := 0
-		expectedMsgType := txMsgData.Data[0].MsgType
-		for i, msgData := range txMsgData.Data {
-			response, err := k.handleAckMsgData(ctx, msgData, msgs[i], hostChainParams)
-			if err != nil {
-				return err
-			}
-			k.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
-			if expectedMsgType == msgData.MsgType {
-				msgsCount++
-			}
-
-			// assert all msgs are of same type.
-			if len(txMsgData.Data) == msgsCount {
-				switch expectedMsgType {
-				case sdk.MsgTypeURL(&distributiontypes.MsgWithdrawDelegatorReward{}):
-					rewardAddr := k.GetHostChainRewardAddress(ctx)
-
-					balanceQuery := banktypes.QueryBalanceRequest{Address: rewardAddr.Address, Denom: hostChainParams.BaseDenom}
-					bz, err := k.cdc.Marshal(&balanceQuery)
-					if err != nil {
-						return err
-					}
-
-					// total rewards balance withdrawn
-					k.icqKeeper.MakeRequest(
-						ctx,
-						hostChainParams.ConnectionID,
-						hostChainParams.ChainID,
-						"cosmos.bank.v1beta1.Query/Balance",
-						bz,
-						sdk.NewInt(int64(-1)),
-						types.ModuleName,
-						RewardsAccountBalance,
-						0,
-					)
-				case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
-					previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
-					//May be also match amount with previous epoch incase host chain is down for multiple entire epoch duration. (or add epochnumber in memo ~ not clean, or store (sequenceNumber,epoch of the ica txn) )
-					previousEpochUnbondings := k.GetUnbondingEpochCValue(ctx, previousEpochNumber)
-					err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.UndelegationModuleAccount, types.ModuleName, sdk.NewCoins(previousEpochUnbondings.STKBurn))
-					if err != nil {
-						return err
-					}
-					err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(previousEpochUnbondings.STKBurn))
-					if err != nil {
-						return err
-					}
-
-					//update completionTime
-					var msgResponse stakingtypes.MsgUndelegateResponse
-					if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
-						return err
-					}
-					k.UpdateCompletionTimeForUndelegationEpoch(ctx, previousEpochNumber, msgResponse.CompletionTime.Add(types.UndelegationCompletionTimeBuffer))
-				default:
-
-				}
-			}
-		}
-		if msgsCount != len(txMsgData.Data) {
-			k.SetModuleState(ctx, false) //Disable module, we assert single type of msg throughout the tx.
-			k.Logger(ctx).Error(fmt.Sprintf("%s module has been disabled due to different msg types in a ica txn", types.ModuleName))
-			return nil
-		}
-
+	newVersion := false
+	if len(txMsgData.Data) == 0 {
+		newVersion = true
 	}
+	// Dispatch packet
+	//switch len(txMsgData.Data) {
+	//case 0:
+	// TODO: handle for sdk 0.46.x
+
+	msgsCount := 0
+	expectedMsgType := sdk.MsgTypeURL(msgs[0])
+	for i, msg := range msgs {
+		var data []byte
+		if newVersion {
+			data = txMsgData.GetMsgResponses()[i].Value
+		} else {
+			data = txMsgData.Data[i].Data
+		}
+		response, err := k.handleAckMsgData(ctx, data, msg, hostChainParams)
+		if err != nil {
+			return err
+		}
+		k.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
+		if expectedMsgType == sdk.MsgTypeURL(msgs[i]) {
+			msgsCount++
+		}
+
+		// assert all msgs are of same type.
+		if len(txMsgData.MsgResponses) == msgsCount {
+			switch expectedMsgType {
+			case sdk.MsgTypeURL(&distributiontypes.MsgWithdrawDelegatorReward{}):
+				rewardAddr := k.GetHostChainRewardAddress(ctx)
+
+				balanceQuery := banktypes.QueryBalanceRequest{Address: rewardAddr.Address, Denom: hostChainParams.BaseDenom}
+				bz, err := k.cdc.Marshal(&balanceQuery)
+				if err != nil {
+					return err
+				}
+
+				// total rewards balance withdrawn
+				k.icqKeeper.MakeRequest(
+					ctx,
+					hostChainParams.ConnectionID,
+					hostChainParams.ChainID,
+					"cosmos.bank.v1beta1.Query/Balance",
+					bz,
+					sdk.NewInt(int64(-1)),
+					types.ModuleName,
+					RewardsAccountBalance,
+					0,
+				)
+			case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
+				previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
+				//May be also match amount with previous epoch incase host chain is down for multiple entire epoch duration. (or add epochnumber in memo ~ not clean, or store (sequenceNumber,epoch of the ica txn) )
+				previousEpochUnbondings := k.GetUnbondingEpochCValue(ctx, previousEpochNumber)
+				err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.UndelegationModuleAccount, types.ModuleName, sdk.NewCoins(previousEpochUnbondings.STKBurn))
+				if err != nil {
+					return err
+				}
+				err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(previousEpochUnbondings.STKBurn))
+				if err != nil {
+					return err
+				}
+
+				//update completionTime
+				var msgUndelegateResponse stakingtypes.MsgUndelegateResponse
+				if err := k.cdc.Unmarshal(data, &msgUndelegateResponse); err != nil {
+					return err
+				}
+				k.UpdateCompletionTimeForUndelegationEpoch(ctx, previousEpochNumber, msgUndelegateResponse.CompletionTime.Add(types.UndelegationCompletionTimeBuffer))
+			default:
+
+			}
+		}
+	}
+	if msgsCount != len(msgs) {
+		k.SetModuleState(ctx, false) //Disable module, we assert single type of msg throughout the tx.
+		k.Logger(ctx).Error(fmt.Sprintf("%s module has been disabled due to different msg types in a ica txn", types.ModuleName))
+		return nil
+	}
+
 	return nil
 }
-func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.Msg, hostChainParams types.HostChainParams) (string, error) {
-	switch msgData.MsgType {
+
+// handleAckMsgData handles successful response.
+func (k Keeper) handleAckMsgData(ctx sdk.Context, data []byte, msg sdk.Msg, hostChainParams types.HostChainParams) (string, error) {
+	switch sdk.MsgTypeURL(msg) {
 	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 		parsedMsg, ok := msg.(*stakingtypes.MsgDelegate)
 		if !ok {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", msgData.MsgType)
+			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
 		}
 		var msgResponse stakingtypes.MsgDelegateResponse
-		if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+		if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal delegate response message: %s", err.Error())
 		}
 		// Add delegation state
 		k.AddHostAccountDelegation(ctx, types.NewHostAccountDelegation(parsedMsg.ValidatorAddress, parsedMsg.Amount))
@@ -379,24 +389,24 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 
 	case sdk.MsgTypeURL(&distributiontypes.MsgSetWithdrawAddress{}):
 		var msgResponse distributiontypes.MsgSetWithdrawAddressResponse
-		if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+		if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal set withdraw address response message: %s", err.Error())
 		}
 		k.SetModuleState(ctx, true)
 		return msgResponse.String(), nil
 	case sdk.MsgTypeURL(&distributiontypes.MsgWithdrawDelegatorReward{}):
 		var msgResponse distributiontypes.MsgWithdrawDelegatorRewardResponse
-		if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+		if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal withdraw delegator reward response message: %s", err.Error())
 		}
 		return msgResponse.String(), nil
 	case sdk.MsgTypeURL(&banktypes.MsgSend{}):
 		parsedMsg, ok := msg.(*banktypes.MsgSend)
 		if !ok {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", msgData.MsgType)
+			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
 		}
 		var msgResponse banktypes.MsgSendResponse
-		if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
+		if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
 			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
 		}
 		//is from rewardaddr to delegationaddr?
@@ -429,11 +439,11 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 	case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
 		parsedMsg, ok := msg.(*stakingtypes.MsgUndelegate)
 		if !ok {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", msgData.MsgType)
+			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
 		}
 		var msgResponse stakingtypes.MsgUndelegateResponse
-		if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+		if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
+			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal undelegate response message: %s", err.Error())
 		}
 		k.Logger(ctx).Info(fmt.Sprintf("Started unbonding for val: %s, amount: %s", parsedMsg.ValidatorAddress, parsedMsg.Amount))
 		//burn stkatom (DONE OUTSIDE THE LOOP), remove from delegations, add unbonding entry completion time
@@ -445,7 +455,7 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, msgData *sdk.MsgData, msg sdk.
 		return msgResponse.String(), nil
 	case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
 		var msgResponse ibctransfertypes.MsgTransferResponse
-		if err := k.cdc.Unmarshal(msgData.Data, &msgResponse); err != nil {
+		if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
 			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
 		}
 		k.Logger(ctx).Info(fmt.Sprintf("Initiated IBC transfer from %s to %s with msg: %s", hostChainParams.ChainID, ctx.ChainID(), msg))
@@ -466,41 +476,35 @@ func (k Keeper) resetToPreICATx(ctx sdk.Context, icaPacket icatypes.InterchainAc
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot Deserialise icapacket data: %v", err)
 	}
 	// Dispatch packet
-	switch len(icaPacket.Data) {
-	case 0:
-		// TODO: handle for sdk 0.46.x
-		return nil
-	default:
-		msgsCount := 0
-		expectedMsgType := sdk.MsgTypeURL(msgs[0])
-		for _, msg := range msgs {
-			err := k.handleResetMsgs(ctx, msg, hostChainParams)
+	msgsCount := 0
+	expectedMsgType := sdk.MsgTypeURL(msgs[0])
+	for _, msg := range msgs {
+		err := k.handleResetMsgs(ctx, msg, hostChainParams)
+		if err != nil {
+			return err
+		}
+		if expectedMsgType == sdk.MsgTypeURL(msg) {
+			msgsCount++
+		}
+		// assert all msgs are of same type.
+		if len(msgs) == msgsCount && expectedMsgType == sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}) {
+			previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
+			err := k.RemoveHostAccountUndelegation(ctx, previousEpochNumber)
 			if err != nil {
 				return err
 			}
-			if expectedMsgType == sdk.MsgTypeURL(msg) {
-				msgsCount++
-			}
-			// assert all msgs are of same type.
-			if len(msgs) == msgsCount && expectedMsgType == sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}) {
-				previousEpochNumber := types.PreviousUnbondingEpoch(k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch)
-				err := k.RemoveHostAccountUndelegation(ctx, previousEpochNumber)
-				if err != nil {
-					return err
-				}
-				k.FailUnbondingEpochCValue(ctx, previousEpochNumber, sdk.NewCoin(hostChainParams.MintDenom, sdk.ZeroInt()))
-				k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %v", msgs, previousEpochNumber))
-			}
+			k.FailUnbondingEpochCValue(ctx, previousEpochNumber, sdk.NewCoin(hostChainParams.MintDenom, sdk.ZeroInt()))
+			k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding msgs: %s, for undelegationEpoch: %v", msgs, previousEpochNumber))
+		}
 
-			k.Logger(ctx).Info("ICA msg timed out, ", "msg", msg)
-		}
-		if msgsCount != len(msgs) {
-			k.SetModuleState(ctx, false) //Disable module, we assert single type of msg throughout the tx.
-			k.Logger(ctx).Error(fmt.Sprintf("%s module has been disabled due to different msg types in a ica txn", types.ModuleName))
-			return nil
-		}
+		k.Logger(ctx).Info("ICA msg timed out, ", "msg", msg)
+	}
+	if msgsCount != len(msgs) {
+		k.SetModuleState(ctx, false) //Disable module, we assert single type of msg throughout the tx.
+		k.Logger(ctx).Error(fmt.Sprintf("%s module has been disabled due to different msg types in a ica txn", types.ModuleName))
 		return nil
 	}
+	return nil
 }
 
 // handleResetMsgs is a helper function for handling reset messages in resetToPreICATx
