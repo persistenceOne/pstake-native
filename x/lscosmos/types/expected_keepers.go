@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -90,5 +91,5 @@ type ICAControllerKeeper interface {
 
 // ICQKeeper defines the expected ICQ keeper
 type ICQKeeper interface {
-	MakeRequest(ctx sdk.Context, connectionID string, chainID string, queryType string, request []byte, period sdk.Int, module string, callbackID string, ttl uint64)
+	MakeRequest(ctx sdk.Context, connectionID string, chainID string, queryType string, request []byte, period math.Int, module string, callbackID string, ttl uint64)
 }

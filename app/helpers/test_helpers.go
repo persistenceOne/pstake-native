@@ -2,14 +2,14 @@ package helpers
 
 import (
 	"encoding/json"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	"github.com/cosmos/cosmos-sdk/testutil/mock"
 	"testing"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	"github.com/cosmos/cosmos-sdk/testutil/mock"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -47,7 +47,7 @@ var DefaultConsensusParams = &abci.ConsensusParams{
 	},
 }
 
-func newTestApp(t *testing.T, isCheckTx bool, withGenesis bool) app.PstakeApp {
+func newTestApp(t *testing.T, isCheckTx bool, _ bool) app.PstakeApp {
 	testApp := Setup(t, isCheckTx, 5)
 	return *testApp
 }

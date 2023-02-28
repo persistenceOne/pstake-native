@@ -2,13 +2,13 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/gogo/protobuf/proto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/gogo/protobuf/proto"
 
 	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )

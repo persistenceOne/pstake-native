@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/gogo/protobuf/proto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -16,6 +15,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
@@ -302,6 +302,7 @@ func (k Keeper) handleSuccessfulAck(ctx sdk.Context, ack channeltypes.Acknowledg
 			if expectedMsgType == msgData.MsgType {
 				msgsCount++
 			}
+
 			// assert all msgs are of same type.
 			if len(txMsgData.Data) == msgsCount {
 				switch expectedMsgType {

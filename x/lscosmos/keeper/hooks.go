@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/gogo/protobuf/proto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -11,6 +10,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/gogo/protobuf/proto"
 	"github.com/persistenceOne/persistence-sdk/v2/utils"
 	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"

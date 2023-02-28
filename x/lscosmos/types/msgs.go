@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -238,7 +239,7 @@ func (m *MsgRecreateICA) GetSigners() []sdk.AccAddress {
 //
 //nolint:interfacer
 func NewMsgJumpStart(address sdk.AccAddress, chainID, connectionID, transferChannel, transferPort, baseDenom, mintDenom string,
-	minDeposit sdk.Int, allowListedValidators AllowListedValidators, pstakeParams PstakeParams, hostAccounts HostAccounts) *MsgJumpStart {
+	minDeposit math.Int, allowListedValidators AllowListedValidators, pstakeParams PstakeParams, hostAccounts HostAccounts) *MsgJumpStart {
 	return &MsgJumpStart{
 		PstakeAddress:         address.String(),
 		ChainID:               chainID,

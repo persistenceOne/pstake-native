@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"errors"
+	"io"
+	"os"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
@@ -25,8 +28,6 @@ import (
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
-	"io"
-	"os"
 
 	pstakeApp "github.com/persistenceOne/pstake-native/v2/app"
 	"github.com/persistenceOne/pstake-native/v2/app/params"

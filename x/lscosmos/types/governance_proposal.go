@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/math"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -28,7 +29,7 @@ func init() {
 }
 
 // NewHostChainParams returns HostChainParams with the input provided
-func NewHostChainParams(chainID, connectionID, channel, port, baseDenom, mintDenom, pstakefeeAddress string, minDeposit sdktypes.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee sdktypes.Dec) HostChainParams {
+func NewHostChainParams(chainID, connectionID, channel, port, baseDenom, mintDenom, pstakefeeAddress string, minDeposit math.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee sdktypes.Dec) HostChainParams {
 	return HostChainParams{
 		ChainID:         chainID,
 		ConnectionID:    connectionID,
@@ -64,7 +65,7 @@ func (c *HostChainParams) IsEmpty() bool {
 }
 
 // NewMinDepositAndFeeChangeProposal creates a protocol fee and min deposit change proposal.
-func NewMinDepositAndFeeChangeProposal(title, description string, minDeposit sdktypes.Int, pstakeDepositFee,
+func NewMinDepositAndFeeChangeProposal(title, description string, minDeposit math.Int, pstakeDepositFee,
 	pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee sdktypes.Dec) *MinDepositAndFeeChangeProposal {
 
 	return &MinDepositAndFeeChangeProposal{

@@ -3,6 +3,7 @@ package keeper
 import (
 	"sort"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -13,7 +14,7 @@ import (
 
 // DelegateMsgs gives the list of Delegate Txs to be executed based on the current state and params.
 // CONTRACT: allowlistedValList.len > 0, amount > 0
-func (k Keeper) DelegateMsgs(ctx sdk.Context, amount sdk.Int, denom string, delegationState types.DelegationState) ([]proto.Message, error) {
+func (k Keeper) DelegateMsgs(ctx sdk.Context, amount math.Int, denom string, delegationState types.DelegationState) ([]proto.Message, error) {
 	// fetch a combined updated val set list and delegation state
 	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx, denom)
 
@@ -48,7 +49,7 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, amount sdk.Int, denom string, dele
 
 // UndelegateMsgs gives the list of Undelegate Txs to be executed based on the current state and params.
 // CONTRACT: allowlistedValList.len > 0, amount > 0
-func (k Keeper) UndelegateMsgs(ctx sdk.Context, amount sdk.Int, denom string, delegationState types.DelegationState) ([]proto.Message, []types.UndelegationEntry, error) {
+func (k Keeper) UndelegateMsgs(ctx sdk.Context, amount math.Int, denom string, delegationState types.DelegationState) ([]proto.Message, []types.UndelegationEntry, error) {
 	// fetch a combined updated val set list and delegation state
 	updateValList, hostAccountDelegations := k.GetAllValidatorsState(ctx, denom)
 
@@ -121,7 +122,7 @@ func GetIdealCurrentDelegations(valList types.AllowListedValidators, delegationS
 
 	curDiffDistribution := types.WeightedAddressAmounts{}
 	delegationMap := types.GetHostAccountDelegationMap(delegationState.HostAccountDelegations)
-	var idealTokens, curTokens sdk.Int
+	var idealTokens, curTokens math.Int
 
 	for _, valT := range valList.AllowListedValidators {
 		totalAmt := totalDelegations.Amount.Add(amt.Amount)
