@@ -285,20 +285,12 @@ func (k Keeper) handleSuccessfulAck(ctx sdk.Context, ack channeltypes.Acknowledg
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot Deserialise icapacket data: %v", err)
 	}
 
-	newVersion := false
-	if len(txMsgData.Data) == 0 {
-		newVersion = true
-	}
 	// Dispatch packet
-	//switch len(txMsgData.Data) {
-	//case 0:
-	// TODO: handle for sdk 0.46.x
-
 	msgsCount := 0
 	expectedMsgType := sdk.MsgTypeURL(msgs[0])
 	for i, msg := range msgs {
 		var data []byte
-		if newVersion {
+		if len(txMsgData.Data) == 0 {
 			data = txMsgData.GetMsgResponses()[i].Value
 		} else {
 			data = txMsgData.Data[i].Data
