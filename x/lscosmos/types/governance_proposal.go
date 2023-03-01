@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -107,23 +107,23 @@ func (m *MinDepositAndFeeChangeProposal) ValidateBasic() error {
 	}
 
 	if m.PstakeDepositFee.IsNegative() || m.PstakeDepositFee.GTE(MaxPstakeDepositFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake deposit fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeDepositFee)
+		return errorsmod.Wrapf(ErrInvalidFee, "pstake deposit fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeDepositFee)
 	}
 
 	if m.PstakeRestakeFee.IsNegative() || m.PstakeRestakeFee.GTE(MaxPstakeRestakeFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake restake fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeRestakeFee)
+		return errorsmod.Wrapf(ErrInvalidFee, "pstake restake fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeRestakeFee)
 	}
 
 	if m.PstakeUnstakeFee.IsNegative() || m.PstakeUnstakeFee.GTE(MaxPstakeUnstakeFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake unstake fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeUnstakeFee)
+		return errorsmod.Wrapf(ErrInvalidFee, "pstake unstake fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeUnstakeFee)
 	}
 
 	if m.PstakeRedemptionFee.IsNegative() || m.PstakeRedemptionFee.GTE(MaxPstakeRedemptionFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake redemption fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeRedemptionFee)
+		return errorsmod.Wrapf(ErrInvalidFee, "pstake redemption fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeRedemptionFee)
 	}
 
 	if m.MinDeposit.LTE(sdktypes.ZeroInt()) {
-		return sdkerrors.Wrapf(ErrInvalidDeposit, "min deposit must be positive")
+		return errorsmod.Wrapf(ErrInvalidDeposit, "min deposit must be positive")
 	}
 
 	return nil
@@ -252,7 +252,7 @@ func (m *AllowListedValidatorSetChangeProposal) ValidateBasic() error {
 	}
 
 	if !m.AllowListedValidators.Valid() {
-		return sdkerrors.Wrapf(ErrInValidAllowListedValidators, "allow listed validators is not valid")
+		return errorsmod.Wrapf(ErrInValidAllowListedValidators, "allow listed validators is not valid")
 	}
 
 	return nil

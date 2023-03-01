@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -38,15 +39,15 @@ func (m *MsgLiquidStake) Type() string { return MsgTypeLiquidStake }
 // ValidateBasic performs stateless checks
 func (m *MsgLiquidStake) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
+		return errorsmod.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
 	}
 
 	if !m.Amount.IsValid() {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
+		return errorsmod.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
 	}
 
 	if !m.Amount.IsPositive() {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
+		return errorsmod.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
 	}
 	return ibctransfertypes.ValidateIBCDenom(m.Amount.Denom)
 }
@@ -84,15 +85,15 @@ func (m *MsgLiquidUnstake) Type() string { return MsgTypeLiquidUnstake }
 // ValidateBasic performs stateless checks
 func (m *MsgLiquidUnstake) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
+		return errorsmod.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
 	}
 
 	if !m.Amount.IsValid() {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
+		return errorsmod.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
 	}
 
 	if !m.Amount.IsPositive() {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
+		return errorsmod.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
 	}
 	return nil
 }
@@ -131,15 +132,15 @@ func (m *MsgRedeem) Type() string { return MsgTypeRedeem }
 // ValidateBasic performs stateless checks
 func (m *MsgRedeem) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
+		return errorsmod.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
 	}
 
 	if !m.Amount.IsValid() {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
+		return errorsmod.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
 	}
 
 	if !m.Amount.IsPositive() {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
+		return errorsmod.Wrap(sdkErrors.ErrInvalidCoins, m.Amount.String())
 	}
 	return nil
 }
@@ -177,7 +178,7 @@ func (m *MsgClaim) Type() string { return MsgTypeClaim }
 // ValidateBasic performs stateless checks
 func (m *MsgClaim) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
+		return errorsmod.Wrap(sdkErrors.ErrInvalidAddress, m.DelegatorAddress)
 	}
 
 	return nil
@@ -215,7 +216,7 @@ func (m *MsgRecreateICA) Type() string { return MsgTypeRecreateICA }
 // ValidateBasic performs stateless checks
 func (m *MsgRecreateICA) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.FromAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.FromAddress)
+		return errorsmod.Wrap(sdkErrors.ErrInvalidAddress, m.FromAddress)
 	}
 
 	return nil
@@ -264,7 +265,7 @@ func (m *MsgJumpStart) Type() string { return MsgTypeJumpStart }
 // ValidateBasic performs stateless checks
 func (m *MsgJumpStart) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.PstakeAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.PstakeAddress)
+		return errorsmod.Wrap(sdkErrors.ErrInvalidAddress, m.PstakeAddress)
 	}
 	if m.ChainID == "" ||
 		m.ConnectionID == "" ||
@@ -272,20 +273,20 @@ func (m *MsgJumpStart) ValidateBasic() error {
 		m.TransferPort == "" ||
 		m.BaseDenom == "" ||
 		m.MintDenom == "" {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidRequest, "params cannot be empty")
+		return errorsmod.Wrap(sdkErrors.ErrInvalidRequest, "params cannot be empty")
 	}
 
 	if !m.AllowListedValidators.Valid() {
 		return ErrInValidAllowListedValidators
 	}
 	if _, err := sdk.AccAddressFromBech32(m.PstakeParams.PstakeFeeAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.PstakeParams.PstakeFeeAddress)
+		return errorsmod.Wrap(sdkErrors.ErrInvalidAddress, m.PstakeParams.PstakeFeeAddress)
 	}
 	if m.PstakeParams.PstakeFeeAddress != m.PstakeAddress {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, fmt.Sprintf("pstakeAddress should be equal to PstakeParams.PstakeFeeAddress, got %s, %s", m.PstakeParams.PstakeFeeAddress, m.PstakeAddress))
+		return errorsmod.Wrap(sdkErrors.ErrInvalidAddress, fmt.Sprintf("pstakeAddress should be equal to PstakeParams.PstakeFeeAddress, got %s, %s", m.PstakeParams.PstakeFeeAddress, m.PstakeAddress))
 	}
 	if m.MinDeposit.LTE(sdk.ZeroInt()) {
-		return sdkErrors.Wrapf(ErrInvalidDeposit, "min deposit must be positive")
+		return errorsmod.Wrapf(ErrInvalidDeposit, "min deposit must be positive")
 	}
 	if ConvertBaseDenomToMintDenom(m.BaseDenom) != m.MintDenom {
 		return ErrInvalidMintDenom
@@ -326,7 +327,7 @@ func (m *MsgChangeModuleState) Type() string { return MsgTypeChangeModuleState }
 // ValidateBasic performs stateless checks
 func (m *MsgChangeModuleState) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.PstakeAddress); err != nil {
-		return sdkErrors.Wrap(sdkErrors.ErrInvalidAddress, m.PstakeAddress)
+		return errorsmod.Wrap(sdkErrors.ErrInvalidAddress, m.PstakeAddress)
 	}
 
 	return nil

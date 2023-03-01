@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -36,7 +37,7 @@ func (k Keeper) OnChanOpenInit(
 	// Require portID is the portID module is bound to
 	if portID != hostAccounts.DelegatorAccountPortID() &&
 		portID != hostAccounts.RewardsAccountPortID() {
-		return "", sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s or %s",
+		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s or %s",
 			portID, hostAccounts.DelegatorAccountPortID(), hostAccounts.RewardsAccountPortID())
 	}
 	var versionData icatypes.Metadata
@@ -44,7 +45,7 @@ func (k Keeper) OnChanOpenInit(
 		return "", err
 	}
 	if versionData.Version != icatypes.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", versionData.Version, icatypes.Version)
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", versionData.Version, icatypes.Version)
 	}
 
 	// Claim channel capability passed back by IBC module
@@ -81,7 +82,7 @@ func (k Keeper) OnChanOpenAck(
 	hostAccounts := k.GetHostAccounts(ctx)
 	if portID != hostAccounts.DelegatorAccountPortID() &&
 		portID != hostAccounts.RewardsAccountPortID() {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s or %s",
+		return errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected either of %s or %s",
 			portID, hostAccounts.DelegatorAccountPortID(), hostAccounts.RewardsAccountPortID())
 	}
 
@@ -91,7 +92,7 @@ func (k Keeper) OnChanOpenAck(
 	}
 
 	if counterpartyVersionData.Version != icatypes.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, icatypes.Version)
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, icatypes.Version)
 	}
 	//TODO more checks, capability, channelID??
 
@@ -105,7 +106,7 @@ func (k Keeper) OnChanOpenAck(
 					return err
 				}
 				if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID, ""); err != nil {
-					return sdkerrors.Wrap(err, "Could not register ica reward Address")
+					return errorsmod.Wrap(err, "Could not register ica reward Address")
 				}
 
 			}
@@ -148,7 +149,7 @@ func (k Keeper) OnChanCloseInit(
 	channelID string,
 ) error {
 	// Disallow user-initiated channel closing for channels
-	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
+	return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
@@ -179,19 +180,19 @@ func (k Keeper) OnAcknowledgementPacket(
 ) error {
 	_, ok := k.lscosmosScopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(modulePacket.GetSourcePort(), modulePacket.GetSourceChannel()))
 	if !ok {
-		return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "capability not found for port: %s channel: %s in module: %s", modulePacket.GetSourcePort(), modulePacket.GetSourceChannel(), types.ModuleName)
+		return errorsmod.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "capability not found for port: %s channel: %s in module: %s", modulePacket.GetSourcePort(), modulePacket.GetSourceChannel(), types.ModuleName)
 	}
 	// TODO add checks for capabilities, ports, channels
 	hostChainParams := k.GetHostChainParams(ctx)
 
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet acknowledgement: %v", err)
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet acknowledgement: %v", err)
 	}
 
 	var icaPacket icatypes.InterchainAccountPacketData
 	if err := icatypes.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), &icaPacket); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
 	}
 
 	switch ack.Response.(type) {
@@ -251,12 +252,12 @@ func (k Keeper) OnTimeoutPacket(
 	// this line is used by starport scaffolding # oracle/packet/module/ack
 	_, ok := k.lscosmosScopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(modulePacket.GetSourcePort(), modulePacket.GetSourceChannel()))
 	if !ok {
-		return sdkerrors.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "capability not found for port: %s channel: %s in module: %s", modulePacket.GetSourcePort(), modulePacket.GetSourceChannel(), types.ModuleName)
+		return errorsmod.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "capability not found for port: %s channel: %s in module: %s", modulePacket.GetSourcePort(), modulePacket.GetSourceChannel(), types.ModuleName)
 	}
 
 	var icaPacket icatypes.InterchainAccountPacketData
 	if err := icatypes.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), &icaPacket); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
 	}
 
 	err := k.resetToPreICATx(ctx, icaPacket)
@@ -277,12 +278,12 @@ func (k Keeper) OnTimeoutPacket(
 func (k Keeper) handleSuccessfulAck(ctx sdk.Context, ack channeltypes.Acknowledgement, icaPacket icatypes.InterchainAccountPacketData, hostChainParams types.HostChainParams) error {
 	txMsgData := &sdk.TxMsgData{}
 	if err := k.cdc.Unmarshal(ack.GetResult(), txMsgData); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
 	}
 
 	msgs, err := icatypes.DeserializeCosmosTx(k.cdc, icaPacket.GetData())
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot Deserialise icapacket data: %v", err)
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot Deserialise icapacket data: %v", err)
 	}
 
 	// Dispatch packet
@@ -367,11 +368,11 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, data []byte, msg sdk.Msg, host
 	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 		parsedMsg, ok := msg.(*stakingtypes.MsgDelegate)
 		if !ok {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
+			return "", errorsmod.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
 		}
 		var msgResponse stakingtypes.MsgDelegateResponse
 		if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal delegate response message: %s", err.Error())
+			return "", errorsmod.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal delegate response message: %s", err.Error())
 		}
 		// Add delegation state
 		k.AddHostAccountDelegation(ctx, types.NewHostAccountDelegation(parsedMsg.ValidatorAddress, parsedMsg.Amount))
@@ -382,24 +383,24 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, data []byte, msg sdk.Msg, host
 	case sdk.MsgTypeURL(&distributiontypes.MsgSetWithdrawAddress{}):
 		var msgResponse distributiontypes.MsgSetWithdrawAddressResponse
 		if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal set withdraw address response message: %s", err.Error())
+			return "", errorsmod.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal set withdraw address response message: %s", err.Error())
 		}
 		k.SetModuleState(ctx, true)
 		return msgResponse.String(), nil
 	case sdk.MsgTypeURL(&distributiontypes.MsgWithdrawDelegatorReward{}):
 		var msgResponse distributiontypes.MsgWithdrawDelegatorRewardResponse
 		if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal withdraw delegator reward response message: %s", err.Error())
+			return "", errorsmod.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal withdraw delegator reward response message: %s", err.Error())
 		}
 		return msgResponse.String(), nil
 	case sdk.MsgTypeURL(&banktypes.MsgSend{}):
 		parsedMsg, ok := msg.(*banktypes.MsgSend)
 		if !ok {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
+			return "", errorsmod.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
 		}
 		var msgResponse banktypes.MsgSendResponse
 		if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+			return "", errorsmod.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
 		}
 		//is from rewardaddr to delegationaddr?
 		rewardAddress := k.GetHostChainRewardAddress(ctx)

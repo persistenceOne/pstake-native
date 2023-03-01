@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/stretchr/testify/require"
@@ -50,7 +50,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.ZeroDec(),
 				sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, "proposal title cannot be blank"),
+			expectedError: errorsmod.Wrap(govtypes.ErrInvalidProposalContent, "proposal title cannot be blank"),
 		},
 		{
 			testName: "invalid title length",
@@ -63,7 +63,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.ZeroDec(),
 				sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrapf(govtypes.ErrInvalidProposalContent, "proposal title is longer than max length of %d", govv1beta1.MaxTitleLength),
+			expectedError: errorsmod.Wrapf(govtypes.ErrInvalidProposalContent, "proposal title is longer than max length of %d", govv1beta1.MaxTitleLength),
 		},
 		{
 			testName: "invalid description length",
@@ -76,7 +76,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.ZeroDec(),
 				sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, "proposal description cannot be blank"),
+			expectedError: errorsmod.Wrap(govtypes.ErrInvalidProposalContent, "proposal description cannot be blank"),
 		},
 		{
 			testName: "invalid description length",
@@ -89,7 +89,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.ZeroDec(),
 				sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrapf(govtypes.ErrInvalidProposalContent, "proposal description is longer than max length of %d", govv1beta1.MaxDescriptionLength),
+			expectedError: errorsmod.Wrapf(govtypes.ErrInvalidProposalContent, "proposal description is longer than max length of %d", govv1beta1.MaxDescriptionLength),
 		},
 		{
 			testName: "incorrect pstake deposit fee",
@@ -102,7 +102,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.ZeroDec(),
 				sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake deposit fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeDepositFee),
+			expectedError: errorsmod.Wrapf(types.ErrInvalidFee, "pstake deposit fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeDepositFee),
 		},
 		{
 			testName: "incorrect pstake restake fee",
@@ -115,7 +115,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.ZeroDec(),
 				sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake restake fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeRestakeFee),
+			expectedError: errorsmod.Wrapf(types.ErrInvalidFee, "pstake restake fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeRestakeFee),
 		},
 		{
 			testName: "incorrect pstake unstake fee",
@@ -128,7 +128,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.NewDec(10),
 				sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake unstake fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeUnstakeFee),
+			expectedError: errorsmod.Wrapf(types.ErrInvalidFee, "pstake unstake fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeUnstakeFee),
 		},
 		{
 			testName: "incorrect pstake unstake fee",
@@ -141,7 +141,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.ZeroDec(),
 				sdk.NewDec(10),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidFee, "pstake redemption fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeRedemptionFee),
+			expectedError: errorsmod.Wrapf(types.ErrInvalidFee, "pstake redemption fee must be between %s and %s", sdk.ZeroDec(), types.MaxPstakeRedemptionFee),
 		},
 		{
 			testName: "incorrect deposit",
@@ -154,7 +154,7 @@ func TestNewMinDepositAndFeeChangeProposal(t *testing.T) {
 				sdk.ZeroDec(),
 				sdk.ZeroDec(),
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInvalidDeposit, "min deposit must be positive"),
+			expectedError: errorsmod.Wrapf(types.ErrInvalidDeposit, "min deposit must be positive"),
 		},
 	}
 
@@ -196,7 +196,7 @@ func TestNewPstakeFeeAddressChangeProposal(t *testing.T) {
 				"description",
 				"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
 			),
-			expectedError: sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, "proposal title cannot be blank"),
+			expectedError: errorsmod.Wrap(govtypes.ErrInvalidProposalContent, "proposal title cannot be blank"),
 		},
 		{
 			testName: "invalid title length",
@@ -205,7 +205,7 @@ func TestNewPstakeFeeAddressChangeProposal(t *testing.T) {
 				"description",
 				"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
 			),
-			expectedError: sdkerrors.Wrapf(govtypes.ErrInvalidProposalContent, "proposal title is longer than max length of %d", govv1beta1.MaxTitleLength),
+			expectedError: errorsmod.Wrapf(govtypes.ErrInvalidProposalContent, "proposal title is longer than max length of %d", govv1beta1.MaxTitleLength),
 		},
 		{
 			testName: "invalid description length",
@@ -214,7 +214,7 @@ func TestNewPstakeFeeAddressChangeProposal(t *testing.T) {
 				"",
 				"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
 			),
-			expectedError: sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, "proposal description cannot be blank"),
+			expectedError: errorsmod.Wrap(govtypes.ErrInvalidProposalContent, "proposal description cannot be blank"),
 		},
 		{
 			testName: "invalid description length",
@@ -223,7 +223,7 @@ func TestNewPstakeFeeAddressChangeProposal(t *testing.T) {
 				strings.Repeat("-", govv1beta1.MaxDescriptionLength+1),
 				"persistence1pss7nxeh3f9md2vuxku8q99femnwdjtcpe9ky9",
 			),
-			expectedError: sdkerrors.Wrapf(govtypes.ErrInvalidProposalContent, "proposal description is longer than max length of %d", govv1beta1.MaxDescriptionLength),
+			expectedError: errorsmod.Wrapf(govtypes.ErrInvalidProposalContent, "proposal description is longer than max length of %d", govv1beta1.MaxDescriptionLength),
 		},
 		{
 			testName: "invalid pstake fee address length",
@@ -273,7 +273,7 @@ func TestNewAllowListedValidatorSetChangeProposal(t *testing.T) {
 				"description",
 				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
 			),
-			expectedError: sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, "proposal title cannot be blank"),
+			expectedError: errorsmod.Wrap(govtypes.ErrInvalidProposalContent, "proposal title cannot be blank"),
 		},
 		{
 			testName: "invalid title length",
@@ -282,7 +282,7 @@ func TestNewAllowListedValidatorSetChangeProposal(t *testing.T) {
 				"description",
 				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
 			),
-			expectedError: sdkerrors.Wrapf(govtypes.ErrInvalidProposalContent, "proposal title is longer than max length of %d", govv1beta1.MaxTitleLength),
+			expectedError: errorsmod.Wrapf(govtypes.ErrInvalidProposalContent, "proposal title is longer than max length of %d", govv1beta1.MaxTitleLength),
 		},
 		{
 			testName: "invalid description length",
@@ -291,7 +291,7 @@ func TestNewAllowListedValidatorSetChangeProposal(t *testing.T) {
 				"",
 				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
 			),
-			expectedError: sdkerrors.Wrap(govtypes.ErrInvalidProposalContent, "proposal description cannot be blank"),
+			expectedError: errorsmod.Wrap(govtypes.ErrInvalidProposalContent, "proposal description cannot be blank"),
 		},
 		{
 			testName: "invalid description length",
@@ -300,7 +300,7 @@ func TestNewAllowListedValidatorSetChangeProposal(t *testing.T) {
 				strings.Repeat("-", govv1beta1.MaxDescriptionLength+1),
 				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.OneDec()}}},
 			),
-			expectedError: sdkerrors.Wrapf(govtypes.ErrInvalidProposalContent, "proposal description is longer than max length of %d", govv1beta1.MaxDescriptionLength),
+			expectedError: errorsmod.Wrapf(govtypes.ErrInvalidProposalContent, "proposal description is longer than max length of %d", govv1beta1.MaxDescriptionLength),
 		},
 		{
 			testName: "incorrect allow listed validators",
@@ -309,7 +309,7 @@ func TestNewAllowListedValidatorSetChangeProposal(t *testing.T) {
 				"description",
 				types.AllowListedValidators{AllowListedValidators: []types.AllowListedValidator{{ValidatorAddress: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt", TargetWeight: sdk.ZeroDec()}}},
 			),
-			expectedError: sdkerrors.Wrapf(types.ErrInValidAllowListedValidators, "allow listed validators is not valid"),
+			expectedError: errorsmod.Wrapf(types.ErrInValidAllowListedValidators, "allow listed validators is not valid"),
 		},
 	}
 

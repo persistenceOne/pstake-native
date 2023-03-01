@@ -3,8 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
@@ -43,7 +43,7 @@ func (k Keeper) GenerateAndExecuteICATx(ctx sdk.Context, connectionID string, po
 	seq, err := k.icaControllerKeeper.SendTx(ctx, chanCap, connectionID, portID, icaPacketData, uint64(timeoutTimestamp))
 	if err != nil {
 		k.Logger(ctx).Error(fmt.Sprintf("send ica txn of msgs: %s failed with err: %v", msgs, err))
-		return sdkerrors.Wrapf(lscosmostypes.ErrICATxFailure, "Failed to send ica msgs with err: %v", err)
+		return errorsmod.Wrapf(lscosmostypes.ErrICATxFailure, "Failed to send ica msgs with err: %v", err)
 	}
 	k.Logger(ctx).Info(fmt.Sprintf("sent ICA transactions with seq: %v,  channelID: %s, portId: %s, msgs: %s", seq, channelID, portID, msgs))
 	return nil

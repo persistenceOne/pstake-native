@@ -3,11 +3,11 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -91,7 +91,7 @@ func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 	capName := host.ChannelCapabilityPath(portID, channelID)
 	chanCap, ok := k.lscosmosScopedKeeper.GetCapability(ctx, capName)
 	if !ok {
-		return sdkerrors.Wrapf(channeltypes.ErrChannelCapabilityNotFound, "could not retrieve channel capability at: %s", capName)
+		return errorsmod.Wrapf(channeltypes.ErrChannelCapabilityNotFound, "could not retrieve channel capability at: %s", capName)
 	}
 	return k.channelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
 }

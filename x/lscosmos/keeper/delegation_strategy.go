@@ -3,9 +3,9 @@ package keeper
 import (
 	"sort"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/gogo/protobuf/proto"
 
@@ -41,7 +41,7 @@ func (k Keeper) DelegateMsgs(ctx sdk.Context, amount math.Int, denom string, del
 	}
 
 	if len(msgs) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrInvalidMsgs, "No msgs to delegate")
+		return nil, errorsmod.Wrap(types.ErrInvalidMsgs, "No msgs to delegate")
 	}
 
 	return msgs, nil
@@ -85,7 +85,7 @@ func (k Keeper) UndelegateMsgs(ctx sdk.Context, amount math.Int, denom string, d
 
 	// should never come ideally
 	if len(msgs) == 0 || len(undelegationEntries) == 0 {
-		return nil, nil, sdkerrors.Wrap(types.ErrInvalidMsgs, "No msgs to undelegate")
+		return nil, nil, errorsmod.Wrap(types.ErrInvalidMsgs, "No msgs to undelegate")
 	}
 
 	return msgs, undelegationEntries, nil
@@ -117,7 +117,7 @@ func GetIdealCurrentDelegations(valList types.AllowListedValidators, delegationS
 	totalDelegations := delegationState.TotalDelegations(amt.Denom)
 
 	if reverse && totalDelegations.IsLT(amt) {
-		return nil, sdkerrors.Wrapf(types.ErrInsufficientFundsToUndelegate, "staked:  %s, undelegate : %s", totalDelegations, amt)
+		return nil, errorsmod.Wrapf(types.ErrInsufficientFundsToUndelegate, "staked:  %s, undelegate : %s", totalDelegations, amt)
 	}
 
 	curDiffDistribution := types.WeightedAddressAmounts{}
