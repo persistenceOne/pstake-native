@@ -94,5 +94,5 @@ func (k Keeper) HandleRewardsAccountBalanceCallback(ctx sdk.Context, response []
 		ToAddress:   delegationState.HostChainDelegationAddress,
 		Amount:      sdk.NewCoins(sdk.NewCoin(resp.Balance.Denom, sendCoinAmt)),
 	}
-	return k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountPortID(), []proto.Message{msg})
+	return k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID, []proto.Message{msg})
 }

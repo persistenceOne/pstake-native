@@ -52,7 +52,7 @@ func (k Keeper) DoDelegate(ctx sdk.Context) error {
 
 	// get host accounts and use them to generate and execute ICA tx for delegations.
 	hostAccounts := k.GetHostAccounts(ctx)
-	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), msgs)
+	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID, msgs)
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func (k Keeper) ProcessMaturedUndelegation(ctx sdk.Context) error {
 
 		msg := ibctransfertypes.NewMsgTransfer(channel.Counterparty.PortId, channel.Counterparty.ChannelId,
 			atomsUnbonded, delegationState.HostChainDelegationAddress, authtypes.NewModuleAddress(lscosmostypes.UndelegationModuleAccount).String(), timeoutHeight, 0, "")
-		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), []proto.Message{msg})
+		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID, []proto.Message{msg})
 		if err != nil {
 			return err
 		}

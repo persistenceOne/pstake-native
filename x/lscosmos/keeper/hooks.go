@@ -186,7 +186,7 @@ func (k Keeper) RewardEpochEpochWorkFlow(ctx sdk.Context, hostChainParams lscosm
 			ValidatorAddress: delegation.ValidatorAddress,
 		}
 	}
-	err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), withdrawRewardMsgs)
+	err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID, withdrawRewardMsgs)
 	return err
 	// on Ack do icq for reward acc. balance of uatom
 	// callback for sending it to delegation account
@@ -226,7 +226,7 @@ func (k Keeper) UndelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscos
 		return err
 	}
 	hostAccounts := k.GetHostAccounts(ctx)
-	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), undelegateMsgs)
+	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID, undelegateMsgs)
 	if err != nil {
 		return err
 	}
