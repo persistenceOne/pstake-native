@@ -5,6 +5,8 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/msg/v1/msg.proto";
 import "pstake/lscosmos/v1beta1/lscosmos.proto";
 
 
@@ -43,7 +45,9 @@ service Msg{
 }
 
 message MsgLiquidStake {
-  string delegator_address = 1;
+  option (cosmos.msg.v1.signer) = "delegator_address";
+
+  string delegator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
 }
 
@@ -51,33 +55,43 @@ message MsgLiquidStakeResponse{}
 
 
 message MsgLiquidUnstake {
-  string delegator_address = 1;
+  option (cosmos.msg.v1.signer) = "delegator_address";
+
+  string delegator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
 }
 
 message MsgLiquidUnstakeResponse{}
 
 message MsgRedeem {
-  string delegator_address = 1;
+  option (cosmos.msg.v1.signer) = "delegator_address";
+
+  string delegator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
 }
 
 message MsgRedeemResponse {}
 
 message MsgClaim {
-  string delegator_address = 1;
+  option (cosmos.msg.v1.signer) = "delegator_address";
+
+  string delegator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 message MsgClaimResponse {}
 
 message MsgRecreateICA {
-  string from_address = 1;
+  option (cosmos.msg.v1.signer) = "from_address";
+
+  string from_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 message MsgRecreateICAResponse {}
 
 message MsgJumpStart {
-  string pstake_address = 1;
+  option (cosmos.msg.v1.signer) = "pstake_address";
+
+  string pstake_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string chain_i_d = 2;
   string connection_i_d = 3;
   string transfer_channel = 4;
@@ -93,7 +107,9 @@ message MsgJumpStart {
 message MsgJumpStartResponse {}
 
 message MsgChangeModuleState {
-  string pstake_address = 1;
+  option (cosmos.msg.v1.signer) = "pstake_address";
+
+  string pstake_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   bool module_state = 2;
 }
 
