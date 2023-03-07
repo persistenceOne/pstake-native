@@ -153,7 +153,7 @@ func (suite *IntegrationTestSuite) TestMintToken() {
 	mintAmountDec := amt.Mul(pstakeApp.LSCosmosKeeper.GetCValue(ctx))
 	toBeMintedTokens, _ := sdk.NewDecCoinFromDec(testParams.MintDenom, mintAmountDec).TruncateDecimal()
 
-	addr := sdk.AccAddress("addr_______________")
+	addr := sdk.AccAddress("addr________________")
 	acc := pstakeApp.AccountKeeper.NewAccountWithAddress(ctx, addr)
 	pstakeApp.AccountKeeper.SetAccount(ctx, acc)
 	suite.Require().NoError(FundAccount(pstakeApp.BankKeeper, ctx, addr, sdk.NewCoins(balanceOfIbcToken)))
