@@ -313,7 +313,6 @@ replace (
 	github.com/confio/ics23/go => github.com/confio/ics23/go v0.9.0
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.46.8
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/persistenceOne/persistence-sdk => github.com/aerius-labs/persistence-sdk v0.0.0-20230222040606-afd2f502e229
+	github.com/persistenceOne/persistence-sdk => github.com/aerius-labs/persistence-sdk v0.0.0-20230307205251-521a3a831a77
 	github.com/tendermint/tendermint => github.com/informalsystems/tendermint v0.34.24
-//google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
