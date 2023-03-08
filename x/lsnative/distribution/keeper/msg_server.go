@@ -7,7 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/distribution/types"
 )
 
 type msgServer struct {
@@ -120,6 +120,78 @@ func (k msgServer) WithdrawValidatorCommission(goCtx context.Context, msg *types
 	)
 
 	return &types.MsgWithdrawValidatorCommissionResponse{Amount: amount}, nil
+}
+
+// WithdrawTokenizeShareRecordReward defines a method to withdraw reward for owning TokenizeShareRecord
+func (k msgServer) WithdrawTokenizeShareRecordReward(goCtx context.Context, msg *types.MsgWithdrawTokenizeShareRecordReward) (*types.MsgWithdrawTokenizeShareRecordRewardResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return nil, err
+	}
+	amount, err := k.Keeper.WithdrawTokenizeShareRecordReward(ctx, ownerAddr, msg.RecordId)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		for _, a := range amount {
+			if a.Amount.IsInt64() {
+				telemetry.SetGaugeWithLabels(
+					[]string{"tx", "msg", "withdraw_tokenize_share_reward"},
+					float32(a.Amount.Int64()),
+					[]metrics.Label{telemetry.NewLabel("denom", a.Denom)},
+				)
+			}
+		}
+	}()
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
+		),
+	)
+
+	return &types.MsgWithdrawTokenizeShareRecordRewardResponse{}, nil
+}
+
+// WithdrawAllTokenizeShareRecordReward defines a method to withdraw reward for owning TokenizeShareRecord
+func (k msgServer) WithdrawAllTokenizeShareRecordReward(goCtx context.Context, msg *types.MsgWithdrawAllTokenizeShareRecordReward) (*types.MsgWithdrawAllTokenizeShareRecordRewardResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return nil, err
+	}
+	amount, err := k.Keeper.WithdrawAllTokenizeShareRecordReward(ctx, ownerAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		for _, a := range amount {
+			if a.Amount.IsInt64() {
+				telemetry.SetGaugeWithLabels(
+					[]string{"tx", "msg", "withdraw_all_tokenize_share_reward"},
+					float32(a.Amount.Int64()),
+					[]metrics.Label{telemetry.NewLabel("denom", a.Denom)},
+				)
+			}
+		}
+	}()
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
+		),
+	)
+
+	return &types.MsgWithdrawAllTokenizeShareRecordRewardResponse{}, nil
 }
 
 func (k msgServer) FundCommunityPool(goCtx context.Context, msg *types.MsgFundCommunityPool) (*types.MsgFundCommunityPoolResponse, error) {

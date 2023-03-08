@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/types"
 )
 
 // Implements StakingHooks interface
@@ -28,6 +28,13 @@ func (k Keeper) BeforeValidatorModified(ctx sdk.Context, valAddr sdk.ValAddress)
 func (k Keeper) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) error {
 	if k.hooks != nil {
 		return k.hooks.AfterValidatorRemoved(ctx, consAddr, valAddr)
+	}
+	return nil
+}
+
+func (k Keeper) BeforeTokenizeShareRecordRemoved(ctx sdk.Context, recordId uint64) error {
+	if k.hooks != nil {
+		k.hooks.BeforeTokenizeShareRecordRemoved(ctx, recordId)
 	}
 	return nil
 }

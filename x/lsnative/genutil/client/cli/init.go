@@ -22,8 +22,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/genutil"
+	stakingtypes "github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/types"
 )
 
 const (

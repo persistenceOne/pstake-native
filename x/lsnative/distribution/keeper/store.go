@@ -4,7 +4,7 @@ import (
 	gogotypes "github.com/gogo/protobuf/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/distribution/types"
 )
 
 // get the delegator withdraw address, defaulting to the delegator address

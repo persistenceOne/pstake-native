@@ -4,7 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/slashing/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/slashing/types"
 )
 
 // SignedBlocksWindow - sliding window for downtime slashing

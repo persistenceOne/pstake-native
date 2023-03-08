@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/distribution/types"
 )
 
 const (

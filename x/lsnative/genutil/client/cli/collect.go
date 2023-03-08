@@ -11,8 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/genutil"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/genutil/types"
 )
 
 const flagGenTxDir = "gentx-dir"

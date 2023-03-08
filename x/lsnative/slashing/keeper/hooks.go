@@ -6,7 +6,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/slashing/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/slashing/types"
 )
 
 func (k Keeper) AfterValidatorBonded(ctx sdk.Context, address sdk.ConsAddress, _ sdk.ValAddress) error {
@@ -72,6 +72,11 @@ func (h Hooks) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, 
 // Implements sdk.ValidatorHooks
 func (h Hooks) AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddress) error {
 	return h.k.AfterValidatorCreated(ctx, valAddr)
+}
+
+// Implements sdk.ValidatorHooks - just addition to fulfill the staking hook interface
+func (h Hooks) BeforeTokenizeShareRecordRemoved(ctx sdk.Context, recordId uint64) error {
+	return nil
 }
 
 func (h Hooks) AfterValidatorBeginUnbonding(_ sdk.Context, _ sdk.ConsAddress, _ sdk.ValAddress) error {

@@ -2,8 +2,8 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/distribution/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/distribution/types"
+	stakingtypes "github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/types"
 )
 
 // Wrapper struct
@@ -76,6 +76,14 @@ func (h Hooks) AfterValidatorRemoved(ctx sdk.Context, _ sdk.ConsAddress, valAddr
 	h.k.DeleteValidatorCurrentRewards(ctx, valAddr)
 
 	return nil
+}
+
+func (h Hooks) BeforeTokenizeShareRecordRemoved(ctx sdk.Context, recordId uint64) error {
+	err := h.k.WithdrawSingleShareRecordReward(ctx, recordId)
+	if err != nil {
+		h.k.Logger(ctx).Error(err.Error())
+	}
+	return err
 }
 
 // increment period

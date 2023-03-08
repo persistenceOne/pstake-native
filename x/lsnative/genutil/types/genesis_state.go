@@ -9,7 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	stakingtypes "github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/types"
 )
 
 // NewGenesisState creates a new GenesisState object

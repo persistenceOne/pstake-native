@@ -11,7 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/distribution/types"
+	sdkdistr "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/distribution/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -31,6 +32,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryValidatorSlashes(),
 		GetCmdQueryDelegatorRewards(),
 		GetCmdQueryCommunityPool(),
+		GetCmdQueryTokenizeShareRecordReward(),
 	)
 
 	return distQueryCmd
@@ -260,7 +262,7 @@ $ %s query distribution rewards %s1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p %s1ggh
 
 				res, err := queryClient.DelegationRewards(
 					ctx,
-					&types.QueryDelegationRewardsRequest{DelegatorAddress: delegatorAddr.String(), ValidatorAddress: validatorAddr.String()},
+					&sdkdistr.QueryDelegationRewardsRequest{DelegatorAddress: delegatorAddr.String(), ValidatorAddress: validatorAddr.String()},
 				)
 				if err != nil {
 					return err
@@ -308,6 +310,51 @@ $ %s query distribution community-pool
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.CommunityPool(cmd.Context(), &types.QueryCommunityPoolRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryTokenizeShareRecordReward implements the query tokenize share record rewards
+func GetCmdQueryTokenizeShareRecordReward() *cobra.Command {
+	bech32PrefixAccAddr := sdk.GetConfig().GetBech32AccountAddrPrefix()
+
+	cmd := &cobra.Command{
+		Use:   "tokenize-share-record-rewards [owner]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query distribution tokenize share record rewards",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the query tokenize share record rewards.
+
+Example:
+$ %s query distribution tokenize-share-record-rewards %s1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
+`,
+				version.AppName, bech32PrefixAccAddr,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			ownerAddr, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.TokenizeShareRecordReward(
+				cmd.Context(),
+				&types.QueryTokenizeShareRecordRewardRequest{OwnerAddress: ownerAddr.String()},
+			)
 			if err != nil {
 				return err
 			}

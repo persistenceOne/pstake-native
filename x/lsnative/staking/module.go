@@ -16,10 +16,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	"github.com/cosmos/cosmos-sdk/x/staking/simulation"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/client/cli"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/simulation"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/types"
 )
 
 const (

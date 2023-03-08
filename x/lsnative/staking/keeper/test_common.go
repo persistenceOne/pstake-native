@@ -5,7 +5,7 @@ import (
 	"math/rand"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/types"
 )
 
 // does a certain by-power index record exist
@@ -48,7 +48,7 @@ func TestingUpdateValidator(keeper Keeper, ctx sdk.Context, validator types.Vali
 		panic(err)
 	}
 
-	validator, found := keeper.GetValidator(ctx, validator.GetOperator())
+	validator, found := keeper.GetLiquidValidator(ctx, validator.GetOperator())
 	if !found {
 		panic("validator expected but not found")
 	}

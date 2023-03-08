@@ -10,7 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	sdkstaking "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/types"
 )
 
 // creates a querier for staking REST endpoints
@@ -105,9 +106,9 @@ func queryValidator(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuer
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	validator, found := k.GetValidator(ctx, params.ValidatorAddr)
+	validator, found := k.GetLiquidValidator(ctx, params.ValidatorAddr)
 	if !found {
-		return nil, types.ErrNoValidatorFound
+		return nil, sdkstaking.ErrNoValidatorFound
 	}
 
 	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, validator)
@@ -188,7 +189,7 @@ func queryDelegatorDelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	delegations := k.GetAllDelegatorDelegations(ctx, params.DelegatorAddr)
+	delegations := k.GetAllLiquidDelegatorDelegations(ctx, params.DelegatorAddr)
 	delegationResps, err := DelegationsToDelegationResponses(ctx, k, delegations)
 	if err != nil {
 		return nil, err
@@ -299,9 +300,9 @@ func queryDelegation(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQue
 		return nil, err
 	}
 
-	delegation, found := k.GetDelegation(ctx, delAddr, valAddr)
+	delegation, found := k.GetLiquidDelegation(ctx, delAddr, valAddr)
 	if !found {
-		return nil, types.ErrNoDelegation
+		return nil, sdkstaking.ErrNoDelegation
 	}
 
 	delegationResp, err := DelegationToDelegationResponse(ctx, k, delegation)
@@ -337,7 +338,7 @@ func queryUnbondingDelegation(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 
 	unbond, found := k.GetUnbondingDelegation(ctx, delAddr, valAddr)
 	if !found {
-		return nil, types.ErrNoUnbondingDelegation
+		return nil, sdkstaking.ErrNoUnbondingDelegation
 	}
 
 	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, unbond)
@@ -362,7 +363,7 @@ func queryRedelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacy
 	case !params.DelegatorAddr.Empty() && !params.SrcValidatorAddr.Empty() && !params.DstValidatorAddr.Empty():
 		redel, found := k.GetRedelegation(ctx, params.DelegatorAddr, params.SrcValidatorAddr, params.DstValidatorAddr)
 		if !found {
-			return nil, types.ErrNoRedelegation
+			return nil, sdkstaking.ErrNoRedelegation
 		}
 
 		redels = []types.Redelegation{redel}
@@ -397,9 +398,9 @@ func queryHistoricalInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper, legac
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	hi, found := k.GetHistoricalInfo(ctx, params.Height)
+	hi, found := k.GetLiquidStakingHistoricalInfo(ctx, params.Height)
 	if !found {
-		return nil, types.ErrNoHistoricalInfo
+		return nil, sdkstaking.ErrNoHistoricalInfo
 	}
 
 	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, hi)
@@ -446,9 +447,9 @@ func queryParameters(ctx sdk.Context, k Keeper, legacyQuerierCdc *codec.LegacyAm
 // util
 
 func DelegationToDelegationResponse(ctx sdk.Context, k Keeper, del types.Delegation) (types.DelegationResponse, error) {
-	val, found := k.GetValidator(ctx, del.GetValidatorAddr())
+	val, found := k.GetLiquidValidator(ctx, del.GetValidatorAddr())
 	if !found {
-		return types.DelegationResponse{}, types.ErrNoValidatorFound
+		return types.DelegationResponse{}, sdkstaking.ErrNoValidatorFound
 	}
 
 	delegatorAddress, err := sdk.AccAddressFromBech32(del.DelegatorAddress)
@@ -460,6 +461,7 @@ func DelegationToDelegationResponse(ctx sdk.Context, k Keeper, del types.Delegat
 		delegatorAddress,
 		del.GetValidatorAddr(),
 		del.Shares,
+		del.Exempt,
 		sdk.NewCoin(k.BondDenom(ctx), val.TokensFromShares(del.Shares).TruncateInt()),
 	), nil
 }
@@ -498,9 +500,9 @@ func RedelegationsToRedelegationResponses(
 
 		delegatorAddress := sdk.MustAccAddressFromBech32(redel.DelegatorAddress)
 
-		val, found := k.GetValidator(ctx, valDstAddr)
+		val, found := k.GetLiquidValidator(ctx, valDstAddr)
 		if !found {
-			return nil, types.ErrNoValidatorFound
+			return nil, sdkstaking.ErrNoValidatorFound
 		}
 
 		entryResponses := make([]types.RedelegationEntryResponse, len(redel.Entries))

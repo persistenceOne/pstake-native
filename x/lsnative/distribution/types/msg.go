@@ -7,14 +7,18 @@ import (
 
 // distribution message types
 const (
-	TypeMsgSetWithdrawAddress          = "set_withdraw_address"
-	TypeMsgWithdrawDelegatorReward     = "withdraw_delegator_reward"
-	TypeMsgWithdrawValidatorCommission = "withdraw_validator_commission"
-	TypeMsgFundCommunityPool           = "fund_community_pool"
+	TypeMsgSetWithdrawAddress                   = "set_withdraw_address"
+	TypeMsgWithdrawDelegatorReward              = "withdraw_delegator_reward"
+	TypeMsgWithdrawValidatorCommission          = "withdraw_validator_commission"
+	TypeMsgFundCommunityPool                    = "fund_community_pool"
+	TypeMsgWithdrawTokenizeShareRecordReward    = "withdraw_tokenize_share_record_reward"
+	TypeMsgWithdrawAllTokenizeShareRecordReward = "withdraw_all_tokenize_share_record_reward"
 )
 
 // Verify interface at compile time
 var _, _, _ sdk.Msg = &MsgSetWithdrawAddress{}, &MsgWithdrawDelegatorReward{}, &MsgWithdrawValidatorCommission{}
+var _ sdk.Msg = &MsgWithdrawTokenizeShareRecordReward{}
+var _ sdk.Msg = &MsgWithdrawAllTokenizeShareRecordReward{}
 
 func NewMsgSetWithdrawAddress(delAddr, withdrawAddr sdk.AccAddress) *MsgSetWithdrawAddress {
 	return &MsgSetWithdrawAddress{
@@ -148,6 +152,75 @@ func (msg MsgFundCommunityPool) ValidateBasic() error {
 	}
 	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid depositor address: %s", err)
+	}
+	return nil
+}
+
+func NewMsgWithdrawTokenizeShareRecordReward(ownerAddr sdk.AccAddress, recordId uint64) *MsgWithdrawTokenizeShareRecordReward {
+	return &MsgWithdrawTokenizeShareRecordReward{
+		OwnerAddress: ownerAddr.String(),
+		RecordId:     recordId,
+	}
+}
+
+func (msg MsgWithdrawTokenizeShareRecordReward) Route() string { return ModuleName }
+func (msg MsgWithdrawTokenizeShareRecordReward) Type() string {
+	return TypeMsgWithdrawTokenizeShareRecordReward
+}
+
+// Return address that must sign over msg.GetSignBytes()
+func (msg MsgWithdrawTokenizeShareRecordReward) GetSigners() []sdk.AccAddress {
+	owner, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{owner}
+}
+
+// get the bytes for the message signer to sign on
+func (msg MsgWithdrawTokenizeShareRecordReward) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// quick validity check
+func (msg MsgWithdrawTokenizeShareRecordReward) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.OwnerAddress); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address: %s", err)
+	}
+	return nil
+}
+
+func NewMsgWithdrawAllTokenizeShareRecordReward(ownerAddr sdk.AccAddress) *MsgWithdrawAllTokenizeShareRecordReward {
+	return &MsgWithdrawAllTokenizeShareRecordReward{
+		OwnerAddress: ownerAddr.String(),
+	}
+}
+
+func (msg MsgWithdrawAllTokenizeShareRecordReward) Route() string { return ModuleName }
+func (msg MsgWithdrawAllTokenizeShareRecordReward) Type() string {
+	return TypeMsgWithdrawAllTokenizeShareRecordReward
+}
+
+// Return address that must sign over msg.GetSignBytes()
+func (msg MsgWithdrawAllTokenizeShareRecordReward) GetSigners() []sdk.AccAddress {
+	owner, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{owner}
+}
+
+// get the bytes for the message signer to sign on
+func (msg MsgWithdrawAllTokenizeShareRecordReward) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// quick validity check
+func (msg MsgWithdrawAllTokenizeShareRecordReward) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.OwnerAddress); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address: %s", err)
 	}
 	return nil
 }

@@ -5,7 +5,8 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	types "github.com/cosmos/cosmos-sdk/x/staking/types"
+	sdkstaking "github.com/cosmos/cosmos-sdk/x/staking/types"
+	types "github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/types"
 )
 
 // Slash a validator for an infraction committed at a known height
@@ -130,11 +131,11 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 	validator = k.RemoveValidatorTokens(ctx, validator, tokensToBurn)
 
 	switch validator.GetStatus() {
-	case types.Bonded:
+	case sdkstaking.Bonded:
 		if err := k.burnBondedTokens(ctx, tokensToBurn); err != nil {
 			panic(err)
 		}
-	case types.Unbonding, types.Unbonded:
+	case sdkstaking.Unbonding, sdkstaking.Unbonded:
 		if err := k.burnNotBondedTokens(ctx, tokensToBurn); err != nil {
 			panic(err)
 		}
@@ -263,7 +264,7 @@ func (k Keeper) SlashRedelegation(ctx sdk.Context, srcValidator types.Validator,
 
 		delegatorAddress := sdk.MustAccAddressFromBech32(redelegation.DelegatorAddress)
 
-		delegation, found := k.GetDelegation(ctx, delegatorAddress, valDstAddr)
+		delegation, found := k.GetLiquidDelegation(ctx, delegatorAddress, valDstAddr)
 		if !found {
 			// If deleted, delegation has zero shares, and we can't unbond any more
 			continue
@@ -278,7 +279,7 @@ func (k Keeper) SlashRedelegation(ctx sdk.Context, srcValidator types.Validator,
 			panic(fmt.Errorf("error unbonding delegator: %v", err))
 		}
 
-		dstValidator, found := k.GetValidator(ctx, valDstAddr)
+		dstValidator, found := k.GetLiquidValidator(ctx, valDstAddr)
 		if !found {
 			panic("destination validator not found")
 		}

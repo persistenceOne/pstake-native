@@ -14,3 +14,4 @@ The staking module contains the following parameters:
 | HistoricalEntries | uint16           | 3                      |
 | BondDenom         | string           | "stake"                |
 | MinCommissionRate | string           | "0.000000000000000000" |
+| ExemptionFactor   | string           | "0.000000000000000000" |

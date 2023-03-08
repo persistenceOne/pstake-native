@@ -16,10 +16,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/distribution/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-	"github.com/cosmos/cosmos-sdk/x/distribution/simulation"
-	"github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/distribution/client/cli"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/distribution/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/distribution/simulation"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/distribution/types"
+	stakingkeeper "github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/keeper"
 )
 
 var (
@@ -88,13 +89,13 @@ type AppModule struct {
 	keeper        keeper.Keeper
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
-	stakingKeeper types.StakingKeeper
+	stakingKeeper stakingkeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
 func NewAppModule(
 	cdc codec.Codec, keeper keeper.Keeper, accountKeeper types.AccountKeeper,
-	bankKeeper types.BankKeeper, stakingKeeper types.StakingKeeper,
+	bankKeeper types.BankKeeper, stakingKeeper stakingkeeper.Keeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{cdc: cdc},

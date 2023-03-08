@@ -1,7 +1,7 @@
 package testslashing
 
 import (
-	"github.com/cosmos/cosmos-sdk/x/slashing/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/slashing/types"
 )
 
 // TestParams construct default slashing params for tests.

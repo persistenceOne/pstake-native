@@ -11,9 +11,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/cosmos/cosmos-sdk/x/slashing/keeper"
-	"github.com/cosmos/cosmos-sdk/x/slashing/types"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/slashing/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/slashing/types"
+	stakingkeeper "github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/keeper"
 )
 
 // Simulation operation weights constants
@@ -109,17 +109,13 @@ func SimulateMsgUnjail(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Kee
 		// - validator is still in jailed period
 		// - self delegation too low
 		if info.Tombstoned ||
-			ctx.BlockHeader().Time.Before(info.JailedUntil) ||
-			validator.TokensFromShares(selfDel.GetShares()).TruncateInt().LT(validator.GetMinSelfDelegation()) {
+			ctx.BlockHeader().Time.Before(info.JailedUntil) {
 			if res != nil && err == nil {
 				if info.Tombstoned {
 					return simtypes.NewOperationMsg(msg, true, "", nil), nil, errors.New("validator should not have been unjailed if validator tombstoned")
 				}
 				if ctx.BlockHeader().Time.Before(info.JailedUntil) {
 					return simtypes.NewOperationMsg(msg, true, "", nil), nil, errors.New("validator unjailed while validator still in jail period")
-				}
-				if validator.TokensFromShares(selfDel.GetShares()).TruncateInt().LT(validator.GetMinSelfDelegation()) {
-					return simtypes.NewOperationMsg(msg, true, "", nil), nil, errors.New("validator unjailed even though self-delegation too low")
 				}
 			}
 			// msg failed as expected

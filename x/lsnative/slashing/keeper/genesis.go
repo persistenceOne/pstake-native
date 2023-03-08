@@ -2,15 +2,15 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/slashing/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	sdkstaking "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/slashing/types"
 )
 
 // InitGenesis initialize default parameters
 // and the keeper's address to pubkey map
 func (keeper Keeper) InitGenesis(ctx sdk.Context, stakingKeeper types.StakingKeeper, data *types.GenesisState) {
 	stakingKeeper.IterateValidators(ctx,
-		func(index int64, validator stakingtypes.ValidatorI) bool {
+		func(index int64, validator sdkstaking.ValidatorI) bool {
 			consPk, err := validator.ConsPubKey()
 			if err != nil {
 				panic(err)

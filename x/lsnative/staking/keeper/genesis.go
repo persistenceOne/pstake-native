@@ -6,7 +6,8 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	sdkstaking "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lsnative/staking/types"
 )
 
 // InitGenesis sets the pool and parameters for the provided keeper.  For each
@@ -48,10 +49,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) (res []ab
 		}
 
 		switch validator.GetStatus() {
-		case types.Bonded:
+		case sdkstaking.Bonded:
 			bondedTokens = bondedTokens.Add(validator.GetTokens())
 
-		case types.Unbonding, types.Unbonded:
+		case sdkstaking.Unbonding, sdkstaking.Unbonded:
 			notBondedTokens = notBondedTokens.Add(validator.GetTokens())
 
 		default:
@@ -141,7 +142,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) (res []ab
 			}
 
 			k.SetLastValidatorPower(ctx, valAddr, lv.Power)
-			validator, found := k.GetValidator(ctx, valAddr)
+			validator, found := k.GetLiquidValidator(ctx, valAddr)
 
 			if !found {
 				panic(fmt.Sprintf("validator %s not found", lv.Address))

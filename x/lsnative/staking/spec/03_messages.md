@@ -173,3 +173,31 @@ When this message is processed the following actions occur:
     * under this situation if the delegation is the validator's self-delegation then also jail the validator.
 
 ![Begin redelegation sequence](../../../docs/uml/svg/begin_redelegation_sequence.svg)
+
+## MsgTokenizeShares
+
+The `MsgTokenizeShares` message is used to create tokenize delegated tokens.
+This message can be executed by any delegator who has positive amount of delegation and after execution the specific amount of delegation disappear from the account and share tokens are provided. Share tokens are demoninated in the validator and record id of the underlying delegation.
+
+A user may tokenize some or all of their Delegation.
+
+They will recieved shares like ` cosmosvaloper1xxxx5` where 5 is the record id for the validator operator.
+
+A validator may tokenize their self bond but tokenizing more than their min self bond will be equivalent to unbonding their min self bond and cause the validator to be removed from the active set.
+
+`MsgTokenizeSharesResponse` provides the number of tokens generated and their denom.
+
+## MsgRedeemTokensforShares
+
+The `MsgRedeemTokensforShares` message is used to redeem the delegation from share tokens.
+This message can be executed by any user who owns share tokens and after execution the delegation appear for the user.
+
+## MsgTransferTokenizeShareRecord
+
+The `MsgTransferTokenizeShareRecord` message is used to transfer the ownership of rewards generated from the tokenized amount of delegation.
+The tokenize share record is created when a user tokenize his/her delegation and deleted and full amount of share tokens are redeemed.
+
+
+## MsgExemptDelegation
+
+The `MsgExemptDelegation` message is used to exempt a delegation to a validator. If the `exemption` factor is greater than 0, this will enable more delegation to the validator 

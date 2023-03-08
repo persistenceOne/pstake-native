@@ -33,8 +33,12 @@ const (
 	DefaultHistoricalEntries uint32 = 10000
 )
 
-// DefaultMinCommissionRate is set to 0%
-var DefaultMinCommissionRate = sdk.ZeroDec()
+var (
+	// DefaultMinCommissionRate is set to 0%
+	DefaultMinCommissionRate = sdk.ZeroDec()
+	// DefaultExemptionFactor is set to -1 (disabled)
+	DefaultExemptionFactor = sdk.NewDecFromInt(sdk.NewInt(-1))
+)
 
 var (
 	KeyUnbondingTime     = []byte("UnbondingTime")
@@ -43,6 +47,7 @@ var (
 	KeyBondDenom         = []byte("BondDenom")
 	KeyHistoricalEntries = []byte("HistoricalEntries")
 	KeyMinCommissionRate = []byte("MinCommissionRate")
+	KeyExemptionFactor   = []byte("ExemptionFactor")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -53,7 +58,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(unbondingTime time.Duration, maxValidators, maxEntries, historicalEntries uint32, bondDenom string, minCommissionRate sdk.Dec) Params {
+func NewParams(unbondingTime time.Duration, maxValidators, maxEntries, historicalEntries uint32, bondDenom string, minCommissionRate, exemptionFactor sdk.Dec) Params {
 	return Params{
 		UnbondingTime:     unbondingTime,
 		MaxValidators:     maxValidators,
@@ -61,6 +66,7 @@ func NewParams(unbondingTime time.Duration, maxValidators, maxEntries, historica
 		HistoricalEntries: historicalEntries,
 		BondDenom:         bondDenom,
 		MinCommissionRate: minCommissionRate,
+		ExemptionFactor:   exemptionFactor,
 	}
 }
 
@@ -73,6 +79,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyHistoricalEntries, &p.HistoricalEntries, validateHistoricalEntries),
 		paramtypes.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
 		paramtypes.NewParamSetPair(KeyMinCommissionRate, &p.MinCommissionRate, validateMinCommissionRate),
+		paramtypes.NewParamSetPair(KeyExemptionFactor, &p.ExemptionFactor, validateExemptionFactor),
 	}
 }
 
@@ -85,6 +92,7 @@ func DefaultParams() Params {
 		DefaultHistoricalEntries,
 		sdk.DefaultBondDenom,
 		DefaultMinCommissionRate,
+		DefaultExemptionFactor,
 	)
 }
 
@@ -133,6 +141,10 @@ func (p Params) Validate() error {
 	}
 
 	if err := validateMinCommissionRate(p.MinCommissionRate); err != nil {
+		return err
+	}
+
+	if err := validateExemptionFactor(p.ExemptionFactor); err != nil {
 		return err
 	}
 
@@ -228,6 +240,19 @@ func validateMinCommissionRate(i interface{}) error {
 	}
 	if v.GT(sdk.OneDec()) {
 		return fmt.Errorf("minimum commission rate cannot be greater than 100%%: %s", v)
+	}
+
+	return nil
+}
+
+func validateExemptionFactor(i interface{}) error {
+	v, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.IsNegative() && !v.Equal(sdk.NewDec(-1)) {
+		return fmt.Errorf("invalid exemption factor: %s", v)
 	}
 
 	return nil
