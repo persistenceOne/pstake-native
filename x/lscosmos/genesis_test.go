@@ -16,7 +16,7 @@ func TestGenesis(t *testing.T) {
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
-	_, pStakeApp, ctx := helpers.CreateTestApp()
+	_, pStakeApp, ctx := helpers.CreateTestApp(t)
 	k := pStakeApp.LSCosmosKeeper
 	lscosmos.InitGenesis(ctx, k, genesisState)
 	got := lscosmos.ExportGenesis(ctx, k)

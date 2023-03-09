@@ -4,9 +4,7 @@ import (
 	"errors"
 	"io"
 	"os"
-	"path/filepath"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
@@ -16,18 +14,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/snapshots"
-	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-	ibcclienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
@@ -69,7 +66,9 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			}
 
 			customTemplate, custompStakeConfig := initAppConfig()
-			return server.InterceptConfigsPreRunHandler(cmd, customTemplate, custompStakeConfig)
+			customTMConfig := initTendermintConfig()
+
+			return server.InterceptConfigsPreRunHandler(cmd, customTemplate, custompStakeConfig, customTMConfig)
 		},
 	}
 
@@ -78,11 +77,22 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	return rootCmd, encodingConfig
 }
 
+// initTendermintConfig helps to override default Tendermint Config values.
+// return tmcfg.DefaultConfig if no custom configuration is required for the application.
+func initTendermintConfig() *tmcfg.Config {
+	cfg := tmcfg.DefaultConfig()
+
+	// these values put a higher strain on node memory
+	// cfg.P2P.MaxNumInboundPeers = 100
+	// cfg.P2P.MaxNumOutboundPeers = 40
+
+	return cfg
+}
 func initAppConfig() (string, interface{}) {
 	srvCfg := serverconfig.DefaultConfig()
 	srvCfg.StateSync.SnapshotInterval = 1000
 	srvCfg.StateSync.SnapshotKeepRecent = 10
-
+	srvCfg.MinGasPrices = "0uxprt"
 	return params.CustomConfigTemplate, params.CustomAppConfig{
 		Config: *srvCfg,
 		BypassMinFeeMsgTypes: []string{
@@ -189,31 +199,11 @@ func (ac appCreator) newApp(
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
-
-	var cache sdk.MultiStorePersistentCache
-
-	if cast.ToBool(appOpts.Get(server.FlagInterBlockCache)) {
-		cache = store.NewCommitKVStoreCacheManager()
-	}
+	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
 	skipUpgradeHeights := make(map[int64]bool)
 	for _, h := range cast.ToIntSlice(appOpts.Get(server.FlagUnsafeSkipUpgrades)) {
 		skipUpgradeHeights[int64(h)] = true
-	}
-
-	pruningOpts, err := server.GetPruningOptionsFromFlags(appOpts)
-	if err != nil {
-		panic(err)
-	}
-
-	snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots")
-	snapshotDB, err := sdk.NewLevelDB("metadata", snapshotDir)
-	if err != nil {
-		panic(err)
-	}
-	snapshotStore, err := snapshots.NewStore(snapshotDB, snapshotDir)
-	if err != nil {
-		panic(err)
 	}
 
 	return pstakeApp.NewpStakeApp(
@@ -222,17 +212,7 @@ func (ac appCreator) newApp(
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
 		ac.encCfg,
 		appOpts,
-		baseapp.SetPruning(pruningOpts),
-		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
-		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(server.FlagHaltHeight))),
-		baseapp.SetHaltTime(cast.ToUint64(appOpts.Get(server.FlagHaltTime))),
-		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks))),
-		baseapp.SetInterBlockCache(cache),
-		baseapp.SetTrace(cast.ToBool(appOpts.Get(server.FlagTrace))),
-		baseapp.SetIndexEvents(cast.ToStringSlice(appOpts.Get(server.FlagIndexEvents))),
-		baseapp.SetSnapshotStore(snapshotStore),
-		baseapp.SetSnapshotInterval(cast.ToUint64(appOpts.Get(server.FlagStateSyncSnapshotInterval))),
-		baseapp.SetSnapshotKeepRecent(cast.ToUint32(appOpts.Get(server.FlagStateSyncSnapshotKeepRecent))),
+		baseappOptions...,
 	)
 }
 
@@ -245,34 +225,22 @@ func (ac appCreator) appExport(
 	jailAllowedAddrs []string,
 	appOpts servertypes.AppOptions,
 ) (servertypes.ExportedApp, error) {
-
+	var pStakeApp *pstakeApp.PstakeApp
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {
-		return servertypes.ExportedApp{}, errors.New("application home is not set")
+		return servertypes.ExportedApp{}, errors.New("application home not set")
 	}
-
-	var loadLatest bool
-	if height == -1 {
-		loadLatest = true
-	}
-
-	pStakeApp := pstakeApp.NewpStakeApp(
-		logger,
-		db,
-		traceStore,
-		loadLatest,
-		map[int64]bool{},
-		homePath,
-		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
-		ac.encCfg,
-		appOpts,
-	)
 
 	if height != -1 {
+		pStakeApp = pstakeApp.NewpStakeApp(logger, db, traceStore, false, map[int64]bool{}, homePath, uint(1), ac.encCfg, appOpts)
+
 		if err := pStakeApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
+	} else {
+		pStakeApp = pstakeApp.NewpStakeApp(logger, db, traceStore, true, map[int64]bool{}, homePath, uint(1), ac.encCfg, appOpts)
 	}
 
 	return pStakeApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
+
 }

@@ -6,7 +6,7 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 // RegisterLegacyAminoCodec registers the necessary x/lscosmos interfaces and concrete types
@@ -22,6 +22,10 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgRecreateICA{}, "cosmos/MsgRecreateICA", nil)
 	cdc.RegisterConcrete(&MsgJumpStart{}, "cosmos/MsgJumpStart", nil)
 	cdc.RegisterConcrete(&MsgChangeModuleState{}, "cosmos/MsgChangeModuleState", nil)
+	//cdc.RegisterConcrete(&MinDepositAndFeeChangeProposal{}, "pstake/MinDepositAndFeeChange", nil)
+	//cdc.RegisterConcrete(&PstakeFeeAddressChangeProposal{}, "pstake/PstakeFeeAddressChange", nil)
+	//cdc.RegisterConcrete(&AllowListedValidatorSetChangeProposal{}, "pstake/AllowListedValidatorSetChange", nil)
+
 }
 
 // RegisterInterfaces registers the x/lscosmos interfaces types with the interface registry

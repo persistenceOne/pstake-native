@@ -67,7 +67,7 @@ func main() {
 	http.HandleFunc("/node_id", getNodeIDHandler)
 	http.HandleFunc("/pub_key", getPubKeyHandler)
 	http.HandleFunc("/genesis", getGenesisHandler)
-	err := http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv(portKey)), nil)
+	err := http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv(portKey)), nil) //nolint: gosec
 	if err != nil {
 		log.Fatalf("Fail to start server, %s\n", err)
 	}

@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 const (
@@ -23,15 +24,12 @@ var (
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeMinDepositAndFeeChange)
-	govtypes.RegisterProposalTypeCodec(&MinDepositAndFeeChangeProposal{}, "pstake/MinDepositAndFeeChange")
 	govtypes.RegisterProposalType(ProposalPstakeFeeAddressChange)
-	govtypes.RegisterProposalTypeCodec(&PstakeFeeAddressChangeProposal{}, "pstake/PstakeFeeAddressChange")
 	govtypes.RegisterProposalType(ProposalAllowListedValidatorSetChange)
-	govtypes.RegisterProposalTypeCodec(&AllowListedValidatorSetChangeProposal{}, "pstake/AllowListedValidatorSetChange")
 }
 
 // NewHostChainParams returns HostChainParams with the input provided
-func NewHostChainParams(chainID, connectionID, channel, port, baseDenom, mintDenom, pstakefeeAddress string, minDeposit sdktypes.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee sdktypes.Dec) HostChainParams {
+func NewHostChainParams(chainID, connectionID, channel, port, baseDenom, mintDenom, pstakefeeAddress string, minDeposit math.Int, pstakeDepositFee, pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee sdktypes.Dec) HostChainParams {
 	return HostChainParams{
 		ChainID:         chainID,
 		ConnectionID:    connectionID,
@@ -67,7 +65,7 @@ func (c *HostChainParams) IsEmpty() bool {
 }
 
 // NewMinDepositAndFeeChangeProposal creates a protocol fee and min deposit change proposal.
-func NewMinDepositAndFeeChangeProposal(title, description string, minDeposit sdktypes.Int, pstakeDepositFee,
+func NewMinDepositAndFeeChangeProposal(title, description string, minDeposit math.Int, pstakeDepositFee,
 	pstakeRestakeFee, pstakeUnstakeFee, pstakeRedemptionFee sdktypes.Dec) *MinDepositAndFeeChangeProposal {
 
 	return &MinDepositAndFeeChangeProposal{
@@ -109,23 +107,23 @@ func (m *MinDepositAndFeeChangeProposal) ValidateBasic() error {
 	}
 
 	if m.PstakeDepositFee.IsNegative() || m.PstakeDepositFee.GTE(MaxPstakeDepositFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake deposit fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeDepositFee)
+		return errorsmod.Wrapf(ErrInvalidFee, "pstake deposit fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeDepositFee)
 	}
 
 	if m.PstakeRestakeFee.IsNegative() || m.PstakeRestakeFee.GTE(MaxPstakeRestakeFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake restake fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeRestakeFee)
+		return errorsmod.Wrapf(ErrInvalidFee, "pstake restake fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeRestakeFee)
 	}
 
 	if m.PstakeUnstakeFee.IsNegative() || m.PstakeUnstakeFee.GTE(MaxPstakeUnstakeFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake unstake fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeUnstakeFee)
+		return errorsmod.Wrapf(ErrInvalidFee, "pstake unstake fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeUnstakeFee)
 	}
 
 	if m.PstakeRedemptionFee.IsNegative() || m.PstakeRedemptionFee.GTE(MaxPstakeRedemptionFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake redemption fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeRedemptionFee)
+		return errorsmod.Wrapf(ErrInvalidFee, "pstake redemption fee must be between %s and %s", sdktypes.ZeroDec(), MaxPstakeRedemptionFee)
 	}
 
 	if m.MinDeposit.LTE(sdktypes.ZeroInt()) {
-		return sdkerrors.Wrapf(ErrInvalidDeposit, "min deposit must be positive")
+		return errorsmod.Wrapf(ErrInvalidDeposit, "min deposit must be positive")
 	}
 
 	return nil
@@ -254,7 +252,7 @@ func (m *AllowListedValidatorSetChangeProposal) ValidateBasic() error {
 	}
 
 	if !m.AllowListedValidators.Valid() {
-		return sdkerrors.Wrapf(ErrInValidAllowListedValidators, "allow listed validators is not valid")
+		return errorsmod.Wrapf(ErrInValidAllowListedValidators, "allow listed validators is not valid")
 	}
 
 	return nil

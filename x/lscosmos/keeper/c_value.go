@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -8,12 +9,12 @@ import (
 )
 
 // GetMintedAmount gets minted amount
-func (k Keeper) GetMintedAmount(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetMintedAmount(ctx sdk.Context) math.Int {
 	return k.bankKeeper.GetSupply(ctx, k.GetHostChainParams(ctx).MintDenom).Amount
 }
 
 // GetDepositAccountAmount returns the deposit account amount of the IBC denom
-func (k Keeper) GetDepositAccountAmount(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetDepositAccountAmount(ctx sdk.Context) math.Int {
 	return k.bankKeeper.GetBalance(
 		ctx,
 		authtypes.NewModuleAddress(types.DepositModuleAccount),
@@ -22,7 +23,7 @@ func (k Keeper) GetDepositAccountAmount(ctx sdk.Context) sdk.Int {
 }
 
 // GetIBCTransferTransientAmount returns the IBC transfer transient amount of the IBC denom
-func (k Keeper) GetIBCTransferTransientAmount(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetIBCTransferTransientAmount(ctx sdk.Context) math.Int {
 	transferAmount := k.GetIBCTransientStore(ctx).IBCTransfer
 
 	sum := sdk.ZeroInt()
@@ -34,7 +35,7 @@ func (k Keeper) GetIBCTransferTransientAmount(ctx sdk.Context) sdk.Int {
 }
 
 // GetDelegationTransientAmount returns the delegation transient amount of the IBC denom
-func (k Keeper) GetDelegationTransientAmount(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetDelegationTransientAmount(ctx sdk.Context) math.Int {
 	icaDelegateAmount := k.GetIBCTransientStore(ctx).ICADelegate.Amount
 	if icaDelegateAmount.IsNil() {
 		return sdk.ZeroInt()
@@ -44,7 +45,7 @@ func (k Keeper) GetDelegationTransientAmount(ctx sdk.Context) sdk.Int {
 }
 
 // GetStakedAmount returns the total staked amount stored in delegation state
-func (k Keeper) GetStakedAmount(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetStakedAmount(ctx sdk.Context) math.Int {
 	sum := sdk.ZeroInt()
 	for _, delegation := range k.GetDelegationState(ctx).HostAccountDelegations {
 		sum = sum.Add(delegation.Amount.Amount)
@@ -53,7 +54,7 @@ func (k Keeper) GetStakedAmount(ctx sdk.Context) sdk.Int {
 }
 
 // GetHostDelegationAccountAmount returns the host account delegation account amount of IBC denom
-func (k Keeper) GetHostDelegationAccountAmount(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetHostDelegationAccountAmount(ctx sdk.Context) math.Int {
 	return k.GetDelegationState(ctx).HostDelegationAccountBalance.AmountOf(k.GetHostChainParams(ctx).BaseDenom)
 }
 

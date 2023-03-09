@@ -3,9 +3,10 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v4/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/gogo/protobuf/proto"
 	"github.com/persistenceOne/persistence-sdk/v2/utils"
 
 	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
@@ -51,7 +52,7 @@ func (k Keeper) DoDelegate(ctx sdk.Context) error {
 
 	// get host accounts and use them to generate and execute ICA tx for delegations.
 	hostAccounts := k.GetHostAccounts(ctx)
-	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), msgs)
+	err = k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID, msgs)
 	if err != nil {
 		return err
 	}
@@ -90,8 +91,8 @@ func (k Keeper) ProcessMaturedUndelegation(ctx sdk.Context) error {
 		timeoutHeight := clienttypes.NewHeight(selfHeight.GetRevisionNumber(), selfHeight.GetRevisionHeight()+lscosmostypes.IBCTimeoutHeightIncrement)
 
 		msg := ibctransfertypes.NewMsgTransfer(channel.Counterparty.PortId, channel.Counterparty.ChannelId,
-			atomsUnbonded, delegationState.HostChainDelegationAddress, authtypes.NewModuleAddress(lscosmostypes.UndelegationModuleAccount).String(), timeoutHeight, 0)
-		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID(), []sdk.Msg{msg})
+			atomsUnbonded, delegationState.HostChainDelegationAddress, authtypes.NewModuleAddress(lscosmostypes.UndelegationModuleAccount).String(), timeoutHeight, 0, "")
+		err := k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID, []proto.Message{msg})
 		if err != nil {
 			return err
 		}

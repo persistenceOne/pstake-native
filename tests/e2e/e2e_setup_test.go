@@ -132,8 +132,10 @@ func (s *IntegrationTestSuite) initNodes(c *chain) {
 	// initialize a genesis file for the first validator
 	val0ConfigDir := c.validators[0].configDir()
 	for _, val := range c.validators {
+		addr, err := val.keyInfo.GetAddress()
+		s.Require().NoError(err)
 		s.Require().NoError(
-			addGenesisAccount(val0ConfigDir, "", initBalanceStr, val.keyInfo.GetAddress()),
+			addGenesisAccount(val0ConfigDir, "", initBalanceStr, addr),
 		)
 	}
 

@@ -3,6 +3,7 @@ package types
 import (
 	"sort"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -11,7 +12,7 @@ import (
 type WeightedAddressAmount struct {
 	Address         string
 	Weight          sdk.Dec
-	Amount          sdk.Int
+	Amount          math.Int
 	Denom           string
 	UnbondingTokens sdk.Coin
 }

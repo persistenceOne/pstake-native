@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
@@ -9,12 +10,12 @@ import (
 // HandleMinDepositAndFeeChangeProposal changes host chain params for desired min-deposit and protocol fee
 func HandleMinDepositAndFeeChangeProposal(ctx sdk.Context, k Keeper, content types.MinDepositAndFeeChangeProposal) error {
 	if !k.GetModuleState(ctx) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
 	}
 
 	hostChainParams := k.GetHostChainParams(ctx)
 	if hostChainParams.IsEmpty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
 	}
 
 	// modify oldData with the new proposal content
@@ -46,16 +47,16 @@ func HandlePstakeFeeAddressChangeProposal(ctx sdk.Context, k Keeper, content typ
 // HandleAllowListedValidatorSetChangeProposal changes the allowList validator set
 func HandleAllowListedValidatorSetChangeProposal(ctx sdk.Context, k Keeper, content types.AllowListedValidatorSetChangeProposal) error {
 	if !k.GetModuleState(ctx) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "Module not enabled")
 	}
 
 	hostChainParams := k.GetHostChainParams(ctx)
 	if hostChainParams.IsEmpty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "host chain not registered")
 	}
 
 	if !content.AllowListedValidators.Valid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Allow listed validators is invalid")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "Allow listed validators is invalid")
 	}
 
 	k.SetAllowListedValidators(ctx, content.AllowListedValidators)

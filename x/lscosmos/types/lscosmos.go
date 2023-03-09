@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 )
 
 type (
@@ -144,7 +144,7 @@ func NewDelegatorUnbondingEpochEntry(delegatorAddress string, epochNumber int64,
 
 // GetUnbondingEpochCValue returns the calculated c value from the UnbondingEpochCValue struct entries.
 func (uec *UnbondingEpochCValue) GetUnbondingEpochCValue() sdk.Dec {
-	return uec.STKBurn.Amount.ToDec().Quo(uec.AmountUnbonded.Amount.ToDec())
+	return sdk.NewDecFromInt(uec.STKBurn.Amount).Quo(sdk.NewDecFromInt(uec.AmountUnbonded.Amount))
 }
 
 // CurrentUnbondingEpoch computes and returns current unbonding epoch to the next nearest multiple
@@ -198,19 +198,19 @@ func (pstakeParams *PstakeParams) Validate() error {
 	}
 
 	if pstakeParams.PstakeDepositFee.IsNegative() || pstakeParams.PstakeDepositFee.GTE(MaxPstakeDepositFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake deposit fee must be between %s and %s", sdk.ZeroDec(), MaxPstakeDepositFee)
+		return errorsmod.Wrapf(ErrInvalidFee, "pstake deposit fee must be between %s and %s", sdk.ZeroDec(), MaxPstakeDepositFee)
 	}
 
 	if pstakeParams.PstakeRestakeFee.IsNegative() || pstakeParams.PstakeRestakeFee.GTE(MaxPstakeRestakeFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake restake fee must be between %s and %s", sdk.ZeroDec(), MaxPstakeRestakeFee)
+		return errorsmod.Wrapf(ErrInvalidFee, "pstake restake fee must be between %s and %s", sdk.ZeroDec(), MaxPstakeRestakeFee)
 	}
 
 	if pstakeParams.PstakeUnstakeFee.IsNegative() || pstakeParams.PstakeUnstakeFee.GTE(MaxPstakeUnstakeFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake unstake fee must be between %s and %s", sdk.ZeroDec(), MaxPstakeUnstakeFee)
+		return errorsmod.Wrapf(ErrInvalidFee, "pstake unstake fee must be between %s and %s", sdk.ZeroDec(), MaxPstakeUnstakeFee)
 	}
 
 	if pstakeParams.PstakeRedemptionFee.IsNegative() || pstakeParams.PstakeRedemptionFee.GTE(MaxPstakeRedemptionFee) {
-		return sdkerrors.Wrapf(ErrInvalidFee, "pstake redemption fee must be between %s and %s", sdk.ZeroDec(), MaxPstakeRedemptionFee)
+		return errorsmod.Wrapf(ErrInvalidFee, "pstake redemption fee must be between %s and %s", sdk.ZeroDec(), MaxPstakeRedemptionFee)
 	}
 	return nil
 }
