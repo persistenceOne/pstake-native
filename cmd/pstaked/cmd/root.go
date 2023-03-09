@@ -92,7 +92,7 @@ func initAppConfig() (string, interface{}) {
 	srvCfg := serverconfig.DefaultConfig()
 	srvCfg.StateSync.SnapshotInterval = 1000
 	srvCfg.StateSync.SnapshotKeepRecent = 10
-	srvCfg.MinGasPrices = "0stake,0uxprt"
+	srvCfg.MinGasPrices = "0uxprt"
 	return params.CustomConfigTemplate, params.CustomAppConfig{
 		Config: *srvCfg,
 		BypassMinFeeMsgTypes: []string{
