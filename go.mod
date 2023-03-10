@@ -4,7 +4,8 @@ go 1.19
 
 require (
 	cosmossdk.io/errors v1.0.0-beta.7
-	cosmossdk.io/math v1.0.0-beta.3
+	cosmossdk.io/math v1.0.0-beta.6
+	github.com/cosmos/cosmos-proto v1.0.0-alpha8
 	github.com/cosmos/cosmos-sdk v0.46.9
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/ibc-go/v6 v6.1.0
@@ -78,7 +79,6 @@ require (
 	github.com/confio/ics23/go v0.9.0 // indirect
 	github.com/containerd/continuity v0.3.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
-	github.com/cosmos/cosmos-proto v1.0.0-alpha8 // indirect
 	github.com/cosmos/gorocksdb v1.2.0 // indirect
 	github.com/cosmos/iavl v0.19.5 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.12.2 // indirect
@@ -282,7 +282,7 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.23.0 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
-	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
+	golang.org/x/exp v0.0.0-20221205204356-47842c84f3db // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230203172020-98cc5a0785f9 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.6.0 // indirect
