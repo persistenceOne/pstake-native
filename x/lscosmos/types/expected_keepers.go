@@ -5,7 +5,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
@@ -85,7 +84,6 @@ type IBCTransferKeeper interface {
 type ICAControllerKeeper interface {
 	RegisterInterchainAccount(ctx sdk.Context, connectionID, owner string, version string) error
 	GetInterchainAccountAddress(ctx sdk.Context, connectionID, portID string) (string, bool)
-	SendTx(ctx sdk.Context, chanCap *capabilitytypes.Capability, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error)
 	GetOpenActiveChannel(ctx sdk.Context, connectionID, portID string) (string, bool)
 }
 

@@ -41,6 +41,7 @@ func (k Keeper) GenerateAndExecuteICATx(ctx sdk.Context, connectionID string, ow
 		k.Logger(ctx).Error(fmt.Sprintf("send ica txn of msgs: %s failed with err: %v", msgs, err))
 		return errorsmod.Wrapf(lscosmostypes.ErrICATxFailure, "Failed to send ica msgs with err: %v", err)
 	}
+	ctx.EventManager().EmitEvents(res.GetEvents())
 
 	for _, msgResponse := range res.MsgResponses {
 		var parsedMsgResponse types.MsgSendTxResponse
