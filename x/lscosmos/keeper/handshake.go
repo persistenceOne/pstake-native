@@ -47,11 +47,6 @@ func (k Keeper) OnChanOpenInit(
 		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", versionData.Version, icatypes.Version)
 	}
 
-	//// Claim channel capability passed back by IBC module
-	//if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-	//	return "", err
-	//}
-
 	return version, nil
 }
 
