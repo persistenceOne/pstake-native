@@ -530,11 +530,11 @@ func (m msgServer) ChangeModuleState(goCtx context.Context, msg *types.MsgChange
 		return nil, types.ErrModuleNotInitialised
 	}
 	if hostChainParams.PstakeParams.PstakeFeeAddress != msg.PstakeAddress {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, fmt.Sprintf("Only admin address is allowed to call this method, current admin address: %s", hostChainParams.PstakeParams.PstakeFeeAddress))
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, fmt.Sprintf("Only admin address is allowed to call this method, current admin address: %s", hostChainParams.PstakeParams.PstakeFeeAddress))
 	}
 	moduleState := m.Keeper.GetModuleState(ctx)
 	if moduleState == msg.ModuleState {
-		return nil, sdkerrors.Wrap(types.ErrModuleNotInitialised, fmt.Sprintf("currentState: %v", moduleState))
+		return nil, errorsmod.Wrap(types.ErrModuleNotInitialised, fmt.Sprintf("currentState: %v", moduleState))
 	}
 	m.Keeper.SetModuleState(ctx, msg.ModuleState)
 
