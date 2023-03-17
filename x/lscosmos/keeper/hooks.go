@@ -145,9 +145,9 @@ func (k Keeper) DelegationEpochWorkFlow(ctx sdk.Context, hostChainParams lscosmo
 			k.Logger(ctx).Error(fmt.Sprintf("could not send transfer msg via MsgServiceRouter, error: %s", err))
 			return err
 		}
-		k.AddIBCTransferToTransientStore(ctx, depositBalance)
-
 		ctx.EventManager().EmitEvents(res.GetEvents())
+
+		k.AddIBCTransferToTransientStore(ctx, depositBalance)
 	}
 	// move extra tokens to pstake address - anyone can send tokens to delegation address.
 	// deposit address is deny-listed address - can only accept tokens via transactions, so should not have any extra tokens

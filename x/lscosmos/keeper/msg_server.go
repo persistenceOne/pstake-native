@@ -433,7 +433,7 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 		return nil, errorsmod.Wrap(ibcchanneltypes.ErrChannelNotFound, fmt.Sprintf("channel for ibc transfer: %s not found", msg.TransferChannel))
 	}
 	if channel.State != ibcchanneltypes.OPEN {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			ibcchanneltypes.ErrInvalidChannelState,
 			"channel state is not OPEN (got %s)", channel.State.String(),
 		)
@@ -448,7 +448,7 @@ func (m msgServer) JumpStart(goCtx context.Context, msg *types.MsgJumpStart) (*t
 	// This checks for channel being active
 	err = m.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.ConnectionID, hostAccounts.DelegatorAccountOwnerID, "")
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "Could not register ica delegation Address")
+		return nil, errorsmod.Wrap(err, "Could not register ica delegation Address")
 	}
 
 	newHostChainParams := types.NewHostChainParams(msg.ChainID, msg.ConnectionID, msg.TransferChannel,
@@ -492,7 +492,7 @@ func (m msgServer) RecreateICA(goCtx context.Context, msg *types.MsgRecreateICA)
 	if !ok {
 		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountOwnerID, "")
 		if err != nil {
-			return nil, sdkerrors.Wrap(err, "Could not register ica delegation Address")
+			return nil, errorsmod.Wrap(err, "Could not register ica delegation Address")
 		}
 		msgAttributes = append(msgAttributes, sdktypes.NewAttribute(types.AttributeRecreateDelegationICA, hostAccounts.DelegatorAccountPortID()))
 	}
@@ -500,7 +500,7 @@ func (m msgServer) RecreateICA(goCtx context.Context, msg *types.MsgRecreateICA)
 	if !ok {
 		err := m.icaControllerKeeper.RegisterInterchainAccount(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID, "")
 		if err != nil {
-			return nil, sdkerrors.Wrap(err, "Could not register ica reward Address")
+			return nil, errorsmod.Wrap(err, "Could not register ica reward Address")
 		}
 		msgAttributes = append(msgAttributes, sdktypes.NewAttribute(types.AttributeRecreateRewardsICA, hostAccounts.RewardsAccountPortID()))
 	}

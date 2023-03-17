@@ -14,7 +14,6 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/gogo/protobuf/proto"
 
@@ -46,11 +45,6 @@ func (k Keeper) OnChanOpenInit(
 	}
 	if versionData.Version != icatypes.Version {
 		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", versionData.Version, icatypes.Version)
-	}
-
-	// Claim channel capability passed back by IBC module
-	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return "", err
 	}
 
 	return version, nil
@@ -178,11 +172,8 @@ func (k Keeper) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	_, ok := k.lscosmosScopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(modulePacket.GetSourcePort(), modulePacket.GetSourceChannel()))
-	if !ok {
-		return errorsmod.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "capability not found for port: %s channel: %s in module: %s", modulePacket.GetSourcePort(), modulePacket.GetSourceChannel(), types.ModuleName)
-	}
-	// TODO add checks for capabilities, ports, channels
+
+	// TODO add checks for ports, channels
 	hostChainParams := k.GetHostChainParams(ctx)
 
 	var ack channeltypes.Acknowledgement
@@ -250,10 +241,6 @@ func (k Keeper) OnTimeoutPacket(
 	relayer sdk.AccAddress,
 ) error {
 	// this line is used by starport scaffolding # oracle/packet/module/ack
-	_, ok := k.lscosmosScopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(modulePacket.GetSourcePort(), modulePacket.GetSourceChannel()))
-	if !ok {
-		return errorsmod.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "capability not found for port: %s channel: %s in module: %s", modulePacket.GetSourcePort(), modulePacket.GetSourceChannel(), types.ModuleName)
-	}
 
 	var icaPacket icatypes.InterchainAccountPacketData
 	if err := icatypes.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), &icaPacket); err != nil {
