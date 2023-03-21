@@ -9,6 +9,7 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibcporttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
@@ -551,4 +552,64 @@ func (m msgServer) ChangeModuleState(goCtx context.Context, msg *types.MsgChange
 	)
 	return &types.MsgChangeModuleStateResponse{}, nil
 
+}
+
+// ReportSlashing defines an admin method for reporting slashing on a validator
+func (m msgServer) ReportSlashing(goCtx context.Context, msg *types.MsgReportSlashing) (*types.MsgReportSlashingResponse, error) {
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	// check if module is inactive or active
+	if !m.GetModuleState(ctx) {
+		return nil, types.ErrModuleDisabled
+	}
+
+	hostChainParams := m.Keeper.GetHostChainParams(ctx)
+	if hostChainParams.IsEmpty() {
+		return nil, types.ErrModuleNotInitialised
+	}
+	if hostChainParams.PstakeParams.PstakeFeeAddress != msg.PstakeAddress {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "Only admin address is allowed to call this method, current admin address: %s", hostChainParams.PstakeParams.PstakeFeeAddress)
+	}
+
+	delegationState := m.Keeper.GetDelegationState(ctx)
+	_, hostAccountDelegations := m.Keeper.GetAllValidatorsState(ctx, hostChainParams.BaseDenom)
+	exists := false
+	for _, val := range hostAccountDelegations {
+		if val.ValidatorAddress == msg.ValidatorAddress && val.Amount.IsPositive() {
+			exists = true
+			break
+		}
+	}
+	if !exists {
+		return nil, errorsmod.Wrapf(types.ErrNoHostChainDelegations, "No delegation found for validator: %s", msg.ValidatorAddress)
+	}
+
+	pending, err := m.Keeper.CheckPendingICATxs(ctx)
+	if pending {
+		return nil, err
+	}
+
+	delegationRequest := stakingtypes.QueryDelegationRequest{
+		DelegatorAddr: delegationState.HostChainDelegationAddress,
+		ValidatorAddr: msg.ValidatorAddress,
+	}
+	bz, err := m.cdc.Marshal(&delegationRequest)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "Failed to Marshal delegationRequest")
+	}
+	m.Keeper.icqKeeper.MakeRequest(ctx, hostChainParams.ConnectionID, hostChainParams.ChainID, "cosmos.staking.v1beta1.Query/Delegation",
+		bz, sdktypes.NewInt(int64(-1)), types.ModuleName, Delegation, 0)
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeReportSlashing,
+			sdktypes.NewAttribute(types.AtttibuteValidatorAddress, msg.ValidatorAddress),
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.PstakeAddress),
+		)},
+	)
+	return &types.MsgReportSlashingResponse{}, nil
 }

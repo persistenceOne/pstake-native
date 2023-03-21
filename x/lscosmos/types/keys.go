@@ -45,6 +45,9 @@ const (
 	// MsgTypeChangeModuleState is the type of message Change Module State
 	MsgTypeChangeModuleState = "msg_change_module_state"
 
+	// MsgTypeReportSlashing is the type of message Report Slashing
+	MsgTypeReportSlashing = "msg_report_slashing"
+
 	// DepositModuleAccount DepositModuleAccountName
 	DepositModuleAccount = ModuleName + "_pstake_deposit_account"
 

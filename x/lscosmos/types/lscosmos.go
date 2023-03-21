@@ -8,6 +8,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 )
 
@@ -119,6 +121,17 @@ func ValAddressFromBech32(address string) (addr sdk.ValAddress, err error) {
 	}
 
 	return bz, nil
+}
+
+func Bech32FromValAddress(valAddr sdk.ValAddress) (string, error) {
+	if valAddr.Empty() {
+		return "", sdkerrors.ErrInvalidAddress
+	}
+	bech32Addr, err := bech32.ConvertAndEncode(CosmosValOperPrefix, valAddr)
+	if err != nil {
+		return "", err
+	}
+	return bech32Addr, nil
 }
 
 // TotalDelegations gives the amount of total delegations on Host Chain.

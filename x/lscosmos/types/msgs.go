@@ -18,6 +18,7 @@ var (
 	_ sdk.Msg = &MsgRecreateICA{}
 	_ sdk.Msg = &MsgJumpStart{}
 	_ sdk.Msg = &MsgChangeModuleState{}
+	_ sdk.Msg = &MsgReportSlashing{}
 )
 
 // NewMsgLiquidStake returns a new MsgLiquidStake
@@ -340,6 +341,52 @@ func (m *MsgChangeModuleState) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgChangeModuleState) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.PstakeAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// NewMsgReportSlashing returns a new MsgReportSlashing
+//
+//nolint:interfacer
+func NewMsgReportSlashing(address sdk.AccAddress, validatorAddress sdk.ValAddress) *MsgReportSlashing {
+	valAddr, err := Bech32FromValAddress(validatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return &MsgReportSlashing{
+		PstakeAddress:    address.String(),
+		ValidatorAddress: valAddr,
+	}
+}
+
+// Route should return the name of the module
+func (m *MsgReportSlashing) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgReportSlashing) Type() string { return MsgTypeReportSlashing }
+
+// ValidateBasic performs stateless checks
+func (m *MsgReportSlashing) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.PstakeAddress); err != nil {
+		return errorsmod.Wrap(sdkErrors.ErrInvalidAddress, m.PstakeAddress)
+	}
+	if _, err := ValAddressFromBech32(m.ValidatorAddress); err != nil {
+		return errorsmod.Wrap(sdkErrors.ErrInvalidAddress, m.ValidatorAddress)
+	}
+
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgReportSlashing) GetSignBytes() []byte {
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgReportSlashing) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.PstakeAddress)
 	if err != nil {
 		panic(err)
