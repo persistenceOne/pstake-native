@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/gogo/protobuf/proto"
 	icqtypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
 
@@ -11,6 +12,7 @@ import (
 
 const (
 	RewardsAccountBalance = "reward_account_balance"
+	Delegation            = "delegation"
 )
 
 // CallbackFn wrapper struct for interchainstaking keeper
@@ -37,7 +39,8 @@ func (c Callbacks) AddCallback(id string, fn interface{}) icqtypes.QueryCallback
 // RegisterCallbacks adds callbacks
 func (c Callbacks) RegisterCallbacks() icqtypes.QueryCallbacks {
 	a := c.
-		AddCallback(RewardsAccountBalance, CallbackFn(RewardsAccountBalanceCallback))
+		AddCallback(RewardsAccountBalance, CallbackFn(RewardsAccountBalanceCallback)).
+		AddCallback(Delegation, CallbackFn(DelegationCallback))
 
 	return a.(Callbacks)
 }
@@ -58,8 +61,13 @@ func RewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, response []byte, q
 	return k.HandleRewardsAccountBalanceCallback(ctx, response, query)
 }
 
+// DelegationCallback returns response of HandleDelegationCallback
+func DelegationCallback(k Keeper, ctx sdk.Context, response []byte, query icqtypes.Query) error {
+	return k.HandleDelegationCallback(ctx, response, query)
+}
+
 // HandleRewardsAccountBalanceCallback generates and executes rewards account balance query
-func (k Keeper) HandleRewardsAccountBalanceCallback(ctx sdk.Context, response []byte, query icqtypes.Query) error {
+func (k Keeper) HandleRewardsAccountBalanceCallback(ctx sdk.Context, response []byte, _ icqtypes.Query) error {
 	resp := banktypes.QueryBalanceResponse{}
 	err := k.cdc.Unmarshal(response, &resp)
 	if err != nil {
@@ -95,4 +103,24 @@ func (k Keeper) HandleRewardsAccountBalanceCallback(ctx sdk.Context, response []
 		Amount:      sdk.NewCoins(sdk.NewCoin(resp.Balance.Denom, sendCoinAmt)),
 	}
 	return k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID, []proto.Message{msg})
+}
+
+// HandleDelegationCallback generates and executes delegation query
+func (k Keeper) HandleDelegationCallback(ctx sdk.Context, response []byte, _ icqtypes.Query) error {
+	resp := stakingtypes.QueryDelegationResponse{}
+	err := k.cdc.Unmarshal(response, &resp)
+	if err != nil {
+		return err
+	}
+	k.Logger(ctx).Info("Callback for Validator Delegation", "Response: ", resp.GetDelegationResponse())
+
+	//check ack sequences for ica accs, return error for the callback, so it can be retried.
+	pending, err := k.CheckPendingICATxs(ctx)
+	if pending {
+		return err
+	}
+
+	k.ForceUpdateHostAccountDelegation(ctx, types.NewHostAccountDelegation(resp.GetDelegationResponse().Delegation.ValidatorAddress, resp.GetDelegationResponse().GetBalance()))
+
+	return nil
 }

@@ -71,6 +71,18 @@ func (k Keeper) SubtractHostAccountDelegation(ctx sdk.Context, delegation types.
 	return nil
 }
 
+// ForceUpdateHostAccountDelegation updates the delegation-state for a validator.
+func (k Keeper) ForceUpdateHostAccountDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) {
+	delegationState := k.GetDelegationState(ctx)
+	for i, existingDelegation := range delegationState.HostAccountDelegations {
+		if existingDelegation.ValidatorAddress == delegation.ValidatorAddress {
+			delegationState.HostAccountDelegations[i].Amount = delegation.Amount
+			break
+		}
+	}
+	k.SetDelegationState(ctx, delegationState)
+}
+
 // appendHostAccountDelegation is a helper function to append the input delegation to the
 // input delegationState
 func appendHostAccountDelegation(delegationState types.DelegationState, delegation types.HostAccountDelegation) types.DelegationState {
