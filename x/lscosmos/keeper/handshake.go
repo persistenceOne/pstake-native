@@ -419,11 +419,11 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, data []byte, msg sdk.Msg, host
 	case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
 		parsedMsg, ok := msg.(*stakingtypes.MsgUndelegate)
 		if !ok {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
+			return "", errorsmod.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
 		}
 		var msgResponse stakingtypes.MsgUndelegateResponse
 		if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal undelegate response message: %s", err.Error())
+			return "", errorsmod.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal undelegate response message: %s", err.Error())
 		}
 		k.Logger(ctx).Info(fmt.Sprintf("Started unbonding for val: %s, amount: %s", parsedMsg.ValidatorAddress, parsedMsg.Amount))
 		//burn stkatom (DONE OUTSIDE THE LOOP), remove from delegations, add unbonding entry completion time
@@ -436,7 +436,7 @@ func (k Keeper) handleAckMsgData(ctx sdk.Context, data []byte, msg sdk.Msg, host
 	case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
 		var msgResponse ibctransfertypes.MsgTransferResponse
 		if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
-			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
+			return "", errorsmod.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
 		}
 		k.Logger(ctx).Info(fmt.Sprintf("Initiated IBC transfer from %s to %s with msg: %s", hostChainParams.ChainID, ctx.ChainID(), msg))
 		// handle rest in ibc hooks.
@@ -453,7 +453,7 @@ func (k Keeper) resetToPreICATx(ctx sdk.Context, icaPacket icatypes.InterchainAc
 
 	msgs, err := icatypes.DeserializeCosmosTx(k.cdc, icaPacket.GetData())
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot Deserialise icapacket data: %v", err)
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot Deserialise icapacket data: %v", err)
 	}
 	// Dispatch packet
 	msgsCount := 0
@@ -493,7 +493,7 @@ func (k Keeper) handleResetMsgs(ctx sdk.Context, msg sdk.Msg, _ types.HostChainP
 	case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 		parsedMsg, ok := msg.(*stakingtypes.MsgDelegate)
 		if !ok {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
+			return errorsmod.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
 		}
 		// Add to host-balance, because delegate txn timed out.
 		k.AddBalanceToDelegationState(ctx, parsedMsg.Amount)
@@ -502,7 +502,7 @@ func (k Keeper) handleResetMsgs(ctx sdk.Context, msg sdk.Msg, _ types.HostChainP
 	case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
 		parsedMsg, ok := msg.(*ibctransfertypes.MsgTransfer)
 		if !ok {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
+			return errorsmod.Wrapf(sdkerrors.ErrInvalidType, "unable to unmarshal msg of type %s", sdk.MsgTypeURL(msg))
 		}
 		removedTransientUndelegationTransfer, err := k.RemoveUndelegationTransferFromTransientStore(ctx, parsedMsg.Token)
 		if err != nil {
