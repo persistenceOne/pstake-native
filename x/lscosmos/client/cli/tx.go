@@ -500,7 +500,7 @@ func NewReportSlashingCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			validatorAddress, err := types.ValAddressFromBech32(args[0])
+			validatorAddress, err := types.ValAddressFromBech32(args[0], types.CosmosValOperPrefix)
 			if err != nil {
 				return err
 			}

@@ -352,7 +352,7 @@ func (m *MsgChangeModuleState) GetSigners() []sdk.AccAddress {
 //
 //nolint:interfacer
 func NewMsgReportSlashing(address sdk.AccAddress, validatorAddress sdk.ValAddress) *MsgReportSlashing {
-	valAddr, err := Bech32FromValAddress(validatorAddress)
+	valAddr, err := Bech32FromValAddress(validatorAddress, CosmosValOperPrefix)
 	if err != nil {
 		panic(err)
 	}
@@ -373,7 +373,7 @@ func (m *MsgReportSlashing) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.PstakeAddress); err != nil {
 		return errorsmod.Wrap(sdkErrors.ErrInvalidAddress, m.PstakeAddress)
 	}
-	if _, err := ValAddressFromBech32(m.ValidatorAddress); err != nil {
+	if _, err := ValAddressFromBech32(m.ValidatorAddress, CosmosValOperPrefix); err != nil {
 		return errorsmod.Wrap(sdkErrors.ErrInvalidAddress, m.ValidatorAddress)
 	}
 
