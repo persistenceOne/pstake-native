@@ -51,6 +51,17 @@ func (k Keeper) SetHostChainDelegationAddress(ctx sdk.Context, addr string) erro
 	return nil
 }
 
+// GetHostAccountDelegation gets the delegation for a particular validator
+func (k Keeper) GetHostAccountDelegation(ctx sdk.Context, validatorAddress string) types.HostAccountDelegation {
+	delegationState := k.GetDelegationState(ctx)
+	for _, existingDelegation := range delegationState.HostAccountDelegations {
+		if existingDelegation.ValidatorAddress == validatorAddress {
+			return existingDelegation
+		}
+	}
+	return types.HostAccountDelegation{}
+}
+
 // AddHostAccountDelegation append the host account delegations in types.DelegationState provided
 // in the input
 func (k Keeper) AddHostAccountDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) {

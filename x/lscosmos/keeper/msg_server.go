@@ -603,7 +603,7 @@ func (m msgServer) ReportSlashing(goCtx context.Context, msg *types.MsgReportSla
 	ctx.EventManager().EmitEvents(sdktypes.Events{
 		sdktypes.NewEvent(
 			types.EventTypeReportSlashing,
-			sdktypes.NewAttribute(types.AtttibuteValidatorAddress, msg.ValidatorAddress),
+			sdktypes.NewAttribute(types.AttributeValidatorAddress, msg.ValidatorAddress),
 		),
 		sdktypes.NewEvent(
 			sdktypes.EventTypeMessage,

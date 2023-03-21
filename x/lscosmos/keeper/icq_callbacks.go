@@ -120,7 +120,23 @@ func (k Keeper) HandleDelegationCallback(ctx sdk.Context, response []byte, _ icq
 		return err
 	}
 
-	k.ForceUpdateHostAccountDelegation(ctx, types.NewHostAccountDelegation(resp.GetDelegationResponse().Delegation.ValidatorAddress, resp.GetDelegationResponse().GetBalance()))
-
+	existingDelegation := k.GetHostAccountDelegation(ctx, resp.GetDelegationResponse().Delegation.ValidatorAddress)
+	if resp.GetDelegationResponse().GetBalance().IsLT(existingDelegation.Amount) {
+		//log slashing
+		k.Logger(ctx).Info("Received delegation less than delegation-state ",
+			"validator:", resp.GetDelegationResponse().Delegation.ValidatorAddress,
+			"delegationState:", existingDelegation.Amount,
+			"hostDelegation:", resp.GetDelegationResponse().Balance)
+		// emit event slashing fixed
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypePerformSlashing,
+				sdk.NewAttribute(types.AttributeValidatorAddress, resp.GetDelegationResponse().Delegation.ValidatorAddress),
+				sdk.NewAttribute(types.AttributeExistingDelegation, existingDelegation.Amount.String()),
+				sdk.NewAttribute(types.AttributeUpdatedDelegation, resp.GetDelegationResponse().Balance.String()),
+				sdk.NewAttribute(types.AttributeSlashedAmount, existingDelegation.Amount.Sub(resp.GetDelegationResponse().Balance).String()),
+			)})
+		k.ForceUpdateHostAccountDelegation(ctx, types.NewHostAccountDelegation(resp.GetDelegationResponse().Delegation.ValidatorAddress, resp.GetDelegationResponse().GetBalance()))
+	}
 	return nil
 }
