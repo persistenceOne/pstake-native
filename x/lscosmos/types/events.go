@@ -11,6 +11,8 @@ const (
 	EventTypeJumpStart         = "jump-start"
 	EventTypeRecreateICA       = "recreate-ica"
 	EventTypeChangeModuleState = "change-module-state"
+	EventTypeReportSlashing    = "report-slashing"
+	EventTypePerformSlashing   = "perform-slashing"
 	// this line is used by starport scaffolding # ibc/packet/event
 
 	AttributeKeyAckSuccess         = "success"
@@ -30,5 +32,9 @@ const (
 	AttributeRecreateDelegationICA = "recreate-delegation-ica"
 	AttributeRecreateRewardsICA    = "recreate-rewards-ica"
 	AttributeChangedModuleState    = "module-state"
+	AttributeValidatorAddress      = "validator-address"
+	AttributeExistingDelegation    = "existing-delegation"
+	AttributeUpdatedDelegation     = "updated-delegation"
+	AttributeSlashedAmount         = "slashed-amount"
 	AttributeValueCategory         = ModuleName
 )

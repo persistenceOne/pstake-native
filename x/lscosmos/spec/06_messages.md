@@ -167,3 +167,23 @@ Inputs for this message :
 ```
 $ pstaked tx lscosmos change-module-state false --from <from_address> --chain-id <chain-id> --keyring-backend <keyring_backend>
 ```
+
+### MsgReportSlashing
+
+ReportSlashing is a transaction for reporting any slashing event on host chain.
+
+It performs  the following operations :
+
+- Checks if the module was initiated before, if no returns error
+- Checks if the sender is admin
+- Checks if there are any ICA txns pending.
+- Creates a ICQ request for quering latest delegation
+
+Inputs for this message :
+
+- `PstakeAddress` : Address from which this transaction is being sent (should be pstakeAddress).
+- `ValidatorAddress` : Validator address of the slashed validator.
+
+```
+$ pstaked tx lscosmos report slashing cosmosvaloperaddress --from <from_address> --chain-id <chain-id> --keyring-backend <keyring_backend>
+```

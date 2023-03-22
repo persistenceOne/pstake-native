@@ -36,6 +36,7 @@ func GetTxCmd() *cobra.Command {
 		NewJumpStartCmd(),
 		NewRecreateICACmd(),
 		NewChangeModuleStateCmd(),
+		NewReportSlashingCmd(),
 	)
 
 	return cmd
@@ -478,6 +479,33 @@ func NewChangeModuleStateCmd() *cobra.Command {
 			}
 			fromAddress := clientctx.GetFromAddress()
 			msg := types.NewMsgChangeModuleState(fromAddress, moduleState)
+
+			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewReportSlashingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "report-slashing",
+		Short: "Admin functionality to report slashing of a validator so the delegations can be updated",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			validatorAddress, err := types.ValAddressFromBech32(args[0], types.CosmosValOperPrefix)
+			if err != nil {
+				return err
+			}
+			fromAddress := clientctx.GetFromAddress()
+			msg := types.NewMsgReportSlashing(fromAddress, validatorAddress)
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
 		},

@@ -60,8 +60,10 @@ type Keeper interface{
 	AddBalanceToDelegationState(ctx types.Context, coin types.Coin)
 	RemoveBalanceFromDelegationState(ctx types.Context, coins types.Coins)
 	SetHostChainDelegationAddress(ctx types.Context, addr string) error
-	AddHostAccountDelegation(ctx types.Context, delegation types.HostAccountDelegation)
+    GetHostAccountDelegation(ctx types.Context, validatorAddress string) types.HostAccountDelegation
+    AddHostAccountDelegation(ctx types.Context, delegation types.HostAccountDelegation)
 	SubtractHostAccountDelegation(ctx types.Context, delegation types.HostAccountDelegation) error
+    ForceUpdateHostAccountDelegation(ctx sdk.Context, delegation types.HostAccountDelegation)
 	AddHostAccountUndelegation(ctx types.Context, undelegationEntry types.HostAccountUndelegation)
 	AddTotalUndelegationForEpoch(ctx types.Context, epochNumber int64, amount types.Coin)
 	AddEntriesForUndelegationEpoch(ctx types.Context, epochNumber int64, entries []types.UndelegationEntry)
@@ -169,8 +171,9 @@ type Keeper interface{
 	// ICQ callbacks
 	CallbackHandler() Callbacks
 	HandleRewardsAccountBalanceCallback(ctx types.Context, response []byte, query types.Query) error
-	
-	// Host chain reward address
+    HandleDelegationCallback(ctx types.Context, response []byte, query types.Query) error
+
+// Host chain reward address
 	SetHostChainRewardAddress(ctx types.Context, hostChainRewardAddress types.HostChainRewardAddress)
 	GetHostChainRewardAddress(ctx types.Context) types.HostChainRewardAddress
 	SetHostChainRewardAddressIfEmpty(ctx types.Context, hostChainRewardAddress types.HostChainRewardAddress) error

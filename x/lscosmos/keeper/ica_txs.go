@@ -8,6 +8,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/gogo/protobuf/proto"
 
 	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
@@ -52,4 +53,41 @@ func (k Keeper) GenerateAndExecuteICATx(ctx sdk.Context, connectionID string, ow
 	}
 
 	return nil
+}
+
+// CheckPendingICATxs checks if there are any ongoing ica transaction which are stuck
+func (k Keeper) CheckPendingICATxs(ctx sdk.Context) (bool, error) {
+	hostChainParams := k.GetHostChainParams(ctx)
+	hostAccounts := k.GetHostAccounts(ctx)
+	delegationChannelID, ok := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hostChainParams.ConnectionID, hostAccounts.DelegatorAccountPortID())
+	if !ok {
+		return true, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "PortID: %s, connectionID: %s", hostAccounts.DelegatorAccountPortID(), hostChainParams.ConnectionID)
+	}
+	delegationNextSendSeq, ok := k.channelKeeper.GetNextSequenceSend(ctx, hostAccounts.DelegatorAccountPortID(), delegationChannelID)
+	if !ok {
+		return true, errorsmod.Wrapf(channeltypes.ErrSequenceSendNotFound, "PortID: %s, channelID: %s", hostAccounts.DelegatorAccountPortID(), delegationChannelID)
+	}
+	delegationNextAckSeq, ok := k.channelKeeper.GetNextSequenceAck(ctx, hostAccounts.DelegatorAccountPortID(), delegationChannelID)
+	if !ok {
+		return true, errorsmod.Wrapf(channeltypes.ErrSequenceAckNotFound, "PortID: %s, channelID: %s", hostAccounts.DelegatorAccountPortID(), delegationChannelID)
+	}
+	if delegationNextSendSeq != delegationNextAckSeq {
+		return true, errorsmod.Wrapf(channeltypes.ErrPacketSequenceOutOfOrder, "PortID: %s, channelID: %s, NextSendSequence: %v, NextAckSequence: %v", hostAccounts.DelegatorAccountPortID(), delegationChannelID, delegationNextSendSeq, delegationNextAckSeq)
+	}
+	rewardsChannelID, ok := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountPortID())
+	if !ok {
+		return true, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "PortID: %s, connectionID: %s", hostAccounts.RewardsAccountPortID(), hostChainParams.ConnectionID)
+	}
+	rewardsNextSendSeq, ok := k.channelKeeper.GetNextSequenceSend(ctx, hostAccounts.RewardsAccountPortID(), rewardsChannelID)
+	if !ok {
+		return true, errorsmod.Wrapf(channeltypes.ErrSequenceSendNotFound, "PortID: %s, channelID: %s", hostAccounts.RewardsAccountPortID(), rewardsChannelID)
+	}
+	rewardsNextAckSeq, ok := k.channelKeeper.GetNextSequenceAck(ctx, hostAccounts.RewardsAccountPortID(), rewardsChannelID)
+	if !ok {
+		return true, errorsmod.Wrapf(channeltypes.ErrSequenceAckNotFound, "PortID: %s, channelID: %s", hostAccounts.RewardsAccountPortID(), rewardsChannelID)
+	}
+	if rewardsNextSendSeq != rewardsNextAckSeq {
+		return true, errorsmod.Wrapf(channeltypes.ErrPacketSequenceOutOfOrder, "PortID: %s, channelID: %s, NextSendSequence: %v, NextAckSequence: %v", hostAccounts.RewardsAccountPortID(), rewardsChannelID, rewardsNextSendSeq, rewardsNextAckSeq)
+	}
+	return false, nil
 }

@@ -51,6 +51,17 @@ func (k Keeper) SetHostChainDelegationAddress(ctx sdk.Context, addr string) erro
 	return nil
 }
 
+// GetHostAccountDelegation gets the delegation for a particular validator
+func (k Keeper) GetHostAccountDelegation(ctx sdk.Context, validatorAddress string) types.HostAccountDelegation {
+	delegationState := k.GetDelegationState(ctx)
+	for _, existingDelegation := range delegationState.HostAccountDelegations {
+		if existingDelegation.ValidatorAddress == validatorAddress {
+			return existingDelegation
+		}
+	}
+	return types.HostAccountDelegation{}
+}
+
 // AddHostAccountDelegation append the host account delegations in types.DelegationState provided
 // in the input
 func (k Keeper) AddHostAccountDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) {
@@ -69,6 +80,18 @@ func (k Keeper) SubtractHostAccountDelegation(ctx sdk.Context, delegation types.
 	}
 	k.SetDelegationState(ctx, delegationState)
 	return nil
+}
+
+// ForceUpdateHostAccountDelegation updates the delegation-state for a validator.
+func (k Keeper) ForceUpdateHostAccountDelegation(ctx sdk.Context, delegation types.HostAccountDelegation) {
+	delegationState := k.GetDelegationState(ctx)
+	for i, existingDelegation := range delegationState.HostAccountDelegations {
+		if existingDelegation.ValidatorAddress == delegation.ValidatorAddress {
+			delegationState.HostAccountDelegations[i].Amount = delegation.Amount
+			break
+		}
+	}
+	k.SetDelegationState(ctx, delegationState)
 }
 
 // appendHostAccountDelegation is a helper function to append the input delegation to the

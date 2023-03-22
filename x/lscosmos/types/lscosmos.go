@@ -8,6 +8,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 )
 
@@ -33,7 +35,7 @@ func (av *AllowListedValidators) Valid() bool {
 	noDuplicate := make(map[string]bool)
 	sum := sdk.ZeroDec()
 	for _, v := range av.AllowListedValidators {
-		if _, err := ValAddressFromBech32(v.ValidatorAddress); err != nil {
+		if _, err := ValAddressFromBech32(v.ValidatorAddress, CosmosValOperPrefix); err != nil {
 			return false
 		}
 		_, ok := noDuplicate[v.ValidatorAddress]
@@ -101,14 +103,12 @@ func NewHostChainRewardAddress(address string) HostChainRewardAddress {
 }
 
 // ValAddressFromBech32 creates a ValAddress from a Bech32 string.
-func ValAddressFromBech32(address string) (addr sdk.ValAddress, err error) {
+func ValAddressFromBech32(address string, bech32Prefix string) (addr sdk.ValAddress, err error) {
 	if len(strings.TrimSpace(address)) == 0 {
 		return sdk.ValAddress{}, errors.New("empty address string is not allowed")
 	}
 
-	bech32PrefixValAddr := CosmosValOperPrefix
-
-	bz, err := sdk.GetFromBech32(address, bech32PrefixValAddr)
+	bz, err := sdk.GetFromBech32(address, bech32Prefix)
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +119,17 @@ func ValAddressFromBech32(address string) (addr sdk.ValAddress, err error) {
 	}
 
 	return bz, nil
+}
+
+func Bech32FromValAddress(valAddr sdk.ValAddress, bech32Prefix string) (string, error) {
+	if valAddr.Empty() {
+		return "", sdkerrors.ErrInvalidAddress
+	}
+	bech32Addr, err := bech32.ConvertAndEncode(bech32Prefix, valAddr)
+	if err != nil {
+		return "", err
+	}
+	return bech32Addr, nil
 }
 
 // TotalDelegations gives the amount of total delegations on Host Chain.
