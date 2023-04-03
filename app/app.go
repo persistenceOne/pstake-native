@@ -87,6 +87,9 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	ibcfee "github.com/cosmos/ibc-go/v6/modules/apps/29-fee"
+	ibcfeekeeper "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/keeper"
+	ibcfeetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -158,6 +161,7 @@ var (
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		ibchooker.AppModuleBasic{},
+		ibcfee.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		epochs.AppModuleBasic{},
@@ -175,6 +179,7 @@ var (
 		stakingtypes.NotBondedPoolName:           {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:                      {authtypes.Burner},
 		ibctransfertypes.ModuleName:              {authtypes.Minter, authtypes.Burner},
+		ibcfeetypes.ModuleName:                   nil,
 		lscosmostypes.ModuleName:                 {authtypes.Minter, authtypes.Burner},
 		lscosmostypes.DepositModuleAccount:       nil,
 		lscosmostypes.DelegationModuleAccount:    nil,
@@ -226,6 +231,7 @@ type PstakeApp struct {
 	ParamsKeeper     paramskeeper.Keeper
 	// IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	IBCKeeper             *ibckeeper.Keeper
+	IBCFeeKeeper          ibcfeekeeper.Keeper
 	ICAHostKeeper         icahostkeeper.Keeper
 	ICAControllerKeeper   icacontrollerkeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
@@ -289,6 +295,7 @@ func NewpStakeApp(
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, icahosttypes.StoreKey,
 		icacontrollertypes.StoreKey, epochstypes.StoreKey, lscosmostypes.StoreKey, interchainquerytypes.StoreKey,
+		ibcfeetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, lscosmostypes.MemStoreKey)
@@ -411,31 +418,39 @@ func NewpStakeApp(
 		scopedIBCKeeper,
 	)
 
+	// IBC Fee Module keeper
+	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
+		appCodec, keys[ibcfeetypes.StoreKey],
+		app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
+	)
+
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
 		app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper,
+		app.IBCFeeKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
 		app.AccountKeeper,
 		app.BankKeeper,
 		scopedTransferKeeper,
 	)
-	transferModule := transfer.NewAppModule(app.TransferKeeper)
-	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
+	//transferModule := transfer.NewAppModule(app.TransferKeeper)
+	//transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 		appCodec, keys[icacontrollertypes.StoreKey],
 		app.GetSubspace(icacontrollertypes.SubModuleName),
-		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
+		app.IBCFeeKeeper, // may be replaced with middleware such as ics29 fee
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		scopedICAControllerKeeper, app.MsgServiceRouter(),
 	)
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec, keys[icahosttypes.StoreKey],
 		app.GetSubspace(icahosttypes.SubModuleName),
-		app.IBCKeeper.ChannelKeeper,
+		app.IBCFeeKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
 		app.AccountKeeper,
@@ -443,8 +458,7 @@ func NewpStakeApp(
 		app.MsgServiceRouter(),
 	)
 
-	icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
-	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
+	//icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
 
 	app.InterchainQueryKeeper = interchainquerykeeper.NewKeeper(appCodec, keys[interchainquerytypes.StoreKey], app.IBCKeeper)
 	interchainQueryModule := interchainquery.NewAppModule(appCodec, app.InterchainQueryKeeper)
@@ -471,21 +485,34 @@ func NewpStakeApp(
 
 	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()
 	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(ibchookertypes.NewMultiStakingHooks(app.LSCosmosKeeper.NewIBCTransferHooks()))
-	ibcTransferHooksMiddleware := ibchooker.NewAppModule(app.TransferHooksKeeper, transferIBCModule)
+
+	var transferStack porttypes.IBCModule
+	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	transferStack = ibchooker.NewAppModule(app.TransferHooksKeeper, transferStack)
+	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
+
+	var icaHostStack porttypes.IBCModule
+	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
+	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
 
 	// Information will flow: ibc-port -> icaController -> lscosmos.
-	lscosmosModule := lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
-	icaControllerIBCModule := icacontroller.NewIBCMiddleware(lscosmosModule, app.ICAControllerKeeper)
+	//lscosmosModule := lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
+	//icaControllerIBCModule := icacontroller.NewIBCMiddleware(lscosmosModule, app.ICAControllerKeeper)
+
+	var icaControllerStack porttypes.IBCModule
+	icaControllerStack = lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
+	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
+	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 
 	// This module is not being used for any routing, can be removed, only part of ModuleManager.
 	// using ibcTransferHooksMiddleware instead.
 	//routerModule := router.NewAppModule(app.RouterKeeper, transferIBCModule)
 	// create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-		AddRoute(ibctransfertypes.ModuleName, ibcTransferHooksMiddleware).
-		AddRoute(icacontrollertypes.SubModuleName, icaControllerIBCModule).
-		AddRoute(lscosmostypes.ModuleName, icaControllerIBCModule)
+	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostStack).
+		AddRoute(ibctransfertypes.ModuleName, transferStack).
+		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
+		AddRoute(lscosmostypes.ModuleName, icaControllerStack)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -559,10 +586,11 @@ func NewpStakeApp(
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		epochs.NewAppModule(app.EpochsKeeper),
-		transferModule,
-		ibcTransferHooksMiddleware,
-		icaModule,
-		lscosmosModule,
+		transfer.NewAppModule(app.TransferKeeper),
+		ibcfee.NewAppModule(app.IBCFeeKeeper),
+		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		//ibchooker.NewAppModule(),
+		lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
 		interchainQueryModule,
 	)
 
@@ -580,6 +608,7 @@ func NewpStakeApp(
 		stakingtypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ibchost.ModuleName,
+		ibcfeetypes.ModuleName,
 		icatypes.ModuleName,
 		lscosmostypes.ModuleName,
 		epochstypes.ModuleName,
@@ -601,6 +630,7 @@ func NewpStakeApp(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
+		ibcfeetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ibchost.ModuleName,
 		icatypes.ModuleName,
@@ -639,6 +669,7 @@ func NewpStakeApp(
 		govtypes.ModuleName,
 		minttypes.ModuleName,
 		crisistypes.ModuleName,
+		ibcfeetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ibchost.ModuleName,
 		icatypes.ModuleName,
@@ -679,10 +710,10 @@ func NewpStakeApp(
 		params.NewAppModule(app.ParamsKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
-		transferModule,
+		transfer.NewAppModule(app.TransferKeeper),
 		// ibcTransferHooksMiddleware, TODO implement simulationModule interface
 		//icaModule,
-		lscosmosModule,
+		lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
