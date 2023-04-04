@@ -502,7 +502,7 @@ func NewpStakeApp(
 	var icaControllerStack porttypes.IBCModule
 	icaControllerStack = lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
-	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
+	//icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 
 	// This module is not being used for any routing, can be removed, only part of ModuleManager.
 	// using ibcTransferHooksMiddleware instead.
