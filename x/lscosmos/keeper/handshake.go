@@ -293,7 +293,7 @@ func (k Keeper) handleSuccessfulAck(ctx sdk.Context, ack channeltypes.Acknowledg
 		}
 
 		// assert all msgs are of same type.
-		if len(txMsgData.MsgResponses) == msgsCount {
+		if len(msgs) == msgsCount {
 			switch expectedMsgType {
 			case sdk.MsgTypeURL(&distributiontypes.MsgWithdrawDelegatorReward{}):
 				rewardAddr := k.GetHostChainRewardAddress(ctx)
@@ -340,7 +340,7 @@ func (k Keeper) handleSuccessfulAck(ctx sdk.Context, ack channeltypes.Acknowledg
 			}
 		}
 	}
-	if msgsCount != len(msgs) {
+	if len(msgs) != msgsCount {
 		k.SetModuleState(ctx, false) //Disable module, we assert single type of msg throughout the tx.
 		k.Logger(ctx).Error(fmt.Sprintf("%s module has been disabled due to different msg types in a ica txn", types.ModuleName))
 		return nil
