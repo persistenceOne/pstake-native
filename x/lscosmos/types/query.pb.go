@@ -9,14 +9,14 @@ import (
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/types/query"
-	_ "github.com/gogo/protobuf/gogoproto"
+	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
-	_ "github.com/golang/protobuf/ptypes/timestamp"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -153,7 +153,8 @@ func (m *QueryHostChainParamsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryHostChainParamsRequest proto.InternalMessageInfo
 
-// QueryHostChainParamsResponse is response for the Ouery/HostChainParams methods.
+// QueryHostChainParamsResponse is response for the Ouery/HostChainParams
+// methods.
 type QueryHostChainParamsResponse struct {
 	HostChainParams HostChainParams `protobuf:"bytes,1,opt,name=host_chain_params,json=hostChainParams,proto3" json:"host_chain_params"`
 }
@@ -235,7 +236,8 @@ func (m *QueryDelegationStateRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryDelegationStateRequest proto.InternalMessageInfo
 
-// QueryDelegationStateResponse is response for the Ouery/DelegationState methods.
+// QueryDelegationStateResponse is response for the Ouery/DelegationState
+// methods.
 type QueryDelegationStateResponse struct {
 	DelegationState DelegationState `protobuf:"bytes,1,opt,name=delegation_state,json=delegationState,proto3" json:"delegation_state"`
 }
@@ -280,7 +282,8 @@ func (m *QueryDelegationStateResponse) GetDelegationState() DelegationState {
 	return DelegationState{}
 }
 
-// QueryListedValidatorsRequest is a request for the Query/AllowListedValidators methods.
+// QueryListedValidatorsRequest is a request for the Query/AllowListedValidators
+// methods.
 type QueryAllowListedValidatorsRequest struct {
 }
 
@@ -317,7 +320,8 @@ func (m *QueryAllowListedValidatorsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAllowListedValidatorsRequest proto.InternalMessageInfo
 
-// QueryListedValidatorsResponse is a response for the Query/AllowListedValidators methods.
+// QueryListedValidatorsResponse is a response for the
+// Query/AllowListedValidators methods.
 type QueryAllowListedValidatorsResponse struct {
 	AllowListedValidators AllowListedValidators `protobuf:"bytes,1,opt,name=allow_listed_validators,json=allowListedValidators,proto3" json:"allow_listed_validators"`
 }
@@ -519,7 +523,8 @@ func (m *QueryModuleStateResponse) GetModuleState() bool {
 	return false
 }
 
-// QueryIBCTransientStoreRequest is a request for the Query/IBCTransientStore methods.
+// QueryIBCTransientStoreRequest is a request for the Query/IBCTransientStore
+// methods.
 type QueryIBCTransientStoreRequest struct {
 }
 
@@ -556,7 +561,8 @@ func (m *QueryIBCTransientStoreRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryIBCTransientStoreRequest proto.InternalMessageInfo
 
-// QueryIBCTransientStoreRequest is a response for the Query/IBCTransientStore methods.
+// QueryIBCTransientStoreRequest is a response for the Query/IBCTransientStore
+// methods.
 type QueryIBCTransientStoreResponse struct {
 	IBCTransientStore IBCAmountTransientStore `protobuf:"bytes,1,opt,name=i_b_c_transient_store,json=iBCTransientStore,proto3" json:"i_b_c_transient_store"`
 }
@@ -691,7 +697,8 @@ func (m *QueryUnclaimedResponse) GetUnclaimed() []UnbondingEpochCValue {
 	return nil
 }
 
-// QueryFailedUnbondingsRequest is a request for the Query/FailedUnbondings methods.
+// QueryFailedUnbondingsRequest is a request for the Query/FailedUnbondings
+// methods.
 type QueryFailedUnbondingsRequest struct {
 	DelegatorAddress string `protobuf:"bytes,1,opt,name=delegator_address,json=delegatorAddress,proto3" json:"delegator_address,omitempty"`
 }
@@ -736,7 +743,8 @@ func (m *QueryFailedUnbondingsRequest) GetDelegatorAddress() string {
 	return ""
 }
 
-// QueryFailedUnbondingsResponse a response for the Query/FailedUnbondings methods.
+// QueryFailedUnbondingsResponse a response for the Query/FailedUnbondings
+// methods.
 type QueryFailedUnbondingsResponse struct {
 	FailedUnbondings []UnbondingEpochCValue `protobuf:"bytes,1,rep,name=failed_unbondings,json=failedUnbondings,proto3" json:"failed_unbondings"`
 }
@@ -781,7 +789,8 @@ func (m *QueryFailedUnbondingsResponse) GetFailedUnbondings() []UnbondingEpochCV
 	return nil
 }
 
-// QueryPendingUnbondingsRequest is a request for the Query/PendingUnbondings methods.
+// QueryPendingUnbondingsRequest is a request for the Query/PendingUnbondings
+// methods.
 type QueryPendingUnbondingsRequest struct {
 	DelegatorAddress string `protobuf:"bytes,1,opt,name=delegator_address,json=delegatorAddress,proto3" json:"delegator_address,omitempty"`
 }
@@ -826,7 +835,8 @@ func (m *QueryPendingUnbondingsRequest) GetDelegatorAddress() string {
 	return ""
 }
 
-// QueryPendingUnbondingsResponse is a response for the Query/PendingUnbondings methods.
+// QueryPendingUnbondingsResponse is a response for the Query/PendingUnbondings
+// methods.
 type QueryPendingUnbondingsResponse struct {
 	PendingUnbondings []UnbondingEpochCValue `protobuf:"bytes,1,rep,name=pending_unbondings,json=pendingUnbondings,proto3" json:"pending_unbondings"`
 }
@@ -871,7 +881,8 @@ func (m *QueryPendingUnbondingsResponse) GetPendingUnbondings() []UnbondingEpoch
 	return nil
 }
 
-// QueryUnbondingEpochCValueRequest is a request for the Query/UnbondingEpochCValue methods.
+// QueryUnbondingEpochCValueRequest is a request for the
+// Query/UnbondingEpochCValue methods.
 type QueryUnbondingEpochCValueRequest struct {
 	EpochNumber int64 `protobuf:"varint,1,opt,name=epoch_number,json=epochNumber,proto3" json:"epoch_number,omitempty"`
 }
@@ -916,7 +927,8 @@ func (m *QueryUnbondingEpochCValueRequest) GetEpochNumber() int64 {
 	return 0
 }
 
-// QueryUnbondingEpochCValueResponse is a response for the Query/UnbondingEpochCValue methods.
+// QueryUnbondingEpochCValueResponse is a response for the
+// Query/UnbondingEpochCValue methods.
 type QueryUnbondingEpochCValueResponse struct {
 	UnbondingEpochCValue UnbondingEpochCValue `protobuf:"bytes,1,opt,name=unbonding_epoch_c_value,json=unbondingEpochCValue,proto3" json:"unbonding_epoch_c_value"`
 }
@@ -961,7 +973,8 @@ func (m *QueryUnbondingEpochCValueResponse) GetUnbondingEpochCValue() UnbondingE
 	return UnbondingEpochCValue{}
 }
 
-// QueryHostAccountUndelegationRequest is a request for the Query/HostAccountUndelegation methods.
+// QueryHostAccountUndelegationRequest is a request for the
+// Query/HostAccountUndelegation methods.
 type QueryHostAccountUndelegationRequest struct {
 	EpochNumber int64 `protobuf:"varint,1,opt,name=epoch_number,json=epochNumber,proto3" json:"epoch_number,omitempty"`
 }
@@ -1006,7 +1019,8 @@ func (m *QueryHostAccountUndelegationRequest) GetEpochNumber() int64 {
 	return 0
 }
 
-// QueryHostAccountUndelegationResponse is a response for the Query/HostAccountUndelegation methods.
+// QueryHostAccountUndelegationResponse is a response for the
+// Query/HostAccountUndelegation methods.
 type QueryHostAccountUndelegationResponse struct {
 	HostAccountUndelegation HostAccountUndelegation `protobuf:"bytes,1,opt,name=host_account_undelegation,json=hostAccountUndelegation,proto3" json:"host_account_undelegation"`
 }
@@ -1051,7 +1065,8 @@ func (m *QueryHostAccountUndelegationResponse) GetHostAccountUndelegation() Host
 	return HostAccountUndelegation{}
 }
 
-// QueryDelegatorUnbondingEpochEntryRequest is a request for the Query/DelegatorUnbondingEpochEntry methods.
+// QueryDelegatorUnbondingEpochEntryRequest is a request for the
+// Query/DelegatorUnbondingEpochEntry methods.
 type QueryDelegatorUnbondingEpochEntryRequest struct {
 	DelegatorAddress string `protobuf:"bytes,1,opt,name=delegator_address,json=delegatorAddress,proto3" json:"delegator_address,omitempty"`
 	EpochNumber      int64  `protobuf:"varint,2,opt,name=epoch_number,json=epochNumber,proto3" json:"epoch_number,omitempty"`
@@ -1106,7 +1121,8 @@ func (m *QueryDelegatorUnbondingEpochEntryRequest) GetEpochNumber() int64 {
 	return 0
 }
 
-// QueryDelegatorUnbondingEpochEntryResponse is a response for the Query/DelegatorUnbondingEpochEntry methods.
+// QueryDelegatorUnbondingEpochEntryResponse is a response for the
+// Query/DelegatorUnbondingEpochEntry methods.
 type QueryDelegatorUnbondingEpochEntryResponse struct {
 	DelegatorUnbodingEpochEntry DelegatorUnbondingEpochEntry `protobuf:"bytes,1,opt,name=delegator_unboding_epoch_entry,json=delegatorUnbodingEpochEntry,proto3" json:"delegator_unboding_epoch_entry"`
 }
@@ -1237,7 +1253,8 @@ func (m *QueryHostAccountsResponse) GetHostAccounts() HostAccounts {
 	return HostAccounts{}
 }
 
-// QueryDepositModuleAccountRequest is a request for the Query/DepositModuleAccount methods.
+// QueryDepositModuleAccountRequest is a request for the
+// Query/DepositModuleAccount methods.
 type QueryDepositModuleAccountRequest struct {
 }
 
@@ -1274,7 +1291,8 @@ func (m *QueryDepositModuleAccountRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryDepositModuleAccountRequest proto.InternalMessageInfo
 
-// QueryDepositModuleAccountResponse is a response for the Query/DepositModuleAccount methods.
+// QueryDepositModuleAccountResponse is a response for the
+// Query/DepositModuleAccount methods.
 type QueryDepositModuleAccountResponse struct {
 	Balance types.Coin `protobuf:"bytes,1,opt,name=balance,proto3" json:"balance"`
 }
@@ -1319,7 +1337,8 @@ func (m *QueryDepositModuleAccountResponse) GetBalance() types.Coin {
 	return types.Coin{}
 }
 
-// QueryAllDelegatorUnbondingEpochEntriesRequest is a request for the Query/DelegatorUnbondingEpochEntries methods.
+// QueryAllDelegatorUnbondingEpochEntriesRequest is a request for the
+// Query/DelegatorUnbondingEpochEntries methods.
 type QueryAllDelegatorUnbondingEpochEntriesRequest struct {
 	DelegatorAddress string `protobuf:"bytes,1,opt,name=delegator_address,json=delegatorAddress,proto3" json:"delegator_address,omitempty"`
 }
@@ -1368,7 +1387,8 @@ func (m *QueryAllDelegatorUnbondingEpochEntriesRequest) GetDelegatorAddress() st
 	return ""
 }
 
-// QueryAllDelegatorUnbondingEpochEntriesResponse is a response for the Query/DelegatorUnbondingEpochEntries methods.
+// QueryAllDelegatorUnbondingEpochEntriesResponse is a response for the
+// Query/DelegatorUnbondingEpochEntries methods.
 type QueryAllDelegatorUnbondingEpochEntriesResponse struct {
 	DelegatorUnbondingEpochEntries []DelegatorUnbondingEpochEntry `protobuf:"bytes,1,rep,name=delegator_unbonding_epoch_entries,json=delegatorUnbondingEpochEntries,proto3" json:"delegator_unbonding_epoch_entries"`
 }
