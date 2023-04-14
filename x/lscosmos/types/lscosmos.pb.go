@@ -8,10 +8,10 @@ import (
 	_ "github.com/cosmos/cosmos-proto"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
-	_ "github.com/gogo/protobuf/gogoproto"
+	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
-	_ "github.com/golang/protobuf/ptypes/timestamp"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -68,10 +68,12 @@ func (m *AllowListedValidators) XXX_DiscardUnknown() {
 var xxx_messageInfo_AllowListedValidators proto.InternalMessageInfo
 
 type AllowListedValidator struct {
-	// validator_address defines the bech32-encoded address the allowlisted validator
+	// validator_address defines the bech32-encoded address the allowlisted
+	// validator
 	ValidatorAddress string `protobuf:"bytes,1,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty" yaml:"validator_address"`
-	// target_weight specifies the target weight for liquid staking, unstaking amount, which is a value for calculating
-	// the real weight to be derived according to the active status
+	// target_weight specifies the target weight for liquid staking, unstaking
+	// amount, which is a value for calculating the real weight to be derived
+	// according to the active status
 	TargetWeight github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=target_weight,json=targetWeight,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"target_weight" yaml:"target_weight"`
 }
 
@@ -194,9 +196,10 @@ func (m *HostChainParams) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_HostChainParams proto.InternalMessageInfo
 
-// DelegationState stores module account balance, ica account balance, delegation state, undelegation state
+// DelegationState stores module account balance, ica account balance,
+// delegation state, undelegation state
 type DelegationState struct {
-	//This field is necessary as the address of not blocked for send coins,
+	// This field is necessary as the address of not blocked for send coins,
 	// we only should care about funds that have come via proper channels.
 	HostDelegationAccountBalance github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=host_delegation_account_balance,json=hostDelegationAccountBalance,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"host_delegation_account_balance"`
 	HostChainDelegationAddress   string                                   `protobuf:"bytes,2,opt,name=host_chain_delegation_address,json=hostChainDelegationAddress,proto3" json:"host_chain_delegation_address,omitempty"`
