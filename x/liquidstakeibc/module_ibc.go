@@ -24,38 +24,38 @@ func NewIBCModule(keeper keeper.Keeper) IBCModule {
 	}
 }
 
-func (I IBCModule) OnChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, channelCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string) (string, error) {
-	return I.keeper.OnChanOpenInit()
+func (ibcModule IBCModule) OnChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, channelCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string) (string, error) {
+	return ibcModule.keeper.OnChanOpenInit()
 }
 
-func (I IBCModule) OnChanOpenTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, channelCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, counterpartyVersion string) (version string, err error) {
+func (ibcModule IBCModule) OnChanOpenTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, channelCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, counterpartyVersion string) (version string, err error) {
 	return "", nil
 }
 
-func (I IBCModule) OnChanOpenAck(ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string) error {
-	return I.keeper.OnChanOpenAck()
+func (ibcModule IBCModule) OnChanOpenAck(ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string) error {
+	return ibcModule.keeper.OnChanOpenAck()
 }
 
-func (I IBCModule) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
+func (ibcModule IBCModule) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
 	return nil
 }
 
-func (I IBCModule) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
+func (ibcModule IBCModule) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 	return nil
 }
 
-func (I IBCModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
+func (ibcModule IBCModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
 	return nil
 }
 
-func (I IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
+func (ibcModule IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	return nil
 }
 
-func (I IBCModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
-	return I.keeper.OnAcknowledgementPacket()
+func (ibcModule IBCModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
+	return ibcModule.keeper.OnAcknowledgementPacket()
 }
 
-func (I IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
-	return I.keeper.OnTimeoutPacket()
+func (ibcModule IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
+	return ibcModule.keeper.OnTimeoutPacket()
 }

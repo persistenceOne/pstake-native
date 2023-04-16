@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	liquidstakeibckeeper "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
 	"io"
 	stdlog "log"
 	"net/http"
@@ -122,6 +121,7 @@ import (
 	pstakeante "github.com/persistenceOne/pstake-native/v2/ante"
 	pstakeappparams "github.com/persistenceOne/pstake-native/v2/app/params"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc"
+	liquidstakeibckeeper "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos"
 	lscosmosclient "github.com/persistenceOne/pstake-native/v2/x/lscosmos/client"

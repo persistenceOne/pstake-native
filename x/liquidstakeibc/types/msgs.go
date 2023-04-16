@@ -7,6 +7,7 @@ import (
 
 var _ sdk.Msg = &MsgDummy{}
 
+//nolint:interfacer
 func NewMsgDummy(fromAddress sdk.AccAddress) *MsgDummy {
 	return &MsgDummy{FromAddress: fromAddress.String()}
 }

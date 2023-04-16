@@ -36,7 +36,7 @@ func NewKeeper(cdc codec.BinaryCodec,
 		AccountKeeper: accountKeeper,
 		BankKeeper:    bankKeeper,
 		storeKey:      storeKey,
-		paramSpace:    paramtypes.Subspace{},
+		paramSpace:    paramSpace,
 		msgRouter:     msgRouter,
 	}
 }

@@ -1,10 +1,11 @@
 package client
 
 import (
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
-	"strings"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
