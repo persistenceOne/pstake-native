@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orchestrator
+spec:
+  serviceName: orchestrator
+  replicas: 4
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: orchestrator
+      app.kubernetes.io/name: orchestrator
+  template:
+    metadata:
+      annotations:
+        quality: release
+        role: api-gateway
+        sla: high
+        tier: gateway
+      labels:
+        app.kubernetes.io/instance: orchestrator
+        app.kubernetes.io/type: orchestrator
+        app.kubernetes.io/name: orchestrator
+        app.kubernetes.io/version: '0.1'
+    spec:
+      imagePullSecrets:
+        - name: test-docker-creds
+      containers:
+        - name: orchestrator
+          image: persistenceone/orc
+          imagePullPolicy: Always
+          env:
+            - name: ORC_DIR
+              value: /orc
+            - name: CONFIG
+              value: "config"
+          command:
+            - bash
+            - "-c"
+            - |
+              ORC_INDEX=${HOSTNAME##*-}
+              CONFIG_FILE="$CONFIG$ORC_INDEX.toml"
+              echo "$CONFIG_FILE"
+              cp /configs/$CONFIG_FILE $ORC_DIR/config.toml
+              # Starting
+              cat $ORC_DIR/config.toml
+              orchestrator start --orcHome $ORC_DIR
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1G"
+            requests:
+              cpu: "0.5"
+              memory: "500M"
+          volumeMounts:
+            - mountPath: /orc
+              name: orc
+            - mountPath: /configs
+              name: orc-config
+      volumes:
+        - name: orc
+          emptyDir: { }
+        - name: orc-config
+          configMap:
+            name: test-orc-config
+---

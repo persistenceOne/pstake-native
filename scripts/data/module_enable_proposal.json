@@ -1,0 +1,15 @@
+{
+  "title": "module enable proposal",
+  "description": "set multisig and enable module",
+  "threshold" : "1",
+  "account_number" : "12",
+  "sequence_number" : "0",
+  "custodial_address" : "cosmos15ddw7dkp56zytf3peshxr8fwn5w76y4g462ql2",
+  "chain_id" : "gaiad",
+  "denom": "stake",
+  "orchestrator_addresses" : [
+    "persistence1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jzkd4ea"
+  ],
+  "depositor": "persistence183g695ap32wnds5k9xwd3yq997dqxudfts2gqg",
+  "deposit": "512stake"
+}

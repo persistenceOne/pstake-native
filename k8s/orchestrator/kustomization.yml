@@ -1,0 +1,15 @@
+namespace: dev-native
+
+resources:
+- orchestrator.yml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: test-orc-config
+    files:
+      - configs/config0.toml
+      - configs/config1.toml
+      - configs/config2.toml
+      - configs/config3.toml

@@ -124,6 +124,9 @@ import (
 	lscosmosclient "github.com/persistenceOne/pstake-native/v2/x/lscosmos/client"
 	lscosmoskeeper "github.com/persistenceOne/pstake-native/v2/x/lscosmos/keeper"
 	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence"
+	lspersistencekeeper "github.com/persistenceOne/pstake-native/v2/x/lspersistence/keeper"
+	lspersistencetypes "github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 var (
@@ -165,6 +168,7 @@ var (
 		vesting.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		epochs.AppModuleBasic{},
+		lspersistence.AppModuleBasic{},
 		lscosmos.AppModuleBasic{},
 		interchainquery.AppModuleBasic{},
 	)
@@ -179,6 +183,7 @@ var (
 		stakingtypes.NotBondedPoolName:           {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:                      {authtypes.Burner},
 		ibctransfertypes.ModuleName:              {authtypes.Minter, authtypes.Burner},
+		lspersistencetypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		ibcfeetypes.ModuleName:                   nil,
 		lscosmostypes.ModuleName:                 {authtypes.Minter, authtypes.Burner},
 		lscosmostypes.DepositModuleAccount:       nil,
@@ -218,17 +223,19 @@ type PstakeApp struct {
 	memKeys map[string]*store.MemoryStoreKey
 
 	// keepers
-	AccountKeeper    authkeeper.AccountKeeper
-	BankKeeper       bankkeeper.BaseKeeper
-	CapabilityKeeper *capabilitykeeper.Keeper
-	StakingKeeper    stakingkeeper.Keeper
-	SlashingKeeper   slashingkeeper.Keeper
-	MintKeeper       mintkeeper.Keeper
-	DistrKeeper      distrkeeper.Keeper
-	GovKeeper        govkeeper.Keeper
-	CrisisKeeper     crisiskeeper.Keeper
-	UpgradeKeeper    upgradekeeper.Keeper
-	ParamsKeeper     paramskeeper.Keeper
+	AccountKeeper       authkeeper.AccountKeeper
+	BankKeeper          bankkeeper.BaseKeeper
+	CapabilityKeeper    *capabilitykeeper.Keeper
+	StakingKeeper       stakingkeeper.Keeper
+	SlashingKeeper      slashingkeeper.Keeper
+	MintKeeper          mintkeeper.Keeper
+	DistrKeeper         distrkeeper.Keeper
+	GovKeeper           govkeeper.Keeper
+	CrisisKeeper        crisiskeeper.Keeper
+	UpgradeKeeper       upgradekeeper.Keeper
+	ParamsKeeper        paramskeeper.Keeper
+	LSPersistenceKeeper lspersistencekeeper.Keeper
+
 	// IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	IBCKeeper             *ibckeeper.Keeper
 	IBCFeeKeeper          ibcfeekeeper.Keeper
@@ -295,7 +302,7 @@ func NewpStakeApp(
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, icahosttypes.StoreKey,
 		icacontrollertypes.StoreKey, epochstypes.StoreKey, lscosmostypes.StoreKey, interchainquerytypes.StoreKey,
-		ibcfeetypes.StoreKey,
+		ibcfeetypes.StoreKey, lspersistencetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, lscosmostypes.MemStoreKey)
@@ -407,6 +414,17 @@ func NewpStakeApp(
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	app.StakingKeeper = *stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
+	)
+
+	app.LSPersistenceKeeper = lspersistencekeeper.NewKeeper(
+		appCodec,
+		keys[lspersistencetypes.StoreKey],
+		app.ParamsKeeper.Subspace(lspersistencetypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.StakingKeeper,
+		app.DistrKeeper,
+		app.SlashingKeeper,
 	)
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
@@ -585,6 +603,7 @@ func NewpStakeApp(
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
+		lspersistence.NewAppModule(appCodec, app.LSPersistenceKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper),
 		epochs.NewAppModule(app.EpochsKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
@@ -611,6 +630,7 @@ func NewpStakeApp(
 		ibcfeetypes.ModuleName,
 		icatypes.ModuleName,
 		lscosmostypes.ModuleName,
+		lspersistencetypes.ModuleName,
 		epochstypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
@@ -643,6 +663,7 @@ func NewpStakeApp(
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
+		lspersistencetypes.ModuleName,
 		minttypes.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
@@ -677,6 +698,7 @@ func NewpStakeApp(
 		feegrant.ModuleName,
 		authz.ModuleName,
 		genutiltypes.ModuleName,
+		lspersistencetypes.ModuleName,
 		lscosmostypes.ModuleName,
 		epochstypes.ModuleName,
 		paramstypes.ModuleName,
@@ -713,6 +735,7 @@ func NewpStakeApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		// ibcTransferHooksMiddleware, TODO implement simulationModule interface
 		//icaModule,
+		lspersistence.NewAppModule(appCodec, app.LSPersistenceKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper),
 		lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
 	)
 
@@ -752,7 +775,7 @@ func NewpStakeApp(
 
 	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
-			Added: []string{icahosttypes.StoreKey},
+			Added: []string{},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
@@ -944,6 +967,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
+	paramsKeeper.Subspace(lspersistencetypes.ModuleName)
 	paramsKeeper.Subspace(lscosmostypes.ModuleName)
 	paramsKeeper.Subspace(interchainquerytypes.ModuleName)
 

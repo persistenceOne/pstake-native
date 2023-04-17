@@ -1,0 +1,24 @@
+{
+  "title": "change cosmos validator weight proposal",
+  "description": "change cosmos validator weight proposal",
+  "weighted_addresses": [
+    {
+      "val_address": "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
+      "weight": "0.5"
+    },
+    {
+      "val_address": "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2",
+      "weight": "0.2"
+    },
+    {
+      "val_address": "cosmosvaloper10khgeppewe4rgfrcy809r9h00aquwxxxgwgwa5",
+      "weight": "0.1"
+    },
+    {
+      "val_address": "cosmosvaloper10vcqjzphfdlumas0vp64f0hruhrqxv0cd7wdy2",
+      "weight": "0.2"
+    }
+  ],
+  "depositor": "persistence1hcqg5wj9t42zawqkqucs7la85ffyv08ljhhesu",
+  "deposit": "512stake"
+}

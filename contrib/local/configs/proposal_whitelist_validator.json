@@ -1,0 +1,19 @@
+{
+    "title": "Whitelist validators",
+    "description": "this proposal Whitelists validators for liquidstaking",
+    "changes":
+    [
+      {
+        "subspace": "lspersistence",
+        "key": "WhitelistedValidators",
+        "value":
+        [
+          {
+			"validator_address": "persistencevaloper1fk57xyyxz89krc3nn5law2xekan84guftegdth",
+			"target_weight": "10"
+		}
+        ]
+      }
+    ],
+    "deposit": "10000000stake"
+  }

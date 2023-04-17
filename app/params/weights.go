@@ -20,4 +20,13 @@ const (
 	DefaultWeightCommunitySpendProposal int = 5
 	DefaultWeightTextProposal           int = 5
 	DefaultWeightParamChangeProposal    int = 5
+
+	//  Params from lspersistence module
+	DefaultLSPWeightMsgLiquidStake                    int = 80
+	DefaultLSPWeightMsgLiquidUnstake                  int = 30
+	DefaultLSPWeightAddWhitelistValidatorsProposal    int = 50
+	DefaultLSPWeightUpdateWhitelistValidatorsProposal int = 5
+	DefaultLSPWeightDeleteWhitelistValidatorsProposal int = 5
+	DefaultLSPWeightCompleteRedelegationUnbonding     int = 30
+	DefaultLSPWeightTallyWithLiquidStaking            int = 30
 )
