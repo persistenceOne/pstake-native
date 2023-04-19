@@ -93,12 +93,12 @@ func (a AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.R
 	cdc.MustUnmarshalJSON(data, &genesisState)
 	telemetry.MeasureSince(start, "InitGenesis", "crisis", "unmarshal")
 
-	a.keeper.InitGenesis(ctx, &genesisState)
+	InitGenesis(ctx, a.keeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 func (a AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	gs := a.keeper.ExportGenesis(ctx)
+	gs := ExportGenesis(ctx, a.keeper)
 	return cdc.MustMarshalJSON(gs)
 }
 
