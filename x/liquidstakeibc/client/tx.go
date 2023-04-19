@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
@@ -25,6 +26,7 @@ func NewTxCmd() *cobra.Command {
 	txCmd.AddCommand(
 		NewRegisterHostChainCmd(),
 		NewUpdateHostChainCmd(),
+		NewLiquidStakeCmd(),
 	)
 
 	return txCmd
@@ -96,6 +98,35 @@ func NewUpdateHostChainCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
+
+	return cmd
+}
+
+func NewLiquidStakeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "liquid-stake [amount]",
+		Short: `Liquid Stake tokens from a registered host chain into stk tokens`,
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			delegatorAddress := clientctx.GetFromAddress()
+			msg := types.NewMsgLiquidStake(amount, delegatorAddress)
+
+			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }

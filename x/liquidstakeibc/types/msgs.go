@@ -8,9 +8,20 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 
-var _ sdk.Msg = &MsgRegisterHostChain{}
+const (
+	MsgTypeRegisterHostChain string = "msg_register_host_chain"
+	MsgTypeUpdateHostChain   string = "msg_update_host_chain"
+	MsgTypeLiquidStake       string = "msg_liquid_stake"
+)
+
+var (
+	_ sdk.Msg = &MsgRegisterHostChain{}
+	_ sdk.Msg = &MsgUpdateHostChain{}
+	_ sdk.Msg = &MsgLiquidStake{}
+)
 
 func NewMsgRegisterHostChain(
 	connectionId string,
@@ -18,7 +29,6 @@ func NewMsgRegisterHostChain(
 	localDenom string,
 	minimumDeposit math.Int,
 ) *MsgRegisterHostChain {
-
 	return &MsgRegisterHostChain{
 		ConnectionId:   connectionId,
 		HostDenom:      hostDenom,
@@ -28,11 +38,11 @@ func NewMsgRegisterHostChain(
 }
 
 func (m *MsgRegisterHostChain) Route() string {
-	return sdk.MsgTypeURL(m)
+	return RouterKey
 }
 
 func (m *MsgRegisterHostChain) Type() string {
-	return sdk.MsgTypeURL(m)
+	return MsgTypeRegisterHostChain
 }
 
 func (m *MsgRegisterHostChain) GetSignBytes() []byte {
@@ -40,7 +50,10 @@ func (m *MsgRegisterHostChain) GetSignBytes() []byte {
 }
 
 func (m *MsgRegisterHostChain) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	addr, err := sdk.AccAddressFromBech32(m.Authority)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{addr}
 }
 
@@ -80,11 +93,7 @@ func (m *MsgRegisterHostChain) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgUpdateHostChain(
-	chainId string,
-	updates []*KVUpdate,
-) *MsgUpdateHostChain {
-
+func NewMsgUpdateHostChain(chainId string, updates []*KVUpdate) *MsgUpdateHostChain {
 	return &MsgUpdateHostChain{
 		ChainId: chainId,
 		Updates: updates,
@@ -92,11 +101,11 @@ func NewMsgUpdateHostChain(
 }
 
 func (m *MsgUpdateHostChain) Route() string {
-	return sdk.MsgTypeURL(m)
+	return RouterKey
 }
 
 func (m *MsgUpdateHostChain) Type() string {
-	return sdk.MsgTypeURL(m)
+	return MsgTypeUpdateHostChain
 }
 
 func (m *MsgUpdateHostChain) GetSignBytes() []byte {
@@ -104,10 +113,60 @@ func (m *MsgUpdateHostChain) GetSignBytes() []byte {
 }
 
 func (m *MsgUpdateHostChain) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	addr, err := sdk.AccAddressFromBech32(m.Authority)
+	if err != nil {
+		panic(err)
+	}
 	return []sdk.AccAddress{addr}
 }
 
 func (m *MsgUpdateHostChain) ValidateBasic() error {
 	return nil
+}
+
+func NewMsgLiquidStake(amount sdk.Coin, address sdk.AccAddress) *MsgLiquidStake {
+	return &MsgLiquidStake{
+		DelegatorAddress: address.String(),
+		Amount:           amount,
+	}
+}
+
+func (m *MsgLiquidStake) Route() string {
+	return RouterKey
+}
+
+// Type should return the action
+func (m *MsgLiquidStake) Type() string {
+	return MsgTypeLiquidStake
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgLiquidStake) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgLiquidStake) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// ValidateBasic performs stateless checks
+func (m *MsgLiquidStake) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.DelegatorAddress)
+	}
+
+	if !m.Amount.IsValid() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
+	}
+
+	if !m.Amount.IsPositive() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
+	}
+
+	return ibctransfertypes.ValidateIBCDenom(m.Amount.Denom)
 }
