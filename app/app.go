@@ -144,7 +144,8 @@ var (
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
-		gov.NewAppModuleBasic([]govclient.ProposalHandler{paramsclient.ProposalHandler,
+		gov.NewAppModuleBasic([]govclient.ProposalHandler{
+			paramsclient.ProposalHandler,
 			distrclient.ProposalHandler,
 			upgradeclient.LegacyProposalHandler,
 			upgradeclient.LegacyCancelProposalHandler,
@@ -489,8 +490,16 @@ func NewpStakeApp(
 
 	_ = app.InterchainQueryKeeper.SetCallbackHandler(lscosmostypes.ModuleName, app.LSCosmosKeeper.CallbackHandler())
 
-	app.LiquidStakeIBCKeeper = liquidstakeibckeeper.NewKeeper(appCodec, keys[liquidstakeibctypes.StoreKey], app.AccountKeeper,
-		app.BankKeeper, app.GetSubspace(liquidstakeibctypes.ModuleName), app.MsgServiceRouter())
+	app.LiquidStakeIBCKeeper = liquidstakeibckeeper.NewKeeper(
+		appCodec,
+		keys[liquidstakeibctypes.StoreKey],
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.IBCKeeper,
+		app.GetSubspace(liquidstakeibctypes.ModuleName),
+		app.MsgServiceRouter(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 	liquidStakeIBCModule := liquidstakeibc.NewIBCModule(app.LiquidStakeIBCKeeper)
 
 	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()

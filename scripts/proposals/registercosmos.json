@@ -1,0 +1,13 @@
+{
+  "messages": [{
+    "@type": "/pstake.liquidstakeibc.v1beta1.MsgRegisterHostChain",
+    "authority": "persistence10d07y265gmmuvt4z0w9aw880jnsr700j5w4kch",
+    "connection_id": "connection-0",
+    "local_denom": "ustkatom",
+    "host_denom": "uatom",
+    "minimum_deposit": "1"
+  }],
+  "deposit": "10000000uxprt",
+  "proposer": "persistence1hcqg5wj9t42zawqkqucs7la85ffyv08ljhhesu",
+  "metadata": ""
+}

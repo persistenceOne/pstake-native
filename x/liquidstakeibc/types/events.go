@@ -1,5 +1,11 @@
 package types
 
 const (
-	AttributeValueCategory = ModuleName
+	EventTypeLiquidStake = "liquid-stake"
+
+	AttributeAmount           = "amount"
+	AttributeAmountReceived   = "received"
+	AttributeDelegatorAddress = "address"
+	AttributePstakeDepositFee = "pstake-deposit-fee"
+	AttributeValueCategory    = ModuleName
 )

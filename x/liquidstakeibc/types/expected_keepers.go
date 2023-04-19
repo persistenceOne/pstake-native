@@ -14,5 +14,8 @@ type AccountKeeper interface {
 // BankKeeper defines the bankkeeper contract that must be fulfilled when
 // creating a x/liquidstakeibc keeper.
 type BankKeeper interface {
+	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 }
