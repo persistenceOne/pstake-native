@@ -2,8 +2,35 @@ syntax = "proto3";
 package pstake.liquidstakeibc.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types";
 
 // Params defines the parameters for the module.
-message Params { option (gogoproto.goproto_stringer) = false; }
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+
+  string deposit_fee = 1 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ]; // protocol fee in percentage
+  string restake_fee = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ]; // protocol fee in percentage
+  string unstake_fee = 3 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ]; // protocol fee in percentage
+  string redemption_fee = 4 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ]; // protocol fee in percentage
+  string fee_address = 5 [
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ]; // protocol fee address
+}

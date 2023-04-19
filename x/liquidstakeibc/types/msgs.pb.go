@@ -7,7 +7,10 @@ import (
 	context "context"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
+	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -30,22 +33,27 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type MsgDummy struct {
-	FromAddress string `protobuf:"bytes,1,opt,name=from_address,json=fromAddress,proto3" json:"from_address,omitempty"`
+type MsgRegisterHostChain struct {
+	// authority is the address of the governance account
+	Authority      string                                 `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	ConnectionId   string                                 `protobuf:"bytes,2,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty"`
+	LocalDenom     string                                 `protobuf:"bytes,3,opt,name=local_denom,json=localDenom,proto3" json:"local_denom,omitempty"`
+	HostDenom      string                                 `protobuf:"bytes,4,opt,name=host_denom,json=hostDenom,proto3" json:"host_denom,omitempty"`
+	MinimumDeposit github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=minimum_deposit,json=minimumDeposit,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"minimum_deposit"`
 }
 
-func (m *MsgDummy) Reset()         { *m = MsgDummy{} }
-func (m *MsgDummy) String() string { return proto.CompactTextString(m) }
-func (*MsgDummy) ProtoMessage()    {}
-func (*MsgDummy) Descriptor() ([]byte, []int) {
+func (m *MsgRegisterHostChain) Reset()         { *m = MsgRegisterHostChain{} }
+func (m *MsgRegisterHostChain) String() string { return proto.CompactTextString(m) }
+func (*MsgRegisterHostChain) ProtoMessage()    {}
+func (*MsgRegisterHostChain) Descriptor() ([]byte, []int) {
 	return fileDescriptor_dce3cdc829e5c7d3, []int{0}
 }
-func (m *MsgDummy) XXX_Unmarshal(b []byte) error {
+func (m *MsgRegisterHostChain) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgDummy) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRegisterHostChain) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgDummy.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRegisterHostChain.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -55,40 +63,197 @@ func (m *MsgDummy) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *MsgDummy) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgDummy.Merge(m, src)
+func (m *MsgRegisterHostChain) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRegisterHostChain.Merge(m, src)
 }
-func (m *MsgDummy) XXX_Size() int {
+func (m *MsgRegisterHostChain) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgDummy) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgDummy.DiscardUnknown(m)
+func (m *MsgRegisterHostChain) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRegisterHostChain.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgDummy proto.InternalMessageInfo
+var xxx_messageInfo_MsgRegisterHostChain proto.InternalMessageInfo
 
-func (m *MsgDummy) GetFromAddress() string {
+type MsgRegisterHostChainResponse struct {
+}
+
+func (m *MsgRegisterHostChainResponse) Reset()         { *m = MsgRegisterHostChainResponse{} }
+func (m *MsgRegisterHostChainResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRegisterHostChainResponse) ProtoMessage()    {}
+func (*MsgRegisterHostChainResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dce3cdc829e5c7d3, []int{1}
+}
+func (m *MsgRegisterHostChainResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRegisterHostChainResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRegisterHostChainResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRegisterHostChainResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRegisterHostChainResponse.Merge(m, src)
+}
+func (m *MsgRegisterHostChainResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRegisterHostChainResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRegisterHostChainResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRegisterHostChainResponse proto.InternalMessageInfo
+
+type MsgUpdateHostChain struct {
+	// authority is the address of the governance account
+	Authority string      `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	ChainId   string      `protobuf:"bytes,2,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
+	Updates   []*KVUpdate `protobuf:"bytes,3,rep,name=updates,proto3" json:"updates,omitempty"`
+}
+
+func (m *MsgUpdateHostChain) Reset()         { *m = MsgUpdateHostChain{} }
+func (m *MsgUpdateHostChain) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateHostChain) ProtoMessage()    {}
+func (*MsgUpdateHostChain) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dce3cdc829e5c7d3, []int{2}
+}
+func (m *MsgUpdateHostChain) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateHostChain) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateHostChain.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateHostChain) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateHostChain.Merge(m, src)
+}
+func (m *MsgUpdateHostChain) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateHostChain) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateHostChain.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateHostChain proto.InternalMessageInfo
+
+type MsgUpdateHostChainResponse struct {
+}
+
+func (m *MsgUpdateHostChainResponse) Reset()         { *m = MsgUpdateHostChainResponse{} }
+func (m *MsgUpdateHostChainResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateHostChainResponse) ProtoMessage()    {}
+func (*MsgUpdateHostChainResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dce3cdc829e5c7d3, []int{3}
+}
+func (m *MsgUpdateHostChainResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateHostChainResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateHostChainResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateHostChainResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateHostChainResponse.Merge(m, src)
+}
+func (m *MsgUpdateHostChainResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateHostChainResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateHostChainResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateHostChainResponse proto.InternalMessageInfo
+
+type MsgLiquidStake struct {
+	DelegatorAddress string     `protobuf:"bytes,1,opt,name=delegator_address,json=delegatorAddress,proto3" json:"delegator_address,omitempty"`
+	Amount           types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount"`
+}
+
+func (m *MsgLiquidStake) Reset()         { *m = MsgLiquidStake{} }
+func (m *MsgLiquidStake) String() string { return proto.CompactTextString(m) }
+func (*MsgLiquidStake) ProtoMessage()    {}
+func (*MsgLiquidStake) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dce3cdc829e5c7d3, []int{4}
+}
+func (m *MsgLiquidStake) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgLiquidStake) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgLiquidStake.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgLiquidStake) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgLiquidStake.Merge(m, src)
+}
+func (m *MsgLiquidStake) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgLiquidStake) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgLiquidStake.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgLiquidStake proto.InternalMessageInfo
+
+func (m *MsgLiquidStake) GetDelegatorAddress() string {
 	if m != nil {
-		return m.FromAddress
+		return m.DelegatorAddress
 	}
 	return ""
 }
 
-type MsgDummyResponse struct {
+func (m *MsgLiquidStake) GetAmount() types.Coin {
+	if m != nil {
+		return m.Amount
+	}
+	return types.Coin{}
 }
 
-func (m *MsgDummyResponse) Reset()         { *m = MsgDummyResponse{} }
-func (m *MsgDummyResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgDummyResponse) ProtoMessage()    {}
-func (*MsgDummyResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_dce3cdc829e5c7d3, []int{1}
+type MsgLiquidStakeResponse struct {
 }
-func (m *MsgDummyResponse) XXX_Unmarshal(b []byte) error {
+
+func (m *MsgLiquidStakeResponse) Reset()         { *m = MsgLiquidStakeResponse{} }
+func (m *MsgLiquidStakeResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgLiquidStakeResponse) ProtoMessage()    {}
+func (*MsgLiquidStakeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dce3cdc829e5c7d3, []int{5}
+}
+func (m *MsgLiquidStakeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgDummyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgLiquidStakeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgDummyResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgLiquidStakeResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -98,21 +263,25 @@ func (m *MsgDummyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (m *MsgDummyResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgDummyResponse.Merge(m, src)
+func (m *MsgLiquidStakeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgLiquidStakeResponse.Merge(m, src)
 }
-func (m *MsgDummyResponse) XXX_Size() int {
+func (m *MsgLiquidStakeResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgDummyResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgDummyResponse.DiscardUnknown(m)
+func (m *MsgLiquidStakeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgLiquidStakeResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgDummyResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgLiquidStakeResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgDummy)(nil), "pstake.liquidstakeibc.v1beta1.MsgDummy")
-	proto.RegisterType((*MsgDummyResponse)(nil), "pstake.liquidstakeibc.v1beta1.MsgDummyResponse")
+	proto.RegisterType((*MsgRegisterHostChain)(nil), "pstake.liquidstakeibc.v1beta1.MsgRegisterHostChain")
+	proto.RegisterType((*MsgRegisterHostChainResponse)(nil), "pstake.liquidstakeibc.v1beta1.MsgRegisterHostChainResponse")
+	proto.RegisterType((*MsgUpdateHostChain)(nil), "pstake.liquidstakeibc.v1beta1.MsgUpdateHostChain")
+	proto.RegisterType((*MsgUpdateHostChainResponse)(nil), "pstake.liquidstakeibc.v1beta1.MsgUpdateHostChainResponse")
+	proto.RegisterType((*MsgLiquidStake)(nil), "pstake.liquidstakeibc.v1beta1.MsgLiquidStake")
+	proto.RegisterType((*MsgLiquidStakeResponse)(nil), "pstake.liquidstakeibc.v1beta1.MsgLiquidStakeResponse")
 }
 
 func init() {
@@ -120,28 +289,50 @@ func init() {
 }
 
 var fileDescriptor_dce3cdc829e5c7d3 = []byte{
-	// 334 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xd2, 0x28, 0x28, 0x2e, 0x49,
-	0xcc, 0x4e, 0xd5, 0xcf, 0xc9, 0x2c, 0x2c, 0xcd, 0x4c, 0x01, 0xb3, 0x33, 0x93, 0x92, 0xf5, 0xcb,
-	0x0c, 0x93, 0x52, 0x4b, 0x12, 0x0d, 0xf5, 0x73, 0x8b, 0xd3, 0x8b, 0xf5, 0x0a, 0x8a, 0xf2, 0x4b,
-	0xf2, 0x85, 0x64, 0x21, 0x2a, 0xf5, 0x50, 0x55, 0xea, 0x41, 0x55, 0x4a, 0xc9, 0xa4, 0xe7, 0xe7,
-	0xa7, 0xe7, 0xa4, 0xea, 0x27, 0x16, 0x64, 0xea, 0x27, 0xe6, 0xe5, 0xe5, 0x97, 0x24, 0x96, 0x64,
-	0xe6, 0xe7, 0x41, 0x35, 0x4b, 0x49, 0x26, 0xe7, 0x17, 0xe7, 0xe6, 0x17, 0xc7, 0x83, 0x79, 0xfa,
-	0x10, 0x0e, 0x54, 0x4a, 0x1c, 0xc2, 0x03, 0x59, 0xa5, 0x5f, 0x06, 0xb6, 0x11, 0x22, 0xa1, 0x14,
-	0xc5, 0xc5, 0xe1, 0x5b, 0x9c, 0xee, 0x52, 0x9a, 0x9b, 0x5b, 0x29, 0x64, 0xcd, 0xc5, 0x93, 0x56,
-	0x94, 0x9f, 0x1b, 0x9f, 0x98, 0x92, 0x52, 0x94, 0x5a, 0x5c, 0x2c, 0xc1, 0xa8, 0xc0, 0xa8, 0xc1,
-	0xe9, 0x24, 0x71, 0x69, 0x8b, 0xae, 0x08, 0xd4, 0x30, 0x47, 0x88, 0x4c, 0x70, 0x49, 0x51, 0x66,
-	0x5e, 0x7a, 0x10, 0x37, 0x48, 0x35, 0x54, 0xc8, 0x4a, 0xb0, 0xe9, 0xf9, 0x06, 0x2d, 0x14, 0xfd,
-	0x4a, 0x42, 0x5c, 0x02, 0x30, 0xb3, 0x83, 0x52, 0x8b, 0x0b, 0xf2, 0xf3, 0x8a, 0x53, 0x8d, 0xe6,
-	0x32, 0x72, 0x31, 0xfb, 0x16, 0xa7, 0x0b, 0x4d, 0x65, 0xe4, 0x62, 0x85, 0xd8, 0xaa, 0xae, 0x87,
-	0xd7, 0xcf, 0x7a, 0x30, 0x23, 0xa4, 0xf4, 0x89, 0x54, 0x08, 0xb3, 0x4b, 0xc9, 0xa8, 0xe9, 0xf2,
-	0x93, 0xc9, 0x4c, 0x3a, 0x4a, 0x5a, 0xfa, 0xf8, 0xc3, 0xdf, 0x07, 0x2c, 0x1c, 0x0c, 0x12, 0x76,
-	0x8a, 0x3e, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18, 0x27, 0x3c,
-	0x96, 0x63, 0xb8, 0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x28, 0xc7, 0xf4, 0xcc, 0x92,
-	0x8c, 0xd2, 0x24, 0xbd, 0xe4, 0xfc, 0x5c, 0xfd, 0x82, 0xd4, 0xa2, 0xe2, 0xcc, 0xe2, 0x92, 0xd4,
-	0xbc, 0xe4, 0x54, 0xff, 0xbc, 0x54, 0xa8, 0xf1, 0xba, 0x79, 0x89, 0x25, 0x99, 0x65, 0xa9, 0xfa,
-	0x65, 0x46, 0xfa, 0x15, 0xe8, 0x56, 0x95, 0x54, 0x16, 0xa4, 0x16, 0x27, 0xb1, 0x81, 0xc3, 0xdc,
-	0x18, 0x10, 0x00, 0x00, 0xff, 0xff, 0xdc, 0x7c, 0xf5, 0x51, 0x10, 0x02, 0x00, 0x00,
+	// 680 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x54, 0x4f, 0x6b, 0x13, 0x4f,
+	0x18, 0xce, 0x36, 0xfd, 0xf5, 0xcf, 0xe4, 0x67, 0x6b, 0x97, 0x52, 0xb7, 0xa1, 0xdd, 0x94, 0x28,
+	0xb5, 0x88, 0xd9, 0xa5, 0x29, 0x2a, 0x56, 0x2f, 0xfd, 0x23, 0x18, 0x34, 0x08, 0x5b, 0xf4, 0xa0,
+	0x87, 0x30, 0xd9, 0x1d, 0x26, 0x43, 0xb3, 0x33, 0xeb, 0xce, 0x6c, 0xb0, 0x27, 0xa1, 0x20, 0x78,
+	0x14, 0xfc, 0x02, 0x15, 0x3c, 0x78, 0x14, 0xe9, 0x87, 0xe8, 0xb1, 0xd4, 0x8b, 0x78, 0x28, 0xd2,
+	0x0a, 0xfa, 0x31, 0x64, 0x67, 0x27, 0xdb, 0x34, 0x29, 0x0d, 0xd5, 0x53, 0x76, 0xde, 0xf7, 0x79,
+	0xde, 0x3c, 0xcf, 0x3b, 0xef, 0xbc, 0x60, 0x21, 0xe0, 0x02, 0x6e, 0x22, 0xbb, 0x49, 0x5e, 0x46,
+	0xc4, 0x93, 0xdf, 0xa4, 0xee, 0xda, 0xad, 0xc5, 0x3a, 0x12, 0x70, 0xd1, 0xf6, 0x39, 0xe6, 0x56,
+	0x10, 0x32, 0xc1, 0xf4, 0xd9, 0x04, 0x69, 0x9d, 0x46, 0x5a, 0x0a, 0x99, 0x9f, 0xc1, 0x8c, 0xe1,
+	0x26, 0xb2, 0x61, 0x40, 0x6c, 0x48, 0x29, 0x13, 0x50, 0x10, 0x46, 0x15, 0x39, 0x3f, 0xed, 0x32,
+	0xee, 0x33, 0x5e, 0x93, 0x27, 0x3b, 0x39, 0xa8, 0xd4, 0x24, 0x66, 0x98, 0x25, 0xf1, 0xf8, 0x4b,
+	0x45, 0xaf, 0x24, 0x98, 0x58, 0x80, 0xdd, 0x92, 0x3a, 0x54, 0xc2, 0x54, 0x89, 0x3a, 0xe4, 0x28,
+	0x95, 0xe9, 0x32, 0x42, 0x55, 0xbe, 0x7c, 0xbe, 0xa1, 0x2e, 0xf5, 0x92, 0x53, 0xfc, 0x38, 0x00,
+	0x26, 0xab, 0x1c, 0x3b, 0x08, 0x13, 0x2e, 0x50, 0xf8, 0x90, 0x71, 0xb1, 0xd6, 0x80, 0x84, 0xea,
+	0xb7, 0xc1, 0x28, 0x8c, 0x44, 0x83, 0x85, 0x44, 0x6c, 0x19, 0xda, 0x9c, 0xb6, 0x30, 0xba, 0x6a,
+	0x1c, 0xec, 0x96, 0x26, 0x95, 0x81, 0x15, 0xcf, 0x0b, 0x11, 0xe7, 0x1b, 0x22, 0x24, 0x14, 0x3b,
+	0x27, 0x50, 0xfd, 0x2a, 0xb8, 0xe4, 0x32, 0x4a, 0x91, 0x1b, 0xf7, 0xa0, 0x46, 0x3c, 0x63, 0x20,
+	0xe6, 0x3a, 0xff, 0x9f, 0x04, 0x2b, 0x9e, 0x5e, 0x00, 0xb9, 0x26, 0x73, 0x61, 0xb3, 0xe6, 0x21,
+	0xca, 0x7c, 0x23, 0x2b, 0x21, 0x40, 0x86, 0xd6, 0xe3, 0x88, 0x3e, 0x0b, 0x40, 0x83, 0x71, 0xa1,
+	0xf2, 0x83, 0x32, 0x3f, 0x1a, 0x47, 0x92, 0x34, 0x02, 0xe3, 0x3e, 0xa1, 0xc4, 0x8f, 0xfc, 0x9a,
+	0x87, 0x02, 0xc6, 0x89, 0x30, 0xfe, 0x93, 0x12, 0xef, 0xef, 0x1d, 0x16, 0x32, 0xdf, 0x0f, 0x0b,
+	0xf3, 0x98, 0x88, 0x46, 0x54, 0xb7, 0x5c, 0xe6, 0xab, 0x96, 0xab, 0x9f, 0x12, 0xf7, 0x36, 0x6d,
+	0xb1, 0x15, 0x20, 0x6e, 0x55, 0xa8, 0x38, 0xd8, 0x2d, 0x01, 0x65, 0xa8, 0x42, 0x85, 0x33, 0xa6,
+	0x8a, 0xae, 0x27, 0x35, 0x97, 0x47, 0xde, 0xee, 0x14, 0x32, 0xbf, 0x77, 0x0a, 0x99, 0xa2, 0x09,
+	0x66, 0xce, 0xea, 0x92, 0x83, 0x78, 0xc0, 0x28, 0x47, 0xc5, 0x5d, 0x0d, 0xe8, 0x55, 0x8e, 0x9f,
+	0x06, 0x1e, 0x14, 0xe8, 0xdf, 0x9b, 0x38, 0x0d, 0x46, 0xdc, 0xb8, 0xc0, 0x49, 0xff, 0x86, 0xe5,
+	0xb9, 0xe2, 0xe9, 0x2b, 0x60, 0x38, 0x92, 0xff, 0xc2, 0x8d, 0xec, 0x5c, 0x76, 0x21, 0x57, 0xbe,
+	0x6e, 0x9d, 0x3b, 0x9d, 0xd6, 0xa3, 0x67, 0x89, 0x2a, 0xa7, 0xcd, 0xeb, 0xb0, 0x35, 0x03, 0xf2,
+	0xbd, 0xaa, 0x53, 0x53, 0x9f, 0x34, 0x30, 0x56, 0xe5, 0xf8, 0xb1, 0xac, 0xbb, 0x11, 0xd7, 0xd5,
+	0x1f, 0x80, 0x09, 0x0f, 0x35, 0x11, 0x86, 0x82, 0x85, 0x35, 0x98, 0xc8, 0xef, 0x6b, 0xec, 0x72,
+	0x4a, 0x51, 0x71, 0xfd, 0x0e, 0x18, 0x82, 0x3e, 0x8b, 0xa8, 0x90, 0xee, 0x72, 0xe5, 0x69, 0x4b,
+	0x11, 0xe3, 0xd1, 0x4e, 0x95, 0xaf, 0x31, 0x42, 0x57, 0x07, 0xe3, 0x1b, 0x75, 0x14, 0x7c, 0x79,
+	0x6a, 0xfb, 0xd7, 0xe7, 0x1b, 0xbd, 0x12, 0x8a, 0x06, 0x98, 0x3a, 0xad, 0xb4, 0x6d, 0xa2, 0xfc,
+	0x25, 0x0b, 0xb2, 0x55, 0x8e, 0xf5, 0x37, 0x1a, 0x98, 0xe8, 0x9d, 0xf2, 0xa5, 0x3e, 0xcd, 0x3b,
+	0xeb, 0xd2, 0xf3, 0xf7, 0xfe, 0x82, 0xd4, 0xd6, 0xa3, 0xbf, 0x06, 0xe3, 0xdd, 0x53, 0xb2, 0xd8,
+	0xbf, 0x5e, 0x17, 0x25, 0x7f, 0xf7, 0xc2, 0x94, 0x54, 0xc0, 0x07, 0x0d, 0xe4, 0x3a, 0xaf, 0xb4,
+	0xd4, 0xbf, 0x54, 0x07, 0x3c, 0x7f, 0xeb, 0x42, 0xf0, 0x74, 0x96, 0x6e, 0x6e, 0x7f, 0xfd, 0xf9,
+	0x7e, 0x60, 0xbe, 0x78, 0xcd, 0x6e, 0x2f, 0x29, 0xae, 0xde, 0x65, 0x7b, 0x3d, 0x75, 0xb0, 0x56,
+	0x5f, 0xec, 0x1d, 0x99, 0xda, 0xfe, 0x91, 0xa9, 0xfd, 0x38, 0x32, 0xb5, 0x77, 0xc7, 0x66, 0x66,
+	0xff, 0xd8, 0xcc, 0x7c, 0x3b, 0x36, 0x33, 0xcf, 0x57, 0x3a, 0x1e, 0x76, 0x80, 0x42, 0x1e, 0x77,
+	0x99, 0xba, 0xe8, 0x09, 0x45, 0xaa, 0x70, 0x89, 0x42, 0x41, 0x5a, 0xc8, 0x6e, 0x95, 0xed, 0x57,
+	0xdd, 0x9b, 0x50, 0xbe, 0xfb, 0xfa, 0x90, 0xdc, 0x7c, 0x4b, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff,
+	0x25, 0xc3, 0xc6, 0xbb, 0x00, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -156,7 +347,9 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	Dummy(ctx context.Context, in *MsgDummy, opts ...grpc.CallOption) (*MsgDummyResponse, error)
+	RegisterHostChain(ctx context.Context, in *MsgRegisterHostChain, opts ...grpc.CallOption) (*MsgRegisterHostChainResponse, error)
+	UpdateHostChain(ctx context.Context, in *MsgUpdateHostChain, opts ...grpc.CallOption) (*MsgUpdateHostChainResponse, error)
+	LiquidStake(ctx context.Context, in *MsgLiquidStake, opts ...grpc.CallOption) (*MsgLiquidStakeResponse, error)
 }
 
 type msgClient struct {
@@ -167,9 +360,27 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) Dummy(ctx context.Context, in *MsgDummy, opts ...grpc.CallOption) (*MsgDummyResponse, error) {
-	out := new(MsgDummyResponse)
-	err := c.cc.Invoke(ctx, "/pstake.liquidstakeibc.v1beta1.Msg/Dummy", in, out, opts...)
+func (c *msgClient) RegisterHostChain(ctx context.Context, in *MsgRegisterHostChain, opts ...grpc.CallOption) (*MsgRegisterHostChainResponse, error) {
+	out := new(MsgRegisterHostChainResponse)
+	err := c.cc.Invoke(ctx, "/pstake.liquidstakeibc.v1beta1.Msg/RegisterHostChain", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateHostChain(ctx context.Context, in *MsgUpdateHostChain, opts ...grpc.CallOption) (*MsgUpdateHostChainResponse, error) {
+	out := new(MsgUpdateHostChainResponse)
+	err := c.cc.Invoke(ctx, "/pstake.liquidstakeibc.v1beta1.Msg/UpdateHostChain", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) LiquidStake(ctx context.Context, in *MsgLiquidStake, opts ...grpc.CallOption) (*MsgLiquidStakeResponse, error) {
+	out := new(MsgLiquidStakeResponse)
+	err := c.cc.Invoke(ctx, "/pstake.liquidstakeibc.v1beta1.Msg/LiquidStake", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -178,35 +389,79 @@ func (c *msgClient) Dummy(ctx context.Context, in *MsgDummy, opts ...grpc.CallOp
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	Dummy(context.Context, *MsgDummy) (*MsgDummyResponse, error)
+	RegisterHostChain(context.Context, *MsgRegisterHostChain) (*MsgRegisterHostChainResponse, error)
+	UpdateHostChain(context.Context, *MsgUpdateHostChain) (*MsgUpdateHostChainResponse, error)
+	LiquidStake(context.Context, *MsgLiquidStake) (*MsgLiquidStakeResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) Dummy(ctx context.Context, req *MsgDummy) (*MsgDummyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Dummy not implemented")
+func (*UnimplementedMsgServer) RegisterHostChain(ctx context.Context, req *MsgRegisterHostChain) (*MsgRegisterHostChainResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterHostChain not implemented")
+}
+func (*UnimplementedMsgServer) UpdateHostChain(ctx context.Context, req *MsgUpdateHostChain) (*MsgUpdateHostChainResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateHostChain not implemented")
+}
+func (*UnimplementedMsgServer) LiquidStake(ctx context.Context, req *MsgLiquidStake) (*MsgLiquidStakeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LiquidStake not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
-func _Msg_Dummy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgDummy)
+func _Msg_RegisterHostChain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRegisterHostChain)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).Dummy(ctx, in)
+		return srv.(MsgServer).RegisterHostChain(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pstake.liquidstakeibc.v1beta1.Msg/Dummy",
+		FullMethod: "/pstake.liquidstakeibc.v1beta1.Msg/RegisterHostChain",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).Dummy(ctx, req.(*MsgDummy))
+		return srv.(MsgServer).RegisterHostChain(ctx, req.(*MsgRegisterHostChain))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateHostChain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateHostChain)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateHostChain(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pstake.liquidstakeibc.v1beta1.Msg/UpdateHostChain",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateHostChain(ctx, req.(*MsgUpdateHostChain))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_LiquidStake_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgLiquidStake)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).LiquidStake(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pstake.liquidstakeibc.v1beta1.Msg/LiquidStake",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).LiquidStake(ctx, req.(*MsgLiquidStake))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -216,15 +471,23 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Dummy",
-			Handler:    _Msg_Dummy_Handler,
+			MethodName: "RegisterHostChain",
+			Handler:    _Msg_RegisterHostChain_Handler,
+		},
+		{
+			MethodName: "UpdateHostChain",
+			Handler:    _Msg_UpdateHostChain_Handler,
+		},
+		{
+			MethodName: "LiquidStake",
+			Handler:    _Msg_LiquidStake_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "pstake/liquidstakeibc/v1beta1/msgs.proto",
 }
 
-func (m *MsgDummy) Marshal() (dAtA []byte, err error) {
+func (m *MsgRegisterHostChain) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -234,27 +497,58 @@ func (m *MsgDummy) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgDummy) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRegisterHostChain) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgDummy) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRegisterHostChain) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.FromAddress) > 0 {
-		i -= len(m.FromAddress)
-		copy(dAtA[i:], m.FromAddress)
-		i = encodeVarintMsgs(dAtA, i, uint64(len(m.FromAddress)))
+	{
+		size := m.MinimumDeposit.Size()
+		i -= size
+		if _, err := m.MinimumDeposit.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintMsgs(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x2a
+	if len(m.HostDenom) > 0 {
+		i -= len(m.HostDenom)
+		copy(dAtA[i:], m.HostDenom)
+		i = encodeVarintMsgs(dAtA, i, uint64(len(m.HostDenom)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.LocalDenom) > 0 {
+		i -= len(m.LocalDenom)
+		copy(dAtA[i:], m.LocalDenom)
+		i = encodeVarintMsgs(dAtA, i, uint64(len(m.LocalDenom)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.ConnectionId) > 0 {
+		i -= len(m.ConnectionId)
+		copy(dAtA[i:], m.ConnectionId)
+		i = encodeVarintMsgs(dAtA, i, uint64(len(m.ConnectionId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintMsgs(dAtA, i, uint64(len(m.Authority)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgDummyResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgRegisterHostChainResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -264,12 +558,149 @@ func (m *MsgDummyResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgDummyResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRegisterHostChainResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgDummyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRegisterHostChainResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateHostChain) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateHostChain) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateHostChain) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Updates) > 0 {
+		for iNdEx := len(m.Updates) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Updates[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintMsgs(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.ChainId) > 0 {
+		i -= len(m.ChainId)
+		copy(dAtA[i:], m.ChainId)
+		i = encodeVarintMsgs(dAtA, i, uint64(len(m.ChainId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintMsgs(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateHostChainResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateHostChainResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateHostChainResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgLiquidStake) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgLiquidStake) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgLiquidStake) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Amount.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintMsgs(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.DelegatorAddress) > 0 {
+		i -= len(m.DelegatorAddress)
+		copy(dAtA[i:], m.DelegatorAddress)
+		i = encodeVarintMsgs(dAtA, i, uint64(len(m.DelegatorAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgLiquidStakeResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgLiquidStakeResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgLiquidStakeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -288,20 +719,90 @@ func encodeVarintMsgs(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgDummy) Size() (n int) {
+func (m *MsgRegisterHostChain) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.FromAddress)
+	l = len(m.Authority)
 	if l > 0 {
 		n += 1 + l + sovMsgs(uint64(l))
+	}
+	l = len(m.ConnectionId)
+	if l > 0 {
+		n += 1 + l + sovMsgs(uint64(l))
+	}
+	l = len(m.LocalDenom)
+	if l > 0 {
+		n += 1 + l + sovMsgs(uint64(l))
+	}
+	l = len(m.HostDenom)
+	if l > 0 {
+		n += 1 + l + sovMsgs(uint64(l))
+	}
+	l = m.MinimumDeposit.Size()
+	n += 1 + l + sovMsgs(uint64(l))
+	return n
+}
+
+func (m *MsgRegisterHostChainResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateHostChain) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovMsgs(uint64(l))
+	}
+	l = len(m.ChainId)
+	if l > 0 {
+		n += 1 + l + sovMsgs(uint64(l))
+	}
+	if len(m.Updates) > 0 {
+		for _, e := range m.Updates {
+			l = e.Size()
+			n += 1 + l + sovMsgs(uint64(l))
+		}
 	}
 	return n
 }
 
-func (m *MsgDummyResponse) Size() (n int) {
+func (m *MsgUpdateHostChainResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgLiquidStake) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.DelegatorAddress)
+	if l > 0 {
+		n += 1 + l + sovMsgs(uint64(l))
+	}
+	l = m.Amount.Size()
+	n += 1 + l + sovMsgs(uint64(l))
+	return n
+}
+
+func (m *MsgLiquidStakeResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -316,7 +817,7 @@ func sovMsgs(x uint64) (n int) {
 func sozMsgs(x uint64) (n int) {
 	return sovMsgs(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgDummy) Unmarshal(dAtA []byte) error {
+func (m *MsgRegisterHostChain) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -339,15 +840,15 @@ func (m *MsgDummy) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgDummy: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRegisterHostChain: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgDummy: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRegisterHostChain: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FromAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -375,7 +876,137 @@ func (m *MsgDummy) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.FromAddress = string(dAtA[iNdEx:postIndex])
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMsgs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ConnectionId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LocalDenom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMsgs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.LocalDenom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HostDenom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMsgs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.HostDenom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinimumDeposit", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMsgs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MinimumDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -398,7 +1029,7 @@ func (m *MsgDummy) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgDummyResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgRegisterHostChainResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -421,10 +1052,373 @@ func (m *MsgDummyResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgDummyResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRegisterHostChainResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgDummyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRegisterHostChainResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMsgs(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateHostChain) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMsgs
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateHostChain: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateHostChain: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMsgs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMsgs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChainId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Updates", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMsgs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Updates = append(m.Updates, &KVUpdate{})
+			if err := m.Updates[len(m.Updates)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMsgs(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateHostChainResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMsgs
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateHostChainResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateHostChainResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMsgs(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgLiquidStake) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMsgs
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgLiquidStake: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgLiquidStake: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DelegatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMsgs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DelegatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMsgs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMsgs(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMsgs
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgLiquidStakeResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMsgs
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgLiquidStakeResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgLiquidStakeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

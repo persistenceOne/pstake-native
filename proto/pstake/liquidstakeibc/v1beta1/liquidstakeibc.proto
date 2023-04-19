@@ -1,0 +1,51 @@
+syntax = "proto3";
+package pstake.liquidstakeibc.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types";
+
+//option (gogoproto.goproto_stringer) = false;
+
+message HostChain {
+  option (gogoproto.goproto_stringer) = true;
+
+  // host chain id
+  string chain_id = 1;
+  // ibc connection id
+  string connection_id = 2;
+  // protocol token denom
+  string local_denom = 3;
+  // native token denom
+  string host_denom = 4;
+  // minimum ls amount
+  string minimum_deposit = 5 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // redemption rate
+  string c_value = 6 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}
+
+//message Validator {
+//  string address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+//}
+//
+//message ICAAccount {
+//  string address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+//  repeated cosmos.base.v1beta1.Coin balance = 2 [
+//    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+//    (gogoproto.nullable) = false
+//  ];
+//}
+
+message KVUpdate {
+  string key = 1;
+  string value = 2;
+}
