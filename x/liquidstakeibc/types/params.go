@@ -18,7 +18,7 @@ func NewParams() Params {
 
 // DefaultParams is the default parameter configuration for the liquidstakeibc module
 func DefaultParams() Params {
-	return Params{}
+	return NewParams()
 }
 
 // Validate all liquidstakeibc module parameters

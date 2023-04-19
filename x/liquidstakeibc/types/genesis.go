@@ -10,14 +10,9 @@ func (gs GenesisState) Validate() error {
 	return nil
 }
 
-// NewGenesisState creates a new genesis state.
-func NewGenesisState(params Params) *GenesisState {
-	return &GenesisState{
-		Params: params,
-	}
-}
-
 // DefaultGenesisState returns a default liquidstakeibc module genesis state.
 func DefaultGenesisState() *GenesisState {
-	return NewGenesisState(DefaultParams())
+	return &GenesisState{
+		Params: DefaultParams(),
+	}
 }
