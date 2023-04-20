@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 func (k Keeper) GetProxyAccBalance(ctx sdk.Context, proxyAcc sdk.AccAddress) (balance sdk.Coin) {
@@ -82,7 +82,7 @@ func (k Keeper) Rebalance(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals t
 	}
 
 	failCount := 0
-	rebalancingThresholdAmt := rebalancingTrigger.Mul(totalLiquidTokens.ToDec()).TruncateInt()
+	rebalancingThresholdAmt := rebalancingTrigger.Mul(sdk.NewDecFromInt(totalLiquidTokens)).TruncateInt()
 
 	for i := 0; i < liquidVals.Len(); i++ {
 		// get min, max of liquid token gap
@@ -136,10 +136,10 @@ func (k Keeper) WithdrawRewardsAndReStake(ctx sdk.Context, whitelistedValsMap ty
 
 	// checking over types.RewardTrigger and execute GetRewards
 	proxyAccBalance := k.GetProxyAccBalance(ctx, types.LiquidStakingProxyAcc)
-	rewardsThreshold := types.RewardTrigger.Mul(totalLiquidTokens.ToDec())
+	rewardsThreshold := types.RewardTrigger.Mul(sdk.NewDecFromInt(totalLiquidTokens))
 
 	// skip If it doesn't exceed the rewards threshold
-	if !proxyAccBalance.Amount.ToDec().Add(totalRemainingRewards).GT(rewardsThreshold) {
+	if !sdk.NewDecFromInt(proxyAccBalance.Amount).Add(totalRemainingRewards).GT(rewardsThreshold) {
 		return
 	}
 

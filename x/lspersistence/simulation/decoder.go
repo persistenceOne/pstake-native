@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 // NewDecodeStore returns a decoder function closure that unmarshals the KVPair's

@@ -11,7 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 type msgServer struct {

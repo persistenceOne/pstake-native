@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 func TestMsgLiquidStake(t *testing.T) {

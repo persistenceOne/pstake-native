@@ -6,27 +6,27 @@ import (
 	"strings"
 	"time"
 
-	"github.com/stretchr/testify/suite"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
-	store "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	paramscutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	stakingcli "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
+	"github.com/stretchr/testify/suite"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	tmdb "github.com/tendermint/tm-db"
 
-	chain "github.com/crescent-network/crescent/v4/app"
-	"github.com/crescent-network/crescent/v4/app/params"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/client/cli"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	chain "github.com/persistenceOne/pstake-native/v2/app"
+	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
+	"github.com/persistenceOne/pstake-native/v2/app/params"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/client/cli"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 type IntegrationTestSuite struct {
@@ -38,11 +38,11 @@ type IntegrationTestSuite struct {
 
 func NewAppConstructor(encodingCfg params.EncodingConfig) network.AppConstructor {
 	return func(val network.Validator) servertypes.Application {
-		return chain.NewApp(
+		return chain.NewpStakeApp(
 			val.Ctx.Logger, tmdb.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
 			encodingCfg,
 			simapp.EmptyAppOptions{},
-			baseapp.SetPruning(store.NewPruningOptionsFromString(val.AppConfig.Pruning)),
+			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),
 			baseapp.SetMinGasPrices(val.AppConfig.MinGasPrices),
 		)
 	}
@@ -51,7 +51,7 @@ func NewAppConstructor(encodingCfg params.EncodingConfig) network.AppConstructor
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.T().Log("setting up integration test suite")
 	db := tmdb.NewMemDB()
-	cfg := chain.NewConfig(db)
+	cfg := testhelpers.NewConfig(db)
 	cfg.NumValidators = 1
 	s.cfg = cfg
 
@@ -61,9 +61,11 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	cfg.GenesisState["liquidstaking"] = bz
 
 	genesisStateGov := govtypes.DefaultGenesisState()
-	genesisStateGov.DepositParams = govtypes.NewDepositParams(sdk.NewCoins(sdk.NewCoin(cfg.BondDenom, govtypes.DefaultMinDepositTokens)), time.Duration(15)*time.Second)
-	genesisStateGov.VotingParams = govtypes.NewVotingParams(time.Duration(3) * time.Second)
-	genesisStateGov.TallyParams.Quorum = sdk.MustNewDecFromStr("0.01")
+	dp := govtypes.NewDepositParams(sdk.NewCoins(sdk.NewCoin(cfg.BondDenom, govtypes.DefaultMinDepositTokens)), time.Duration(15)*time.Second)
+	genesisStateGov.DepositParams = &dp
+	vp := govtypes.NewVotingParams(time.Duration(3) * time.Second)
+	genesisStateGov.VotingParams = &vp
+	genesisStateGov.TallyParams.Quorum = sdk.MustNewDecFromStr("0.01").String()
 	bz, err := cfg.Codec.MarshalJSON(genesisStateGov)
 	s.Require().NoError(err)
 	cfg.GenesisState["gov"] = bz
@@ -77,7 +79,10 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	//cfg.AccountTokens = sdk.NewInt(100_000_000_000) // node0token denom
 	//cfg.StakingTokens = sdk.NewInt(100_000_000_000) // stake denom
 
-	s.network = network.New(s.T(), s.cfg)
+	s.network, err = network.New(s.T(), "", s.cfg)
+	if err != nil {
+		panic(err)
+	}
 	err = s.network.WaitForNextBlock()
 	s.Require().NoError(err)
 

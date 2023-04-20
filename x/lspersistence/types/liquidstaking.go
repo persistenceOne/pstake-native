@@ -81,9 +81,9 @@ func (v LiquidValidator) GetStatus(activeCondition bool) ValidatorStatus {
 }
 
 // ActiveCondition checks the liquid validator could be active by below cases
-//- included on whitelist
-//- existed valid validator on staking module ( existed, not nil del shares and tokens, valid exchange rate)
-//- not tombstoned
+// - included on whitelist
+// - existed valid validator on staking module ( existed, not nil del shares and tokens, valid exchange rate)
+// - not tombstoned
 func ActiveCondition(validator stakingtypes.Validator, whitelisted bool, tombstoned bool) bool {
 	return whitelisted &&
 		!tombstoned &&
@@ -165,12 +165,12 @@ func (avs ActiveLiquidValidators) TotalWeight(whitelistedValsMap WhitelistedVals
 
 // NativeTokenToBToken returns bTokenTotalSupply * nativeTokenAmount / netAmount
 func NativeTokenToBToken(nativeTokenAmount, bTokenTotalSupplyAmount sdk.Int, netAmount sdk.Dec) (bTokenAmount sdk.Int) {
-	return bTokenTotalSupplyAmount.ToDec().MulTruncate(nativeTokenAmount.ToDec()).QuoTruncate(netAmount.TruncateDec()).TruncateInt()
+	return sdk.NewDecFromInt(bTokenTotalSupplyAmount).MulTruncate(sdk.NewDecFromInt(nativeTokenAmount)).QuoTruncate(netAmount.TruncateDec()).TruncateInt()
 }
 
 // BTokenToNativeToken returns bTokenAmount * netAmount / bTokenTotalSupply with truncations
 func BTokenToNativeToken(bTokenAmount, bTokenTotalSupplyAmount sdk.Int, netAmount sdk.Dec) (nativeTokenAmount sdk.Dec) {
-	return bTokenAmount.ToDec().MulTruncate(netAmount).Quo(bTokenTotalSupplyAmount.ToDec()).TruncateDec()
+	return sdk.NewDecFromInt(bTokenAmount).MulTruncate(netAmount).Quo(sdk.NewDecFromInt(bTokenTotalSupplyAmount)).TruncateDec()
 }
 
 // DeductFeeRate returns Input * (1-FeeRate) with truncations
@@ -179,14 +179,14 @@ func DeductFeeRate(input sdk.Dec, feeRate sdk.Dec) (feeDeductedOutput sdk.Dec) {
 }
 
 func (nas NetAmountState) CalcNetAmount() sdk.Dec {
-	return nas.ProxyAccBalance.Add(nas.TotalLiquidTokens).Add(nas.TotalUnbondingBalance).ToDec().Add(nas.TotalRemainingRewards)
+	return sdk.NewDecFromInt(nas.ProxyAccBalance.Add(nas.TotalLiquidTokens).Add(nas.TotalUnbondingBalance)).Add(nas.TotalRemainingRewards)
 }
 
 func (nas NetAmountState) CalcMintRate() sdk.Dec {
 	if nas.NetAmount.IsNil() || !nas.NetAmount.IsPositive() {
 		return sdk.ZeroDec()
 	}
-	return nas.BtokenTotalSupply.ToDec().QuoTruncate(nas.NetAmount)
+	return sdk.NewDecFromInt(nas.BtokenTotalSupply).QuoTruncate(nas.NetAmount)
 }
 
 type LiquidValidatorStates []LiquidValidatorState

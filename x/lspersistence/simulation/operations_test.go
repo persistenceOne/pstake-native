@@ -1,11 +1,13 @@
 package simulation_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
@@ -14,23 +16,22 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	chain "github.com/crescent-network/crescent/v4/app"
-	"github.com/crescent-network/crescent/v4/app/params"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/simulation"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
-	minttypes "github.com/crescent-network/crescent/v4/x/mint/types"
+	chain "github.com/persistenceOne/pstake-native/v2/app"
+	"github.com/persistenceOne/pstake-native/v2/app/params"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/simulation"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 // TestWeightedOperations tests the weights of the operations.
 func TestWeightedOperations(t *testing.T) {
-	app, ctx := createTestApp(false)
+	app, ctx := createTestApp(t, false)
 
 	ctx.WithChainID("test-chain")
 
 	cdc := types.ModuleCdc
 	appParams := make(simtypes.AppParams)
 
-	weightedOps := simulation.WeightedOperations(appParams, cdc, app.AccountKeeper, app.BankKeeper, app.LiquidStakingKeeper)
+	weightedOps := simulation.WeightedOperations(appParams, cdc, app.AccountKeeper, app.BankKeeper, app.LSPersistenceKeeper)
 
 	s := rand.NewSource(2)
 	r := rand.New(s)
@@ -40,7 +41,7 @@ func TestWeightedOperations(t *testing.T) {
 	val0 := getTestingValidator0(t, app, ctx, accs)
 	val1 := getTestingValidator1(t, app, ctx, accs)
 
-	param := app.LiquidStakingKeeper.GetParams(ctx)
+	param := app.LSPersistenceKeeper.GetParams(ctx)
 	param.WhitelistedValidators = []types.WhitelistedValidator{
 		{
 			ValidatorAddress: val0.OperatorAddress,
@@ -51,7 +52,7 @@ func TestWeightedOperations(t *testing.T) {
 			TargetWeight:     sdk.OneInt(),
 		},
 	}
-	app.LiquidStakingKeeper.SetParams(ctx, param)
+	app.LSPersistenceKeeper.SetParams(ctx, param)
 
 	// begin a new block
 	blockTime := time.Now().UTC()
@@ -78,17 +79,17 @@ func TestWeightedOperations(t *testing.T) {
 	}
 }
 
-func createTestApp(isCheckTx bool) (*chain.App, sdk.Context) {
-	app := chain.Setup(isCheckTx)
+func createTestApp(t *testing.T, isCheckTx bool) (*chain.PstakeApp, sdk.Context) {
+	app := testhelpers.Setup(t, isCheckTx, 5)
 
 	ctx := app.BaseApp.NewContext(isCheckTx, tmproto.Header{})
 	app.MintKeeper.SetParams(ctx, minttypes.DefaultParams())
-	app.LiquidStakingKeeper.SetParams(ctx, types.DefaultParams())
+	app.LSPersistenceKeeper.SetParams(ctx, types.DefaultParams())
 
 	return app, ctx
 }
 
-func getTestingAccounts(t *testing.T, r *rand.Rand, app *chain.App, ctx sdk.Context, n int) []simtypes.Account {
+func getTestingAccounts(t *testing.T, r *rand.Rand, app *chain.PstakeApp, ctx sdk.Context, n int) []simtypes.Account {
 	accounts := simtypes.RandomAccounts(r, n)
 
 	initAmt := app.StakingKeeper.TokensFromConsensusPower(ctx, 100_000_000)
@@ -101,24 +102,24 @@ func getTestingAccounts(t *testing.T, r *rand.Rand, app *chain.App, ctx sdk.Cont
 	for _, account := range accounts {
 		acc := app.AccountKeeper.NewAccountWithAddress(ctx, account.Address)
 		app.AccountKeeper.SetAccount(ctx, acc)
-		err := simapp.FundAccount(app.BankKeeper, ctx, account.Address, initCoins)
+		err := testutil.FundAccount(app.BankKeeper, ctx, account.Address, initCoins)
 		require.NoError(t, err)
 	}
 
 	return accounts
 }
 
-func getTestingValidator0(t *testing.T, app *chain.App, ctx sdk.Context, accounts []simtypes.Account) stakingtypes.Validator {
+func getTestingValidator0(t *testing.T, app *chain.PstakeApp, ctx sdk.Context, accounts []simtypes.Account) stakingtypes.Validator {
 	commission0 := stakingtypes.NewCommission(sdk.ZeroDec(), sdk.OneDec(), sdk.OneDec())
 	return getTestingValidator(t, app, ctx, accounts, commission0, 0)
 }
 
-func getTestingValidator1(t *testing.T, app *chain.App, ctx sdk.Context, accounts []simtypes.Account) stakingtypes.Validator {
+func getTestingValidator1(t *testing.T, app *chain.PstakeApp, ctx sdk.Context, accounts []simtypes.Account) stakingtypes.Validator {
 	commission1 := stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec())
 	return getTestingValidator(t, app, ctx, accounts, commission1, 1)
 }
 
-func getTestingValidator(t *testing.T, app *chain.App, ctx sdk.Context, accounts []simtypes.Account, commission stakingtypes.Commission, n int) stakingtypes.Validator {
+func getTestingValidator(t *testing.T, app *chain.PstakeApp, ctx sdk.Context, accounts []simtypes.Account, commission stakingtypes.Commission, n int) stakingtypes.Validator {
 	account := accounts[n]
 	valPubKey := account.PubKey
 	valAddr := sdk.ValAddress(account.PubKey.Address().Bytes())

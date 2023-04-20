@@ -4,36 +4,34 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 // Keeper of the liquidstaking store
 type Keeper struct {
-	storeKey   sdk.StoreKey
+	storeKey   storetypes.StoreKey
 	cdc        codec.BinaryCodec
 	paramSpace paramtypes.Subspace
 
-	accountKeeper   types.AccountKeeper
-	bankKeeper      types.BankKeeper
-	stakingKeeper   types.StakingKeeper
-	distrKeeper     types.DistrKeeper
-	liquidityKeeper types.LiquidityKeeper
-	lpfarmKeeper    types.LPFarmKeeper
-	slashingKeeper  types.SlashingKeeper
+	accountKeeper  types.AccountKeeper
+	bankKeeper     types.BankKeeper
+	stakingKeeper  types.StakingKeeper
+	distrKeeper    types.DistrKeeper
+	slashingKeeper types.SlashingKeeper
 }
 
 // NewKeeper returns a liquidstaking keeper. It handles:
 // - creating new ModuleAccounts for each pool ReserveAccount
 // - sending to and from ModuleAccounts
 // - minting, burning PoolCoins
-func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, stakingKeeper types.StakingKeeper,
-	distrKeeper types.DistrKeeper, liquidityKeeper types.LiquidityKeeper,
-	lpfarmKeeper types.LPFarmKeeper, slashingKeeper types.SlashingKeeper,
+	distrKeeper types.DistrKeeper, slashingKeeper types.SlashingKeeper,
 ) Keeper {
 	// ensure liquidstaking module account is set
 	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
@@ -46,16 +44,14 @@ func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Su
 	}
 
 	return Keeper{
-		storeKey:        key,
-		cdc:             cdc,
-		paramSpace:      paramSpace,
-		accountKeeper:   accountKeeper,
-		bankKeeper:      bankKeeper,
-		stakingKeeper:   stakingKeeper,
-		distrKeeper:     distrKeeper,
-		liquidityKeeper: liquidityKeeper,
-		lpfarmKeeper:    lpfarmKeeper,
-		slashingKeeper:  slashingKeeper,
+		storeKey:       key,
+		cdc:            cdc,
+		paramSpace:     paramSpace,
+		accountKeeper:  accountKeeper,
+		bankKeeper:     bankKeeper,
+		stakingKeeper:  stakingKeeper,
+		distrKeeper:    distrKeeper,
+		slashingKeeper: slashingKeeper,
 	}
 }
 

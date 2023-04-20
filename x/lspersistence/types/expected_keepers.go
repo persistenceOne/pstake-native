@@ -5,12 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	abci "github.com/tendermint/tendermint/abci/types"
-
-	liquiditytypes "github.com/crescent-network/crescent/v4/x/liquidity/types"
-	lpfarmtypes "github.com/crescent-network/crescent/v4/x/lpfarm/types"
 )
 
 // BankKeeper defines the expected bank send keeper
@@ -88,7 +85,7 @@ type GovKeeper interface {
 	GetProposal(ctx sdk.Context, proposalID uint64) (govtypes.Proposal, bool)
 	SetProposal(ctx sdk.Context, proposal govtypes.Proposal)
 	GetProposals(ctx sdk.Context) (proposals govtypes.Proposals)
-	AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, options govtypes.WeightedVoteOptions) error
+	AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, options govtypes.WeightedVoteOptions, metadata string) error
 }
 
 // DistrKeeper expected distribution keeper (noalias)
@@ -98,20 +95,20 @@ type DistrKeeper interface {
 	WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error)
 }
 
-// Liquidity expected liquidity keeper (noalias)
-type LiquidityKeeper interface {
-	GetPair(ctx sdk.Context, id uint64) (pair liquiditytypes.Pair, found bool)
-	GetPool(ctx sdk.Context, id uint64) (pool liquiditytypes.Pool, found bool)
-	GetPoolBalances(ctx sdk.Context, pool liquiditytypes.Pool) (rx sdk.Coin, ry sdk.Coin)
-	GetPoolCoinSupply(ctx sdk.Context, pool liquiditytypes.Pool) sdk.Int
-	IterateAllPools(ctx sdk.Context, cb func(pool liquiditytypes.Pool) (stop bool, err error)) error
-}
-
-// LPFarmKeeper defines expected lpfarm keeper
-type LPFarmKeeper interface {
-	GetPosition(ctx sdk.Context, farmerAddr sdk.AccAddress, denom string) (lpfarmtypes.Position, bool)
-	IteratePositionsByFarmer(ctx sdk.Context, farmerAddr sdk.AccAddress, cb func(position lpfarmtypes.Position) bool)
-}
+//// Liquidity expected liquidity keeper (noalias)
+//type LiquidityKeeper interface {
+//	GetPair(ctx sdk.Context, id uint64) (pair liquiditytypes.Pair, found bool)
+//	GetPool(ctx sdk.Context, id uint64) (pool liquiditytypes.Pool, found bool)
+//	GetPoolBalances(ctx sdk.Context, pool liquiditytypes.Pool) (rx sdk.Coin, ry sdk.Coin)
+//	GetPoolCoinSupply(ctx sdk.Context, pool liquiditytypes.Pool) sdk.Int
+//	IterateAllPools(ctx sdk.Context, cb func(pool liquiditytypes.Pool) (stop bool, err error)) error
+//}
+//
+//// LPFarmKeeper defines expected lpfarm keeper
+//type LPFarmKeeper interface {
+//	GetPosition(ctx sdk.Context, farmerAddr sdk.AccAddress, denom string) (lpfarmtypes.Position, bool)
+//	IteratePositionsByFarmer(ctx sdk.Context, farmerAddr sdk.AccAddress, cb func(position lpfarmtypes.Position) bool)
+//}
 
 // SlashingKeeper expected slashing keeper (noalias)
 type SlashingKeeper interface {

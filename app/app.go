@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence"
 	"io"
 	stdlog "log"
 	"net/http"
@@ -124,6 +125,8 @@ import (
 	lscosmosclient "github.com/persistenceOne/pstake-native/v2/x/lscosmos/client"
 	lscosmoskeeper "github.com/persistenceOne/pstake-native/v2/x/lscosmos/keeper"
 	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
+	lspersistencekeeper "github.com/persistenceOne/pstake-native/v2/x/lspersistence/keeper"
+	lspersistencetypes "github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 var (
@@ -167,6 +170,7 @@ var (
 		epochs.AppModuleBasic{},
 		lscosmos.AppModuleBasic{},
 		interchainquery.AppModuleBasic{},
+		lspersistence.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -242,6 +246,7 @@ type PstakeApp struct {
 	EpochsKeeper          epochskeeper.Keeper
 	LSCosmosKeeper        lscosmoskeeper.Keeper
 	InterchainQueryKeeper interchainquerykeeper.Keeper
+	LSPersistenceKeeper   lspersistencekeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -295,7 +300,7 @@ func NewpStakeApp(
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, icahosttypes.StoreKey,
 		icacontrollertypes.StoreKey, epochstypes.StoreKey, lscosmostypes.StoreKey, interchainquerytypes.StoreKey,
-		ibcfeetypes.StoreKey,
+		ibcfeetypes.StoreKey, lspersistencetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, lscosmostypes.MemStoreKey)
@@ -408,6 +413,10 @@ func NewpStakeApp(
 	app.StakingKeeper = *stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
 	)
+
+	app.LSPersistenceKeeper = lspersistencekeeper.NewKeeper(appCodec, keys[lspersistencetypes.StoreKey],
+		app.GetSubspace(lspersistencetypes.ModuleName), app.AccountKeeper, app.BankKeeper,
+		app.StakingKeeper, app.DistrKeeper, app.SlashingKeeper)
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
@@ -592,6 +601,7 @@ func NewpStakeApp(
 		//ibchooker.NewAppModule(),
 		lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
 		interchainQueryModule,
+		lspersistence.NewAppModule(appCodec, app.LSPersistenceKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -946,6 +956,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
 	paramsKeeper.Subspace(lscosmostypes.ModuleName)
 	paramsKeeper.Subspace(interchainquerytypes.ModuleName)
+	paramsKeeper.Subspace(lspersistencetypes.ModuleName)
 
 	return paramsKeeper
 }

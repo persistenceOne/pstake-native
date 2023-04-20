@@ -1,11 +1,11 @@
-package liquidstaking
+package lspersistence
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/keeper"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 // NewHandler returns a new msg handler.

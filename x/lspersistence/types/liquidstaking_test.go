@@ -1,10 +1,13 @@
 package types_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
 	"testing"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -14,11 +17,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	chain "github.com/crescent-network/crescent/v4/app"
-	utils "github.com/crescent-network/crescent/v4/types"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/keeper"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
-	"github.com/crescent-network/crescent/v4/x/mint"
+	chain "github.com/persistenceOne/pstake-native/v2/app"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 var (
@@ -247,11 +248,11 @@ func TestActiveCondition(t *testing.T) {
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app        *chain.App
+	app        *chain.PstakeApp
 	ctx        sdk.Context
 	keeper     keeper.Keeper
 	querier    keeper.Querier
-	govHandler govtypes.Handler
+	govHandler govv1beta1types.Handler
 	addrs      []sdk.AccAddress
 	delAddrs   []sdk.AccAddress
 	valAddrs   []sdk.ValAddress
@@ -262,7 +263,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	s.app = chain.Setup(false)
+	s.app = testhelpers.Setup(s.T(), false, 5)
 	s.ctx = s.app.BaseApp.NewContext(false, tmproto.Header{})
 	s.govHandler = params.NewParamChangeProposalHandler(s.app.ParamsKeeper)
 	stakingParams := stakingtypes.DefaultParams()
@@ -270,27 +271,27 @@ func (s *KeeperTestSuite) SetupTest() {
 	stakingParams.MaxValidators = 30
 	s.app.StakingKeeper.SetParams(s.ctx, stakingParams)
 
-	s.keeper = s.app.LiquidStakingKeeper
+	s.keeper = s.app.LSPersistenceKeeper
 	s.querier = keeper.Querier{Keeper: s.keeper}
-	s.addrs = chain.AddTestAddrs(s.app, s.ctx, 10, sdk.NewInt(1_000_000_000))
-	s.delAddrs = chain.AddTestAddrs(s.app, s.ctx, 10, sdk.NewInt(1_000_000_000))
-	s.valAddrs = chain.ConvertAddrsToValAddrs(s.delAddrs)
+	s.addrs = testhelpers.AddTestAddrs(s.app, s.ctx, 10, sdk.NewInt(1_000_000_000))
+	s.delAddrs = testhelpers.AddTestAddrs(s.app, s.ctx, 10, sdk.NewInt(1_000_000_000))
+	s.valAddrs = testhelpers.ConvertAddrsToValAddrs(s.delAddrs)
 
-	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(utils.ParseTime("2022-03-01T00:00:00Z"))
+	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(testhelpers.ParseTime("2022-03-01T00:00:00Z"))
 	params := s.keeper.GetParams(s.ctx)
 	params.UnstakeFeeRate = sdk.ZeroDec()
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	// call mint.BeginBlocker for init k.SetLastBlockTime(ctx, ctx.BlockTime())
-	mint.BeginBlocker(s.ctx, s.app.MintKeeper)
+	mint.BeginBlocker(s.ctx, s.app.MintKeeper, minttypes.DefaultInflationCalculationFn)
 }
 
 func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []sdk.ValAddress, []cryptotypes.PubKey) {
 	s.app.BeginBlocker(s.ctx, abci.RequestBeginBlock{})
 	num := len(powers)
-	addrs := chain.AddTestAddrsIncremental(s.app, s.ctx, num, sdk.NewInt(1000000000))
-	valAddrs := chain.ConvertAddrsToValAddrs(addrs)
-	pks := chain.CreateTestPubKeys(num)
+	addrs := testhelpers.AddTestAddrsIncremental(s.app, s.ctx, num, sdk.NewInt(1000000000))
+	valAddrs := testhelpers.ConvertAddrsToValAddrs(addrs)
+	pks := testhelpers.CreateTestPubKeys(num)
 
 	for i, power := range powers {
 		val, err := stakingtypes.NewValidator(valAddrs[i], pks[i], stakingtypes.Description{})
@@ -356,7 +357,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	// liquid staking
 	newShares, bTokenMintAmt, err = s.keeper.LiquidStake(s.ctx, types.LiquidStakingProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
 	s.Require().NoError(err)
-	s.Require().Equal(newShares, stakingAmt.ToDec())
+	s.Require().Equal(newShares, sdk.NewDecFromInt(stakingAmt))
 	s.Require().Equal(bTokenMintAmt, stakingAmt)
 
 	_, found := s.app.StakingKeeper.GetDelegation(s.ctx, s.delAddrs[0], valOpers[0])
@@ -375,7 +376,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	s.Require().Equal(proxyAccDel1.Shares, sdk.NewDec(16668)) // 16666 + add crumb 2 to 1st active validator
 	s.Require().Equal(proxyAccDel2.Shares, sdk.NewDec(16666))
 	s.Require().Equal(proxyAccDel2.Shares, sdk.NewDec(16666))
-	s.Require().Equal(stakingAmt.ToDec(), proxyAccDel1.Shares.Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
+	s.Require().Equal(sdk.NewDecFromInt(stakingAmt), proxyAccDel1.Shares.Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
 
 	liquidBondDenom := s.keeper.LiquidBondDenom(s.ctx)
 	balanceBeforeUBD := s.app.BankKeeper.GetBalance(s.ctx, s.delAddrs[0], sdk.DefaultBondDenom)
@@ -396,7 +397,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	crumb := ubdBToken.Amount.Sub(ubdBToken.Amount.QuoRaw(3).MulRaw(3)) // 1
 	s.Require().EqualValues(unbondingAmt, ubdBToken.Amount.Sub(crumb))  // 9999
 	s.Require().Equal(ubds[0].DelegatorAddress, s.delAddrs[0].String())
-	s.Require().Equal(ubdTime, utils.ParseTime("2022-03-22T00:00:00Z"))
+	s.Require().Equal(ubdTime, testhelpers.ParseTime("2022-03-22T00:00:00Z"))
 	bTokenBalanceAfter := s.app.BankKeeper.GetBalance(s.ctx, s.delAddrs[0], liquidBondDenom)
 	s.Require().Equal(bTokenBalanceAfter, sdk.NewCoin(liquidBondDenom, sdk.NewInt(40000)))
 
@@ -409,7 +410,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	s.Require().True(found)
 	proxyAccDel3, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakingProxyAcc, valOpers[2])
 	s.Require().True(found)
-	s.Require().Equal(stakingAmt.Sub(unbondingAmt).ToDec(), proxyAccDel1.GetShares().Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
+	s.Require().Equal(sdk.NewDecFromInt(stakingAmt.Sub(unbondingAmt)), proxyAccDel1.GetShares().Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
 
 	// complete unbonding
 	s.ctx = s.ctx.WithBlockHeight(200).WithBlockTime(ubdTime.Add(1))

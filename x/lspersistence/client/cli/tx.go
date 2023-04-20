@@ -15,10 +15,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
-// GetTxCmd returns a root CLI command handler for all x/liquidstaking transaction commands.
+// GetTxCmd returns a root CLI command handler for all x/lspersistence transaction commands.
 func GetTxCmd() *cobra.Command {
 	liquidstakingTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,

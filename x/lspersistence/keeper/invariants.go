@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 // RegisterInvariants registers all liquidstaking invariants.
@@ -47,7 +47,7 @@ func NetAmountInvariant(k Keeper) sdk.Invariant {
 		}
 		nas := k.GetNetAmountState(ctx)
 		balance := k.GetProxyAccBalance(ctx, types.LiquidStakingProxyAcc).Amount
-		NetAmountExceptBalance := nas.NetAmount.Sub(balance.ToDec())
+		NetAmountExceptBalance := nas.NetAmount.Sub(sdk.NewDecFromInt(balance))
 		liquidBondDenom := k.LiquidBondDenom(ctx)
 		bTokenTotalSupply := k.bankKeeper.GetSupply(ctx, liquidBondDenom)
 		if bTokenTotalSupply.IsPositive() && !NetAmountExceptBalance.IsPositive() {

@@ -2,14 +2,13 @@ package types
 
 import (
 	"fmt"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"strings"
 
 	"gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
-	farmingtypes "github.com/crescent-network/crescent/v4/x/farming/types"
 )
 
 // Parameter store keys
@@ -36,7 +35,7 @@ var (
 	RewardTrigger = sdk.NewDecWithPrec(1, 3) // "0.001000000000000000"
 
 	// LiquidStakingProxyAcc is a proxy reserve account for delegation and undelegation.
-	LiquidStakingProxyAcc = farmingtypes.DeriveAddress(farmingtypes.AddressType32Bytes, ModuleName, "LiquidStakingProxyAcc")
+	LiquidStakingProxyAcc = authtypes.NewModuleAddress(ModuleName + "-LiquidStakingProxyAcc")
 )
 
 var _ paramstypes.ParamSet = (*Params)(nil)

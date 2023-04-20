@@ -10,10 +10,9 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	appparams "github.com/crescent-network/crescent/v4/app/params"
-	utils "github.com/crescent-network/crescent/v4/types"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/keeper"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	appparams "github.com/persistenceOne/pstake-native/v2/app/params"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 // Simulation operation weights constants.
@@ -121,7 +120,7 @@ func SimulateMsgLiquidStake(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 			ModuleName:      types.ModuleName,
 			CoinsSpentInMsg: spendable,
 		}
-		return utils.GenAndDeliverTxWithFees(txCtx, Gas, Fees)
+		return simulation.GenAndDeliverTx(txCtx, Fees)
 	}
 }
 
@@ -171,6 +170,6 @@ func SimulateMsgLiquidUnstake(ak types.AccountKeeper, bk types.BankKeeper, k kee
 			ModuleName:      types.ModuleName,
 			CoinsSpentInMsg: spendable,
 		}
-		return utils.GenAndDeliverTxWithFees(txCtx, Gas, Fees)
+		return simulation.GenAndDeliverTx(txCtx, Fees)
 	}
 }

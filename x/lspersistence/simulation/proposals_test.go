@@ -10,13 +10,13 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/crescent-network/crescent/v4/app/params"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/simulation"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/v2/app/params"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/simulation"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 func TestProposalContents(t *testing.T) {
-	app, ctx := createTestApp(false)
+	app, ctx := createTestApp(t, false)
 
 	s := rand.NewSource(1)
 	r := rand.New(s)
@@ -27,7 +27,7 @@ func TestProposalContents(t *testing.T) {
 	val0 := getTestingValidator0(t, app, ctx, accounts)
 	val1 := getTestingValidator1(t, app, ctx, accounts)
 
-	param := app.LiquidStakingKeeper.GetParams(ctx)
+	param := app.LSPersistenceKeeper.GetParams(ctx)
 	param.WhitelistedValidators = []types.WhitelistedValidator{
 		{
 			ValidatorAddress: val0.OperatorAddress,
@@ -38,7 +38,7 @@ func TestProposalContents(t *testing.T) {
 			TargetWeight:     sdk.OneInt(),
 		},
 	}
-	app.LiquidStakingKeeper.SetParams(ctx, param)
+	app.LSPersistenceKeeper.SetParams(ctx, param)
 
 	// begin a new block
 	blockTime := time.Now().UTC()
@@ -46,7 +46,7 @@ func TestProposalContents(t *testing.T) {
 	app.EndBlock(abci.RequestEndBlock{Height: app.LastBlockHeight() + 1})
 
 	// execute ProposalContents function
-	weightedProposalContent := simulation.ProposalContents(app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper, app.LiquidStakingKeeper)
+	weightedProposalContent := simulation.ProposalContents(app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper, app.LSPersistenceKeeper)
 	require.Len(t, weightedProposalContent, 5)
 
 	w0 := weightedProposalContent[0]

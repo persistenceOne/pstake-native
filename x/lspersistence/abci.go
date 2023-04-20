@@ -1,4 +1,4 @@
-package liquidstaking
+package lspersistence
 
 import (
 	"time"
@@ -6,8 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/keeper"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 // BeginBlocker updates liquid validator set changes for the current block

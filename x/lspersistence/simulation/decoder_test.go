@@ -9,14 +9,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/simulation"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/simulation"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 func TestDecodeLiquidStakingStore(t *testing.T) {
 
 	cdc := simapp.MakeTestEncodingConfig()
-	dec := simulation.NewDecodeStore(cdc.Marshaler)
+	dec := simulation.NewDecodeStore(cdc.Codec)
 
 	tc := types.LiquidValidator{
 		OperatorAddress: "cosmosvaloper13w4ueuk80d3kmwk7ntlhp84fk0arlm3m9ammr5",
@@ -24,7 +24,7 @@ func TestDecodeLiquidStakingStore(t *testing.T) {
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{
-			{Key: types.LiquidValidatorsKey, Value: cdc.Marshaler.MustMarshal(&tc)},
+			{Key: types.LiquidValidatorsKey, Value: cdc.Codec.MustMarshal(&tc)},
 			{Key: []byte{0x99}, Value: []byte{0x99}},
 		},
 	}

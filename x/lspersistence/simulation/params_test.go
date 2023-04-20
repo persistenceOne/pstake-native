@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/simulation"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/simulation"
 )
 
 func TestParamChanges(t *testing.T) {

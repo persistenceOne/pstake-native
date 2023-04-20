@@ -11,14 +11,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
-// GetQueryCmd returns a root CLI command handler for all x/liquidstaking query commands.
+// GetQueryCmd returns a root CLI command handler for all x/lspersistence query commands.
 func GetQueryCmd() *cobra.Command {
 	liquidValidatorQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the liquidstaking module",
+		Short:                      "Querying commands for the lspersistence module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -39,7 +39,7 @@ func GetCmdQueryParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "params",
 		Args:  cobra.NoArgs,
-		Short: "Query the values set as liquidstaking parameters",
+		Short: "Query the values set as lspersistence parameters",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query values set as liquidstaking parameters.
 

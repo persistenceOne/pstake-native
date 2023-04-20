@@ -6,13 +6,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/crescent-network/crescent/v4/app/params"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/keeper"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	"github.com/persistenceOne/pstake-native/v2/app/params"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 // Simulation operation weights constants.
@@ -145,7 +145,7 @@ func SimulateTallyWithLiquidStaking(ak types.AccountKeeper, bk types.BankKeeper,
 		var targetProposal *govtypes.Proposal
 		for _, p := range proposals {
 			if p.Status == govtypes.StatusVotingPeriod {
-				targetProposal = &p
+				targetProposal = p
 				break
 			}
 		}
@@ -160,18 +160,19 @@ func SimulateTallyWithLiquidStaking(ak types.AccountKeeper, bk types.BankKeeper,
 				// spendable must be greater than unstaking coins
 				if spendable.AmountOf(types.DefaultLiquidBondDenom).GT(sdk.ZeroInt()) {
 					voter = account.GetAddress()
-					err := gk.AddVote(ctx, targetProposal.ProposalId, voter, govtypes.WeightedVoteOptions{
-						govtypes.WeightedVoteOption{Option: govtypes.OptionYes, Weight: sdk.NewDec(1)},
-					})
+					err := gk.AddVote(ctx, targetProposal.Id, voter, govtypes.WeightedVoteOptions{
+						&govtypes.WeightedVoteOption{Option: govtypes.OptionYes, Weight: sdk.NewDec(1).String()},
+					}, "")
 					if err != nil {
 						panic(err)
 					}
-					targetProposal.DepositEndTime = ctx.BlockTime()
-					targetProposal.VotingEndTime = ctx.BlockTime()
+					blockTime := ctx.BlockTime()
+					targetProposal.DepositEndTime = &blockTime
+					targetProposal.VotingEndTime = &blockTime
 					ctx = ctx.WithBlockTime(ctx.BlockTime().Add(5 * time.Second))
 					cachedCtx, _ := ctx.CacheContext()
 					_, _, res := gk.Tally(cachedCtx, *targetProposal)
-					targetProposal.FinalTallyResult = res
+					targetProposal.FinalTallyResult = &res
 					break
 				}
 			}

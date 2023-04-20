@@ -2,6 +2,9 @@ package keeper_test
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence"
 	"testing"
 	"time"
 
@@ -14,21 +17,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	chain "github.com/crescent-network/crescent/v4/app"
-	utils "github.com/crescent-network/crescent/v4/types"
-	liquiditytypes "github.com/crescent-network/crescent/v4/x/liquidity/types"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/keeper"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
-	lpfarmtypes "github.com/crescent-network/crescent/v4/x/lpfarm/types"
-	"github.com/crescent-network/crescent/v4/x/mint"
+	chain "github.com/persistenceOne/pstake-native/v2/app"
+	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 var (
@@ -38,14 +36,13 @@ var (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app        *chain.App
-	ctx        sdk.Context
-	keeper     keeper.Keeper
-	querier    keeper.Querier
-	govHandler govtypes.Handler
-	addrs      []sdk.AccAddress
-	delAddrs   []sdk.AccAddress
-	valAddrs   []sdk.ValAddress
+	app      *chain.PstakeApp
+	ctx      sdk.Context
+	keeper   keeper.Keeper
+	querier  keeper.Querier
+	addrs    []sdk.AccAddress
+	delAddrs []sdk.AccAddress
+	valAddrs []sdk.ValAddress
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -53,27 +50,26 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	s.app = chain.Setup(false)
+	s.app = testhelpers.Setup(s.T(), false, 5)
 	s.ctx = s.app.BaseApp.NewContext(false, tmproto.Header{})
-	s.govHandler = params.NewParamChangeProposalHandler(s.app.ParamsKeeper)
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.MaxEntries = 7
 	stakingParams.MaxValidators = 30
 	s.app.StakingKeeper.SetParams(s.ctx, stakingParams)
 
-	s.keeper = s.app.LiquidStakingKeeper
+	s.keeper = s.app.LSPersistenceKeeper
 	s.querier = keeper.Querier{Keeper: s.keeper}
-	s.addrs = chain.AddTestAddrs(s.app, s.ctx, 10, sdk.NewInt(1_000_000_000))
-	s.delAddrs = chain.AddTestAddrs(s.app, s.ctx, 10, sdk.NewInt(1_000_000_000))
-	s.valAddrs = chain.ConvertAddrsToValAddrs(s.delAddrs)
+	s.addrs = testhelpers.AddTestAddrs(s.app, s.ctx, 10, sdk.NewInt(1_000_000_000))
+	s.delAddrs = testhelpers.AddTestAddrs(s.app, s.ctx, 10, sdk.NewInt(1_000_000_000))
+	s.valAddrs = testhelpers.ConvertAddrsToValAddrs(s.delAddrs)
 
-	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(utils.ParseTime("2022-03-01T00:00:00Z"))
+	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(testhelpers.ParseTime("2022-03-01T00:00:00Z"))
 	params := s.keeper.GetParams(s.ctx)
 	params.UnstakeFeeRate = sdk.ZeroDec()
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	// call mint.BeginBlocker for init k.SetLastBlockTime(ctx, ctx.BlockTime())
-	mint.BeginBlocker(s.ctx, s.app.MintKeeper)
+	mint.BeginBlocker(s.ctx, s.app.MintKeeper, minttypes.DefaultInflationCalculationFn)
 }
 
 func (s *KeeperTestSuite) TearDownTest() {
@@ -84,9 +80,9 @@ func (s *KeeperTestSuite) TearDownTest() {
 func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []sdk.ValAddress, []cryptotypes.PubKey) {
 	s.app.BeginBlocker(s.ctx, abci.RequestBeginBlock{})
 	num := len(powers)
-	addrs := chain.AddTestAddrsIncremental(s.app, s.ctx, num, sdk.NewInt(1000000000))
-	valAddrs := chain.ConvertAddrsToValAddrs(addrs)
-	pks := chain.CreateTestPubKeys(num)
+	addrs := testhelpers.AddTestAddrsIncremental(s.app, s.ctx, num, sdk.NewInt(1000000000))
+	valAddrs := testhelpers.ConvertAddrsToValAddrs(addrs)
+	pks := testhelpers.CreateTestPubKeys(num)
 
 	for i, power := range powers {
 		val, err := stakingtypes.NewValidator(valAddrs[i], pks[i], stakingtypes.Description{})
@@ -232,7 +228,7 @@ func (s *KeeperTestSuite) advanceHeight(height int, withBeginBlock bool) {
 	feeCollector := s.app.AccountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
 	for i := 0; i < height; i++ {
 		s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 1).WithBlockTime(s.ctx.BlockTime().Add(BlockTime))
-		mint.BeginBlocker(s.ctx, s.app.MintKeeper)
+		mint.BeginBlocker(s.ctx, s.app.MintKeeper, minttypes.DefaultInflationCalculationFn)
 		feeCollectorBalance := s.app.BankKeeper.GetAllBalances(s.ctx, feeCollector)
 		rewardsToBeDistributed := feeCollectorBalance.AmountOf(sdk.DefaultBondDenom)
 
@@ -250,22 +246,22 @@ func (s *KeeperTestSuite) advanceHeight(height int, withBeginBlock bool) {
 			s.app.StakingKeeper.IterateBondedValidatorsByPower(s.ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
 				consPower := validator.GetConsensusPower(s.app.StakingKeeper.PowerReduction(s.ctx))
 				powerFraction := sdk.NewDec(consPower).QuoTruncate(sdk.NewDec(totalPower))
-				reward := rewardsToBeDistributed.ToDec().MulTruncate(powerFraction)
+				reward := sdk.NewDecFromInt(rewardsToBeDistributed).MulTruncate(powerFraction)
 				s.app.DistrKeeper.AllocateTokensToValidator(s.ctx, validator, sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: reward}})
 				totalRewards = totalRewards.Add(reward)
 				return false
 			})
 		}
-		remaining := rewardsToBeDistributed.ToDec().Sub(totalRewards)
+		remaining := sdk.NewDecFromInt(rewardsToBeDistributed).Sub(totalRewards)
 		s.Require().False(remaining.GT(sdk.NewDec(1)))
 		feePool := s.app.DistrKeeper.GetFeePool(s.ctx)
 		feePool.CommunityPool = feePool.CommunityPool.Add(sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: remaining}}...)
 		s.app.DistrKeeper.SetFeePool(s.ctx, feePool)
 		if withBeginBlock {
 			// liquid validator set update, rebalancing, withdraw rewards, re-stake
-			liquidstaking.BeginBlocker(s.ctx, s.app.LiquidStakingKeeper)
+			lspersistence.BeginBlocker(s.ctx, s.app.LSPersistenceKeeper)
 		}
-		staking.EndBlocker(s.ctx, *s.app.StakingKeeper)
+		staking.EndBlocker(s.ctx, s.app.StakingKeeper)
 	}
 }
 
@@ -334,62 +330,13 @@ func (s *KeeperTestSuite) createContinuousVestingAccount(from sdk.AccAddress, to
 	return *cVestingAcc
 }
 
-func (s *KeeperTestSuite) fundAddr(addr sdk.AccAddress, amt sdk.Coins) {
-	err := s.app.BankKeeper.MintCoins(s.ctx, liquiditytypes.ModuleName, amt)
-	s.Require().NoError(err)
-	err = s.app.BankKeeper.SendCoinsFromModuleToAccount(s.ctx, liquiditytypes.ModuleName, addr, amt)
-	s.Require().NoError(err)
-}
-
-// liquidity module keeper utils for liquid staking combine test
-
-func (s *KeeperTestSuite) createPair(creator sdk.AccAddress, baseCoinDenom, quoteCoinDenom string, fund bool) liquiditytypes.Pair {
-	params := s.app.LiquidityKeeper.GetParams(s.ctx)
-	if fund {
-		s.fundAddr(creator, params.PairCreationFee)
-	}
-	pair, err := s.app.LiquidityKeeper.CreatePair(s.ctx, liquiditytypes.NewMsgCreatePair(creator, baseCoinDenom, quoteCoinDenom))
-	s.Require().NoError(err)
-	return pair
-}
-
-func (s *KeeperTestSuite) createPool(creator sdk.AccAddress, pairId uint64, depositCoins sdk.Coins, fund bool) liquiditytypes.Pool {
-	params := s.app.LiquidityKeeper.GetParams(s.ctx)
-	if fund {
-		s.fundAddr(creator, depositCoins.Add(params.PoolCreationFee...))
-	}
-	pool, err := s.app.LiquidityKeeper.CreatePool(s.ctx, liquiditytypes.NewMsgCreatePool(creator, pairId, depositCoins))
-	s.Require().NoError(err)
-	return pool
-}
-
-// farming module keeper utils for liquid staking combine test
-
-func (s *KeeperTestSuite) advanceEpochDays() {
-	s.app.EndBlocker(s.ctx, abci.RequestEndBlock{})
-	s.ctx = s.ctx.WithBlockTime(s.ctx.BlockTime().Add(24 * time.Hour))
-	s.app.BeginBlocker(s.ctx, abci.RequestBeginBlock{})
-}
-
-func (s *KeeperTestSuite) createPublicPlan(farmingPoolAddr sdk.AccAddress, rewardAllocs []lpfarmtypes.RewardAllocation) {
-	_, err := s.app.LPFarmKeeper.CreatePublicPlan(
-		s.ctx, "", farmingPoolAddr, rewardAllocs,
-		utils.ParseTime("0001-01-01T00:00:00Z"), utils.ParseTime("9999-12-31T00:00:00Z"))
-	s.Require().NoError(err)
-}
-
-func (s *KeeperTestSuite) farm(farmerAddr sdk.AccAddress, coin sdk.Coin) {
-	_, err := s.app.LPFarmKeeper.Farm(s.ctx, farmerAddr, coin)
-	s.Require().NoError(err)
-}
-
 func (s *KeeperTestSuite) assertTallyResult(yes, no, vito, abstain int64, proposal govtypes.Proposal) {
 	cachedCtx, _ := s.ctx.CacheContext()
 	_, _, result := s.app.GovKeeper.Tally(cachedCtx, proposal)
-	s.Require().Equal(sdk.NewInt(yes), result.Yes)
-	s.Require().Equal(sdk.NewInt(no), result.No)
-	s.Require().Equal(sdk.NewInt(vito), result.NoWithVeto)
-	s.Require().Equal(sdk.NewInt(abstain), result.Abstain)
+	s.Require().Equal(sdk.NewInt(yes), result.YesCount)
+	s.Require().Equal(sdk.NewInt(no), result.NoCount)
+	s.Require().Equal(sdk.NewInt(vito), result.NoWithVetoCount)
+	s.Require().Equal(sdk.NewInt(abstain), result.AbstainCount)
 }
 
 func (s *KeeperTestSuite) assertVotingPower(addr sdk.AccAddress, stakingVotingPower, liquidStakingVotingPower, validatorVotingPower sdk.Int) {

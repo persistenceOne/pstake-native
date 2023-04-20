@@ -17,6 +17,15 @@ const (
 	DefaultWeightMsgUndelegate                  int = 100
 	DefaultWeightMsgBeginRedelegate             int = 100
 
+	DefaultWeightMsgLiquidStake   int = 80
+	DefaultWeightMsgLiquidUnstake int = 30
+
+	DefaultWeightAddWhitelistValidatorsProposal    int = 50
+	DefaultWeightUpdateWhitelistValidatorsProposal int = 5
+	DefaultWeightDeleteWhitelistValidatorsProposal int = 5
+	DefaultWeightCompleteRedelegationUnbonding     int = 30
+	DefaultWeightTallyWithLiquidStaking            int = 30
+
 	DefaultWeightCommunitySpendProposal int = 5
 	DefaultWeightTextProposal           int = 5
 	DefaultWeightParamChangeProposal    int = 5

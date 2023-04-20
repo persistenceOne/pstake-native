@@ -7,8 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	utils "github.com/crescent-network/crescent/v4/types"
-	"github.com/crescent-network/crescent/v4/x/liquidstaking/types"
+	utils "github.com/persistenceOne/pstake-native/v2/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 func (s *KeeperTestSuite) TestRebalancingCase1() {
