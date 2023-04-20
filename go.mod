@@ -8,7 +8,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-alpha8
 	github.com/cosmos/cosmos-sdk v0.46.11
 	github.com/cosmos/go-bip39 v1.0.0
-	github.com/cosmos/gogoproto v1.4.7
+	github.com/cosmos/gogoproto v1.4.8
 	github.com/cosmos/ibc-go/v6 v6.1.0
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.3
@@ -25,8 +25,8 @@ require (
 	github.com/tendermint/tendermint v0.34.27
 	github.com/tendermint/tm-db v0.6.7
 	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f
-	google.golang.org/grpc v1.53.0
-	google.golang.org/protobuf v1.29.1
+	google.golang.org/grpc v1.54.0
+	google.golang.org/protobuf v1.30.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -289,12 +289,12 @@ require (
 	golang.org/x/exp v0.0.0-20230131160201-f062dba9d201 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230224173230-c95f2b4c22f2 // indirect
 	golang.org/x/mod v0.9.0 // indirect
-	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/term v0.6.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/term v0.7.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.107.0 // indirect
