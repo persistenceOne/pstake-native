@@ -12,6 +12,10 @@ const (
 
 	// DepositModuleAccount DepositModuleAccountName
 	DepositModuleAccount = ModuleName + "_deposit_account"
+
+	// ICA types
+	DelegateICAType = "delegate"
+	RewardsICAType  = "rewards"
 )
 
 var (

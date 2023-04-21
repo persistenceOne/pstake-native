@@ -8,7 +8,6 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -37,49 +36,45 @@ func (k msgServer) RegisterHostChain(
 	goCtx context.Context,
 	msg *types.MsgRegisterHostChain,
 ) (*types.MsgRegisterHostChainResponse, error) {
+	// check if the message authority is the module authority (normally the gov account)
 	if k.authority != msg.Authority {
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "expected %s got %s", k.authority, msg.Authority)
 	}
 
+	// unwrap context
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
-	// Get the host chain client state
-	conn, found := k.IBCKeeper.ConnectionKeeper.GetConnection(ctx, msg.ConnectionId)
-	if !found {
-		return nil, fmt.Errorf("invalid connection id, \"%s\" not found", msg.ConnectionId)
-	}
-	clientState, found := k.IBCKeeper.ClientKeeper.GetClientState(ctx, conn.ClientId)
-	if !found {
-		return nil, fmt.Errorf(
-			"client id \"%s\" not found for connection \"%s\"",
-			conn.ClientId,
-			msg.ConnectionId,
-		)
-	}
-	client, ok := clientState.(*ibctmtypes.ClientState)
-	if !ok {
-		return nil, fmt.Errorf(
-			"invalid client state for client \"%s\" on connection \"%s\"",
-			conn.ClientId,
-			msg.ConnectionId,
-		)
-	}
-
-	// Check if host chain is already registered
-	_, found = k.GetHostChain(sdktypes.UnwrapSDKContext(ctx), client.ChainId)
-	if found {
-		return nil, fmt.Errorf("invalid chain id \"%s\", host chain already registered", client.ChainId)
+	// get the host chain id
+	chainId, err := k.GetChainID(ctx, msg.ConnectionId)
+	if err != nil {
+		return nil, fmt.Errorf("chain id not found for connection \"%s\": \"%w\"", msg.ConnectionId, err)
 	}
 
 	hs := &types.HostChain{
-		ChainId:        client.ChainId,
+		ChainId:        chainId,
 		ConnectionId:   msg.ConnectionId,
 		LocalDenom:     msg.LocalDenom,
 		HostDenom:      msg.HostDenom,
 		MinimumDeposit: msg.MinimumDeposit,
+		CValue:         sdktypes.NewDec(1),
 	}
 
+	// save the host chain
 	k.SetHostChain(ctx, hs)
+
+	// register delegate ICA
+	delegateAccount := chainId + "." + types.DelegateICAType
+	if err = k.RegisterICAAccount(ctx, hs.ConnectionId, delegateAccount); err != nil {
+		return nil, errorsmod.Wrapf(types.ErrRegisterFailed, "error registering %s delegate ica: %w", chainId, err)
+	}
+
+	// register reward ICA
+	rewardAccount := chainId + "." + types.RewardsICAType
+	if err = k.RegisterICAAccount(ctx, hs.ConnectionId, rewardAccount); err != nil {
+		return nil, errorsmod.Wrapf(types.ErrRegisterFailed, "error registering %s reward ica: %w", chainId, err)
+	}
+
+	// TODO: Query for validator set
 
 	return &types.MsgRegisterHostChainResponse{}, nil
 }
@@ -199,7 +194,7 @@ func (k msgServer) LiquidStake(
 
 	// send the deposit to the deposit-module account
 	depositAmount := sdktypes.NewCoins(msg.Amount)
-	err = k.BankKeeper.SendCoinsFromAccountToModule(ctx, delegatorAddress, types.DepositModuleAccount, depositAmount)
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, delegatorAddress, types.DepositModuleAccount, depositAmount)
 	if err != nil {
 		return nil, errorsmod.Wrapf(
 			types.ErrFailedDeposit,
@@ -210,7 +205,7 @@ func (k msgServer) LiquidStake(
 	}
 
 	// mint stk tokens in the module account
-	err = k.BankKeeper.MintCoins(ctx, types.ModuleName, sdktypes.NewCoins(mintToken))
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdktypes.NewCoins(mintToken))
 	if err != nil {
 		return nil, errorsmod.Wrapf(
 			types.ErrMintFailed,
@@ -227,7 +222,7 @@ func (k msgServer) LiquidStake(
 	protocolFee, _ := sdktypes.NewDecCoinFromDec(mintDenom, protocolFeeAmount).TruncateDecimal()
 
 	// send stk tokens to the delegator address
-	err = k.BankKeeper.SendCoinsFromModuleToAccount(
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx,
 		types.ModuleName,
 		delegatorAddress,

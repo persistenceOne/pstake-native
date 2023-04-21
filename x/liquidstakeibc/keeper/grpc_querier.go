@@ -14,9 +14,9 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
-var _ types.QueryServer = Keeper{}
+var _ types.QueryServer = &Keeper{}
 
-func (k Keeper) Params(goCtx context.Context, request *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (k *Keeper) Params(goCtx context.Context, request *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	if request == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -27,7 +27,7 @@ func (k Keeper) Params(goCtx context.Context, request *types.QueryParamsRequest)
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 
-func (k Keeper) HostChain(
+func (k *Keeper) HostChain(
 	goCtx context.Context,
 	request *types.QueryHostChainRequest,
 ) (*types.QueryHostChainResponse, error) {
@@ -45,7 +45,7 @@ func (k Keeper) HostChain(
 	return &types.QueryHostChainResponse{HostChain: hc}, nil
 }
 
-func (k Keeper) HostChains(
+func (k *Keeper) HostChains(
 	goCtx context.Context,
 	request *types.QueryHostChainsRequest,
 ) (*types.QueryHostChainsResponse, error) {

@@ -119,7 +119,7 @@ func (a AppModule) LegacyQuerierHandler(amino *codec.LegacyAmino) sdk.Querier {
 
 func (a AppModule) RegisterServices(configurator module.Configurator) {
 	types.RegisterMsgServer(configurator.MsgServer(), keeper.NewMsgServerImpl(a.keeper))
-	types.RegisterQueryServer(configurator.QueryServer(), a.keeper)
+	types.RegisterQueryServer(configurator.QueryServer(), &a.keeper)
 }
 
 func (a AppModule) ConsensusVersion() uint64 {

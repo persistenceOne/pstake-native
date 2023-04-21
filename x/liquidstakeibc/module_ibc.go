@@ -24,38 +24,95 @@ func NewIBCModule(keeper keeper.Keeper) IBCModule {
 	}
 }
 
-func (ibcModule IBCModule) OnChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, channelCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string) (string, error) {
-	return ibcModule.keeper.OnChanOpenInit()
+func (m IBCModule) OnChanOpenInit(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionHops []string,
+	portID string,
+	channelID string,
+	channelCap *capabilitytypes.Capability,
+	counterparty channeltypes.Counterparty,
+	version string,
+) (string, error) {
+	return m.keeper.OnChanOpenInit(
+		ctx,
+		order,
+		connectionHops,
+		portID,
+		channelID,
+		channelCap,
+		counterparty,
+		version,
+	)
 }
 
-func (ibcModule IBCModule) OnChanOpenTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, channelCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, counterpartyVersion string) (version string, err error) {
-	return "", nil
+func (m IBCModule) OnChanOpenAck(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	counterpartyChannelID string,
+	counterpartyVersion string,
+) error {
+	return m.keeper.OnChanOpenAck(
+		ctx,
+		portID,
+		channelID,
+		counterpartyChannelID,
+		counterpartyVersion,
+	)
 }
 
-func (ibcModule IBCModule) OnChanOpenAck(ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string) error {
-	return ibcModule.keeper.OnChanOpenAck()
+func (m IBCModule) OnAcknowledgementPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	acknowledgement []byte,
+	relayer sdk.AccAddress,
+) error {
+	return m.keeper.OnAcknowledgementPacket(
+		ctx,
+		packet,
+		acknowledgement,
+		relayer,
+	)
 }
 
-func (ibcModule IBCModule) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
-	return nil
+func (m IBCModule) OnTimeoutPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	relayer sdk.AccAddress,
+) error {
+	return m.keeper.OnTimeoutPacket(
+		ctx,
+		packet,
+		relayer,
+	)
 }
 
-func (ibcModule IBCModule) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
-	return nil
+func (m IBCModule) OnChanOpenTry(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionHops []string,
+	portID string,
+	channelID string,
+	channelCap *capabilitytypes.Capability,
+	counterparty channeltypes.Counterparty,
+	counterpartyVersion string,
+) (version string, err error) {
+	panic("UNIMPLEMENTED")
 }
 
-func (ibcModule IBCModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
-	return nil
+func (m IBCModule) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
+	panic("UNIMPLEMENTED")
 }
 
-func (ibcModule IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
-	return nil
+func (m IBCModule) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
+	panic("UNIMPLEMENTED")
 }
 
-func (ibcModule IBCModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
-	return ibcModule.keeper.OnAcknowledgementPacket()
+func (m IBCModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
+	panic("UNIMPLEMENTED")
 }
 
-func (ibcModule IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
-	return ibcModule.keeper.OnTimeoutPacket()
+func (m IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
+	panic("UNIMPLEMENTED")
 }

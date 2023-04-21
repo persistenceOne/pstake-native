@@ -7,6 +7,7 @@ import (
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
@@ -34,10 +35,14 @@ type HostChain struct {
 	LocalDenom string `protobuf:"bytes,3,opt,name=local_denom,json=localDenom,proto3" json:"local_denom,omitempty"`
 	// native token denom
 	HostDenom string `protobuf:"bytes,4,opt,name=host_denom,json=hostDenom,proto3" json:"host_denom,omitempty"`
+	// delegation host account
+	DelegationAccount *ICAAccount `protobuf:"bytes,5,opt,name=delegation_account,json=delegationAccount,proto3" json:"delegation_account,omitempty"`
+	// reward host account
+	RewardsAccount *ICAAccount `protobuf:"bytes,6,opt,name=rewards_account,json=rewardsAccount,proto3" json:"rewards_account,omitempty"`
 	// minimum ls amount
-	MinimumDeposit github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=minimum_deposit,json=minimumDeposit,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"minimum_deposit"`
+	MinimumDeposit github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,7,opt,name=minimum_deposit,json=minimumDeposit,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"minimum_deposit"`
 	// redemption rate
-	CValue github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,6,opt,name=c_value,json=cValue,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"c_value"`
+	CValue github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,8,opt,name=c_value,json=cValue,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"c_value"`
 }
 
 func (m *HostChain) Reset()         { *m = HostChain{} }
@@ -101,6 +106,83 @@ func (m *HostChain) GetHostDenom() string {
 	return ""
 }
 
+func (m *HostChain) GetDelegationAccount() *ICAAccount {
+	if m != nil {
+		return m.DelegationAccount
+	}
+	return nil
+}
+
+func (m *HostChain) GetRewardsAccount() *ICAAccount {
+	if m != nil {
+		return m.RewardsAccount
+	}
+	return nil
+}
+
+type ICAAccount struct {
+	// address of the ica on the controller chain
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	// balance of the ica
+	Balance github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=balance,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"balance"`
+	// owner string
+	Owner string `protobuf:"bytes,3,opt,name=owner,proto3" json:"owner,omitempty"`
+}
+
+func (m *ICAAccount) Reset()         { *m = ICAAccount{} }
+func (m *ICAAccount) String() string { return proto.CompactTextString(m) }
+func (*ICAAccount) ProtoMessage()    {}
+func (*ICAAccount) Descriptor() ([]byte, []int) {
+	return fileDescriptor_71a9a61e676043b6, []int{1}
+}
+func (m *ICAAccount) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ICAAccount) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ICAAccount.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ICAAccount) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ICAAccount.Merge(m, src)
+}
+func (m *ICAAccount) XXX_Size() int {
+	return m.Size()
+}
+func (m *ICAAccount) XXX_DiscardUnknown() {
+	xxx_messageInfo_ICAAccount.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ICAAccount proto.InternalMessageInfo
+
+func (m *ICAAccount) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+func (m *ICAAccount) GetBalance() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.Balance
+	}
+	return nil
+}
+
+func (m *ICAAccount) GetOwner() string {
+	if m != nil {
+		return m.Owner
+	}
+	return ""
+}
+
 type KVUpdate struct {
 	Key   string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
@@ -110,7 +192,7 @@ func (m *KVUpdate) Reset()         { *m = KVUpdate{} }
 func (m *KVUpdate) String() string { return proto.CompactTextString(m) }
 func (*KVUpdate) ProtoMessage()    {}
 func (*KVUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_71a9a61e676043b6, []int{1}
+	return fileDescriptor_71a9a61e676043b6, []int{2}
 }
 func (m *KVUpdate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -155,6 +237,7 @@ func (m *KVUpdate) GetValue() string {
 
 func init() {
 	proto.RegisterType((*HostChain)(nil), "pstake.liquidstakeibc.v1beta1.HostChain")
+	proto.RegisterType((*ICAAccount)(nil), "pstake.liquidstakeibc.v1beta1.ICAAccount")
 	proto.RegisterType((*KVUpdate)(nil), "pstake.liquidstakeibc.v1beta1.KVUpdate")
 }
 
@@ -163,33 +246,42 @@ func init() {
 }
 
 var fileDescriptor_71a9a61e676043b6 = []byte{
-	// 402 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x92, 0xcb, 0xee, 0xd2, 0x40,
-	0x14, 0xc6, 0xdb, 0xff, 0x85, 0x3f, 0x8c, 0xd7, 0x4c, 0x58, 0x14, 0x12, 0x5a, 0x83, 0x89, 0x71,
-	0x43, 0x1b, 0x70, 0x67, 0xdc, 0x88, 0x5d, 0xd8, 0xb8, 0x30, 0x21, 0x81, 0x85, 0x2e, 0x9a, 0x76,
-	0xe6, 0x04, 0x26, 0xb4, 0x33, 0x95, 0x99, 0x36, 0xf2, 0x16, 0x2e, 0x5d, 0xfa, 0x10, 0x3e, 0x04,
-	0x3b, 0x89, 0x2b, 0xe3, 0x82, 0x18, 0x78, 0x11, 0xd3, 0x99, 0x26, 0x12, 0x76, 0xae, 0xfa, 0x9d,
-	0xef, 0x77, 0xce, 0xd7, 0xb9, 0xa1, 0x49, 0x21, 0x55, 0xb2, 0x86, 0x20, 0x63, 0x9f, 0x4a, 0x46,
-	0xb5, 0x66, 0x29, 0x09, 0xaa, 0x71, 0x0a, 0x2a, 0x19, 0x5f, 0xd8, 0x7e, 0xb1, 0x11, 0x4a, 0xe0,
-	0x81, 0x99, 0xf1, 0x2f, 0x60, 0x33, 0xd3, 0xef, 0x2e, 0xc5, 0x52, 0xe8, 0xce, 0xa0, 0x56, 0x66,
-	0xa8, 0xdf, 0x23, 0x42, 0xe6, 0x42, 0xc6, 0x06, 0x98, 0xc2, 0xa0, 0xe1, 0x8f, 0x2b, 0xd4, 0x79,
-	0x2b, 0xa4, 0x7a, 0xb3, 0x4a, 0x18, 0xc7, 0x3d, 0xd4, 0x26, 0xb5, 0x88, 0x19, 0x75, 0xec, 0x27,
-	0xf6, 0xf3, 0xce, 0xec, 0x4e, 0xd7, 0x11, 0xc5, 0x4f, 0xd1, 0x03, 0x22, 0x38, 0x07, 0xa2, 0x98,
-	0xd0, 0xfc, 0x4a, 0xf3, 0xfb, 0xff, 0xcc, 0x88, 0x62, 0x0f, 0xdd, 0xcb, 0x04, 0x49, 0xb2, 0x98,
-	0x02, 0x17, 0xb9, 0x73, 0xad, 0x5b, 0x90, 0xb6, 0xc2, 0xda, 0xc1, 0x03, 0x84, 0x56, 0x42, 0xaa,
-	0x86, 0xdf, 0x68, 0xde, 0xa9, 0x1d, 0x83, 0x01, 0x3d, 0xca, 0x19, 0x67, 0x79, 0x99, 0xc7, 0x14,
-	0x0a, 0x21, 0x99, 0x72, 0x6e, 0xeb, 0x9e, 0xe9, 0xab, 0xdd, 0xc1, 0xb3, 0x7e, 0x1f, 0xbc, 0x67,
-	0x4b, 0xa6, 0x56, 0x65, 0xea, 0x13, 0x91, 0x37, 0xfb, 0x68, 0x3e, 0x23, 0x49, 0xd7, 0x81, 0xda,
-	0x16, 0x20, 0xfd, 0x88, 0xab, 0x9f, 0xdf, 0x47, 0xa8, 0xd9, 0x66, 0xc4, 0xd5, 0xec, 0x61, 0x13,
-	0x1a, 0x9a, 0x4c, 0x3c, 0x47, 0x77, 0x24, 0xae, 0x92, 0xac, 0x04, 0xa7, 0xf5, 0xdf, 0xf1, 0x21,
-	0x90, 0xb3, 0xf8, 0x10, 0xc8, 0xac, 0x45, 0x16, 0x75, 0xd6, 0xcb, 0x9b, 0xaf, 0xdf, 0x3c, 0x7b,
-	0x38, 0x41, 0xed, 0x77, 0x8b, 0x79, 0x41, 0x13, 0x05, 0xf8, 0x31, 0xba, 0x5e, 0xc3, 0xb6, 0x39,
-	0xca, 0x5a, 0xe2, 0x2e, 0xba, 0x35, 0x3f, 0x36, 0xc7, 0x67, 0x8a, 0xe9, 0xc7, 0xdd, 0xd1, 0xb5,
-	0xf7, 0x47, 0xd7, 0xfe, 0x73, 0x74, 0xed, 0x2f, 0x27, 0xd7, 0xda, 0x9f, 0x5c, 0xeb, 0xd7, 0xc9,
-	0xb5, 0x3e, 0xbc, 0x3e, 0x5b, 0x51, 0x01, 0x1b, 0xc9, 0xa4, 0x02, 0x4e, 0xe0, 0x3d, 0x87, 0xc0,
-	0xbc, 0x84, 0x11, 0x4f, 0x14, 0xab, 0x20, 0xa8, 0x26, 0xc1, 0xe7, 0xcb, 0x97, 0xa4, 0x17, 0x9c,
-	0xb6, 0xf4, 0x4d, 0xbf, 0xf8, 0x1b, 0x00, 0x00, 0xff, 0xff, 0x79, 0x00, 0x43, 0x63, 0x6f, 0x02,
-	0x00, 0x00,
+	// 557 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0x31, 0x6f, 0x13, 0x31,
+	0x14, 0xce, 0x35, 0x6d, 0xd3, 0xba, 0x40, 0xc1, 0xea, 0x70, 0xad, 0xd4, 0x4b, 0x55, 0x24, 0x14,
+	0x86, 0xdc, 0xd1, 0x63, 0x43, 0x2c, 0x49, 0x33, 0x10, 0x31, 0x20, 0x1d, 0x6a, 0x85, 0x60, 0x88,
+	0x7c, 0xf6, 0x53, 0x6a, 0xf5, 0xce, 0x3e, 0xce, 0x4e, 0x4a, 0xff, 0x05, 0x23, 0x23, 0x33, 0x73,
+	0x57, 0xf6, 0x8e, 0x55, 0x27, 0xc4, 0x50, 0x50, 0xfb, 0x3b, 0x90, 0x90, 0xcf, 0x4e, 0x52, 0x65,
+	0x40, 0x74, 0xba, 0xf7, 0xbe, 0xcf, 0xdf, 0xe7, 0x77, 0xef, 0x3d, 0xa3, 0xb8, 0x50, 0x9a, 0x1c,
+	0x43, 0x94, 0xf1, 0x8f, 0x23, 0xce, 0xaa, 0x98, 0xa7, 0x34, 0x1a, 0xef, 0xa5, 0xa0, 0xc9, 0xde,
+	0x1c, 0x1c, 0x16, 0xa5, 0xd4, 0x12, 0x6f, 0x5b, 0x4d, 0x38, 0x47, 0x3a, 0xcd, 0xd6, 0xc6, 0x50,
+	0x0e, 0x65, 0x75, 0x32, 0x32, 0x91, 0x15, 0x6d, 0x6d, 0x52, 0xa9, 0x72, 0xa9, 0x06, 0x96, 0xb0,
+	0x89, 0xa3, 0x02, 0x9b, 0x45, 0x29, 0x51, 0x30, 0xbd, 0x99, 0x4a, 0x2e, 0x2c, 0xbf, 0xfb, 0xa7,
+	0x8e, 0x56, 0x5f, 0x49, 0xa5, 0xf7, 0x8f, 0x08, 0x17, 0x78, 0x13, 0xad, 0x50, 0x13, 0x0c, 0x38,
+	0xf3, 0xbd, 0x1d, 0xaf, 0xb5, 0x9a, 0x34, 0xaa, 0xbc, 0xcf, 0xf0, 0x63, 0x74, 0x9f, 0x4a, 0x21,
+	0x80, 0x6a, 0x2e, 0x2b, 0x7e, 0xa1, 0xe2, 0xef, 0xcd, 0xc0, 0x3e, 0xc3, 0x4d, 0xb4, 0x96, 0x49,
+	0x4a, 0xb2, 0x01, 0x03, 0x21, 0x73, 0xbf, 0x5e, 0x1d, 0x41, 0x15, 0xd4, 0x33, 0x08, 0xde, 0x46,
+	0xe8, 0x48, 0x2a, 0xed, 0xf8, 0xc5, 0x8a, 0x5f, 0x35, 0x88, 0xa5, 0xdf, 0x21, 0xcc, 0x20, 0x83,
+	0x21, 0xa9, 0x2e, 0x21, 0x94, 0xca, 0x91, 0xd0, 0xfe, 0xd2, 0x8e, 0xd7, 0x5a, 0x8b, 0x9f, 0x86,
+	0xff, 0x6c, 0x4d, 0xd8, 0xdf, 0xef, 0x74, 0xac, 0x20, 0x79, 0x34, 0x33, 0x71, 0x10, 0x4e, 0xd0,
+	0x7a, 0x09, 0x27, 0xa4, 0x64, 0x6a, 0x6a, 0xbb, 0x7c, 0x57, 0xdb, 0x07, 0xce, 0x61, 0xe2, 0x09,
+	0x68, 0x3d, 0xe7, 0x82, 0xe7, 0xa3, 0x7c, 0xc0, 0xa0, 0x90, 0x8a, 0x6b, 0xbf, 0x61, 0xfe, 0xa8,
+	0xfb, 0xf2, 0xfc, 0xaa, 0x59, 0xfb, 0x79, 0xd5, 0x7c, 0x32, 0xe4, 0xfa, 0x68, 0x94, 0x86, 0x54,
+	0xe6, 0x6e, 0x2a, 0xee, 0xd3, 0x56, 0xec, 0x38, 0xd2, 0xa7, 0x05, 0xa8, 0xb0, 0x2f, 0xf4, 0xe5,
+	0x59, 0x1b, 0xb9, 0xa1, 0xf5, 0xcd, 0x35, 0xce, 0xb4, 0x67, 0x3d, 0xf1, 0x01, 0x6a, 0xd0, 0xc1,
+	0x98, 0x64, 0x23, 0xf0, 0x57, 0xee, 0x6c, 0xdf, 0x03, 0x7a, 0xcb, 0xbe, 0x07, 0x34, 0x59, 0xa6,
+	0x87, 0xc6, 0xeb, 0xc5, 0xe2, 0x97, 0xaf, 0x4d, 0x6f, 0xf7, 0xbb, 0x87, 0xd0, 0xec, 0x17, 0x71,
+	0x8c, 0x1a, 0x84, 0xb1, 0x12, 0x94, 0xb2, 0xf3, 0xef, 0xfa, 0x97, 0x67, 0xed, 0x0d, 0xa7, 0xee,
+	0x58, 0xe6, 0xad, 0x2e, 0xb9, 0x18, 0x26, 0x93, 0x83, 0x18, 0x50, 0x23, 0x25, 0x19, 0x11, 0x14,
+	0xfc, 0x85, 0x9d, 0x7a, 0x6b, 0x2d, 0xde, 0x0c, 0x9d, 0xc0, 0x2c, 0xdd, 0xb4, 0x91, 0xfb, 0x92,
+	0x8b, 0xee, 0x33, 0x53, 0xfa, 0xb7, 0x5f, 0xcd, 0xd6, 0x7f, 0x94, 0x6e, 0x04, 0x2a, 0x99, 0x78,
+	0xe3, 0x0d, 0xb4, 0x24, 0x4f, 0x04, 0x94, 0x6e, 0xab, 0x6c, 0xb2, 0x1b, 0xa3, 0x95, 0xd7, 0x87,
+	0x07, 0x05, 0x23, 0x1a, 0xf0, 0x43, 0x54, 0x3f, 0x86, 0x53, 0xb7, 0xb8, 0x26, 0x34, 0x1a, 0xdb,
+	0x38, 0xbb, 0xac, 0x36, 0xe9, 0x7e, 0x38, 0xbf, 0x0e, 0xbc, 0x8b, 0xeb, 0xc0, 0xfb, 0x7d, 0x1d,
+	0x78, 0x9f, 0x6f, 0x82, 0xda, 0xc5, 0x4d, 0x50, 0xfb, 0x71, 0x13, 0xd4, 0xde, 0x77, 0x6e, 0x95,
+	0x55, 0x40, 0xa9, 0xb8, 0xd2, 0x20, 0x28, 0xbc, 0x11, 0x10, 0xd9, 0x2d, 0x69, 0x0b, 0xa2, 0xf9,
+	0x18, 0xa2, 0x71, 0x1c, 0x7d, 0x9a, 0x7f, 0xd7, 0x55, 0xd5, 0xe9, 0x72, 0xf5, 0xae, 0x9e, 0xff,
+	0x0d, 0x00, 0x00, 0xff, 0xff, 0x99, 0xc3, 0x49, 0x63, 0xfd, 0x03, 0x00, 0x00,
 }
 
 func (m *HostChain) Marshal() (dAtA []byte, err error) {
@@ -221,7 +313,7 @@ func (m *HostChain) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintLiquidstakeibc(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x32
+	dAtA[i] = 0x42
 	{
 		size := m.MinimumDeposit.Size()
 		i -= size
@@ -231,7 +323,31 @@ func (m *HostChain) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintLiquidstakeibc(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x2a
+	dAtA[i] = 0x3a
+	if m.RewardsAccount != nil {
+		{
+			size, err := m.RewardsAccount.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintLiquidstakeibc(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x32
+	}
+	if m.DelegationAccount != nil {
+		{
+			size, err := m.DelegationAccount.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintLiquidstakeibc(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x2a
+	}
 	if len(m.HostDenom) > 0 {
 		i -= len(m.HostDenom)
 		copy(dAtA[i:], m.HostDenom)
@@ -257,6 +373,57 @@ func (m *HostChain) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.ChainId)
 		copy(dAtA[i:], m.ChainId)
 		i = encodeVarintLiquidstakeibc(dAtA, i, uint64(len(m.ChainId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ICAAccount) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ICAAccount) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ICAAccount) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintLiquidstakeibc(dAtA, i, uint64(len(m.Owner)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Balance) > 0 {
+		for iNdEx := len(m.Balance) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Balance[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintLiquidstakeibc(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Address) > 0 {
+		i -= len(m.Address)
+		copy(dAtA[i:], m.Address)
+		i = encodeVarintLiquidstakeibc(dAtA, i, uint64(len(m.Address)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -333,10 +500,41 @@ func (m *HostChain) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovLiquidstakeibc(uint64(l))
 	}
+	if m.DelegationAccount != nil {
+		l = m.DelegationAccount.Size()
+		n += 1 + l + sovLiquidstakeibc(uint64(l))
+	}
+	if m.RewardsAccount != nil {
+		l = m.RewardsAccount.Size()
+		n += 1 + l + sovLiquidstakeibc(uint64(l))
+	}
 	l = m.MinimumDeposit.Size()
 	n += 1 + l + sovLiquidstakeibc(uint64(l))
 	l = m.CValue.Size()
 	n += 1 + l + sovLiquidstakeibc(uint64(l))
+	return n
+}
+
+func (m *ICAAccount) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovLiquidstakeibc(uint64(l))
+	}
+	if len(m.Balance) > 0 {
+		for _, e := range m.Balance {
+			l = e.Size()
+			n += 1 + l + sovLiquidstakeibc(uint64(l))
+		}
+	}
+	l = len(m.Owner)
+	if l > 0 {
+		n += 1 + l + sovLiquidstakeibc(uint64(l))
+	}
 	return n
 }
 
@@ -522,6 +720,78 @@ func (m *HostChain) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DelegationAccount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLiquidstakeibc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthLiquidstakeibc
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthLiquidstakeibc
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.DelegationAccount == nil {
+				m.DelegationAccount = &ICAAccount{}
+			}
+			if err := m.DelegationAccount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RewardsAccount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLiquidstakeibc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthLiquidstakeibc
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthLiquidstakeibc
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.RewardsAccount == nil {
+				m.RewardsAccount = &ICAAccount{}
+			}
+			if err := m.RewardsAccount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field MinimumDeposit", wireType)
 			}
 			var stringLen uint64
@@ -554,7 +824,7 @@ func (m *HostChain) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 6:
+		case 8:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CValue", wireType)
 			}
@@ -587,6 +857,154 @@ func (m *HostChain) Unmarshal(dAtA []byte) error {
 			if err := m.CValue.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipLiquidstakeibc(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthLiquidstakeibc
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ICAAccount) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowLiquidstakeibc
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ICAAccount: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ICAAccount: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLiquidstakeibc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthLiquidstakeibc
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthLiquidstakeibc
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Balance", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLiquidstakeibc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthLiquidstakeibc
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthLiquidstakeibc
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Balance = append(m.Balance, types.Coin{})
+			if err := m.Balance[len(m.Balance)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLiquidstakeibc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthLiquidstakeibc
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthLiquidstakeibc
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Owner = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
