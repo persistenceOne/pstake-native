@@ -14,7 +14,10 @@ import (
 )
 
 const (
-	KeyConnectionId   string = "connection_id"
+	KeyDepositFee     string = "deposit_fee"
+	KeyRestakeFee     string = "restake_fee"
+	KeyUnstakeFee     string = "unstake_fee"
+	KeyRedemptionFee  string = "redemption_fee"
 	KeyProtocolDenom  string = "prot_denom"
 	KeyBaseDenom      string = "base_denom"
 	KeyMinimumDeposit string = "min_deposit"
@@ -110,8 +113,42 @@ func (k msgServer) UpdateHostChain(
 
 	for _, update := range msg.Updates {
 		switch update.Key {
-		case KeyConnectionId:
-			// TODO: Update connection + re-create ICA
+		case KeyDepositFee:
+			fee, err := sdktypes.NewDecFromStr(update.Value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+			hs.Params.DepositFee = fee
+			if fee.LT(sdktypes.NewDec(0)) {
+				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
+			}
+		case KeyRestakeFee:
+			fee, err := sdktypes.NewDecFromStr(update.Value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+			hs.Params.RestakeFee = fee
+			if fee.LT(sdktypes.NewDec(0)) {
+				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
+			}
+		case KeyRedemptionFee:
+			fee, err := sdktypes.NewDecFromStr(update.Value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+			hs.Params.RedemptionFee = fee
+			if fee.LT(sdktypes.NewDec(0)) {
+				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
+			}
+		case KeyUnstakeFee:
+			fee, err := sdktypes.NewDecFromStr(update.Value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+			hs.Params.UnstakeFee = fee
+			if fee.LT(sdktypes.NewDec(0)) {
+				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
+			}
 		case KeyProtocolDenom:
 			hs.HostDenom = update.Value
 			if err := sdktypes.ValidateDenom(update.Value); err != nil {
@@ -131,6 +168,8 @@ func (k msgServer) UpdateHostChain(
 			if minimumDeposit.LT(sdktypes.NewInt(0)) {
 				return nil, fmt.Errorf("invalid minimum deposit value less than zero")
 			}
+		default:
+			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}
 	}
 
