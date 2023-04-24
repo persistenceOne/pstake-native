@@ -7,8 +7,6 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types";
 
-//option (gogoproto.goproto_stringer) = false;
-
 message HostChain {
   option (gogoproto.goproto_stringer) = true;
 
@@ -16,27 +14,53 @@ message HostChain {
   string chain_id = 1;
   // ibc connection id
   string connection_id = 2;
+  // module params
+  HostChainLSParams params = 3;
   // protocol token denom
-  string local_denom = 3;
+  string local_denom = 4;
   // native token denom
-  string host_denom = 4;
+  string host_denom = 5;
   // delegation host account
-  ICAAccount delegation_account = 5;
+  ICAAccount delegation_account = 6;
   // reward host account
-  ICAAccount rewards_account = 6;
-  repeated Validator validators = 7;
+  ICAAccount rewards_account = 7;
+  // validator set
+  repeated Validator validators = 8;
   // minimum ls amount
-  string minimum_deposit = 8 [
+  string minimum_deposit = 9 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
   // redemption rate
-  string c_value = 9 [
+  string c_value = 10 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
+}
+
+message HostChainLSParams {
+  string deposit_fee = 1 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ]; // protocol fee in percentage
+  string restake_fee = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ]; // protocol fee in percentage
+  string unstake_fee = 3 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ]; // protocol fee in percentage
+  string redemption_fee = 4 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ]; // protocol fee in percentage
 }
 
 message ICAAccount {

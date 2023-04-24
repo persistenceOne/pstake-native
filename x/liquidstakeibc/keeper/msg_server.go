@@ -51,9 +51,18 @@ func (k msgServer) RegisterHostChain(
 		return nil, fmt.Errorf("chain id not found for connection \"%s\": \"%w\"", msg.ConnectionId, err)
 	}
 
+	// build the host chain params
+	hostChainParams := &types.HostChainLSParams{
+		DepositFee:    msg.DepositFee,
+		RestakeFee:    msg.RestakeFee,
+		UnstakeFee:    msg.UnstakeFee,
+		RedemptionFee: msg.RedemptionFee,
+	}
+
 	hc := &types.HostChain{
 		ChainId:        chainId,
 		ConnectionId:   msg.ConnectionId,
+		Params:         hostChainParams,
 		LocalDenom:     msg.LocalDenom,
 		HostDenom:      msg.HostDenom,
 		MinimumDeposit: msg.MinimumDeposit,
@@ -222,7 +231,7 @@ func (k msgServer) LiquidStake(
 	params := k.GetParams(ctx)
 
 	// calculate protocol fee
-	protocolFeeAmount := params.DepositFee.MulInt(mintToken.Amount)
+	protocolFeeAmount := hostChain.Params.DepositFee.MulInt(mintToken.Amount)
 	protocolFee, _ := sdktypes.NewDecCoinFromDec(mintDenom, protocolFeeAmount).TruncateDecimal()
 
 	// send stk tokens to the delegator address

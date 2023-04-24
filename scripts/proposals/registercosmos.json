@@ -3,6 +3,10 @@
     "@type": "/pstake.liquidstakeibc.v1beta1.MsgRegisterHostChain",
     "authority": "persistence10d07y265gmmuvt4z0w9aw880jnsr700j5w4kch",
     "connection_id": "connection-0",
+    "deposit_fee": "0.00",
+    "restake_fee": "0.05",
+    "unstake_fee": "0.00",
+    "redemption_fee": "0.005",
     "local_denom": "ustkatom",
     "host_denom": "uatom",
     "minimum_deposit": "1"

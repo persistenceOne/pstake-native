@@ -25,15 +25,28 @@ var (
 
 func NewMsgRegisterHostChain(
 	connectionId string,
+	depositFee string,
+	restakeFee string,
+	unstakeFee string,
+	redemptionFee string,
 	hostDenom string,
 	localDenom string,
 	minimumDeposit math.Int,
 ) *MsgRegisterHostChain {
+	depositFeeDec, _ := sdk.NewDecFromStr(depositFee)
+	restakeFeeDec, _ := sdk.NewDecFromStr(restakeFee)
+	unstakeFeeDec, _ := sdk.NewDecFromStr(unstakeFee)
+	redemptionFeeDec, _ := sdk.NewDecFromStr(redemptionFee)
+
 	return &MsgRegisterHostChain{
 		ConnectionId:   connectionId,
 		HostDenom:      hostDenom,
 		LocalDenom:     localDenom,
 		MinimumDeposit: minimumDeposit,
+		DepositFee:     depositFeeDec,
+		RestakeFee:     restakeFeeDec,
+		UnstakeFee:     unstakeFeeDec,
+		RedemptionFee:  redemptionFeeDec,
 	}
 }
 
