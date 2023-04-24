@@ -1,19 +1,16 @@
 package types
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 )
 
-// AccountKeeper defines the account contract that must be fulfilled when
-// creating a x/liquidstakeibc keeper.
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
 }
 
-// BankKeeper defines the bankkeeper contract that must be fulfilled when
-// creating a x/liquidstakeibc keeper.
 type BankKeeper interface {
 	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
@@ -28,4 +25,8 @@ type ScopedKeeper interface {
 type ICAControllerKeeper interface {
 	RegisterInterchainAccount(ctx sdk.Context, connectionID, owner string, version string) error
 	GetInterchainAccountAddress(ctx sdk.Context, connectionID, portID string) (string, bool)
+}
+
+type ICQKeeper interface {
+	MakeRequest(ctx sdk.Context, connectionID string, chainID string, queryType string, request []byte, period math.Int, module string, callbackID string, ttl uint64)
 }

@@ -499,11 +499,15 @@ func NewpStakeApp(
 		app.BankKeeper,
 		app.ICAControllerKeeper,
 		scopedLiquidStakeIBCKeeper,
-		app.IBCKeeper,
+		app.IBCKeeper, // TODO: Move to module interface
+		&app.InterchainQueryKeeper,
 		app.GetSubspace(liquidstakeibctypes.ModuleName),
 		app.MsgServiceRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+
+	_ = app.InterchainQueryKeeper.SetCallbackHandler(liquidstakeibctypes.ModuleName, app.LiquidStakeIBCKeeper.CallbackHandler())
+
 	liquidStakeIBCModule := liquidstakeibc.NewIBCModule(app.LiquidStakeIBCKeeper)
 
 	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()

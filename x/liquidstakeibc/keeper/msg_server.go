@@ -8,6 +8,7 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -50,7 +51,7 @@ func (k msgServer) RegisterHostChain(
 		return nil, fmt.Errorf("chain id not found for connection \"%s\": \"%w\"", msg.ConnectionId, err)
 	}
 
-	hs := &types.HostChain{
+	hc := &types.HostChain{
 		ChainId:        chainId,
 		ConnectionId:   msg.ConnectionId,
 		LocalDenom:     msg.LocalDenom,
@@ -60,21 +61,24 @@ func (k msgServer) RegisterHostChain(
 	}
 
 	// save the host chain
-	k.SetHostChain(ctx, hs)
+	k.SetHostChain(ctx, hc)
 
 	// register delegate ICA
 	delegateAccount := chainId + "." + types.DelegateICAType
-	if err = k.RegisterICAAccount(ctx, hs.ConnectionId, delegateAccount); err != nil {
+	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, delegateAccount); err != nil {
 		return nil, errorsmod.Wrapf(types.ErrRegisterFailed, "error registering %s delegate ica: %w", chainId, err)
 	}
 
 	// register reward ICA
 	rewardAccount := chainId + "." + types.RewardsICAType
-	if err = k.RegisterICAAccount(ctx, hs.ConnectionId, rewardAccount); err != nil {
+	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, rewardAccount); err != nil {
 		return nil, errorsmod.Wrapf(types.ErrRegisterFailed, "error registering %s reward ica: %w", chainId, err)
 	}
 
-	// TODO: Query for validator set
+	// query the host chain for the validator set
+	if err := k.QueryHostChainValidators(ctx, hc, stakingtypes.QueryValidatorsRequest{}); err != nil {
+		return nil, errorsmod.Wrapf(types.ErrFailedICQRequest, "error submitting validators icq: %w", err)
+	}
 
 	return &types.MsgRegisterHostChainResponse{}, nil
 }

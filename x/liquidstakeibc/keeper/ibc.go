@@ -62,7 +62,7 @@ func (k *Keeper) OnChanOpenAck(
 	// get host chain
 	hc, found := k.GetHostChain(ctx, chainID)
 	if !found {
-		return fmt.Errorf("unable to get chain id %s", chainID)
+		return fmt.Errorf("host chain with id %s is not registered", chainID)
 	}
 
 	// get the ica account type from the ownership string
@@ -90,6 +90,7 @@ func (k *Keeper) OnAcknowledgementPacket(
 ) error {
 	return nil
 }
+
 func (k *Keeper) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,

@@ -5,9 +5,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 
@@ -23,6 +25,7 @@ type Keeper struct {
 	icaControllerKeeper types.ICAControllerKeeper
 	scopedKeeper        types.ScopedKeeper
 	ibcKeeper           *ibckeeper.Keeper
+	icqKeeper           types.ICQKeeper
 
 	paramSpace paramtypes.Subspace
 
@@ -40,6 +43,7 @@ func NewKeeper(
 	icaControllerKeeper types.ICAControllerKeeper,
 	scopedKeeper types.ScopedKeeper,
 	ibcKeeper *ibckeeper.Keeper,
+	icqKeeper types.ICQKeeper,
 
 	paramSpace paramtypes.Subspace,
 
@@ -51,6 +55,7 @@ func NewKeeper(
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
+
 	return Keeper{
 		cdc:                 cdc,
 		accountKeeper:       accountKeeper,
@@ -58,6 +63,7 @@ func NewKeeper(
 		icaControllerKeeper: icaControllerKeeper,
 		scopedKeeper:        scopedKeeper,
 		ibcKeeper:           ibcKeeper,
+		icqKeeper:           icqKeeper,
 		storeKey:            storeKey,
 		paramSpace:          paramSpace,
 		msgRouter:           msgRouter,
@@ -74,6 +80,77 @@ func (k *Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 // SetParams sets the total set of liquidstakeibc parameters.
 func (k *Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSpace.SetParamSet(ctx, &params)
+}
+
+// SetHostChain sets a host chain in the store
+func (k *Keeper) SetHostChain(ctx sdk.Context, hostZone *types.HostChain) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
+	bytes := k.cdc.MustMarshal(hostZone)
+	store.Set([]byte(hostZone.ChainId), bytes)
+}
+
+// GetHostChain returns a host chain given its id
+func (k *Keeper) GetHostChain(ctx sdk.Context, chainID string) (types.HostChain, bool) {
+	hc := types.HostChain{}
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
+	bytes := store.Get([]byte(chainID))
+	if len(bytes) == 0 {
+		return hc, false
+	}
+
+	k.cdc.MustUnmarshal(bytes, &hc)
+	return hc, true
+}
+
+// GetHostChainFromLocalDenom returns a host chain given its ibc denomination on Persistence
+func (k *Keeper) GetHostChainFromLocalDenom(ctx sdk.Context, localDenom string) (types.HostChain, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	found := false
+	hc := types.HostChain{}
+	for ; iterator.Valid(); iterator.Next() {
+		chain := types.HostChain{}
+		k.cdc.MustUnmarshal(iterator.Value(), &chain)
+
+		if chain.LocalDenom == localDenom {
+			hc = chain
+			found = true
+			break
+		}
+	}
+
+	return hc, found
+}
+
+// SetHostChainValidators sets the validators on a host chain from an ICQ
+func (k *Keeper) SetHostChainValidators(
+	ctx sdk.Context,
+	hs *types.HostChain,
+	response *stakingtypes.QueryValidatorsResponse,
+) {
+	for _, validator := range response.Validators {
+		val, found := hs.GetValidator(validator.OperatorAddress)
+
+		switch {
+		case !found:
+			hs.Validators = append(
+				hs.Validators,
+				&types.Validator{
+					OperatorAddress: validator.OperatorAddress,
+					Status:          validator.Status.String(),
+					CommissionRate:  validator.Commission.Rate,
+				},
+			)
+		case validator.Status.String() != val.Status:
+			val.Status = validator.Status.String()
+		case validator.Commission.Rate != val.CommissionRate:
+			val.CommissionRate = validator.Commission.Rate
+		}
+	}
+
+	k.SetHostChain(ctx, hs)
 }
 
 // SendProtocolFee to the community pool
@@ -117,4 +194,39 @@ func (k *Keeper) GetChainID(ctx sdk.Context, connectionID string) (string, error
 	}
 
 	return clientState.ChainId, nil
+}
+
+// RegisterICAAccount registers an ICA
+func (k *Keeper) RegisterICAAccount(ctx sdk.Context, connectionId, owner string) error {
+	return k.icaControllerKeeper.RegisterInterchainAccount(
+		ctx,
+		connectionId,
+		owner,
+		"",
+	)
+}
+
+func (k *Keeper) QueryHostChainValidators(
+	ctx sdk.Context,
+	hc *types.HostChain,
+	req stakingtypes.QueryValidatorsRequest,
+) error {
+	bz, err := k.cdc.Marshal(&req)
+	if err != nil {
+		return err
+	}
+
+	k.icqKeeper.MakeRequest(
+		ctx,
+		hc.ConnectionId,
+		hc.ChainId,
+		"cosmos.staking.v1beta1.Query/Validators",
+		bz,
+		sdk.NewInt(int64(-1)),
+		types.ModuleName,
+		ValidatorSet,
+		0,
+	)
+
+	return nil
 }
