@@ -1,9 +1,7 @@
 package keeper
 
 import (
-	"crypto/sha256"
 	"fmt"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -15,6 +13,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -74,6 +73,11 @@ func NewKeeper(
 	}
 }
 
+// Logger returns a module-specific logger.
+func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
 // GetParams gets the total set of liquidstakeibc parameters.
 func (k *Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	k.paramSpace.GetParamSet(ctx, &params)
@@ -113,15 +117,11 @@ func (k *Keeper) GetHostChainFromIbcDenom(ctx sdk.Context, ibcDenom string) (typ
 
 	found := false
 	hc := types.HostChain{}
-	hash := sha256.New()
 	for ; iterator.Valid(); iterator.Next() {
 		chain := types.HostChain{}
 		k.cdc.MustUnmarshal(iterator.Value(), &chain)
 
-		hash.Write([]byte(chain.PortId + "/" + chain.ChannelId + "/" + chain.HostDenom))
-		chainIbcDenom := "ibc/" + strings.ToUpper(fmt.Sprintf("%x", hash.Sum(nil)))
-
-		if chainIbcDenom == ibcDenom {
+		if chain.GetIBCDenom() == ibcDenom {
 			hc = chain
 			found = true
 			break
