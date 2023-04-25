@@ -1,7 +1,9 @@
 package keeper
 
 import (
+	"crypto/sha256"
 	"fmt"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -102,19 +104,23 @@ func (k *Keeper) GetHostChain(ctx sdk.Context, chainID string) (types.HostChain,
 	return hc, true
 }
 
-// GetHostChainFromLocalDenom returns a host chain given its ibc denomination on Persistence
-func (k *Keeper) GetHostChainFromLocalDenom(ctx sdk.Context, localDenom string) (types.HostChain, bool) {
+// GetHostChainFromIbcDenom returns a host chain given its ibc denomination on Persistence
+func (k *Keeper) GetHostChainFromIbcDenom(ctx sdk.Context, ibcDenom string) (types.HostChain, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
 
 	found := false
 	hc := types.HostChain{}
+	hash := sha256.New()
 	for ; iterator.Valid(); iterator.Next() {
 		chain := types.HostChain{}
 		k.cdc.MustUnmarshal(iterator.Value(), &chain)
 
-		if chain.LocalDenom == localDenom {
+		hash.Write([]byte(chain.PortId + "/" + chain.ChannelId + "/" + chain.HostDenom))
+		chainIbcDenom := "ibc/" + strings.ToUpper(fmt.Sprintf("%x", hash.Sum(nil)))
+
+		if chainIbcDenom == ibcDenom {
 			hc = chain
 			found = true
 			break
@@ -204,6 +210,11 @@ func (k *Keeper) RegisterICAAccount(ctx sdk.Context, connectionId, owner string)
 		owner,
 		"",
 	)
+}
+
+// MintDenom generates a ls token denom based on the host token denom
+func (k *Keeper) MintDenom(hostDenom string) string {
+	return "stk" + "/" + hostDenom
 }
 
 func (k *Keeper) QueryHostChainValidators(

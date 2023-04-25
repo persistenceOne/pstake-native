@@ -16,24 +16,26 @@ message HostChain {
   string connection_id = 2;
   // module params
   HostChainLSParams params = 3;
-  // protocol token denom
-  string local_denom = 4;
   // native token denom
-  string host_denom = 5;
+  string host_denom = 4;
+  // ibc connection channel id
+  string channel_id = 5;
+  // ibc connection port id
+  string port_id = 6;
   // delegation host account
-  ICAAccount delegation_account = 6;
+  ICAAccount delegation_account = 7;
   // reward host account
-  ICAAccount rewards_account = 7;
+  ICAAccount rewards_account = 8;
   // validator set
-  repeated Validator validators = 8;
+  repeated Validator validators = 9;
   // minimum ls amount
-  string minimum_deposit = 9 [
+  string minimum_deposit = 10 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
   // redemption rate
-  string c_value = 10 [
+  string c_value = 11 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false

@@ -25,12 +25,13 @@ var (
 
 func NewMsgRegisterHostChain(
 	connectionId string,
+	channelId string,
+	portId string,
 	depositFee string,
 	restakeFee string,
 	unstakeFee string,
 	redemptionFee string,
 	hostDenom string,
-	localDenom string,
 	minimumDeposit math.Int,
 ) *MsgRegisterHostChain {
 	depositFeeDec, _ := sdk.NewDecFromStr(depositFee)
@@ -41,7 +42,8 @@ func NewMsgRegisterHostChain(
 	return &MsgRegisterHostChain{
 		ConnectionId:   connectionId,
 		HostDenom:      hostDenom,
-		LocalDenom:     localDenom,
+		ChannelId:      channelId,
+		PortId:         portId,
 		MinimumDeposit: minimumDeposit,
 		DepositFee:     depositFeeDec,
 		RestakeFee:     restakeFeeDec,
@@ -87,19 +89,43 @@ func (m *MsgRegisterHostChain) ValidateBasic() error {
 		)
 	}
 
-	// validate local denom
-	if err := sdk.ValidateDenom(m.LocalDenom); err != nil {
+	// validate channel id
+	if valid := strings.HasPrefix(m.ChannelId, "channel-"); !valid {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			fmt.Sprintf("invalid local denom: %s", err.Error()),
+			fmt.Sprintf("invalid channel id: %s", m.ChannelId),
 		)
 	}
 
-	// minimum deposit must be positive or zero
-	if m.MinimumDeposit.LT(sdk.NewInt(0)) {
+	// deposit fee must be positive or zero
+	if m.DepositFee.LT(sdk.NewDec(0)) {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			"minimum deposit quantity must be greater or equal than zero",
+			"deposit fee quantity must be greater or equal than zero",
+		)
+	}
+
+	// restake fee must be positive or zero
+	if m.RestakeFee.LT(sdk.NewDec(0)) {
+		return errorsmod.Wrapf(
+			sdkerrors.ErrInvalidRequest,
+			"restake fee quantity must be greater or equal than zero",
+		)
+	}
+
+	// unstake fee must be positive or zero
+	if m.UnstakeFee.LT(sdk.NewDec(0)) {
+		return errorsmod.Wrapf(
+			sdkerrors.ErrInvalidRequest,
+			"unstake fee quantity must be greater or equal than zero",
+		)
+	}
+
+	// redemption deposit must be positive or zero
+	if m.RedemptionFee.LT(sdk.NewDec(0)) {
+		return errorsmod.Wrapf(
+			sdkerrors.ErrInvalidRequest,
+			"redemption fee quantity must be greater or equal than zero",
 		)
 	}
 

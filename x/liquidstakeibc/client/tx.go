@@ -36,7 +36,7 @@ func NewTxCmd() *cobra.Command {
 // TODO: Remove this when tagging version. Users should not be able to register chains.
 func NewRegisterHostChainCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "register-host-chain [connection-id] [host-denom] [local-denom] [minimum-deposit] [deposit-fee] [restake-fee] [unstake-fee] [redemption-fee]",
+		Use:   "register-host-chain [connection-id] [channel-id] [port-id] [deposit-fee] [restake-fee] [unstake-fee] [redemption-fee] [host-denom] [minimum-deposit]",
 		Args:  cobra.ExactArgs(4),
 		Short: "Register a host chain",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -58,6 +58,7 @@ func NewRegisterHostChainCmd() *cobra.Command {
 				args[4],
 				args[5],
 				args[6],
+				args[7],
 				minimumDeposit,
 			)
 

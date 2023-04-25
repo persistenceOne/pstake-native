@@ -14,12 +14,11 @@ import (
 )
 
 const (
+	KeyConnectionId   string = "connection_id"
 	KeyDepositFee     string = "deposit_fee"
 	KeyRestakeFee     string = "restake_fee"
 	KeyUnstakeFee     string = "unstake_fee"
 	KeyRedemptionFee  string = "redemption_fee"
-	KeyProtocolDenom  string = "prot_denom"
-	KeyBaseDenom      string = "base_denom"
 	KeyMinimumDeposit string = "min_deposit"
 )
 
@@ -65,8 +64,9 @@ func (k msgServer) RegisterHostChain(
 	hc := &types.HostChain{
 		ChainId:        chainId,
 		ConnectionId:   msg.ConnectionId,
+		ChannelId:      msg.ChannelId,
+		PortId:         msg.PortId,
 		Params:         hostChainParams,
-		LocalDenom:     msg.LocalDenom,
 		HostDenom:      msg.HostDenom,
 		MinimumDeposit: msg.MinimumDeposit,
 		CValue:         sdktypes.NewDec(1),
@@ -113,6 +113,8 @@ func (k msgServer) UpdateHostChain(
 
 	for _, update := range msg.Updates {
 		switch update.Key {
+		case KeyConnectionId:
+			//TODO: Re-create ICA and query validator set
 		case KeyDepositFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
@@ -149,16 +151,6 @@ func (k msgServer) UpdateHostChain(
 			if fee.LT(sdktypes.NewDec(0)) {
 				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
 			}
-		case KeyProtocolDenom:
-			hs.HostDenom = update.Value
-			if err := sdktypes.ValidateDenom(update.Value); err != nil {
-				return nil, err
-			}
-		case KeyBaseDenom:
-			hs.LocalDenom = update.Value
-			if err := sdktypes.ValidateDenom(update.Value); err != nil {
-				return nil, err
-			}
 		case KeyMinimumDeposit:
 			minimumDeposit, ok := sdktypes.NewIntFromString(update.Value)
 			if !ok {
@@ -185,14 +177,8 @@ func (k msgServer) LiquidStake(
 ) (*types.MsgLiquidStakeResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
-	// TODO: Check if module is active
-	//// check if module is inactive or active
-	//if !k.GetModuleState(ctx) {
-	//	return nil, types.ErrModuleDisabled
-	//}
-
 	// retrieve the host chain
-	hostChain, found := k.GetHostChainFromLocalDenom(ctx, msg.Amount.Denom)
+	hostChain, found := k.GetHostChainFromIbcDenom(ctx, msg.Amount.Denom)
 	if !found {
 		return nil, errorsmod.Wrapf(
 			types.ErrInvalidHostChain,
@@ -211,28 +197,6 @@ func (k msgServer) LiquidStake(
 		)
 	}
 
-	// TODO: Get IBC prefix from the IBC connection and compare it with what has been provided.
-	//expectedIBCPrefix := ibctransfertypes.GetDenomPrefix(hostChainParams.TransferPort, hostChainParams.TransferChannel)
-	//
-	//denomTraceStr, err := k.ibcTransferKeeper.DenomPathFromHash(ctx, msg.Amount.Denom)
-	//if err != nil {
-	//	return nil, errorsmod.Wrapf(types.ErrInvalidDenom, "got error : %s", err)
-	//}
-	//denomTrace := ibctransfertypes.ParseDenomTrace(denomTraceStr)
-	//
-	//// Check if ibc path matches allowlisted path.
-	//if expectedIBCPrefix != denomTrace.GetPrefix() {
-	//	return nil, errorsmod.Wrapf(
-	//		types.ErrInvalidDenomPath, "expected %s, got %s", expectedIBCPrefix, denomTrace.GetPrefix(),
-	//	)
-	//}
-	////Check if base denom is valid (uatom) , this can be programmed further to accommodate for liquid staked vouchers.
-	//if denomTrace.BaseDenom != hostChainParams.BaseDenom {
-	//	return nil, errorsmod.Wrapf(
-	//		types.ErrInvalidDenom, "expected %s, got %s", hostChainParams.BaseDenom, denomTrace.BaseDenom,
-	//	)
-	//}
-
 	// get the delegator address from the bech32 string
 	delegatorAddress, err := sdktypes.AccAddressFromBech32(msg.DelegatorAddress)
 	if err != nil {
@@ -240,7 +204,7 @@ func (k msgServer) LiquidStake(
 	}
 
 	// amount of stk tokens to be minted
-	mintDenom := "stk" + hostChain.HostDenom
+	mintDenom := k.MintDenom(hostChain.HostDenom)
 	mintAmount := sdktypes.NewDecCoinFromCoin(msg.Amount).Amount.Mul(hostChain.CValue) // TODO: CValue needs to be recalculated and saved on every LS/LU/Redeem/Slash
 	mintToken, _ := sdktypes.NewDecCoinFromDec(mintDenom, mintAmount).TruncateDecimal()
 
@@ -266,9 +230,6 @@ func (k msgServer) LiquidStake(
 		)
 	}
 
-	// retrieve the module params
-	params := k.GetParams(ctx)
-
 	// calculate protocol fee
 	protocolFeeAmount := hostChain.Params.DepositFee.MulInt(mintToken.Amount)
 	protocolFee, _ := sdktypes.NewDecCoinFromDec(mintDenom, protocolFeeAmount).TruncateDecimal()
@@ -289,6 +250,9 @@ func (k msgServer) LiquidStake(
 			err,
 		)
 	}
+
+	// retrieve the module params
+	params := k.GetParams(ctx)
 
 	// send the protocol fee to the protocol pool
 	if protocolFee.IsPositive() {
