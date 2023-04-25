@@ -10,6 +10,8 @@ import (
 // InitGenesis initializes the liquidstakeibc module's state from a given genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState *types.GenesisState) {
 	k.SetParams(ctx, genState.Params)
+
+	k.GetDepositModuleAccount(ctx)
 }
 
 // ExportGenesis returns the liquidstakeibc module's genesis state.

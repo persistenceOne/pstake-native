@@ -191,7 +191,8 @@ var (
 		lscosmostypes.RewardModuleAccount:        nil,
 		lscosmostypes.UndelegationModuleAccount:  nil,
 		lscosmostypes.RewardBoosterModuleAccount: nil, //legacy, blocklist, no permissions
-		liquidstakeibctypes.ModuleName:           nil,
+		liquidstakeibctypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
+		liquidstakeibctypes.DepositModuleAccount: nil,
 	}
 
 	receiveAllowedMAcc = map[string]bool{

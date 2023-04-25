@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
@@ -128,6 +129,11 @@ func (k *Keeper) GetHostChainFromIbcDenom(ctx sdk.Context, ibcDenom string) (typ
 	}
 
 	return hc, found
+}
+
+// GetDepositModuleAccount returns deposit module account interface
+func (k Keeper) GetDepositModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+	return k.accountKeeper.GetModuleAccount(ctx, types.DepositModuleAccount)
 }
 
 // SetHostChainValidators sets the validators on a host chain from an ICQ
