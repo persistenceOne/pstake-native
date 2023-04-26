@@ -46,14 +46,13 @@ func TestProposalContents(t *testing.T) {
 	app.EndBlock(abci.RequestEndBlock{Height: app.LastBlockHeight() + 1})
 
 	// execute ProposalContents function
-	weightedProposalContent := simulation.ProposalContents(app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GovKeeper, app.LSPersistenceKeeper)
-	require.Len(t, weightedProposalContent, 5)
+	weightedProposalContent := simulation.ProposalContents(app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.LSPersistenceKeeper)
+	require.Len(t, weightedProposalContent, 4)
 
 	w0 := weightedProposalContent[0]
 	w1 := weightedProposalContent[1]
 	w2 := weightedProposalContent[2]
 	w3 := weightedProposalContent[3]
-	w4 := weightedProposalContent[4]
 
 	// tests w0 interface:
 	require.Equal(t, simulation.OpWeightSimulateAddWhitelistValidatorsProposal, w0.AppParamsKey())
@@ -71,10 +70,6 @@ func TestProposalContents(t *testing.T) {
 	require.Equal(t, simulation.OpWeightCompleteRedelegationUnbonding, w3.AppParamsKey())
 	require.Equal(t, params.DefaultWeightCompleteRedelegationUnbonding, w3.DefaultWeight())
 
-	// tests w4 interface:
-	require.Equal(t, simulation.OpWeightTallyWithLiquidStaking, w4.AppParamsKey())
-	require.Equal(t, params.DefaultWeightTallyWithLiquidStaking, w4.DefaultWeight())
-
 	content0 := w0.ContentSimulatorFn()(r, ctx, accounts)
 	require.Nil(t, content0)
 
@@ -87,6 +82,4 @@ func TestProposalContents(t *testing.T) {
 	content3 := w3.ContentSimulatorFn()(r, ctx, accounts)
 	require.Nil(t, content3)
 
-	content4 := w4.ContentSimulatorFn()(r, ctx, accounts)
-	require.Nil(t, content4)
 }

@@ -16,6 +16,8 @@ import (
 )
 
 // Simulation operation weights constants.
+//
+//nolint:gosec
 const (
 	OpWeightMsgLiquidStake   = "op_weight_msg_liquid_stake"
 	OpWeightMsgLiquidUnstake = "op_weight_msg_liquid_unstake"
@@ -64,8 +66,8 @@ func WeightedOperations(
 }
 
 // SimulateMsgLiquidStake generates a MsgStake with random values
-// nolint: interfacer
-func SimulateMsgLiquidStake(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
+func SimulateMsgLiquidStake(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation { //nolint: interfacer
+
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
@@ -125,8 +127,7 @@ func SimulateMsgLiquidStake(ak types.AccountKeeper, bk types.BankKeeper, k keepe
 }
 
 // SimulateMsgLiquidUnstake generates a SimulateMsgLiquidUnstake with random values
-// nolint: interfacer
-func SimulateMsgLiquidUnstake(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
+func SimulateMsgLiquidUnstake(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation { //nolint: interfacer
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {

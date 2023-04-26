@@ -1,23 +1,23 @@
 package types_test
 
 import (
-	"github.com/cosmos/cosmos-sdk/x/mint"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
 	"testing"
 
+	"cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1beta1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	chain "github.com/persistenceOne/pstake-native/v2/app"
+	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/keeper"
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
@@ -45,8 +45,8 @@ var (
 
 func TestBTokenToNativeTokenWithFee(t *testing.T) {
 	testCases := []struct {
-		bTokenAmount            sdk.Int
-		bTokenTotalSupplyAmount sdk.Int
+		bTokenAmount            math.Int
+		bTokenTotalSupplyAmount math.Int
 		netAmount               sdk.Dec
 		feeRate                 sdk.Dec
 		expectedOutput          sdk.Dec
@@ -86,8 +86,8 @@ func TestBTokenToNativeTokenWithFee(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.IsType(t, sdk.Int{}, tc.bTokenAmount)
-		require.IsType(t, sdk.Int{}, tc.bTokenTotalSupplyAmount)
+		require.IsType(t, math.Int{}, tc.bTokenAmount)
+		require.IsType(t, math.Int{}, tc.bTokenTotalSupplyAmount)
 		require.IsType(t, sdk.Dec{}, tc.netAmount)
 		require.IsType(t, sdk.Dec{}, tc.feeRate)
 		require.IsType(t, sdk.Dec{}, tc.expectedOutput)
@@ -102,10 +102,10 @@ func TestBTokenToNativeTokenWithFee(t *testing.T) {
 
 func TestNativeToBTokenTo(t *testing.T) {
 	testCases := []struct {
-		nativeTokenAmount       sdk.Int
-		bTokenTotalSupplyAmount sdk.Int
+		nativeTokenAmount       math.Int
+		bTokenTotalSupplyAmount math.Int
 		netAmount               sdk.Dec
-		expectedOutput          sdk.Int
+		expectedOutput          math.Int
 	}{
 		{
 			nativeTokenAmount:       sdk.NewInt(100000000),
@@ -128,10 +128,10 @@ func TestNativeToBTokenTo(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.IsType(t, sdk.Int{}, tc.nativeTokenAmount)
-		require.IsType(t, sdk.Int{}, tc.bTokenTotalSupplyAmount)
+		require.IsType(t, math.Int{}, tc.nativeTokenAmount)
+		require.IsType(t, math.Int{}, tc.bTokenTotalSupplyAmount)
 		require.IsType(t, sdk.Dec{}, tc.netAmount)
-		require.IsType(t, sdk.Int{}, tc.expectedOutput)
+		require.IsType(t, math.Int{}, tc.expectedOutput)
 
 		output := types.NativeTokenToBToken(tc.nativeTokenAmount, tc.bTokenTotalSupplyAmount, tc.netAmount)
 		require.EqualValues(t, tc.expectedOutput, output)
@@ -190,7 +190,7 @@ func TestActiveCondition(t *testing.T) {
 				OperatorAddress: whitelistedValidators[0].ValidatorAddress,
 				Jailed:          false,
 				Status:          stakingtypes.Bonded,
-				Tokens:          sdk.Int{},
+				Tokens:          math.Int{},
 				DelegatorShares: sdk.Dec{},
 			},
 			whitelisted:    true,

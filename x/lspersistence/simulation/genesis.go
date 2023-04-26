@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
@@ -30,11 +31,11 @@ func genLiquidBondDenom(r *rand.Rand) string {
 	return types.DefaultLiquidBondDenom
 }
 
-func genMinLiquidStakingAmount(r *rand.Rand) sdk.Int {
+func genMinLiquidStakingAmount(r *rand.Rand) math.Int {
 	return sdk.NewInt(int64(simtypes.RandIntBetween(r, 0, 10000000)))
 }
 
-func genTargetWeight(r *rand.Rand) sdk.Int {
+func genTargetWeight(r *rand.Rand) math.Int {
 	return sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 20)))
 }
 

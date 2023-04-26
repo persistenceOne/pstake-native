@@ -3,9 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
@@ -30,10 +30,10 @@ var (
 func TestDivideByWeight(t *testing.T) {
 	testCases := []struct {
 		whitelistedVals  []types.WhitelistedValidator
-		addStakingAmt    sdk.Int
-		currentDelShares []sdk.Int
-		expectedOutputs  []sdk.Int
-		expectedCrumb    sdk.Int
+		addStakingAmt    math.Int
+		currentDelShares []math.Int
+		expectedOutputs  []math.Int
+		expectedCrumb    math.Int
 	}{
 		{
 			whitelistedVals: []types.WhitelistedValidator{
@@ -51,8 +51,8 @@ func TestDivideByWeight(t *testing.T) {
 				},
 			},
 			addStakingAmt:    sdk.NewInt(10 * 1000000),
-			currentDelShares: []sdk.Int{sdk.NewInt(2000000), sdk.NewInt(2000000), sdk.NewInt(1000000)},
-			expectedOutputs:  []sdk.Int{sdk.NewInt(3333333), sdk.NewInt(3333333), sdk.NewInt(3333333)},
+			currentDelShares: []math.Int{sdk.NewInt(2000000), sdk.NewInt(2000000), sdk.NewInt(1000000)},
+			expectedOutputs:  []math.Int{sdk.NewInt(3333333), sdk.NewInt(3333333), sdk.NewInt(3333333)},
 			expectedCrumb:    sdk.NewInt(1),
 		},
 		{
@@ -71,8 +71,8 @@ func TestDivideByWeight(t *testing.T) {
 				},
 			},
 			addStakingAmt:    sdk.NewInt(10 * 1000000),
-			currentDelShares: []sdk.Int{sdk.NewInt(1000000), sdk.NewInt(1000000), sdk.NewInt(1000000)},
-			expectedOutputs:  []sdk.Int{sdk.NewInt(4000000), sdk.NewInt(4000000), sdk.NewInt(2000000)},
+			currentDelShares: []math.Int{sdk.NewInt(1000000), sdk.NewInt(1000000), sdk.NewInt(1000000)},
+			expectedOutputs:  []math.Int{sdk.NewInt(4000000), sdk.NewInt(4000000), sdk.NewInt(2000000)},
 			expectedCrumb:    sdk.NewInt(0),
 		},
 		{
@@ -91,17 +91,17 @@ func TestDivideByWeight(t *testing.T) {
 				},
 			},
 			addStakingAmt:    sdk.NewInt(10),
-			currentDelShares: []sdk.Int{sdk.NewInt(3), sdk.NewInt(2), sdk.NewInt(1)},
-			expectedOutputs:  []sdk.Int{sdk.NewInt(3), sdk.NewInt(3), sdk.NewInt(3)},
+			currentDelShares: []math.Int{sdk.NewInt(3), sdk.NewInt(2), sdk.NewInt(1)},
+			expectedOutputs:  []math.Int{sdk.NewInt(3), sdk.NewInt(3), sdk.NewInt(3)},
 			expectedCrumb:    sdk.NewInt(1),
 		},
 	}
 
 	for _, tc := range testCases {
 		require.IsType(t, []types.WhitelistedValidator{}, tc.whitelistedVals)
-		require.IsType(t, sdk.Int{}, tc.addStakingAmt)
-		require.IsType(t, sdk.Int{}, tc.expectedCrumb)
-		require.IsType(t, []sdk.Int{}, tc.expectedOutputs)
+		require.IsType(t, math.Int{}, tc.addStakingAmt)
+		require.IsType(t, math.Int{}, tc.expectedCrumb)
+		require.IsType(t, []math.Int{}, tc.expectedOutputs)
 
 		totalTargetAmt := sdk.ZeroInt()
 		valsMap := types.GetWhitelistedValsMap(tc.whitelistedVals)
@@ -125,23 +125,23 @@ func TestMinMaxGap(t *testing.T) {
 	testCases := []struct {
 		name                     string
 		liquidVals               types.LiquidValidators
-		targetMap                map[string]sdk.Int
-		liquidTokenMap           map[string]sdk.Int
+		targetMap                map[string]math.Int
+		liquidTokenMap           map[string]math.Int
 		expectedMinGapVal        types.LiquidValidator
 		expectedMaxGapVal        types.LiquidValidator
-		expectedAmountNeeded     sdk.Int
+		expectedAmountNeeded     math.Int
 		expectedLastRedelegation bool
 	}{
 		{
 			name:       "zero case",
 			liquidVals: liquidValidators,
-			targetMap: map[string]sdk.Int{
+			targetMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.ZeroInt(),
 				liquidValidators[1].OperatorAddress: sdk.ZeroInt(),
 				liquidValidators[2].OperatorAddress: sdk.ZeroInt(),
 				liquidValidators[3].OperatorAddress: sdk.ZeroInt(),
 			},
-			liquidTokenMap: map[string]sdk.Int{
+			liquidTokenMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.ZeroInt(),
 				liquidValidators[1].OperatorAddress: sdk.ZeroInt(),
 				liquidValidators[2].OperatorAddress: sdk.ZeroInt(),
@@ -155,13 +155,13 @@ func TestMinMaxGap(t *testing.T) {
 		{
 			name:       "rebalancing case 1-1",
 			liquidVals: liquidValidators,
-			targetMap: map[string]sdk.Int{
+			targetMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[3].OperatorAddress: sdk.NewInt(100000000),
 			},
-			liquidTokenMap: map[string]sdk.Int{
+			liquidTokenMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(133333334),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(133333333),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(133333333),
@@ -175,13 +175,13 @@ func TestMinMaxGap(t *testing.T) {
 		{
 			name:       "rebalancing case 1-2",
 			liquidVals: liquidValidators,
-			targetMap: map[string]sdk.Int{
+			targetMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[3].OperatorAddress: sdk.NewInt(100000000),
 			},
-			liquidTokenMap: map[string]sdk.Int{
+			liquidTokenMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(133333334 - 33333334),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(133333333),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(133333333),
@@ -195,13 +195,13 @@ func TestMinMaxGap(t *testing.T) {
 		{
 			name:       "rebalancing case 1-3",
 			liquidVals: liquidValidators,
-			targetMap: map[string]sdk.Int{
+			targetMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[3].OperatorAddress: sdk.NewInt(100000000),
 			},
-			liquidTokenMap: map[string]sdk.Int{
+			liquidTokenMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(133333334 - 33333334),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(133333333 - 33333333),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(133333333),
@@ -215,13 +215,13 @@ func TestMinMaxGap(t *testing.T) {
 		{
 			name:       "rebalancing case 1-4",
 			liquidVals: liquidValidators,
-			targetMap: map[string]sdk.Int{
+			targetMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[3].OperatorAddress: sdk.NewInt(100000000),
 			},
-			liquidTokenMap: map[string]sdk.Int{
+			liquidTokenMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(133333334 - 33333334),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(133333333 - 33333333),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(133333333 - 33333333),
@@ -235,13 +235,13 @@ func TestMinMaxGap(t *testing.T) {
 		{
 			name:       "rebalancing case 2-1",
 			liquidVals: liquidValidators,
-			targetMap: map[string]sdk.Int{
+			targetMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(133333334),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(133333333),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(133333333),
 				liquidValidators[3].OperatorAddress: sdk.ZeroInt(),
 			},
-			liquidTokenMap: map[string]sdk.Int{
+			liquidTokenMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(100000000),
@@ -255,13 +255,13 @@ func TestMinMaxGap(t *testing.T) {
 		{
 			name:       "rebalancing case 2-2",
 			liquidVals: liquidValidators,
-			targetMap: map[string]sdk.Int{
+			targetMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(133333334),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(133333333),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(133333333),
 				liquidValidators[3].OperatorAddress: sdk.ZeroInt(),
 			},
-			liquidTokenMap: map[string]sdk.Int{
+			liquidTokenMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(100000000 + 33333334),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(100000000),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(100000000),
@@ -275,13 +275,13 @@ func TestMinMaxGap(t *testing.T) {
 		{
 			name:       "rebalancing case 2-3, last redelegation",
 			liquidVals: liquidValidators,
-			targetMap: map[string]sdk.Int{
+			targetMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(133333334),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(133333333),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(133333333),
 				liquidValidators[3].OperatorAddress: sdk.ZeroInt(),
 			},
-			liquidTokenMap: map[string]sdk.Int{
+			liquidTokenMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: sdk.NewInt(100000000 + 33333334),
 				liquidValidators[1].OperatorAddress: sdk.NewInt(100000000 + 33333333),
 				liquidValidators[2].OperatorAddress: sdk.NewInt(100000000),
@@ -411,7 +411,7 @@ func TestDivideByCurrentWeight(t *testing.T) {
 
 		totalTargetAmt := sdk.ZeroDec()
 		totalLiquidTokens := sdk.ZeroInt()
-		liquidTokenMap := map[string]sdk.Int{}
+		liquidTokenMap := map[string]math.Int{}
 		var lvs types.LiquidValidators
 		for _, v := range tc.liquidValidators {
 			totalLiquidTokens = totalLiquidTokens.Add(v.LiquidTokens)

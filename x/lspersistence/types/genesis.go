@@ -1,6 +1,9 @@
 package types
 
-import sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+import (
+	errorsmod "cosmossdk.io/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+)
 
 // NewGenesisState returns new GenesisState instance.
 func NewGenesisState(params Params, liquidValidators []LiquidValidator) *GenesisState {
@@ -25,7 +28,7 @@ func ValidateGenesis(data GenesisState) error {
 	}
 	for _, lv := range data.LiquidValidators {
 		if err := lv.Validate(); err != nil {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				sdkerrors.ErrInvalidAddress,
 				"invalid liquid validator %s: %v", lv, err)
 		}

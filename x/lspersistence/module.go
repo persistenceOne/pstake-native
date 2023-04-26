@@ -94,13 +94,12 @@ type AppModule struct {
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	stakingKeeper types.StakingKeeper
-	govKeeper     types.GovKeeper
 }
 
 // NewAppModule creates a new AppModule object
 func NewAppModule(
 	cdc codec.Codec, keeper keeper.Keeper, accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
-	stakingKeeper types.StakingKeeper, govKeeper types.GovKeeper,
+	stakingKeeper types.StakingKeeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{cdc: cdc},
@@ -108,7 +107,6 @@ func NewAppModule(
 		accountKeeper:  accountKeeper,
 		bankKeeper:     bankKeeper,
 		stakingKeeper:  stakingKeeper,
-		govKeeper:      govKeeper,
 	}
 }
 
@@ -184,7 +182,7 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 // ProposalContents returns all the liquidstaking content functions used to
 // simulate governance proposals.
 func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
-	return simulation.ProposalContents(am.accountKeeper, am.bankKeeper, am.stakingKeeper, am.govKeeper, am.keeper)
+	return simulation.ProposalContents(am.accountKeeper, am.bankKeeper, am.stakingKeeper, am.keeper)
 }
 
 // RandomizedParams creates randomized liquidstaking param changes for the simulator.

@@ -8,7 +8,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
@@ -28,7 +27,6 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryParams(),
 		GetCmdQueryLiquidValidators(),
 		GetCmdQueryStates(),
-		GetCmdQueryVotingPower(),
 	)
 
 	return liquidValidatorQueryCmd
@@ -142,51 +140,6 @@ $ %s query %s states
 			res, err := queryClient.States(
 				cmd.Context(),
 				&types.QueryStatesRequest{},
-			)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// GetCmdQueryVotingPower implements the query voting power command.
-func GetCmdQueryVotingPower() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "voting-power [voter]",
-		Args:  cobra.ExactArgs(1),
-		Short: "Query the voter's voting power",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query the voter's staking and liquid staking voting power.
-
-Example:
-$ %s query %s voting-power %s1zaavvzxez0elundtn32qnk9lkm8kmcszzsv80v
-`,
-				version.AppName, types.ModuleName, sdk.Bech32MainPrefix,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			voter, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-
-			res, err := queryClient.VotingPower(
-				cmd.Context(),
-				&types.QueryVotingPowerRequest{Voter: voter.String()},
 			)
 			if err != nil {
 				return err

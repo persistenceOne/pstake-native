@@ -4,16 +4,17 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	utils "github.com/persistenceOne/pstake-native/v2/types"
+	"github.com/persistenceOne/pstake-native/v2/app/helpers"
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 func (s *KeeperTestSuite) TestRebalancingCase1() {
 	_, valOpers, pks := s.CreateValidators([]int64{1000000, 1000000, 1000000, 1000000, 1000000})
-	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(utils.ParseTime("2022-03-01T00:00:00Z"))
+	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(helpers.ParseTime("2022-03-01T00:00:00Z"))
 	params := s.keeper.GetParams(s.ctx)
 	params.UnstakeFeeRate = sdk.ZeroDec()
 	params.MinLiquidStakingAmount = sdk.NewInt(10000)
@@ -33,7 +34,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 
 	newShares, bTokenMintAmt, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakingProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
 	s.Require().NoError(err)
-	s.Require().Equal(newShares, stakingAmt.ToDec())
+	s.Require().Equal(newShares, sdk.NewDecFromInt(stakingAmt))
 	s.Require().Equal(bTokenMintAmt, stakingAmt)
 	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 0)
@@ -83,16 +84,16 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	//reds := s.app.StakingKeeper.GetRedelegations(s.ctx, types.LiquidStakingProxyAcc, 20)
 	s.Require().Len(reds, 3)
 
-	utils.PP("before complete")
-	utils.PP(s.keeper.GetAllLiquidValidatorStates(s.ctx))
-	utils.PP(s.keeper.GetNetAmountState(s.ctx))
+	helpers.PP("before complete")
+	helpers.PP(s.keeper.GetAllLiquidValidatorStates(s.ctx))
+	helpers.PP(s.keeper.GetNetAmountState(s.ctx))
 
 	// advance block time and height for complete redelegations
 	s.completeRedelegationUnbonding()
 
-	utils.PP("after complete")
-	utils.PP(s.keeper.GetAllLiquidValidatorStates(s.ctx))
-	utils.PP(s.keeper.GetNetAmountState(s.ctx))
+	helpers.PP("after complete")
+	helpers.PP(s.keeper.GetAllLiquidValidatorStates(s.ctx))
+	helpers.PP(s.keeper.GetNetAmountState(s.ctx))
 
 	// update whitelist validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
@@ -137,11 +138,11 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 		{ValidatorAddress: valOpers[3].String(), TargetWeight: sdk.NewInt(10)},
 	}
 
-	utils.PP(s.keeper.GetAllLiquidValidatorStates(s.ctx))
+	helpers.PP(s.keeper.GetAllLiquidValidatorStates(s.ctx))
 	s.keeper.SetParams(s.ctx, params)
 	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 4)
-	utils.PP(s.keeper.GetAllLiquidValidatorStates(s.ctx))
+	helpers.PP(s.keeper.GetAllLiquidValidatorStates(s.ctx))
 
 	proxyAccDel1, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakingProxyAcc, valOpers[0])
 	s.Require().True(found)
@@ -278,7 +279,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 		1000000, 1000000, 1000000, 1000000, 1000000,
 		1000000, 1000000, 1000000, 1000000, 1000000,
 		1000000, 1000000, 1000000, 1000000, 1000000})
-	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(utils.ParseTime("2022-03-01T00:00:00Z"))
+	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(helpers.ParseTime("2022-03-01T00:00:00Z"))
 	params := s.keeper.GetParams(s.ctx)
 	params.UnstakeFeeRate = sdk.ZeroDec()
 	params.MinLiquidStakingAmount = sdk.NewInt(10000)
@@ -286,7 +287,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
 	stakingAmt := sdk.NewInt(10000000000000)
-	s.fundAddr(s.delAddrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt)))
+	testutil.FundAccount(s.app.BankKeeper, s.ctx, s.delAddrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt)))
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
 		{ValidatorAddress: valOpers[0].String(), TargetWeight: sdk.NewInt(1)},
@@ -304,7 +305,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 
 	newShares, bTokenMintAmt, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakingProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
 	s.Require().NoError(err)
-	s.Require().Equal(newShares, stakingAmt.ToDec())
+	s.Require().Equal(newShares, sdk.NewDecFromInt(stakingAmt))
 	s.Require().Equal(bTokenMintAmt, stakingAmt)
 	// assert rebalanced
 	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
@@ -359,7 +360,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 
 	// complete redelegations
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24 * 20).Add(time.Hour))
-	staking.EndBlocker(s.ctx, *s.app.StakingKeeper)
+	staking.EndBlocker(s.ctx, s.app.StakingKeeper)
 	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 0)
 	// assert rebalanced
@@ -452,7 +453,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 
 	// complete some redelegations
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24 * 20).Add(time.Hour))
-	staking.EndBlocker(s.ctx, *s.app.StakingKeeper)
+	staking.EndBlocker(s.ctx, s.app.StakingKeeper)
 	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 9)
 
@@ -484,7 +485,7 @@ func (s *KeeperTestSuite) TestWithdrawRewardsAndReStaking() {
 	// no rewards
 	totalRewards, totalDelShares, totalLiquidTokens := s.keeper.CheckDelegationStates(s.ctx, types.LiquidStakingProxyAcc)
 	s.EqualValues(totalRewards, sdk.ZeroDec())
-	s.EqualValues(totalDelShares, stakingAmt.ToDec(), totalLiquidTokens)
+	s.EqualValues(totalDelShares, sdk.NewDecFromInt(stakingAmt), totalLiquidTokens)
 
 	// allocate rewards
 	s.advanceHeight(100, false)
@@ -497,6 +498,7 @@ func (s *KeeperTestSuite) TestWithdrawRewardsAndReStaking() {
 	s.keeper.WithdrawRewardsAndReStake(s.ctx, whitelistedValsMap)
 	totalRewardsAfter, totalDelSharesAfter, totalLiquidTokensAfter := s.keeper.CheckDelegationStates(s.ctx, types.LiquidStakingProxyAcc)
 	s.EqualValues(totalRewardsAfter, sdk.ZeroDec())
+
 	s.EqualValues(totalDelSharesAfter, totalRewards.TruncateDec().Add(totalDelShares), totalLiquidTokensAfter)
 }
 

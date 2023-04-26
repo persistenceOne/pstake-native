@@ -17,10 +17,6 @@ service Query {
   rpc LiquidValidators(QueryLiquidValidatorsRequest) returns (QueryLiquidValidatorsResponse) {
     option (google.api.http).get = "/pstake/lspersistence/v1beta1/validators";
   }
-  // VotingPower returns voting power of staking and liquid staking module's of the voter that can be exercised.
-  rpc VotingPower(QueryVotingPowerRequest) returns (QueryVotingPowerResponse) {
-    option (google.api.http).get = "/pstake/lspersistence/v1beta1/voting_power/{voter}";
-  }
 
   // States returns states of the liquidstaking module.
   rpc States(QueryStatesRequest) returns (QueryStatesResponse) {
@@ -50,14 +46,4 @@ message QueryStatesRequest {}
 // QueryStatesResponse is the response type for the Query/States RPC method.
 message QueryStatesResponse {
   NetAmountState net_amount_state = 1 [(gogoproto.nullable) = false];
-}
-
-// QueryVotingPowerRequest is the request type for the Query/States RPC method.
-message QueryVotingPowerRequest {
-  string voter = 1;
-}
-
-// QueryVotingPowerResponse is the response type for the Query/States RPC method.
-message QueryVotingPowerResponse {
-  VotingPower voting_power = 1 [(gogoproto.nullable) = false];
 }

@@ -13,6 +13,5 @@ This document specifies the `liquidstaking` module. Proof of Stake consensus mec
 3. **[State Transitions](03_state_transitions.md)**
 4. **[Messages](04_messages.md)**
 5. **[Begin-Block](05_begin_block.md)**
-6. **[Hooks](06_hooks.md)**
 7. **[Events](07_events.md)**
 8. **[Parameters](08_params.md)**

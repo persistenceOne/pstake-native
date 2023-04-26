@@ -12,7 +12,7 @@ const (
 
 	AttributeKeyDelegator             = "delegator"
 	AttributeKeyNewShares             = "new_shares"
-	AttributeKeyBTokenMintedAmount    = "btoken_minted_amount"
+	AttributeKeyBTokenMintedAmount    = "btoken_minted_amount" //nolint: gosec
 	AttributeKeyCompletionTime        = "completion_time"
 	AttributeKeyUnbondingAmount       = "unbonding_amount"
 	AttributeKeyUnbondedAmount        = "unbonded_amount"

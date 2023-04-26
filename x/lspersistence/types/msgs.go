@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -18,7 +19,7 @@ const (
 
 // NewMsgLiquidStake creates a new MsgLiquidStake.
 func NewMsgLiquidStake(
-	liquidStaker sdk.AccAddress,
+	liquidStaker sdk.AccAddress, //nolint: interfacer
 	amount sdk.Coin,
 ) *MsgLiquidStake {
 	return &MsgLiquidStake{
@@ -33,10 +34,10 @@ func (msg MsgLiquidStake) Type() string { return TypeMsgLiquidStake }
 
 func (msg MsgLiquidStake) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.DelegatorAddress); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid delegator address %q: %v", msg.DelegatorAddress, err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid delegator address %q: %v", msg.DelegatorAddress, err)
 	}
 	if ok := msg.Amount.IsZero(); ok {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "staking amount must not be zero")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "staking amount must not be zero")
 	}
 	if err := msg.Amount.Validate(); err != nil {
 		return err
@@ -66,7 +67,7 @@ func (msg MsgLiquidStake) GetDelegator() sdk.AccAddress {
 
 // NewMsgLiquidUnstake creates a new MsgLiquidUnstake.
 func NewMsgLiquidUnstake(
-	liquidStaker sdk.AccAddress,
+	liquidStaker sdk.AccAddress, //nolint: interfacer
 	amount sdk.Coin,
 ) *MsgLiquidUnstake {
 	return &MsgLiquidUnstake{
@@ -81,10 +82,10 @@ func (msg MsgLiquidUnstake) Type() string { return TypeMsgLiquidUnstake }
 
 func (msg MsgLiquidUnstake) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.DelegatorAddress); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid delegator address %q: %v", msg.DelegatorAddress, err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid delegator address %q: %v", msg.DelegatorAddress, err)
 	}
 	if ok := msg.Amount.IsZero(); ok {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "unstaking amount must not be zero")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "unstaking amount must not be zero")
 	}
 	if err := msg.Amount.Validate(); err != nil {
 		return err

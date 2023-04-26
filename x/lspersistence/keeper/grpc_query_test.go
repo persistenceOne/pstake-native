@@ -17,7 +17,7 @@ func (s *KeeperTestSuite) TestGRPCParams() {
 }
 
 func (s *KeeperTestSuite) TestGRPCQueries() {
-	vals, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000})
+	_, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000})
 	params := s.keeper.GetParams(s.ctx)
 	params.MinLiquidStakingAmount = sdk.NewInt(50000)
 	s.keeper.SetParams(s.ctx, params)
@@ -52,17 +52,4 @@ func (s *KeeperTestSuite) TestGRPCQueries() {
 	s.Require().Nil(respStates)
 	s.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "invalid request"))
 
-	// Test VotingPower grpc query
-	respVotingPower, err := s.querier.VotingPower(sdk.WrapSDKContext(s.ctx), &types.QueryVotingPowerRequest{Voter: vals[0].String()})
-	resVotingPower := s.keeper.GetVotingPower(s.ctx, vals[0])
-	s.Require().NoError(err)
-	s.Require().Equal(respVotingPower.VotingPower, resVotingPower)
-
-	respVotingPower, err = s.querier.VotingPower(sdk.WrapSDKContext(s.ctx), nil)
-	s.Require().Nil(respVotingPower)
-	s.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "invalid request"))
-
-	respVotingPower, err = s.querier.VotingPower(sdk.WrapSDKContext(s.ctx), &types.QueryVotingPowerRequest{Voter: "invalidaddr"})
-	s.Require().Nil(respVotingPower)
-	s.Require().EqualError(err, "decoding bech32 failed: invalid separator index -1")
 }

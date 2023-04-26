@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -63,7 +64,7 @@ func (k Keeper) Rebalance(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals t
 	}
 
 	// calculate rebalancing target map
-	targetMap := map[string]sdk.Int{}
+	targetMap := map[string]math.Int{}
 	totalTargetMap := sdk.ZeroInt()
 	for _, val := range liquidVals {
 		targetMap[val.OperatorAddress] = totalLiquidTokens.Mul(weightMap[val.OperatorAddress]).Quo(totalWeight)

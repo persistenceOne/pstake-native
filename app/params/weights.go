@@ -17,6 +17,8 @@ const (
 	DefaultWeightMsgUndelegate                  int = 100
 	DefaultWeightMsgBeginRedelegate             int = 100
 
+	DefaultWeightMsgDummy int = 100
+
 	DefaultWeightMsgLiquidStake   int = 80
 	DefaultWeightMsgLiquidUnstake int = 30
 

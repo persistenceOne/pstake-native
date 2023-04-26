@@ -2,14 +2,11 @@ package keeper_test
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/mint"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/persistenceOne/pstake-native/v2/x/lspersistence"
+
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
-
+	"cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -17,14 +14,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	chain "github.com/persistenceOne/pstake-native/v2/app"
 	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence"
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/keeper"
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
@@ -56,6 +56,12 @@ func (s *KeeperTestSuite) SetupTest() {
 	stakingParams.MaxEntries = 7
 	stakingParams.MaxValidators = 30
 	s.app.StakingKeeper.SetParams(s.ctx, stakingParams)
+
+	//mintparmas := s.app.MintKeeper.GetParams(s.ctx)
+	//fmt.Println(mintparmas)
+	//mintparmas.InflationMin = sdk.MustNewDecFromStr("0.0")
+	//mintparmas.InflationMax = sdk.MustNewDecFromStr("0.000")
+	//s.app.MintKeeper.SetParams(s.ctx, mintparmas)
 
 	s.keeper = s.app.LSPersistenceKeeper
 	s.querier = keeper.Querier{Keeper: s.keeper}
@@ -101,7 +107,7 @@ func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []
 	return addrs, valAddrs, pks
 }
 
-func (s *KeeperTestSuite) liquidStaking(liquidStaker sdk.AccAddress, stakingAmt sdk.Int) error {
+func (s *KeeperTestSuite) liquidStaking(liquidStaker sdk.AccAddress, stakingAmt math.Int) error {
 	ctx, writeCache := s.ctx.CacheContext()
 	params := s.keeper.GetParams(ctx)
 	btokenBalanceBefore := s.app.BankKeeper.GetBalance(ctx, liquidStaker, params.LiquidBondDenom).Amount
@@ -117,7 +123,7 @@ func (s *KeeperTestSuite) liquidStaking(liquidStaker sdk.AccAddress, stakingAmt 
 	return nil
 }
 
-func (s *KeeperTestSuite) liquidUnstaking(liquidStaker sdk.AccAddress, ubdBTokenAmt sdk.Int, ubdComplete bool) error {
+func (s *KeeperTestSuite) liquidUnstaking(liquidStaker sdk.AccAddress, ubdBTokenAmt math.Int, ubdComplete bool) error {
 	ctx := s.ctx
 	params := s.keeper.GetParams(ctx)
 	balanceBefore := s.app.BankKeeper.GetBalance(ctx, liquidStaker, sdk.DefaultBondDenom).Amount
@@ -139,7 +145,7 @@ func (s *KeeperTestSuite) liquidUnstaking(liquidStaker sdk.AccAddress, ubdBToken
 	return nil
 }
 
-func (s *KeeperTestSuite) liquidUnstakingWithResult(liquidStaker sdk.AccAddress, unstakingBtoken sdk.Coin) (time.Time, sdk.Int, []stakingtypes.UnbondingDelegation, sdk.Int, error) {
+func (s *KeeperTestSuite) liquidUnstakingWithResult(liquidStaker sdk.AccAddress, unstakingBtoken sdk.Coin) (time.Time, math.Int, []stakingtypes.UnbondingDelegation, math.Int, error) {
 	ctx, writeCache := s.ctx.CacheContext()
 	params := s.keeper.GetParams(ctx)
 	alv := s.keeper.GetActiveLiquidValidators(ctx, params.WhitelistedValsMap())
@@ -171,7 +177,7 @@ func (s *KeeperTestSuite) RequireNetAmountStateZero() {
 	s.Require().EqualValues(nas.TotalDelShares, sdk.ZeroDec())
 	s.Require().EqualValues(nas.TotalLiquidTokens, sdk.ZeroInt())
 	s.Require().EqualValues(nas.TotalRemainingRewards, sdk.ZeroDec())
-	s.Require().EqualValues(nas.TotalUnbondingBalance, sdk.ZeroDec())
+	s.Require().EqualValues(nas.TotalUnbondingBalance, sdk.ZeroInt())
 	s.Require().EqualValues(nas.ProxyAccBalance, sdk.ZeroInt())
 
 }
@@ -328,20 +334,4 @@ func (s *KeeperTestSuite) createContinuousVestingAccount(from sdk.AccAddress, to
 	err := s.app.BankKeeper.SendCoins(s.ctx, from, to, amt)
 	s.Require().NoError(err)
 	return *cVestingAcc
-}
-
-func (s *KeeperTestSuite) assertTallyResult(yes, no, vito, abstain int64, proposal govtypes.Proposal) {
-	cachedCtx, _ := s.ctx.CacheContext()
-	_, _, result := s.app.GovKeeper.Tally(cachedCtx, proposal)
-	s.Require().Equal(sdk.NewInt(yes), result.YesCount)
-	s.Require().Equal(sdk.NewInt(no), result.NoCount)
-	s.Require().Equal(sdk.NewInt(vito), result.NoWithVetoCount)
-	s.Require().Equal(sdk.NewInt(abstain), result.AbstainCount)
-}
-
-func (s *KeeperTestSuite) assertVotingPower(addr sdk.AccAddress, stakingVotingPower, liquidStakingVotingPower, validatorVotingPower sdk.Int) {
-	vp := s.keeper.GetVotingPower(s.ctx, addr)
-	s.Require().Equal(stakingVotingPower, vp.StakingVotingPower)
-	s.Require().Equal(liquidStakingVotingPower, vp.LiquidStakingVotingPower)
-	s.Require().Equal(validatorVotingPower, vp.ValidatorVotingPower)
 }

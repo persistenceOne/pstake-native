@@ -1,15 +1,15 @@
 package keeper_test
 
 import (
+	"github.com/persistenceOne/persistence-sdk/v2/x/oracle/testutil"
+	"github.com/persistenceOne/pstake-native/v2/app/helpers"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	utils "github.com/persistenceOne/pstake-native/v2/types"
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
-	minttypes "github.com/persistenceOne/pstake-native/v2/x/mint/types"
 )
 
 // tests LiquidStake, LiquidUnstake
@@ -60,7 +60,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	// liquid staking
 	newShares, bTokenMintAmt, err = s.keeper.LiquidStake(s.ctx, types.LiquidStakingProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
 	s.Require().NoError(err)
-	s.Require().Equal(newShares, stakingAmt.ToDec())
+	s.Require().Equal(newShares, sdk.NewDecFromInt(stakingAmt))
 	s.Require().Equal(bTokenMintAmt, stakingAmt)
 
 	_, found := s.app.StakingKeeper.GetDelegation(s.ctx, s.delAddrs[0], valOpers[0])
@@ -79,7 +79,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	s.Require().Equal(proxyAccDel1.Shares, sdk.NewDec(16668)) // 16666 + add crumb 2 to 1st active validator
 	s.Require().Equal(proxyAccDel2.Shares, sdk.NewDec(16666))
 	s.Require().Equal(proxyAccDel2.Shares, sdk.NewDec(16666))
-	s.Require().Equal(stakingAmt.ToDec(), proxyAccDel1.Shares.Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
+	s.Require().Equal(sdk.NewDecFromInt(stakingAmt), proxyAccDel1.Shares.Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
 
 	liquidBondDenom := s.keeper.LiquidBondDenom(s.ctx)
 	balanceBeforeUBD := s.app.BankKeeper.GetBalance(s.ctx, s.delAddrs[0], sdk.DefaultBondDenom)
@@ -100,7 +100,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	crumb := ubdBToken.Amount.Sub(ubdBToken.Amount.QuoRaw(3).MulRaw(3)) // 1
 	s.Require().EqualValues(unbondingAmt, ubdBToken.Amount.Sub(crumb))  // 9999
 	s.Require().Equal(ubds[0].DelegatorAddress, s.delAddrs[0].String())
-	s.Require().Equal(ubdTime, utils.ParseTime("2022-03-22T00:00:00Z"))
+	s.Require().Equal(ubdTime, helpers.ParseTime("2022-03-22T00:00:00Z"))
 	bTokenBalanceAfter := s.app.BankKeeper.GetBalance(s.ctx, s.delAddrs[0], liquidBondDenom)
 	s.Require().Equal(bTokenBalanceAfter, sdk.NewCoin(liquidBondDenom, sdk.NewInt(40000)))
 
@@ -113,7 +113,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	s.Require().True(found)
 	proxyAccDel3, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakingProxyAcc, valOpers[2])
 	s.Require().True(found)
-	s.Require().Equal(stakingAmt.Sub(unbondingAmt).ToDec(), proxyAccDel1.GetShares().Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
+	s.Require().Equal(sdk.NewDecFromInt(stakingAmt.Sub(unbondingAmt)), proxyAccDel1.GetShares().Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
 
 	// complete unbonding
 	s.ctx = s.ctx.WithBlockHeight(200).WithBlockTime(ubdTime.Add(1))
@@ -204,7 +204,7 @@ func (s *KeeperTestSuite) TestLiquidStakeFromVestingAccount() {
 	vestingEndTime := s.ctx.BlockTime().Add(2 * time.Hour)
 	vestingMidTime := s.ctx.BlockTime().Add(90 * time.Minute)
 
-	vestingAccAddr := "cosmos10n3ncmlsaqfuwsmfll8kq6hvt4x7c8cznmllss"
+	vestingAccAddr := "persistence19sswr2uc7f64904nqfzdwxzthn6pqxj2u0k5lh"
 	vestingAcc, err := sdk.AccAddressFromBech32(vestingAccAddr)
 	s.Require().NoError(err)
 
@@ -254,7 +254,7 @@ func (s *KeeperTestSuite) TestLiquidStakeEdgeCases() {
 
 	// liquid staking, unstaking with huge amount
 	hugeAmt := sdk.NewInt(1_000_000_000_000_000_000)
-	s.fundAddr(s.delAddrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, hugeAmt.MulRaw(2))))
+	testutil.FundAccount(s.app.BankKeeper, s.ctx, s.delAddrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, hugeAmt.MulRaw(2))))
 	s.Require().NoError(s.liquidStaking(s.delAddrs[0], hugeAmt))
 	s.Require().NoError(s.liquidStaking(s.delAddrs[0], hugeAmt))
 	s.Require().NoError(s.liquidUnstaking(s.delAddrs[0], sdk.NewInt(10), true))
@@ -266,10 +266,6 @@ func (s *KeeperTestSuite) TestLiquidStakeEdgeCases() {
 }
 
 func (s *KeeperTestSuite) TestLiquidUnstakeEdgeCases() {
-	mintParams := s.app.MintKeeper.GetParams(s.ctx)
-	mintParams.InflationSchedules = []minttypes.InflationSchedule{}
-	s.app.MintKeeper.SetParams(s.ctx, mintParams)
-
 	_, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000})
 	params := s.keeper.GetParams(s.ctx)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)

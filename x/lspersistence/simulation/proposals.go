@@ -2,11 +2,9 @@ package simulation
 
 import (
 	"math/rand"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -16,6 +14,8 @@ import (
 )
 
 // Simulation operation weights constants.
+//
+//nolint:gosec
 const (
 	OpWeightSimulateAddWhitelistValidatorsProposal    = "op_weight_add_whitelist_validators_proposal"
 	OpWeightSimulateUpdateWhitelistValidatorsProposal = "op_weight_update_whitelist_validators_proposal"
@@ -26,7 +26,7 @@ const (
 )
 
 // ProposalContents defines the module weighted proposals' contents for mocking param changes, other actions with keeper
-func ProposalContents(ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, gk types.GovKeeper, k keeper.Keeper) []simtypes.WeightedProposalContent {
+func ProposalContents(ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, k keeper.Keeper) []simtypes.WeightedProposalContent {
 	return []simtypes.WeightedProposalContent{
 		simulation.NewWeightedProposalContent(
 			OpWeightSimulateAddWhitelistValidatorsProposal,
@@ -47,11 +47,6 @@ func ProposalContents(ak types.AccountKeeper, bk types.BankKeeper, sk types.Stak
 			OpWeightCompleteRedelegationUnbonding,
 			params.DefaultWeightCompleteRedelegationUnbonding,
 			SimulateCompleteRedelegationUnbonding(sk),
-		),
-		simulation.NewWeightedProposalContent(
-			OpWeightTallyWithLiquidStaking,
-			params.DefaultWeightTallyWithLiquidStaking,
-			SimulateTallyWithLiquidStaking(ak, bk, gk),
 		),
 	}
 }
@@ -133,49 +128,6 @@ func SimulateCompleteRedelegationUnbonding(sk types.StakingKeeper) simtypes.Cont
 		if len(reds) != 0 || len(ubds) != 0 {
 			ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 100).WithBlockTime(ctx.BlockTime().Add(stakingtypes.DefaultUnbondingTime))
 			sk.BlockValidatorUpdates(ctx)
-		}
-		return nil
-	}
-}
-
-// SimulateTallyWithLiquidStaking mocking tally for SetLiquidStakingVotingPowers.
-func SimulateTallyWithLiquidStaking(ak types.AccountKeeper, bk types.BankKeeper, gk types.GovKeeper) simtypes.ContentSimulatorFn {
-	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
-		proposals := gk.GetProposals(ctx)
-		var targetProposal *govtypes.Proposal
-		for _, p := range proposals {
-			if p.Status == govtypes.StatusVotingPeriod {
-				targetProposal = p
-				break
-			}
-		}
-		var voter sdk.AccAddress
-		if targetProposal != nil {
-			for i := 1; i < len(accs); i++ {
-				simAccount, _ := simtypes.RandomAcc(r, accs)
-
-				account := ak.GetAccount(ctx, simAccount.Address)
-				spendable := bk.SpendableCoins(ctx, account.GetAddress())
-
-				// spendable must be greater than unstaking coins
-				if spendable.AmountOf(types.DefaultLiquidBondDenom).GT(sdk.ZeroInt()) {
-					voter = account.GetAddress()
-					err := gk.AddVote(ctx, targetProposal.Id, voter, govtypes.WeightedVoteOptions{
-						&govtypes.WeightedVoteOption{Option: govtypes.OptionYes, Weight: sdk.NewDec(1).String()},
-					}, "")
-					if err != nil {
-						panic(err)
-					}
-					blockTime := ctx.BlockTime()
-					targetProposal.DepositEndTime = &blockTime
-					targetProposal.VotingEndTime = &blockTime
-					ctx = ctx.WithBlockTime(ctx.BlockTime().Add(5 * time.Second))
-					cachedCtx, _ := ctx.CacheContext()
-					_, _, res := gk.Tally(cachedCtx, *targetProposal)
-					targetProposal.FinalTallyResult = &res
-					break
-				}
-			}
 		}
 		return nil
 	}

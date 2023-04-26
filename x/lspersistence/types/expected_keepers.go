@@ -3,9 +3,9 @@ package types
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -39,7 +39,7 @@ type StakingKeeper interface {
 	GetAllValidators(ctx sdk.Context) (validators []stakingtypes.Validator)
 	GetBondedValidatorsByPower(ctx sdk.Context) []stakingtypes.Validator
 
-	GetLastTotalPower(ctx sdk.Context) sdk.Int
+	GetLastTotalPower(ctx sdk.Context) math.Int
 	GetLastValidatorPower(ctx sdk.Context, valAddr sdk.ValAddress) int64
 
 	Delegation(sdk.Context, sdk.AccAddress, sdk.ValAddress) stakingtypes.DelegationI
@@ -48,21 +48,21 @@ type StakingKeeper interface {
 	IterateDelegations(ctx sdk.Context, delegator sdk.AccAddress,
 		fn func(index int64, delegation stakingtypes.DelegationI) (stop bool))
 	Delegate(
-		ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdk.Int, tokenSrc stakingtypes.BondStatus,
+		ctx sdk.Context, delAddr sdk.AccAddress, bondAmt math.Int, tokenSrc stakingtypes.BondStatus,
 		validator stakingtypes.Validator, subtractAccount bool,
 	) (newShares sdk.Dec, err error)
 
 	BondDenom(ctx sdk.Context) (res string)
-	Unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec) (amount sdk.Int, err error)
+	Unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec) (amount math.Int, err error)
 	UnbondingTime(ctx sdk.Context) (res time.Duration)
 	SetUnbondingDelegationEntry(
 		ctx sdk.Context, delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-		creationHeight int64, minTime time.Time, balance sdk.Int,
+		creationHeight int64, minTime time.Time, balance math.Int,
 	) stakingtypes.UnbondingDelegation
 	InsertUBDQueue(ctx sdk.Context, ubd stakingtypes.UnbondingDelegation,
 		completionTime time.Time)
 	ValidateUnbondAmount(
-		ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, amt sdk.Int,
+		ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, amt math.Int,
 	) (shares sdk.Dec, err error)
 	GetAllUnbondingDelegations(ctx sdk.Context, delegator sdk.AccAddress) []stakingtypes.UnbondingDelegation
 	BeginRedelegation(
@@ -77,38 +77,12 @@ type StakingKeeper interface {
 		delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress) bool
 }
 
-// GovKeeper expected gov keeper (noalias)
-type GovKeeper interface {
-	Tally(ctx sdk.Context, proposal govtypes.Proposal) (passes bool, burnDeposits bool, tallyResults govtypes.TallyResult)
-	GetVotes(ctx sdk.Context, proposalID uint64) (votes govtypes.Votes)
-	GetVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress) (vote govtypes.Vote, found bool)
-	GetProposal(ctx sdk.Context, proposalID uint64) (govtypes.Proposal, bool)
-	SetProposal(ctx sdk.Context, proposal govtypes.Proposal)
-	GetProposals(ctx sdk.Context) (proposals govtypes.Proposals)
-	AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, options govtypes.WeightedVoteOptions, metadata string) error
-}
-
 // DistrKeeper expected distribution keeper (noalias)
 type DistrKeeper interface {
 	IncrementValidatorPeriod(ctx sdk.Context, val stakingtypes.ValidatorI) uint64
 	CalculateDelegationRewards(ctx sdk.Context, val stakingtypes.ValidatorI, del stakingtypes.DelegationI, endingPeriod uint64) (rewards sdk.DecCoins)
 	WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error)
 }
-
-//// Liquidity expected liquidity keeper (noalias)
-//type LiquidityKeeper interface {
-//	GetPair(ctx sdk.Context, id uint64) (pair liquiditytypes.Pair, found bool)
-//	GetPool(ctx sdk.Context, id uint64) (pool liquiditytypes.Pool, found bool)
-//	GetPoolBalances(ctx sdk.Context, pool liquiditytypes.Pool) (rx sdk.Coin, ry sdk.Coin)
-//	GetPoolCoinSupply(ctx sdk.Context, pool liquiditytypes.Pool) sdk.Int
-//	IterateAllPools(ctx sdk.Context, cb func(pool liquiditytypes.Pool) (stop bool, err error)) error
-//}
-//
-//// LPFarmKeeper defines expected lpfarm keeper
-//type LPFarmKeeper interface {
-//	GetPosition(ctx sdk.Context, farmerAddr sdk.AccAddress, denom string) (lpfarmtypes.Position, bool)
-//	IteratePositionsByFarmer(ctx sdk.Context, farmerAddr sdk.AccAddress, cb func(position lpfarmtypes.Position) bool)
-//}
 
 // SlashingKeeper expected slashing keeper (noalias)
 type SlashingKeeper interface {
