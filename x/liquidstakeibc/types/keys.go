@@ -13,11 +13,17 @@ const (
 	// DepositModuleAccount DepositModuleAccountName
 	DepositModuleAccount = ModuleName + "_deposit_account"
 
+	// Epoch identifiers
+	DelegationEpoch = "day"
+
 	// ICA types
 	DelegateICAType = "delegate"
 	RewardsICAType  = "rewards"
+
+	IBCTimeoutHeightIncrement uint64 = 1000
 )
 
 var (
-	HostChainKey = []byte{0x01}
+	HostChainKey   = []byte{0x01}
+	UserDepositKey = []byte{0x02}
 )

@@ -220,6 +220,11 @@ func (k msgServer) LiquidStake(
 		)
 	}
 
+	// add the deposit amount to the user deposit record for that chain/epoch
+	deposit := k.GetUserDepositForChainAndEpoch(ctx, hostChain.ChainId, k.GetEpochNumber(ctx, types.DelegationEpoch))
+	deposit.Amount.Amount = deposit.Amount.Amount.Add(msg.Amount.Amount)
+	k.SetUserDeposit(ctx, deposit)
+
 	// mint stk tokens in the module account
 	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdktypes.NewCoins(mintToken))
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	persistencetypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
 )
 
 type AccountKeeper interface {
@@ -30,4 +31,8 @@ type ICAControllerKeeper interface {
 
 type ICQKeeper interface {
 	MakeRequest(ctx sdk.Context, connectionID string, chainID string, queryType string, request []byte, period math.Int, module string, callbackID string, ttl uint64)
+}
+
+type EpochsKeeper interface {
+	GetEpochInfo(ctx sdk.Context, identifier string) persistencetypes.EpochInfo
 }

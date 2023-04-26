@@ -77,3 +77,36 @@ func (k *Keeper) HostChains(
 		Pagination: pagination,
 	}, nil
 }
+
+func (k *Keeper) UserDeposits(
+	goCtx context.Context,
+	request *types.QueryUserDepositsRequest,
+) (*types.QueryUserDepositsResponse, error) {
+	if request == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	store := ctx.KVStore(k.storeKey)
+	udStore := prefix.NewStore(store, types.UserDepositKey)
+
+	var userDeposits []types.UserDeposit
+	pagination, err := query.Paginate(udStore, request.Pagination, func(key []byte, value []byte) error {
+		var ud types.UserDeposit
+		if err := k.cdc.Unmarshal(value, &ud); err != nil {
+			return err
+		}
+
+		userDeposits = append(userDeposits, ud)
+		return nil
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryUserDepositsResponse{
+		UserDeposits: userDeposits,
+		Pagination:   pagination,
+	}, nil
+}

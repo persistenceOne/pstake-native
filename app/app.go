@@ -196,8 +196,9 @@ var (
 	}
 
 	receiveAllowedMAcc = map[string]bool{
-		lscosmostypes.UndelegationModuleAccount: true,
-		lscosmostypes.DelegationModuleAccount:   true,
+		lscosmostypes.UndelegationModuleAccount:  true,
+		lscosmostypes.DelegationModuleAccount:    true,
+		liquidstakeibctypes.DepositModuleAccount: true,
 	}
 )
 
@@ -498,6 +499,7 @@ func NewpStakeApp(
 		keys[liquidstakeibctypes.StoreKey],
 		app.AccountKeeper,
 		app.BankKeeper,
+		epochsKeeper,
 		app.ICAControllerKeeper,
 		scopedLiquidStakeIBCKeeper,
 		app.IBCKeeper, // TODO: Move to module interface
@@ -512,7 +514,12 @@ func NewpStakeApp(
 	liquidStakeIBCModule := liquidstakeibc.NewIBCModule(app.LiquidStakeIBCKeeper)
 
 	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()
-	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(ibchookertypes.NewMultiStakingHooks(app.LSCosmosKeeper.NewIBCTransferHooks()))
+	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(
+		ibchookertypes.NewMultiStakingHooks(
+			app.LSCosmosKeeper.NewIBCTransferHooks(),
+			app.LiquidStakeIBCKeeper.NewIBCTransferHooks(),
+		),
+	)
 
 	var transferStack porttypes.IBCModule = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = ibchooker.NewAppModule(app.TransferHooksKeeper, transferStack)
@@ -575,7 +582,10 @@ func NewpStakeApp(
 	app.EvidenceKeeper = *evidenceKeeper
 
 	app.EpochsKeeper = *epochsKeeper.SetHooks(
-		epochstypes.NewMultiEpochHooks(app.LSCosmosKeeper.NewEpochHooks()),
+		epochstypes.NewMultiEpochHooks(
+			app.LSCosmosKeeper.NewEpochHooks(),
+			app.LiquidStakeIBCKeeper.NewEpochHooks(),
+		),
 	)
 
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))

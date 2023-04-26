@@ -29,13 +29,13 @@ message HostChain {
   // validator set
   repeated Validator validators = 9;
   // minimum ls amount
-  string minimum_deposit = 10 [
+  string minimum_deposit = 11 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
   // redemption rate
-  string c_value = 11 [
+  string c_value = 12 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
@@ -88,6 +88,25 @@ message Validator {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
+}
+
+message UserDeposit {
+  enum DepositState {
+    DEPOSIT_PENDING = 0;
+    DEPOSIT_TRANSFERRED = 1;
+    DEPOSIT_COMPLETED = 2;
+  }
+
+  string chain_id = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [
+    (gogoproto.nullable) = false
+  ];
+  string epoch = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  DepositState state = 4;
 }
 
 message KVUpdate {

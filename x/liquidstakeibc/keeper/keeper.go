@@ -24,6 +24,7 @@ type Keeper struct {
 
 	accountKeeper       types.AccountKeeper
 	bankKeeper          types.BankKeeper
+	epochsKeeper        types.EpochsKeeper
 	icaControllerKeeper types.ICAControllerKeeper
 	scopedKeeper        types.ScopedKeeper
 	ibcKeeper           *ibckeeper.Keeper
@@ -42,6 +43,7 @@ func NewKeeper(
 
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
+	epochsKeeper types.EpochsKeeper,
 	icaControllerKeeper types.ICAControllerKeeper,
 	scopedKeeper types.ScopedKeeper,
 	ibcKeeper *ibckeeper.Keeper,
@@ -62,6 +64,7 @@ func NewKeeper(
 		cdc:                 cdc,
 		accountKeeper:       accountKeeper,
 		bankKeeper:          bankKeeper,
+		epochsKeeper:        epochsKeeper,
 		icaControllerKeeper: icaControllerKeeper,
 		scopedKeeper:        scopedKeeper,
 		ibcKeeper:           ibcKeeper,
@@ -74,7 +77,7 @@ func NewKeeper(
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
@@ -109,6 +112,21 @@ func (k *Keeper) GetHostChain(ctx sdk.Context, chainID string) (types.HostChain,
 	return hc, true
 }
 
+func (k *Keeper) GetAllHostChains(ctx sdk.Context) []*types.HostChain {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	hostChains := make([]*types.HostChain, 0)
+	for ; iterator.Valid(); iterator.Next() {
+		hc := types.HostChain{}
+		k.cdc.MustUnmarshal(iterator.Value(), &hc)
+		hostChains = append(hostChains, &hc)
+	}
+
+	return hostChains
+}
+
 // GetHostChainFromIbcDenom returns a host chain given its ibc denomination on Persistence
 func (k *Keeper) GetHostChainFromIbcDenom(ctx sdk.Context, ibcDenom string) (types.HostChain, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
@@ -132,7 +150,7 @@ func (k *Keeper) GetHostChainFromIbcDenom(ctx sdk.Context, ibcDenom string) (typ
 }
 
 // GetDepositModuleAccount returns deposit module account interface
-func (k Keeper) GetDepositModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+func (k *Keeper) GetDepositModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.DepositModuleAccount)
 }
 
@@ -221,6 +239,10 @@ func (k *Keeper) RegisterICAAccount(ctx sdk.Context, connectionId, owner string)
 // MintDenom generates a ls token denom based on the host token denom
 func (k *Keeper) MintDenom(hostDenom string) string {
 	return "stk" + "/" + hostDenom
+}
+
+func (k *Keeper) GetEpochNumber(ctx sdk.Context, epoch string) int64 {
+	return k.epochsKeeper.GetEpochInfo(ctx, epoch).CurrentEpoch
 }
 
 func (k *Keeper) QueryHostChainValidators(

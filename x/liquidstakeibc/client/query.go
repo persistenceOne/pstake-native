@@ -25,6 +25,7 @@ func NewQueryCmd() *cobra.Command {
 	cmd.AddCommand(
 		QueryParamsCmd(),
 		QueryHostChainsCmd(),
+		QueryUserDepositsCmd(),
 	)
 
 	return cmd
@@ -91,6 +92,49 @@ func QueryHostChainsCmd() *cobra.Command {
 			}
 
 			res, err := queryClient.HostChains(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryUserDepositsCmd returns all user deposits.
+func QueryUserDepositsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "user-deposits",
+		Short: "Query user deposit records",
+		Args:  cobra.NoArgs,
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query all user deposits: $ %s query liquidstakeibc user-deposits`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			req := &types.QueryUserDepositsRequest{
+				Pagination: pageReq,
+			}
+
+			res, err := queryClient.UserDeposits(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
