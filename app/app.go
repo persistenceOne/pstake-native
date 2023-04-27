@@ -127,6 +127,9 @@ import (
 	lscosmosclient "github.com/persistenceOne/pstake-native/v2/x/lscosmos/client"
 	lscosmoskeeper "github.com/persistenceOne/pstake-native/v2/x/lscosmos/keeper"
 	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lspersistence"
+	lspersistencekeeper "github.com/persistenceOne/pstake-native/v2/x/lspersistence/keeper"
+	lspersistencetypes "github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 var (
@@ -171,6 +174,7 @@ var (
 		lscosmos.AppModuleBasic{},
 		interchainquery.AppModuleBasic{},
 		liquidstakeibc.AppModuleBasic{},
+		lspersistence.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -191,6 +195,7 @@ var (
 		lscosmostypes.UndelegationModuleAccount:  nil,
 		lscosmostypes.RewardBoosterModuleAccount: nil, //legacy, blocklist, no permissions
 		liquidstakeibctypes.ModuleName:           nil,
+		lspersistencetypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 	}
 
 	receiveAllowedMAcc = map[string]bool{
@@ -248,6 +253,7 @@ type PstakeApp struct {
 	LSCosmosKeeper        lscosmoskeeper.Keeper
 	InterchainQueryKeeper interchainquerykeeper.Keeper
 	LiquidStakeIBCKeeper  liquidstakeibckeeper.Keeper
+	LSPersistenceKeeper   lspersistencekeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -301,7 +307,7 @@ func NewpStakeApp(
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, icahosttypes.StoreKey,
 		icacontrollertypes.StoreKey, epochstypes.StoreKey, lscosmostypes.StoreKey, interchainquerytypes.StoreKey,
-		ibcfeetypes.StoreKey, liquidstakeibctypes.StoreKey,
+		ibcfeetypes.StoreKey, liquidstakeibctypes.StoreKey, lspersistencetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, lscosmostypes.MemStoreKey)
@@ -414,6 +420,10 @@ func NewpStakeApp(
 	app.StakingKeeper = *stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
 	)
+
+	app.LSPersistenceKeeper = lspersistencekeeper.NewKeeper(appCodec, keys[lspersistencetypes.StoreKey],
+		app.GetSubspace(lspersistencetypes.ModuleName), app.AccountKeeper, app.BankKeeper,
+		app.StakingKeeper, app.DistrKeeper, app.SlashingKeeper)
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
@@ -605,6 +615,7 @@ func NewpStakeApp(
 		lscosmos.NewAppModule(appCodec, liquidStakeIBCModule, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
 		interchainQueryModule,
 		liquidstakeibc.NewAppModule(app.LiquidStakeIBCKeeper),
+		lspersistence.NewAppModule(appCodec, app.LSPersistenceKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -639,6 +650,7 @@ func NewpStakeApp(
 		ibchookertypes.ModuleName, //Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
+		lspersistencetypes.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
@@ -666,6 +678,7 @@ func NewpStakeApp(
 		ibchookertypes.ModuleName, //Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
+		lspersistencetypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -700,6 +713,7 @@ func NewpStakeApp(
 		ibchookertypes.ModuleName, //Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
+		lspersistencetypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -730,6 +744,7 @@ func NewpStakeApp(
 		// ibcTransferHooksMiddleware, TODO implement simulationModule interface
 		//icaModule,
 		lscosmos.NewAppModule(appCodec, liquidStakeIBCModule, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
+		lspersistence.NewAppModule(appCodec, app.LSPersistenceKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
@@ -963,6 +978,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(lscosmostypes.ModuleName)
 	paramsKeeper.Subspace(interchainquerytypes.ModuleName)
 	paramsKeeper.Subspace(liquidstakeibctypes.ModuleName)
+	paramsKeeper.Subspace(lspersistencetypes.ModuleName)
 
 	return paramsKeeper
 }
