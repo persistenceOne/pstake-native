@@ -24,6 +24,6 @@ const (
 )
 
 var (
-	HostChainKey   = []byte{0x01}
-	UserDepositKey = []byte{0x02}
+	HostChainKey = []byte{0x01}
+	DepositKey   = []byte{0x02}
 )

@@ -90,23 +90,33 @@ message Validator {
   ];
 }
 
-message UserDeposit {
+message Deposit {
   enum DepositState {
     DEPOSIT_PENDING = 0;
-    DEPOSIT_TRANSFERRED = 1;
-    DEPOSIT_COMPLETED = 2;
+    DEPOSIT_SENT = 1;
+    DEPOSIT_RECEIVED = 2;
+    DEPOSIT_DELEGATED = 3;
   }
 
+  // deposit target chain
   string chain_id = 1;
   cosmos.base.v1beta1.Coin amount = 2 [
     (gogoproto.nullable) = false
   ];
+  // epoch number of the deposit
   string epoch = 3 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  // state
   DepositState state = 4;
+  // sequence id of the ibc transfer deposit
+  string ibc_sequence = 5 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message KVUpdate {

@@ -29,9 +29,9 @@ service Query {
     option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/host_chains";
   }
 
-  // Queries for all the UserDeposits.
-  rpc UserDeposits(QueryUserDepositsRequest) returns (QueryUserDepositsResponse) {
-    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/user_deposits";
+  // Queries for all the Deposits.
+  rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/deposits";
   }
 
 }
@@ -60,11 +60,11 @@ message QueryHostChainsResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryUserDepositsRequest {
+message QueryDepositsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
-message QueryUserDepositsResponse {
-  repeated UserDeposit user_deposits = 1 [ (gogoproto.nullable) = false ];
+message QueryDepositsResponse {
+  repeated Deposit deposits = 1 [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

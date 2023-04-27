@@ -78,10 +78,10 @@ func (k *Keeper) HostChains(
 	}, nil
 }
 
-func (k *Keeper) UserDeposits(
+func (k *Keeper) Deposits(
 	goCtx context.Context,
-	request *types.QueryUserDepositsRequest,
-) (*types.QueryUserDepositsResponse, error) {
+	request *types.QueryDepositsRequest,
+) (*types.QueryDepositsResponse, error) {
 	if request == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -89,24 +89,24 @@ func (k *Keeper) UserDeposits(
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	store := ctx.KVStore(k.storeKey)
-	udStore := prefix.NewStore(store, types.UserDepositKey)
+	udStore := prefix.NewStore(store, types.DepositKey)
 
-	var userDeposits []types.UserDeposit
+	var deposits []types.Deposit
 	pagination, err := query.Paginate(udStore, request.Pagination, func(key []byte, value []byte) error {
-		var ud types.UserDeposit
-		if err := k.cdc.Unmarshal(value, &ud); err != nil {
+		var deposit types.Deposit
+		if err := k.cdc.Unmarshal(value, &deposit); err != nil {
 			return err
 		}
 
-		userDeposits = append(userDeposits, ud)
+		deposits = append(deposits, deposit)
 		return nil
 	})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryUserDepositsResponse{
-		UserDeposits: userDeposits,
-		Pagination:   pagination,
+	return &types.QueryDepositsResponse{
+		Deposits:   deposits,
+		Pagination: pagination,
 	}, nil
 }

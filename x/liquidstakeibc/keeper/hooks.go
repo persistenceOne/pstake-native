@@ -14,6 +14,7 @@ import (
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
 
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 type EpochsHooks struct {
@@ -76,7 +77,7 @@ func (k *Keeper) NewEpochHooks() EpochsHooks {
 
 func (k *Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	// create a batch of user deposits for the new epoch
-	k.CreateUserDeposits(ctx, epochNumber)
+	k.CreateDeposits(ctx, epochNumber)
 	return nil
 }
 
@@ -112,6 +113,26 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 	relayer sdk.AccAddress,
 	transferAckErr error,
 ) error {
+	// TODO: This is a very SIMPLE approach to marking deposits as ready to delegate.
+	// https://github.com/ingenuity-build/quicksilver/blob/develop/x/interchainstaking/keeper/ibc_packet_handlers.go#L61-L338
+	if transferAckErr != nil {
+		return nil
+	}
+	var ack channeltypes.Acknowledgement
+	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		return err
+	}
+	if !ack.Success() {
+		return channeltypes.ErrInvalidAcknowledgement
+	}
+
+	var data ibctransfertypes.FungibleTokenPacketData
+	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return err
+	}
+	if data.GetSender() != authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount).String() {
+
+	}
 	return nil
 }
 
@@ -127,18 +148,18 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 // Workflows
 
 func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
-	userDeposits := k.GetPendingUserDepositsBeforeEpoch(ctx, epoch)
-	for _, userDeposit := range userDeposits {
-		hc, found := k.GetHostChain(ctx, userDeposit.ChainId)
+	deposits := k.GetPendingUserDepositsBeforeEpoch(ctx, epoch)
+	for _, deposit := range deposits {
+		hc, found := k.GetHostChain(ctx, deposit.ChainId)
 		if !found {
-			return fmt.Errorf("host chain with id %s is not registered", userDeposit.ChainId)
+			return fmt.Errorf("host chain with id %s is not registered", deposit.ChainId)
 		}
 
 		// check if the deposit amount is larger than 0
-		if userDeposit.Amount.Amount.LTE(sdk.NewInt(0)) {
+		if deposit.Amount.Amount.LTE(sdk.NewInt(0)) {
 			// delete empty deposits to save on storage
-			if userDeposit.Epoch.Int64() < epoch {
-				k.DeleteUserDeposit(ctx, userDeposit)
+			if deposit.Epoch.Int64() < epoch {
+				k.DeleteDeposit(ctx, deposit)
 			}
 
 			continue
@@ -157,7 +178,7 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
 		msg := ibctransfertypes.NewMsgTransfer(
 			ibctransfertypes.TypeMsgTransfer,
 			hc.ChannelId,
-			userDeposit.Amount,
+			deposit.Amount,
 			authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String(),
 			hc.DelegationAccount.Address,
 			timeoutHeight,
@@ -173,8 +194,8 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
 		}
 		ctx.EventManager().EmitEvents(res.GetEvents())
 
-		userDeposit.State = liquidstakeibctypes.UserDeposit_DEPOSIT_TRANSFERRED
-		k.SetUserDeposit(ctx, userDeposit)
+		deposit.State = liquidstakeibctypes.Deposit_DEPOSIT_SENT
+		k.SetDeposit(ctx, deposit)
 	}
 
 	return nil
