@@ -221,7 +221,16 @@ func (k msgServer) LiquidStake(
 	}
 
 	// add the deposit amount to the user deposit record for that chain/epoch
-	deposit := k.GetDepositForChainAndEpoch(ctx, hostChain.ChainId, k.GetEpochNumber(ctx, types.DelegationEpoch))
+	currentEpoch := k.GetEpochNumber(ctx, types.DelegationEpoch)
+	deposit, found := k.GetDepositForChainAndEpoch(ctx, hostChain.ChainId, currentEpoch)
+	if !found {
+		return nil, errorsmod.Wrapf(
+			types.ErrDepositNotFound,
+			"deposit not found for chain %s and epoch %s",
+			hostChain.ChainId,
+			currentEpoch,
+		)
+	}
 	deposit.Amount.Amount = deposit.Amount.Amount.Add(msg.Amount.Amount)
 	k.SetDeposit(ctx, deposit)
 

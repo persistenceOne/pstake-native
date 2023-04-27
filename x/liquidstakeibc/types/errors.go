@@ -13,4 +13,5 @@ var (
 	ErrRegisterFailed   = errorsmod.Register(ModuleName, 2005, "host chain register failed")
 	ErrInvalidVersion   = errorsmod.Register(ModuleName, 2006, "invalid version")
 	ErrFailedICQRequest = errorsmod.Register(ModuleName, 2007, "icq failed")
+	ErrDepositNotFound  = errorsmod.Register(ModuleName, 2008, "deposit record not found")
 )

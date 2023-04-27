@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -14,7 +15,6 @@ import (
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
 
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 type EpochsHooks struct {
@@ -130,8 +130,17 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return err
 	}
-	if data.GetSender() != authtypes.NewModuleAddress(lscosmostypes.DelegationModuleAccount).String() {
-
+	if data.GetSender() == authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() {
+		deposit, found := k.GetDepositFromSequence(ctx, packet.Sequence)
+		if !found {
+			return errorsmod.Wrapf(
+				liquidstakeibctypes.ErrDepositNotFound,
+				"deposit with sequence %d not found",
+				packet.Sequence,
+			)
+		}
+		deposit.State = liquidstakeibctypes.Deposit_DEPOSIT_RECEIVED
+		k.SetDeposit(ctx, deposit)
 	}
 	return nil
 }
@@ -148,7 +157,7 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 // Workflows
 
 func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
-	deposits := k.GetPendingUserDepositsBeforeEpoch(ctx, epoch)
+	deposits := k.GetPendingDepositsBeforeEpoch(ctx, epoch)
 	for _, deposit := range deposits {
 		hc, found := k.GetHostChain(ctx, deposit.ChainId)
 		if !found {
@@ -194,7 +203,13 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
 		}
 		ctx.EventManager().EmitEvents(res.GetEvents())
 
+		var msgResponse ibctransfertypes.MsgTransferResponse
+		if err := k.cdc.Unmarshal(res.MsgResponses[0].Value, &msgResponse); err != nil {
+			return err
+		}
+
 		deposit.State = liquidstakeibctypes.Deposit_DEPOSIT_SENT
+		deposit.IbcSequence = sdk.NewIntFromUint64(msgResponse.Sequence)
 		k.SetDeposit(ctx, deposit)
 	}
 

@@ -24,10 +24,11 @@ func (k *Keeper) CreateDeposits(ctx sdk.Context, epoch int64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	for _, hc := range hostChains {
 		deposit := &liquidstakeibctypes.Deposit{
-			ChainId: hc.ChainId,
-			Amount:  sdk.NewCoin(hc.GetIBCDenom(), sdk.NewInt(0)),
-			Epoch:   sdk.NewInt(epoch),
-			State:   0,
+			ChainId:     hc.ChainId,
+			Amount:      sdk.NewCoin(hc.GetIBCDenom(), sdk.NewInt(0)),
+			Epoch:       sdk.NewInt(epoch),
+			State:       0,
+			IbcSequence: sdk.NewInt(0),
 		}
 		bytes := k.cdc.MustMarshal(deposit)
 		store.Set([]byte(deposit.ChainId+deposit.Epoch.String()), bytes)
@@ -38,7 +39,7 @@ func (k *Keeper) GetDepositForChainAndEpoch(
 	ctx sdk.Context,
 	chainId string,
 	epoch int64,
-) *liquidstakeibctypes.Deposit {
+) (*liquidstakeibctypes.Deposit, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
@@ -49,14 +50,14 @@ func (k *Keeper) GetDepositForChainAndEpoch(
 
 		if deposit.Epoch.Int64() == epoch &&
 			deposit.ChainId == chainId {
-			return deposit
+			return deposit, true
 		}
 	}
 
-	return nil
+	return nil, false
 }
 
-func (k *Keeper) GetPendingUserDepositsBeforeEpoch(ctx sdk.Context, epoch int64) []*liquidstakeibctypes.Deposit {
+func (k *Keeper) GetPendingDepositsBeforeEpoch(ctx sdk.Context, epoch int64) []*liquidstakeibctypes.Deposit {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
@@ -73,4 +74,21 @@ func (k *Keeper) GetPendingUserDepositsBeforeEpoch(ctx sdk.Context, epoch int64)
 	}
 
 	return userDeposits
+}
+
+func (k *Keeper) GetDepositFromSequence(ctx sdk.Context, sequence uint64) (*liquidstakeibctypes.Deposit, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		deposit := &liquidstakeibctypes.Deposit{}
+		k.cdc.MustUnmarshal(iterator.Value(), deposit)
+
+		if deposit.IbcSequence.Uint64() == sequence {
+			return deposit, true
+		}
+	}
+
+	return nil, false
 }
