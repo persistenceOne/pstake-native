@@ -68,9 +68,9 @@ message HostChainLSParams {
 message ICAAccount {
   // address of the ica on the controller chain
   string address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  // balance of the ica
-  repeated cosmos.base.v1beta1.Coin balance = 2 [
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+  // token balance of the ica
+  cosmos.base.v1beta1.Coin balance = 2 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin",
     (gogoproto.nullable) = false
   ];
   // owner string
@@ -82,20 +82,30 @@ message Validator {
   string operator_address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   // validator status
   string status = 2;
-  // validator commission rate
-  string commission_rate = 3 [
+  // validator weight in the set
+  string weight = 3 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  // total amount delegated
+  string delegated_amount = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
 }
 
 message Deposit {
   enum DepositState {
+    // no action has been initiated on the deposit
     DEPOSIT_PENDING = 0;
+    // deposit sent to the host chain delegator address
     DEPOSIT_SENT = 1;
+    // deposit received by the host chain delegator address
     DEPOSIT_RECEIVED = 2;
-    DEPOSIT_DELEGATED = 3;
+    // delegation submitted for the deposit on the host chain
+    DEPOSIT_DELEGATING = 3;
   }
 
   // deposit target chain
@@ -111,12 +121,8 @@ message Deposit {
   ];
   // state
   DepositState state = 4;
-  // sequence id of the ibc transfer deposit
-  string ibc_sequence = 5 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
-  ];
+  // sequence id of the ibc transaction
+  string ibc_sequence_id = 5;
 }
 
 message KVUpdate {

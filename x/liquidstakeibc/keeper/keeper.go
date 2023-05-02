@@ -112,6 +112,7 @@ func (k *Keeper) GetHostChain(ctx sdk.Context, chainID string) (types.HostChain,
 	return hc, true
 }
 
+// GetAllHostChains retrieves all registered host chains
 func (k *Keeper) GetAllHostChains(ctx sdk.Context) []*types.HostChain {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
@@ -139,7 +140,28 @@ func (k *Keeper) GetHostChainFromIbcDenom(ctx sdk.Context, ibcDenom string) (typ
 		chain := types.HostChain{}
 		k.cdc.MustUnmarshal(iterator.Value(), &chain)
 
-		if chain.GetIBCDenom() == ibcDenom {
+		if chain.IBCDenom() == ibcDenom {
+			hc = chain
+			found = true
+			break
+		}
+	}
+
+	return hc, found
+}
+
+func (k *Keeper) GetHostChainFromDelegatorAddress(ctx sdk.Context, delegatorAddress string) (types.HostChain, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	found := false
+	hc := types.HostChain{}
+	for ; iterator.Valid(); iterator.Next() {
+		chain := types.HostChain{}
+		k.cdc.MustUnmarshal(iterator.Value(), &chain)
+
+		if chain.DelegationAccount != nil && chain.DelegationAccount.Address == delegatorAddress {
 			hc = chain
 			found = true
 			break
@@ -154,33 +176,54 @@ func (k *Keeper) GetDepositModuleAccount(ctx sdk.Context) authtypes.ModuleAccoun
 	return k.accountKeeper.GetModuleAccount(ctx, types.DepositModuleAccount)
 }
 
+// SetHostChainValidator sets a validator on the target host chain
+func (k *Keeper) SetHostChainValidator(
+	ctx sdk.Context,
+	hc *types.HostChain,
+	validator *types.Validator,
+) {
+	found := false
+	for i, val := range hc.Validators {
+		if validator.OperatorAddress == val.OperatorAddress {
+			hc.Validators[i] = validator
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		hc.Validators = append(hc.Validators, validator)
+	}
+
+	k.SetHostChain(ctx, hc)
+}
+
 // SetHostChainValidators sets the validators on a host chain from an ICQ
 func (k *Keeper) SetHostChainValidators(
 	ctx sdk.Context,
-	hs *types.HostChain,
-	response *stakingtypes.QueryValidatorsResponse,
+	hc *types.HostChain,
+	validators []stakingtypes.Validator,
 ) {
-	for _, validator := range response.Validators {
-		val, found := hs.GetValidator(validator.OperatorAddress)
+	for _, validator := range validators {
+		val, found := hc.GetValidator(validator.OperatorAddress)
 
 		switch {
 		case !found:
-			hs.Validators = append(
-				hs.Validators,
+			hc.Validators = append(
+				hc.Validators,
 				&types.Validator{
 					OperatorAddress: validator.OperatorAddress,
 					Status:          validator.Status.String(),
-					CommissionRate:  validator.Commission.Rate,
+					Weight:          sdk.NewDec(1), // TODO: This is just for testing
+					DelegatedAmount: sdk.ZeroInt(),
 				},
 			)
 		case validator.Status.String() != val.Status:
 			val.Status = validator.Status.String()
-		case validator.Commission.Rate != val.CommissionRate:
-			val.CommissionRate = validator.Commission.Rate
 		}
 	}
 
-	k.SetHostChain(ctx, hs)
+	k.SetHostChain(ctx, hc)
 }
 
 // SendProtocolFee to the community pool
@@ -236,11 +279,6 @@ func (k *Keeper) RegisterICAAccount(ctx sdk.Context, connectionId, owner string)
 	)
 }
 
-// MintDenom generates a ls token denom based on the host token denom
-func (k *Keeper) MintDenom(hostDenom string) string {
-	return "stk" + "/" + hostDenom
-}
-
 func (k *Keeper) GetEpochNumber(ctx sdk.Context, epoch string) int64 {
 	return k.epochsKeeper.GetEpochInfo(ctx, epoch).CurrentEpoch
 }
@@ -268,4 +306,26 @@ func (k *Keeper) QueryHostChainValidators(
 	)
 
 	return nil
+}
+
+func (k *Keeper) GetHostChainCValue(ctx sdk.Context, hc *types.HostChain) sdk.Dec {
+	mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
+	totalDelegations := hc.GetHostChainTotalDelegations()
+	delegationAccountBalance := hc.DelegationAccount.Balance.Amount
+	moduleAccountBalance := k.bankKeeper.GetBalance(
+		ctx,
+		authtypes.NewModuleAddress(types.DepositModuleAccount),
+		hc.IBCDenom(),
+	).Amount
+
+	liquidStakedAmount := totalDelegations.
+		Add(delegationAccountBalance).
+		Add(moduleAccountBalance)
+
+	if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {
+		return sdk.OneDec()
+	}
+
+	// TODO: Add module account balance
+	return sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(liquidStakedAmount))
 }

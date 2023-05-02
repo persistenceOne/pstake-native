@@ -4,9 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -50,9 +54,6 @@ func (k *Keeper) OnChanOpenAck(
 		return fmt.Errorf("unable to parse port id %s", portID)
 	}
 
-	// create the ica account
-	icaAccount := &types.ICAAccount{Address: address, Balance: sdk.Coins{}, Owner: portOwner}
-
 	// get the chain id using the connection id
 	chainID, err := k.GetChainID(ctx, connID)
 	if err != nil {
@@ -71,13 +72,21 @@ func (k *Keeper) OnChanOpenAck(
 		return fmt.Errorf("unable to parse port owner %s", portOwner)
 	}
 
-	switch icaAccountType { // TODO: Query for balances upon creation ?
+	// create the ica account
+	icaAccount := &types.ICAAccount{
+		Address: address,
+		Balance: sdk.Coin{Amount: sdk.ZeroInt(), Denom: hc.HostDenom},
+		Owner:   portOwner,
+	}
+
+	switch icaAccountType {
 	case types.DelegateICAType:
 		hc.DelegationAccount = icaAccount
 	case types.RewardsICAType:
 		hc.RewardsAccount = icaAccount
 	}
 
+	// save the changes of the host chain
 	k.SetHostChain(ctx, &hc)
 	return nil
 }
@@ -88,6 +97,54 @@ func (k *Keeper) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+	var ack channeltypes.Acknowledgement
+	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet acknowledgement: %v", err)
+	}
+
+	var icaPacket icatypes.InterchainAccountPacketData
+	if err := icatypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &icaPacket); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 packet data: %v", err)
+	}
+
+	switch resp := ack.Response.(type) {
+	case *channeltypes.Acknowledgement_Error:
+		err := k.handleUnsuccessfulAck(ctx, packet.SourceChannel, packet.Sequence)
+		if err != nil {
+			return err
+		}
+		k.Logger(ctx).Info(fmt.Sprintln("ICS-27 tx failed with ack:", ack.String()))
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypePacket,
+				sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
+			),
+		)
+	case *channeltypes.Acknowledgement_Result:
+		err := k.handleSuccessfulAck(ctx, icaPacket, packet.SourceChannel, packet.Sequence)
+		if err != nil {
+			return err
+		}
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypePacket,
+				sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintln(ack.Success())),
+			),
+		)
+	default:
+		// the acknowledgement succeeded on the receiving chain so nothing
+		// needs to be executed and no error needs to be returned
+		return nil
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypePacket,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
+		),
+	)
+
 	return nil
 }
 
@@ -96,5 +153,44 @@ func (k *Keeper) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	return nil
+}
+
+func (k *Keeper) handleUnsuccessfulAck(
+	ctx sdk.Context,
+	channel string,
+	sequence uint64,
+) error {
+	// get all the deposits for the failed packet sequence and revert them back to the previous state
+	deposits := k.GetDepositsWithSequenceId(ctx, k.GetDepositSequenceId(channel, sequence))
+	for _, deposit := range deposits {
+		deposit.IbcSequenceId = ""
+		deposit.State = types.Deposit_DEPOSIT_RECEIVED
+		k.SetDeposit(ctx, deposit)
+	}
+
+	return nil
+}
+
+func (k *Keeper) handleSuccessfulAck(
+	ctx sdk.Context,
+	icaPacket icatypes.InterchainAccountPacketData,
+	channel string,
+	sequence uint64,
+) error {
+	messages, err := icatypes.DeserializeCosmosTx(k.cdc, icaPacket.GetData())
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot deserialize ica packet data: %v", err)
+	}
+
+	for _, msg := range messages {
+		switch sdk.MsgTypeURL(msg) {
+		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
+			if err = k.HandleDelegateResponse(ctx, msg, channel, sequence); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }

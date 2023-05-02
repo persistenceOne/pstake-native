@@ -102,6 +102,14 @@ func (a AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawM
 	return cdc.MustMarshalJSON(gs)
 }
 
+func (a AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+	a.keeper.BeginBlock(ctx)
+}
+
+func (a AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return []abci.ValidatorUpdate{}
+}
+
 func (a AppModule) RegisterInvariants(registry sdk.InvariantRegistry) {}
 
 func (a AppModule) Route() sdk.Route {

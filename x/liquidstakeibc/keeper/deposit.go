@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -24,15 +26,20 @@ func (k *Keeper) CreateDeposits(ctx sdk.Context, epoch int64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	for _, hc := range hostChains {
 		deposit := &liquidstakeibctypes.Deposit{
-			ChainId:     hc.ChainId,
-			Amount:      sdk.NewCoin(hc.GetIBCDenom(), sdk.NewInt(0)),
-			Epoch:       sdk.NewInt(epoch),
-			State:       0,
-			IbcSequence: sdk.NewInt(0),
+			ChainId:       hc.ChainId,
+			Amount:        sdk.NewCoin(hc.IBCDenom(), sdk.NewInt(0)),
+			Epoch:         sdk.NewInt(epoch),
+			State:         liquidstakeibctypes.Deposit_DEPOSIT_PENDING,
+			IbcSequenceId: "",
 		}
 		bytes := k.cdc.MustMarshal(deposit)
 		store.Set([]byte(deposit.ChainId+deposit.Epoch.String()), bytes)
 	}
+}
+
+func (k *Keeper) GetDepositSequenceId(channelId string, sequence uint64) string {
+	sequenceStr := strconv.FormatUint(sequence, 10)
+	return channelId + "-sequence-" + sequenceStr
 }
 
 func (k *Keeper) GetDepositForChainAndEpoch(
@@ -57,38 +64,60 @@ func (k *Keeper) GetDepositForChainAndEpoch(
 	return nil, false
 }
 
+func (k *Keeper) GetDepositsWithSequenceId(ctx sdk.Context, sequenceId string) []*liquidstakeibctypes.Deposit {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	deposits := make([]*liquidstakeibctypes.Deposit, 0)
+	for ; iterator.Valid(); iterator.Next() {
+		deposit := &liquidstakeibctypes.Deposit{}
+		k.cdc.MustUnmarshal(iterator.Value(), deposit)
+
+		if deposit.IbcSequenceId == sequenceId {
+			deposits = append(deposits, deposit)
+		}
+	}
+
+	return deposits
+}
+
 func (k *Keeper) GetPendingDepositsBeforeEpoch(ctx sdk.Context, epoch int64) []*liquidstakeibctypes.Deposit {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
 
-	userDeposits := make([]*liquidstakeibctypes.Deposit, 0)
+	deposits := make([]*liquidstakeibctypes.Deposit, 0)
 	for ; iterator.Valid(); iterator.Next() {
 		deposit := &liquidstakeibctypes.Deposit{}
 		k.cdc.MustUnmarshal(iterator.Value(), deposit)
 
 		if deposit.Epoch.Int64() <= epoch &&
 			deposit.State == liquidstakeibctypes.Deposit_DEPOSIT_PENDING {
-			userDeposits = append(userDeposits, deposit)
+			deposits = append(deposits, deposit)
 		}
 	}
 
-	return userDeposits
+	return deposits
 }
 
-func (k *Keeper) GetDepositFromSequence(ctx sdk.Context, sequence uint64) (*liquidstakeibctypes.Deposit, bool) {
+func (k *Keeper) GetDelegableDepositsForChain(ctx sdk.Context, chainId string) []*liquidstakeibctypes.Deposit {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
 
+	deposits := make([]*liquidstakeibctypes.Deposit, 0)
 	for ; iterator.Valid(); iterator.Next() {
 		deposit := &liquidstakeibctypes.Deposit{}
 		k.cdc.MustUnmarshal(iterator.Value(), deposit)
 
-		if deposit.IbcSequence.Uint64() == sequence {
-			return deposit, true
+		if deposit.ChainId == chainId &&
+			deposit.State == liquidstakeibctypes.Deposit_DEPOSIT_RECEIVED {
+			deposits = append(deposits, deposit)
 		}
 	}
 
-	return nil, false
+	return deposits
 }
+
+// TODO: There is many repeated code, have just 1 iterative method and pass in a condition.

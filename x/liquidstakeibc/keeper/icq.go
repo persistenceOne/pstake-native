@@ -78,7 +78,7 @@ func ValidatorSetCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes
 		}
 	}
 
-	k.SetHostChainValidators(ctx, &hc, &response)
+	k.SetHostChainValidators(ctx, &hc, response.Validators)
 
 	return nil
 }

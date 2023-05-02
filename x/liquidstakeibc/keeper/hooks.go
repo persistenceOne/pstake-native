@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -113,8 +114,6 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 	relayer sdk.AccAddress,
 	transferAckErr error,
 ) error {
-	// TODO: This is a very SIMPLE approach to marking deposits as ready to delegate.
-	// https://github.com/ingenuity-build/quicksilver/blob/develop/x/interchainstaking/keeper/ibc_packet_handlers.go#L61-L338
 	if transferAckErr != nil {
 		return nil
 	}
@@ -131,16 +130,20 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 		return err
 	}
 	if data.GetSender() == authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() {
-		deposit, found := k.GetDepositFromSequence(ctx, packet.Sequence)
-		if !found {
-			return errorsmod.Wrapf(
-				liquidstakeibctypes.ErrDepositNotFound,
-				"deposit with sequence %d not found",
-				packet.Sequence,
-			)
+		// deposits have been successfully received, update the states
+		deposits := k.GetDepositsWithSequenceId(ctx, k.GetDepositSequenceId(packet.SourceChannel, packet.Sequence))
+		for _, deposit := range deposits {
+			deposit.IbcSequenceId = ""
+			deposit.State = liquidstakeibctypes.Deposit_DEPOSIT_RECEIVED
+			k.SetDeposit(ctx, deposit)
+
+			hc, _ := k.GetHostChain(ctx, deposit.ChainId)
+			hc.DelegationAccount.Balance.Amount = hc.DelegationAccount.Balance.Amount.Add(deposit.Amount.Amount)
+			k.SetHostChain(ctx, &hc)
+
+			hc.CValue = k.GetHostChainCValue(ctx, &hc)
+			k.SetHostChain(ctx, &hc)
 		}
-		deposit.State = liquidstakeibctypes.Deposit_DEPOSIT_RECEIVED
-		k.SetDeposit(ctx, deposit)
 	}
 	return nil
 }
@@ -151,6 +154,7 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 	relayer sdk.AccAddress,
 	transferTimeoutErr error,
 ) error {
+	//  TODO: Set deposit state back to pending
 	return nil
 }
 
@@ -203,13 +207,17 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
 		}
 		ctx.EventManager().EmitEvents(res.GetEvents())
 
-		var msgResponse ibctransfertypes.MsgTransferResponse
-		if err := k.cdc.Unmarshal(res.MsgResponses[0].Value, &msgResponse); err != nil {
-			return err
+		var msgTransferResponse ibctransfertypes.MsgTransferResponse
+		if err = k.cdc.Unmarshal(res.MsgResponses[0].Value, &msgTransferResponse); err != nil {
+			return errorsmod.Wrapf(
+				sdkerrors.ErrJSONUnmarshal,
+				"cannot unmarshal ibc transfer tx response message: %v",
+				err,
+			)
 		}
 
 		deposit.State = liquidstakeibctypes.Deposit_DEPOSIT_SENT
-		deposit.IbcSequence = sdk.NewIntFromUint64(msgResponse.Sequence)
+		deposit.IbcSequenceId = k.GetDepositSequenceId(hc.ChannelId, msgTransferResponse.Sequence)
 		k.SetDeposit(ctx, deposit)
 	}
 

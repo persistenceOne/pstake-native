@@ -204,8 +204,8 @@ func (k msgServer) LiquidStake(
 	}
 
 	// amount of stk tokens to be minted
-	mintDenom := k.MintDenom(hostChain.HostDenom)
-	mintAmount := sdktypes.NewDecCoinFromCoin(msg.Amount).Amount.Mul(hostChain.CValue) // TODO: CValue needs to be recalculated and saved on every LS/LU/Redeem/Slash
+	mintDenom := hostChain.MintDenom()
+	mintAmount := sdktypes.NewDecCoinFromCoin(msg.Amount).Amount.Mul(hostChain.CValue)
 	mintToken, _ := sdktypes.NewDecCoinFromDec(mintDenom, mintAmount).TruncateDecimal()
 
 	// send the deposit to the deposit-module account
@@ -220,7 +220,11 @@ func (k msgServer) LiquidStake(
 		)
 	}
 
-	// add the deposit amount to the user deposit record for that chain/epoch
+	// update the host chain c value
+	hostChain.CValue = k.GetHostChainCValue(ctx, &hostChain)
+	k.SetHostChain(ctx, &hostChain)
+
+	// add the deposit amount to the deposit record for that chain/epoch
 	currentEpoch := k.GetEpochNumber(ctx, types.DelegationEpoch)
 	deposit, found := k.GetDepositForChainAndEpoch(ctx, hostChain.ChainId, currentEpoch)
 	if !found {

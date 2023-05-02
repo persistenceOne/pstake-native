@@ -1,5 +1,9 @@
 package types
 
+import (
+	"time"
+)
+
 const (
 	// ModuleName defines the module name
 	ModuleName = "liquidstakeibc"
@@ -21,6 +25,8 @@ const (
 	RewardsICAType  = "rewards"
 
 	IBCTimeoutHeightIncrement uint64 = 1000
+
+	ICATimeoutTimestamp = 15 * time.Minute
 )
 
 var (
