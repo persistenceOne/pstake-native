@@ -113,8 +113,6 @@ func (k msgServer) UpdateHostChain(
 
 	for _, update := range msg.Updates {
 		switch update.Key {
-		case KeyConnectionId:
-			//TODO: Re-create ICA and query validator set
 		case KeyDepositFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {

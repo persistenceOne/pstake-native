@@ -214,7 +214,7 @@ func (k *Keeper) SetHostChainValidators(
 				&types.Validator{
 					OperatorAddress: validator.OperatorAddress,
 					Status:          validator.Status.String(),
-					Weight:          sdk.NewDec(1), // TODO: This is just for testing
+					Weight:          sdk.ZeroDec(),
 					DelegatedAmount: sdk.ZeroInt(),
 				},
 			)
@@ -326,6 +326,5 @@ func (k *Keeper) GetHostChainCValue(ctx sdk.Context, hc *types.HostChain) sdk.De
 		return sdk.OneDec()
 	}
 
-	// TODO: Add module account balance
 	return sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(liquidStakedAmount))
 }
