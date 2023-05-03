@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/persistenceOne/persistence-sdk/v2/utils"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -13,7 +14,11 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 		k.Logger(ctx).Error("Unable to Delegate tokens", "err: ", err)
 	}
 
-	// TODO: Submit validator set queries
+	for _, hc := range k.GetAllHostChains(ctx) {
+		if err = k.QueryHostChainValidators(ctx, hc, stakingtypes.QueryValidatorsRequest{}); err != nil {
+			k.Logger(ctx).Error("error sending ICQ for host chain validators", "host_chain", hc.ChainId)
+		}
+	}
 }
 
 func (k *Keeper) DoDelegate(ctx sdk.Context) error {
