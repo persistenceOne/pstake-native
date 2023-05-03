@@ -71,6 +71,7 @@ func (k msgServer) RegisterHostChain(
 		HostDenom:      msg.HostDenom,
 		MinimumDeposit: msg.MinimumDeposit,
 		CValue:         sdktypes.NewDec(1),
+		NextValsetHash: []byte{},
 	}
 
 	// save the host chain

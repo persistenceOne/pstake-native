@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"bytes"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/persistenceOne/persistence-sdk/v2/utils"
@@ -15,8 +17,31 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 	}
 
 	for _, hc := range k.GetAllHostChains(ctx) {
-		if err = k.QueryHostChainValidators(ctx, hc, stakingtypes.QueryValidatorsRequest{}); err != nil {
-			k.Logger(ctx).Error("error sending ICQ for host chain validators", "host_chain", hc.ChainId)
+		consensusState, err := k.GetLatestConsensusState(ctx, hc.ConnectionId)
+		if err != nil {
+			k.Logger(ctx).Error("could not retrieve client state", "host_chain", hc.ChainId)
+			return
+		}
+
+		// if the next validator set hash has changes, send an ICQ and update it
+		if !bytes.Equal(consensusState.NextValidatorsHash, hc.NextValsetHash) ||
+			bytes.Equal(hc.NextValsetHash, []byte{}) {
+			k.Logger(ctx).Info(
+				"New validator set detected, sending an ICQ to update it.",
+				"chain_id",
+				hc.ChainId,
+			)
+			if err = k.QueryHostChainValidators(ctx, hc, stakingtypes.QueryValidatorsRequest{}); err != nil {
+				k.Logger(ctx).Error(
+					"error sending ICQ for host chain validators",
+					"host_chain",
+					hc.ChainId,
+				)
+			}
+
+			// update the validator set next hash
+			hc.NextValsetHash = consensusState.NextValidatorsHash
+			k.SetHostChain(ctx, hc)
 		}
 	}
 }

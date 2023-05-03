@@ -40,6 +40,8 @@ message HostChain {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
+  // the hash of the next validator set
+  bytes next_valset_hash = 13;
 }
 
 message HostChainLSParams {

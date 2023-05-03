@@ -288,6 +288,26 @@ func (k *Keeper) GetClientState(ctx sdk.Context, connectionID string) (*ibctmtyp
 	return client, nil
 }
 
+// GetLatestConsensusState retrieves the last tendermint consensus state
+func (k *Keeper) GetLatestConsensusState(ctx sdk.Context, connectionID string) (*ibctmtypes.ConsensusState, error) {
+	conn, found := k.ibcKeeper.ConnectionKeeper.GetConnection(ctx, connectionID)
+	if !found {
+		return nil, fmt.Errorf("invalid connection id, \"%s\" not found", connectionID)
+	}
+
+	consensusState, found := k.ibcKeeper.ClientKeeper.GetLatestClientConsensusState(ctx, conn.ClientId)
+	if !found {
+		return nil, fmt.Errorf("client id \"%s\" not found for connection \"%s\"", conn.ClientId, connectionID)
+	}
+
+	state, ok := consensusState.(*ibctmtypes.ConsensusState)
+	if !ok {
+		return nil, fmt.Errorf("invalid consensus state for connection \"%s\"", connectionID)
+	}
+
+	return state, nil
+}
+
 // GetChainID gets the id of the host chain given a connection id
 func (k *Keeper) GetChainID(ctx sdk.Context, connectionID string) (string, error) {
 	clientState, err := k.GetClientState(ctx, connectionID)
