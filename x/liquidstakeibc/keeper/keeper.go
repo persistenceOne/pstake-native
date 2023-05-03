@@ -9,6 +9,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
@@ -302,6 +303,36 @@ func (k *Keeper) QueryHostChainValidators(
 		sdk.NewInt(int64(-1)),
 		types.ModuleName,
 		ValidatorSet,
+		0,
+	)
+
+	return nil
+}
+
+func (k *Keeper) QueryHostChainAccountBalance(
+	ctx sdk.Context,
+	hc *types.HostChain,
+	address string,
+	denom string,
+) error {
+	balanceQuery := banktypes.QueryBalanceRequest{
+		Address: address,
+		Denom:   denom,
+	}
+	bz, err := k.cdc.Marshal(&balanceQuery)
+	if err != nil {
+		return err
+	}
+
+	k.icqKeeper.MakeRequest(
+		ctx,
+		hc.ConnectionId,
+		hc.ChainId,
+		"cosmos.bank.v1beta1.Query/Balance",
+		bz,
+		sdk.NewInt(int64(-1)),
+		types.ModuleName,
+		Balances,
 		0,
 	)
 

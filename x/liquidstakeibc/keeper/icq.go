@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	q "github.com/cosmos/cosmos-sdk/types/query"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icqtypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
 
@@ -14,6 +15,7 @@ import (
 
 const (
 	ValidatorSet = "validatorset"
+	Balances     = "balances"
 )
 
 type CallbackFn func(Keeper, sdk.Context, []byte, icqtypes.Query) error
@@ -44,7 +46,8 @@ func (c Callbacks) Has(id string) bool {
 
 func (c Callbacks) RegisterCallbacks() icqtypes.QueryCallbacks {
 	a := c.
-		AddCallback(ValidatorSet, CallbackFn(ValidatorSetCallback))
+		AddCallback(ValidatorSet, CallbackFn(ValidatorSetCallback)).
+		AddCallback(Balances, CallbackFn(BalancesCallback))
 
 	return a.(Callbacks)
 }
@@ -79,6 +82,38 @@ func ValidatorSetCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes
 	}
 
 	k.SetHostChainValidators(ctx, &hc, response.Validators)
+
+	return nil
+}
+
+func BalancesCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
+	hc, found := k.GetHostChain(ctx, query.ChainId)
+	if !found {
+		return fmt.Errorf("host chain with id %s is not registered", query.ChainId)
+	}
+
+	response := banktypes.QueryBalanceResponse{}
+	err := k.cdc.Unmarshal(data, &response)
+	if err != nil {
+		return fmt.Errorf("could not unmarshall ICQ balances response: %w", err)
+	}
+
+	request := banktypes.QueryBalanceRequest{}
+	err = k.cdc.Unmarshal(query.Request, &request)
+	if err != nil {
+		return fmt.Errorf("could not unmarshall ICQ balances request: %w", err)
+	}
+
+	switch request.Address {
+	case hc.DelegationAccount.Address:
+		hc.DelegationAccount.Balance = *response.Balance
+	case hc.RewardsAccount.Address:
+		hc.RewardsAccount.Balance = *response.Balance
+	default:
+		return fmt.Errorf("address doesn't belong to any ICA accout of the host chain with id %s", query.ChainId)
+	}
+
+	k.SetHostChain(ctx, &hc)
 
 	return nil
 }
