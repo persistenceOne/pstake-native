@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
@@ -14,12 +15,12 @@ import (
 )
 
 const (
-	KeyConnectionId   string = "connection_id"
-	KeyDepositFee     string = "deposit_fee"
-	KeyRestakeFee     string = "restake_fee"
-	KeyUnstakeFee     string = "unstake_fee"
-	KeyRedemptionFee  string = "redemption_fee"
-	KeyMinimumDeposit string = "min_deposit"
+	KeyValidatorWeight string = "validator_weight"
+	KeyDepositFee      string = "deposit_fee"
+	KeyRestakeFee      string = "restake_fee"
+	KeyUnstakeFee      string = "unstake_fee"
+	KeyRedemptionFee   string = "redemption_fee"
+	KeyMinimumDeposit  string = "min_deposit"
 )
 
 type msgServer struct {
@@ -106,19 +107,29 @@ func (k msgServer) UpdateHostChain(
 
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
-	hs, found := k.GetHostChain(ctx, msg.ChainId)
+	hc, found := k.GetHostChain(ctx, msg.ChainId)
 	if !found {
 		return nil, fmt.Errorf("invalid chain id \"%s\", host chain is not registered", msg.ChainId)
 	}
 
 	for _, update := range msg.Updates {
 		switch update.Key {
+		case KeyValidatorWeight:
+			validator, weight, found := strings.Cut(update.Value, ",")
+			if !found {
+				return nil, fmt.Errorf("unable to parse validator update string")
+			}
+
+			if err := k.UpdateHostChainValidatorWeight(ctx, hc, validator, weight); err != nil {
+				return nil, fmt.Errorf("invalid validator weight update values: %v", err)
+			}
 		case KeyDepositFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-			hs.Params.DepositFee = fee
+
+			hc.Params.DepositFee = fee
 			if fee.LT(sdktypes.NewDec(0)) {
 				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
 			}
@@ -127,7 +138,8 @@ func (k msgServer) UpdateHostChain(
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-			hs.Params.RestakeFee = fee
+
+			hc.Params.RestakeFee = fee
 			if fee.LT(sdktypes.NewDec(0)) {
 				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
 			}
@@ -136,7 +148,8 @@ func (k msgServer) UpdateHostChain(
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-			hs.Params.RedemptionFee = fee
+
+			hc.Params.RedemptionFee = fee
 			if fee.LT(sdktypes.NewDec(0)) {
 				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
 			}
@@ -145,7 +158,8 @@ func (k msgServer) UpdateHostChain(
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-			hs.Params.UnstakeFee = fee
+
+			hc.Params.UnstakeFee = fee
 			if fee.LT(sdktypes.NewDec(0)) {
 				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
 			}
@@ -154,7 +168,8 @@ func (k msgServer) UpdateHostChain(
 			if !ok {
 				return nil, fmt.Errorf("unable to parse string to sdk.Int")
 			}
-			hs.MinimumDeposit = minimumDeposit
+
+			hc.MinimumDeposit = minimumDeposit
 			if minimumDeposit.LT(sdktypes.NewInt(0)) {
 				return nil, fmt.Errorf("invalid minimum deposit value less than zero")
 			}
@@ -163,7 +178,7 @@ func (k msgServer) UpdateHostChain(
 		}
 	}
 
-	k.SetHostChain(ctx, hs)
+	k.SetHostChain(ctx, hc)
 
 	return &types.MsgUpdateHostChainResponse{}, nil
 }

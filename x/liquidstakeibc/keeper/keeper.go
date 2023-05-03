@@ -177,6 +177,34 @@ func (k *Keeper) GetDepositModuleAccount(ctx sdk.Context) authtypes.ModuleAccoun
 	return k.accountKeeper.GetModuleAccount(ctx, types.DepositModuleAccount)
 }
 
+func (k *Keeper) UpdateHostChainValidatorWeight(
+	ctx sdk.Context,
+	hc *types.HostChain,
+	address string,
+	weight string,
+) error {
+	newWeight, err := sdk.NewDecFromStr(weight)
+	if err != nil {
+		return err
+	}
+
+	found := false
+	for i, validator := range hc.Validators {
+		if validator.OperatorAddress == address {
+			hc.Validators[i].Weight = newWeight
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("could not find validator with address %s while updating validator weight", address)
+	}
+
+	k.SetHostChain(ctx, hc)
+	return nil
+}
+
 // SetHostChainValidator sets a validator on the target host chain
 func (k *Keeper) SetHostChainValidator(
 	ctx sdk.Context,
