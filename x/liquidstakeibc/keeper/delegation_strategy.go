@@ -16,8 +16,9 @@ func (k *Keeper) GenerateDelegateMessages(hc *types.HostChain, newDelegation sdk
 
 	var messages []proto.Message
 	for _, validator := range hc.Validators {
-		if validator.Weight.Equal(sdk.ZeroDec()) {
-			continue // skip validators with zero weight
+		if validator.Weight.Equal(sdk.ZeroDec()) ||
+			validator.Status != stakingtypes.BondStatusBonded {
+			continue // skip validators with zero weight or that are not in the active set
 		}
 
 		// calculate the delegated amount difference for the validator:
