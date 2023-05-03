@@ -114,9 +114,12 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 	relayer sdk.AccAddress,
 	transferAckErr error,
 ) error {
+	// return early if there is an error in the ack
 	if transferAckErr != nil {
 		return nil
 	}
+
+	// validate the ack
 	var ack channeltypes.Acknowledgement
 	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return err
@@ -129,22 +132,33 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return err
 	}
+
+	// if the sender is the deposit module account, mark the corresponding deposits as received and send an
+	// ICQ query to get the new host delegator account balance
 	if data.GetSender() == authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() {
-		// deposits have been successfully received, update the states
 		deposits := k.GetDepositsWithSequenceId(ctx, k.GetDepositSequenceId(packet.SourceChannel, packet.Sequence))
 		for _, deposit := range deposits {
+			// update the deposit state
 			deposit.IbcSequenceId = ""
 			deposit.State = liquidstakeibctypes.Deposit_DEPOSIT_RECEIVED
 			k.SetDeposit(ctx, deposit)
 
-			hc, _ := k.GetHostChain(ctx, deposit.ChainId)
-			hc.DelegationAccount.Balance.Amount = hc.DelegationAccount.Balance.Amount.Add(deposit.Amount.Amount)
-			k.SetHostChain(ctx, &hc)
+			hc, found := k.GetHostChain(ctx, deposit.ChainId)
+			if !found {
+				return fmt.Errorf("host chain with id %s is not registered", deposit.ChainId)
+			}
 
-			hc.CValue = k.GetHostChainCValue(ctx, &hc)
-			k.SetHostChain(ctx, &hc)
+			// send an ICQ query to get the delegator account balance
+			if err := k.QueryHostChainAccountBalance(ctx, hc, hc.DelegationAccount.Address); err != nil {
+				return fmt.Errorf(
+					"error querying host chain %s for delegation account balances: %v",
+					deposit.ChainId,
+					err,
+				)
+			}
 		}
 	}
+
 	return nil
 }
 

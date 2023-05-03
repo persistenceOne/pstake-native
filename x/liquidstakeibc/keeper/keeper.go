@@ -101,16 +101,16 @@ func (k *Keeper) SetHostChain(ctx sdk.Context, hostZone *types.HostChain) {
 }
 
 // GetHostChain returns a host chain given its id
-func (k *Keeper) GetHostChain(ctx sdk.Context, chainID string) (types.HostChain, bool) {
+func (k *Keeper) GetHostChain(ctx sdk.Context, chainID string) (*types.HostChain, bool) {
 	hc := types.HostChain{}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
 	bytes := store.Get([]byte(chainID))
 	if len(bytes) == 0 {
-		return hc, false
+		return &hc, false
 	}
 
 	k.cdc.MustUnmarshal(bytes, &hc)
-	return hc, true
+	return &hc, true
 }
 
 // GetAllHostChains retrieves all registered host chains
@@ -130,7 +130,7 @@ func (k *Keeper) GetAllHostChains(ctx sdk.Context) []*types.HostChain {
 }
 
 // GetHostChainFromIbcDenom returns a host chain given its ibc denomination on Persistence
-func (k *Keeper) GetHostChainFromIbcDenom(ctx sdk.Context, ibcDenom string) (types.HostChain, bool) {
+func (k *Keeper) GetHostChainFromIbcDenom(ctx sdk.Context, ibcDenom string) (*types.HostChain, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
@@ -148,10 +148,10 @@ func (k *Keeper) GetHostChainFromIbcDenom(ctx sdk.Context, ibcDenom string) (typ
 		}
 	}
 
-	return hc, found
+	return &hc, found
 }
 
-func (k *Keeper) GetHostChainFromDelegatorAddress(ctx sdk.Context, delegatorAddress string) (types.HostChain, bool) {
+func (k *Keeper) GetHostChainFromDelegatorAddress(ctx sdk.Context, delegatorAddress string) (*types.HostChain, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
@@ -169,7 +169,7 @@ func (k *Keeper) GetHostChainFromDelegatorAddress(ctx sdk.Context, delegatorAddr
 		}
 	}
 
-	return hc, found
+	return &hc, found
 }
 
 // GetDepositModuleAccount returns deposit module account interface
@@ -313,11 +313,10 @@ func (k *Keeper) QueryHostChainAccountBalance(
 	ctx sdk.Context,
 	hc *types.HostChain,
 	address string,
-	denom string,
 ) error {
 	balanceQuery := banktypes.QueryBalanceRequest{
 		Address: address,
-		Denom:   denom,
+		Denom:   hc.HostDenom,
 	}
 	bz, err := k.cdc.Marshal(&balanceQuery)
 	if err != nil {

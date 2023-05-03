@@ -163,7 +163,7 @@ func (k msgServer) UpdateHostChain(
 		}
 	}
 
-	k.SetHostChain(ctx, &hs)
+	k.SetHostChain(ctx, hs)
 
 	return &types.MsgUpdateHostChainResponse{}, nil
 }
@@ -219,8 +219,8 @@ func (k msgServer) LiquidStake(
 	}
 
 	// update the host chain c value
-	hostChain.CValue = k.GetHostChainCValue(ctx, &hostChain)
-	k.SetHostChain(ctx, &hostChain)
+	hostChain.CValue = k.GetHostChainCValue(ctx, hostChain)
+	k.SetHostChain(ctx, hostChain)
 
 	// add the deposit amount to the deposit record for that chain/epoch
 	currentEpoch := k.GetEpochNumber(ctx, types.DelegationEpoch)

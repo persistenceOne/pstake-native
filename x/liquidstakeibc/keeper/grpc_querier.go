@@ -42,7 +42,7 @@ func (k *Keeper) HostChain(
 		return nil, sdkerrors.ErrKeyNotFound
 	}
 
-	return &types.QueryHostChainResponse{HostChain: hc}, nil
+	return &types.QueryHostChainResponse{HostChain: *hc}, nil
 }
 
 func (k *Keeper) HostChains(

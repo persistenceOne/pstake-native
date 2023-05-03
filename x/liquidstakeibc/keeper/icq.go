@@ -76,12 +76,12 @@ func ValidatorSetCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes
 
 		request.Pagination = new(q.PageRequest)
 		request.Pagination.Key = response.Pagination.NextKey
-		if err = k.QueryHostChainValidators(ctx, &hc, request); err != nil {
+		if err = k.QueryHostChainValidators(ctx, hc, request); err != nil {
 			return errorsmod.Wrapf(types.ErrFailedICQRequest, "error submitting validators icq: %w", err)
 		}
 	}
 
-	k.SetHostChainValidators(ctx, &hc, response.Validators)
+	k.SetHostChainValidators(ctx, hc, response.Validators)
 
 	return nil
 }
@@ -113,7 +113,9 @@ func BalancesCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Que
 		return fmt.Errorf("address doesn't belong to any ICA accout of the host chain with id %s", query.ChainId)
 	}
 
-	k.SetHostChain(ctx, &hc)
+	// recalculate the host chain c value after the local account data has been updated
+	hc.CValue = k.GetHostChainCValue(ctx, hc)
+	k.SetHostChain(ctx, hc)
 
 	return nil
 }

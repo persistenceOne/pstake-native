@@ -87,7 +87,7 @@ func (k *Keeper) OnChanOpenAck(
 	}
 
 	// save the changes of the host chain
-	k.SetHostChain(ctx, &hc)
+	k.SetHostChain(ctx, hc)
 	return nil
 }
 

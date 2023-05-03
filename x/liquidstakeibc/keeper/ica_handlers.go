@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -47,11 +49,16 @@ func (k *Keeper) HandleDelegateResponse(ctx sdk.Context, msg sdk.Msg, channel st
 
 	// update the validator delegated amount
 	validator.DelegatedAmount = validator.DelegatedAmount.Add(parsedMsg.Amount.Amount)
-	k.SetHostChainValidator(ctx, &hc, validator)
+	k.SetHostChainValidator(ctx, hc, validator)
 
-	// update the host chain c value with the new staked tokens
-	hc.CValue = k.GetHostChainCValue(ctx, &hc)
-	k.SetHostChain(ctx, &hc)
+	// send an ICQ query to get the delegator account balance
+	if err := k.QueryHostChainAccountBalance(ctx, hc, hc.DelegationAccount.Address); err != nil {
+		return fmt.Errorf(
+			"error querying host chain %s for delegation account balances: %v",
+			hc.ChainId,
+			err,
+		)
+	}
 
 	k.Logger(ctx).Info(
 		"Received delegation acknowledgement",
