@@ -37,6 +37,22 @@ func (k *Keeper) CreateDeposits(ctx sdk.Context, epoch int64) {
 	}
 }
 
+// GetAllDeposits retrieves all deposits
+func (k *Keeper) GetAllDeposits(ctx sdk.Context) []*liquidstakeibctypes.Deposit {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	deposits := make([]*liquidstakeibctypes.Deposit, 0)
+	for ; iterator.Valid(); iterator.Next() {
+		deposit := liquidstakeibctypes.Deposit{}
+		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
+		deposits = append(deposits, &deposit)
+	}
+
+	return deposits
+}
+
 func (k *Keeper) GetDepositSequenceId(channelId string, sequence uint64) string {
 	sequenceStr := strconv.FormatUint(sequence, 10)
 	return channelId + "-sequence-" + sequenceStr
