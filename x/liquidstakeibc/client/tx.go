@@ -77,7 +77,7 @@ func NewRegisterHostChainCmd() *cobra.Command {
 // TODO: Remove this when tagging version. Users should not be able to update chains.
 func NewUpdateHostChainCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-host-chain [chain-id] [chain-id]",
+		Use:   "update-host-chain [chain-id] [updates]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Update a host chain",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -87,7 +87,7 @@ func NewUpdateHostChainCmd() *cobra.Command {
 			}
 
 			updates := make([]*types.KVUpdate, 0)
-			if err = json.Unmarshal([]byte(args[1]), updates); err != nil {
+			if err = json.Unmarshal([]byte(args[1]), &updates); err != nil {
 				return err
 			}
 
