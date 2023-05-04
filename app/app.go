@@ -253,12 +253,11 @@ type PstakeApp struct {
 	LiquidStakeIBCKeeper  liquidstakeibckeeper.Keeper
 
 	// make scoped keepers public for test purposes
-	ScopedIBCKeeper            capabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper       capabilitykeeper.ScopedKeeper
-	ScopedICAHostKeeper        capabilitykeeper.ScopedKeeper
-	ScopedICAControllerKeeper  capabilitykeeper.ScopedKeeper
-	ScopedLSCosmosKeeper       capabilitykeeper.ScopedKeeper
-	ScopedLiquidStakeIBCKeeper capabilitykeeper.ScopedKeeper
+	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
+	ScopedTransferKeeper      capabilitykeeper.ScopedKeeper
+	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
+	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
+	ScopedLSCosmosKeeper      capabilitykeeper.ScopedKeeper
 
 	// the module manager
 	mm *module.Manager
@@ -340,7 +339,6 @@ func NewpStakeApp(
 	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
 	scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
 	scopedLSCosmosKeeper := app.CapabilityKeeper.ScopeToModule(lscosmostypes.ModuleName)
-	scopedLiquidStakeIBCKeeper := app.CapabilityKeeper.ScopeToModule(liquidstakeibctypes.ModuleName)
 	app.CapabilityKeeper.Seal()
 
 	// add keepers
@@ -501,7 +499,6 @@ func NewpStakeApp(
 		app.BankKeeper,
 		epochsKeeper,
 		app.ICAControllerKeeper,
-		scopedLiquidStakeIBCKeeper,
 		app.IBCKeeper, // TODO: Move to module interface
 		&app.InterchainQueryKeeper,
 		app.GetSubspace(liquidstakeibctypes.ModuleName),
@@ -804,7 +801,6 @@ func NewpStakeApp(
 	app.ScopedICAHostKeeper = scopedICAHostKeeper
 	app.ScopedICAControllerKeeper = scopedICAControllerKeeper
 	app.ScopedLSCosmosKeeper = scopedLSCosmosKeeper
-	app.ScopedLiquidStakeIBCKeeper = scopedLiquidStakeIBCKeeper
 
 	return app
 }

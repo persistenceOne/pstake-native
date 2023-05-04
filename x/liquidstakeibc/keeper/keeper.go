@@ -24,7 +24,6 @@ type Keeper struct {
 	bankKeeper          types.BankKeeper
 	epochsKeeper        types.EpochsKeeper
 	icaControllerKeeper types.ICAControllerKeeper
-	scopedKeeper        types.ScopedKeeper
 	ibcKeeper           *ibckeeper.Keeper
 	icqKeeper           types.ICQKeeper
 
@@ -43,7 +42,6 @@ func NewKeeper(
 	bankKeeper types.BankKeeper,
 	epochsKeeper types.EpochsKeeper,
 	icaControllerKeeper types.ICAControllerKeeper,
-	scopedKeeper types.ScopedKeeper,
 	ibcKeeper *ibckeeper.Keeper,
 	icqKeeper types.ICQKeeper,
 
@@ -64,7 +62,6 @@ func NewKeeper(
 		bankKeeper:          bankKeeper,
 		epochsKeeper:        epochsKeeper,
 		icaControllerKeeper: icaControllerKeeper,
-		scopedKeeper:        scopedKeeper,
 		ibcKeeper:           ibcKeeper,
 		icqKeeper:           icqKeeper,
 		storeKey:            storeKey,
