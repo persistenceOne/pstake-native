@@ -161,13 +161,8 @@ func (k *Keeper) handleUnsuccessfulAck(
 	channel string,
 	sequence uint64,
 ) error {
-	// get all the deposits for the failed packet sequence and revert them back to the previous state
-	deposits := k.GetDepositsWithSequenceId(ctx, k.GetDepositSequenceId(channel, sequence))
-	for _, deposit := range deposits {
-		deposit.IbcSequenceId = ""
-		deposit.State = types.Deposit_DEPOSIT_RECEIVED
-		k.SetDeposit(ctx, deposit)
-	}
+	// revert all the deposits for that sequence back to the previous state
+	k.RevertDepositsWithSequenceId(ctx, k.GetDepositSequenceId(channel, sequence))
 
 	return nil
 }

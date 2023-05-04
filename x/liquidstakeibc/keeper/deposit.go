@@ -37,6 +37,22 @@ func (k *Keeper) CreateDeposits(ctx sdk.Context, epoch int64) {
 	}
 }
 
+func (k *Keeper) RevertDepositsWithSequenceId(
+	ctx sdk.Context,
+	sequenceId string,
+) {
+	deposits := k.GetDepositsWithSequenceId(ctx, sequenceId)
+	for _, deposit := range deposits {
+		if deposit.State == liquidstakeibctypes.Deposit_DEPOSIT_PENDING {
+			continue
+		}
+
+		deposit.IbcSequenceId = ""
+		deposit.State = deposit.State - 1
+		k.SetDeposit(ctx, deposit)
+	}
+}
+
 // GetAllDeposits retrieves all deposits
 func (k *Keeper) GetAllDeposits(ctx sdk.Context) []*liquidstakeibctypes.Deposit {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
