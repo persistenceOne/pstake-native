@@ -114,9 +114,8 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 	relayer sdk.AccAddress,
 	transferAckErr error,
 ) error {
-	// return early if there is an error in the ack
 	if transferAckErr != nil {
-		return nil
+		return transferAckErr
 	}
 
 	// validate the ack
@@ -168,7 +167,32 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 	relayer sdk.AccAddress,
 	transferTimeoutErr error,
 ) error {
-	//  TODO: Set deposit state back to pending
+	if transferTimeoutErr != nil {
+		return transferTimeoutErr
+	}
+
+	var data ibctransfertypes.FungibleTokenPacketData
+	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return err
+	}
+
+	// if the transfer doesn't belong to any of the registered host chains, return
+	ibcDenom := ibctransfertypes.ParseDenomTrace(data.GetDenom()).IBCDenom()
+	hc, found := k.GetHostChainFromIbcDenom(ctx, ibcDenom)
+	if !found {
+		return nil
+	}
+
+	// if the transfer is not from deposit module account -> delegation host account, return
+	if data.GetSender() != authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() ||
+		data.GetReceiver() != hc.DelegationAccount.Address ||
+		data.GetDenom() != ibctransfertypes.GetPrefixedDenom(hc.PortId, hc.ChannelId, hc.HostDenom) {
+		return nil
+	}
+
+	// revert all the deposits for that sequence to its previous state
+	k.RevertDepositsWithSequenceId(ctx, k.GetDepositSequenceId(packet.SourceChannel, packet.Sequence))
+
 	return nil
 }
 
