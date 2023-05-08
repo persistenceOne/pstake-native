@@ -191,7 +191,10 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 	}
 
 	// revert all the deposits for that sequence to its previous state
-	k.RevertDepositsWithSequenceId(ctx, k.GetDepositSequenceId(packet.SourceChannel, packet.Sequence))
+	k.RevertDepositsState(
+		ctx,
+		k.GetDepositsWithSequenceId(ctx, k.GetDepositSequenceId(packet.SourceChannel, packet.Sequence)),
+	)
 
 	return nil
 }

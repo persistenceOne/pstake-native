@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -163,6 +164,52 @@ func (k *Keeper) RegisterICAAccount(ctx sdk.Context, connectionId, owner string)
 		owner,
 		"",
 	)
+}
+
+// RecreateHostChainICAAccounts recreates ICA if the channels are closed
+func (k *Keeper) RecreateHostChainICAAccounts(ctx sdk.Context, hc *types.HostChain) (bool, error) {
+	accountsRecreating := hc.DelegationAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATING &&
+		hc.RewardsAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATING
+
+	if accountsRecreating {
+		return true, nil
+	}
+
+	_, isDelegateActive := k.icaControllerKeeper.GetOpenActiveChannel(
+		ctx,
+		hc.ConnectionId,
+		icatypes.ControllerPortPrefix+k.DelegateAccountPortOwner(hc.ChainId),
+	)
+	if !isDelegateActive && hc.DelegationAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATED {
+		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, k.DelegateAccountPortOwner(hc.ChainId)); err != nil {
+			return false, fmt.Errorf("error recreating %s delegate ica: %w", hc.ChainId, err)
+		}
+		accountsRecreating = true
+	}
+
+	_, isRewardsActive := k.icaControllerKeeper.GetOpenActiveChannel(
+		ctx,
+		hc.ConnectionId,
+		icatypes.ControllerPortPrefix+k.RewardsAccountPortOwner(hc.ChainId),
+	)
+	if !isRewardsActive {
+		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, k.RewardsAccountPortOwner(hc.ChainId)); err != nil {
+			return false, fmt.Errorf("error recreating %s rewards ica: %w", hc.ChainId, err)
+		}
+		accountsRecreating = true
+	}
+
+	return accountsRecreating, nil
+}
+
+// DelegateAccountPortOwner generates a delegate ICA port owner given the chain id
+func (k *Keeper) DelegateAccountPortOwner(chainId string) string {
+	return chainId + "." + types.DelegateICAType
+}
+
+// RewardsAccountPortOwner generates a rewards ICA port owner given the chain id
+func (k *Keeper) RewardsAccountPortOwner(chainId string) string {
+	return chainId + "." + types.RewardsICAType
 }
 
 func (k *Keeper) GetEpochNumber(ctx sdk.Context, epoch string) int64 {

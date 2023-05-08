@@ -29,6 +29,7 @@ type ScopedKeeper interface {
 type ICAControllerKeeper interface {
 	RegisterInterchainAccount(ctx sdk.Context, connectionID, owner string, version string) error
 	GetInterchainAccountAddress(ctx sdk.Context, connectionID, portID string) (string, bool)
+	GetOpenActiveChannel(ctx sdk.Context, connectionID, portID string) (string, bool)
 }
 
 type ICQKeeper interface {

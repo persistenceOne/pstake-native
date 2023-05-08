@@ -68,6 +68,13 @@ message HostChainLSParams {
 }
 
 message ICAAccount {
+  enum ChannelState {
+    // ICA channel is being created
+    ICA_CHANNEL_CREATING = 0;
+    // ICA is established and the account can be used
+    ICA_CHANNEL_CREATED = 1;
+  }
+
   // address of the ica on the controller chain
   string address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   // token balance of the ica
@@ -77,6 +84,7 @@ message ICAAccount {
   ];
   // owner string
   string owner = 3;
+  ChannelState channel_state = 4;
 }
 
 message Validator {

@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -13,6 +14,9 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 
 	// perform BeginBlocker tasks for each chain
 	for _, hc := range k.GetAllHostChains(ctx) {
+		// attempt to recreate closed ICA channels
+		k.DoRecreateICA(ctx, hc)
+
 		// attempt to delegate
 		k.DoDelegate(ctx, hc)
 
@@ -50,7 +54,7 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 	sequenceId, err := k.GenerateAndExecuteICATx(
 		ctx,
 		hc.ConnectionId,
-		hc.ChainId+"."+types.DelegateICAType,
+		k.DelegateAccountPortOwner(hc.ChainId),
 		messages,
 	)
 	if err != nil {
@@ -95,6 +99,45 @@ func (k *Keeper) DoUpdateValidatorSet(ctx sdk.Context, hc *types.HostChain) {
 
 		// update the validator set next hash
 		hc.NextValsetHash = consensusState.NextValidatorsHash
+		k.SetHostChain(ctx, hc)
+	}
+}
+
+func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc *types.HostChain) {
+	// return early if any of the accounts is currently being recreated
+	if (hc.DelegationAccount == nil || hc.RewardsAccount == nil) ||
+		(hc.DelegationAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATING ||
+			hc.RewardsAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATING) {
+		return
+	}
+
+	_, isDelegateActive := k.icaControllerKeeper.GetOpenActiveChannel(
+		ctx,
+		hc.ConnectionId,
+		icatypes.ControllerPortPrefix+k.DelegateAccountPortOwner(hc.ChainId),
+	)
+	// if the channel is closed, and it is not being recreated, recreate it
+	if !isDelegateActive && hc.DelegationAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
+		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, k.DelegateAccountPortOwner(hc.ChainId)); err != nil {
+			k.Logger(ctx).Error("error recreating %s delegate ica: %w", hc.ChainId, err)
+		}
+		k.Logger(ctx).Info("Recreating delegate ICA.", "chain", hc.ChainId)
+		hc.DelegationAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
+		k.SetHostChain(ctx, hc)
+	}
+
+	_, isRewardsActive := k.icaControllerKeeper.GetOpenActiveChannel(
+		ctx,
+		hc.ConnectionId,
+		icatypes.ControllerPortPrefix+k.RewardsAccountPortOwner(hc.ChainId),
+	)
+	// if the channel is closed, and it is not being recreated, recreate it
+	if !isRewardsActive && hc.RewardsAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
+		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, k.RewardsAccountPortOwner(hc.ChainId)); err != nil {
+			k.Logger(ctx).Error("error recreating %s rewards ica: %w", hc.ChainId, err)
+		}
+		k.Logger(ctx).Info("Recreating rewards ICA.", "chain", hc.ChainId)
+		hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
 		k.SetHostChain(ctx, hc)
 	}
 }

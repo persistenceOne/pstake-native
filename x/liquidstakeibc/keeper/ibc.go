@@ -74,9 +74,10 @@ func (k *Keeper) OnChanOpenAck(
 
 	// create the ica account
 	icaAccount := &types.ICAAccount{
-		Address: address,
-		Balance: sdk.Coin{Amount: sdk.ZeroInt(), Denom: hc.HostDenom},
-		Owner:   portOwner,
+		Address:      address,
+		Balance:      sdk.Coin{Amount: sdk.ZeroInt(), Denom: hc.HostDenom},
+		Owner:        portOwner,
+		ChannelState: types.ICAAccount_ICA_CHANNEL_CREATED,
 	}
 
 	switch icaAccountType {
@@ -88,6 +89,19 @@ func (k *Keeper) OnChanOpenAck(
 
 	// save the changes of the host chain
 	k.SetHostChain(ctx, hc)
+
+	// revert the state for all the deposits that were being delegated on that host chain
+	k.RevertDepositsState(ctx, k.GetDelegatingDepositsForChain(ctx, hc.ChainId))
+
+	// send an ICQ query to get the delegator account balance
+	if err := k.QueryHostChainAccountBalance(ctx, hc, hc.DelegationAccount.Address); err != nil {
+		return fmt.Errorf(
+			"error querying host chain %s for delegation account balances: %v",
+			hc.ChainId,
+			err,
+		)
+	}
+
 	return nil
 }
 
@@ -153,6 +167,40 @@ func (k *Keeper) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+
+	var icaPacket icatypes.InterchainAccountPacketData
+	if err := icatypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &icaPacket); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
+	}
+
+	messages, err := icatypes.DeserializeCosmosTx(k.cdc, icaPacket.GetData())
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot deserialize ica packet data: %v", err)
+	}
+
+	for _, msg := range messages {
+		switch sdk.MsgTypeURL(msg) {
+		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
+			// nothing needs to be done here
+		}
+	}
+
+	k.Logger(ctx).Info(
+		fmt.Sprintf(
+			"ICA packet timed out with seq: %v, channel: %s, port: %s, msgs: %s",
+			packet.Sequence,
+			packet.SourceChannel,
+			packet.SourcePort,
+			messages,
+		),
+	)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeTimeout,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	)
 	return nil
 }
 
@@ -162,7 +210,7 @@ func (k *Keeper) handleUnsuccessfulAck(
 	sequence uint64,
 ) error {
 	// revert all the deposits for that sequence back to the previous state
-	k.RevertDepositsWithSequenceId(ctx, k.GetDepositSequenceId(channel, sequence))
+	k.RevertDepositsState(ctx, k.GetDepositsWithSequenceId(ctx, k.GetDepositSequenceId(channel, sequence)))
 
 	return nil
 }

@@ -78,14 +78,12 @@ func (k msgServer) RegisterHostChain(
 	k.SetHostChain(ctx, hc)
 
 	// register delegate ICA
-	delegateAccount := chainId + "." + types.DelegateICAType
-	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, delegateAccount); err != nil {
+	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, k.DelegateAccountPortOwner(chainId)); err != nil {
 		return nil, errorsmod.Wrapf(types.ErrRegisterFailed, "error registering %s delegate ica: %w", chainId, err)
 	}
 
 	// register reward ICA
-	rewardAccount := chainId + "." + types.RewardsICAType
-	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, rewardAccount); err != nil {
+	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, k.RewardsAccountPortOwner(chainId)); err != nil {
 		return nil, errorsmod.Wrapf(types.ErrRegisterFailed, "error registering %s reward ica: %w", chainId, err)
 	}
 
