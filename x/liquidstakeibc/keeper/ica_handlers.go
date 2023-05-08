@@ -22,7 +22,7 @@ func (k *Keeper) HandleDelegateResponse(ctx sdk.Context, msg sdk.Msg, channel st
 	}
 
 	// remove delegated deposits for this sequence (if any)
-	deposits := k.GetDepositsWithSequenceId(ctx, k.GetDepositSequenceId(channel, sequence))
+	deposits := k.GetDepositsWithSequenceID(ctx, k.GetDepositSequenceID(channel, sequence))
 	for _, deposit := range deposits {
 		k.DeleteDeposit(ctx, deposit)
 	}

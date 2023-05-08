@@ -179,7 +179,7 @@ func (k *Keeper) OnTimeoutPacket(
 	}
 
 	for _, msg := range messages {
-		switch sdk.MsgTypeURL(msg) {
+		switch sdk.MsgTypeURL(msg) { //nolint:gocritic
 		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 			// nothing needs to be done here
 		}
@@ -210,7 +210,7 @@ func (k *Keeper) handleUnsuccessfulAck(
 	sequence uint64,
 ) error {
 	// revert all the deposits for that sequence back to the previous state
-	k.RevertDepositsState(ctx, k.GetDepositsWithSequenceId(ctx, k.GetDepositSequenceId(channel, sequence)))
+	k.RevertDepositsState(ctx, k.GetDepositsWithSequenceID(ctx, k.GetDepositSequenceID(channel, sequence)))
 
 	return nil
 }
@@ -227,7 +227,7 @@ func (k *Keeper) handleSuccessfulAck(
 	}
 
 	for _, msg := range messages {
-		switch sdk.MsgTypeURL(msg) {
+		switch sdk.MsgTypeURL(msg) { //nolint:gocritic
 		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 			if err = k.HandleDelegateResponse(ctx, msg, channel, sequence); err != nil {
 				return err

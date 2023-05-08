@@ -51,7 +51,7 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 	}
 
 	// execute the ICA transactions
-	sequenceId, err := k.GenerateAndExecuteICATx(
+	sequenceID, err := k.GenerateAndExecuteICATx(
 		ctx,
 		hc.ConnectionId,
 		k.DelegateAccountPortOwner(hc.ChainId),
@@ -68,7 +68,7 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 
 	// if everything went well, update the deposit states and set the sequence id
 	for _, deposit := range deposits {
-		deposit.IbcSequenceId = sequenceId
+		deposit.IbcSequenceId = sequenceID
 		deposit.State = types.Deposit_DEPOSIT_DELEGATING
 		k.SetDeposit(ctx, deposit)
 	}

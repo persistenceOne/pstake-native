@@ -24,9 +24,9 @@ var (
 )
 
 func NewMsgRegisterHostChain(
-	connectionId string,
-	channelId string,
-	portId string,
+	connectionID string,
+	channelID string,
+	portID string,
 	depositFee string,
 	restakeFee string,
 	unstakeFee string,
@@ -40,10 +40,10 @@ func NewMsgRegisterHostChain(
 	redemptionFeeDec, _ := sdk.NewDecFromStr(redemptionFee)
 
 	return &MsgRegisterHostChain{
-		ConnectionId:   connectionId,
+		ConnectionId:   connectionID,
 		HostDenom:      hostDenom,
-		ChannelId:      channelId,
-		PortId:         portId,
+		ChannelId:      channelID,
+		PortId:         portID,
 		MinimumDeposit: minimumDeposit,
 		DepositFee:     depositFeeDec,
 		RestakeFee:     restakeFeeDec,
@@ -132,9 +132,9 @@ func (m *MsgRegisterHostChain) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgUpdateHostChain(chainId string, updates []*KVUpdate) *MsgUpdateHostChain {
+func NewMsgUpdateHostChain(chainID string, updates []*KVUpdate) *MsgUpdateHostChain {
 	return &MsgUpdateHostChain{
-		ChainId: chainId,
+		ChainId: chainID,
 		Updates: updates,
 	}
 }
@@ -163,6 +163,7 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 	return nil
 }
 
+//nolint:interfacer
 func NewMsgLiquidStake(amount sdk.Coin, address sdk.AccAddress) *MsgLiquidStake {
 	return &MsgLiquidStake{
 		DelegatorAddress: address.String(),

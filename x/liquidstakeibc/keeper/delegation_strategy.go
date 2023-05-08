@@ -9,12 +9,12 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
-func (k *Keeper) GenerateDelegateMessages(hc *types.HostChain, newDelegation sdk.Int) ([]proto.Message, error) {
+func (k *Keeper) GenerateDelegateMessages(hc *types.HostChain, newDelegation sdk.Int) ([]proto.Message, error) { //nolint:staticcheck
 	// calculate the new total delegated amount for the host chain
 	currentDelegation := hc.GetHostChainTotalDelegations()
 	futureDelegation := newDelegation.Add(currentDelegation)
 
-	var messages []proto.Message
+	messages := make([]proto.Message, 0)
 	for _, validator := range hc.Validators {
 		if validator.Weight.Equal(sdk.ZeroDec()) ||
 			validator.Status != stakingtypes.BondStatusBonded {

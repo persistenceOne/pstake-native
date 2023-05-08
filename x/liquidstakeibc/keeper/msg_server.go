@@ -49,7 +49,7 @@ func (k msgServer) RegisterHostChain(
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
 	// get the host chain id
-	chainId, err := k.GetChainID(ctx, msg.ConnectionId)
+	chainID, err := k.GetChainID(ctx, msg.ConnectionId)
 	if err != nil {
 		return nil, fmt.Errorf("chain id not found for connection \"%s\": \"%w\"", msg.ConnectionId, err)
 	}
@@ -63,7 +63,7 @@ func (k msgServer) RegisterHostChain(
 	}
 
 	hc := &types.HostChain{
-		ChainId:        chainId,
+		ChainId:        chainID,
 		ConnectionId:   msg.ConnectionId,
 		ChannelId:      msg.ChannelId,
 		PortId:         msg.PortId,
@@ -78,18 +78,32 @@ func (k msgServer) RegisterHostChain(
 	k.SetHostChain(ctx, hc)
 
 	// register delegate ICA
-	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, k.DelegateAccountPortOwner(chainId)); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrRegisterFailed, "error registering %s delegate ica: %w", chainId, err)
+	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, k.DelegateAccountPortOwner(chainID)); err != nil {
+		return nil, errorsmod.Wrapf(
+			types.ErrRegisterFailed,
+			"error registering %s delegate ica: %s",
+			chainID,
+			err.Error(),
+		)
 	}
 
 	// register reward ICA
-	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, k.RewardsAccountPortOwner(chainId)); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrRegisterFailed, "error registering %s reward ica: %w", chainId, err)
+	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, k.RewardsAccountPortOwner(chainID)); err != nil {
+		return nil, errorsmod.Wrapf(
+			types.ErrRegisterFailed,
+			"error registering %s reward ica: %s",
+			chainID,
+			err.Error(),
+		)
 	}
 
 	// query the host chain for the validator set
 	if err := k.QueryHostChainValidators(ctx, hc, stakingtypes.QueryValidatorsRequest{}); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrFailedICQRequest, "error submitting validators icq: %w", err)
+		return nil, errorsmod.Wrapf(
+			types.ErrFailedICQRequest,
+			"error submitting validators icq: %s",
+			err.Error(),
+		)
 	}
 
 	return &types.MsgRegisterHostChainResponse{}, nil
@@ -242,7 +256,7 @@ func (k msgServer) LiquidStake(
 	if !found {
 		return nil, errorsmod.Wrapf(
 			types.ErrDepositNotFound,
-			"deposit not found for chain %s and epoch %s",
+			"deposit not found for chain %s and epoch %v",
 			hostChain.ChainId,
 			currentEpoch,
 		)

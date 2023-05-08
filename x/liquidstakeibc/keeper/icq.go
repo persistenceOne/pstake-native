@@ -77,7 +77,7 @@ func ValidatorSetCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes
 		request.Pagination = new(q.PageRequest)
 		request.Pagination.Key = response.Pagination.NextKey
 		if err = k.QueryHostChainValidators(ctx, hc, request); err != nil {
-			return errorsmod.Wrapf(types.ErrFailedICQRequest, "error submitting validators icq: %w", err)
+			return errorsmod.Wrapf(types.ErrFailedICQRequest, "error submitting validators icq: %s", err.Error())
 		}
 	}
 

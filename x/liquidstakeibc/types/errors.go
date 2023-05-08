@@ -16,7 +16,7 @@ var (
 	ErrDepositNotFound   = errorsmod.Register(ModuleName, 2008, "deposit record not found")
 	ErrICATxFailure      = errorsmod.Register(ModuleName, 2009, "ica transaction failed")
 	ErrInvalidMessages   = errorsmod.Register(ModuleName, 2010, "not enough messages")
-	ErrInvalidChannelId  = errorsmod.Register(ModuleName, 2011, "invalid channel id")
+	ErrInvalidChannelID  = errorsmod.Register(ModuleName, 2011, "invalid channel id")
 	ErrInvalidResponses  = errorsmod.Register(ModuleName, 2012, "not enough message responses")
 	ErrValidatorNotFound = errorsmod.Register(ModuleName, 2013, "validator not found")
 )

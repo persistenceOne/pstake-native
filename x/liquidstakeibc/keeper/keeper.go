@@ -157,10 +157,10 @@ func (k *Keeper) GetChainID(ctx sdk.Context, connectionID string) (string, error
 }
 
 // RegisterICAAccount registers an ICA
-func (k *Keeper) RegisterICAAccount(ctx sdk.Context, connectionId, owner string) error {
+func (k *Keeper) RegisterICAAccount(ctx sdk.Context, connectionID, owner string) error {
 	return k.icaControllerKeeper.RegisterInterchainAccount(
 		ctx,
-		connectionId,
+		connectionID,
 		owner,
 		"",
 	)
@@ -203,13 +203,13 @@ func (k *Keeper) RecreateHostChainICAAccounts(ctx sdk.Context, hc *types.HostCha
 }
 
 // DelegateAccountPortOwner generates a delegate ICA port owner given the chain id
-func (k *Keeper) DelegateAccountPortOwner(chainId string) string {
-	return chainId + "." + types.DelegateICAType
+func (k *Keeper) DelegateAccountPortOwner(chainID string) string {
+	return chainID + "." + types.DelegateICAType
 }
 
 // RewardsAccountPortOwner generates a rewards ICA port owner given the chain id
-func (k *Keeper) RewardsAccountPortOwner(chainId string) string {
-	return chainId + "." + types.RewardsICAType
+func (k *Keeper) RewardsAccountPortOwner(chainID string) string {
+	return chainID + "." + types.RewardsICAType
 }
 
 func (k *Keeper) GetEpochNumber(ctx sdk.Context, epoch string) int64 {

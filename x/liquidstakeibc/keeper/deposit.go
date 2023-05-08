@@ -42,7 +42,7 @@ func (k *Keeper) RevertDepositsState(ctx sdk.Context, deposits []*liquidstakeibc
 		deposit.IbcSequenceId = ""
 
 		if deposit.State != liquidstakeibctypes.Deposit_DEPOSIT_PENDING {
-			deposit.State = deposit.State - 1
+			deposit.State--
 		}
 
 		k.SetDeposit(ctx, deposit)
@@ -64,14 +64,14 @@ func (k *Keeper) GetAllDeposits(ctx sdk.Context) []*liquidstakeibctypes.Deposit 
 	return deposits
 }
 
-func (k *Keeper) GetDepositSequenceId(channelId string, sequence uint64) string {
+func (k *Keeper) GetDepositSequenceID(channelID string, sequence uint64) string {
 	sequenceStr := strconv.FormatUint(sequence, 10)
-	return channelId + "-sequence-" + sequenceStr
+	return channelID + "-sequence-" + sequenceStr
 }
 
 func (k *Keeper) GetDepositForChainAndEpoch(
 	ctx sdk.Context,
-	chainId string,
+	chainID string,
 	epoch int64,
 ) (*liquidstakeibctypes.Deposit, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
@@ -83,7 +83,7 @@ func (k *Keeper) GetDepositForChainAndEpoch(
 		k.cdc.MustUnmarshal(iterator.Value(), deposit)
 
 		if deposit.Epoch.Int64() == epoch &&
-			deposit.ChainId == chainId {
+			deposit.ChainId == chainID {
 			return deposit, true
 		}
 	}
@@ -91,7 +91,7 @@ func (k *Keeper) GetDepositForChainAndEpoch(
 	return nil, false
 }
 
-func (k *Keeper) GetDepositsWithSequenceId(ctx sdk.Context, sequenceId string) []*liquidstakeibctypes.Deposit {
+func (k *Keeper) GetDepositsWithSequenceID(ctx sdk.Context, sequenceID string) []*liquidstakeibctypes.Deposit {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
@@ -101,7 +101,7 @@ func (k *Keeper) GetDepositsWithSequenceId(ctx sdk.Context, sequenceId string) [
 		deposit := &liquidstakeibctypes.Deposit{}
 		k.cdc.MustUnmarshal(iterator.Value(), deposit)
 
-		if deposit.IbcSequenceId == sequenceId {
+		if deposit.IbcSequenceId == sequenceID {
 			deposits = append(deposits, deposit)
 		}
 	}
@@ -128,7 +128,7 @@ func (k *Keeper) GetPendingDepositsBeforeEpoch(ctx sdk.Context, epoch int64) []*
 	return deposits
 }
 
-func (k *Keeper) GetDelegableDepositsForChain(ctx sdk.Context, chainId string) []*liquidstakeibctypes.Deposit {
+func (k *Keeper) GetDelegableDepositsForChain(ctx sdk.Context, chainID string) []*liquidstakeibctypes.Deposit {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
@@ -138,7 +138,7 @@ func (k *Keeper) GetDelegableDepositsForChain(ctx sdk.Context, chainId string) [
 		deposit := &liquidstakeibctypes.Deposit{}
 		k.cdc.MustUnmarshal(iterator.Value(), deposit)
 
-		if deposit.ChainId == chainId &&
+		if deposit.ChainId == chainID &&
 			deposit.State == liquidstakeibctypes.Deposit_DEPOSIT_RECEIVED {
 			deposits = append(deposits, deposit)
 		}
@@ -147,7 +147,7 @@ func (k *Keeper) GetDelegableDepositsForChain(ctx sdk.Context, chainId string) [
 	return deposits
 }
 
-func (k *Keeper) GetDelegatingDepositsForChain(ctx sdk.Context, chainId string) []*liquidstakeibctypes.Deposit {
+func (k *Keeper) GetDelegatingDepositsForChain(ctx sdk.Context, chainID string) []*liquidstakeibctypes.Deposit {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
@@ -157,7 +157,7 @@ func (k *Keeper) GetDelegatingDepositsForChain(ctx sdk.Context, chainId string) 
 		deposit := &liquidstakeibctypes.Deposit{}
 		k.cdc.MustUnmarshal(iterator.Value(), deposit)
 
-		if deposit.ChainId == chainId &&
+		if deposit.ChainId == chainID &&
 			deposit.State == liquidstakeibctypes.Deposit_DEPOSIT_DELEGATING {
 			deposits = append(deposits, deposit)
 		}

@@ -51,19 +51,19 @@ func (k *Keeper) GenerateAndExecuteICATx(
 	ctx.EventManager().EmitEvents(res.GetEvents())
 
 	// retrieve the channel id from the result events
-	channelId := ""
+	channelID := ""
 	for _, event := range res.Events {
 		for _, attribute := range event.Attributes {
 			if string(attribute.Key) == PacketSrcChannelEvent {
-				channelId = string(attribute.Value)
+				channelID = string(attribute.Value)
 			}
 		}
 	}
 
 	// we need the channel id to build the deposit channel id
-	if channelId == "" {
+	if channelID == "" {
 		return "", errorsmod.Wrapf(
-			liquidstakeibctypes.ErrInvalidChannelId,
+			liquidstakeibctypes.ErrInvalidChannelID,
 			"cannot find a valid channel id for transaction: %v",
 			err,
 		)
@@ -96,5 +96,5 @@ func (k *Keeper) GenerateAndExecuteICATx(
 		),
 	)
 
-	return k.GetDepositSequenceId(channelId, msgSendTxResponse.Sequence), nil
+	return k.GetDepositSequenceID(channelID, msgSendTxResponse.Sequence), nil
 }

@@ -87,7 +87,7 @@ func (gs GenesisState) Validate() error {
 		if _, ok := hostChainMap[deposit.ChainId]; !ok {
 			return fmt.Errorf("deposit for chain %s doesnt have a valid chain id", deposit.ChainId)
 		}
-		if hc, _ := hostChainMap[deposit.ChainId]; hc.HostDenom != deposit.Amount.Denom {
+		if hc, _ := hostChainMap[deposit.ChainId]; hc.HostDenom != deposit.Amount.Denom { //nolint:gosimple
 			return fmt.Errorf(
 				"deposit for chain %s doesnt have the correct host chain denom: %s, should be %s",
 				deposit.ChainId,
