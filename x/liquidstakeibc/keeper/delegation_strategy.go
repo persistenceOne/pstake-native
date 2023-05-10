@@ -9,12 +9,18 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
-func (k *Keeper) GenerateDelegateMessages(hc *types.HostChain, newDelegation sdk.Int) ([]proto.Message, error) { //nolint:staticcheck
+type DelegateAmount struct {
+	ValAddress string
+	ValWeight  sdk.Dec
+	Amount     sdk.Dec
+}
+
+func (k *Keeper) GenerateDelegateMessages(hc *types.HostChain, depositAmount sdk.Int) ([]proto.Message, error) { //nolint:staticcheck
 	// calculate the new total delegated amount for the host chain
 	currentDelegation := hc.GetHostChainTotalDelegations()
-	futureDelegation := newDelegation.Add(currentDelegation)
+	futureDelegation := depositAmount.Add(currentDelegation)
 
-	messages := make([]proto.Message, 0)
+	delegateAmounts := make([]DelegateAmount, 0)
 	for _, validator := range hc.Validators {
 		if validator.Weight.Equal(sdk.ZeroDec()) ||
 			validator.Status != stakingtypes.BondStatusBonded {
@@ -31,15 +37,33 @@ func (k *Keeper) GenerateDelegateMessages(hc *types.HostChain, newDelegation sdk
 			continue // we can't remove delegation from a validator, and we have limited re-stake operations
 		}
 
-		// create the delegate message
-		messages = append(
-			messages,
-			&stakingtypes.MsgDelegate{
-				DelegatorAddress: hc.DelegationAccount.Address,
-				ValidatorAddress: validator.OperatorAddress,
-				Amount:           sdk.NewCoin(hc.HostDenom, newDelegationDifference.TruncateInt()),
-			},
-		)
+		delegateAmounts = append(delegateAmounts, DelegateAmount{
+			ValAddress: validator.OperatorAddress,
+			ValWeight:  validator.Weight,
+			Amount:     newDelegationDifference,
+		})
+	}
+
+	messages := make([]proto.Message, 0)
+	for _, delegationAmount := range delegateAmounts {
+		message := &stakingtypes.MsgDelegate{
+			DelegatorAddress: hc.DelegationAccount.Address,
+			ValidatorAddress: delegationAmount.ValAddress,
+		}
+
+		// return when there is nothing more to delegate
+		if depositAmount.LTE(delegationAmount.Amount.TruncateInt()) {
+			message.Amount = sdk.NewCoin(hc.HostDenom, depositAmount)
+			messages = append(messages, message)
+			return messages, nil
+		}
+
+		// add the amount to the message and append it
+		message.Amount = sdk.NewCoin(hc.HostDenom, delegationAmount.Amount.TruncateInt())
+		messages = append(messages, message)
+
+		// subtract the amount to delegate from the total deposited
+		depositAmount = depositAmount.Sub(delegationAmount.Amount.TruncateInt())
 	}
 
 	if len(messages) == 0 {

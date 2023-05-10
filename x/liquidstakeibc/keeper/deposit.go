@@ -69,6 +69,8 @@ func (k *Keeper) GetDepositSequenceID(channelID string, sequence uint64) string 
 	return channelID + "-sequence-" + sequenceStr
 }
 
+// TODO: There is many repeated code, have just 1 iterative method and pass in a condition.
+
 func (k *Keeper) GetDepositForChainAndEpoch(
 	ctx sdk.Context,
 	chainID string,
@@ -165,5 +167,3 @@ func (k *Keeper) GetDelegatingDepositsForChain(ctx sdk.Context, chainID string) 
 
 	return deposits
 }
-
-// TODO: There is many repeated code, have just 1 iterative method and pass in a condition.

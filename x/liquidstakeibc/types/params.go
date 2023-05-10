@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"sigs.k8s.io/yaml"
@@ -66,9 +67,13 @@ func isAddress(i interface{}) error {
 		return fmt.Errorf("parameter is not valid: %T", i)
 	}
 
-	_, err := sdktypes.AccAddressFromBech32(val)
+	if len(strings.TrimSpace(val)) == 0 {
+		return fmt.Errorf("empty address string is not allowed")
+	}
+
+	_, err := sdktypes.GetFromBech32(val, "persistence")
 	if err != nil {
-		return fmt.Errorf("parameter %s must be a valid address", val)
+		return err
 	}
 
 	return nil

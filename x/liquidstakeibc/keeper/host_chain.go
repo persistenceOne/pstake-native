@@ -12,10 +12,10 @@ import (
 )
 
 // SetHostChain sets a host chain in the store
-func (k *Keeper) SetHostChain(ctx sdk.Context, hostZone *types.HostChain) {
+func (k *Keeper) SetHostChain(ctx sdk.Context, hc *types.HostChain) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
-	bytes := k.cdc.MustMarshal(hostZone)
-	store.Set([]byte(hostZone.ChainId), bytes)
+	bytes := k.cdc.MustMarshal(hc)
+	store.Set([]byte(hc.ChainId), bytes)
 }
 
 // SetHostChainValidator sets a validator on the target host chain
