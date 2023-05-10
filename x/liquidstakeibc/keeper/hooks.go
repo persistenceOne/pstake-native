@@ -77,8 +77,11 @@ func (k *Keeper) NewEpochHooks() EpochsHooks {
 }
 
 func (k *Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	// create a batch of user deposits for the new epoch
-	k.CreateDeposits(ctx, epochNumber)
+	// create a batch of user deposits for the new deposit epoch
+	if epochIdentifier == liquidstakeibctypes.DelegationEpoch {
+		k.CreateDeposits(ctx, epochNumber)
+	}
+
 	return nil
 }
 
@@ -89,7 +92,15 @@ func (k *Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNum
 		}
 		err := utils.ApplyFuncIfNoError(ctx, workflow)
 		if err != nil {
-			k.Logger(ctx).Error("failed delegation workflow", "error", err)
+			k.Logger(ctx).Error(
+				"failed delegation workflow",
+				"epoch_identifier",
+				epochIdentifier,
+				"epoch_number",
+				epochNumber,
+				"error",
+				err,
+			)
 		}
 	}
 
@@ -132,6 +143,11 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 		return err
 	}
 
+	transferAmount, ok := sdk.NewIntFromString(data.Amount)
+	if !ok {
+		return fmt.Errorf("could not parse ibc transfer amount %s", data.Amount)
+	}
+
 	// if the sender is the deposit module account, mark the corresponding deposits as received and send an
 	// ICQ query to get the new host delegator account balance
 	if data.GetSender() == authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() {
@@ -147,14 +163,14 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 				return fmt.Errorf("host chain with id %s is not registered", deposit.ChainId)
 			}
 
-			// send an ICQ query to get the delegator account balance
-			if err := k.QueryHostChainAccountBalance(ctx, hc, hc.DelegationAccount.Address); err != nil {
-				return fmt.Errorf(
-					"error querying host chain %s for delegation account balances: %v",
-					deposit.ChainId,
-					err,
-				)
-			}
+			hc.DelegationAccount.Balance = hc.DelegationAccount.Balance.Add(
+				sdk.Coin{
+					Denom:  hc.DelegationAccount.Balance.Denom,
+					Amount: transferAmount,
+				},
+			)
+
+			k.SetHostChain(ctx, hc)
 		}
 	}
 
