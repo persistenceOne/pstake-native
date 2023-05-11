@@ -151,7 +151,7 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 	// if the sender is the deposit module account, mark the corresponding deposits as received and send an
 	// ICQ query to get the new host delegator account balance
 	if data.GetSender() == authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() {
-		deposits := k.GetDepositsWithSequenceID(ctx, k.GetDepositSequenceID(packet.SourceChannel, packet.Sequence))
+		deposits := k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
 		for _, deposit := range deposits {
 			// update the deposit state
 			deposit.IbcSequenceId = ""
@@ -210,7 +210,7 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 	// revert all the deposits for that sequence to its previous state
 	k.RevertDepositsState(
 		ctx,
-		k.GetDepositsWithSequenceID(ctx, k.GetDepositSequenceID(packet.SourceChannel, packet.Sequence)),
+		k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
 	)
 
 	return nil
@@ -275,7 +275,7 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
 		}
 
 		deposit.State = liquidstakeibctypes.Deposit_DEPOSIT_SENT
-		deposit.IbcSequenceId = k.GetDepositSequenceID(hc.ChannelId, msgTransferResponse.Sequence)
+		deposit.IbcSequenceId = k.GetTransactionSequenceID(hc.ChannelId, msgTransferResponse.Sequence)
 		k.SetDeposit(ctx, deposit)
 	}
 

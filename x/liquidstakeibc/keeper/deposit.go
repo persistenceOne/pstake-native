@@ -64,7 +64,7 @@ func (k *Keeper) GetAllDeposits(ctx sdk.Context) []*liquidstakeibctypes.Deposit 
 	return deposits
 }
 
-func (k *Keeper) GetDepositSequenceID(channelID string, sequence uint64) string {
+func (k *Keeper) GetTransactionSequenceID(channelID string, sequence uint64) string {
 	sequenceStr := strconv.FormatUint(sequence, 10)
 	return channelID + "-sequence-" + sequenceStr
 }

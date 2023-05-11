@@ -8,10 +8,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -85,6 +87,22 @@ func (k *Keeper) OnChanOpenAck(
 		hc.DelegationAccount = icaAccount
 	case types.RewardsICAType:
 		hc.RewardsAccount = icaAccount
+	}
+
+	if hc.DelegationAccount != nil && hc.RewardsAccount != nil {
+		msgSetWithdrawAddress := &distributiontypes.MsgSetWithdrawAddress{
+			DelegatorAddress: hc.DelegationAccount.Address,
+			WithdrawAddress:  hc.RewardsAccount.Address,
+		}
+		_, err = k.GenerateAndExecuteICATx(
+			ctx,
+			hc.ConnectionId,
+			k.DelegateAccountPortOwner(hc.ChainId),
+			[]proto.Message{msgSetWithdrawAddress},
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	// save the changes of the host chain
@@ -210,7 +228,7 @@ func (k *Keeper) handleUnsuccessfulAck(
 	sequence uint64,
 ) error {
 	// revert all the deposits for that sequence back to the previous state
-	k.RevertDepositsState(ctx, k.GetDepositsWithSequenceID(ctx, k.GetDepositSequenceID(channel, sequence)))
+	k.RevertDepositsState(ctx, k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence)))
 
 	return nil
 }
@@ -230,6 +248,10 @@ func (k *Keeper) handleSuccessfulAck(
 		switch sdk.MsgTypeURL(msg) { //nolint:gocritic
 		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 			if err = k.HandleDelegateResponse(ctx, msg, channel, sequence); err != nil {
+				return err
+			}
+		case sdk.MsgTypeURL(&distributiontypes.MsgSetWithdrawAddress{}):
+			if err = k.HandleSetWithdrawAddressResponse(ctx, msg); err != nil {
 				return err
 			}
 		}

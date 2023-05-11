@@ -94,7 +94,7 @@ func (suite *IntegrationTestSuite) TestRevertDepositState() {
 func (suite *IntegrationTestSuite) TestGetDepositSequenceID() {
 	pstakeApp := suite.app
 
-	sequenceID := pstakeApp.LiquidStakeIBCKeeper.GetDepositSequenceID("channel-0", 1)
+	sequenceID := pstakeApp.LiquidStakeIBCKeeper.GetTransactionSequenceID("channel-0", 1)
 
 	suite.Require().Equal(sequenceID, "channel-0-sequence-1")
 }

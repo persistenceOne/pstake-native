@@ -89,5 +89,5 @@ func (k *Keeper) GenerateAndExecuteICATx(
 		),
 	)
 
-	return k.GetDepositSequenceID(channelID, msgSendTxResponse.Sequence), nil
+	return k.GetTransactionSequenceID(channelID, msgSendTxResponse.Sequence), nil
 }
