@@ -426,7 +426,8 @@ func NewpStakeApp(
 
 	app.LSPersistenceKeeper = lspersistencekeeper.NewKeeper(appCodec, keys[lspersistencetypes.StoreKey],
 		app.GetSubspace(lspersistencetypes.ModuleName), app.AccountKeeper, app.BankKeeper,
-		app.StakingKeeper, app.DistrKeeper, app.SlashingKeeper)
+		app.StakingKeeper, app.DistrKeeper, app.SlashingKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
