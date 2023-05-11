@@ -1,0 +1,70 @@
+syntax = "proto3";
+package pstake.liquidstakeibc.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+
+import "pstake/liquidstakeibc/v1beta1/params.proto";
+import "pstake/liquidstakeibc/v1beta1/liquidstakeibc.proto";
+
+// this line is used by starport scaffolding # 1
+
+option go_package = "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/params";
+  }
+
+  // Queries a HostChain by id.
+  rpc HostChain(QueryHostChainRequest) returns (QueryHostChainResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/host_chain/{chain_id}";
+  }
+
+  // Queries for all the HostChains.
+  rpc HostChains(QueryHostChainsRequest) returns (QueryHostChainsResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/host_chains";
+  }
+
+  // Queries for all the Deposits.
+  rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/deposits";
+  }
+
+}
+
+
+message QueryParamsRequest {}
+
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryHostChainRequest {
+  string chain_id = 1;
+}
+
+message QueryHostChainResponse {
+  HostChain host_chain = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryHostChainsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryHostChainsResponse {
+  repeated HostChain host_chains = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryDepositsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryDepositsResponse {
+  repeated Deposit deposits = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
