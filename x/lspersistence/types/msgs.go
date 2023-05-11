@@ -9,12 +9,14 @@ import (
 var (
 	_ sdk.Msg = (*MsgLiquidStake)(nil)
 	_ sdk.Msg = (*MsgLiquidUnstake)(nil)
+	_ sdk.Msg = (*MsgUpdateParams)(nil)
 )
 
 // Message types for the liquidstaking module
 const (
 	TypeMsgLiquidStake   = "liquid_stake"
 	TypeMsgLiquidUnstake = "liquid_unstake"
+	TypeMsgUpdateParams  = "msg_update_params"
 )
 
 // NewMsgLiquidStake creates a new MsgLiquidStake.
@@ -111,4 +113,43 @@ func (msg MsgLiquidUnstake) GetDelegator() sdk.AccAddress {
 		panic(err)
 	}
 	return addr
+}
+
+// NewMsgUpdateParams creates a new MsgUpdateParams.
+func NewMsgUpdateParams(
+	authority sdk.AccAddress, //nolint: interfacer
+	amount Params,
+) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Authority: authority.String(),
+		Params:    amount,
+	}
+}
+
+func (msg MsgUpdateParams) Route() string { return RouterKey }
+
+func (msg MsgUpdateParams) Type() string { return TypeMsgUpdateParams }
+
+func (msg MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address %q: %v", msg.Authority, err)
+	}
+
+	err := msg.Params.Validate()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (msg MsgUpdateParams) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
+}
+
+func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
 }

@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"cosmossdk.io/math"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -84,6 +85,55 @@ func TestMsgLiquidUnstake(t *testing.T) {
 			signers := tc.msg.GetSigners()
 			require.Len(t, signers, 1)
 			require.Equal(t, tc.msg.GetDelegator(), signers[0])
+		} else {
+			require.EqualError(t, err, tc.expectedErr)
+		}
+	}
+}
+
+func TestMsgUpdateParams(t *testing.T) {
+	authority := sdk.AccAddress(crypto.AddressHash([]byte("authority")))
+
+	testCases := []struct {
+		expectedErr string
+		msg         *types.MsgUpdateParams
+	}{
+		{
+			"", // empty means no error expected
+			types.NewMsgUpdateParams(authority, types.DefaultParams()),
+		},
+		{
+			"invalid authority address \"\": empty address string is not allowed: invalid address",
+			types.NewMsgUpdateParams(sdk.AccAddress{}, types.DefaultParams()),
+		},
+		{
+			"liquid bond denom cannot be blank",
+			types.NewMsgUpdateParams(authority, types.Params{
+				LiquidBondDenom:        "",
+				WhitelistedValidators:  whitelistedValidators,
+				StakeFeeRate:           sdk.MustNewDecFromStr("0.5"),
+				UnstakeFeeRate:         sdk.MustNewDecFromStr("0.5"),
+				RedemptionFeeRate:      sdk.MustNewDecFromStr("0.5"),
+				RestakeFeeRate:         sdk.MustNewDecFromStr("0.5"),
+				MinLiquidStakingAmount: math.NewInt(10000),
+				AdminAddress:           authority.String(),
+				FeeAddress:             authority.String(),
+			}),
+		},
+	}
+
+	for _, tc := range testCases {
+		require.IsType(t, &types.MsgUpdateParams{}, tc.msg)
+		require.Equal(t, types.TypeMsgUpdateParams, tc.msg.Type())
+		require.Equal(t, types.RouterKey, tc.msg.Route())
+		require.Equal(t, sdk.MustSortJSON(types.ModuleCdc.MustMarshalJSON(tc.msg)), tc.msg.GetSignBytes())
+
+		err := tc.msg.ValidateBasic()
+		if tc.expectedErr == "" {
+			require.Nil(t, err)
+			signers := tc.msg.GetSigners()
+			require.Len(t, signers, 1)
+			require.Equal(t, tc.msg.Authority, signers[0].String())
 		} else {
 			require.EqualError(t, err, tc.expectedErr)
 		}

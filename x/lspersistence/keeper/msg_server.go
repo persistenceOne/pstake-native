@@ -78,3 +78,8 @@ func (k msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 		CompletionTime: completionTime,
 	}, nil
 }
+
+func (k msgServer) UpdateParams(ctx context.Context, params *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	//TODO implement me
+	return &types.MsgUpdateParamsResponse{}, nil
+}

@@ -20,7 +20,7 @@ func TestParamChanges(t *testing.T) {
 		subspace    string
 	}{
 		{"lspersistence/WhitelistedValidators", "WhitelistedValidators", "[]", "lspersistence"},
-		{"lspersistence/LiquidBondDenom", "LiquidBondDenom", "\"bstake\"", "lspersistence"},
+		{"lspersistence/LiquidBondDenom", "LiquidBondDenom", "\"stk/uxprt\"", "lspersistence"},
 		{"lspersistence/UnstakeFeeRate", "UnstakeFeeRate", "\"0.010000000000000000\"", "lspersistence"},
 		{"lspersistence/MinLiquidStakingAmount", "MinLiquidStakingAmount", "\"9727887\"", "lspersistence"},
 	}

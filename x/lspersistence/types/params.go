@@ -16,15 +16,17 @@ var (
 	KeyLiquidBondDenom        = []byte("LiquidBondDenom")
 	KeyWhitelistedValidators  = []byte("WhitelistedValidators")
 	KeyUnstakeFeeRate         = []byte("UnstakeFeeRate")
+	KeyStakeFeeRate           = []byte("StakeFeeRate")
+	KeyRestakeFeeRate         = []byte("RestakeFeeRate")
+	KeyRedemptionFeeRate      = []byte("RedemptionFeeRate")
 	KeyMinLiquidStakingAmount = []byte("MinLiquidStakingAmount")
+	KeyAdminAddress           = []byte("AdminAddress")
+	KeyFeeAddress             = []byte("FeeAddress")
 
-	DefaultLiquidBondDenom = "bstake"
-
-	// DefaultUnstakeFeeRate is the default Unstake Fee Rate.
-	DefaultUnstakeFeeRate = sdk.NewDecWithPrec(1, 3) // "0.001000000000000000"
+	DefaultLiquidBondDenom = "stk/uxprt"
 
 	// DefaultMinLiquidStakingAmount is the default minimum liquid staking amount.
-	DefaultMinLiquidStakingAmount = sdk.NewInt(1000000)
+	DefaultMinLiquidStakingAmount = sdk.NewInt(10000)
 
 	// Const variables
 
@@ -50,8 +52,13 @@ func DefaultParams() Params {
 	return Params{
 		WhitelistedValidators:  []WhitelistedValidator{},
 		LiquidBondDenom:        DefaultLiquidBondDenom,
-		UnstakeFeeRate:         DefaultUnstakeFeeRate,
+		UnstakeFeeRate:         sdk.MustNewDecFromStr("0"),
+		StakeFeeRate:           sdk.MustNewDecFromStr("0"),
+		RestakeFeeRate:         sdk.MustNewDecFromStr("0.05"),
+		RedemptionFeeRate:      sdk.MustNewDecFromStr("0.025"),
 		MinLiquidStakingAmount: DefaultMinLiquidStakingAmount,
+		AdminAddress:           authtypes.NewModuleAddress("dummy").String(),
+		FeeAddress:             authtypes.NewModuleAddress("dummy").String(),
 	}
 }
 
@@ -61,7 +68,12 @@ func (p *Params) ParamSetPairs() paramstypes.ParamSetPairs {
 		paramstypes.NewParamSetPair(KeyLiquidBondDenom, &p.LiquidBondDenom, validateLiquidBondDenom),
 		paramstypes.NewParamSetPair(KeyWhitelistedValidators, &p.WhitelistedValidators, validateWhitelistedValidators),
 		paramstypes.NewParamSetPair(KeyUnstakeFeeRate, &p.UnstakeFeeRate, validateUnstakeFeeRate),
+		paramstypes.NewParamSetPair(KeyStakeFeeRate, &p.StakeFeeRate, validateStakeFeeRate),
+		paramstypes.NewParamSetPair(KeyRestakeFeeRate, &p.RestakeFeeRate, validateRestakeFeeRate),
+		paramstypes.NewParamSetPair(KeyRedemptionFeeRate, &p.RedemptionFeeRate, validateRedemptionFeeRate),
 		paramstypes.NewParamSetPair(KeyMinLiquidStakingAmount, &p.MinLiquidStakingAmount, validateMinLiquidStakingAmount),
+		paramstypes.NewParamSetPair(KeyAdminAddress, &p.AdminAddress, validateAdminAddress),
+		paramstypes.NewParamSetPair(KeyFeeAddress, &p.FeeAddress, validateFeeAddress),
 	}
 }
 
@@ -84,7 +96,12 @@ func (p Params) Validate() error {
 		{p.LiquidBondDenom, validateLiquidBondDenom},
 		{p.WhitelistedValidators, validateWhitelistedValidators},
 		{p.UnstakeFeeRate, validateUnstakeFeeRate},
+		{p.StakeFeeRate, validateStakeFeeRate},
+		{p.RestakeFeeRate, validateRestakeFeeRate},
+		{p.RedemptionFeeRate, validateRedemptionFeeRate},
 		{p.MinLiquidStakingAmount, validateMinLiquidStakingAmount},
+		{p.AdminAddress, validateAdminAddress},
+		{p.FeeAddress, validateFeeAddress},
 	} {
 		if err := v.validator(v.value); err != nil {
 			return err
@@ -159,6 +176,69 @@ func validateUnstakeFeeRate(i interface{}) error {
 	return nil
 }
 
+func validateStakeFeeRate(i interface{}) error {
+	v, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.IsNil() {
+		return fmt.Errorf("stake fee rate must not be nil")
+	}
+
+	if v.IsNegative() {
+		return fmt.Errorf("stake fee rate must not be negative: %s", v)
+	}
+
+	if v.GT(sdk.OneDec()) {
+		return fmt.Errorf("stake fee rate too large: %s", v)
+	}
+
+	return nil
+}
+
+func validateRestakeFeeRate(i interface{}) error {
+	v, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.IsNil() {
+		return fmt.Errorf("Restake fee rate must not be nil")
+	}
+
+	if v.IsNegative() {
+		return fmt.Errorf("Restake fee rate must not be negative: %s", v)
+	}
+
+	if v.GT(sdk.OneDec()) {
+		return fmt.Errorf("Restake fee rate too large: %s", v)
+	}
+
+	return nil
+}
+
+func validateRedemptionFeeRate(i interface{}) error {
+	v, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.IsNil() {
+		return fmt.Errorf("Redemption fee rate must not be nil")
+	}
+
+	if v.IsNegative() {
+		return fmt.Errorf("Redemption fee rate must not be negative: %s", v)
+	}
+
+	if v.GT(sdk.OneDec()) {
+		return fmt.Errorf("Redemption fee rate too large: %s", v)
+	}
+
+	return nil
+}
+
 func validateMinLiquidStakingAmount(i interface{}) error {
 	v, ok := i.(math.Int)
 	if !ok {
@@ -173,5 +253,29 @@ func validateMinLiquidStakingAmount(i interface{}) error {
 		return fmt.Errorf("min liquid staking amount must not be negative: %s", v)
 	}
 
+	return nil
+}
+
+func validateAdminAddress(i interface{}) error {
+	v, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	_, err := sdk.AccAddressFromBech32(v)
+	if err != nil {
+		return fmt.Errorf("cannot convert admin address to bech32, invalid address: %s, err: %v", v, err)
+	}
+	return nil
+}
+
+func validateFeeAddress(i interface{}) error {
+	v, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	_, err := sdk.AccAddressFromBech32(v)
+	if err != nil {
+		return fmt.Errorf("cannot convert fee address to bech32, invalid address: %s, err: %v", v, err)
+	}
 	return nil
 }
