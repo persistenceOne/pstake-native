@@ -50,21 +50,14 @@ func (k *Keeper) GenerateAndExecuteICATx(
 	}
 	ctx.EventManager().EmitEvents(res.GetEvents())
 
-	// retrieve the channel id from the result events
-	channelID := ""
-	for _, event := range res.Events {
-		for _, attribute := range event.Attributes {
-			if string(attribute.Key) == PacketSrcChannelEvent {
-				channelID = string(attribute.Value)
-			}
-		}
-	}
-
-	// we need the channel id to build the deposit channel id
-	if channelID == "" {
+	channelID, found := k.icaControllerKeeper.GetOpenActiveChannel(
+		ctx, connectionID,
+		icatypes.ControllerPortPrefix+ownerID,
+	)
+	if !found {
 		return "", errorsmod.Wrapf(
-			liquidstakeibctypes.ErrInvalidChannelID,
-			"cannot find a valid channel id for transaction: %v",
+			liquidstakeibctypes.ErrICATxFailure,
+			"failed to get ica active channel: %v",
 			err,
 		)
 	}
