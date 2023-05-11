@@ -1,0 +1,141 @@
+syntax = "proto3";
+package pstake.liquidstakeibc.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types";
+
+message HostChain {
+  option (gogoproto.goproto_stringer) = true;
+
+  // host chain id
+  string chain_id = 1;
+  // ibc connection id
+  string connection_id = 2;
+  // module params
+  HostChainLSParams params = 3;
+  // native token denom
+  string host_denom = 4;
+  // ibc connection channel id
+  string channel_id = 5;
+  // ibc connection port id
+  string port_id = 6;
+  // delegation host account
+  ICAAccount delegation_account = 7;
+  // reward host account
+  ICAAccount rewards_account = 8;
+  // validator set
+  repeated Validator validators = 9;
+  // minimum ls amount
+  string minimum_deposit = 11 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // redemption rate
+  string c_value = 12 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  // the hash of the next validator set
+  bytes next_valset_hash = 13;
+}
+
+message HostChainLSParams {
+  string deposit_fee = 1 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ]; // protocol fee in percentage
+  string restake_fee = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ]; // protocol fee in percentage
+  string unstake_fee = 3 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ]; // protocol fee in percentage
+  string redemption_fee = 4 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ]; // protocol fee in percentage
+}
+
+message ICAAccount {
+  enum ChannelState {
+    // ICA channel is being created
+    ICA_CHANNEL_CREATING = 0;
+    // ICA is established and the account can be used
+    ICA_CHANNEL_CREATED = 1;
+  }
+
+  // address of the ica on the controller chain
+  string address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // token balance of the ica
+  cosmos.base.v1beta1.Coin balance = 2 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false
+  ];
+  // owner string
+  string owner = 3;
+  ChannelState channel_state = 4;
+}
+
+message Validator {
+  // valoper address
+  string operator_address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // validator status
+  string status = 2;
+  // validator weight in the set
+  string weight = 3 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  // total amount delegated
+  string delegated_amount = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message Deposit {
+  enum DepositState {
+    // no action has been initiated on the deposit
+    DEPOSIT_PENDING = 0;
+    // deposit sent to the host chain delegator address
+    DEPOSIT_SENT = 1;
+    // deposit received by the host chain delegator address
+    DEPOSIT_RECEIVED = 2;
+    // delegation submitted for the deposit on the host chain
+    DEPOSIT_DELEGATING = 3;
+  }
+
+  // deposit target chain
+  string chain_id = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [
+    (gogoproto.nullable) = false
+  ];
+  // epoch number of the deposit
+  string epoch = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // state
+  DepositState state = 4;
+  // sequence id of the ibc transaction
+  string ibc_sequence_id = 5;
+}
+
+message KVUpdate {
+  string key = 1;
+  string value = 2;
+}

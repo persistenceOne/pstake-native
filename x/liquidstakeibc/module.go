@@ -93,13 +93,21 @@ func (a AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.R
 	cdc.MustUnmarshalJSON(data, &genesisState)
 	telemetry.MeasureSince(start, "InitGenesis", "crisis", "unmarshal")
 
-	a.keeper.InitGenesis(ctx, &genesisState)
+	InitGenesis(ctx, a.keeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 func (a AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	gs := a.keeper.ExportGenesis(ctx)
+	gs := ExportGenesis(ctx, a.keeper)
 	return cdc.MustMarshalJSON(gs)
+}
+
+func (a AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+	a.keeper.BeginBlock(ctx)
+}
+
+func (a AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return []abci.ValidatorUpdate{}
 }
 
 func (a AppModule) RegisterInvariants(registry sdk.InvariantRegistry) {}
@@ -119,7 +127,7 @@ func (a AppModule) LegacyQuerierHandler(amino *codec.LegacyAmino) sdk.Querier {
 
 func (a AppModule) RegisterServices(configurator module.Configurator) {
 	types.RegisterMsgServer(configurator.MsgServer(), keeper.NewMsgServerImpl(a.keeper))
-	types.RegisterQueryServer(configurator.QueryServer(), a.keeper)
+	types.RegisterQueryServer(configurator.QueryServer(), &a.keeper)
 }
 
 func (a AppModule) ConsensusVersion() uint64 {
