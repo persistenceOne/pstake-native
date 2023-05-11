@@ -37,8 +37,6 @@ func (k *Keeper) HandleDelegateResponse(ctx sdk.Context, msg sdk.Msg, channel st
 
 	// update delegation account balance
 	hc.DelegationAccount.Balance = hc.DelegationAccount.Balance.Sub(parsedMsg.Amount)
-	hc.CValue = k.GetHostChainCValue(ctx, hc)
-	k.SetHostChain(ctx, hc)
 
 	// get the validator that the delegation was performed to
 	validator, found := hc.GetValidator(parsedMsg.ValidatorAddress)
@@ -53,6 +51,10 @@ func (k *Keeper) HandleDelegateResponse(ctx sdk.Context, msg sdk.Msg, channel st
 	// update the validator delegated amount
 	validator.DelegatedAmount = validator.DelegatedAmount.Add(parsedMsg.Amount.Amount)
 	k.SetHostChainValidator(ctx, hc, validator)
+
+	// update host the host chain c value
+	hc.CValue = k.GetHostChainCValue(ctx, hc)
+	k.SetHostChain(ctx, hc)
 
 	k.Logger(ctx).Info(
 		"Received delegation acknowledgement",

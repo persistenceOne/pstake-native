@@ -246,10 +246,6 @@ func (k msgServer) LiquidStake(
 		)
 	}
 
-	// update the host chain c value
-	hostChain.CValue = k.GetHostChainCValue(ctx, hostChain)
-	k.SetHostChain(ctx, hostChain)
-
 	// add the deposit amount to the deposit record for that chain/epoch
 	currentEpoch := k.GetEpochNumber(ctx, types.DelegationEpoch)
 	deposit, found := k.GetDepositForChainAndEpoch(ctx, hostChain.ChainId, currentEpoch)
@@ -273,6 +269,11 @@ func (k msgServer) LiquidStake(
 			types.ModuleName, err,
 		)
 	}
+
+	// update the host chain c value
+	//cval := k.GetHostChainCValue(ctx, hostChain)
+	//hostChain.CValue = cval
+	//k.SetHostChain(ctx, hostChain)
 
 	// calculate protocol fee
 	protocolFeeAmount := hostChain.Params.DepositFee.MulInt(mintToken.Amount)
