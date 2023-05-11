@@ -49,7 +49,7 @@ func (k *Keeper) OnChanOpenAck(
 	}
 
 	// get the port owner from the port id
-	portOwner, found := strings.CutPrefix(portID, icatypes.ControllerPortPrefix)
+	_, portOwner, found := strings.Cut(portID, icatypes.ControllerPortPrefix)
 	if !found {
 		return fmt.Errorf("unable to parse port id %s", portID)
 	}
