@@ -34,8 +34,14 @@ service Query {
     option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/deposits";
   }
 
-}
+  rpc Unbonding(QueryUnbondingRequest) returns (QueryUnbondingResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/unbonding/{epoch_number}";
+  }
 
+  rpc UserUnbonding(QueryUserUnbondingRequest) returns (QueryUserUnbondingResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/user_unbonding/{address}/{epoch_number}";
+  }
+}
 
 message QueryParamsRequest {}
 
@@ -67,4 +73,19 @@ message QueryDepositsRequest {
 message QueryDepositsResponse {
   repeated Deposit deposits = 1 [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryUnbondingRequest { int64 epoch_number = 1; }
+
+message QueryUnbondingResponse {
+  Unbonding unbonding = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryUserUnbondingRequest {
+  string address = 1;
+  int64 epoch_number = 2;
+}
+
+message QueryUserUnbondingResponse {
+  UserUnbonding user_unbonding = 1 [ (gogoproto.nullable) = false ];
 }
