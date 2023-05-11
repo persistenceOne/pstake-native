@@ -137,26 +137,30 @@ message Deposit {
 }
 
 message Unbonding {
+  // unbonding target chain
+  string chain_id = 1;
   // epoch number of the unbonding record
-  int64 epoch_number = 1;
+  int64 epoch_number = 2;
   // time when the unbonding matures and can be collected
-  google.protobuf.Timestamp mature_time = 2
+  google.protobuf.Timestamp mature_time = 3
   [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
   // stk token amount that is burned with the unbonding
-  cosmos.base.v1beta1.Coin burn_amount = 3 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin burn_amount = 4 [ (gogoproto.nullable) = false ];
   // host token amount that is being unbonded
-  cosmos.base.v1beta1.Coin unbonded_amount = 4 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin unbonded_amount = 5 [ (gogoproto.nullable) = false ];
   // whether the unbonding has failed or not
-  bool failed = 5;
+  bool failed = 6;
 }
 
 message UserUnbonding {
+  // unbonding target chain
+  string chain_id = 1;
   // epoch when the unbonding started
-  int64 epoch_number = 1;
+  int64 epoch_number = 2;
   // address which requested the unbonding
-  string address = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string address = 3 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   // amount that is being unbonded
-  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
 }
 
 message KVUpdate {

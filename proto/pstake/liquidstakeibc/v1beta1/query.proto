@@ -75,7 +75,10 @@ message QueryDepositsResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryUnbondingRequest { int64 epoch_number = 1; }
+message QueryUnbondingRequest {
+  int64 epoch_number = 1;
+  string host_denom = 2;
+}
 
 message QueryUnbondingResponse {
   Unbonding unbonding = 1 [ (gogoproto.nullable) = false ];
@@ -84,6 +87,7 @@ message QueryUnbondingResponse {
 message QueryUserUnbondingRequest {
   string address = 1;
   int64 epoch_number = 2;
+  string host_denom = 3;
 }
 
 message QueryUserUnbondingResponse {

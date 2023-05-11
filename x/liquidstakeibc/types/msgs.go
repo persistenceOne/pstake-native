@@ -212,10 +212,11 @@ func (m *MsgLiquidStake) ValidateBasic() error {
 	return ibctransfertypes.ValidateIBCDenom(m.Amount.Denom)
 }
 
-func NewMsgLiquidUnstake(amount sdk.Coin, address sdk.AccAddress) *MsgLiquidUnstake {
+func NewMsgLiquidUnstake(amount sdk.Coin, address sdk.AccAddress, hostDenom string) *MsgLiquidUnstake {
 	return &MsgLiquidUnstake{
 		DelegatorAddress: address.String(),
 		Amount:           amount,
+		HostDenom:        hostDenom,
 	}
 }
 
