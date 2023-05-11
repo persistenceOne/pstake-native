@@ -170,6 +170,7 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 				},
 			)
 
+			hc.CValue = k.GetHostChainCValue(ctx, hc)
 			k.SetHostChain(ctx, hc)
 		}
 	}
