@@ -147,7 +147,8 @@ var (
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
-		gov.NewAppModuleBasic([]govclient.ProposalHandler{paramsclient.ProposalHandler,
+		gov.NewAppModuleBasic([]govclient.ProposalHandler{
+			paramsclient.ProposalHandler,
 			distrclient.ProposalHandler,
 			upgradeclient.LegacyProposalHandler,
 			upgradeclient.LegacyCancelProposalHandler,
@@ -194,13 +195,15 @@ var (
 		lscosmostypes.RewardModuleAccount:        nil,
 		lscosmostypes.UndelegationModuleAccount:  nil,
 		lscosmostypes.RewardBoosterModuleAccount: nil, //legacy, blocklist, no permissions
-		liquidstakeibctypes.ModuleName:           nil,
+		liquidstakeibctypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
+		liquidstakeibctypes.DepositModuleAccount: nil,
 		lspersistencetypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 	}
 
 	receiveAllowedMAcc = map[string]bool{
-		lscosmostypes.UndelegationModuleAccount: true,
-		lscosmostypes.DelegationModuleAccount:   true,
+		lscosmostypes.UndelegationModuleAccount:  true,
+		lscosmostypes.DelegationModuleAccount:    true,
+		liquidstakeibctypes.DepositModuleAccount: true,
 	}
 )
 
@@ -499,42 +502,52 @@ func NewpStakeApp(
 
 	_ = app.InterchainQueryKeeper.SetCallbackHandler(lscosmostypes.ModuleName, app.LSCosmosKeeper.CallbackHandler())
 
-	app.LiquidStakeIBCKeeper = liquidstakeibckeeper.NewKeeper(appCodec, keys[liquidstakeibctypes.StoreKey], app.AccountKeeper,
-		app.BankKeeper, app.GetSubspace(liquidstakeibctypes.ModuleName), app.MsgServiceRouter())
+	app.LiquidStakeIBCKeeper = liquidstakeibckeeper.NewKeeper(
+		appCodec,
+		keys[liquidstakeibctypes.StoreKey],
+		app.AccountKeeper,
+		app.BankKeeper,
+		epochsKeeper,
+		app.ICAControllerKeeper,
+		app.IBCKeeper, // TODO: Move to module interface
+		&app.InterchainQueryKeeper,
+		app.GetSubspace(liquidstakeibctypes.ModuleName),
+		app.MsgServiceRouter(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	_ = app.InterchainQueryKeeper.SetCallbackHandler(liquidstakeibctypes.ModuleName, app.LiquidStakeIBCKeeper.CallbackHandler())
+
 	liquidStakeIBCModule := liquidstakeibc.NewIBCModule(app.LiquidStakeIBCKeeper)
 
 	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()
-	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(ibchookertypes.NewMultiStakingHooks(app.LSCosmosKeeper.NewIBCTransferHooks()))
+	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(
+		ibchookertypes.NewMultiStakingHooks(
+			app.LSCosmosKeeper.NewIBCTransferHooks(),
+			app.LiquidStakeIBCKeeper.NewIBCTransferHooks(),
+		),
+	)
 
-	var transferStack porttypes.IBCModule
-	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	var transferStack porttypes.IBCModule = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = ibchooker.NewAppModule(app.TransferHooksKeeper, transferStack)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 
-	var icaHostStack porttypes.IBCModule
-	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
+	var icaHostStack porttypes.IBCModule = icahost.NewIBCModule(app.ICAHostKeeper)
 	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
 
-	// Information will flow: ibc-port -> icaController -> lscosmos. -> LiquidStakeIBCKeeper.
-	//lscosmosModule := lscosmos.NewAppModule(appCodec, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
-	//icaControllerIBCModule := icacontroller.NewIBCModule(lscosmosModule, app.ICAControllerKeeper)
-
-	var icaControllerStack porttypes.IBCModule
-	icaControllerStack = liquidStakeIBCModule
-	//TODO evaluate if lscosmos can be dropped after migration
-	icaControllerStack = lscosmos.NewAppModule(appCodec, icaControllerStack, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
+	var icaControllerStack porttypes.IBCModule = liquidStakeIBCModule
+	//icaControllerStack = lscosmos.NewAppModule(appCodec, icaControllerStack, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
-	//icaControllerStack = ibcfee.NewIBCModule(icaControllerStack, app.IBCFeeKeeper)
 
-	// This module is not being used for any routing, can be removed, only part of ModuleManager.
-	// using ibcTransferHooksMiddleware instead.
-	//routerModule := router.NewAppModule(app.RouterKeeper, transferIBCModule)
-	// create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostStack).
+	ibcRouter.
 		AddRoute(ibctransfertypes.ModuleName, transferStack).
+		AddRoute(icahosttypes.SubModuleName, icaHostStack).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-		AddRoute(lscosmostypes.ModuleName, icaControllerStack)
+		AddRoute(liquidstakeibctypes.ModuleName, icaControllerStack)
+
+	// TODO: Migrate
+	//AddRoute(lscosmostypes.ModuleName, icaControllerStack)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -577,7 +590,10 @@ func NewpStakeApp(
 	app.EvidenceKeeper = *evidenceKeeper
 
 	app.EpochsKeeper = *epochsKeeper.SetHooks(
-		epochstypes.NewMultiEpochHooks(app.LSCosmosKeeper.NewEpochHooks()),
+		epochstypes.NewMultiEpochHooks(
+			app.LSCosmosKeeper.NewEpochHooks(),
+			app.LiquidStakeIBCKeeper.NewEpochHooks(),
+		),
 	)
 
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
