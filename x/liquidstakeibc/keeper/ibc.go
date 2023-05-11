@@ -250,6 +250,8 @@ func (k *Keeper) handleSuccessfulAck(
 			if err = k.HandleDelegateResponse(ctx, msg, channel, sequence); err != nil {
 				return err
 			}
+		case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
+			// handle this case
 		case sdk.MsgTypeURL(&distributiontypes.MsgSetWithdrawAddress{}):
 			if err = k.HandleSetWithdrawAddressResponse(ctx, msg); err != nil {
 				return err

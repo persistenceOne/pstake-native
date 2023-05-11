@@ -104,6 +104,16 @@ func (k *Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNum
 		}
 	}
 
+	if epochIdentifier == liquidstakeibctypes.UndelegationEpoch {
+		workflow := func(ctx sdk.Context) error {
+			return k.UndelegationWorkflow(ctx, epochNumber)
+		}
+		err := utils.ApplyFuncIfNoError(ctx, workflow)
+		if err != nil {
+			// handle this case
+		}
+	}
+
 	return nil
 }
 
@@ -281,3 +291,5 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
 
 	return nil
 }
+
+func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) error {}

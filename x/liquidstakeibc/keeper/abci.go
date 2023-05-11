@@ -20,6 +20,9 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 		// attempt to delegate
 		k.DoDelegate(ctx, hc)
 
+		// attempt to process any matured unbondings
+		k.DoProcessMaturedUndelegations(ctx, hc)
+
 		// attempt to update the validator set if there are any changes
 		k.DoUpdateValidatorSet(ctx, hc)
 	}
@@ -141,3 +144,5 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc *types.HostChain) {
 		k.SetHostChain(ctx, hc)
 	}
 }
+
+func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostChain) {}

@@ -17,8 +17,12 @@ const (
 	// DepositModuleAccount DepositModuleAccountName
 	DepositModuleAccount = ModuleName + "_deposit_account"
 
+	// UndelegationModuleAccount UndelegationModuleAccountName
+	UndelegationModuleAccount = ModuleName + "_undelegation_account"
+
 	// Epoch identifiers
-	DelegationEpoch = "day"
+	DelegationEpoch   = "day"
+	UndelegationEpoch = "day"
 
 	// ICA types
 	DelegateICAType = "delegate"
