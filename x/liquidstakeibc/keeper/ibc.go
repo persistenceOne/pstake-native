@@ -245,7 +245,7 @@ func (k *Keeper) handleSuccessfulAck(
 	}
 
 	for _, msg := range messages {
-		switch sdk.MsgTypeURL(msg) { //nolint:gocritic
+		switch sdk.MsgTypeURL(msg) {
 		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 			if err = k.HandleDelegateResponse(ctx, msg, channel, sequence); err != nil {
 				return err
