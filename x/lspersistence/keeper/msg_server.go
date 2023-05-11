@@ -9,7 +9,9 @@ import (
 	"context"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
@@ -79,7 +81,26 @@ func (k msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 	}, nil
 }
 
-func (k msgServer) UpdateParams(ctx context.Context, params *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
-	//TODO implement me
+func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	params := k.GetParams(ctx)
+	if !(msg.Authority == k.authority || msg.Authority == params.AdminAddress) {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid authority; expected %s or %s, got %s", k.authority, params.AdminAddress, msg.Authority)
+	}
+
+	k.SetParams(ctx, msg.Params)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+		sdk.NewEvent(
+			types.EventTypeMsgUpdateParams,
+			sdk.NewAttribute(types.AttributeKeyAuthority, msg.Authority),
+			sdk.NewAttribute(types.AttributeKeyUpdatedParams, msg.Params.String()),
+		),
+	})
 	return &types.MsgUpdateParamsResponse{}, nil
 }

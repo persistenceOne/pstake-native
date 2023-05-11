@@ -123,6 +123,11 @@ func validateLiquidBondDenom(i interface{}) error {
 	if err := sdk.ValidateDenom(v); err != nil {
 		return err
 	}
+
+	if v != DefaultLiquidBondDenom {
+		return fmt.Errorf("invalid liquid bond denom, can only be stk/uxprt")
+	}
+
 	return nil
 }
 
