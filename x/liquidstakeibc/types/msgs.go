@@ -165,6 +165,7 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 	return nil
 }
 
+//nolint:interfacer
 func NewMsgLiquidStake(amount sdk.Coin, address sdk.AccAddress) *MsgLiquidStake {
 	return &MsgLiquidStake{
 		DelegatorAddress: address.String(),
@@ -212,6 +213,7 @@ func (m *MsgLiquidStake) ValidateBasic() error {
 	return ibctransfertypes.ValidateIBCDenom(m.Amount.Denom)
 }
 
+//nolint:interfacer
 func NewMsgLiquidUnstake(amount sdk.Coin, address sdk.AccAddress, hostDenom string) *MsgLiquidUnstake {
 	return &MsgLiquidUnstake{
 		DelegatorAddress: address.String(),

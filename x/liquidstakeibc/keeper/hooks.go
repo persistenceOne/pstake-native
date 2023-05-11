@@ -109,7 +109,7 @@ func (k *Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNum
 			return k.UndelegationWorkflow(ctx, epochNumber)
 		}
 		err := utils.ApplyFuncIfNoError(ctx, workflow)
-		if err != nil {
+		if err != nil { //nolint:staticcheck
 			// handle this case
 		}
 	}
@@ -292,4 +292,6 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
 	return nil
 }
 
-func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) error {}
+func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) error {
+	return nil
+}
