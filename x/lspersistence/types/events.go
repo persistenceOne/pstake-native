@@ -4,6 +4,7 @@ package types
 const (
 	EventTypeMsgLiquidStake             = TypeMsgLiquidStake
 	EventTypeMsgLiquidUnstake           = TypeMsgLiquidUnstake
+	EventTypeMsgUpdateParams            = TypeMsgUpdateParams
 	EventTypeAddLiquidValidator         = "add_liquid_validator"
 	EventTypeRemoveLiquidValidator      = "remove_liquid_validator"
 	EventTypeBeginRebalancing           = "begin_rebalancing"
@@ -19,6 +20,9 @@ const (
 	AttributeKeyLiquidValidator       = "liquid_validator"
 	AttributeKeyRedelegationCount     = "redelegation_count"
 	AttributeKeyRedelegationFailCount = "redelegation_fail_count"
+
+	AttributeKeyAuthority     = "authority"
+	AttributeKeyUpdatedParams = "updated_params"
 
 	AttributeValueCategory = ModuleName
 )
