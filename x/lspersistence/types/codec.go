@@ -7,11 +7,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// RegisterLegacyAminoCodec registers the necessary x/liquidstaking interfaces and concrete types
+// RegisterLegacyAminoCodec registers the necessary x/lspersistence interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgLiquidStake{}, "liquidstaking/MsgLiquidStake", nil)
-	cdc.RegisterConcrete(&MsgLiquidUnstake{}, "liquidstaking/MsgLiquidUnstake", nil)
+	cdc.RegisterConcrete(&MsgLiquidStake{}, "lspersistence/MsgLiquidStake", nil)
+	cdc.RegisterConcrete(&MsgLiquidUnstake{}, "lspersistence/MsgLiquidUnstake", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "lspersistence/MsgUpdateParams", nil)
 }
 
 // RegisterInterfaces registers the x/liquidstaking interfaces types with the interface registry.
@@ -20,6 +21,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		(*sdk.Msg)(nil),
 		&MsgLiquidStake{},
 		&MsgLiquidUnstake{},
+		&MsgUpdateParams{},
 	)
 }
 
