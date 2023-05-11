@@ -17,10 +17,15 @@ func TestParams(t *testing.T) {
 
 	params := types.DefaultParams()
 
-	paramsStr := `liquid_bond_denom: bstake
+	paramsStr := `liquid_bond_denom: stk/uxprt
 whitelisted_validators: []
-unstake_fee_rate: "0.001000000000000000"
-min_liquid_staking_amount: "1000000"
+stake_fee_rate: "0.000000000000000000"
+unstake_fee_rate: "0.000000000000000000"
+redemption_fee_rate: "0.025000000000000000"
+restake_fee_rate: "0.050000000000000000"
+min_liquid_staking_amount: "10000"
+admin_address: persistence1kk3vjcjsvy3kd6389lavdkt5f2h5k3d2ry296c
+fee_address: persistence1kk3vjcjsvy3kd6389lavdkt5f2h5k3d2ry296c
 `
 	require.Equal(t, paramsStr, params.String())
 
@@ -30,12 +35,17 @@ min_liquid_staking_amount: "1000000"
 			TargetWeight:     sdk.NewInt(10),
 		},
 	}
-	paramsStr = `liquid_bond_denom: bstake
+	paramsStr = `liquid_bond_denom: stk/uxprt
 whitelisted_validators:
 - validator_address: persistencevaloper19rz0gtqf88vwk6dwz522ajpqpv5swunqm9z90m
   target_weight: "10"
-unstake_fee_rate: "0.001000000000000000"
-min_liquid_staking_amount: "1000000"
+stake_fee_rate: "0.000000000000000000"
+unstake_fee_rate: "0.000000000000000000"
+redemption_fee_rate: "0.025000000000000000"
+restake_fee_rate: "0.050000000000000000"
+min_liquid_staking_amount: "10000"
+admin_address: persistence1kk3vjcjsvy3kd6389lavdkt5f2h5k3d2ry296c
+fee_address: persistence1kk3vjcjsvy3kd6389lavdkt5f2h5k3d2ry296c
 `
 	require.Equal(t, paramsStr, params.String())
 }
