@@ -23,6 +23,8 @@ type Keeper struct {
 	stakingKeeper  types.StakingKeeper
 	distrKeeper    types.DistrKeeper
 	slashingKeeper types.SlashingKeeper
+
+	authority string
 }
 
 // NewKeeper returns a liquidstaking keeper. It handles:
@@ -31,7 +33,7 @@ type Keeper struct {
 // - minting, burning PoolCoins
 func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, stakingKeeper types.StakingKeeper,
-	distrKeeper types.DistrKeeper, slashingKeeper types.SlashingKeeper,
+	distrKeeper types.DistrKeeper, slashingKeeper types.SlashingKeeper, authority string,
 ) Keeper {
 	// ensure liquidstaking module account is set
 	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
@@ -52,6 +54,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramt
 		stakingKeeper:  stakingKeeper,
 		distrKeeper:    distrKeeper,
 		slashingKeeper: slashingKeeper,
+		authority:      authority,
 	}
 }
 
