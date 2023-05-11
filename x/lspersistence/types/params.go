@@ -204,15 +204,15 @@ func validateRestakeFeeRate(i interface{}) error {
 	}
 
 	if v.IsNil() {
-		return fmt.Errorf("Restake fee rate must not be nil")
+		return fmt.Errorf("restake fee rate must not be nil")
 	}
 
 	if v.IsNegative() {
-		return fmt.Errorf("Restake fee rate must not be negative: %s", v)
+		return fmt.Errorf("restake fee rate must not be negative: %s", v)
 	}
 
 	if v.GT(sdk.OneDec()) {
-		return fmt.Errorf("Restake fee rate too large: %s", v)
+		return fmt.Errorf("restake fee rate too large: %s", v)
 	}
 
 	return nil
@@ -225,15 +225,15 @@ func validateRedemptionFeeRate(i interface{}) error {
 	}
 
 	if v.IsNil() {
-		return fmt.Errorf("Redemption fee rate must not be nil")
+		return fmt.Errorf("redemption fee rate must not be nil")
 	}
 
 	if v.IsNegative() {
-		return fmt.Errorf("Redemption fee rate must not be negative: %s", v)
+		return fmt.Errorf("redemption fee rate must not be negative: %s", v)
 	}
 
 	if v.GT(sdk.OneDec()) {
-		return fmt.Errorf("Redemption fee rate too large: %s", v)
+		return fmt.Errorf("redemption fee rate too large: %s", v)
 	}
 
 	return nil
