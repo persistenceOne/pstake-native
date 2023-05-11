@@ -1,0 +1,16 @@
+{
+  "liquid_bond_denom": "stk/uxprt",
+  "whitelisted_validators": [
+    {
+      "validator_address": "persistencevaloper1hcqg5wj9t42zawqkqucs7la85ffyv08lmnhye9",
+      "target_weight": "10"
+    }
+  ],
+  "stake_fee_rate": "0.000000000000000000",
+  "unstake_fee_rate": "0.000000000000000000",
+  "redemption_fee_rate": "0.025000000000000000",
+  "restake_fee_rate": "0.050000000000000000",
+  "min_liquid_staking_amount": "10000",
+  "admin_address": "persistence1kk3vjcjsvy3kd6389lavdkt5f2h5k3d2ry296c",
+  "fee_address": "persistence1kk3vjcjsvy3kd6389lavdkt5f2h5k3d2ry296c"
+}
