@@ -110,3 +110,17 @@ func (k *Keeper) Deposits(
 		Pagination: pagination,
 	}, nil
 }
+
+func (k *Keeper) Unbonding(
+	goCtx context.Context,
+	request *types.QueryUnbondingRequest,
+) (*types.QueryUnbondingResponse, error) {
+	return nil, nil
+}
+
+func (k *Keeper) UserUnbondings(
+	goCtx context.Context,
+	request *types.QueryUserUnbondingsRequest,
+) (*types.QueryUserUnbondingsResponse, error) {
+	return nil, nil
+}

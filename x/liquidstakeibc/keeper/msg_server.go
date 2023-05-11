@@ -270,11 +270,6 @@ func (k msgServer) LiquidStake(
 		)
 	}
 
-	// update the host chain c value
-	//cval := k.GetHostChainCValue(ctx, hostChain)
-	//hostChain.CValue = cval
-	//k.SetHostChain(ctx, hostChain)
-
 	// calculate protocol fee
 	protocolFeeAmount := hostChain.Params.DepositFee.MulInt(mintToken.Amount)
 	protocolFee, _ := sdktypes.NewDecCoinFromDec(mintDenom, protocolFeeAmount).TruncateDecimal()
@@ -326,4 +321,12 @@ func (k msgServer) LiquidStake(
 		)},
 	)
 	return &types.MsgLiquidStakeResponse{}, nil
+}
+
+// LiquidUnstake defines a method for unstaking liquid staked tokens
+func (k msgServer) LiquidUnstake(
+	goCtx context.Context,
+	msg *types.MsgLiquidUnstake,
+) (*types.MsgLiquidUnstakeResponse, error) {
+	return nil, nil
 }

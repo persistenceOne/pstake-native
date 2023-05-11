@@ -15,12 +15,14 @@ const (
 	MsgTypeRegisterHostChain string = "msg_register_host_chain"
 	MsgTypeUpdateHostChain   string = "msg_update_host_chain"
 	MsgTypeLiquidStake       string = "msg_liquid_stake"
+	MsgTypeLiquidUnstake     string = "msg_liquid_unstake"
 )
 
 var (
 	_ sdk.Msg = &MsgRegisterHostChain{}
 	_ sdk.Msg = &MsgUpdateHostChain{}
 	_ sdk.Msg = &MsgLiquidStake{}
+	_ sdk.Msg = &MsgLiquidUnstake{}
 )
 
 func NewMsgRegisterHostChain(
@@ -209,4 +211,53 @@ func (m *MsgLiquidStake) ValidateBasic() error {
 	}
 
 	return ibctransfertypes.ValidateIBCDenom(m.Amount.Denom)
+}
+
+//nolint:interfacer
+func NewMsgLiquidUnstake(amount sdk.Coin, address sdk.AccAddress, hostDenom string) *MsgLiquidUnstake {
+	return &MsgLiquidUnstake{
+		DelegatorAddress: address.String(),
+		Amount:           amount,
+		HostDenom:        hostDenom,
+	}
+}
+
+func (m *MsgLiquidUnstake) Route() string {
+	return RouterKey
+}
+
+// Type should return the action
+func (m *MsgLiquidUnstake) Type() string {
+	return MsgTypeLiquidUnstake
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgLiquidUnstake) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgLiquidUnstake) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// ValidateBasic performs stateless checks
+func (m *MsgLiquidUnstake) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.DelegatorAddress)
+	}
+
+	if !m.Amount.IsValid() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
+	}
+
+	if !m.Amount.IsPositive() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
+	}
+
+	return nil
 }
