@@ -546,6 +546,7 @@ func NewpStakeApp(
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(liquidstakeibctypes.ModuleName, icaControllerStack)
 
+	// TODO: Migrate
 	//AddRoute(lscosmostypes.ModuleName, icaControllerStack)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
