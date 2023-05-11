@@ -27,6 +27,7 @@ func NewTxCmd() *cobra.Command {
 		NewRegisterHostChainCmd(),
 		NewUpdateHostChainCmd(),
 		NewLiquidStakeCmd(),
+		NewLiquidUnstakeCmd(),
 	)
 
 	return txCmd
@@ -126,6 +127,35 @@ func NewLiquidStakeCmd() *cobra.Command {
 
 			delegatorAddress := clientctx.GetFromAddress()
 			msg := types.NewMsgLiquidStake(amount, delegatorAddress)
+
+			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewLiquidUnstakeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "liquid-unstake [amount]",
+		Short: `Unstake stk tokens from a registered host chain`,
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			delegatorAddress := clientctx.GetFromAddress()
+			msg := types.NewMsgLiquidUnstake(amount, delegatorAddress)
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
 		},
