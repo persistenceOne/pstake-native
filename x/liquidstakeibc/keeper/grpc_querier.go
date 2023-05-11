@@ -118,9 +118,9 @@ func (k *Keeper) Unbonding(
 	return nil, nil
 }
 
-func (k *Keeper) UserUnbonding(
+func (k *Keeper) UserUnbondings(
 	goCtx context.Context,
-	request *types.QueryUserUnbondingRequest,
-) (*types.QueryUserUnbondingResponse, error) {
+	request *types.QueryUserUnbondingsRequest,
+) (*types.QueryUserUnbondingsResponse, error) {
 	return nil, nil
 }

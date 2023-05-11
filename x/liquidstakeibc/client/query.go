@@ -156,12 +156,12 @@ func QueryDepositsCmd() *cobra.Command {
 // QueryUnbondingCmd returns an unbonding record.
 func QueryUnbondingCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "unbonding [epoch-number]",
+		Use:   "unbonding [epoch-number] [host-denom]",
 		Short: "Query an unbonding record",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(2),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`Query an unbonding record: $ %s query liquidstakeibc unbonding [epoch-number]`,
+				`Query an unbonding record: $ %s query liquidstakeibc unbonding [epoch-number] [host-denom]`,
 				version.AppName,
 			),
 		),
@@ -178,7 +178,13 @@ func QueryUnbondingCmd() *cobra.Command {
 				return err
 			}
 
-			res, err := queryClient.Unbonding(context.Background(), &types.QueryUnbondingRequest{EpochNumber: epochNumber})
+			res, err := queryClient.Unbonding(
+				context.Background(),
+				&types.QueryUnbondingRequest{
+					EpochNumber: epochNumber,
+					HostDenom:   args[1],
+				},
+			)
 			if err != nil {
 				return err
 			}
@@ -195,12 +201,12 @@ func QueryUnbondingCmd() *cobra.Command {
 // QueryUserUnbondingCmd returns a user unbonding record.
 func QueryUserUnbondingCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "user-unbonding [delegator-address] [epoch-number]",
+		Use:   "user-unbonding [delegator-address] [epoch-number] [host-denom]",
 		Short: "Query a user unbonding record",
 		Args:  cobra.ExactArgs(2),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`Query a user unbonding record: $ %s query liquidstakeibc user-unbonding [delegator-address] [epoch-number]`,
+				`Query a user unbonding record: $ %s query liquidstakeibc user-unbonding [delegator-address] [epoch-number] [host-denom]`,
 				version.AppName,
 			),
 		),
@@ -222,11 +228,12 @@ func QueryUserUnbondingCmd() *cobra.Command {
 				return err
 			}
 
-			res, err := queryClient.UserUnbonding(
+			res, err := queryClient.UserUnbondings(
 				context.Background(),
-				&types.QueryUserUnbondingRequest{
+				&types.QueryUserUnbondingsRequest{
 					Address:     args[0],
 					EpochNumber: epochNumber,
+					HostDenom:   args[2],
 				},
 			)
 			if err != nil {

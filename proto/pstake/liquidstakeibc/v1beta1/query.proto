@@ -38,7 +38,7 @@ service Query {
     option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/unbonding/{epoch_number}";
   }
 
-  rpc UserUnbonding(QueryUserUnbondingRequest) returns (QueryUserUnbondingResponse) {
+  rpc UserUnbondings(QueryUserUnbondingsRequest) returns (QueryUserUnbondingsResponse) {
     option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/user_unbonding/{address}/{epoch_number}";
   }
 }
@@ -84,12 +84,12 @@ message QueryUnbondingResponse {
   Unbonding unbonding = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryUserUnbondingRequest {
+message QueryUserUnbondingsRequest {
   string address = 1;
   int64 epoch_number = 2;
   string host_denom = 3;
 }
 
-message QueryUserUnbondingResponse {
-  UserUnbonding user_unbonding = 1 [ (gogoproto.nullable) = false ];
+message QueryUserUnbondingsResponse {
+  repeated UserUnbonding user_unbonding = 1 [ (gogoproto.nullable) = false ];
 }
