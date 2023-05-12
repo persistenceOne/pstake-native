@@ -228,7 +228,7 @@ func QueryUserUnbondingCmd() *cobra.Command {
 				return err
 			}
 
-			res, err := queryClient.UserUnbondings(
+			res, err := queryClient.UserUnbonding(
 				context.Background(),
 				&types.QueryUserUnbondingsRequest{
 					Address:     args[0],
