@@ -268,5 +268,68 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 }
 
 func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
+	for _, hc := range k.GetAllHostChains(ctx) {
+		// not an unbonding epoch for the host chain, continue
+		if !liquidstakeibctypes.IsUnbondingEpoch(hc.UnbondingFactor, epoch) {
+			continue
+		}
 
+		// retrieve the unbonding for the current epoch
+		unbonding, found := k.GetUnbonding(
+			ctx,
+			hc.ChainId,
+			liquidstakeibctypes.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch),
+		)
+		if !found {
+			k.Logger(ctx).Error(
+				"could not find host chain",
+				"host_chain",
+				hc.ChainId,
+			)
+			continue
+		}
+
+		// check if there is anything to unbond
+		if !unbonding.UnbondAmount.Amount.GT(sdk.ZeroInt()) {
+			k.Logger(ctx).Info(
+				"No tokens to unbond.",
+				"host_chain",
+				hc.ChainId,
+				"epoch",
+				epoch,
+			)
+			continue
+		}
+
+		// generate the undelegation messages based on the total unbonding amount for the epoch
+		messages, err := k.GenerateUndelegateMessages(hc, unbonding.UnbondAmount.Amount)
+		if err != nil {
+			k.Logger(ctx).Error(
+				"could not generate undelegate messages",
+				"host_chain",
+				hc.ChainId,
+			)
+			return
+		}
+
+		// execute the ICA transactions
+		sequenceID, err := k.GenerateAndExecuteICATx(
+			ctx,
+			hc.ConnectionId,
+			k.DelegateAccountPortOwner(hc.ChainId),
+			messages,
+		)
+		if err != nil {
+			k.Logger(ctx).Error(
+				"could not send ICA undelegate txs",
+				"host_chain",
+				hc.ChainId,
+			)
+			return
+		}
+
+		// update the unbonding ibc sequence id
+		unbonding.IbcSequenceId = sequenceID
+		k.SetUnbonding(ctx, unbonding)
+	}
 }

@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -417,6 +418,7 @@ func (k msgServer) LiquidUnstake(
 			sdktypes.NewAttribute(types.AttributeAmountReceived, msg.Amount.String()),
 			sdktypes.NewAttribute(types.AttributePstakeUnstakeFee, feeAmount.String()),
 			sdktypes.NewAttribute(types.AttributeUnstakeAmount, unbondAmount.String()),
+			sdktypes.NewAttribute(types.AttributeUnstakeEpoch, strconv.FormatInt(unbondingEpoch, 10)),
 		),
 		sdktypes.NewEvent(
 			sdktypes.EventTypeMessage,

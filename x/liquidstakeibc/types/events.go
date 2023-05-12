@@ -12,6 +12,7 @@ const (
 	AttributePstakeDepositFee = "pstake-deposit-fee"
 	AttributePstakeUnstakeFee = "pstake-unstake-fee"
 	AttributeUnstakeAmount    = "undelegation-amount"
+	AttributeUnstakeEpoch     = "undelegation-epoch"
 	AttributeKeyAck           = "acknowledgement"
 	AttributeKeyAckSuccess    = "success"
 	AttributeKeyAckError      = "error"

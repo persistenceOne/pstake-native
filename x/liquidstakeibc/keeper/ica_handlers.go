@@ -69,6 +69,55 @@ func (k *Keeper) HandleDelegateResponse(ctx sdk.Context, msg sdk.Msg, channel st
 	return nil
 }
 
+func (k *Keeper) HandleUndelegateResponse(
+	ctx sdk.Context,
+	msg sdk.Msg,
+	resp stakingtypes.MsgUndelegateResponse,
+	channel string,
+	sequence uint64,
+) error {
+	unbondings := k.GetAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence))
+
+	for _, unbonding := range unbondings {
+		// burn the undelegated stk tokens
+		err := k.bankKeeper.BurnCoins(
+			ctx,
+			liquidstakeibctypes.UndelegationModuleAccount,
+			sdk.NewCoins(unbonding.BurnAmount),
+		)
+		if err != nil {
+			return err
+		}
+
+		// set the mature time for the undelegation
+		unbonding.MatureTime = resp.CompletionTime
+		k.SetUnbonding(ctx, unbonding)
+
+		parsedMsg, ok := msg.(*stakingtypes.MsgUndelegate)
+		if !ok {
+			return errorsmod.Wrapf(
+				sdkerrors.ErrInvalidType,
+				"unable to cast msg of type %s to MsgUndelegate",
+				sdk.MsgTypeURL(msg),
+			)
+		}
+
+		// TODO: Remove delegation from validators
+		// TODO: Update host chain C value
+
+		k.Logger(ctx).Info(
+			"Received unbonding acknowledgement",
+			"delegator",
+			parsedMsg.DelegatorAddress,
+			"validator",
+			parsedMsg.ValidatorAddress,
+			"amount",
+			parsedMsg.Amount.String(),
+		)
+	}
+	return nil
+}
+
 func (k *Keeper) HandleSetWithdrawAddressResponse(ctx sdk.Context, msg sdk.Msg) error {
 	return nil
 }

@@ -152,6 +152,8 @@ message Unbonding {
   cosmos.base.v1beta1.Coin unbond_amount = 5 [ (gogoproto.nullable) = false ];
   // whether the unbonding has failed or not
   bool failed = 6;
+  // sequence id of the ibc transaction
+  string ibc_sequence_id = 7;
 }
 
 message UserUnbonding {
