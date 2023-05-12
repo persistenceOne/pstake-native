@@ -3,15 +3,12 @@ package keeper
 import (
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
-	"github.com/persistenceOne/persistence-sdk/v2/utils"
 	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
 
@@ -87,31 +84,11 @@ func (k *Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epoch
 
 func (k *Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	if epochIdentifier == liquidstakeibctypes.DelegationEpoch {
-		workflow := func(ctx sdk.Context) error {
-			return k.DepositWorkflow(ctx, epochNumber)
-		}
-		err := utils.ApplyFuncIfNoError(ctx, workflow)
-		if err != nil {
-			k.Logger(ctx).Error(
-				"failed delegation workflow",
-				"epoch_identifier",
-				epochIdentifier,
-				"epoch_number",
-				epochNumber,
-				"error",
-				err,
-			)
-		}
+		k.DepositWorkflow(ctx, epochNumber)
 	}
 
 	if epochIdentifier == liquidstakeibctypes.UndelegationEpoch {
-		workflow := func(ctx sdk.Context) error {
-			return k.UndelegationWorkflow(ctx, epochNumber)
-		}
-		err := utils.ApplyFuncIfNoError(ctx, workflow)
-		if err != nil { //nolint:staticcheck
-			// handle this case
-		}
+		k.UndelegationWorkflow(ctx, epochNumber)
 	}
 
 	return nil
@@ -228,12 +205,13 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 
 // Workflows
 
-func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
+func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 	deposits := k.GetPendingDepositsBeforeEpoch(ctx, epoch)
 	for _, deposit := range deposits {
 		hc, found := k.GetHostChain(ctx, deposit.ChainId)
 		if !found {
-			return fmt.Errorf("host chain with id %s is not registered", deposit.ChainId)
+			// we can't error out here as all the deposits need to be executed
+			continue
 		}
 
 		// check if the deposit amount is larger than 0
@@ -248,7 +226,8 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
 
 		clientState, err := k.GetClientState(ctx, hc.ConnectionId)
 		if err != nil {
-			return fmt.Errorf("client state not found for connection \"%s\": \"%s\"", hc.ConnectionId, err.Error())
+			// we can't error out here as all the deposits need to be executed
+			continue
 		}
 
 		timeoutHeight := clienttypes.NewHeight(
@@ -271,27 +250,23 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
 		res, err := handler(ctx, msg)
 		if err != nil {
 			k.Logger(ctx).Error(fmt.Sprintf("could not send transfer msg via MsgServiceRouter, error: %s", err))
-			return err
+			// we can't error out here as all the deposits need to be executed
+			continue
 		}
 		ctx.EventManager().EmitEvents(res.GetEvents())
 
 		var msgTransferResponse ibctransfertypes.MsgTransferResponse
 		if err = k.cdc.Unmarshal(res.MsgResponses[0].Value, &msgTransferResponse); err != nil {
-			return errorsmod.Wrapf(
-				sdkerrors.ErrJSONUnmarshal,
-				"cannot unmarshal ibc transfer tx response message: %v",
-				err,
-			)
+			// we can't error out here as all the deposits need to be executed
+			continue
 		}
 
 		deposit.State = liquidstakeibctypes.Deposit_DEPOSIT_SENT
 		deposit.IbcSequenceId = k.GetTransactionSequenceID(hc.ChannelId, msgTransferResponse.Sequence)
 		k.SetDeposit(ctx, deposit)
 	}
-
-	return nil
 }
 
-func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) error {
-	return nil
+func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
+
 }
