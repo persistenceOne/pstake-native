@@ -10,7 +10,8 @@
     "unstake_fee": "0.00",
     "redemption_fee": "0.005",
     "host_denom": "uosmo",
-    "minimum_deposit": "1"
+    "minimum_deposit": "1",
+    "unbonding_factor": "4"
   }],
   "deposit": "10000000uxprt",
   "proposer": "persistence1hcqg5wj9t42zawqkqucs7la85ffyv08ljhhesu",

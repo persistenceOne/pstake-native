@@ -63,15 +63,16 @@ func (k msgServer) RegisterHostChain(
 	}
 
 	hc := &types.HostChain{
-		ChainId:        chainID,
-		ConnectionId:   msg.ConnectionId,
-		ChannelId:      msg.ChannelId,
-		PortId:         msg.PortId,
-		Params:         hostChainParams,
-		HostDenom:      msg.HostDenom,
-		MinimumDeposit: msg.MinimumDeposit,
-		CValue:         sdktypes.NewDec(1),
-		NextValsetHash: []byte{},
+		ChainId:         chainID,
+		ConnectionId:    msg.ConnectionId,
+		ChannelId:       msg.ChannelId,
+		PortId:          msg.PortId,
+		Params:          hostChainParams,
+		HostDenom:       msg.HostDenom,
+		MinimumDeposit:  msg.MinimumDeposit,
+		CValue:          sdktypes.NewDec(1),
+		NextValsetHash:  []byte{},
+		UnbondingFactor: msg.UnbondingFactor,
 	}
 
 	// save the host chain
@@ -390,7 +391,7 @@ func (k msgServer) LiquidUnstake(
 
 	// calculate the current unbonding epoch
 	epoch := k.epochsKeeper.GetEpochInfo(ctx, types.UndelegationEpoch)
-	unbondingEpoch := types.CurrentUnbondingEpoch(epoch.CurrentEpoch)
+	unbondingEpoch := types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch)
 
 	// increase the unbonding value for the epoch both for the user record and the module record
 	k.IncreaseUserUndelegatingAmountForEpoch(ctx, hc.ChainId, msg.DelegatorAddress, unbondingEpoch, unstakeAmount)

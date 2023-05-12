@@ -43,6 +43,8 @@ message HostChain {
   ];
   // the hash of the next validator set
   bytes next_valset_hash = 13;
+  // undelegation epoch factor
+  int64 unbonding_factor = 14;
 }
 
 message HostChainLSParams {

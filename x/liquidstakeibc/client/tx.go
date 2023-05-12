@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -37,8 +38,8 @@ func NewTxCmd() *cobra.Command {
 // TODO: Remove this when tagging version. Users should not be able to register chains.
 func NewRegisterHostChainCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "register-host-chain [connection-id] [channel-id] [port-id] [deposit-fee] [restake-fee] [unstake-fee] [redemption-fee] [host-denom] [minimum-deposit]",
-		Args:  cobra.ExactArgs(4),
+		Use:   "register-host-chain [connection-id] [channel-id] [port-id] [deposit-fee] [restake-fee] [unstake-fee] [redemption-fee] [host-denom] [minimum-deposit] [unbonding-factor]",
+		Args:  cobra.ExactArgs(10),
 		Short: "Register a host chain",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -51,6 +52,11 @@ func NewRegisterHostChainCmd() *cobra.Command {
 				return fmt.Errorf("unable to parse string to sdk.Int")
 			}
 
+			unbondingFactor, err := strconv.ParseInt(args[9], 10, 64)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to int64")
+			}
+
 			msg := types.NewMsgRegisterHostChain(
 				args[0],
 				args[1],
@@ -61,6 +67,7 @@ func NewRegisterHostChainCmd() *cobra.Command {
 				args[6],
 				args[7],
 				minimumDeposit,
+				unbondingFactor,
 			)
 
 			if err := msg.ValidateBasic(); err != nil {

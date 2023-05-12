@@ -29,9 +29,6 @@ const (
 	DelegateICAType = "delegate"
 	RewardsICAType  = "rewards"
 
-	// TODO: This needs to be saved for each of the chains. Probably setup during chain registration.
-	UndelegationEpochNumberFactor int64 = 4
-
 	IBCTimeoutHeightIncrement uint64 = 1000
 
 	ICATimeoutTimestamp = 15 * time.Minute
