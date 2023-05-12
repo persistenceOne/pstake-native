@@ -396,6 +396,7 @@ func (k msgServer) LiquidUnstake(
 	k.IncreaseUserUndelegatingAmountForEpoch(ctx, hc.ChainId, msg.DelegatorAddress, unbondingEpoch, unstakeAmount)
 	k.IncreaseUndelegatingAmountForEpoch(ctx, hc.ChainId, unbondingEpoch, unstakeAmount, unbondAmount)
 
+	// check if the total unbonding amount for the next unbonding epoch is less than what is currently staked
 	totalUnbondings, _ := k.GetUnbonding(ctx, hc.ChainId, unbondingEpoch)
 	totalDelegations := hc.GetHostChainTotalDelegations()
 	if totalDelegations.LT(unbondAmount.Amount) {

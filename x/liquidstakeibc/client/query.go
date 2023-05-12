@@ -203,7 +203,7 @@ func QueryUserUnbondingCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "user-unbonding [delegator-address] [epoch-number] [host-denom]",
 		Short: "Query a user unbonding record",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(3),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
 				`Query a user unbonding record: $ %s query liquidstakeibc user-unbonding [delegator-address] [epoch-number] [host-denom]`,

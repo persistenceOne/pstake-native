@@ -93,6 +93,11 @@ func (k *Keeper) GetDepositModuleAccount(ctx sdk.Context) authtypes.ModuleAccoun
 	return k.accountKeeper.GetModuleAccount(ctx, types.DepositModuleAccount)
 }
 
+// GetUndelegationModuleAccount returns undelegation module account interface
+func (k *Keeper) GetUndelegationModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+	return k.accountKeeper.GetModuleAccount(ctx, types.UndelegationModuleAccount)
+}
+
 // SendProtocolFee to the community pool
 func (k *Keeper) SendProtocolFee(ctx sdk.Context, protocolFee sdk.Coins, moduleAccount, feeAddress string) error {
 	addr, err := sdk.AccAddressFromBech32(feeAddress)

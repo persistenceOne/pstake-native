@@ -22,9 +22,9 @@ func (k *Keeper) GetUnbonding(ctx sdk.Context, chainID string, epochNumber int64
 		return nil, false
 	}
 
-	var unbonding *types.Unbonding
-	k.cdc.MustUnmarshal(bz, unbonding)
-	return unbonding, true
+	var unbonding types.Unbonding
+	k.cdc.MustUnmarshal(bz, &unbonding)
+	return &unbonding, true
 }
 
 func (k *Keeper) IncreaseUndelegatingAmountForEpoch(

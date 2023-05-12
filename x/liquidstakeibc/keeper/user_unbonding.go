@@ -25,9 +25,9 @@ func (k *Keeper) GetUserUnbonding(
 		return &types.UserUnbonding{}, false
 	}
 
-	var userUnbonding *types.UserUnbonding
-	k.cdc.MustUnmarshal(bz, userUnbonding)
-	return userUnbonding, true
+	var userUnbonding types.UserUnbonding
+	k.cdc.MustUnmarshal(bz, &userUnbonding)
+	return &userUnbonding, true
 }
 
 func (k *Keeper) IncreaseUserUndelegatingAmountForEpoch(
