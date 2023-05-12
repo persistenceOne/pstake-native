@@ -147,7 +147,7 @@ message Unbonding {
   // stk token amount that is burned with the unbonding
   cosmos.base.v1beta1.Coin burn_amount = 4 [ (gogoproto.nullable) = false ];
   // host token amount that is being unbonded
-  cosmos.base.v1beta1.Coin unbonded_amount = 5 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin unbond_amount = 5 [ (gogoproto.nullable) = false ];
   // whether the unbonding has failed or not
   bool failed = 6;
 }
