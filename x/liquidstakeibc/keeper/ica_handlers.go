@@ -6,7 +6,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
 func (k *Keeper) HandleDelegateResponse(ctx sdk.Context, msg sdk.Msg, channel string, sequence uint64) error {
@@ -29,7 +29,7 @@ func (k *Keeper) HandleDelegateResponse(ctx sdk.Context, msg sdk.Msg, channel st
 	hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.DelegatorAddress)
 	if !found {
 		return errorsmod.Wrapf(
-			liquidstakeibctypes.ErrInvalidHostChain,
+			types.ErrInvalidHostChain,
 			"host chain with delegator address %s not registered, or account not associated",
 			parsedMsg.DelegatorAddress,
 		)
@@ -42,7 +42,7 @@ func (k *Keeper) HandleDelegateResponse(ctx sdk.Context, msg sdk.Msg, channel st
 	validator, found := hc.GetValidator(parsedMsg.ValidatorAddress)
 	if !found {
 		return errorsmod.Wrapf(
-			liquidstakeibctypes.ErrValidatorNotFound,
+			types.ErrValidatorNotFound,
 			"validator with operator address %s not found",
 			parsedMsg.ValidatorAddress,
 		)
@@ -76,13 +76,16 @@ func (k *Keeper) HandleUndelegateResponse(
 	channel string,
 	sequence uint64,
 ) error {
-	unbondings := k.GetAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence))
+	unbondings := k.FilterUnbondings(
+		ctx,
+		func(u types.Unbonding) bool { return u.IbcSequenceId == k.GetTransactionSequenceID(channel, sequence) },
+	)
 
 	for _, unbonding := range unbondings {
 		// burn the undelegated stk tokens
 		err := k.bankKeeper.BurnCoins(
 			ctx,
-			liquidstakeibctypes.UndelegationModuleAccount,
+			types.UndelegationModuleAccount,
 			sdk.NewCoins(unbonding.BurnAmount),
 		)
 		if err != nil {
@@ -107,7 +110,7 @@ func (k *Keeper) HandleUndelegateResponse(
 		hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.DelegatorAddress)
 		if !found {
 			return errorsmod.Wrapf(
-				liquidstakeibctypes.ErrInvalidHostChain,
+				types.ErrInvalidHostChain,
 				"host chain with delegator address %s not registered, or account not associated",
 				parsedMsg.DelegatorAddress,
 			)
@@ -117,7 +120,7 @@ func (k *Keeper) HandleUndelegateResponse(
 		validator, found := hc.GetValidator(parsedMsg.ValidatorAddress)
 		if !found {
 			return errorsmod.Wrapf(
-				liquidstakeibctypes.ErrValidatorNotFound,
+				types.ErrValidatorNotFound,
 				"validator with operator address %s not found",
 				parsedMsg.ValidatorAddress,
 			)

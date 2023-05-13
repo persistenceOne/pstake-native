@@ -27,7 +27,7 @@ func (k *Keeper) GetUnbonding(ctx sdk.Context, chainID string, epochNumber int64
 	return &unbonding, true
 }
 
-func (k *Keeper) GetAllUnbondingsForSequenceID(ctx sdk.Context, sequenceID string) []*types.Unbonding {
+func (k *Keeper) FilterUnbondings(ctx sdk.Context, filter func(u types.Unbonding) bool) []*types.Unbonding {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.UnbondingKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
@@ -36,7 +36,7 @@ func (k *Keeper) GetAllUnbondingsForSequenceID(ctx sdk.Context, sequenceID strin
 	for ; iterator.Valid(); iterator.Next() {
 		unbonding := types.Unbonding{}
 		k.cdc.MustUnmarshal(iterator.Value(), &unbonding)
-		if unbonding.IbcSequenceId == sequenceID {
+		if filter(unbonding) {
 			unbondings = append(unbondings, &unbonding)
 		}
 	}
@@ -71,7 +71,7 @@ func (k *Keeper) IncreaseUndelegatingAmountForEpoch(
 }
 
 func (k *Keeper) FailAllUnbondingsForSequenceID(ctx sdk.Context, sequenceID string) {
-	unbondings := k.GetAllUnbondingsForSequenceID(ctx, sequenceID)
+	unbondings := k.FilterUnbondings(ctx, func(u types.Unbonding) bool { return u.IbcSequenceId == sequenceID })
 
 	for _, unbonding := range unbondings {
 		unbonding.Failed = true
