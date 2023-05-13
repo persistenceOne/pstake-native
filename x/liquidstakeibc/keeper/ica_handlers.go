@@ -90,6 +90,7 @@ func (k *Keeper) HandleUndelegateResponse(
 		}
 
 		// set the mature time for the undelegation
+		unbonding.IbcSequenceId = ""
 		unbonding.MatureTime = resp.CompletionTime
 		k.SetUnbonding(ctx, unbonding)
 
@@ -102,8 +103,33 @@ func (k *Keeper) HandleUndelegateResponse(
 			)
 		}
 
-		// TODO: Remove delegation from validators
-		// TODO: Update host chain C value
+		// get the host chain of the delegation using its delegator address
+		hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.DelegatorAddress)
+		if !found {
+			return errorsmod.Wrapf(
+				liquidstakeibctypes.ErrInvalidHostChain,
+				"host chain with delegator address %s not registered, or account not associated",
+				parsedMsg.DelegatorAddress,
+			)
+		}
+
+		// get the validator that the delegation was performed to
+		validator, found := hc.GetValidator(parsedMsg.ValidatorAddress)
+		if !found {
+			return errorsmod.Wrapf(
+				liquidstakeibctypes.ErrValidatorNotFound,
+				"validator with operator address %s not found",
+				parsedMsg.ValidatorAddress,
+			)
+		}
+
+		// update the validator delegated amount
+		validator.DelegatedAmount = validator.DelegatedAmount.Sub(parsedMsg.Amount.Amount)
+		k.SetHostChainValidator(ctx, hc, validator)
+
+		// update host the host chain c value
+		hc.CValue = k.GetHostChainCValue(ctx, hc)
+		k.SetHostChain(ctx, hc)
 
 		k.Logger(ctx).Info(
 			"Received unbonding acknowledgement",
