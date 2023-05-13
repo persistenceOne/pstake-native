@@ -165,18 +165,13 @@ func (k *Keeper) GetHostChainFromDelegatorAddress(ctx sdk.Context, delegatorAddr
 
 // GetHostChainCValue calculates the host chain c value
 func (k *Keeper) GetHostChainCValue(ctx sdk.Context, hc *types.HostChain) sdk.Dec {
+	// total stk minted amount
 	mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
-	totalDelegations := hc.GetHostChainTotalDelegations()
-	delegationAccountBalance := hc.DelegationAccount.Balance.Amount
-	moduleAccountBalance := k.bankKeeper.GetBalance(
-		ctx,
-		authtypes.NewModuleAddress(types.DepositModuleAccount),
-		hc.IBCDenom(),
-	).Amount
 
-	liquidStakedAmount := totalDelegations.
-		Add(delegationAccountBalance).
-		Add(moduleAccountBalance)
+	// delegated amount + delegation account balance + deposit module account balance
+	liquidStakedAmount := hc.GetHostChainTotalDelegations().
+		Add(hc.DelegationAccount.Balance.Amount).
+		Add(k.bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(types.DepositModuleAccount), hc.IBCDenom()).Amount)
 
 	if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {
 		return sdk.OneDec()
