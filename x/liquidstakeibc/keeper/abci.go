@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -111,32 +110,28 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc *types.HostChain) {
 		return
 	}
 
-	_, isDelegateActive := k.icaControllerKeeper.GetOpenActiveChannel(
-		ctx,
-		hc.ConnectionId,
-		icatypes.ControllerPortPrefix+k.DelegateAccountPortOwner(hc.ChainId),
-	)
 	// if the channel is closed, and it is not being recreated, recreate it
-	if !isDelegateActive && hc.DelegationAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
+	if !k.IsICAChannelActive(ctx, hc, k.GetPortID(k.DelegateAccountPortOwner(hc.ChainId))) &&
+		hc.DelegationAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
 		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, k.DelegateAccountPortOwner(hc.ChainId)); err != nil {
 			k.Logger(ctx).Error("error recreating %s delegate ica: %w", hc.ChainId, err)
 		}
+
 		k.Logger(ctx).Info("Recreating delegate ICA.", "chain", hc.ChainId)
+
 		hc.DelegationAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
 		k.SetHostChain(ctx, hc)
 	}
 
-	_, isRewardsActive := k.icaControllerKeeper.GetOpenActiveChannel(
-		ctx,
-		hc.ConnectionId,
-		icatypes.ControllerPortPrefix+k.RewardsAccountPortOwner(hc.ChainId),
-	)
 	// if the channel is closed, and it is not being recreated, recreate it
-	if !isRewardsActive && hc.RewardsAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
+	if !k.IsICAChannelActive(ctx, hc, k.GetPortID(k.RewardsAccountPortOwner(hc.ChainId))) &&
+		hc.RewardsAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
 		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, k.RewardsAccountPortOwner(hc.ChainId)); err != nil {
 			k.Logger(ctx).Error("error recreating %s rewards ica: %w", hc.ChainId, err)
 		}
+
 		k.Logger(ctx).Info("Recreating rewards ICA.", "chain", hc.ChainId)
+
 		hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
 		k.SetHostChain(ctx, hc)
 	}
