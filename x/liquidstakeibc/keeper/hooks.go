@@ -13,6 +13,7 @@ import (
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
 
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 type EpochsHooks struct {
@@ -102,6 +103,45 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 	relayer sdk.AccAddress,
 	transferAck ibcexported.Acknowledgement,
 ) error {
+	if !transferAck.Success() {
+		return nil
+	}
+
+	var data ibctransfertypes.FungibleTokenPacketData
+	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return err
+	}
+
+	// if the transfer isn't from any of the registered host chains, return
+	ibcDenom := ibctransfertypes.ParseDenomTrace(data.GetDenom()).IBCDenom()
+	hc, found := k.GetHostChainFromIbcDenom(ctx, ibcDenom)
+	if !found {
+		return nil
+	}
+
+	// check if the transfer is originated from the module
+	if data.GetSender() != hc.DelegationAccount.Address ||
+		data.GetReceiver() != authtypes.NewModuleAddress(lscosmostypes.UndelegationModuleAccount).String() ||
+		data.GetDenom() != hc.HostDenom {
+		// transfer is not related with the module
+		return nil
+	}
+
+	// get all the unbondings for that ibc sequence id
+	unbondings := k.FilterUnbondings(
+		ctx,
+		func(u liquidstakeibctypes.Unbonding) bool {
+			return u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
+		},
+	)
+
+	// update the unbonding states
+	for _, unbonding := range unbondings {
+		unbonding.IbcSequenceId = ""
+		unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_CLAIMABLE
+		k.SetUnbonding(ctx, unbonding)
+	}
+
 	return nil
 }
 
@@ -194,11 +234,8 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 		return nil
 	}
 
-	// revert all the deposits for that sequence to its previous state
-	k.RevertDepositsState(
-		ctx,
-		k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
-	)
+	// mark all the deposits for that sequence as failed
+	k.FailAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
 
 	return nil
 }
@@ -328,8 +365,9 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 			return
 		}
 
-		// update the unbonding ibc sequence id
+		// update the unbonding ibc sequence id and state
 		unbonding.IbcSequenceId = sequenceID
+		unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_INITIATED
 		k.SetUnbonding(ctx, unbonding)
 	}
 }
