@@ -92,11 +92,6 @@ func (k *Keeper) HandleUndelegateResponse(
 			return err
 		}
 
-		// set the mature time for the undelegation
-		unbonding.IbcSequenceId = ""
-		unbonding.MatureTime = resp.CompletionTime
-		k.SetUnbonding(ctx, unbonding)
-
 		parsedMsg, ok := msg.(*stakingtypes.MsgUndelegate)
 		if !ok {
 			return errorsmod.Wrapf(
@@ -134,6 +129,12 @@ func (k *Keeper) HandleUndelegateResponse(
 		hc.CValue = k.GetHostChainCValue(ctx, hc)
 		k.SetHostChain(ctx, hc)
 
+		// update the mature time and the state for the undelegation
+		unbonding.IbcSequenceId = ""
+		unbonding.MatureTime = resp.CompletionTime
+		unbonding.State = types.Unbonding_UNBONDING_MATURING
+		k.SetUnbonding(ctx, unbonding)
+
 		k.Logger(ctx).Info(
 			"Received unbonding acknowledgement",
 			"delegator",
@@ -144,6 +145,10 @@ func (k *Keeper) HandleUndelegateResponse(
 			parsedMsg.Amount.String(),
 		)
 	}
+	return nil
+}
+
+func (k *Keeper) HandleMsgTransfer(ctx sdk.Context, msg sdk.Msg) error {
 	return nil
 }
 

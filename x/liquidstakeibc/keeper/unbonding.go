@@ -59,8 +59,8 @@ func (k *Keeper) IncreaseUndelegatingAmountForEpoch(
 			MatureTime:    time.Time{},
 			BurnAmount:    burnAmount,
 			UnbondAmount:  unbondAmount,
-			Failed:        false,
 			IbcSequenceId: "",
+			State:         types.Unbonding_UNBONDING_PENDING,
 		}
 	} else {
 		unbonding.UnbondAmount = unbonding.UnbondAmount.Add(unbondAmount)
@@ -74,7 +74,20 @@ func (k *Keeper) FailAllUnbondingsForSequenceID(ctx sdk.Context, sequenceID stri
 	unbondings := k.FilterUnbondings(ctx, func(u types.Unbonding) bool { return u.IbcSequenceId == sequenceID })
 
 	for _, unbonding := range unbondings {
-		unbonding.Failed = true
+		unbonding.IbcSequenceId = ""
+		unbonding.State = types.Unbonding_UNBONDING_FAILED
+		k.SetUnbonding(ctx, unbonding)
+	}
+}
+
+func (k *Keeper) RevertUnbondingState(ctx sdk.Context, unbondings []*types.Unbonding) {
+	for _, unbonding := range unbondings {
+		unbonding.IbcSequenceId = ""
+
+		if unbonding.State != types.Unbonding_UNBONDING_PENDING {
+			unbonding.State--
+		}
+
 		k.SetUnbonding(ctx, unbonding)
 	}
 }

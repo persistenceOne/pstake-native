@@ -4,8 +4,12 @@ import (
 	"bytes"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -145,4 +149,62 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc *types.HostChain) {
 	}
 }
 
-func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostChain) {}
+func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostChain) {
+	// get all the unbondings that are matured
+	unbondings := k.FilterUnbondings(
+		ctx,
+		func(u types.Unbonding) bool {
+			return ctx.BlockTime().After(u.MatureTime) && u.State == types.Unbonding_UNBONDING_MATURING
+		},
+	)
+
+	for _, unbonding := range unbondings {
+		channel, found := k.ibcKeeper.ChannelKeeper.GetChannel(ctx, hc.PortId, hc.ChannelId)
+		if !found {
+			k.Logger(ctx).Error(
+				"could not retrieve channel while processing mature undelegations",
+				"host_chain",
+				hc.ChainId,
+			)
+			continue
+		}
+
+		timeoutHeight := clienttypes.NewHeight(
+			clienttypes.GetSelfHeight(ctx).GetRevisionNumber(),
+			clienttypes.GetSelfHeight(ctx).GetRevisionHeight()+types.IBCTimeoutHeightIncrement,
+		)
+
+		// prepare the msg transfer to bring the undelegation back
+		msgTransfer := ibctransfertypes.NewMsgTransfer(
+			channel.Counterparty.PortId,
+			channel.Counterparty.ChannelId,
+			unbonding.UnbondAmount,
+			hc.DelegationAccount.Address,
+			authtypes.NewModuleAddress(types.UndelegationModuleAccount).String(),
+			timeoutHeight,
+			0,
+			"",
+		)
+
+		// execute the transfers
+		sequenceID, err := k.GenerateAndExecuteICATx(
+			ctx,
+			hc.ConnectionId,
+			k.DelegateAccountPortOwner(hc.ChainId),
+			[]proto.Message{msgTransfer},
+		)
+		if err != nil {
+			k.Logger(ctx).Error(
+				"could not send ICA transfer txs",
+				"host_chain",
+				hc.ChainId,
+			)
+			continue
+		}
+
+		// update the unbonding sequence id and state
+		unbonding.IbcSequenceId = sequenceID
+		unbonding.State = types.Unbonding_UNBONDING_MATURED
+		k.SetUnbonding(ctx, unbonding)
+	}
+}

@@ -185,7 +185,6 @@ func (k *Keeper) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-
 	var icaPacket icatypes.InterchainAccountPacketData
 	if err := icatypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &icaPacket); err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
@@ -200,6 +199,24 @@ func (k *Keeper) OnTimeoutPacket(
 		switch sdk.MsgTypeURL(msg) { //nolint:gocritic
 		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 			// nothing needs to be done here
+		case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
+			unbondings := k.FilterUnbondings(
+				ctx,
+				func(u types.Unbonding) bool {
+					return u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
+				},
+			)
+			// revert unbondings state to re-try the undelegation
+			k.RevertUnbondingState(ctx, unbondings)
+		case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
+			unbondings := k.FilterUnbondings(
+				ctx,
+				func(u types.Unbonding) bool {
+					return u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
+				},
+			)
+			// revert unbondings state to re-try the transfer to the controller chain
+			k.RevertUnbondingState(ctx, unbondings)
 		}
 	}
 
@@ -276,6 +293,10 @@ func (k *Keeper) handleSuccessfulAck(
 			}
 
 			if err = k.HandleUndelegateResponse(ctx, msg, msgResponse, channel, sequence); err != nil {
+				return err
+			}
+		case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
+			if err = k.HandleMsgTransfer(ctx, msg); err != nil {
 				return err
 			}
 		case sdk.MsgTypeURL(&distributiontypes.MsgSetWithdrawAddress{}):
