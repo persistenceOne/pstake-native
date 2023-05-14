@@ -367,7 +367,7 @@ func (k msgServer) LiquidUnstake(
 		return nil, err
 	}
 
-	// send the unstake fee to the module fee address and substract it from the total to unstake
+	// send the unstake fee to the module fee address and subtract it from the total to unstake
 	unstakeAmount := msg.Amount
 	feeAmount := hc.Params.UnstakeFee.MulInt(unstakeAmount.Amount).TruncateInt()
 	if feeAmount.IsPositive() {

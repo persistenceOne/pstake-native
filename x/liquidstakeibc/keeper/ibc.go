@@ -196,7 +196,7 @@ func (k *Keeper) OnTimeoutPacket(
 	}
 
 	for _, msg := range messages {
-		switch sdk.MsgTypeURL(msg) { //nolint:gocritic
+		switch sdk.MsgTypeURL(msg) {
 		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 			// nothing needs to be done here
 		case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):

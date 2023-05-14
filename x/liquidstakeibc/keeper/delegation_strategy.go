@@ -25,9 +25,9 @@ func (k *Keeper) GenerateUndelegateMessages(hc *types.HostChain, unbondAmount sd
 
 func (k *Keeper) generateMessages(
 	hc *types.HostChain,
-	actionableAmount sdk.Int,
+	actionableAmount sdk.Int, //nolint:staticcheck
 	undelegating bool,
-) ([]proto.Message, error) { //nolint:staticcheck
+) ([]proto.Message, error) {
 	delegateAmounts := make([]DelegateAmount, 0)
 	for _, validator := range hc.Validators {
 		// calculate the new total delegated amount for the host chain
