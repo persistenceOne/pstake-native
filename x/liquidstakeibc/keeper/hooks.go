@@ -13,7 +13,6 @@ import (
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
 
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 type EpochsHooks struct {
@@ -113,16 +112,15 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 	}
 
 	// if the transfer isn't from any of the registered host chains, return
-	ibcDenom := ibctransfertypes.ParseDenomTrace(data.GetDenom()).IBCDenom()
-	hc, found := k.GetHostChainFromIbcDenom(ctx, ibcDenom)
+	denom := data.GetDenom()
+	hc, found := k.GetHostChainFromHostDenom(ctx, denom)
 	if !found {
 		return nil
 	}
 
 	// check if the transfer is originated from the module
-	if data.GetSender() != hc.DelegationAccount.Address ||
-		data.GetReceiver() != authtypes.NewModuleAddress(lscosmostypes.UndelegationModuleAccount).String() ||
-		data.GetDenom() != hc.HostDenom {
+	undelegationAddress := k.GetUndelegationModuleAccount(ctx).GetAddress().String()
+	if data.GetSender() != hc.DelegationAccount.Address || data.GetReceiver() != undelegationAddress {
 		// transfer is not related with the module
 		return nil
 	}
@@ -131,7 +129,7 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 	unbondings := k.FilterUnbondings(
 		ctx,
 		func(u liquidstakeibctypes.Unbonding) bool {
-			return u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
+			return u.UnbondAmount.Denom == hc.HostDenom && u.State == liquidstakeibctypes.Unbonding_UNBONDING_MATURED
 		},
 	)
 
