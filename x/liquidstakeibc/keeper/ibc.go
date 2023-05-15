@@ -142,7 +142,7 @@ func (k *Keeper) OnAcknowledgementPacket(
 			),
 		)
 	case *channeltypes.Acknowledgement_Result:
-		err := k.handleSuccessfulAck(ctx, icaPacket, packet.SourceChannel, packet.Sequence)
+		err := k.handleSuccessfulAck(ctx, ack, icaPacket, packet.SourceChannel, packet.Sequence)
 		if err != nil {
 			return err
 		}
@@ -174,7 +174,6 @@ func (k *Keeper) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-
 	var icaPacket icatypes.InterchainAccountPacketData
 	if err := icatypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &icaPacket); err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
@@ -186,13 +185,25 @@ func (k *Keeper) OnTimeoutPacket(
 	}
 
 	for _, msg := range messages {
-		switch sdk.MsgTypeURL(msg) { //nolint:gocritic
+		switch sdk.MsgTypeURL(msg) {
 		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 			// revert all the deposits for that sequence to its previous state
 			k.RevertDepositsState(
 				ctx,
 				k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
 			)
+		case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
+			// mark unbondings as failed
+			k.FailAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
+		case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
+			unbondings := k.FilterUnbondings(
+				ctx,
+				func(u types.Unbonding) bool {
+					return u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
+				},
+			)
+			// revert unbonding state so it can be picked up again
+			k.RevertUnbondingsState(ctx, unbondings)
 		}
 	}
 
@@ -223,24 +234,56 @@ func (k *Keeper) handleUnsuccessfulAck(
 	// revert all the deposits for that sequence back to the previous state
 	k.RevertDepositsState(ctx, k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence)))
 
+	// mark all the unbondings for the previous epoch as failed
+	k.FailAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence))
+
 	return nil
 }
 
 func (k *Keeper) handleSuccessfulAck(
 	ctx sdk.Context,
+	ack channeltypes.Acknowledgement,
 	icaPacket icatypes.InterchainAccountPacketData,
 	channel string,
 	sequence uint64,
 ) error {
+	txMsgData := &sdk.TxMsgData{}
+	if err := k.cdc.Unmarshal(ack.GetResult(), txMsgData); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ics-27 tx ack data: %v", err)
+	}
+
 	messages, err := icatypes.DeserializeCosmosTx(k.cdc, icaPacket.GetData())
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot deserialize ica packet data: %v", err)
 	}
 
-	for _, msg := range messages {
-		switch sdk.MsgTypeURL(msg) { //nolint:gocritic
+	for i, msg := range messages {
+		switch sdk.MsgTypeURL(msg) {
 		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 			if err = k.HandleDelegateResponse(ctx, msg, channel, sequence); err != nil {
+				return err
+			}
+		case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
+			var data []byte
+			if len(txMsgData.Data) == 0 {
+				data = txMsgData.GetMsgResponses()[i].Value
+			} else {
+				data = txMsgData.Data[i].Data
+			}
+
+			var msgResponse stakingtypes.MsgUndelegateResponse
+			if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
+				return errorsmod.Wrapf(
+					sdkerrors.ErrJSONUnmarshal, "cannot unmarshal undelegate response message: %s",
+					err.Error(),
+				)
+			}
+
+			if err = k.HandleUndelegateResponse(ctx, msg, msgResponse, channel, sequence); err != nil {
+				return err
+			}
+		case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
+			if err = k.HandleMsgTransfer(ctx, msg); err != nil {
 				return err
 			}
 		}

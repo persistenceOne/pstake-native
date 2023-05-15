@@ -18,4 +18,10 @@ message GenesisState {
 
   // initial deposit list
   repeated Deposit deposits = 3;
+
+  // initial unbondings
+  repeated Unbonding unbondings = 4;
+
+  // initial user unbondings
+  repeated UserUnbonding user_unbondings = 5;
 }

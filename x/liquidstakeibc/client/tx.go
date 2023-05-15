@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -27,6 +28,7 @@ func NewTxCmd() *cobra.Command {
 		NewRegisterHostChainCmd(),
 		NewUpdateHostChainCmd(),
 		NewLiquidStakeCmd(),
+		NewLiquidUnstakeCmd(),
 	)
 
 	return txCmd
@@ -36,8 +38,8 @@ func NewTxCmd() *cobra.Command {
 // TODO: Remove this when tagging version. Users should not be able to register chains.
 func NewRegisterHostChainCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "register-host-chain [connection-id] [channel-id] [port-id] [deposit-fee] [restake-fee] [unstake-fee] [redemption-fee] [host-denom] [minimum-deposit]",
-		Args:  cobra.ExactArgs(4),
+		Use:   "register-host-chain [connection-id] [channel-id] [port-id] [deposit-fee] [restake-fee] [unstake-fee] [redemption-fee] [host-denom] [minimum-deposit] [unbonding-factor]",
+		Args:  cobra.ExactArgs(10),
 		Short: "Register a host chain",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -50,6 +52,11 @@ func NewRegisterHostChainCmd() *cobra.Command {
 				return fmt.Errorf("unable to parse string to sdk.Int")
 			}
 
+			unbondingFactor, err := strconv.ParseInt(args[9], 10, 64)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to int64")
+			}
+
 			msg := types.NewMsgRegisterHostChain(
 				args[0],
 				args[1],
@@ -60,6 +67,7 @@ func NewRegisterHostChainCmd() *cobra.Command {
 				args[6],
 				args[7],
 				minimumDeposit,
+				unbondingFactor,
 			)
 
 			if err := msg.ValidateBasic(); err != nil {
@@ -126,6 +134,35 @@ func NewLiquidStakeCmd() *cobra.Command {
 
 			delegatorAddress := clientctx.GetFromAddress()
 			msg := types.NewMsgLiquidStake(amount, delegatorAddress)
+
+			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewLiquidUnstakeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "liquid-unstake [amount] [host-denom]",
+		Short: `Unstake stk tokens from a registered host chain`,
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			delegatorAddress := clientctx.GetFromAddress()
+			msg := types.NewMsgLiquidUnstake(amount, delegatorAddress, args[1])
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
 		},
