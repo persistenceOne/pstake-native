@@ -119,6 +119,28 @@ func (k *Keeper) GetHostChainFromIbcDenom(ctx sdk.Context, ibcDenom string) (*ty
 	return &hc, found
 }
 
+// GetHostChainFromHostDenom returns a host chain given its host denomination
+func (k *Keeper) GetHostChainFromHostDenom(ctx sdk.Context, hostDenom string) (*types.HostChain, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	found := false
+	hc := types.HostChain{}
+	for ; iterator.Valid(); iterator.Next() {
+		chain := types.HostChain{}
+		k.cdc.MustUnmarshal(iterator.Value(), &chain)
+
+		if chain.HostDenom == hostDenom {
+			hc = chain
+			found = true
+			break
+		}
+	}
+
+	return &hc, found
+}
+
 // GetHostChainFromDelegatorAddress returns a host chain given its delegator address
 func (k *Keeper) GetHostChainFromDelegatorAddress(ctx sdk.Context, delegatorAddress string) (*types.HostChain, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
@@ -143,18 +165,13 @@ func (k *Keeper) GetHostChainFromDelegatorAddress(ctx sdk.Context, delegatorAddr
 
 // GetHostChainCValue calculates the host chain c value
 func (k *Keeper) GetHostChainCValue(ctx sdk.Context, hc *types.HostChain) sdk.Dec {
+	// total stk minted amount
 	mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
-	totalDelegations := hc.GetHostChainTotalDelegations()
-	delegationAccountBalance := hc.DelegationAccount.Balance.Amount
-	moduleAccountBalance := k.bankKeeper.GetBalance(
-		ctx,
-		authtypes.NewModuleAddress(types.DepositModuleAccount),
-		hc.IBCDenom(),
-	).Amount
 
-	liquidStakedAmount := totalDelegations.
-		Add(delegationAccountBalance).
-		Add(moduleAccountBalance)
+	// delegated amount + delegation account balance + deposit module account balance
+	liquidStakedAmount := hc.GetHostChainTotalDelegations().
+		Add(hc.DelegationAccount.Balance.Amount).
+		Add(k.bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(types.DepositModuleAccount), hc.IBCDenom()).Amount)
 
 	if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {
 		return sdk.OneDec()

@@ -20,6 +20,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState *types.GenesisState)
 	}
 
 	k.GetDepositModuleAccount(ctx)
+	k.GetUndelegationModuleAccount(ctx)
 }
 
 // ExportGenesis returns the liquidstakeibc module's genesis state.

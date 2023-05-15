@@ -4,8 +4,11 @@ import (
 	"bytes"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -19,6 +22,9 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 
 		// attempt to delegate
 		k.DoDelegate(ctx, hc)
+
+		// attempt to process any matured unbondings
+		k.DoProcessMaturedUndelegations(ctx, hc)
 
 		// attempt to update the validator set if there are any changes
 		k.DoUpdateValidatorSet(ctx, hc)
@@ -111,33 +117,89 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc *types.HostChain) {
 		return
 	}
 
-	_, isDelegateActive := k.icaControllerKeeper.GetOpenActiveChannel(
-		ctx,
-		hc.ConnectionId,
-		icatypes.ControllerPortPrefix+k.DelegateAccountPortOwner(hc.ChainId),
-	)
 	// if the channel is closed, and it is not being recreated, recreate it
-	if !isDelegateActive && hc.DelegationAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
+	if !k.IsICAChannelActive(ctx, hc, k.GetPortID(k.DelegateAccountPortOwner(hc.ChainId))) &&
+		hc.DelegationAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
 		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, k.DelegateAccountPortOwner(hc.ChainId)); err != nil {
 			k.Logger(ctx).Error("error recreating %s delegate ica: %w", hc.ChainId, err)
 		}
+
 		k.Logger(ctx).Info("Recreating delegate ICA.", "chain", hc.ChainId)
+
 		hc.DelegationAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
 		k.SetHostChain(ctx, hc)
 	}
 
-	_, isRewardsActive := k.icaControllerKeeper.GetOpenActiveChannel(
-		ctx,
-		hc.ConnectionId,
-		icatypes.ControllerPortPrefix+k.RewardsAccountPortOwner(hc.ChainId),
-	)
 	// if the channel is closed, and it is not being recreated, recreate it
-	if !isRewardsActive && hc.RewardsAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
+	if !k.IsICAChannelActive(ctx, hc, k.GetPortID(k.RewardsAccountPortOwner(hc.ChainId))) &&
+		hc.RewardsAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
 		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, k.RewardsAccountPortOwner(hc.ChainId)); err != nil {
 			k.Logger(ctx).Error("error recreating %s rewards ica: %w", hc.ChainId, err)
 		}
+
 		k.Logger(ctx).Info("Recreating rewards ICA.", "chain", hc.ChainId)
+
 		hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
 		k.SetHostChain(ctx, hc)
+	}
+}
+
+func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostChain) {
+	// get all the unbondings that are matured
+	unbondings := k.FilterUnbondings(
+		ctx,
+		func(u types.Unbonding) bool {
+			return ctx.BlockTime().After(u.MatureTime) && u.State == types.Unbonding_UNBONDING_MATURING
+		},
+	)
+
+	for _, unbonding := range unbondings {
+		channel, found := k.ibcKeeper.ChannelKeeper.GetChannel(ctx, hc.PortId, hc.ChannelId)
+		if !found {
+			k.Logger(ctx).Error(
+				"could not retrieve channel while processing mature undelegations",
+				"host_chain",
+				hc.ChainId,
+			)
+			continue
+		}
+
+		timeoutHeight := clienttypes.NewHeight(
+			clienttypes.GetSelfHeight(ctx).GetRevisionNumber(),
+			clienttypes.GetSelfHeight(ctx).GetRevisionHeight()+types.IBCTimeoutHeightIncrement,
+		)
+
+		// prepare the msg transfer to bring the undelegation back
+		msgTransfer := ibctransfertypes.NewMsgTransfer(
+			channel.Counterparty.PortId,
+			channel.Counterparty.ChannelId,
+			unbonding.UnbondAmount,
+			hc.DelegationAccount.Address,
+			authtypes.NewModuleAddress(types.UndelegationModuleAccount).String(),
+			timeoutHeight,
+			0,
+			"",
+		)
+
+		// execute the transfers
+		sequenceID, err := k.GenerateAndExecuteICATx(
+			ctx,
+			hc.ConnectionId,
+			k.DelegateAccountPortOwner(hc.ChainId),
+			[]proto.Message{msgTransfer},
+		)
+		if err != nil {
+			k.Logger(ctx).Error(
+				"could not send ICA transfer txs",
+				"host_chain",
+				hc.ChainId,
+			)
+			continue
+		}
+
+		// update the unbonding sequence id and state
+		unbonding.IbcSequenceId = sequenceID
+		unbonding.State = types.Unbonding_UNBONDING_MATURED
+		k.SetUnbonding(ctx, unbonding)
 	}
 }
