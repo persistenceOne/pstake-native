@@ -8,10 +8,12 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+	"github.com/gogo/protobuf/proto"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -156,6 +158,11 @@ func (k *Keeper) GetChainID(ctx sdk.Context, connectionID string) (string, error
 	return clientState.ChainId, nil
 }
 
+// GetPortID constructs a port id given the port owner
+func (k *Keeper) GetPortID(owner string) string {
+	return icatypes.ControllerPortPrefix + owner
+}
+
 // RegisterICAAccount registers an ICA
 func (k *Keeper) RegisterICAAccount(ctx sdk.Context, connectionID, owner string) error {
 	return k.icaControllerKeeper.RegisterInterchainAccount(
@@ -166,40 +173,30 @@ func (k *Keeper) RegisterICAAccount(ctx sdk.Context, connectionID, owner string)
 	)
 }
 
-// RecreateHostChainICAAccounts recreates ICA if the channels are closed
-func (k *Keeper) RecreateHostChainICAAccounts(ctx sdk.Context, hc *types.HostChain) (bool, error) {
-	accountsRecreating := hc.DelegationAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATING &&
-		hc.RewardsAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATING
-
-	if accountsRecreating {
-		return true, nil
+// SetWithdrawAddress sends a MsgSetWithdrawAddress to set the withdrawal address to the rewards account
+func (k *Keeper) SetWithdrawAddress(ctx sdk.Context, hc *types.HostChain) error {
+	msgSetWithdrawAddress := &distributiontypes.MsgSetWithdrawAddress{
+		DelegatorAddress: hc.DelegationAccount.Address,
+		WithdrawAddress:  hc.RewardsAccount.Address,
 	}
 
-	_, isDelegateActive := k.icaControllerKeeper.GetOpenActiveChannel(
+	_, err := k.GenerateAndExecuteICATx(
 		ctx,
 		hc.ConnectionId,
-		icatypes.ControllerPortPrefix+k.DelegateAccountPortOwner(hc.ChainId),
+		k.DelegateAccountPortOwner(hc.ChainId),
+		[]proto.Message{msgSetWithdrawAddress},
 	)
-	if !isDelegateActive && hc.DelegationAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATED {
-		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, k.DelegateAccountPortOwner(hc.ChainId)); err != nil {
-			return false, fmt.Errorf("error recreating %s delegate ica: %w", hc.ChainId, err)
-		}
-		accountsRecreating = true
+	if err != nil {
+		return err
 	}
 
-	_, isRewardsActive := k.icaControllerKeeper.GetOpenActiveChannel(
-		ctx,
-		hc.ConnectionId,
-		icatypes.ControllerPortPrefix+k.RewardsAccountPortOwner(hc.ChainId),
-	)
-	if !isRewardsActive {
-		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, k.RewardsAccountPortOwner(hc.ChainId)); err != nil {
-			return false, fmt.Errorf("error recreating %s rewards ica: %w", hc.ChainId, err)
-		}
-		accountsRecreating = true
-	}
+	return nil
+}
 
-	return accountsRecreating, nil
+// IsICAChannelActive checks if an ICA channel is active
+func (k *Keeper) IsICAChannelActive(ctx sdk.Context, hc *types.HostChain, owner string) bool {
+	_, isActive := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ConnectionId, owner)
+	return isActive
 }
 
 // DelegateAccountPortOwner generates a delegate ICA port owner given the chain id

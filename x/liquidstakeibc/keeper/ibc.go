@@ -8,12 +8,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	"github.com/gogo/protobuf/proto"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -90,18 +88,9 @@ func (k *Keeper) OnChanOpenAck(
 	}
 
 	if hc.DelegationAccount != nil && hc.RewardsAccount != nil {
-		msgSetWithdrawAddress := &distributiontypes.MsgSetWithdrawAddress{
-			DelegatorAddress: hc.DelegationAccount.Address,
-			WithdrawAddress:  hc.RewardsAccount.Address,
-		}
-		_, err = k.GenerateAndExecuteICATx(
-			ctx,
-			hc.ConnectionId,
-			k.DelegateAccountPortOwner(hc.ChainId),
-			[]proto.Message{msgSetWithdrawAddress},
-		)
+		err := k.SetWithdrawAddress(ctx, hc)
 		if err != nil {
-			return err
+			k.Logger(ctx).Error("Could not set withdraw address.", "chain_id", hc.ChainId)
 		}
 	}
 
@@ -199,7 +188,11 @@ func (k *Keeper) OnTimeoutPacket(
 	for _, msg := range messages {
 		switch sdk.MsgTypeURL(msg) { //nolint:gocritic
 		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
-			// nothing needs to be done here
+			// revert all the deposits for that sequence to its previous state
+			k.RevertDepositsState(
+				ctx,
+				k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+			)
 		}
 	}
 
@@ -245,13 +238,9 @@ func (k *Keeper) handleSuccessfulAck(
 	}
 
 	for _, msg := range messages {
-		switch sdk.MsgTypeURL(msg) {
+		switch sdk.MsgTypeURL(msg) { //nolint:gocritic
 		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 			if err = k.HandleDelegateResponse(ctx, msg, channel, sequence); err != nil {
-				return err
-			}
-		case sdk.MsgTypeURL(&distributiontypes.MsgSetWithdrawAddress{}):
-			if err = k.HandleSetWithdrawAddressResponse(ctx, msg); err != nil {
 				return err
 			}
 		}

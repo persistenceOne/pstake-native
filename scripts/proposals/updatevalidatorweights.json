@@ -5,7 +5,7 @@
     "chain_id": "gaia-1",
     "updates": [{
       "key": "validator_weight",
-      "value": "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt,0.5"
+      "value": "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt,1"
     }]
   }],
   "deposit": "10000000uxprt",
