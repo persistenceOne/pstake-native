@@ -317,9 +317,11 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 		)
 		if !found {
 			k.Logger(ctx).Error(
-				"could not find host chain",
+				"Could not find unbonding for epoch.",
 				"host_chain",
 				hc.ChainId,
+				"epoch",
+				epoch,
 			)
 			continue
 		}
