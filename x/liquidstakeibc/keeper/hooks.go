@@ -3,15 +3,12 @@ package keeper
 import (
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
-	"github.com/persistenceOne/persistence-sdk/v2/utils"
 	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
 
@@ -87,21 +84,11 @@ func (k *Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epoch
 
 func (k *Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	if epochIdentifier == liquidstakeibctypes.DelegationEpoch {
-		workflow := func(ctx sdk.Context) error {
-			return k.DepositWorkflow(ctx, epochNumber)
-		}
-		err := utils.ApplyFuncIfNoError(ctx, workflow)
-		if err != nil {
-			k.Logger(ctx).Error(
-				"failed delegation workflow",
-				"epoch_identifier",
-				epochIdentifier,
-				"epoch_number",
-				epochNumber,
-				"error",
-				err,
-			)
-		}
+		k.DepositWorkflow(ctx, epochNumber)
+	}
+
+	if epochIdentifier == liquidstakeibctypes.UndelegationEpoch {
+		k.UndelegationWorkflow(ctx, epochNumber)
 	}
 
 	return nil
@@ -115,6 +102,44 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 	relayer sdk.AccAddress,
 	transferAck ibcexported.Acknowledgement,
 ) error {
+	if !transferAck.Success() {
+		return nil
+	}
+
+	var data ibctransfertypes.FungibleTokenPacketData
+	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return err
+	}
+
+	// if the transfer isn't from any of the registered host chains, return
+	denom := data.GetDenom()
+	hc, found := k.GetHostChainFromHostDenom(ctx, denom)
+	if !found {
+		return nil
+	}
+
+	// check if the transfer is originated from the module
+	undelegationAddress := k.GetUndelegationModuleAccount(ctx).GetAddress().String()
+	if data.GetSender() != hc.DelegationAccount.Address || data.GetReceiver() != undelegationAddress {
+		// transfer is not related with the module
+		return nil
+	}
+
+	// get all the unbondings for that ibc sequence id
+	unbondings := k.FilterUnbondings(
+		ctx,
+		func(u liquidstakeibctypes.Unbonding) bool {
+			return u.UnbondAmount.Denom == hc.HostDenom && u.State == liquidstakeibctypes.Unbonding_UNBONDING_MATURED
+		},
+	)
+
+	// update the unbonding states
+	for _, unbonding := range unbondings {
+		unbonding.IbcSequenceId = ""
+		unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_CLAIMABLE
+		k.SetUnbonding(ctx, unbonding)
+	}
+
 	return nil
 }
 
@@ -207,23 +232,27 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 		return nil
 	}
 
-	// revert all the deposits for that sequence to its previous state
-	k.RevertDepositsState(
+	unbondings := k.FilterUnbondings(
 		ctx,
-		k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+		func(u liquidstakeibctypes.Unbonding) bool {
+			return u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
+		},
 	)
+	// revert unbonding state so it can be picked up again
+	k.RevertUnbondingsState(ctx, unbondings)
 
 	return nil
 }
 
 // Workflows
 
-func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
+func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 	deposits := k.GetPendingDepositsBeforeEpoch(ctx, epoch)
 	for _, deposit := range deposits {
 		hc, found := k.GetHostChain(ctx, deposit.ChainId)
 		if !found {
-			return fmt.Errorf("host chain with id %s is not registered", deposit.ChainId)
+			// we can't error out here as all the deposits need to be executed
+			continue
 		}
 
 		// check if the deposit amount is larger than 0
@@ -238,7 +267,8 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
 
 		clientState, err := k.GetClientState(ctx, hc.ConnectionId)
 		if err != nil {
-			return fmt.Errorf("client state not found for connection \"%s\": \"%s\"", hc.ConnectionId, err.Error())
+			// we can't error out here as all the deposits need to be executed
+			continue
 		}
 
 		timeoutHeight := clienttypes.NewHeight(
@@ -261,23 +291,83 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) error {
 		res, err := handler(ctx, msg)
 		if err != nil {
 			k.Logger(ctx).Error(fmt.Sprintf("could not send transfer msg via MsgServiceRouter, error: %s", err))
-			return err
+			// we can't error out here as all the deposits need to be executed
+			continue
 		}
 		ctx.EventManager().EmitEvents(res.GetEvents())
 
 		var msgTransferResponse ibctransfertypes.MsgTransferResponse
 		if err = k.cdc.Unmarshal(res.MsgResponses[0].Value, &msgTransferResponse); err != nil {
-			return errorsmod.Wrapf(
-				sdkerrors.ErrJSONUnmarshal,
-				"cannot unmarshal ibc transfer tx response message: %v",
-				err,
-			)
+			// we can't error out here as all the deposits need to be executed
+			continue
 		}
 
 		deposit.State = liquidstakeibctypes.Deposit_DEPOSIT_SENT
 		deposit.IbcSequenceId = k.GetTransactionSequenceID(hc.ChannelId, msgTransferResponse.Sequence)
 		k.SetDeposit(ctx, deposit)
 	}
+}
 
-	return nil
+func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
+	for _, hc := range k.GetAllHostChains(ctx) {
+		// not an unbonding epoch for the host chain, continue
+		if !liquidstakeibctypes.IsUnbondingEpoch(hc.UnbondingFactor, epoch) {
+			continue
+		}
+
+		// retrieve the unbonding for the current epoch
+		unbonding, found := k.GetUnbonding(
+			ctx,
+			hc.ChainId,
+			liquidstakeibctypes.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch),
+		)
+		if !found {
+			// nothing to unbond for this epoch
+			continue
+		}
+
+		// check if there is anything to unbond
+		if !unbonding.UnbondAmount.Amount.GT(sdk.ZeroInt()) {
+			k.Logger(ctx).Info(
+				"No tokens to unbond.",
+				"host_chain",
+				hc.ChainId,
+				"epoch",
+				epoch,
+			)
+			continue
+		}
+
+		// generate the undelegation messages based on the total unbonding amount for the epoch
+		messages, err := k.GenerateUndelegateMessages(hc, unbonding.UnbondAmount.Amount)
+		if err != nil {
+			k.Logger(ctx).Error(
+				"could not generate undelegate messages",
+				"host_chain",
+				hc.ChainId,
+			)
+			return
+		}
+
+		// execute the ICA transactions
+		sequenceID, err := k.GenerateAndExecuteICATx(
+			ctx,
+			hc.ConnectionId,
+			k.DelegateAccountPortOwner(hc.ChainId),
+			messages,
+		)
+		if err != nil {
+			k.Logger(ctx).Error(
+				"could not send ICA undelegate txs",
+				"host_chain",
+				hc.ChainId,
+			)
+			return
+		}
+
+		// update the unbonding ibc sequence id and state
+		unbonding.IbcSequenceId = sequenceID
+		unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_INITIATED
+		k.SetUnbonding(ctx, unbonding)
+	}
 }

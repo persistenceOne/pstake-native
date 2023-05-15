@@ -4,6 +4,7 @@ package pstake.liquidstakeibc.v1beta1;
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types";
 
@@ -42,6 +43,8 @@ message HostChain {
   ];
   // the hash of the next validator set
   bytes next_valset_hash = 13;
+  // undelegation epoch factor
+  int64 unbonding_factor = 14;
 }
 
 message HostChainLSParams {
@@ -133,6 +136,50 @@ message Deposit {
   DepositState state = 4;
   // sequence id of the ibc transaction
   string ibc_sequence_id = 5;
+}
+
+message Unbonding {
+  enum UnbondingState {
+    // no action has been initiated on the unbonding
+    UNBONDING_PENDING = 0;
+    // unbonding action has been sent to the host chain
+    UNBONDING_INITIATED = 1;
+    // unbonding is waiting for the maturing period of the host chain
+    UNBONDING_MATURING = 2;
+    // unbonding has matured and is ready to transfer from the host chain
+    UNBONDING_MATURED = 3;
+    // unbonding is on the persistence chain and can be claimed
+    UNBONDING_CLAIMABLE = 4;
+    // unbonding has failed
+    UNBONDING_FAILED = 5;
+  }
+
+  // unbonding target chain
+  string chain_id = 1;
+  // epoch number of the unbonding record
+  int64 epoch_number = 2;
+  // time when the unbonding matures and can be collected
+  google.protobuf.Timestamp mature_time = 3
+  [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+  // stk token amount that is burned with the unbonding
+  cosmos.base.v1beta1.Coin burn_amount = 4 [ (gogoproto.nullable) = false ];
+  // host token amount that is being unbonded
+  cosmos.base.v1beta1.Coin unbond_amount = 5 [ (gogoproto.nullable) = false ];
+  // sequence id of the ibc transaction
+  string ibc_sequence_id = 6;
+  // state of the unbonding during the process
+  UnbondingState state = 7;
+}
+
+message UserUnbonding {
+  // unbonding target chain
+  string chain_id = 1;
+  // epoch when the unbonding started
+  int64 epoch_number = 2;
+  // address which requested the unbonding
+  string address = 3 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // amount that is being unbonded
+  cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
 }
 
 message KVUpdate {
