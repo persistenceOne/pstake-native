@@ -281,10 +281,6 @@ func (k *Keeper) handleSuccessfulAck(
 			if err = k.HandleMsgTransfer(ctx, msg); err != nil {
 				return err
 			}
-		case sdk.MsgTypeURL(&distributiontypes.MsgSetWithdrawAddress{}):
-			if err = k.HandleSetWithdrawAddressResponse(ctx, msg); err != nil {
-				return err
-			}
 		}
 	}
 
