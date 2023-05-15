@@ -13,10 +13,6 @@ import (
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
-const (
-	PacketSrcChannelEvent string = "packet_src_channel"
-)
-
 func (k *Keeper) GenerateAndExecuteICATx(
 	ctx sdk.Context,
 	connectionID string,
@@ -50,10 +46,7 @@ func (k *Keeper) GenerateAndExecuteICATx(
 	}
 	ctx.EventManager().EmitEvents(res.GetEvents())
 
-	channelID, found := k.icaControllerKeeper.GetOpenActiveChannel(
-		ctx, connectionID,
-		icatypes.ControllerPortPrefix+ownerID,
-	)
+	channelID, found := k.icaControllerKeeper.GetOpenActiveChannel(ctx, connectionID, k.GetPortID(ownerID))
 	if !found {
 		return "", errorsmod.Wrapf(
 			liquidstakeibctypes.ErrICATxFailure,

@@ -151,7 +151,3 @@ func (k *Keeper) HandleUndelegateResponse(
 func (k *Keeper) HandleMsgTransfer(ctx sdk.Context, msg sdk.Msg) error {
 	return nil
 }
-
-func (k *Keeper) HandleSetWithdrawAddressResponse(ctx sdk.Context, msg sdk.Msg) error {
-	return nil
-}
