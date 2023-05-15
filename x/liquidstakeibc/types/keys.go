@@ -1,6 +1,7 @@
 package types
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -34,6 +35,16 @@ const (
 )
 
 var (
-	HostChainKey = []byte{0x01}
-	DepositKey   = []byte{0x02}
+	HostChainKey     = []byte{0x01}
+	DepositKey       = []byte{0x02}
+	UnbondingKey     = []byte{0x03}
+	UserUnbondingKey = []byte{0x04}
 )
+
+func GetUnbondingStoreKey(chainID string, epochNumber int64) []byte {
+	return append([]byte(chainID), []byte(strconv.FormatInt(epochNumber, 10))...)
+}
+
+func GetUserUnbondingStoreKey(chainID, delegatorAddress string, epochNumber int64) []byte {
+	return append([]byte(chainID), append([]byte(delegatorAddress), []byte(strconv.FormatInt(epochNumber, 10))...)...)
+}

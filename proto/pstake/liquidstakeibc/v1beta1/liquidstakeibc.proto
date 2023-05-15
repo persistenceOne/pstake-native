@@ -43,6 +43,8 @@ message HostChain {
   ];
   // the hash of the next validator set
   bytes next_valset_hash = 13;
+  // undelegation epoch factor
+  int64 unbonding_factor = 14;
 }
 
 message HostChainLSParams {
@@ -137,6 +139,21 @@ message Deposit {
 }
 
 message Unbonding {
+  enum UnbondingState {
+    // no action has been initiated on the unbonding
+    UNBONDING_PENDING = 0;
+    // unbonding action has been sent to the host chain
+    UNBONDING_INITIATED = 1;
+    // unbonding is waiting for the maturing period of the host chain
+    UNBONDING_MATURING = 2;
+    // unbonding has matured and is ready to transfer from the host chain
+    UNBONDING_MATURED = 3;
+    // unbonding is on the persistence chain and can be claimed
+    UNBONDING_CLAIMABLE = 4;
+    // unbonding has failed
+    UNBONDING_FAILED = 5;
+  }
+
   // unbonding target chain
   string chain_id = 1;
   // epoch number of the unbonding record
@@ -147,9 +164,11 @@ message Unbonding {
   // stk token amount that is burned with the unbonding
   cosmos.base.v1beta1.Coin burn_amount = 4 [ (gogoproto.nullable) = false ];
   // host token amount that is being unbonded
-  cosmos.base.v1beta1.Coin unbonded_amount = 5 [ (gogoproto.nullable) = false ];
-  // whether the unbonding has failed or not
-  bool failed = 6;
+  cosmos.base.v1beta1.Coin unbond_amount = 5 [ (gogoproto.nullable) = false ];
+  // sequence id of the ibc transaction
+  string ibc_sequence_id = 6;
+  // state of the unbonding during the process
+  UnbondingState state = 7;
 }
 
 message UserUnbonding {

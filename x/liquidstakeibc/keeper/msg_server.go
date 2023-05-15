@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -63,15 +64,16 @@ func (k msgServer) RegisterHostChain(
 	}
 
 	hc := &types.HostChain{
-		ChainId:        chainID,
-		ConnectionId:   msg.ConnectionId,
-		ChannelId:      msg.ChannelId,
-		PortId:         msg.PortId,
-		Params:         hostChainParams,
-		HostDenom:      msg.HostDenom,
-		MinimumDeposit: msg.MinimumDeposit,
-		CValue:         sdktypes.NewDec(1),
-		NextValsetHash: []byte{},
+		ChainId:         chainID,
+		ConnectionId:    msg.ConnectionId,
+		ChannelId:       msg.ChannelId,
+		PortId:          msg.PortId,
+		Params:          hostChainParams,
+		HostDenom:       msg.HostDenom,
+		MinimumDeposit:  msg.MinimumDeposit,
+		CValue:          sdktypes.NewDec(1),
+		NextValsetHash:  []byte{},
+		UnbondingFactor: msg.UnbondingFactor,
 	}
 
 	// save the host chain
@@ -328,5 +330,102 @@ func (k msgServer) LiquidUnstake(
 	goCtx context.Context,
 	msg *types.MsgLiquidUnstake,
 ) (*types.MsgLiquidUnstakeResponse, error) {
-	return nil, nil
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	// get the host chain we need to unstake from
+	hc, found := k.GetHostChainFromHostDenom(ctx, msg.HostDenom)
+	if !found {
+		return nil, errorsmod.Wrapf(types.ErrInvalidHostChain,
+			"host chain with host denom %s not registered",
+			msg.HostDenom,
+		)
+	}
+
+	// check if the message amount has the correct denom
+	if msg.Amount.Denom != hc.MintDenom() {
+		return nil, errorsmod.Wrapf(types.ErrInvalidDenom,
+			"expected %s, got %s",
+			hc.MintDenom(),
+			msg.Amount.Denom,
+		)
+	}
+
+	// parse the delegator address
+	delegatorAddress, err := sdktypes.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	// send the tokens from the delegator address to the undelegation module account
+	err = k.bankKeeper.SendCoinsFromAccountToModule(
+		ctx,
+		delegatorAddress,
+		types.UndelegationModuleAccount,
+		sdktypes.NewCoins(msg.Amount),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// send the unstake fee to the module fee address and subtract it from the total to unstake
+	unstakeAmount := msg.Amount
+	feeAmount := hc.Params.UnstakeFee.MulInt(unstakeAmount.Amount).TruncateInt()
+	if feeAmount.IsPositive() {
+		fee := sdktypes.NewCoin(msg.Amount.Denom, feeAmount)
+
+		err = k.SendProtocolFee(
+			ctx,
+			sdktypes.NewCoins(fee),
+			types.UndelegationModuleAccount,
+			k.GetParams(ctx).FeeAddress)
+		if err != nil {
+			return nil, err
+		}
+
+		unstakeAmount = msg.Amount.Sub(fee)
+	}
+
+	// calculate the host chain token unbond amount from the stk amount
+	decTokenAmount := sdktypes.NewDecCoinFromCoin(unstakeAmount).Amount.Mul(sdktypes.OneDec().Quo(hc.CValue))
+	tokenAmount, _ := sdktypes.NewDecCoinFromDec(hc.HostDenom, decTokenAmount).TruncateDecimal()
+	unbondAmount := sdktypes.NewCoin(hc.HostDenom, tokenAmount.Amount)
+
+	// calculate the current unbonding epoch
+	epoch := k.epochsKeeper.GetEpochInfo(ctx, types.UndelegationEpoch)
+	unbondingEpoch := types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch)
+
+	// increase the unbonding value for the epoch both for the user record and the module record
+	k.IncreaseUserUndelegatingAmountForEpoch(ctx, hc.ChainId, msg.DelegatorAddress, unbondingEpoch, unstakeAmount)
+	k.IncreaseUndelegatingAmountForEpoch(ctx, hc.ChainId, unbondingEpoch, unstakeAmount, unbondAmount)
+
+	// check if the total unbonding amount for the next unbonding epoch is less than what is currently staked
+	totalUnbondings, _ := k.GetUnbonding(ctx, hc.ChainId, unbondingEpoch)
+	totalDelegations := hc.GetHostChainTotalDelegations()
+	if totalDelegations.LT(unbondAmount.Amount) {
+		return nil, errorsmod.Wrapf(
+			types.ErrNotEnoughDelegations,
+			"delegated amount %s is less than the total undelegation %s for epoch %d",
+			totalDelegations,
+			totalUnbondings,
+			unbondingEpoch,
+		)
+	}
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeLiquidUnstake,
+			sdktypes.NewAttribute(types.AttributeDelegatorAddress, msg.GetDelegatorAddress()),
+			sdktypes.NewAttribute(types.AttributeAmountReceived, msg.Amount.String()),
+			sdktypes.NewAttribute(types.AttributePstakeUnstakeFee, feeAmount.String()),
+			sdktypes.NewAttribute(types.AttributeUnstakeAmount, unbondAmount.String()),
+			sdktypes.NewAttribute(types.AttributeUnstakeEpoch, strconv.FormatInt(unbondingEpoch, 10)),
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.GetDelegatorAddress()),
+		)},
+	)
+
+	return &types.MsgLiquidUnstakeResponse{}, nil
 }

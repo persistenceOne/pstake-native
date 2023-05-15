@@ -115,12 +115,64 @@ func (k *Keeper) Unbonding(
 	goCtx context.Context,
 	request *types.QueryUnbondingRequest,
 ) (*types.QueryUnbondingResponse, error) {
-	return nil, nil
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.EpochNumber <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "epoch number less than equal to 0")
+	}
+	if request.HostDenom == "" {
+		return nil, status.Error(codes.InvalidArgument, "host_denom cannot be empty")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	hc, found := k.GetHostChainFromHostDenom(ctx, request.HostDenom)
+	if !found {
+		return nil, sdkerrors.ErrKeyNotFound
+	}
+
+	unbonding, found := k.GetUnbonding(ctx, hc.ChainId, request.EpochNumber)
+	if !found {
+		return nil, sdkerrors.ErrKeyNotFound
+	}
+
+	return &types.QueryUnbondingResponse{Unbonding: *unbonding}, nil
 }
 
-func (k *Keeper) UserUnbondings(
+func (k *Keeper) UserUnbonding(
 	goCtx context.Context,
 	request *types.QueryUserUnbondingsRequest,
 ) (*types.QueryUserUnbondingsResponse, error) {
-	return nil, nil
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.EpochNumber <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "epoch number less than equal to 0")
+	}
+	if request.Address == "" {
+		return nil, status.Error(codes.InvalidArgument, "address cannot be empty")
+	}
+	if request.HostDenom == "" {
+		return nil, status.Error(codes.InvalidArgument, "host_denom cannot be empty")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	address, err := sdk.AccAddressFromBech32(request.Address)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid address: %s", err.Error())
+	}
+
+	hc, found := k.GetHostChainFromHostDenom(ctx, request.HostDenom)
+	if !found {
+		return nil, sdkerrors.ErrKeyNotFound
+	}
+
+	userUnbonding, found := k.GetUserUnbonding(ctx, hc.ChainId, address.String(), request.EpochNumber)
+	if !found {
+		return nil, sdkerrors.ErrKeyNotFound
+	}
+
+	return &types.QueryUserUnbondingsResponse{UserUnbonding: *userUnbonding}, nil
 }

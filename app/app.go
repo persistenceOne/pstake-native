@@ -180,30 +180,32 @@ var (
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		authtypes.FeeCollectorName:               nil,
-		distrtypes.ModuleName:                    nil,
-		icatypes.ModuleName:                      nil,
-		minttypes.ModuleName:                     {authtypes.Minter},
-		stakingtypes.BondedPoolName:              {authtypes.Burner, authtypes.Staking},
-		stakingtypes.NotBondedPoolName:           {authtypes.Burner, authtypes.Staking},
-		govtypes.ModuleName:                      {authtypes.Burner},
-		ibctransfertypes.ModuleName:              {authtypes.Minter, authtypes.Burner},
-		ibcfeetypes.ModuleName:                   nil,
-		lscosmostypes.ModuleName:                 {authtypes.Minter, authtypes.Burner},
-		lscosmostypes.DepositModuleAccount:       nil,
-		lscosmostypes.DelegationModuleAccount:    nil,
-		lscosmostypes.RewardModuleAccount:        nil,
-		lscosmostypes.UndelegationModuleAccount:  nil,
-		lscosmostypes.RewardBoosterModuleAccount: nil, //legacy, blocklist, no permissions
-		liquidstakeibctypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
-		liquidstakeibctypes.DepositModuleAccount: nil,
-		lspersistencetypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
+		authtypes.FeeCollectorName:                    nil,
+		distrtypes.ModuleName:                         nil,
+		icatypes.ModuleName:                           nil,
+		minttypes.ModuleName:                          {authtypes.Minter},
+		stakingtypes.BondedPoolName:                   {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName:                {authtypes.Burner, authtypes.Staking},
+		govtypes.ModuleName:                           {authtypes.Burner},
+		ibctransfertypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
+		ibcfeetypes.ModuleName:                        nil,
+		lscosmostypes.ModuleName:                      {authtypes.Minter, authtypes.Burner},
+		lscosmostypes.DepositModuleAccount:            nil,
+		lscosmostypes.DelegationModuleAccount:         nil,
+		lscosmostypes.RewardModuleAccount:             nil,
+		lscosmostypes.UndelegationModuleAccount:       nil,
+		lscosmostypes.RewardBoosterModuleAccount:      nil, //legacy, blocklist, no permissions
+		liquidstakeibctypes.ModuleName:                {authtypes.Minter, authtypes.Burner},
+		liquidstakeibctypes.DepositModuleAccount:      nil,
+		liquidstakeibctypes.UndelegationModuleAccount: {authtypes.Burner},
+		lspersistencetypes.ModuleName:                 {authtypes.Minter, authtypes.Burner},
 	}
 
 	receiveAllowedMAcc = map[string]bool{
-		lscosmostypes.UndelegationModuleAccount:  true,
-		lscosmostypes.DelegationModuleAccount:    true,
-		liquidstakeibctypes.DepositModuleAccount: true,
+		lscosmostypes.UndelegationModuleAccount:       true,
+		lscosmostypes.DelegationModuleAccount:         true,
+		liquidstakeibctypes.DepositModuleAccount:      true,
+		liquidstakeibctypes.UndelegationModuleAccount: true,
 	}
 )
 

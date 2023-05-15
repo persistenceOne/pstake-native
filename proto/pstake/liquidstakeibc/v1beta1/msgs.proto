@@ -61,6 +61,7 @@ message MsgRegisterHostChain {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  int64 unbonding_factor = 11;
 }
 
 message MsgRegisterHostChainResponse {}
