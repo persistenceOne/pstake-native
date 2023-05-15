@@ -197,8 +197,14 @@ func (k *Keeper) OnTimeoutPacket(
 			// mark unbondings as failed
 			k.FailAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
 		case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
-			// mark unbondings as failed
-			k.FailAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
+			unbondings := k.FilterUnbondings(
+				ctx,
+				func(u types.Unbonding) bool {
+					return u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
+				},
+			)
+			// revert unbonding state so it can be picked up again
+			k.RevertUnbondingsState(ctx, unbondings)
 		}
 	}
 

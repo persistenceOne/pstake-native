@@ -232,8 +232,14 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 		return nil
 	}
 
-	// mark all the deposits for that sequence as failed
-	k.FailAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
+	unbondings := k.FilterUnbondings(
+		ctx,
+		func(u liquidstakeibctypes.Unbonding) bool {
+			return u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
+		},
+	)
+	// revert unbonding state so it can be picked up again
+	k.RevertUnbondingsState(ctx, unbondings)
 
 	return nil
 }
@@ -316,13 +322,7 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 			liquidstakeibctypes.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch),
 		)
 		if !found {
-			k.Logger(ctx).Error(
-				"Could not find unbonding for epoch.",
-				"host_chain",
-				hc.ChainId,
-				"epoch",
-				epoch,
-			)
+			// nothing to unbond for this epoch
 			continue
 		}
 
