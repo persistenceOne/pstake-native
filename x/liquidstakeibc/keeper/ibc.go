@@ -192,7 +192,6 @@ func (k *Keeper) OnTimeoutPacket(
 				ctx,
 				k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
 			)
-			// nothing needs to be done here
 		case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
 			// mark unbondings as failed
 			k.FailAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
