@@ -23,6 +23,9 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 		// attempt to delegate
 		k.DoDelegate(ctx, hc)
 
+		// attempt to automatically claim matured undelegations
+		k.DoClaim(ctx, hc)
+
 		// attempt to process any matured unbondings
 		k.DoProcessMaturedUndelegations(ctx, hc)
 
@@ -77,6 +80,57 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 		deposit.IbcSequenceId = sequenceID
 		deposit.State = types.Deposit_DEPOSIT_DELEGATING
 		k.SetDeposit(ctx, deposit)
+	}
+}
+
+func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
+	claimableUnbondings := k.FilterUnbondings(
+		ctx,
+		func(u types.Unbonding) bool {
+			return u.ChainId == hc.ChainId && u.State == types.Unbonding_UNBONDING_CLAIMABLE
+		},
+	)
+
+	for _, unbonding := range claimableUnbondings {
+		epochNumber := unbonding.EpochNumber
+		userUnbondings := k.FilterUserUnbondings(
+			ctx,
+			func(u types.UserUnbonding) bool {
+				return u.ChainId == hc.ChainId && u.EpochNumber == epochNumber
+			},
+		)
+
+		for _, userUnbonding := range userUnbondings {
+			address, err := sdk.AccAddressFromBech32(userUnbonding.Address)
+			if err != nil {
+				return
+			}
+
+			// send coin to the delegator address from the undelegation module account
+			if err = k.bankKeeper.SendCoinsFromModuleToAccount(
+				ctx,
+				types.UndelegationModuleAccount,
+				address,
+				sdk.NewCoins(sdk.NewCoin(hc.IBCDenom(), userUnbonding.Amount.Amount)),
+			); err != nil {
+				k.Logger(ctx).Error(
+					"could not send unbonded tokens from module account to delegator",
+					"host_chain",
+					hc.ChainId,
+					"epoch",
+					userUnbonding.EpochNumber,
+				)
+				return
+			}
+
+			// update the unbonding remaining amount and delete it if it reaches zero
+			unbonding.UnbondAmount = unbonding.UnbondAmount.Sub(userUnbonding.Amount)
+			if unbonding.UnbondAmount.IsZero() {
+				k.DeleteUnbonding(ctx, unbonding)
+			} else {
+				k.SetUnbonding(ctx, unbonding)
+			}
+		}
 	}
 }
 
