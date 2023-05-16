@@ -35,6 +35,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 		{ValidatorAddress: valOpers[1].String(), TargetWeight: sdk.NewInt(1)},
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: sdk.NewInt(1)},
 	}
+	params.StakeFeeRate = sdk.ZeroDec()
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
@@ -195,6 +196,7 @@ func (s *KeeperTestSuite) TestLiquidStakeFromVestingAccount() {
 		{ValidatorAddress: valOpers[1].String(), TargetWeight: sdk.NewInt(1)},
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: sdk.NewInt(1)},
 	}
+	params.StakeFeeRate = sdk.ZeroDec()
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
