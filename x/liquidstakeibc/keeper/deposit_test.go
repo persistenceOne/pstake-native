@@ -98,3 +98,154 @@ func (suite *IntegrationTestSuite) TestGetDepositSequenceID() {
 
 	suite.Require().Equal(sequenceID, "channel-0-sequence-1")
 }
+
+func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
+	tc := []struct {
+		name             string
+		deposits         []*types.Deposit
+		expected         map[int64]sdk.Coin
+		redemptionAmount sdk.Coin
+		success          bool
+	}{
+		{
+			name: "one deposit that can fill the request",
+			deposits: []*types.Deposit{
+				{
+					ChainId: "chain-1",
+					Epoch:   sdk.NewInt(1),
+					Amount:  sdk.Coin{Denom: "stake", Amount: sdk.NewInt(10000)},
+					State:   types.Deposit_DEPOSIT_PENDING,
+				},
+			},
+			expected: map[int64]sdk.Coin{
+				1: {Denom: "stake", Amount: sdk.NewInt(5000)},
+			},
+			redemptionAmount: sdk.Coin{Denom: "stake", Amount: sdk.NewInt(5000)},
+			success:          true,
+		},
+		{
+			name: "one deposit that can't fill the request",
+			deposits: []*types.Deposit{
+				{
+					ChainId: "chain-1",
+					Epoch:   sdk.NewInt(1),
+					Amount:  sdk.Coin{Denom: "stake", Amount: sdk.NewInt(3500)},
+					State:   types.Deposit_DEPOSIT_PENDING,
+				},
+			},
+			expected: map[int64]sdk.Coin{
+				1: {Denom: "stake", Amount: sdk.NewInt(3500)},
+			},
+			redemptionAmount: sdk.Coin{Denom: "stake", Amount: sdk.NewInt(5000)},
+			success:          true,
+		},
+		{
+			name: "one deposit that can exactly fill the request",
+			deposits: []*types.Deposit{
+				{
+					ChainId: "chain-1",
+					Epoch:   sdk.NewInt(1),
+					Amount:  sdk.Coin{Denom: "stake", Amount: sdk.NewInt(5000)},
+					State:   types.Deposit_DEPOSIT_PENDING,
+				},
+			},
+			expected:         map[int64]sdk.Coin{},
+			redemptionAmount: sdk.Coin{Denom: "stake", Amount: sdk.NewInt(5000)},
+			success:          true,
+		},
+		{
+			name: "redemption filled with first deposit",
+			deposits: []*types.Deposit{
+				{
+					ChainId: "chain-1",
+					Epoch:   sdk.NewInt(1),
+					Amount:  sdk.Coin{Denom: "stake", Amount: sdk.NewInt(10000)},
+					State:   types.Deposit_DEPOSIT_PENDING,
+				},
+				{
+					ChainId: "chain-1",
+					Epoch:   sdk.NewInt(2),
+					Amount:  sdk.Coin{Denom: "stake", Amount: sdk.NewInt(5000)},
+					State:   types.Deposit_DEPOSIT_PENDING,
+				},
+			},
+			expected: map[int64]sdk.Coin{
+				1: {Denom: "stake", Amount: sdk.NewInt(5000)},
+				2: {Denom: "stake", Amount: sdk.NewInt(5000)},
+			},
+			redemptionAmount: sdk.Coin{Denom: "stake", Amount: sdk.NewInt(5000)},
+			success:          true,
+		},
+		{
+			name: "redemption filled with second deposit",
+			deposits: []*types.Deposit{
+				{
+					ChainId: "chain-1",
+					Epoch:   sdk.NewInt(1),
+					Amount:  sdk.Coin{Denom: "stake", Amount: sdk.NewInt(5000)},
+					State:   types.Deposit_DEPOSIT_PENDING,
+				},
+				{
+					ChainId: "chain-1",
+					Epoch:   sdk.NewInt(2),
+					Amount:  sdk.Coin{Denom: "stake", Amount: sdk.NewInt(10000)},
+					State:   types.Deposit_DEPOSIT_PENDING,
+				},
+			},
+			expected: map[int64]sdk.Coin{
+				2: {Denom: "stake", Amount: sdk.NewInt(5000)},
+			},
+			redemptionAmount: sdk.Coin{Denom: "stake", Amount: sdk.NewInt(10000)},
+			success:          true,
+		},
+		{
+			name: "redemption exactly filled with two deposits",
+			deposits: []*types.Deposit{
+				{
+					ChainId: "chain-1",
+					Epoch:   sdk.NewInt(1),
+					Amount:  sdk.Coin{Denom: "stake", Amount: sdk.NewInt(10000)},
+					State:   types.Deposit_DEPOSIT_PENDING,
+				},
+				{
+					ChainId: "chain-1",
+					Epoch:   sdk.NewInt(2),
+					Amount:  sdk.Coin{Denom: "stake", Amount: sdk.NewInt(5000)},
+					State:   types.Deposit_DEPOSIT_PENDING,
+				},
+			},
+			expected:         map[int64]sdk.Coin{},
+			redemptionAmount: sdk.Coin{Denom: "stake", Amount: sdk.NewInt(15000)},
+			success:          true,
+		},
+	}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+			pstakeApp, ctx := suite.app, suite.ctx
+
+			for _, deposit := range t.deposits {
+				pstakeApp.LiquidStakeIBCKeeper.SetDeposit(ctx, deposit)
+			}
+
+			err := pstakeApp.LiquidStakeIBCKeeper.AdjustDepositsForRedemption(
+				ctx,
+				&types.HostChain{ChainId: "chain-1"},
+				t.redemptionAmount,
+			)
+
+			if t.success {
+				suite.Require().Equal(err, nil)
+
+				deposits := pstakeApp.LiquidStakeIBCKeeper.GetAllDeposits(ctx)
+				for _, deposit := range deposits {
+					suite.Require().Equal(deposit.Amount, t.expected[deposit.Epoch.Int64()])
+				}
+
+				suite.Require().Equal(len(deposits), len(t.expected))
+			} else {
+				suite.Require().NotEqual(err, nil)
+			}
+		})
+	}
+}
