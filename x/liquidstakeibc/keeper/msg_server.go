@@ -9,6 +9,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -428,4 +429,150 @@ func (k msgServer) LiquidUnstake(
 	)
 
 	return &types.MsgLiquidUnstakeResponse{}, nil
+}
+
+// Redeem defines a method for instantly redeem liquid staked tokens
+func (k msgServer) Redeem(
+	goCtx context.Context,
+	msg *types.MsgRedeem,
+) (*types.MsgRedeemResponse, error) {
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	// get the host chain we need to unstake from
+	hc, found := k.GetHostChainFromHostDenom(ctx, msg.HostDenom)
+	if !found {
+		return nil, errorsmod.Wrapf(types.ErrInvalidHostChain,
+			"host chain with host denom %s not registered",
+			msg.HostDenom,
+		)
+	}
+
+	// check the msg amount denom is the host chain mint denom
+	if msg.Amount.Denom != hc.MintDenom() {
+		return nil, errorsmod.Wrapf(
+			types.ErrInvalidDenom,
+			"expected %s, got %s",
+			hc.MintDenom(),
+			msg.Amount.Denom,
+		)
+	}
+
+	// get the redeem address
+	redeemAddress, err := sdktypes.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "got error : %s", err)
+	}
+
+	// send the redeem amount to the module account
+	err = k.bankKeeper.SendCoinsFromAccountToModule(
+		ctx,
+		redeemAddress,
+		types.ModuleName,
+		sdktypes.NewCoins(msg.Amount))
+	if err != nil {
+		return nil, errorsmod.Wrapf(
+			types.ErrMintFailed,
+			"failed to send instant redeemed coins from account %s to module %s: %s",
+			redeemAddress.String(),
+			types.ModuleName,
+			err.Error(),
+		)
+	}
+
+	// calculate the instant redemption fee
+	fee, _ := sdktypes.NewDecCoinFromDec(
+		hc.MintDenom(),
+		hc.Params.RedemptionFee.MulInt(msg.Amount.Amount),
+	).TruncateDecimal()
+
+	// send the protocol fee to the module fee address
+	if fee.IsPositive() {
+		err = k.SendProtocolFee(
+			ctx,
+			sdktypes.NewCoins(fee),
+			types.ModuleName,
+			k.GetParams(ctx).FeeAddress,
+		)
+		if err != nil {
+			return nil, errorsmod.Wrapf(
+				types.ErrFailedDeposit,
+				"failed to send instant redemption fee to module fee address %s: %s",
+				k.GetParams(ctx).FeeAddress,
+				err.Error(),
+			)
+		}
+	}
+
+	// amount of tokens to be redeemed
+	stkAmount := msg.Amount.Sub(fee)
+	redeemAmount := sdktypes.NewDecCoinFromCoin(stkAmount).Amount.Mul(hc.CValue)
+	redeemToken, _ := sdktypes.NewDecCoinFromDec(hc.IBCDenom(), redeemAmount).TruncateDecimal()
+
+	// check if there is enough deposits to fulfill the instant redemption request
+	depositAccountBalance := k.bankKeeper.GetBalance(
+		ctx,
+		authtypes.NewModuleAddress(types.DepositModuleAccount),
+		hc.IBCDenom(),
+	)
+	if redeemToken.IsGTE(depositAccountBalance) {
+		return nil, errorsmod.Wrapf(
+			sdkerrors.ErrInsufficientFunds,
+			"can't instant redeem %s tokens, only %s is available",
+			redeemToken.String(),
+			depositAccountBalance.Amount.String(),
+		)
+	}
+
+	// subtract the redemption amount from the deposits
+	if err := k.AdjustDepositsForRedemption(ctx, hc, redeemToken); err != nil {
+		return nil, errorsmod.Wrapf(
+			types.ErrRedeemFailed,
+			"could not adjust current deposits for redemption",
+		)
+	}
+
+	// send the instant redeemed token from module to the account
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(
+		ctx,
+		types.DepositModuleAccount,
+		redeemAddress,
+		sdktypes.NewCoins(redeemToken),
+	)
+	if err != nil {
+		return nil, errorsmod.Wrapf(
+			types.ErrRedeemFailed,
+			"failed to send instant redeemed coins from module %s to account %s: %s",
+			types.DepositModuleAccount,
+			redeemAddress.String(),
+			err.Error(),
+		)
+	}
+
+	// burn the stk tokens
+	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdktypes.NewCoins(stkAmount))
+	if err != nil {
+		return nil, errorsmod.Wrapf(
+			types.ErrBurnFailed,
+			"failed to burn instant redeemed coins on module %s: %s",
+			types.ModuleName,
+			err.Error(),
+		)
+	}
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeRedeem,
+			sdktypes.NewAttribute(types.AttributeDelegatorAddress, redeemAddress.String()),
+			sdktypes.NewAttribute(types.AttributeAmount, msg.Amount.String()),
+			sdktypes.NewAttribute(types.AttributeAmountReceived, redeemToken.String()),
+			sdktypes.NewAttribute(types.AttributePstakeRedeemFee, fee.String()),
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
+		)},
+	)
+
+	return &types.MsgRedeemResponse{}, nil
 }
