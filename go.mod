@@ -18,7 +18,7 @@ require (
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/persistenceOne/persistence-sdk/v2 v2.1.0-rc3
 	github.com/rakyll/statik v0.1.7
-	github.com/spf13/cast v1.5.0
+	github.com/spf13/cast v1.5.1
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
