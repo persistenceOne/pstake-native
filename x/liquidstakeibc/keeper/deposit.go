@@ -69,6 +69,32 @@ func (k *Keeper) GetTransactionSequenceID(channelID string, sequence uint64) str
 	return channelID + "-sequence-" + sequenceStr
 }
 
+func (k *Keeper) AdjustDepositsForRedemption(
+	ctx sdk.Context,
+	hc *liquidstakeibctypes.HostChain,
+	redeemableAmount sdk.Coin,
+) error {
+	redeemableDeposits, depositsAmount := k.GetRedeemableDepositsForHostChain(ctx, hc)
+	if depositsAmount.LT(redeemableAmount.Amount) {
+		return nil
+	}
+
+	for _, deposit := range redeemableDeposits {
+		// there is enough tokens in this deposit to fulfill the redeem request
+		if deposit.Amount.Amount.GT(redeemableAmount.Amount) || redeemableAmount.IsZero() {
+			deposit.Amount = deposit.Amount.Sub(redeemableAmount)
+			k.SetDeposit(ctx, deposit)
+			return nil
+		}
+
+		// the deposit is not enough to fulfill the redeem request, use it and remove it
+		redeemableAmount = redeemableAmount.Sub(deposit.Amount)
+		k.DeleteDeposit(ctx, deposit)
+	}
+
+	return nil
+}
+
 // TODO: There is many repeated code, have just 1 iterative method and pass in a condition.
 
 func (k *Keeper) GetDepositForChainAndEpoch(
@@ -128,6 +154,31 @@ func (k *Keeper) GetPendingDepositsBeforeEpoch(ctx sdk.Context, epoch int64) []*
 	}
 
 	return deposits
+}
+
+func (k *Keeper) GetRedeemableDepositsForHostChain(
+	ctx sdk.Context,
+	hc *liquidstakeibctypes.HostChain,
+) ([]*liquidstakeibctypes.Deposit, sdk.Int) { //nolint:staticcheck
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	deposits := make([]*liquidstakeibctypes.Deposit, 0)
+	redeemableAmount := sdk.ZeroInt()
+	for ; iterator.Valid(); iterator.Next() {
+		deposit := &liquidstakeibctypes.Deposit{}
+		k.cdc.MustUnmarshal(iterator.Value(), deposit)
+
+		if deposit.ChainId == hc.ChainId &&
+			deposit.State == liquidstakeibctypes.Deposit_DEPOSIT_PENDING &&
+			!deposit.Amount.IsZero() {
+			redeemableAmount = redeemableAmount.Add(deposit.Amount.Amount)
+			deposits = append(deposits, deposit)
+		}
+	}
+
+	return deposits, redeemableAmount
 }
 
 func (k *Keeper) GetDelegableDepositsForChain(ctx sdk.Context, chainID string) []*liquidstakeibctypes.Deposit {
