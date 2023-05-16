@@ -30,6 +30,23 @@ func (k *Keeper) GetUserUnbonding(
 	return &userUnbonding, true
 }
 
+func (k *Keeper) FilterUserUnbondings(ctx sdk.Context, filter func(u types.UserUnbonding) bool) []*types.UserUnbonding {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.UserUnbondingKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	userUnbondings := make([]*types.UserUnbonding, 0)
+	for ; iterator.Valid(); iterator.Next() {
+		userUnbonding := types.UserUnbonding{}
+		k.cdc.MustUnmarshal(iterator.Value(), &userUnbonding)
+		if filter(userUnbonding) {
+			userUnbondings = append(userUnbondings, &userUnbonding)
+		}
+	}
+
+	return userUnbondings
+}
+
 func (k *Keeper) IncreaseUserUndelegatingAmountForEpoch(
 	ctx sdk.Context,
 	chainID string,

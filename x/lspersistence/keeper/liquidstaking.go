@@ -78,6 +78,20 @@ func (k Keeper) LiquidStake(
 		return sdk.ZeroDec(), sdk.ZeroInt(), err
 	}
 
+	//cut fee here and reset stakingCoin to remaining coin.
+	fee := sdk.NewCoin(stakingCoin.Denom, params.StakeFeeRate.MulInt(stakingCoin.Amount).TruncateInt())
+	err = k.bankKeeper.SendCoins(ctx, proxyAcc, sdk.MustAccAddressFromBech32(params.FeeAddress), sdk.NewCoins(fee))
+	if err != nil {
+		return sdk.ZeroDec(), sdk.ZeroInt(), err
+	}
+	stakingCoin = stakingCoin.Sub(fee)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeMsgLiquidStake,
+			sdk.NewAttribute(types.AttributeKeyPstakeDepositFee, fee.String())),
+	})
+
 	// mint btoken, MintAmount = TotalSupply * StakeAmount/NetAmount
 	liquidBondDenom := k.LiquidBondDenom(ctx)
 	bTokenMintAmount = stakingCoin.Amount

@@ -27,6 +27,11 @@ func (k *Keeper) GetUnbonding(ctx sdk.Context, chainID string, epochNumber int64
 	return &unbonding, true
 }
 
+func (k *Keeper) DeleteUnbonding(ctx sdk.Context, ub *types.Unbonding) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.UnbondingKey)
+	store.Delete(types.GetUnbondingStoreKey(ub.ChainId, ub.EpochNumber))
+}
+
 func (k *Keeper) FilterUnbondings(ctx sdk.Context, filter func(u types.Unbonding) bool) []*types.Unbonding {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.UnbondingKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
