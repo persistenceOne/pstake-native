@@ -28,6 +28,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 		{ValidatorAddress: valOpers[1].String(), TargetWeight: sdk.NewInt(10)},
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: sdk.NewInt(10)},
 	}
+	params.StakeFeeRate = sdk.ZeroDec()
 	s.keeper.SetParams(s.ctx, params)
 	reds := s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 0)
@@ -282,6 +283,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(helpers.ParseTime("2022-03-01T00:00:00Z"))
 	params := s.keeper.GetParams(s.ctx)
 	params.UnstakeFeeRate = sdk.ZeroDec()
+	params.StakeFeeRate = sdk.ZeroDec()
 	params.MinLiquidStakingAmount = sdk.NewInt(10000)
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
@@ -299,6 +301,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 		{ValidatorAddress: valOpers[6].String(), TargetWeight: sdk.NewInt(1)},
 		{ValidatorAddress: valOpers[7].String(), TargetWeight: sdk.NewInt(1)},
 	}
+	params.StakeFeeRate = sdk.ZeroDec()
 	s.keeper.SetParams(s.ctx, params)
 	reds := s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 0)
@@ -476,6 +479,7 @@ func (s *KeeperTestSuite) TestWithdrawRewardsAndReStaking() {
 		{ValidatorAddress: valOpers[0].String(), TargetWeight: sdk.NewInt(10)},
 		{ValidatorAddress: valOpers[1].String(), TargetWeight: sdk.NewInt(10)},
 	}
+	params.StakeFeeRate = sdk.ZeroDec()
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
