@@ -16,6 +16,7 @@ const (
 	MsgTypeUpdateHostChain   string = "msg_update_host_chain"
 	MsgTypeLiquidStake       string = "msg_liquid_stake"
 	MsgTypeLiquidUnstake     string = "msg_liquid_unstake"
+	MsgTypeRedeem            string = "msg_redeem"
 )
 
 var (
@@ -23,6 +24,7 @@ var (
 	_ sdk.Msg = &MsgUpdateHostChain{}
 	_ sdk.Msg = &MsgLiquidStake{}
 	_ sdk.Msg = &MsgLiquidUnstake{}
+	_ sdk.Msg = &MsgRedeem{}
 )
 
 func NewMsgRegisterHostChain(
@@ -249,6 +251,55 @@ func (m *MsgLiquidUnstake) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic performs stateless checks
 func (m *MsgLiquidUnstake) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.DelegatorAddress)
+	}
+
+	if !m.Amount.IsValid() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
+	}
+
+	if !m.Amount.IsPositive() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
+	}
+
+	return nil
+}
+
+//nolint:interfacer
+func NewMsgRedeem(amount sdk.Coin, address sdk.AccAddress, hostDenom string) *MsgRedeem {
+	return &MsgRedeem{
+		DelegatorAddress: address.String(),
+		Amount:           amount,
+		HostDenom:        hostDenom,
+	}
+}
+
+func (m *MsgRedeem) Route() string {
+	return RouterKey
+}
+
+// Type should return the action
+func (m *MsgRedeem) Type() string {
+	return MsgTypeRedeem
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgRedeem) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgRedeem) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// ValidateBasic performs stateless checks
+func (m *MsgRedeem) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.DelegatorAddress)
 	}
