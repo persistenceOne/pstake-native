@@ -147,7 +147,3 @@ func (k *Keeper) HandleUndelegateResponse(
 	}
 	return nil
 }
-
-func (k *Keeper) HandleMsgTransfer(ctx sdk.Context, msg sdk.Msg) error {
-	return nil
-}

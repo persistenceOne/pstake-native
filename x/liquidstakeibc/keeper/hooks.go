@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -91,6 +92,10 @@ func (k *Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNum
 		k.UndelegationWorkflow(ctx, epochNumber)
 	}
 
+	if epochIdentifier == liquidstakeibctypes.RewardsEpochIdentifier {
+		k.RewardsWorkflow(ctx, epochNumber)
+	}
+
 	return nil
 }
 
@@ -118,26 +123,50 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		return nil
 	}
 
-	// check if the transfer is originated from the module
-	undelegationAddress := k.GetUndelegationModuleAccount(ctx).GetAddress().String()
-	if data.GetSender() != hc.DelegationAccount.Address || data.GetReceiver() != undelegationAddress {
-		// transfer is not related with the module
-		return nil
+	// the transfer goes delegationAddress -> undelegationAccount, update corresponding unbondings
+	if data.GetSender() == hc.DelegationAccount.Address &&
+		data.GetReceiver() == k.GetUndelegationModuleAccount(ctx).GetAddress().String() {
+		// get all the unbondings for that ibc sequence id
+		unbondings := k.FilterUnbondings(
+			ctx,
+			func(u liquidstakeibctypes.Unbonding) bool {
+				return u.UnbondAmount.Denom == hc.HostDenom && u.State == liquidstakeibctypes.Unbonding_UNBONDING_MATURED
+			},
+		)
+
+		// update the unbonding states
+		for _, unbonding := range unbondings {
+			unbonding.IbcSequenceId = ""
+			unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_CLAIMABLE
+			k.SetUnbonding(ctx, unbonding)
+		}
 	}
 
-	// get all the unbondings for that ibc sequence id
-	unbondings := k.FilterUnbondings(
-		ctx,
-		func(u liquidstakeibctypes.Unbonding) bool {
-			return u.UnbondAmount.Denom == hc.HostDenom && u.State == liquidstakeibctypes.Unbonding_UNBONDING_MATURED
-		},
-	)
+	if data.GetSender() == hc.RewardsAccount.Address &&
+		data.GetReceiver() == k.GetDepositModuleAccount(ctx).GetAddress().String() {
+		// add the deposit amount to the deposit record for that chain/epoch
+		currentEpoch := k.GetEpochNumber(ctx, liquidstakeibctypes.DelegationEpoch)
+		deposit, found := k.GetDepositForChainAndEpoch(ctx, hc.ChainId, currentEpoch)
+		if !found {
+			return errorsmod.Wrapf(
+				liquidstakeibctypes.ErrDepositNotFound,
+				"deposit not found for chain %s and epoch %v",
+				hc.ChainId,
+				currentEpoch,
+			)
+		}
 
-	// update the unbonding states
-	for _, unbonding := range unbondings {
-		unbonding.IbcSequenceId = ""
-		unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_CLAIMABLE
-		k.SetUnbonding(ctx, unbonding)
+		amount, ok := sdk.NewIntFromString(data.Amount)
+		if !ok {
+			return errorsmod.Wrapf(
+				liquidstakeibctypes.ErrParsingAmount,
+				"could not parse transfer amount %s",
+				data.Amount,
+			)
+		}
+
+		deposit.Amount.Amount = deposit.Amount.Amount.Add(amount)
+		k.SetDeposit(ctx, deposit)
 	}
 
 	return nil
@@ -232,14 +261,11 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 		return nil
 	}
 
-	unbondings := k.FilterUnbondings(
+	// revert the state of the deposits that timed out
+	k.RevertDepositsState(
 		ctx,
-		func(u liquidstakeibctypes.Unbonding) bool {
-			return u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
-		},
+		k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
 	)
-	// revert unbonding state so it can be picked up again
-	k.RevertUnbondingsState(ctx, unbondings)
 
 	return nil
 }
@@ -369,5 +395,22 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 		unbonding.IbcSequenceId = sequenceID
 		unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_INITIATED
 		k.SetUnbonding(ctx, unbonding)
+	}
+}
+
+func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
+	for _, hc := range k.GetAllHostChains(ctx) {
+		if hc.RewardsAccount != nil &&
+			hc.RewardsAccount.ChannelState == liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED {
+			if err := k.QueryHostChainAccountBalance(ctx, hc, hc.RewardsAccount.Address); err != nil {
+				k.Logger(ctx).Info(
+					"Could not send rewards account balance ICQ.",
+					"host_chain",
+					hc.ChainId,
+					"epoch",
+					epoch,
+				)
+			}
+		}
 	}
 }

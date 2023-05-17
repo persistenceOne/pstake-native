@@ -22,4 +22,5 @@ var (
 	ErrNotEnoughDelegations = errorsmod.Register(ModuleName, 2014, "delegated amount is less than undelegation amount requested")
 	ErrRedeemFailed         = errorsmod.Register(ModuleName, 2015, "an error occurred while instant redeeming tokens")
 	ErrBurnFailed           = errorsmod.Register(ModuleName, 2016, "burn failed")
+	ErrParsingAmount        = errorsmod.Register(ModuleName, 2017, "could not parse message amount")
 )

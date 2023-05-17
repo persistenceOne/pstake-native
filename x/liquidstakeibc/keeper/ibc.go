@@ -253,6 +253,7 @@ func (k *Keeper) handleUnsuccessfulAck(
 				},
 			)
 			// revert unbonding state so it can be picked up again
+			// this won't conflict with failed rewards transfers since the transaction sequence id won't match
 			k.RevertUnbondingsState(ctx, unbondings)
 		}
 	}
@@ -300,10 +301,6 @@ func (k *Keeper) handleSuccessfulAck(
 			}
 
 			if err = k.HandleUndelegateResponse(ctx, msg, msgResponse, channel, sequence); err != nil {
-				return err
-			}
-		case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
-			if err = k.HandleMsgTransfer(ctx, msg); err != nil {
 				return err
 			}
 		}

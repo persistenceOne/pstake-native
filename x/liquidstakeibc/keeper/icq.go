@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	q "github.com/cosmos/cosmos-sdk/types/query"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icqtypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
@@ -109,6 +110,20 @@ func BalancesCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Que
 		hc.DelegationAccount.Balance = *response.Balance
 	case hc.RewardsAccount.Address:
 		hc.RewardsAccount.Balance = *response.Balance
+		if !hc.RewardsAccount.Balance.IsZero() {
+			// send all the rewards account balance to the deposit account, so it can be re-staked
+			_, err = k.SendICATransfer(
+				ctx,
+				hc,
+				hc.RewardsAccount.Balance,
+				hc.RewardsAccount.Address,
+				authtypes.NewModuleAddress(types.DepositModuleAccount).String(),
+				k.RewardsAccountPortOwner(hc.ChainId),
+			)
+			if err != nil {
+				return fmt.Errorf("could not send ICA rewards transfer: %w", err)
+			}
+		}
 	default:
 		return fmt.Errorf("address doesn't belong to any ICA accout of the host chain with id %s", query.ChainId)
 	}
