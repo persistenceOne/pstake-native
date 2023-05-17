@@ -150,6 +150,17 @@ func (k Keeper) WithdrawRewardsAndReStake(ctx sdk.Context, whitelistedValsMap ty
 	// re-staking with proxyAccBalance, due to auto-withdraw on add staking by f1
 	proxyAccBalance = k.GetProxyAccBalance(ctx, types.LiquidStakingProxyAcc)
 
+	//remove balance here for restaking fee. and reset proxyAccBalance
+	params := k.GetParams(ctx)
+	restakeFee := sdk.NewCoin(proxyAccBalance.Denom, params.RestakeFeeRate.MulInt(proxyAccBalance.Amount).TruncateInt())
+	err := k.bankKeeper.SendCoins(ctx, types.LiquidStakingProxyAcc, sdk.MustAccAddressFromBech32(params.FeeAddress), sdk.NewCoins(restakeFee))
+	if err != nil {
+		k.Logger(ctx).Error("re-staking failed while fee collection", "error", err)
+		return
+	}
+	//reset proxyAccBalance
+	proxyAccBalance = k.GetProxyAccBalance(ctx, types.LiquidStakingProxyAcc)
+
 	// skip when no active liquid validator
 	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValsMap)
 	if len(activeVals) == 0 {
@@ -158,7 +169,7 @@ func (k Keeper) WithdrawRewardsAndReStake(ctx sdk.Context, whitelistedValsMap ty
 
 	// re-staking
 	cachedCtx, writeCache := ctx.CacheContext()
-	_, err := k.LiquidDelegate(cachedCtx, types.LiquidStakingProxyAcc, activeVals, proxyAccBalance.Amount, whitelistedValsMap)
+	_, err = k.LiquidDelegate(cachedCtx, types.LiquidStakingProxyAcc, activeVals, proxyAccBalance.Amount, whitelistedValsMap)
 	if err != nil {
 		logger := k.Logger(ctx)
 		logger.Error("re-staking failed", "error", err)
@@ -171,11 +182,13 @@ func (k Keeper) WithdrawRewardsAndReStake(ctx sdk.Context, whitelistedValsMap ty
 			types.EventTypeReStake,
 			sdk.NewAttribute(types.AttributeKeyDelegator, types.LiquidStakingProxyAcc.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, proxyAccBalance.String()),
+			sdk.NewAttribute(types.AttributeKeyPstakeRestakeFee, restakeFee.String()),
 		),
 	})
 	logger.Info(types.EventTypeReStake,
 		types.AttributeKeyDelegator, types.LiquidStakingProxyAcc.String(),
-		sdk.AttributeKeyAmount, proxyAccBalance.String())
+		sdk.AttributeKeyAmount, proxyAccBalance.String(),
+		types.AttributeKeyPstakeRestakeFee, restakeFee.String())
 }
 
 func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {

@@ -503,7 +503,7 @@ func (s *KeeperTestSuite) TestWithdrawRewardsAndReStaking() {
 	totalRewardsAfter, totalDelSharesAfter, totalLiquidTokensAfter := s.keeper.CheckDelegationStates(s.ctx, types.LiquidStakingProxyAcc)
 	s.EqualValues(totalRewardsAfter, sdk.ZeroDec())
 
-	s.EqualValues(totalDelSharesAfter, totalRewards.TruncateDec().Add(totalDelShares), totalLiquidTokensAfter)
+	s.EqualValues(totalDelSharesAfter, totalRewards.Sub(params.RestakeFeeRate.Mul(totalRewards).TruncateDec()).Add(totalDelShares), totalLiquidTokensAfter)
 }
 
 func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
@@ -540,13 +540,13 @@ func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
 
 	nasAfter := s.keeper.GetNetAmountState(s.ctx)
 	s.Require().EqualValues(nasAfter.TotalRemainingRewards, sdk.ZeroDec())
-	s.Require().EqualValues(nasAfter.ProxyAccBalance, nasBefore.TotalRemainingRewards.TruncateInt())
+	s.Require().EqualValues(nasAfter.ProxyAccBalance, nasBefore.TotalRemainingRewards.Sub(params.RestakeFeeRate.Mul(nasBefore.TotalRemainingRewards).TruncateDec()).TruncateInt())
 	s.Require().EqualValues(nasAfter.TotalDelShares, sdk.ZeroDec())
 	s.Require().EqualValues(nasAfter.TotalLiquidTokens, sdk.ZeroInt())
-	s.Require().EqualValues(nasBefore.NetAmount.TruncateInt(), nasAfter.NetAmount.TruncateInt())
+	s.Require().EqualValues(nasBefore.NetAmount.TruncateInt(), nasAfter.NetAmount.Add(params.RestakeFeeRate.Mul(nasBefore.TotalRemainingRewards).TruncateDec()).TruncateInt())
 
 	s.completeRedelegationUnbonding()
 	nasAfter2 := s.keeper.GetNetAmountState(s.ctx)
 	s.Require().EqualValues(nasAfter2.ProxyAccBalance, nasAfter.ProxyAccBalance.Add(nasBefore.TotalLiquidTokens))
-	s.Require().EqualValues(nasAfter2.NetAmount.TruncateInt(), nasBefore.NetAmount.TruncateInt())
+	s.Require().EqualValues(nasAfter2.NetAmount.Add(params.RestakeFeeRate.Mul(nasBefore.TotalRemainingRewards).TruncateDec()).TruncateInt(), nasBefore.NetAmount.TruncateInt())
 }
