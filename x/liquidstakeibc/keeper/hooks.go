@@ -144,6 +144,36 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 
 	if data.GetSender() == hc.RewardsAccount.Address &&
 		data.GetReceiver() == k.GetDepositModuleAccount(ctx).GetAddress().String() {
+		// parse the transfer amount
+		transferAmount, ok := sdk.NewIntFromString(data.Amount)
+		if !ok {
+			return errorsmod.Wrapf(
+				liquidstakeibctypes.ErrParsingAmount,
+				"could not parse transfer amount %s",
+				data.Amount,
+			)
+		}
+
+		// calculate protocol fee
+		feeAmount := hc.Params.RestakeFee.MulInt(transferAmount)
+		fee, _ := sdk.NewDecCoinFromDec(hc.IBCDenom(), feeAmount).TruncateDecimal()
+
+		// send the protocol fee
+		err := k.SendProtocolFee(
+			ctx,
+			sdk.NewCoins(fee),
+			liquidstakeibctypes.DepositModuleAccount,
+			k.GetParams(ctx).FeeAddress,
+		)
+		if err != nil {
+			return errorsmod.Wrapf(
+				liquidstakeibctypes.ErrFailedDeposit,
+				"failed to send restake fee to module fee address %s: %s",
+				k.GetParams(ctx).FeeAddress,
+				err.Error(),
+			)
+		}
+
 		// add the deposit amount to the deposit record for that chain/epoch
 		currentEpoch := k.GetEpochNumber(ctx, liquidstakeibctypes.DelegationEpoch)
 		deposit, found := k.GetDepositForChainAndEpoch(ctx, hc.ChainId, currentEpoch)
@@ -156,16 +186,8 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 			)
 		}
 
-		amount, ok := sdk.NewIntFromString(data.Amount)
-		if !ok {
-			return errorsmod.Wrapf(
-				liquidstakeibctypes.ErrParsingAmount,
-				"could not parse transfer amount %s",
-				data.Amount,
-			)
-		}
-
-		deposit.Amount.Amount = deposit.Amount.Amount.Add(amount)
+		// update the deposit
+		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount.Sub(feeAmount.TruncateInt()))
 		k.SetDeposit(ctx, deposit)
 	}
 
