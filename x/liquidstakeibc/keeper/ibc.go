@@ -130,7 +130,7 @@ func (k *Keeper) OnAcknowledgementPacket(
 
 	switch resp := ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Error:
-		err := k.handleUnsuccessfulAck(ctx, packet.SourceChannel, packet.Sequence)
+		err := k.handleUnsuccessfulAck(ctx, icaPacket, packet.SourceChannel, packet.Sequence)
 		if err != nil {
 			return err
 		}
@@ -228,14 +228,34 @@ func (k *Keeper) OnTimeoutPacket(
 
 func (k *Keeper) handleUnsuccessfulAck(
 	ctx sdk.Context,
+	icaPacket icatypes.InterchainAccountPacketData,
 	channel string,
 	sequence uint64,
 ) error {
-	// revert all the deposits for that sequence back to the previous state
-	k.RevertDepositsState(ctx, k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence)))
+	messages, err := icatypes.DeserializeCosmosTx(k.cdc, icaPacket.GetData())
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot deserialize ica packet data: %v", err)
+	}
 
-	// mark all the unbondings for the previous epoch as failed
-	k.FailAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence))
+	for _, msg := range messages {
+		switch sdk.MsgTypeURL(msg) {
+		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
+			// revert all the deposits for that sequence back to the previous state
+			k.RevertDepositsState(ctx, k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence)))
+		case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
+			// mark all the unbondings for the previous epoch as failed
+			k.FailAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence))
+		case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
+			unbondings := k.FilterUnbondings(
+				ctx,
+				func(u types.Unbonding) bool {
+					return u.IbcSequenceId == k.GetTransactionSequenceID(channel, sequence)
+				},
+			)
+			// revert unbonding state so it can be picked up again
+			k.RevertUnbondingsState(ctx, unbondings)
+		}
+	}
 
 	return nil
 }

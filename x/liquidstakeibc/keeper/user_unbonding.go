@@ -30,6 +30,11 @@ func (k *Keeper) GetUserUnbonding(
 	return &userUnbonding, true
 }
 
+func (k *Keeper) DeleteUserUnbonding(ctx sdk.Context, ub *types.UserUnbonding) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.UserUnbondingKey)
+	store.Delete(types.GetUserUnbondingStoreKey(ub.ChainId, ub.Address, ub.EpochNumber))
+}
+
 func (k *Keeper) FilterUserUnbondings(ctx sdk.Context, filter func(u types.UserUnbonding) bool) []*types.UserUnbonding {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.UserUnbondingKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
@@ -47,23 +52,26 @@ func (k *Keeper) FilterUserUnbondings(ctx sdk.Context, filter func(u types.UserU
 	return userUnbondings
 }
 
-func (k *Keeper) IncreaseUserUndelegatingAmountForEpoch(
+func (k *Keeper) IncreaseUserUnbondingAmountForEpoch(
 	ctx sdk.Context,
 	chainID string,
 	delegatorAddress string,
 	epochNumber int64,
-	amount sdk.Coin,
+	stkAmount sdk.Coin,
+	unbondAmount sdk.Coin,
 ) {
 	userUnbonding, found := k.GetUserUnbonding(ctx, chainID, delegatorAddress, epochNumber)
 	if !found {
 		userUnbonding = &types.UserUnbonding{
-			ChainId:     chainID,
-			EpochNumber: epochNumber,
-			Address:     delegatorAddress,
-			Amount:      amount,
+			ChainId:      chainID,
+			EpochNumber:  epochNumber,
+			Address:      delegatorAddress,
+			StkAmount:    stkAmount,
+			UnbondAmount: unbondAmount,
 		}
 	} else {
-		userUnbonding.Amount = userUnbonding.Amount.Add(amount)
+		userUnbonding.StkAmount = userUnbonding.StkAmount.Add(stkAmount)
+		userUnbonding.UnbondAmount = userUnbonding.UnbondAmount.Add(unbondAmount)
 	}
 
 	k.SetUserUnbonding(ctx, userUnbonding)

@@ -396,7 +396,7 @@ func (k msgServer) LiquidUnstake(
 	unbondingEpoch := types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch)
 
 	// increase the unbonding value for the epoch both for the user record and the module record
-	k.IncreaseUserUndelegatingAmountForEpoch(ctx, hc.ChainId, msg.DelegatorAddress, unbondingEpoch, unbondAmount)
+	k.IncreaseUserUnbondingAmountForEpoch(ctx, hc.ChainId, msg.DelegatorAddress, unbondingEpoch, unstakeAmount, unbondAmount)
 	k.IncreaseUndelegatingAmountForEpoch(ctx, hc.ChainId, unbondingEpoch, unstakeAmount, unbondAmount)
 
 	// check if the total unbonding amount for the next unbonding epoch is less than what is currently staked
