@@ -40,17 +40,16 @@ func (k *Keeper) SetHostChainValidator(
 	k.SetHostChain(ctx, hc)
 }
 
-// SetHostChainValidators sets the validators on a host chain from an ICQ
-func (k *Keeper) SetHostChainValidators(
+// ProcessHostChainValidatorUpdates processes the new validator set for a host chain
+func (k *Keeper) ProcessHostChainValidatorUpdates(
 	ctx sdk.Context,
 	hc *types.HostChain,
 	validators []stakingtypes.Validator,
-) {
+) error {
 	for _, validator := range validators {
 		val, found := hc.GetValidator(validator.OperatorAddress)
 
-		switch {
-		case !found:
+		if !found {
 			hc.Validators = append(
 				hc.Validators,
 				&types.Validator{
@@ -58,14 +57,33 @@ func (k *Keeper) SetHostChainValidators(
 					Status:          validator.Status.String(),
 					Weight:          sdk.ZeroDec(),
 					DelegatedAmount: sdk.ZeroInt(),
+					TotalAmount:     validator.Tokens,
 				},
 			)
-		case validator.Status.String() != val.Status:
-			val.Status = validator.Status.String()
+			k.SetHostChain(ctx, hc)
+		} else {
+			if validator.Status.String() != val.Status {
+				val.Status = validator.Status.String()
+				if val.Status == stakingtypes.BondStatusUnbonding && validator.Jailed {
+					// TODO: Undelegate ? What if it is Jailed
+				}
+				k.SetHostChainValidator(ctx, hc, val)
+			}
+			if !validator.Tokens.Equal(val.TotalAmount) {
+				// validator has been slashed, update its delegation
+				if err := k.QueryValidatorDelegation(ctx, hc, val); err != nil {
+					return fmt.Errorf(
+						"error while querying validator %s delegation: %s",
+						val.OperatorAddress,
+						err.Error(),
+					)
+				}
+				k.SetHostChainValidator(ctx, hc, val)
+			}
 		}
 	}
 
-	k.SetHostChain(ctx, hc)
+	return nil
 }
 
 // GetHostChain returns a host chain given its id
