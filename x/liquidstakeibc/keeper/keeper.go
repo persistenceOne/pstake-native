@@ -11,6 +11,8 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/gogo/protobuf/proto"
@@ -216,4 +218,54 @@ func (k *Keeper) RewardsAccountPortOwner(chainID string) string {
 
 func (k *Keeper) GetEpochNumber(ctx sdk.Context, epoch string) int64 {
 	return k.epochsKeeper.GetEpochInfo(ctx, epoch).CurrentEpoch
+}
+
+func (k *Keeper) SendICATransfer(
+	ctx sdk.Context,
+	hc *types.HostChain,
+	amount sdk.Coin,
+	sender string,
+	receiver string,
+	portOwner string,
+) (string, error) {
+	channel, found := k.ibcKeeper.ChannelKeeper.GetChannel(ctx, hc.PortId, hc.ChannelId)
+	if !found {
+		return "", fmt.Errorf(
+			"could not retrieve channel for host chain %s while sending ICA transfer",
+			hc.ChainId,
+		)
+	}
+
+	timeoutHeight := clienttypes.NewHeight(
+		clienttypes.GetSelfHeight(ctx).GetRevisionNumber(),
+		clienttypes.GetSelfHeight(ctx).GetRevisionHeight()+types.IBCTimeoutHeightIncrement,
+	)
+
+	// prepare the msg transfer to bring the undelegation back
+	msgTransfer := ibctransfertypes.NewMsgTransfer(
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		amount,
+		sender,
+		receiver,
+		timeoutHeight,
+		0,
+		"",
+	)
+
+	// execute the transfers
+	sequenceID, err := k.GenerateAndExecuteICATx(
+		ctx,
+		hc.ConnectionId,
+		portOwner,
+		[]proto.Message{msgTransfer},
+	)
+	if err != nil {
+		return "", fmt.Errorf(
+			"could not send ICA transfer for host chain %s",
+			hc.ChainId,
+		)
+	}
+
+	return sequenceID, nil
 }

@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -148,6 +149,49 @@ func (k *Keeper) HandleUndelegateResponse(
 	return nil
 }
 
-func (k *Keeper) HandleMsgTransfer(ctx sdk.Context, msg sdk.Msg) error {
+func (k *Keeper) HandleMsgTransfer(
+	ctx sdk.Context,
+	msg sdk.Msg,
+	resp ibctransfertypes.MsgTransferResponse,
+	channel string,
+	sequence uint64,
+) error {
+	parsedMsg, ok := msg.(*ibctransfertypes.MsgTransfer)
+	if !ok {
+		return errorsmod.Wrapf(
+			sdkerrors.ErrInvalidType,
+			"unable to cast msg of type %s to MsgUndelegate",
+			sdk.MsgTypeURL(msg),
+		)
+	}
+
+	// get the host chain of the transfer using its host denom
+	hc, found := k.GetHostChainFromHostDenom(ctx, parsedMsg.Token.Denom)
+	if !found {
+		return errorsmod.Wrapf(
+			types.ErrInvalidHostChain,
+			"host chain with host denom %s not registered",
+			parsedMsg.Token.Denom,
+		)
+	}
+
+	// the transfer is part of the undelegation process
+	if parsedMsg.Sender == hc.DelegationAccount.Address &&
+		parsedMsg.Receiver == k.GetUndelegationModuleAccount(ctx).GetAddress().String() {
+		// get all the unbondings for that ibc sequence id
+		unbondings := k.FilterUnbondings(
+			ctx,
+			func(u types.Unbonding) bool {
+				return u.IbcSequenceId == k.GetTransactionSequenceID(channel, sequence)
+			},
+		)
+
+		// update the unbonding ibc sequence id to the transfer id
+		for _, unbonding := range unbondings {
+			unbonding.IbcSequenceId = k.GetTransactionSequenceID(hc.ChannelId, resp.Sequence)
+			k.SetUnbonding(ctx, unbonding)
+		}
+	}
+
 	return nil
 }

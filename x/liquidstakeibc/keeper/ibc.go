@@ -253,6 +253,7 @@ func (k *Keeper) handleUnsuccessfulAck(
 				},
 			)
 			// revert unbonding state so it can be picked up again
+			// this won't conflict with failed rewards transfers since the transaction sequence id won't match
 			k.RevertUnbondingsState(ctx, unbondings)
 		}
 	}
@@ -303,7 +304,22 @@ func (k *Keeper) handleSuccessfulAck(
 				return err
 			}
 		case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
-			if err = k.HandleMsgTransfer(ctx, msg); err != nil {
+			var data []byte
+			if len(txMsgData.Data) == 0 {
+				data = txMsgData.GetMsgResponses()[i].Value
+			} else {
+				data = txMsgData.Data[i].Data
+			}
+
+			var msgResponse ibctransfertypes.MsgTransferResponse
+			if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
+				return errorsmod.Wrapf(
+					sdkerrors.ErrJSONUnmarshal, "cannot unmarshal undelegate response message: %s",
+					err.Error(),
+				)
+			}
+
+			if err = k.HandleMsgTransfer(ctx, msg, msgResponse, channel, sequence); err != nil {
 				return err
 			}
 		}
