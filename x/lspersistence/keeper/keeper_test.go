@@ -151,10 +151,11 @@ func (s *KeeperTestSuite) liquidUnstakingWithResult(liquidStaker sdk.AccAddress,
 	alv := s.keeper.GetActiveLiquidValidators(ctx, params.WhitelistedValsMap())
 	balanceBefore := s.app.BankKeeper.GetBalance(ctx, liquidStaker, sdk.DefaultBondDenom).Amount
 	btokenBalanceBefore := s.app.BankKeeper.GetBalance(ctx, liquidStaker, params.LiquidBondDenom).Amount
-	ubdTime, unbondingAmt, ubds, unbondedAmt, err := s.keeper.LiquidUnstake(ctx, types.LiquidStakingProxyAcc, liquidStaker, unstakingBtoken)
+	ubdTime, unbondingAmt, ubds, unbondedAmt, unbondingFee, err := s.keeper.LiquidUnstake(ctx, types.LiquidStakingProxyAcc, liquidStaker, unstakingBtoken)
 	if err != nil {
 		return ubdTime, unbondingAmt, ubds, unbondedAmt, err
 	}
+	s.Require().Equal(sdk.ZeroInt(), unbondingFee)
 	balanceAfter := s.app.BankKeeper.GetBalance(ctx, liquidStaker, sdk.DefaultBondDenom).Amount
 	btokenBalanceAfter := s.app.BankKeeper.GetBalance(ctx, liquidStaker, params.LiquidBondDenom).Amount
 	s.Require().EqualValues(unstakingBtoken.Amount, btokenBalanceBefore.Sub(btokenBalanceAfter))

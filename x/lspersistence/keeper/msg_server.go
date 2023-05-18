@@ -56,7 +56,7 @@ func (k msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 func (k msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnstake) (*types.MsgLiquidUnstakeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	completionTime, unbondingAmount, _, unbondedAmount, err := k.Keeper.LiquidUnstake(ctx, types.LiquidStakingProxyAcc, msg.GetDelegator(), msg.Amount)
+	completionTime, unbondingAmount, _, unbondedAmount, fee, err := k.Keeper.LiquidUnstake(ctx, types.LiquidStakingProxyAcc, msg.GetDelegator(), msg.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -74,6 +74,7 @@ func (k msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 			sdk.NewAttribute(types.AttributeKeyUnbondingAmount, sdk.Coin{Denom: bondDenom, Amount: unbondingAmount}.String()),
 			sdk.NewAttribute(types.AttributeKeyUnbondedAmount, sdk.Coin{Denom: bondDenom, Amount: unbondedAmount}.String()),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+			sdk.NewAttribute(types.AttributeKeyPstakeUnstakeFee, sdk.Coin{Denom: bondDenom, Amount: fee}.String()),
 		),
 	})
 	return &types.MsgLiquidUnstakeResponse{

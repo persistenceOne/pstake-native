@@ -171,9 +171,9 @@ func BTokenToNativeToken(bTokenAmount, bTokenTotalSupplyAmount math.Int, netAmou
 	return sdk.NewDecFromInt(bTokenAmount).MulTruncate(netAmount).Quo(sdk.NewDecFromInt(bTokenTotalSupplyAmount)).TruncateDec()
 }
 
-// DeductFeeRate returns Input * (1-FeeRate) with truncations
+// DeductFeeRate returns Input * (1-FeeRate) with truncations/ instead do input - feerate.MulInput.
 func DeductFeeRate(input sdk.Dec, feeRate sdk.Dec) (feeDeductedOutput sdk.Dec) {
-	return input.MulTruncate(sdk.OneDec().Sub(feeRate)).TruncateDec()
+	return input.Sub(feeRate.Mul(input).TruncateDec()).TruncateDec()
 }
 
 func (nas NetAmountState) CalcNetAmount() sdk.Dec {
