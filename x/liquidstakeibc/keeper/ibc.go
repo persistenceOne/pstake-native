@@ -303,6 +303,25 @@ func (k *Keeper) handleSuccessfulAck(
 			if err = k.HandleUndelegateResponse(ctx, msg, msgResponse, channel, sequence); err != nil {
 				return err
 			}
+		case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
+			var data []byte
+			if len(txMsgData.Data) == 0 {
+				data = txMsgData.GetMsgResponses()[i].Value
+			} else {
+				data = txMsgData.Data[i].Data
+			}
+
+			var msgResponse ibctransfertypes.MsgTransferResponse
+			if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
+				return errorsmod.Wrapf(
+					sdkerrors.ErrJSONUnmarshal, "cannot unmarshal undelegate response message: %s",
+					err.Error(),
+				)
+			}
+
+			if err = k.HandleMsgTransfer(ctx, msg, msgResponse, channel, sequence); err != nil {
+				return err
+			}
 		}
 	}
 

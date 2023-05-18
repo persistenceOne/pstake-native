@@ -123,14 +123,15 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		return nil
 	}
 
-	// the transfer goes delegationAddress -> undelegationAccount, update corresponding unbondings
+	// the transfer is part of the undelegation process
 	if data.GetSender() == hc.DelegationAccount.Address &&
 		data.GetReceiver() == k.GetUndelegationModuleAccount(ctx).GetAddress().String() {
 		// get all the unbondings for that ibc sequence id
 		unbondings := k.FilterUnbondings(
 			ctx,
 			func(u liquidstakeibctypes.Unbonding) bool {
-				return u.UnbondAmount.Denom == hc.HostDenom && u.State == liquidstakeibctypes.Unbonding_UNBONDING_MATURED
+				return u.State == liquidstakeibctypes.Unbonding_UNBONDING_MATURED &&
+					u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
 			},
 		)
 
@@ -142,8 +143,10 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		}
 	}
 
+	// the transfer is part of the autocompounding process
 	if data.GetSender() == hc.RewardsAccount.Address &&
-		data.GetReceiver() == k.GetDepositModuleAccount(ctx).GetAddress().String() {
+		data.GetReceiver() == k.GetDepositModuleAccount(ctx).GetAddress().String() &&
+		data.Memo == "" {
 		// parse the transfer amount
 		transferAmount, ok := sdk.NewIntFromString(data.Amount)
 		if !ok {
