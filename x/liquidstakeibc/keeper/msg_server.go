@@ -227,6 +227,10 @@ func (k msgServer) LiquidStake(
 		)
 	}
 
+	if !hostChain.Active {
+		return nil, types.ErrHostChainInactive
+	}
+
 	// check for minimum deposit amount
 	if msg.Amount.Amount.LT(hostChain.MinimumDeposit) {
 		return nil, errorsmod.Wrapf(
@@ -353,6 +357,10 @@ func (k msgServer) LiquidUnstake(
 		)
 	}
 
+	if !hc.Active {
+		return nil, types.ErrHostChainInactive
+	}
+
 	// check if the message amount has the correct denom
 	if msg.Amount.Denom != hc.MintDenom() {
 		return nil, errorsmod.Wrapf(types.ErrInvalidDenom,
@@ -456,6 +464,10 @@ func (k msgServer) Redeem(
 			"host chain with host denom %s not registered",
 			msg.HostDenom,
 		)
+	}
+
+	if !hc.Active {
+		return nil, types.ErrHostChainInactive
 	}
 
 	// check the msg amount denom is the host chain mint denom

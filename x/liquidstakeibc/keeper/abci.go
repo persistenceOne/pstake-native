@@ -14,6 +14,11 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 
 	// perform BeginBlocker tasks for each chain
 	for _, hc := range k.GetAllHostChains(ctx) {
+		if !hc.Active {
+			// don't do anything on inactive chains
+			continue
+		}
+
 		// attempt to recreate closed ICA channels
 		k.DoRecreateICA(ctx, hc)
 
