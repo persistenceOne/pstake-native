@@ -11,11 +11,13 @@ import (
 )
 
 const (
-	DefaultFeeAddress string = "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld" // TODO: Use correct address on launch
+	DefaultAdminAddress string = "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr" // TODO: Use correct address on launch
+	DefaultFeeAddress   string = "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld" // TODO: Use correct address on launch
 )
 
 var (
-	KeyFeeAddress = []byte("FeeAddress")
+	KeyAdminAddress = []byte("AdminAddress")
+	KeyFeeAddress   = []byte("FeeAddress")
 )
 
 // ParamKeyTable for liquidstakeibc module.
@@ -25,23 +27,29 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params object
 func NewParams(
+	adminAddress string,
 	feeAddress string,
 ) Params {
 
 	return Params{
-		FeeAddress: feeAddress,
+		AdminAddress: adminAddress,
+		FeeAddress:   feeAddress,
 	}
 }
 
 // DefaultParams returns the default set of parameters of the module
 func DefaultParams() Params {
 	return NewParams(
+		DefaultAdminAddress,
 		DefaultFeeAddress,
 	)
 }
 
 // Validate all liquidstakeibc module parameters
-func (p Params) Validate() error {
+func (p *Params) Validate() error {
+	if err := isAddress(p.AdminAddress); err != nil {
+		return err
+	}
 	if err := isAddress(p.FeeAddress); err != nil {
 		return err
 	}
@@ -49,7 +57,7 @@ func (p Params) Validate() error {
 }
 
 // String implements the Stringer interface.
-func (p Params) String() string {
+func (p *Params) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)
 }
@@ -57,6 +65,7 @@ func (p Params) String() string {
 // ParamSetPairs implements params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyAdminAddress, &p.AdminAddress, isAddress),
 		paramtypes.NewParamSetPair(KeyFeeAddress, &p.FeeAddress, isAddress),
 	}
 }

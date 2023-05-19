@@ -36,7 +36,6 @@ func NewTxCmd() *cobra.Command {
 }
 
 // NewRegisterHostChainCmd implements the command to register a host chain.
-// TODO: Remove this when tagging version. Users should not be able to register chains.
 func NewRegisterHostChainCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "register-host-chain [connection-id] [channel-id] [port-id] [deposit-fee] [restake-fee] [unstake-fee] [redemption-fee] [host-denom] [minimum-deposit] [unbonding-factor]",
@@ -48,7 +47,7 @@ func NewRegisterHostChainCmd() *cobra.Command {
 				return err
 			}
 
-			minimumDeposit, ok := sdk.NewIntFromString(args[3])
+			minimumDeposit, ok := sdk.NewIntFromString(args[8])
 			if !ok {
 				return fmt.Errorf("unable to parse string to sdk.Int")
 			}
@@ -69,6 +68,7 @@ func NewRegisterHostChainCmd() *cobra.Command {
 				args[7],
 				minimumDeposit,
 				unbondingFactor,
+				clientCtx.FromAddress.String(),
 			)
 
 			if err := msg.ValidateBasic(); err != nil {
@@ -79,15 +79,16 @@ func NewRegisterHostChainCmd() *cobra.Command {
 		},
 	}
 
+	flags.AddTxFlagsToCmd(cmd)
+
 	return cmd
 }
 
 // NewUpdateHostChainCmd implements the command to update a host chain.
-// TODO: Remove this when tagging version. Users should not be able to update chains.
 func NewUpdateHostChainCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-host-chain [chain-id] [updates]",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(2),
 		Short: "Update a host chain",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -102,6 +103,7 @@ func NewUpdateHostChainCmd() *cobra.Command {
 
 			msg := types.NewMsgUpdateHostChain(
 				args[0],
+				clientCtx.FromAddress.String(),
 				updates,
 			)
 
@@ -112,6 +114,8 @@ func NewUpdateHostChainCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }

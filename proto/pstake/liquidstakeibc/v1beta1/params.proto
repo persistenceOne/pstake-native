@@ -10,7 +10,11 @@ option go_package = "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc
 message Params {
   option (gogoproto.goproto_stringer) = false;
 
-  string fee_address = 1 [
+  string admin_address = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ]; // protocol admin address
+
+  string fee_address = 2 [
     (cosmos_proto.scalar) = "cosmos.AddressString"
   ]; // protocol fee address
 }

@@ -306,6 +306,11 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 			continue
 		}
 
+		// don't do anything if the chain is not active
+		if !hc.Active {
+			continue
+		}
+
 		// check if the deposit amount is larger than 0
 		if deposit.Amount.Amount.LTE(sdk.NewInt(0)) {
 			// delete empty deposits to save on storage
@@ -361,6 +366,11 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 
 func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 	for _, hc := range k.GetAllHostChains(ctx) {
+		// don't do anything if the chain is not active
+		if !hc.Active {
+			continue
+		}
+
 		// not an unbonding epoch for the host chain, continue
 		if !liquidstakeibctypes.IsUnbondingEpoch(hc.UnbondingFactor, epoch) {
 			continue
@@ -425,6 +435,11 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 
 func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
 	for _, hc := range k.GetAllHostChains(ctx) {
+		// don't do anything if the chain is not active
+		if !hc.Active {
+			continue
+		}
+
 		if hc.RewardsAccount != nil &&
 			hc.RewardsAccount.ChannelState == liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED {
 			if err := k.QueryHostChainAccountBalance(ctx, hc, hc.RewardsAccount.Address); err != nil {
