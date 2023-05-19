@@ -45,6 +45,8 @@ message HostChain {
   bytes next_valset_hash = 13;
   // undelegation epoch factor
   int64 unbonding_factor = 14;
+  // whether the chain is ready to accept delegations or not
+  bool active = 15;
 }
 
 message HostChainLSParams {

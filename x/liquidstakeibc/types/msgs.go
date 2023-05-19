@@ -38,6 +38,7 @@ func NewMsgRegisterHostChain(
 	hostDenom string,
 	minimumDeposit math.Int,
 	unbondingFactor int64,
+	authority string,
 ) *MsgRegisterHostChain {
 	depositFeeDec, _ := sdk.NewDecFromStr(depositFee)
 	restakeFeeDec, _ := sdk.NewDecFromStr(restakeFee)
@@ -55,6 +56,7 @@ func NewMsgRegisterHostChain(
 		RestakeFee:      restakeFeeDec,
 		UnstakeFee:      unstakeFeeDec,
 		RedemptionFee:   redemptionFeeDec,
+		Authority:       authority,
 	}
 }
 
@@ -138,10 +140,11 @@ func (m *MsgRegisterHostChain) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgUpdateHostChain(chainID string, updates []*KVUpdate) *MsgUpdateHostChain {
+func NewMsgUpdateHostChain(chainID, authority string, updates []*KVUpdate) *MsgUpdateHostChain {
 	return &MsgUpdateHostChain{
-		ChainId: chainID,
-		Updates: updates,
+		ChainId:   chainID,
+		Authority: authority,
+		Updates:   updates,
 	}
 }
 

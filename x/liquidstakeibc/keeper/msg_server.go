@@ -23,6 +23,7 @@ const (
 	KeyUnstakeFee      string = "unstake_fee"
 	KeyRedemptionFee   string = "redemption_fee"
 	KeyMinimumDeposit  string = "min_deposit"
+	KeyActive          string = "active"
 )
 
 type msgServer struct {
@@ -42,13 +43,13 @@ func (k msgServer) RegisterHostChain(
 	goCtx context.Context,
 	msg *types.MsgRegisterHostChain,
 ) (*types.MsgRegisterHostChainResponse, error) {
-	// check if the message authority is the module authority (normally the gov account)
-	if k.authority != msg.Authority {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "expected %s got %s", k.authority, msg.Authority)
-	}
-
-	// unwrap context
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	// authority needs to be either the gov module account (for proposals)
+	// or the module admin account (for normal txs)
+	if msg.Authority != k.authority && msg.Authority != k.GetParams(ctx).FeeAddress {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "tx signer is not a module authority")
+	}
 
 	// get the host chain id
 	chainID, err := k.GetChainID(ctx, msg.ConnectionId)
@@ -75,6 +76,7 @@ func (k msgServer) RegisterHostChain(
 		CValue:          sdktypes.NewDec(1),
 		NextValsetHash:  []byte{},
 		UnbondingFactor: msg.UnbondingFactor,
+		Active:          false,
 	}
 
 	// save the host chain
@@ -117,11 +119,13 @@ func (k msgServer) UpdateHostChain(
 	goCtx context.Context,
 	msg *types.MsgUpdateHostChain,
 ) (*types.MsgUpdateHostChainResponse, error) {
-	if k.authority != msg.Authority {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "expected %s got %s", k.authority, msg.Authority)
-	}
-
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	// authority needs to be either the gov module account (for proposals)
+	// or the module admin account (for normal txs)
+	if msg.Authority != k.authority && msg.Authority != k.GetParams(ctx).FeeAddress {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "tx signer is not a module authority")
+	}
 
 	hc, found := k.GetHostChain(ctx, msg.ChainId)
 	if !found {
@@ -189,6 +193,13 @@ func (k msgServer) UpdateHostChain(
 			if minimumDeposit.LT(sdktypes.NewInt(0)) {
 				return nil, fmt.Errorf("invalid minimum deposit value less than zero")
 			}
+		case KeyActive:
+			active, err := strconv.ParseBool(update.Value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse string to bool")
+			}
+
+			hc.Active = active
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}
