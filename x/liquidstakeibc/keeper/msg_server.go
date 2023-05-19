@@ -47,7 +47,7 @@ func (k msgServer) RegisterHostChain(
 
 	// authority needs to be either the gov module account (for proposals)
 	// or the module admin account (for normal txs)
-	if msg.Authority != k.authority && msg.Authority != k.GetParams(ctx).FeeAddress {
+	if msg.Authority != k.authority && msg.Authority != k.GetParams(ctx).AdminAddress {
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "tx signer is not a module authority")
 	}
 
@@ -123,7 +123,7 @@ func (k msgServer) UpdateHostChain(
 
 	// authority needs to be either the gov module account (for proposals)
 	// or the module admin account (for normal txs)
-	if msg.Authority != k.authority && msg.Authority != k.GetParams(ctx).FeeAddress {
+	if msg.Authority != k.authority && msg.Authority != k.GetParams(ctx).AdminAddress {
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "tx signer is not a module authority")
 	}
 
