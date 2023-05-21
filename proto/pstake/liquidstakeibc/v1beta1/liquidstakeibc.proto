@@ -115,6 +115,8 @@ message Validator {
   ];
   // whether a validator is jailed or not
   bool jailed = 6;
+  // the unbonding epoch number when the validator transistioned into the state
+  int64 unbonding_epoch = 7;
 }
 
 message Deposit {

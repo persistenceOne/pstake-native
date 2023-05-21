@@ -62,12 +62,33 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 			)
 			k.SetHostChain(ctx, hc)
 		} else {
-			if validator.Status.String() != val.Status {
-				val.Status = validator.Status.String()
+			if validator.Jailed != val.Jailed {
+				// the validator has been jailed
+				if validator.Jailed {
+					if err := k.QueryValidatorDelegation(ctx, hc, val); err != nil {
+						return fmt.Errorf(
+							"error while querying validator %s delegation: %s",
+							val.OperatorAddress,
+							err.Error(),
+						)
+					}
+				}
+
+				val.Jailed = validator.Jailed
 				k.SetHostChainValidator(ctx, hc, val)
 			}
-			if validator.Jailed != val.Jailed {
-				val.Jailed = validator.Jailed
+			if validator.Status.String() != val.Status {
+				// validator transitioned into unbonding
+				if validator.Status.String() == stakingtypes.BondStatusUnbonding {
+					epochNumber := k.epochsKeeper.GetEpochInfo(ctx, types.UndelegationEpoch).CurrentEpoch
+					val.UnbondingEpoch = types.CurrentUnbondingEpoch(hc.UnbondingFactor, epochNumber)
+				}
+				// validator transitioned into bonded
+				if validator.Status.String() == stakingtypes.BondStatusBonded {
+					val.UnbondingEpoch = 0
+				}
+
+				val.Status = validator.Status.String()
 				k.SetHostChainValidator(ctx, hc, val)
 			}
 			if !validator.Tokens.Equal(val.TotalAmount) {
@@ -79,12 +100,31 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 						err.Error(),
 					)
 				}
+				val.TotalAmount = validator.Tokens
 				k.SetHostChainValidator(ctx, hc, val)
 			}
 		}
 	}
 
 	return nil
+}
+
+func (k *Keeper) RedistributeValidatorWeight(ctx sdk.Context, hc *types.HostChain, validator *types.Validator) {
+	validatorsWithWeight := make([]*types.Validator, 0)
+	for _, val := range hc.Validators {
+		if val.Weight.GT(sdk.ZeroDec()) {
+			validatorsWithWeight = append(validatorsWithWeight, val)
+		}
+	}
+
+	weightDiff := validator.Weight.Quo(sdk.NewDec(int64(len(validatorsWithWeight))))
+	for _, val := range validatorsWithWeight {
+		val.Weight = val.Weight.Add(weightDiff)
+		k.SetHostChainValidator(ctx, hc, val)
+	}
+
+	validator.Weight = sdk.ZeroDec()
+	k.SetHostChainValidator(ctx, hc, validator)
 }
 
 // GetHostChain returns a host chain given its id

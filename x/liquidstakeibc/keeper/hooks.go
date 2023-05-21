@@ -89,6 +89,7 @@ func (k *Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNum
 	}
 
 	if epochIdentifier == liquidstakeibctypes.UndelegationEpoch {
+
 		k.UndelegationWorkflow(ctx, epochNumber)
 	}
 
@@ -364,6 +365,31 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 		// not an unbonding epoch for the host chain, continue
 		if !liquidstakeibctypes.IsUnbondingEpoch(hc.UnbondingFactor, epoch) {
 			continue
+		}
+
+		for _, validator := range hc.Validators {
+			// the validator has been in UNBONDING state for more than the UnbondingStateEpochLimit
+			if validator.UnbondingEpoch > 0 &&
+				validator.UnbondingEpoch+liquidstakeibctypes.UnbondingStateEpochLimit >= epoch {
+				k.IncreaseUserUnbondingAmountForEpoch(
+					ctx,
+					hc.ChainId,
+					hc.DelegationAccount.Address,
+					epoch,
+					sdk.NewCoin(hc.MintDenom(), sdk.ZeroInt()), // no tokens are burned, all will be re-delegated
+					sdk.NewCoin(hc.MintDenom(), validator.DelegatedAmount),
+				)
+				k.IncreaseUndelegatingAmountForEpoch(
+					ctx,
+					hc.ChainId,
+					epoch,
+					sdk.NewCoin(hc.MintDenom(), sdk.ZeroInt()), // no tokens are burned, all will be re-delegated
+					sdk.NewCoin(hc.MintDenom(), validator.DelegatedAmount),
+				)
+
+				// redistribute the jailed validator weight among all the other validators with weight
+				k.RedistributeValidatorWeight(ctx, hc, validator)
+			}
 		}
 
 		// retrieve the unbonding for the current epoch

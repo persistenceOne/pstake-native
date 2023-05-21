@@ -33,6 +33,8 @@ const (
 	IBCTimeoutHeightIncrement uint64 = 1000
 
 	ICATimeoutTimestamp = 15 * time.Minute
+
+	UnbondingStateEpochLimit = 4
 )
 
 var (
