@@ -162,6 +162,8 @@ type HostChain struct {
 	NextValsetHash []byte `protobuf:"bytes,13,opt,name=next_valset_hash,json=nextValsetHash,proto3" json:"next_valset_hash,omitempty"`
 	// undelegation epoch factor
 	UnbondingFactor int64 `protobuf:"varint,14,opt,name=unbonding_factor,json=unbondingFactor,proto3" json:"unbonding_factor,omitempty"`
+	// whether the chain is ready to accept delegations or not
+	Active bool `protobuf:"varint,15,opt,name=active,proto3" json:"active,omitempty"`
 }
 
 func (m *HostChain) Reset()         { *m = HostChain{} }
@@ -272,6 +274,13 @@ func (m *HostChain) GetUnbondingFactor() int64 {
 		return m.UnbondingFactor
 	}
 	return 0
+}
+
+func (m *HostChain) GetActive() bool {
+	if m != nil {
+		return m.Active
+	}
+	return false
 }
 
 type HostChainLSParams struct {
@@ -892,6 +901,16 @@ func (m *HostChain) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.Active {
+		i--
+		if m.Active {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x78
+	}
 	if m.UnbondingFactor != 0 {
 		i = encodeVarintLiquidstakeibc(dAtA, i, uint64(m.UnbondingFactor))
 		i--
@@ -1510,6 +1529,9 @@ func (m *HostChain) Size() (n int) {
 	}
 	if m.UnbondingFactor != 0 {
 		n += 1 + sovLiquidstakeibc(uint64(m.UnbondingFactor))
+	}
+	if m.Active {
+		n += 2
 	}
 	return n
 }
@@ -2134,6 +2156,26 @@ func (m *HostChain) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 15:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Active", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLiquidstakeibc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Active = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipLiquidstakeibc(dAtA[iNdEx:])
