@@ -113,6 +113,8 @@ message Validator {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  // whether a validator is jailed or not
+  bool jailed = 6;
 }
 
 message Deposit {

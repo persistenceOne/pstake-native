@@ -64,9 +64,10 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 		} else {
 			if validator.Status.String() != val.Status {
 				val.Status = validator.Status.String()
-				if val.Status == stakingtypes.BondStatusUnbonding && validator.Jailed {
-					// TODO: Undelegate ? What if it is Jailed
-				}
+				k.SetHostChainValidator(ctx, hc, val)
+			}
+			if validator.Jailed != val.Jailed {
+				val.Jailed = validator.Jailed
 				k.SetHostChainValidator(ctx, hc, val)
 			}
 			if !validator.Tokens.Equal(val.TotalAmount) {
