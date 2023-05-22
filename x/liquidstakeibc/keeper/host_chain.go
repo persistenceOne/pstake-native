@@ -112,7 +112,7 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 func (k *Keeper) RedistributeValidatorWeight(ctx sdk.Context, hc *types.HostChain, validator *types.Validator) {
 	validatorsWithWeight := make([]*types.Validator, 0)
 	for _, val := range hc.Validators {
-		if val.Weight.GT(sdk.ZeroDec()) {
+		if val.Weight.GT(sdk.ZeroDec()) && val.OperatorAddress != validator.OperatorAddress {
 			validatorsWithWeight = append(validatorsWithWeight, val)
 		}
 	}
