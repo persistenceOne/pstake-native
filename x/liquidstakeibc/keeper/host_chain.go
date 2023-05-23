@@ -62,21 +62,6 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 			)
 			k.SetHostChain(ctx, hc)
 		} else {
-			if validator.Jailed != val.Jailed {
-				// the validator has been jailed
-				if validator.Jailed {
-					if err := k.QueryValidatorDelegation(ctx, hc, val); err != nil {
-						return fmt.Errorf(
-							"error while querying validator %s delegation: %s",
-							val.OperatorAddress,
-							err.Error(),
-						)
-					}
-				}
-
-				val.Jailed = validator.Jailed
-				k.SetHostChainValidator(ctx, hc, val)
-			}
 			if validator.Status.String() != val.Status {
 				// validator transitioned into unbonding
 				if validator.Status.String() == stakingtypes.BondStatusUnbonding {
@@ -92,14 +77,16 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 				k.SetHostChainValidator(ctx, hc, val)
 			}
 			if !validator.Tokens.Equal(val.TotalAmount) {
-				// validator has been slashed, update its delegation
-				if err := k.QueryValidatorDelegation(ctx, hc, val); err != nil {
-					return fmt.Errorf(
-						"error while querying validator %s delegation: %s",
-						val.OperatorAddress,
-						err.Error(),
-					)
+				if val.DelegatedAmount.GT(sdk.ZeroInt()) {
+					if err := k.QueryValidatorDelegation(ctx, hc, val); err != nil {
+						return fmt.Errorf(
+							"error while querying validator %s delegation: %s",
+							val.OperatorAddress,
+							err.Error(),
+						)
+					}
 				}
+
 				val.TotalAmount = validator.Tokens
 				k.SetHostChainValidator(ctx, hc, val)
 			}

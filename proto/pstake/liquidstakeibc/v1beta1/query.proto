@@ -35,11 +35,15 @@ service Query {
   }
 
   rpc Unbonding(QueryUnbondingRequest) returns (QueryUnbondingResponse) {
-    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/unbonding/{epoch_number}";
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/unbonding/{epoch_number}/{host_denom}";
   }
 
   rpc UserUnbonding(QueryUserUnbondingsRequest) returns (QueryUserUnbondingsResponse) {
-    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/user_unbonding/{address}/{epoch_number}";
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/user_unbonding/{address}/{epoch_number}/{host_denom}";
+  }
+
+  rpc ValidatorUnbonding(QueryValidatorUnbondingRequest) returns (QueryValidatorUnbondingResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/validator_unbonding/{validator_address}/{epoch_number}";
   }
 }
 
@@ -92,4 +96,14 @@ message QueryUserUnbondingsRequest {
 
 message QueryUserUnbondingsResponse {
   UserUnbonding user_unbonding = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryValidatorUnbondingRequest {
+  string validator_address = 1;
+  int64 epoch_number = 2;
+  string host_denom = 3;
+}
+
+message QueryValidatorUnbondingResponse {
+  ValidatorUnbonding validator_unbonding = 1 [ (gogoproto.nullable) = false ];
 }

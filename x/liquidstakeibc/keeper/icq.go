@@ -17,7 +17,7 @@ import (
 const (
 	ValidatorSet = "validatorset"
 	Balances     = "balances"
-	Delegation   = "delegation"
+	Delegation   = "validator-delegation"
 )
 
 type CallbackFn func(Keeper, sdk.Context, []byte, icqtypes.Query) error
@@ -156,36 +156,7 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 		)
 	}
 
-	if validator.Jailed {
-		k.Logger(ctx).Info("Validator has ben jailed !!!",
-			"host-chain:", hc.ChainId,
-			"validator:", validator.OperatorAddress,
-		)
-
-		// unbond the total delegated amount from the jailed validator
-		epochNumber := k.epochsKeeper.GetEpochInfo(ctx, types.UndelegationEpoch).CurrentEpoch
-		unbondingEpoch := types.CurrentUnbondingEpoch(hc.UnbondingFactor, epochNumber)
-		k.IncreaseUserUnbondingAmountForEpoch(
-			ctx,
-			hc.ChainId,
-			hc.DelegationAccount.Address,
-			unbondingEpoch,
-			sdk.NewCoin(hc.MintDenom(), sdk.ZeroInt()), // no tokens are burned, all will be re-delegated
-			response.DelegationResponse.Balance,
-		)
-		k.IncreaseUndelegatingAmountForEpoch(
-			ctx,
-			hc.ChainId,
-			unbondingEpoch,
-			sdk.NewCoin(hc.MintDenom(), sdk.ZeroInt()), // no tokens are burned, all will be re-delegated
-			response.DelegationResponse.Balance,
-		)
-
-		// redistribute the jailed validator weight among all the other validators with weight
-		k.RedistributeValidatorWeight(ctx, hc, validator)
-
-	} else if response.DelegationResponse.Balance.Amount.LT(validator.DelegatedAmount) {
-		// a validator can't be slashed if it is jailed
+	if response.DelegationResponse.Balance.Amount.LT(validator.DelegatedAmount) {
 		slashedAmount := validator.DelegatedAmount.Sub(response.DelegationResponse.Balance.Amount)
 
 		k.Logger(ctx).Info("Validator has ben slashed !!!",

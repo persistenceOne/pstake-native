@@ -115,10 +115,8 @@ message Validator {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  // whether a validator is jailed or not
-  bool jailed = 6;
   // the unbonding epoch number when the validator transistioned into the state
-  int64 unbonding_epoch = 7;
+  int64 unbonding_epoch = 6;
 }
 
 message Deposit {
@@ -194,6 +192,22 @@ message UserUnbonding {
   cosmos.base.v1beta1.Coin stk_amount = 4 [ (gogoproto.nullable) = false ];
   // host token amount that is being unbonded
   cosmos.base.v1beta1.Coin unbond_amount = 5 [ (gogoproto.nullable) = false ];
+}
+
+message ValidatorUnbonding {
+  // unbonding target chain
+  string chain_id = 1;
+  // epoch when the unbonding started
+  int64 epoch_number = 2;
+  // time when the unbonding matures and can be collected
+  google.protobuf.Timestamp mature_time = 3
+  [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+  // address of the validator that is being unbonded
+  string validator_address = 4 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // amount unbonded from the validator
+  cosmos.base.v1beta1.Coin amount = 5 [ (gogoproto.nullable) = false ];
+  // sequence id of the ibc transaction
+  string ibc_sequence_id = 6;
 }
 
 message KVUpdate {

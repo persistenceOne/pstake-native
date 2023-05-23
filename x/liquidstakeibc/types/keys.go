@@ -38,10 +38,11 @@ const (
 )
 
 var (
-	HostChainKey     = []byte{0x01}
-	DepositKey       = []byte{0x02}
-	UnbondingKey     = []byte{0x03}
-	UserUnbondingKey = []byte{0x04}
+	HostChainKey          = []byte{0x01}
+	DepositKey            = []byte{0x02}
+	UnbondingKey          = []byte{0x03}
+	UserUnbondingKey      = []byte{0x04}
+	ValidatorUnbondingKey = []byte{0x05}
 )
 
 func GetUnbondingStoreKey(chainID string, epochNumber int64) []byte {
@@ -50,4 +51,8 @@ func GetUnbondingStoreKey(chainID string, epochNumber int64) []byte {
 
 func GetUserUnbondingStoreKey(chainID, delegatorAddress string, epochNumber int64) []byte {
 	return append([]byte(chainID), append([]byte(delegatorAddress), []byte(strconv.FormatInt(epochNumber, 10))...)...)
+}
+
+func GetValidatorUnbondingStoreKey(chainID, validatorAddress string, epochNumber int64) []byte {
+	return append([]byte(chainID), append([]byte(validatorAddress), []byte(strconv.FormatInt(epochNumber, 10))...)...)
 }
