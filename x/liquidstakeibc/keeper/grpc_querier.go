@@ -177,18 +177,12 @@ func (k *Keeper) UserUnbonding(
 	return &types.QueryUserUnbondingsResponse{UserUnbonding: *userUnbonding}, nil
 }
 
-func (k *Keeper) ValidatorUnbonding(
+func (k *Keeper) ValidatorUnbondings(
 	goCtx context.Context,
 	request *types.QueryValidatorUnbondingRequest,
 ) (*types.QueryValidatorUnbondingResponse, error) {
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-	if request.EpochNumber <= 0 {
-		return nil, status.Error(codes.InvalidArgument, "epoch number less than equal to 0")
-	}
-	if request.ValidatorAddress == "" {
-		return nil, status.Error(codes.InvalidArgument, "address cannot be empty")
 	}
 	if request.HostDenom == "" {
 		return nil, status.Error(codes.InvalidArgument, "host_denom cannot be empty")
@@ -201,10 +195,10 @@ func (k *Keeper) ValidatorUnbonding(
 		return nil, sdkerrors.ErrKeyNotFound
 	}
 
-	validatorUnbonding, found := k.GetValidatorUnbonding(ctx, hc.ChainId, request.ValidatorAddress, request.EpochNumber)
-	if !found {
-		return nil, sdkerrors.ErrKeyNotFound
-	}
+	validatorUnbondings := k.FilterValidatorUnbondings(
+		ctx,
+		func(u types.ValidatorUnbonding) bool { return u.ChainId == hc.ChainId },
+	)
 
-	return &types.QueryValidatorUnbondingResponse{ValidatorUnbonding: *validatorUnbonding}, nil
+	return &types.QueryValidatorUnbondingResponse{ValidatorUnbondings: validatorUnbondings}, nil
 }
