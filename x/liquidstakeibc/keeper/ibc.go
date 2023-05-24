@@ -195,6 +195,8 @@ func (k *Keeper) OnTimeoutPacket(
 		case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
 			// mark unbondings as failed
 			k.FailAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
+			// delete all validator unbondings so they can be picked up again
+			k.DeleteValidatorUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
 		case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
 			unbondings := k.FilterUnbondings(
 				ctx,
@@ -204,6 +206,19 @@ func (k *Keeper) OnTimeoutPacket(
 			)
 			// revert unbonding state so it can be picked up again
 			k.RevertUnbondingsState(ctx, unbondings)
+
+			validatorUnbondings := k.FilterValidatorUnbondings(
+				ctx,
+				func(u types.ValidatorUnbonding) bool {
+					return u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
+				},
+			)
+
+			// empty the ibc sequence id, so they will be picked up again while processing mature delegations
+			for _, validatorUnbonding := range validatorUnbondings {
+				validatorUnbonding.IbcSequenceId = ""
+				k.SetValidatorUnbonding(ctx, validatorUnbonding)
+			}
 		}
 	}
 
@@ -245,6 +260,8 @@ func (k *Keeper) handleUnsuccessfulAck(
 		case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
 			// mark all the unbondings for the previous epoch as failed
 			k.FailAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence))
+			// delete all validator unbondings so they can be picked up again
+			k.DeleteValidatorUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence))
 		case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
 			unbondings := k.FilterUnbondings(
 				ctx,
@@ -255,6 +272,19 @@ func (k *Keeper) handleUnsuccessfulAck(
 			// revert unbonding state so it can be picked up again
 			// this won't conflict with failed rewards transfers since the transaction sequence id won't match
 			k.RevertUnbondingsState(ctx, unbondings)
+
+			validatorUnbondings := k.FilterValidatorUnbondings(
+				ctx,
+				func(u types.ValidatorUnbonding) bool {
+					return u.IbcSequenceId == k.GetTransactionSequenceID(channel, sequence)
+				},
+			)
+
+			// empty the ibc sequence id, so they will be picked up again while processing mature delegations
+			for _, validatorUnbonding := range validatorUnbondings {
+				validatorUnbonding.IbcSequenceId = ""
+				k.SetValidatorUnbonding(ctx, validatorUnbonding)
+			}
 		}
 	}
 

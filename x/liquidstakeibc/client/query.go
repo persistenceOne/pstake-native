@@ -31,6 +31,7 @@ func NewQueryCmd() *cobra.Command {
 		QueryDepositsCmd(),
 		QueryUnbondingCmd(),
 		QueryUserUnbondingCmd(),
+		QueryValidatorUnbondingsCmd(),
 	)
 
 	return cmd
@@ -234,6 +235,45 @@ func QueryUserUnbondingCmd() *cobra.Command {
 					Address:     args[0],
 					EpochNumber: epochNumber,
 					HostDenom:   args[2],
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryValidatorUnbondingsCmd returns all validator unbondings for a host chain.
+func QueryValidatorUnbondingsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "validator-unbondings [host-denom]",
+		Short: "Query a user unbonding record",
+		Args:  cobra.ExactArgs(1),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query all validator unbondings for a host chain: $ %s query liquidstakeibc validator-unbondings [host-denom]`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.ValidatorUnbondings(
+				context.Background(),
+				&types.QueryValidatorUnbondingRequest{
+					HostDenom: args[0],
 				},
 			)
 			if err != nil {

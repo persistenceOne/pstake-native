@@ -77,6 +77,40 @@ func (k *Keeper) HandleUndelegateResponse(
 	channel string,
 	sequence uint64,
 ) error {
+	parsedMsg, ok := msg.(*stakingtypes.MsgUndelegate)
+	if !ok {
+		return errorsmod.Wrapf(
+			sdkerrors.ErrInvalidType,
+			"unable to cast msg of type %s to MsgUndelegate",
+			sdk.MsgTypeURL(msg),
+		)
+	}
+
+	// get the host chain of the delegation using its delegator address
+	hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.DelegatorAddress)
+	if !found {
+		return errorsmod.Wrapf(
+			types.ErrInvalidHostChain,
+			"host chain with delegator address %s not registered, or account not associated",
+			parsedMsg.DelegatorAddress,
+		)
+	}
+
+	// get the validator that the delegation was performed to
+	validator, found := hc.GetValidator(parsedMsg.ValidatorAddress)
+	if !found {
+		return errorsmod.Wrapf(
+			types.ErrValidatorNotFound,
+			"validator with operator address %s not found",
+			parsedMsg.ValidatorAddress,
+		)
+	}
+
+	// update the validator delegated amount
+	validator.DelegatedAmount = validator.DelegatedAmount.Sub(parsedMsg.Amount.Amount)
+	k.SetHostChainValidator(ctx, hc, validator)
+
+	// update the state of all the unbondings associated with the undelegation
 	unbondings := k.FilterUnbondings(
 		ctx,
 		func(u types.Unbonding) bool { return u.IbcSequenceId == k.GetTransactionSequenceID(channel, sequence) },
@@ -92,43 +126,6 @@ func (k *Keeper) HandleUndelegateResponse(
 		if err != nil {
 			return err
 		}
-
-		parsedMsg, ok := msg.(*stakingtypes.MsgUndelegate)
-		if !ok {
-			return errorsmod.Wrapf(
-				sdkerrors.ErrInvalidType,
-				"unable to cast msg of type %s to MsgUndelegate",
-				sdk.MsgTypeURL(msg),
-			)
-		}
-
-		// get the host chain of the delegation using its delegator address
-		hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.DelegatorAddress)
-		if !found {
-			return errorsmod.Wrapf(
-				types.ErrInvalidHostChain,
-				"host chain with delegator address %s not registered, or account not associated",
-				parsedMsg.DelegatorAddress,
-			)
-		}
-
-		// get the validator that the delegation was performed to
-		validator, found := hc.GetValidator(parsedMsg.ValidatorAddress)
-		if !found {
-			return errorsmod.Wrapf(
-				types.ErrValidatorNotFound,
-				"validator with operator address %s not found",
-				parsedMsg.ValidatorAddress,
-			)
-		}
-
-		// update the validator delegated amount
-		validator.DelegatedAmount = validator.DelegatedAmount.Sub(parsedMsg.Amount.Amount)
-		k.SetHostChainValidator(ctx, hc, validator)
-
-		// update host the host chain c value
-		hc.CValue = k.GetHostChainCValue(ctx, hc)
-		k.SetHostChain(ctx, hc)
 
 		// update the mature time and the state for the undelegation
 		unbonding.IbcSequenceId = ""
@@ -146,6 +143,36 @@ func (k *Keeper) HandleUndelegateResponse(
 			parsedMsg.Amount.String(),
 		)
 	}
+
+	// update the state of all the validator unbondings associated with the undelegation
+	validatorUnbondings := k.FilterValidatorUnbondings(
+		ctx,
+		func(u types.ValidatorUnbonding) bool {
+			return u.IbcSequenceId == k.GetTransactionSequenceID(channel, sequence)
+		},
+	)
+
+	for _, validatorUnbonding := range validatorUnbondings {
+		// update the mature time and the state for the validator undelegation
+		validatorUnbonding.IbcSequenceId = ""
+		validatorUnbonding.MatureTime = resp.CompletionTime
+		k.SetValidatorUnbonding(ctx, validatorUnbonding)
+
+		k.Logger(ctx).Info(
+			"Received validator unbonding acknowledgement",
+			"delegator",
+			parsedMsg.DelegatorAddress,
+			"validator",
+			parsedMsg.ValidatorAddress,
+			"amount",
+			parsedMsg.Amount.String(),
+		)
+	}
+
+	// finally, update host the host chain c value
+	hc.CValue = k.GetHostChainCValue(ctx, hc)
+	k.SetHostChain(ctx, hc)
+
 	return nil
 }
 
@@ -190,6 +217,21 @@ func (k *Keeper) HandleMsgTransfer(
 		for _, unbonding := range unbondings {
 			unbonding.IbcSequenceId = k.GetTransactionSequenceID(hc.ChannelId, resp.Sequence)
 			k.SetUnbonding(ctx, unbonding)
+		}
+	}
+
+	if parsedMsg.Sender == hc.DelegationAccount.Address &&
+		parsedMsg.Receiver == k.GetDepositModuleAccount(ctx).GetAddress().String() {
+		validatorUnbondings := k.FilterValidatorUnbondings(
+			ctx,
+			func(u types.ValidatorUnbonding) bool {
+				return u.ChainId == hc.ChainId && u.IbcSequenceId == k.GetTransactionSequenceID(channel, sequence)
+			},
+		)
+
+		// remove the unbonding entries as the transfer has succeeded on our part
+		for _, validatorUnbonding := range validatorUnbondings {
+			k.DeleteValidatorUnbonding(ctx, validatorUnbonding)
 		}
 	}
 

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -217,7 +218,9 @@ func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostCh
 	unbondings := k.FilterUnbondings(
 		ctx,
 		func(u types.Unbonding) bool {
-			return ctx.BlockTime().After(u.MatureTime) && u.State == types.Unbonding_UNBONDING_MATURING
+			return u.ChainId == hc.ChainId &&
+				ctx.BlockTime().After(u.MatureTime) &&
+				u.State == types.Unbonding_UNBONDING_MATURING
 		},
 	)
 
@@ -245,5 +248,41 @@ func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostCh
 		unbonding.IbcSequenceId = sequenceID
 		unbonding.State = types.Unbonding_UNBONDING_MATURED
 		k.SetUnbonding(ctx, unbonding)
+	}
+
+	// get all the validator unbondings that are matured
+	validatorUnbondings := k.FilterValidatorUnbondings(
+		ctx,
+		func(u types.ValidatorUnbonding) bool {
+			return u.ChainId == hc.ChainId && u.MatureTime != time.Time{} &&
+				ctx.BlockTime().After(u.MatureTime) && u.IbcSequenceId == ""
+		},
+	)
+
+	for _, validatorUnbonding := range validatorUnbondings {
+		sequenceID, err := k.SendICATransfer(
+			ctx,
+			hc,
+			validatorUnbonding.Amount,
+			hc.DelegationAccount.Address,
+			k.GetDepositModuleAccount(ctx).GetAddress().String(),
+			k.DelegateAccountPortOwner(hc.ChainId),
+		)
+		if err != nil {
+			k.Logger(ctx).Error(
+				"Could not process mature validator undelegations.",
+				"host_chain",
+				hc.ChainId,
+				"validator",
+				validatorUnbonding.ValidatorAddress,
+				"error",
+				err.Error(),
+			)
+			continue
+		}
+
+		// update the validator unbonding sequence id and state
+		validatorUnbonding.IbcSequenceId = sequenceID
+		k.SetValidatorUnbonding(ctx, validatorUnbonding)
 	}
 }

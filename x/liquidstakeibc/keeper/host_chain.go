@@ -40,17 +40,16 @@ func (k *Keeper) SetHostChainValidator(
 	k.SetHostChain(ctx, hc)
 }
 
-// SetHostChainValidators sets the validators on a host chain from an ICQ
-func (k *Keeper) SetHostChainValidators(
+// ProcessHostChainValidatorUpdates processes the new validator set for a host chain
+func (k *Keeper) ProcessHostChainValidatorUpdates(
 	ctx sdk.Context,
 	hc *types.HostChain,
 	validators []stakingtypes.Validator,
-) {
+) error {
 	for _, validator := range validators {
 		val, found := hc.GetValidator(validator.OperatorAddress)
 
-		switch {
-		case !found:
+		if !found {
 			hc.Validators = append(
 				hc.Validators,
 				&types.Validator{
@@ -58,14 +57,61 @@ func (k *Keeper) SetHostChainValidators(
 					Status:          validator.Status.String(),
 					Weight:          sdk.ZeroDec(),
 					DelegatedAmount: sdk.ZeroInt(),
+					TotalAmount:     validator.Tokens,
 				},
 			)
-		case validator.Status.String() != val.Status:
-			val.Status = validator.Status.String()
+			k.SetHostChain(ctx, hc)
+		} else {
+			if validator.Status.String() != val.Status {
+				// validator transitioned into unbonding
+				if validator.Status.String() == stakingtypes.BondStatusUnbonding {
+					epochNumber := k.epochsKeeper.GetEpochInfo(ctx, types.UndelegationEpoch).CurrentEpoch
+					val.UnbondingEpoch = types.CurrentUnbondingEpoch(hc.UnbondingFactor, epochNumber)
+				}
+				// validator transitioned into bonded
+				if validator.Status.String() == stakingtypes.BondStatusBonded {
+					val.UnbondingEpoch = 0
+				}
+
+				val.Status = validator.Status.String()
+				k.SetHostChainValidator(ctx, hc, val)
+			}
+			if !validator.Tokens.Equal(val.TotalAmount) {
+				if val.DelegatedAmount.GT(sdk.ZeroInt()) {
+					if err := k.QueryValidatorDelegation(ctx, hc, val); err != nil {
+						return fmt.Errorf(
+							"error while querying validator %s delegation: %s",
+							val.OperatorAddress,
+							err.Error(),
+						)
+					}
+				}
+
+				val.TotalAmount = validator.Tokens
+				k.SetHostChainValidator(ctx, hc, val)
+			}
 		}
 	}
 
-	k.SetHostChain(ctx, hc)
+	return nil
+}
+
+func (k *Keeper) RedistributeValidatorWeight(ctx sdk.Context, hc *types.HostChain, validator *types.Validator) {
+	validatorsWithWeight := make([]*types.Validator, 0)
+	for _, val := range hc.Validators {
+		if val.Weight.GT(sdk.ZeroDec()) && val.OperatorAddress != validator.OperatorAddress {
+			validatorsWithWeight = append(validatorsWithWeight, val)
+		}
+	}
+
+	weightDiff := validator.Weight.Quo(sdk.NewDec(int64(len(validatorsWithWeight))))
+	for _, val := range validatorsWithWeight {
+		val.Weight = val.Weight.Add(weightDiff)
+		k.SetHostChainValidator(ctx, hc, val)
+	}
+
+	validator.Weight = sdk.ZeroDec()
+	k.SetHostChainValidator(ctx, hc, validator)
 }
 
 // GetHostChain returns a host chain given its id
@@ -171,6 +217,7 @@ func (k *Keeper) GetHostChainCValue(ctx sdk.Context, hc *types.HostChain) sdk.De
 	// delegated amount + delegation account balance + deposit module account balance
 	liquidStakedAmount := hc.GetHostChainTotalDelegations().
 		Add(hc.DelegationAccount.Balance.Amount).
+		Add(k.GetAllValidatorUnbondedAmount(ctx, hc)).
 		Add(k.bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(types.DepositModuleAccount), hc.IBCDenom()).Amount)
 
 	if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {

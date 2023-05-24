@@ -63,3 +63,33 @@ func (k *Keeper) QueryHostChainAccountBalance(
 
 	return nil
 }
+
+// QueryValidatorDelegation sends an ICQ query to get a validator delegation
+func (k *Keeper) QueryValidatorDelegation(
+	ctx sdk.Context,
+	hc *types.HostChain,
+	validator *types.Validator,
+) error {
+	delegationRequest := stakingtypes.QueryDelegationRequest{
+		DelegatorAddr: hc.DelegationAccount.Address,
+		ValidatorAddr: validator.OperatorAddress,
+	}
+	bz, err := k.cdc.Marshal(&delegationRequest)
+	if err != nil {
+		return err
+	}
+
+	k.icqKeeper.MakeRequest(
+		ctx,
+		hc.ConnectionId,
+		hc.ChainId,
+		"cosmos.staking.v1beta1.Query/Delegation",
+		bz,
+		sdk.NewInt(int64(-1)),
+		types.ModuleName,
+		Delegation,
+		0,
+	)
+
+	return nil
+}

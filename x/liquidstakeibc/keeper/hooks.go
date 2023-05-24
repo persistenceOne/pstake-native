@@ -2,14 +2,17 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/gogo/protobuf/proto"
 	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
 
@@ -89,6 +92,10 @@ func (k *Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNum
 	}
 
 	if epochIdentifier == liquidstakeibctypes.UndelegationEpoch {
+		// attempt to fully undelegate any validators that have been more than
+		//UnbondingStateEpochLimit epochs in UNBONDING state
+		k.ValidatorUndelegationWorkflow(ctx, epochNumber)
+
 		k.UndelegationWorkflow(ctx, epochNumber)
 	}
 
@@ -141,6 +148,35 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 			unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_CLAIMABLE
 			k.SetUnbonding(ctx, unbonding)
 		}
+	}
+
+	// the transfer is part of a total validator unbonding
+	if data.GetSender() == hc.DelegationAccount.Address &&
+		data.GetReceiver() == k.GetDepositModuleAccount(ctx).GetAddress().String() &&
+		data.Memo == "" {
+		// add the unbonded amount to the deposit record for that chain/epoch
+		currentEpoch := k.GetEpochNumber(ctx, liquidstakeibctypes.DelegationEpoch)
+		deposit, found := k.GetDepositForChainAndEpoch(ctx, hc.ChainId, currentEpoch)
+		if !found {
+			return errorsmod.Wrapf(
+				liquidstakeibctypes.ErrDepositNotFound,
+				"deposit not found for chain %s and epoch %v",
+				hc.ChainId,
+				currentEpoch,
+			)
+		}
+
+		transferAmount, ok := sdk.NewIntFromString(data.Amount)
+		if !ok {
+			return errorsmod.Wrapf(
+				liquidstakeibctypes.ErrParsingAmount,
+				"could not parse transfer amount %s",
+				data.Amount,
+			)
+		}
+		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount)
+
+		k.SetDeposit(ctx, deposit)
 	}
 
 	// the transfer is part of the autocompounding process
@@ -430,6 +466,78 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 		unbonding.IbcSequenceId = sequenceID
 		unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_INITIATED
 		k.SetUnbonding(ctx, unbonding)
+	}
+}
+
+func (k *Keeper) ValidatorUndelegationWorkflow(ctx sdk.Context, epoch int64) {
+	for _, hc := range k.GetAllHostChains(ctx) {
+		// don't do anything if the chain is not active
+		if !hc.Active {
+			continue
+		}
+
+		// not an unbonding epoch for the host chain, continue
+		if !liquidstakeibctypes.IsUnbondingEpoch(hc.UnbondingFactor, epoch) {
+			continue
+		}
+
+		for _, validator := range hc.Validators {
+			// check if there are validators that need to be unbonded
+			if validator.UnbondingEpoch > 0 &&
+				validator.UnbondingEpoch+liquidstakeibctypes.UnbondingStateEpochLimit <= epoch {
+
+				// unbond all delegated tokens from the validator
+				validatorUnbonding := &liquidstakeibctypes.ValidatorUnbonding{
+					ChainId:          hc.ChainId,
+					EpochNumber:      epoch,
+					MatureTime:       time.Time{},
+					ValidatorAddress: validator.OperatorAddress,
+					Amount:           sdk.NewCoin(hc.HostDenom, validator.DelegatedAmount),
+				}
+
+				// create the MsgUndelegate
+				message := &stakingtypes.MsgUndelegate{
+					DelegatorAddress: hc.DelegationAccount.Address,
+					ValidatorAddress: validatorUnbonding.ValidatorAddress,
+					Amount:           validatorUnbonding.Amount,
+				}
+
+				// execute the ICA transaction
+				sequenceID, err := k.GenerateAndExecuteICATx(
+					ctx,
+					hc.ConnectionId,
+					k.DelegateAccountPortOwner(hc.ChainId),
+					[]proto.Message{message},
+				)
+				if err != nil {
+					k.Logger(ctx).Error(
+						"could not send ICA undelegate txs",
+						"host_chain",
+						hc.ChainId,
+					)
+					return
+				}
+
+				// update the unbonding sequence id
+				validatorUnbonding.IbcSequenceId = sequenceID
+				k.SetValidatorUnbonding(ctx, validatorUnbonding)
+
+				// redistribute the unbonding validator weight among all the other validators with weight
+				k.RedistributeValidatorWeight(ctx, hc, validator)
+
+				k.Logger(ctx).Info(
+					"Started total validator unbonding.",
+					"host_chain",
+					hc.ChainId,
+					"validator",
+					validatorUnbonding.ValidatorAddress,
+					"amount",
+					validatorUnbonding.Amount,
+					"epoch",
+					epoch,
+				)
+			}
+		}
 	}
 }
 

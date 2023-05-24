@@ -176,3 +176,29 @@ func (k *Keeper) UserUnbonding(
 
 	return &types.QueryUserUnbondingsResponse{UserUnbonding: *userUnbonding}, nil
 }
+
+func (k *Keeper) ValidatorUnbondings(
+	goCtx context.Context,
+	request *types.QueryValidatorUnbondingRequest,
+) (*types.QueryValidatorUnbondingResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.HostDenom == "" {
+		return nil, status.Error(codes.InvalidArgument, "host_denom cannot be empty")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	hc, found := k.GetHostChainFromHostDenom(ctx, request.HostDenom)
+	if !found {
+		return nil, sdkerrors.ErrKeyNotFound
+	}
+
+	validatorUnbondings := k.FilterValidatorUnbondings(
+		ctx,
+		func(u types.ValidatorUnbonding) bool { return u.ChainId == hc.ChainId },
+	)
+
+	return &types.QueryValidatorUnbondingResponse{ValidatorUnbondings: validatorUnbondings}, nil
+}

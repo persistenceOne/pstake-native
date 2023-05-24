@@ -17,6 +17,7 @@ import (
 const (
 	ValidatorSet = "validatorset"
 	Balances     = "balances"
+	Delegation   = "validator-delegation"
 )
 
 type CallbackFn func(Keeper, sdk.Context, []byte, icqtypes.Query) error
@@ -48,7 +49,8 @@ func (c Callbacks) Has(id string) bool {
 func (c Callbacks) RegisterCallbacks() icqtypes.QueryCallbacks {
 	a := c.
 		AddCallback(ValidatorSet, CallbackFn(ValidatorSetCallback)).
-		AddCallback(Balances, CallbackFn(BalancesCallback))
+		AddCallback(Balances, CallbackFn(BalancesCallback)).
+		AddCallback(Delegation, CallbackFn(DelegationCallback))
 
 	return a.(Callbacks)
 }
@@ -82,9 +84,7 @@ func ValidatorSetCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes
 		}
 	}
 
-	k.SetHostChainValidators(ctx, hc, response.Validators)
-
-	return nil
+	return k.ProcessHostChainValidatorUpdates(ctx, hc, response.Validators)
 }
 
 func BalancesCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
@@ -131,6 +131,52 @@ func BalancesCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Que
 	// recalculate the host chain c value after the local account data has been updated
 	hc.CValue = k.GetHostChainCValue(ctx, hc)
 	k.SetHostChain(ctx, hc)
+
+	return nil
+}
+
+func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
+	hc, found := k.GetHostChain(ctx, query.ChainId)
+	if !found {
+		return fmt.Errorf("host chain with id %s is not registered", query.ChainId)
+	}
+
+	response := stakingtypes.QueryDelegationResponse{}
+	err := k.cdc.Unmarshal(data, &response)
+	if err != nil {
+		return fmt.Errorf("could not unmarshall ICQ delegation response: %w", err)
+	}
+
+	validator, found := hc.GetValidator(response.DelegationResponse.Delegation.ValidatorAddress)
+	if !found {
+		return fmt.Errorf(
+			"validator %s for host chain %s not found",
+			response.DelegationResponse.Delegation.ValidatorAddress,
+			query.ChainId,
+		)
+	}
+
+	if response.DelegationResponse.Balance.Amount.LT(validator.DelegatedAmount) {
+		slashedAmount := validator.DelegatedAmount.Sub(response.DelegationResponse.Balance.Amount)
+
+		k.Logger(ctx).Info("Validator has ben slashed !!!",
+			"host-chain:", hc.ChainId,
+			"validator:", validator.OperatorAddress,
+			"slashed-amount:", slashedAmount,
+		)
+
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeSlashing,
+				sdk.NewAttribute(types.AttributeValidatorAddress, validator.OperatorAddress),
+				sdk.NewAttribute(types.AttributeExistingDelegation, validator.DelegatedAmount.String()),
+				sdk.NewAttribute(types.AttributeUpdatedDelegation, response.DelegationResponse.Balance.Amount.String()),
+				sdk.NewAttribute(types.AttributeSlashedAmount, slashedAmount.String()),
+			)})
+	}
+
+	validator.DelegatedAmount = response.DelegationResponse.Balance.Amount
+	k.SetHostChainValidator(ctx, hc, validator)
 
 	return nil
 }

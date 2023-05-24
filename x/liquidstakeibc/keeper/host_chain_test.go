@@ -96,7 +96,7 @@ func (suite *IntegrationTestSuite) TestSetHostChainValidator() {
 	}
 }
 
-func (suite *IntegrationTestSuite) TestSetHostChainValidators() {
+func (suite *IntegrationTestSuite) ProcessHostChainValidatorUpdates() {
 	tc := []struct {
 		name       string
 		hc         types.HostChain
@@ -147,10 +147,12 @@ func (suite *IntegrationTestSuite) TestSetHostChainValidators() {
 		suite.Run(t.name, func() {
 			pstakeApp, ctx := suite.app, suite.ctx
 
-			pstakeApp.LiquidStakeIBCKeeper.SetHostChainValidators(ctx, &t.hc, t.validators)
+			err := pstakeApp.LiquidStakeIBCKeeper.ProcessHostChainValidatorUpdates(ctx, &t.hc, t.validators)
 
+			suite.Require().Equal(err, nil)
 			suite.Require().Equal(len(t.hc.Validators), len(t.validators))
 			for i, validator := range t.hc.Validators {
+				suite.Require().NotEqual(err, nil)
 				suite.Require().Equal(validator.OperatorAddress, t.validators[i].OperatorAddress)
 				suite.Require().Equal(validator.Status, t.validators[i].Status.String())
 			}
