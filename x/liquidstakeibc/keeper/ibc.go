@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -308,6 +309,7 @@ func (k *Keeper) handleSuccessfulAck(
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot deserialize ica packet data: %v", err)
 	}
 
+	withdrawMessages := make([]sdk.Msg, 0)
 	for i, msg := range messages {
 		switch sdk.MsgTypeURL(msg) {
 		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
@@ -352,6 +354,15 @@ func (k *Keeper) handleSuccessfulAck(
 			if err = k.HandleMsgTransfer(ctx, msg, msgResponse, channel, sequence); err != nil {
 				return err
 			}
+		case sdk.MsgTypeURL(&distributiontypes.MsgWithdrawDelegatorReward{}):
+			withdrawMessages = append(withdrawMessages, msg)
+		}
+	}
+
+	// process withdraw messages together so just one transfer is sent and everything is re-staked in one action
+	if len(withdrawMessages) > 0 {
+		if err = k.HandleMsgWithdrawDelegatorReward(ctx, withdrawMessages); err != nil {
+			return err
 		}
 	}
 

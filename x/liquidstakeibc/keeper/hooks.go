@@ -7,6 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -228,6 +229,13 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		// update the deposit
 		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount.Sub(feeAmount.TruncateInt()))
 		k.SetDeposit(ctx, deposit)
+
+		if hc.RewardsAccount != nil &&
+			hc.RewardsAccount.ChannelState == liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED {
+			if err := k.QueryHostChainAccountBalance(ctx, hc, hc.RewardsAccount.Address); err != nil {
+				return fmt.Errorf("could not send rewards account balance ICQ for host chain %s", hc.ChainId)
+			}
+		}
 	}
 
 	return nil
@@ -548,16 +556,33 @@ func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
 			continue
 		}
 
-		if hc.RewardsAccount != nil &&
-			hc.RewardsAccount.ChannelState == liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED {
-			if err := k.QueryHostChainAccountBalance(ctx, hc, hc.RewardsAccount.Address); err != nil {
-				k.Logger(ctx).Info(
-					"Could not send rewards account balance ICQ.",
+		// generate the messages
+		messages := make([]proto.Message, 0)
+		for _, validator := range hc.Validators {
+			if validator.DelegatedAmount.GT(sdk.ZeroInt()) {
+				message := &distributiontypes.MsgWithdrawDelegatorReward{
+					DelegatorAddress: hc.DelegationAccount.Address,
+					ValidatorAddress: validator.OperatorAddress,
+				}
+				messages = append(messages, message)
+			}
+		}
+
+		if len(messages) > 0 {
+			// execute the ICA transactions
+			_, err := k.GenerateAndExecuteICATx(
+				ctx,
+				hc.ConnectionId,
+				k.DelegateAccountPortOwner(hc.ChainId),
+				messages,
+			)
+			if err != nil {
+				k.Logger(ctx).Error(
+					"could not send ICA withdraw delegator reward txs",
 					"host_chain",
 					hc.ChainId,
-					"epoch",
-					epoch,
 				)
+				return
 			}
 		}
 	}

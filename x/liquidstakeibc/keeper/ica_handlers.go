@@ -1,9 +1,12 @@
 package keeper
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
@@ -187,7 +190,7 @@ func (k *Keeper) HandleMsgTransfer(
 	if !ok {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidType,
-			"unable to cast msg of type %s to MsgUndelegate",
+			"unable to cast msg of type %s to MsgTransfer",
 			sdk.MsgTypeURL(msg),
 		)
 	}
@@ -232,6 +235,49 @@ func (k *Keeper) HandleMsgTransfer(
 		// remove the unbonding entries as the transfer has succeeded on our part
 		for _, validatorUnbonding := range validatorUnbondings {
 			k.DeleteValidatorUnbonding(ctx, validatorUnbonding)
+		}
+	}
+
+	return nil
+}
+
+func (k *Keeper) HandleMsgWithdrawDelegatorReward(
+	ctx sdk.Context,
+	messages []sdk.Msg,
+) error {
+	// a map is used to capture all the different rewards transfers received within the same acknowledgement
+	// it should only contain rewards from the same host chain, but this is in place to handle the situation
+	// where that is not the case
+	rewardAccountsMap := make(map[string]*types.HostChain, 0)
+	for _, message := range messages {
+		parsedMsg, ok := message.(*distributiontypes.MsgWithdrawDelegatorReward)
+		if !ok {
+			return errorsmod.Wrapf(
+				sdkerrors.ErrInvalidType,
+				"unable to cast msg of type %s to MsgWithdrawDelegatorReward",
+				sdk.MsgTypeURL(message),
+			)
+		}
+
+		// get the host chain of the transfer using its host denom
+		hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.DelegatorAddress)
+		if !found {
+			return errorsmod.Wrapf(
+				types.ErrInvalidHostChain,
+				"host chain with delegator address %s not registered, or account not associated",
+				parsedMsg.DelegatorAddress,
+			)
+		}
+
+		rewardAccountsMap[hc.RewardsAccount.Address] = hc
+	}
+
+	for _, hc := range rewardAccountsMap {
+		if hc.RewardsAccount != nil &&
+			hc.RewardsAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATED {
+			if err := k.QueryHostChainAccountBalance(ctx, hc, hc.RewardsAccount.Address); err != nil {
+				return fmt.Errorf("could not send rewards account balance ICQ for host chain %s", hc.ChainId)
+			}
 		}
 	}
 
