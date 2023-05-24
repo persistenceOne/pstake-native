@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -28,6 +30,22 @@ func (k *Keeper) GetValidatorUnbonding(
 	var validatorUnbonding types.ValidatorUnbonding
 	k.cdc.MustUnmarshal(bz, &validatorUnbonding)
 	return &validatorUnbonding, true
+}
+
+func (k *Keeper) GetAllValidatorUnbondedAmount(ctx sdk.Context, hc *types.HostChain) sdk.Int { //nolint:staticcheck
+	validatorUnbondings := k.FilterValidatorUnbondings(
+		ctx,
+		func(u types.ValidatorUnbonding) bool {
+			return u.ChainId == hc.ChainId && u.MatureTime != time.Time{}
+		},
+	)
+
+	amount := sdk.ZeroInt()
+	for _, validatorUnbonding := range validatorUnbondings {
+		amount = amount.Add(validatorUnbonding.Amount.Amount)
+	}
+
+	return amount
 }
 
 func (k *Keeper) DeleteValidatorUnbonding(ctx sdk.Context, ub *types.ValidatorUnbonding) {

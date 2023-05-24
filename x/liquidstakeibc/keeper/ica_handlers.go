@@ -110,10 +110,6 @@ func (k *Keeper) HandleUndelegateResponse(
 	validator.DelegatedAmount = validator.DelegatedAmount.Sub(parsedMsg.Amount.Amount)
 	k.SetHostChainValidator(ctx, hc, validator)
 
-	// update host the host chain c value
-	hc.CValue = k.GetHostChainCValue(ctx, hc)
-	k.SetHostChain(ctx, hc)
-
 	// update the state of all the unbondings associated with the undelegation
 	unbondings := k.FilterUnbondings(
 		ctx,
@@ -172,6 +168,10 @@ func (k *Keeper) HandleUndelegateResponse(
 			parsedMsg.Amount.String(),
 		)
 	}
+
+	// finally, update host the host chain c value
+	hc.CValue = k.GetHostChainCValue(ctx, hc)
+	k.SetHostChain(ctx, hc)
 
 	return nil
 }

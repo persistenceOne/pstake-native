@@ -217,6 +217,7 @@ func (k *Keeper) GetHostChainCValue(ctx sdk.Context, hc *types.HostChain) sdk.De
 	// delegated amount + delegation account balance + deposit module account balance
 	liquidStakedAmount := hc.GetHostChainTotalDelegations().
 		Add(hc.DelegationAccount.Balance.Amount).
+		Add(k.GetAllValidatorUnbondedAmount(ctx, hc)).
 		Add(k.bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(types.DepositModuleAccount), hc.IBCDenom()).Amount)
 
 	if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {
