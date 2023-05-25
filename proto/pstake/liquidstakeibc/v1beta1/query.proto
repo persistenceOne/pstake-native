@@ -29,9 +29,9 @@ service Query {
     option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/host_chains";
   }
 
-  // Queries for all the Deposits.
+  // Queries for all the deposits for a host chain.
   rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
-    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/deposits";
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/deposits/{host_denom}";
   }
 
   // Queries all unbondings for a host chain.
@@ -65,21 +65,18 @@ message QueryHostChainResponse {
 }
 
 message QueryHostChainsRequest {
-  cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
 message QueryHostChainsResponse {
-  repeated HostChain host_chains = 1 [ (gogoproto.nullable) = false ];
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  repeated HostChain host_chains = 1;
 }
 
 message QueryDepositsRequest {
-  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  string host_denom = 1;
 }
 
 message QueryDepositsResponse {
-  repeated Deposit deposits = 1 [ (gogoproto.nullable) = false ];
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  repeated Deposit deposits = 1;
 }
 
 message QueryUnbondingsRequest {

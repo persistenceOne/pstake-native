@@ -117,6 +117,24 @@ func (k *Keeper) GetDepositForChainAndEpoch(
 	return nil, false
 }
 
+func (k *Keeper) GetDepositsForHostChain(ctx sdk.Context, chainID string) []*liquidstakeibctypes.Deposit {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	deposits := make([]*liquidstakeibctypes.Deposit, 0)
+	for ; iterator.Valid(); iterator.Next() {
+		deposit := &liquidstakeibctypes.Deposit{}
+		k.cdc.MustUnmarshal(iterator.Value(), deposit)
+
+		if deposit.ChainId == chainID {
+			deposits = append(deposits, deposit)
+		}
+	}
+
+	return deposits
+}
+
 func (k *Keeper) GetDepositsWithSequenceID(ctx sdk.Context, sequenceID string) []*liquidstakeibctypes.Deposit {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)

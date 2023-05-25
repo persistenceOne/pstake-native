@@ -3,9 +3,7 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -55,27 +53,7 @@ func (k *Keeper) HostChains(
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	store := ctx.KVStore(k.storeKey)
-	hcStore := prefix.NewStore(store, types.HostChainKey)
-
-	var hostChains []types.HostChain
-	pagination, err := query.Paginate(hcStore, request.Pagination, func(key []byte, value []byte) error {
-		var hc types.HostChain
-		if err := k.cdc.Unmarshal(value, &hc); err != nil {
-			return err
-		}
-
-		hostChains = append(hostChains, hc)
-		return nil
-	})
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	return &types.QueryHostChainsResponse{
-		HostChains: hostChains,
-		Pagination: pagination,
-	}, nil
+	return &types.QueryHostChainsResponse{HostChains: k.GetAllHostChains(ctx)}, nil
 }
 
 func (k *Keeper) Deposits(
@@ -88,27 +66,12 @@ func (k *Keeper) Deposits(
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	store := ctx.KVStore(k.storeKey)
-	udStore := prefix.NewStore(store, types.DepositKey)
-
-	var deposits []types.Deposit
-	pagination, err := query.Paginate(udStore, request.Pagination, func(key []byte, value []byte) error {
-		var deposit types.Deposit
-		if err := k.cdc.Unmarshal(value, &deposit); err != nil {
-			return err
-		}
-
-		deposits = append(deposits, deposit)
-		return nil
-	})
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+	hc, found := k.GetHostChainFromHostDenom(ctx, request.HostDenom)
+	if !found {
+		return nil, sdkerrors.ErrKeyNotFound
 	}
 
-	return &types.QueryDepositsResponse{
-		Deposits:   deposits,
-		Pagination: pagination,
-	}, nil
+	return &types.QueryDepositsResponse{Deposits: k.GetDepositsForHostChain(ctx, hc.ChainId)}, nil
 }
 
 func (k *Keeper) Unbondings(
@@ -154,7 +117,7 @@ func (k *Keeper) UserUnbondings(
 
 	address, err := sdk.AccAddressFromBech32(request.Address)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid address: %s", err.Error())
+		return nil, sdkerrors.ErrKeyNotFound
 	}
 
 	userUnbondings := k.FilterUserUnbondings(
