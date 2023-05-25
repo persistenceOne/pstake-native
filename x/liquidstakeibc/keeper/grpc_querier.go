@@ -111,15 +111,12 @@ func (k *Keeper) Deposits(
 	}, nil
 }
 
-func (k *Keeper) Unbonding(
+func (k *Keeper) Unbondings(
 	goCtx context.Context,
-	request *types.QueryUnbondingRequest,
-) (*types.QueryUnbondingResponse, error) {
+	request *types.QueryUnbondingsRequest,
+) (*types.QueryUnbondingsResponse, error) {
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-	if request.EpochNumber <= 0 {
-		return nil, status.Error(codes.InvalidArgument, "epoch number less than equal to 0")
 	}
 	if request.HostDenom == "" {
 		return nil, status.Error(codes.InvalidArgument, "host_denom cannot be empty")
@@ -132,29 +129,25 @@ func (k *Keeper) Unbonding(
 		return nil, sdkerrors.ErrKeyNotFound
 	}
 
-	unbonding, found := k.GetUnbonding(ctx, hc.ChainId, request.EpochNumber)
-	if !found {
-		return nil, sdkerrors.ErrKeyNotFound
-	}
+	unbondings := k.FilterUnbondings(
+		ctx,
+		func(u types.Unbonding) bool {
+			return u.ChainId == hc.ChainId
+		},
+	)
 
-	return &types.QueryUnbondingResponse{Unbonding: *unbonding}, nil
+	return &types.QueryUnbondingsResponse{Unbondings: unbondings}, nil
 }
 
-func (k *Keeper) UserUnbonding(
+func (k *Keeper) UserUnbondings(
 	goCtx context.Context,
 	request *types.QueryUserUnbondingsRequest,
 ) (*types.QueryUserUnbondingsResponse, error) {
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-	if request.EpochNumber <= 0 {
-		return nil, status.Error(codes.InvalidArgument, "epoch number less than equal to 0")
-	}
 	if request.Address == "" {
 		return nil, status.Error(codes.InvalidArgument, "address cannot be empty")
-	}
-	if request.HostDenom == "" {
-		return nil, status.Error(codes.InvalidArgument, "host_denom cannot be empty")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -164,17 +157,14 @@ func (k *Keeper) UserUnbonding(
 		return nil, status.Errorf(codes.InvalidArgument, "invalid address: %s", err.Error())
 	}
 
-	hc, found := k.GetHostChainFromHostDenom(ctx, request.HostDenom)
-	if !found {
-		return nil, sdkerrors.ErrKeyNotFound
-	}
+	userUnbondings := k.FilterUserUnbondings(
+		ctx,
+		func(u types.UserUnbonding) bool {
+			return u.Address == address.String()
+		},
+	)
 
-	userUnbonding, found := k.GetUserUnbonding(ctx, hc.ChainId, address.String(), request.EpochNumber)
-	if !found {
-		return nil, sdkerrors.ErrKeyNotFound
-	}
-
-	return &types.QueryUserUnbondingsResponse{UserUnbonding: *userUnbonding}, nil
+	return &types.QueryUserUnbondingsResponse{UserUnbondings: userUnbondings}, nil
 }
 
 func (k *Keeper) ValidatorUnbondings(
