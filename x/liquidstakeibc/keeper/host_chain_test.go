@@ -78,7 +78,7 @@ func (suite *IntegrationTestSuite) TestSetHostChainValidator() {
 			validator: types.Validator{
 				OperatorAddress: "valoper1",
 				Status:          stakingtypes.BondStatusBonded,
-				Weight:          DecFromStr("0.5"),
+				Weight:          decFromStr("0.5"),
 				DelegatedAmount: sdk.NewInt(150),
 			},
 		},
@@ -328,7 +328,7 @@ func (suite *IntegrationTestSuite) TestUpdateHostChainValidatorWeight() {
 			if t.success {
 				suite.Require().NoError(err)
 				suite.Require().Equal(len(t.hc.Validators), 1)
-				suite.Require().Equal(t.hc.Validators[0].Weight, DecFromStr(t.validatorWeight))
+				suite.Require().Equal(t.hc.Validators[0].Weight, decFromStr(t.validatorWeight))
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal(len(t.hc.Validators), 1)
