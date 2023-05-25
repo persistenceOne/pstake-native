@@ -34,14 +34,17 @@ service Query {
     option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/deposits";
   }
 
-  rpc Unbonding(QueryUnbondingRequest) returns (QueryUnbondingResponse) {
-    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/unbonding/{epoch_number}/{host_denom}";
+  // Queries all unbondings for a host chain.
+  rpc Unbondings(QueryUnbondingsRequest) returns (QueryUnbondingsResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/unbondings/{host_denom}";
   }
 
-  rpc UserUnbonding(QueryUserUnbondingsRequest) returns (QueryUserUnbondingsResponse) {
-    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/user_unbonding/{address}/{epoch_number}/{host_denom}";
+  // Queries all unbondings for a delegator address.
+  rpc UserUnbondings(QueryUserUnbondingsRequest) returns (QueryUserUnbondingsResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/user_unbondings/{address}";
   }
 
+  // Queries all validator unbondings for a host chain.
   rpc ValidatorUnbondings(QueryValidatorUnbondingRequest) returns (QueryValidatorUnbondingResponse) {
     option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/validator_unbondings/{host_denom}";
   }
@@ -79,23 +82,20 @@ message QueryDepositsResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryUnbondingRequest {
-  int64 epoch_number = 1;
-  string host_denom = 2;
+message QueryUnbondingsRequest {
+  string host_denom = 1;
 }
 
-message QueryUnbondingResponse {
-  Unbonding unbonding = 1 [ (gogoproto.nullable) = false ];
+message QueryUnbondingsResponse {
+  repeated Unbonding unbondings = 1;
 }
 
 message QueryUserUnbondingsRequest {
   string address = 1;
-  int64 epoch_number = 2;
-  string host_denom = 3;
 }
 
 message QueryUserUnbondingsResponse {
-  UserUnbonding user_unbonding = 1 [ (gogoproto.nullable) = false ];
+  repeated UserUnbonding user_unbondings = 1;
 }
 
 message QueryValidatorUnbondingRequest {
