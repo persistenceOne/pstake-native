@@ -187,7 +187,7 @@ func (k *Keeper) HandleMsgTransfer(
 	if !ok {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidType,
-			"unable to cast msg of type %s to MsgUndelegate",
+			"unable to cast msg of type %s to MsgTransfer",
 			sdk.MsgTypeURL(msg),
 		)
 	}
