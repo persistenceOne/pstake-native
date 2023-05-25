@@ -91,7 +91,7 @@ func (suite *IntegrationTestSuite) TestRevertDepositState() {
 	}
 }
 
-func (suite *IntegrationTestSuite) TestGetDepositSequenceID() {
+func (suite *IntegrationTestSuite) TestTransactionSequenceID() {
 	pstakeApp := suite.app
 
 	sequenceID := pstakeApp.LiquidStakeIBCKeeper.GetTransactionSequenceID("channel-0", 1)
@@ -245,6 +245,265 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 				suite.Require().Equal(len(deposits), len(t.expected))
 			} else {
 				suite.Require().NotEqual(err, nil)
+			}
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestGetDepositForChainAndEpoch() {
+	tc := []struct {
+		name     string
+		deposits []types.Deposit
+		chainID  string
+		epoch    int64
+		expected types.Deposit
+		found    bool
+	}{
+		{
+			name: "success test",
+			deposits: []types.Deposit{
+				{ChainId: "hc1", Epoch: sdk.NewInt(1)},
+				{ChainId: "hc1", Epoch: sdk.NewInt(2)},
+				{ChainId: "hc2", Epoch: sdk.NewInt(1)},
+				{ChainId: "hc2", Epoch: sdk.NewInt(2)},
+			},
+			chainID:  "hc1",
+			epoch:    1,
+			expected: types.Deposit{ChainId: "hc1", Epoch: sdk.NewInt(1)},
+			found:    true,
+		},
+		{
+			name: "unsuccessful test",
+			deposits: []types.Deposit{
+				{ChainId: "hc1", Epoch: sdk.NewInt(1)},
+				{ChainId: "hc1", Epoch: sdk.NewInt(2)},
+				{ChainId: "hc2", Epoch: sdk.NewInt(1)},
+				{ChainId: "hc2", Epoch: sdk.NewInt(2)},
+			},
+			chainID:  "hc2",
+			epoch:    3,
+			expected: types.Deposit{},
+			found:    false,
+		},
+	}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+			pstakeApp, ctx := suite.app, suite.ctx
+
+			for _, deposit := range t.deposits {
+				pstakeApp.LiquidStakeIBCKeeper.SetDeposit(ctx, &deposit)
+			}
+
+			hc, found := pstakeApp.LiquidStakeIBCKeeper.GetDepositForChainAndEpoch(ctx, t.chainID, t.epoch)
+			if found {
+				suite.Require().Equal(hc.ChainId, t.chainID)
+				suite.Require().Equal(hc.Epoch, sdk.NewInt(t.epoch))
+			}
+			suite.Require().Equal(found, t.found)
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestGetDepositsWithSequenceID() {
+	tc := []struct {
+		name       string
+		deposits   []types.Deposit
+		sequenceID string
+		expected   []types.Deposit
+	}{
+		{
+			name: "found test",
+			deposits: []types.Deposit{
+				{ChainId: "hc1", Epoch: sdk.NewInt(1), IbcSequenceId: "seq1"},
+				{ChainId: "hc1", Epoch: sdk.NewInt(2), IbcSequenceId: "seq2"},
+				{ChainId: "hc1", Epoch: sdk.NewInt(3), IbcSequenceId: "seq3"},
+				{ChainId: "hc1", Epoch: sdk.NewInt(4), IbcSequenceId: "seq4"},
+			},
+			sequenceID: "seq1",
+			expected:   []types.Deposit{{ChainId: "hc1", Epoch: sdk.NewInt(1), IbcSequenceId: "seq1"}},
+		},
+		{
+			name: "not found test",
+			deposits: []types.Deposit{
+				{ChainId: "hc1", Epoch: sdk.NewInt(1), IbcSequenceId: "seq1"},
+				{ChainId: "hc1", Epoch: sdk.NewInt(2), IbcSequenceId: "seq2"},
+				{ChainId: "hc1", Epoch: sdk.NewInt(3), IbcSequenceId: "seq3"},
+				{ChainId: "hc1", Epoch: sdk.NewInt(4), IbcSequenceId: "seq4"},
+			},
+			sequenceID: "seq8",
+			expected:   []types.Deposit{},
+		},
+	}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+			pstakeApp, ctx := suite.app, suite.ctx
+
+			for _, deposit := range t.deposits {
+				pstakeApp.LiquidStakeIBCKeeper.SetDeposit(ctx, &deposit)
+			}
+
+			hcs := pstakeApp.LiquidStakeIBCKeeper.GetDepositsWithSequenceID(ctx, t.sequenceID)
+			suite.Require().Equal(len(hcs), len(t.expected))
+			for _, hc := range hcs {
+				suite.Require().Equal(hc.IbcSequenceId, t.sequenceID)
+			}
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestGetPendingDepositsBeforeEpoch() {
+	tc := []struct {
+		name     string
+		deposits []types.Deposit
+		epoch    int64
+		expected []types.Deposit
+	}{
+		{
+			name: "found test",
+			deposits: []types.Deposit{
+				{Epoch: sdk.NewInt(1), State: types.Deposit_DEPOSIT_PENDING},
+				{Epoch: sdk.NewInt(2), State: types.Deposit_DEPOSIT_PENDING},
+				{Epoch: sdk.NewInt(3), State: types.Deposit_DEPOSIT_RECEIVED},
+				{Epoch: sdk.NewInt(4), State: types.Deposit_DEPOSIT_DELEGATING},
+			},
+			epoch: 2,
+			expected: []types.Deposit{
+				{Epoch: sdk.NewInt(1), State: types.Deposit_DEPOSIT_PENDING},
+				{Epoch: sdk.NewInt(2), State: types.Deposit_DEPOSIT_PENDING},
+			},
+		},
+		{
+			name: "not found test",
+			deposits: []types.Deposit{
+				{Epoch: sdk.NewInt(1), State: types.Deposit_DEPOSIT_RECEIVED},
+				{Epoch: sdk.NewInt(2), State: types.Deposit_DEPOSIT_DELEGATING},
+				{Epoch: sdk.NewInt(3), State: types.Deposit_DEPOSIT_PENDING},
+				{Epoch: sdk.NewInt(4), State: types.Deposit_DEPOSIT_PENDING},
+			},
+			epoch:    2,
+			expected: []types.Deposit{},
+		},
+	}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+			pstakeApp, ctx := suite.app, suite.ctx
+
+			for _, deposit := range t.deposits {
+				pstakeApp.LiquidStakeIBCKeeper.SetDeposit(ctx, &deposit)
+			}
+
+			hcs := pstakeApp.LiquidStakeIBCKeeper.GetPendingDepositsBeforeEpoch(ctx, t.epoch)
+			suite.Require().Equal(len(hcs), len(t.expected))
+			for _, hc := range hcs {
+				suite.Require().LessOrEqual(hc.Epoch.Int64(), t.epoch)
+				suite.Require().Equal(hc.State, types.Deposit_DEPOSIT_PENDING)
+			}
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestGetDelegableDepositsForChain() {
+	tc := []struct {
+		name     string
+		deposits []types.Deposit
+		chainID  string
+		expected []types.Deposit
+	}{
+		{
+			name: "found test",
+			deposits: []types.Deposit{
+				{ChainId: "hc1", Epoch: sdk.NewInt(1), State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: "hc2", Epoch: sdk.NewInt(2), State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: "hc1", Epoch: sdk.NewInt(3), State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: "hc1", Epoch: sdk.NewInt(4), State: types.Deposit_DEPOSIT_PENDING},
+			},
+			chainID: "hc1",
+			expected: []types.Deposit{
+				{ChainId: "hc1", Epoch: sdk.NewInt(1), State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: "hc1", Epoch: sdk.NewInt(3), State: types.Deposit_DEPOSIT_RECEIVED},
+			},
+		},
+		{
+			name: "not found test",
+			deposits: []types.Deposit{
+				{ChainId: "hc1", Epoch: sdk.NewInt(1), State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: "hc2", Epoch: sdk.NewInt(2), State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: "hc1", Epoch: sdk.NewInt(3), State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: "hc1", Epoch: sdk.NewInt(4), State: types.Deposit_DEPOSIT_PENDING},
+			},
+			chainID:  "hc3",
+			expected: []types.Deposit{},
+		},
+	}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+			pstakeApp, ctx := suite.app, suite.ctx
+
+			for _, deposit := range t.deposits {
+				pstakeApp.LiquidStakeIBCKeeper.SetDeposit(ctx, &deposit)
+			}
+
+			hcs := pstakeApp.LiquidStakeIBCKeeper.GetDelegableDepositsForChain(ctx, t.chainID)
+			suite.Require().Equal(len(hcs), len(t.expected))
+			for _, hc := range hcs {
+				suite.Require().Equal(hc.ChainId, t.chainID)
+				suite.Require().Equal(hc.State, types.Deposit_DEPOSIT_RECEIVED)
+			}
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestGetDelegatingDepositsForChain() {
+	tc := []struct {
+		name     string
+		deposits []types.Deposit
+		chainID  string
+		expected []types.Deposit
+	}{
+		{
+			name: "found test",
+			deposits: []types.Deposit{
+				{ChainId: "hc1", Epoch: sdk.NewInt(1), State: types.Deposit_DEPOSIT_DELEGATING},
+				{ChainId: "hc2", Epoch: sdk.NewInt(2), State: types.Deposit_DEPOSIT_DELEGATING},
+				{ChainId: "hc1", Epoch: sdk.NewInt(3), State: types.Deposit_DEPOSIT_DELEGATING},
+				{ChainId: "hc1", Epoch: sdk.NewInt(4), State: types.Deposit_DEPOSIT_PENDING},
+			},
+			chainID: "hc1",
+			expected: []types.Deposit{
+				{ChainId: "hc1", Epoch: sdk.NewInt(1), State: types.Deposit_DEPOSIT_DELEGATING},
+				{ChainId: "hc1", Epoch: sdk.NewInt(3), State: types.Deposit_DEPOSIT_DELEGATING},
+			},
+		},
+		{
+			name: "not found test",
+			deposits: []types.Deposit{
+				{ChainId: "hc1", Epoch: sdk.NewInt(1), State: types.Deposit_DEPOSIT_DELEGATING},
+				{ChainId: "hc2", Epoch: sdk.NewInt(2), State: types.Deposit_DEPOSIT_DELEGATING},
+				{ChainId: "hc1", Epoch: sdk.NewInt(3), State: types.Deposit_DEPOSIT_DELEGATING},
+				{ChainId: "hc1", Epoch: sdk.NewInt(4), State: types.Deposit_DEPOSIT_PENDING},
+			},
+			chainID:  "hc3",
+			expected: []types.Deposit{},
+		},
+	}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+			pstakeApp, ctx := suite.app, suite.ctx
+
+			for _, deposit := range t.deposits {
+				pstakeApp.LiquidStakeIBCKeeper.SetDeposit(ctx, &deposit)
+			}
+
+			hcs := pstakeApp.LiquidStakeIBCKeeper.GetDelegatingDepositsForChain(ctx, t.chainID)
+			suite.Require().Equal(len(hcs), len(t.expected))
+			for _, hc := range hcs {
+				suite.Require().Equal(hc.ChainId, t.chainID)
+				suite.Require().Equal(hc.State, types.Deposit_DEPOSIT_DELEGATING)
 			}
 		})
 	}

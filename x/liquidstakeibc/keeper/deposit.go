@@ -95,8 +95,6 @@ func (k *Keeper) AdjustDepositsForRedemption(
 	return nil
 }
 
-// TODO: There is many repeated code, have just 1 iterative method and pass in a condition.
-
 func (k *Keeper) GetDepositForChainAndEpoch(
 	ctx sdk.Context,
 	chainID string,
