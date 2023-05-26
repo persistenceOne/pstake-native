@@ -1024,8 +1024,6 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 		upgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 
-			// Note: this migration is optional,
-			// You can include x/gov proposal migration documented in [UPGRADING.md](https://github.com/cosmos/cosmos-sdk/blob/main/UPGRADING.md)
 			newVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 			if err != nil {
 				return nil, err
