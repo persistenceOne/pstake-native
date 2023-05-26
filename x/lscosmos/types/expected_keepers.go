@@ -92,3 +92,6 @@ type ICAControllerKeeper interface {
 type ICQKeeper interface {
 	MakeRequest(ctx sdk.Context, connectionID string, chainID string, queryType string, request []byte, period math.Int, module string, callbackID string, ttl uint64)
 }
+
+type LiquidStakeIBCKeeper interface {
+}

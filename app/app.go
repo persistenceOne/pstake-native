@@ -485,26 +485,6 @@ func NewpStakeApp(
 	app.InterchainQueryKeeper = interchainquerykeeper.NewKeeper(appCodec, keys[interchainquerytypes.StoreKey], app.IBCKeeper)
 	interchainQueryModule := interchainquery.NewAppModule(appCodec, app.InterchainQueryKeeper)
 
-	app.LSCosmosKeeper = lscosmoskeeper.NewKeeper(
-		appCodec,
-		keys[lscosmostypes.StoreKey],
-		memKeys[lscosmostypes.MemStoreKey],
-		app.GetSubspace(lscosmostypes.ModuleName),
-		app.BankKeeper,
-		app.AccountKeeper,
-		epochsKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper,
-		app.TransferKeeper,
-		app.ICAControllerKeeper,
-		&app.InterchainQueryKeeper,
-		scopedLSCosmosKeeper,
-		app.MsgServiceRouter(),
-	)
-
-	_ = app.InterchainQueryKeeper.SetCallbackHandler(lscosmostypes.ModuleName, app.LSCosmosKeeper.CallbackHandler())
-
 	app.LiquidStakeIBCKeeper = liquidstakeibckeeper.NewKeeper(
 		appCodec,
 		keys[liquidstakeibctypes.StoreKey],
@@ -522,6 +502,27 @@ func NewpStakeApp(
 	_ = app.InterchainQueryKeeper.SetCallbackHandler(liquidstakeibctypes.ModuleName, app.LiquidStakeIBCKeeper.CallbackHandler())
 
 	liquidStakeIBCModule := liquidstakeibc.NewIBCModule(app.LiquidStakeIBCKeeper)
+
+	app.LSCosmosKeeper = lscosmoskeeper.NewKeeper(
+		appCodec,
+		keys[lscosmostypes.StoreKey],
+		memKeys[lscosmostypes.MemStoreKey],
+		app.GetSubspace(lscosmostypes.ModuleName),
+		app.BankKeeper,
+		app.AccountKeeper,
+		epochsKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		app.TransferKeeper,
+		app.ICAControllerKeeper,
+		&app.InterchainQueryKeeper,
+		app.LiquidStakeIBCKeeper,
+		scopedLSCosmosKeeper,
+		app.MsgServiceRouter(),
+	)
+
+	_ = app.InterchainQueryKeeper.SetCallbackHandler(lscosmostypes.ModuleName, app.LSCosmosKeeper.CallbackHandler())
 
 	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()
 	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(
@@ -795,19 +796,7 @@ func NewpStakeApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
-	}
-
-	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := store.StoreUpgrades{
-			Added: []string{icahosttypes.StoreKey},
-		}
-
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-	}
+	app.RegisterUpgradeHandler()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -1028,4 +1017,35 @@ func (app *PstakeApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
 func (app *PstakeApp) GetTxConfig() client.TxConfig {
 	cfg := MakeEncodingConfig()
 	return cfg.TxConfig
+}
+
+func (app *PstakeApp) RegisterUpgradeHandler() {
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgradeName,
+		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+
+			newVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
+			if err != nil {
+				return nil, err
+			}
+
+			return newVM, app.LSCosmosKeeper.Migrate()
+		},
+	)
+
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(err)
+	}
+
+	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := store.StoreUpgrades{
+			Added: []string{
+				liquidstakeibctypes.ModuleName,
+			},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
 }
