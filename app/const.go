@@ -3,7 +3,7 @@ package app
 //nolint:deadcode,unused,unused_vars
 const (
 	appName     = "pStake"
-	upgradeName = ""
+	upgradeName = "v2.x"
 	//nolint:nolintlint,unused_vars
 	authzMsgExec                        = "/cosmos.authz.v1beta1.MsgExec"
 	authzMsgGrant                       = "/cosmos.authz.v1beta1.MsgGrant"

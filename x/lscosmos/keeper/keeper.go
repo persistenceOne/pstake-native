@@ -34,6 +34,7 @@ type Keeper struct {
 	ibcTransferKeeper    types.IBCTransferKeeper
 	icaControllerKeeper  types.ICAControllerKeeper
 	icqKeeper            types.ICQKeeper
+	liquidStakeIBCKeeper types.LiquidStakeIBCKeeper
 	lscosmosScopedKeeper types.ScopedKeeper
 
 	msgRouter *baseapp.MsgServiceRouter
@@ -54,6 +55,7 @@ func NewKeeper(
 	ibcTransferKeeper types.IBCTransferKeeper,
 	icaControllerKeeper types.ICAControllerKeeper,
 	icqKeeper types.ICQKeeper,
+	liquidStakeIBCKeeper types.LiquidStakeIBCKeeper,
 	lscosmosScopedKeeper types.ScopedKeeper,
 	msgRouter *baseapp.MsgServiceRouter,
 ) Keeper {
@@ -72,6 +74,7 @@ func NewKeeper(
 		ibcTransferKeeper:    ibcTransferKeeper,
 		icaControllerKeeper:  icaControllerKeeper,
 		icqKeeper:            icqKeeper,
+		liquidStakeIBCKeeper: liquidStakeIBCKeeper,
 		lscosmosScopedKeeper: lscosmosScopedKeeper,
 		cdc:                  cdc,
 		storeKey:             storeKey,
