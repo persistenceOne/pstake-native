@@ -13,131 +13,139 @@ func (suite *IntegrationTestSuite) TestGetSetHostChain() {
 		name     string
 		input    types.HostChain
 		expected types.HostChain
-		success  bool
+		found    bool
 	}{
 		{
-			name:     "success test",
-			input:    types.HostChain{ChainId: "hc1"},
-			expected: types.HostChain{ChainId: "hc1"},
-			success:  true,
+			name:     "Success",
+			input:    types.HostChain{ChainId: suite.path.EndpointB.Chain.ChainID},
+			expected: types.HostChain{ChainId: suite.path.EndpointB.Chain.ChainID},
+			found:    true,
 		},
 		{
-			name:     "unsuccessful test",
-			input:    types.HostChain{ChainId: "hc1"},
-			expected: types.HostChain{ChainId: "hc2"},
-			success:  false,
+			name:     "NotFound",
+			input:    types.HostChain{ChainId: suite.path.EndpointB.Chain.ChainID},
+			expected: types.HostChain{ChainId: ""},
+			found:    false,
 		},
 	}
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-			pstakeApp, ctx := suite.app, suite.ctx
+			suite.app.LiquidStakeIBCKeeper.SetHostChain(suite.ctx, &t.input)
 
-			pstakeApp.LiquidStakeIBCKeeper.SetHostChain(ctx, &t.input)
-			hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, t.expected.ChainId)
-			if t.success {
-				suite.Require().Equal(found, true)
-				suite.Require().Equal(hc.ChainId, t.expected.ChainId)
-			} else {
-				suite.Require().Equal(found, false)
-				suite.Require().Equal(hc.ChainId, "")
-			}
+			hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, t.expected.ChainId)
+			suite.Require().Equal(t.found, found)
+			suite.Require().Equal(hc.ChainId, t.expected.ChainId)
 		})
 	}
 }
 
 func (suite *IntegrationTestSuite) TestSetHostChainValidator() {
+	hcs := suite.app.LiquidStakeIBCKeeper.GetAllHostChains(suite.ctx)
+
 	tc := []struct {
 		name      string
 		hc        types.HostChain
 		validator types.Validator
+		amount    int
 	}{
 		{
-			name: "new validator",
-			hc:   types.HostChain{ChainId: "hc1", Validators: make([]*types.Validator, 0)},
-			validator: types.Validator{
-				OperatorAddress: "valoper1",
-				Status:          stakingtypes.BondStatusBonded,
-				Weight:          sdk.OneDec(),
-				DelegatedAmount: sdk.NewInt(100),
-			},
+			name:      "Create",
+			hc:        *hcs[0],
+			validator: types.Validator{OperatorAddress: TestAddress},
+			amount:    5,
 		},
 		{
-			name: "update validator",
-			hc: types.HostChain{
-				ChainId: "hc1",
-				Validators: []*types.Validator{
-					{
-						OperatorAddress: "valoper1",
-						Status:          stakingtypes.BondStatusBonded,
-						Weight:          sdk.OneDec(),
-						DelegatedAmount: sdk.NewInt(100),
-					},
-				},
-			},
-			validator: types.Validator{
-				OperatorAddress: "valoper1",
-				Status:          stakingtypes.BondStatusBonded,
-				Weight:          decFromStr("0.5"),
-				DelegatedAmount: sdk.NewInt(150),
-			},
+			name:      "Update",
+			hc:        *hcs[0],
+			validator: *hcs[0].Validators[0],
+			amount:    4,
 		},
 	}
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-			pstakeApp, ctx := suite.app, suite.ctx
+			suite.app.LiquidStakeIBCKeeper.SetHostChainValidator(suite.ctx, &t.hc, &t.validator)
 
-			pstakeApp.LiquidStakeIBCKeeper.SetHostChainValidator(ctx, &t.hc, &t.validator)
-
-			suite.Require().Equal(len(t.hc.Validators), 1)
-			suite.Require().Equal(t.hc.Validators[0], &t.validator)
+			suite.Require().Equal(t.amount, len(t.hc.Validators))
 		})
 	}
 }
 
-func (suite *IntegrationTestSuite) ProcessHostChainValidatorUpdates() {
+func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
+	epoch := suite.app.EpochsKeeper.GetEpochInfo(suite.ctx, types.DelegationEpoch).CurrentEpoch
+	hcs := suite.app.LiquidStakeIBCKeeper.GetAllHostChains(suite.ctx)
+
 	tc := []struct {
-		name       string
-		hc         types.HostChain
-		validators []stakingtypes.Validator
-		expected   []*types.Validator
+		name         string
+		hc           types.HostChain
+		hcValidators []*types.Validator
+		validators   []stakingtypes.Validator
+		expected     []*types.Validator
 	}{
 		{
-			name: "new validator",
-			hc:   types.HostChain{ChainId: "hc1", Validators: make([]*types.Validator, 0)},
+			name:         "Create",
+			hc:           *hcs[0],
+			hcValidators: []*types.Validator{},
 			validators: []stakingtypes.Validator{
 				{
 					OperatorAddress: "valoper1",
 					Status:          stakingtypes.Bonded,
+					Tokens:          sdk.NewInt(100),
 				},
 				{
 					OperatorAddress: "valoper2",
 					Status:          stakingtypes.Bonded,
+					Tokens:          sdk.NewInt(100),
 				},
 			},
 		},
 		{
-			name: "create and update validator",
-			hc: types.HostChain{
-				ChainId: "hc1",
-				Validators: []*types.Validator{
-					{
-						OperatorAddress: "valoper1",
-						Status:          stakingtypes.BondStatusBonded,
-						Weight:          sdk.OneDec(),
-						DelegatedAmount: sdk.NewInt(100),
-					},
+			name: "UpdateState",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper1",
+					Status:          stakingtypes.BondStatusBonded,
+					TotalAmount:     sdk.NewInt(100),
+					UnbondingEpoch:  0,
+				},
+				{
+					OperatorAddress: "valoper2",
+					Status:          stakingtypes.BondStatusUnbonding,
+					TotalAmount:     sdk.NewInt(100),
+					UnbondingEpoch:  types.CurrentUnbondingEpoch(hcs[0].UnbondingFactor, epoch),
 				},
 			},
 			validators: []stakingtypes.Validator{
 				{
 					OperatorAddress: "valoper1",
 					Status:          stakingtypes.Unbonding,
+					Tokens:          sdk.NewInt(100),
 				},
 				{
 					OperatorAddress: "valoper2",
 					Status:          stakingtypes.Bonded,
+					Tokens:          sdk.NewInt(100),
+				},
+			},
+		},
+		{
+			name: "UpdateAmount",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper1",
+					Status:          stakingtypes.BondStatusBonded,
+					TotalAmount:     sdk.NewInt(100),
+					DelegatedAmount: sdk.NewInt(10),
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress: "valoper1",
+					Status:          stakingtypes.Bonded,
+					Tokens:          sdk.NewInt(80),
 				},
 			},
 		},
@@ -145,58 +153,122 @@ func (suite *IntegrationTestSuite) ProcessHostChainValidatorUpdates() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-			pstakeApp, ctx := suite.app, suite.ctx
+			t.hc.Validators = t.hcValidators
 
-			err := pstakeApp.LiquidStakeIBCKeeper.ProcessHostChainValidatorUpdates(ctx, &t.hc, t.validators)
+			err := suite.app.LiquidStakeIBCKeeper.ProcessHostChainValidatorUpdates(suite.ctx, &t.hc, t.validators)
 
-			suite.Require().Equal(err, nil)
-			suite.Require().Equal(len(t.hc.Validators), len(t.validators))
+			suite.Require().Equal(nil, err)
+			suite.Require().Equal(len(t.validators), len(t.hc.Validators))
+
 			for i, validator := range t.hc.Validators {
-				suite.Require().NotEqual(err, nil)
-				suite.Require().Equal(validator.OperatorAddress, t.validators[i].OperatorAddress)
-				suite.Require().Equal(validator.Status, t.validators[i].Status.String())
+				suite.Require().Equal(t.validators[i].OperatorAddress, validator.OperatorAddress)
+				suite.Require().Equal(t.validators[i].Status.String(), validator.Status)
+				suite.Require().Equal(t.validators[i].Tokens, validator.TotalAmount)
+
+				if validator.Status == stakingtypes.BondStatusUnbonding {
+					suite.Require().Equal(types.CurrentUnbondingEpoch(hcs[0].UnbondingFactor, epoch), validator.UnbondingEpoch)
+				} else if validator.Status == stakingtypes.BondStatusBonded {
+					suite.Require().Equal(int64(0), validator.UnbondingEpoch)
+				}
+			}
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestRedistributeValidatorWeight() {
+	hcs := suite.app.LiquidStakeIBCKeeper.GetAllHostChains(suite.ctx)
+
+	tc := []struct {
+		name         string
+		hc           *types.HostChain
+		hcValidators []*types.Validator
+		validator    *types.Validator
+		expected     map[string]sdk.Dec
+	}{
+		{
+			name: "Success",
+			hc:   hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper1",
+					Weight:          decFromStr("0.6"),
+				},
+				{
+					OperatorAddress: "valoper2",
+					Weight:          decFromStr("0.2"),
+				},
+				{
+					OperatorAddress: "valoper3",
+					Weight:          decFromStr("0.15"),
+				},
+				{
+					OperatorAddress: "valoper4",
+					Weight:          decFromStr("0.15"),
+				},
+			},
+			validator: &types.Validator{
+				OperatorAddress: "valoper1",
+				Weight:          decFromStr("0.6"),
+			},
+			expected: map[string]sdk.Dec{
+				"valoper1": decFromStr("0"),
+				"valoper2": decFromStr("0.4"),
+				"valoper3": decFromStr("0.35"),
+				"valoper4": decFromStr("0.35"),
+			},
+		},
+	}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+			t.hc.Validators = t.hcValidators
+
+			suite.app.LiquidStakeIBCKeeper.RedistributeValidatorWeight(suite.ctx, t.hc, t.validator)
+
+			suite.Require().Equal(len(t.hcValidators), len(t.expected))
+
+			for _, validator := range t.hc.Validators {
+				suite.Require().Equal(t.expected[validator.OperatorAddress], validator.Weight)
 			}
 		})
 	}
 }
 
 func (suite *IntegrationTestSuite) TestGetAllHostChains() {
-	pstakeApp, ctx := suite.app, suite.ctx
-	hostChains := pstakeApp.LiquidStakeIBCKeeper.GetAllHostChains(ctx)
+	hostChains := suite.app.LiquidStakeIBCKeeper.GetAllHostChains(suite.ctx)
 
-	suite.Require().Equal(len(hostChains), 1)
+	suite.Require().Equal(1, len(hostChains))
 }
 
 func (suite *IntegrationTestSuite) TestGetHostChainFromIBCDenom() {
 	tc := []struct {
 		name     string
 		ibcDenom string
-		success  bool
+		found    bool
 	}{
 		{
-			name:     "retrieve successfully",
+			name:     "Success",
 			ibcDenom: "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
-			success:  true,
+			found:    true,
 		},
 		{
-			name:     "not any chain with ibc denom",
+			name:     "NotFound",
 			ibcDenom: "ibc/1234",
-			success:  false,
+			found:    false,
 		},
 	}
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-			pstakeApp, ctx := suite.app, suite.ctx
+			hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChainFromIbcDenom(suite.ctx, t.ibcDenom)
 
-			hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChainFromIbcDenom(ctx, t.ibcDenom)
-			if t.success {
-				suite.Require().Equal(found, true)
-				suite.Require().Equal(hc.ChainId, suite.chainB.ChainID)
+			suite.Require().Equal(t.found, found)
+			if found {
+				suite.Require().Equal(suite.chainB.ChainID, hc.ChainId)
 			} else {
-				suite.Require().Equal(found, false)
-				suite.Require().Equal(hc.ChainId, "")
+				suite.Require().Equal("", hc.ChainId)
 			}
+
 		})
 	}
 }
@@ -205,52 +277,49 @@ func (suite *IntegrationTestSuite) TestGetHostChainFromDelegatorAddress() {
 	tc := []struct {
 		name             string
 		delegatorAddress string
-		success          bool
+		found            bool
 	}{
 		{
-			name:             "retrieve successfully",
+			name:             "Success",
 			delegatorAddress: "cosmos1mykw6u6dq4z7qhw9aztpk5yp8j8y5n0c6usg9faqepw83y2u4nzq2qxaxc",
-			success:          true,
+			found:            true,
 		},
 		{
-			name:             "no chains with delegator",
+			name:             "NotFound",
 			delegatorAddress: "valoper1",
-			success:          false,
+			found:            false,
 		},
 	}
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-			pstakeApp, ctx := suite.app, suite.ctx
+			hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChainFromDelegatorAddress(suite.ctx, t.delegatorAddress)
 
-			hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChainFromDelegatorAddress(ctx, t.delegatorAddress)
-			if t.success {
-				suite.Require().Equal(found, true)
-				suite.Require().Equal(hc.ChainId, suite.chainB.ChainID)
+			suite.Require().Equal(t.found, found)
+
+			if t.found {
+				suite.Require().Equal(suite.chainB.ChainID, hc.ChainId)
 			} else {
-				suite.Require().Equal(found, false)
-				suite.Require().Equal(hc.ChainId, "")
+				suite.Require().Equal("", hc.ChainId)
 			}
 		})
 	}
 }
 
 func (suite *IntegrationTestSuite) TestGetHostChainCValue() {
-	pstakeApp, ctx := suite.app, suite.ctx
+	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.path.EndpointB.Chain.ChainID)
+	suite.Require().Equal(true, found)
 
-	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.path.EndpointB.Chain.ChainID)
-	suite.Require().Equal(found, true)
-
-	cValue := pstakeApp.LiquidStakeIBCKeeper.GetHostChainCValue(ctx, hc)
-	suite.Require().Equal(cValue, sdk.OneDec())
+	cValue := suite.app.LiquidStakeIBCKeeper.GetHostChainCValue(suite.ctx, hc)
+	suite.Require().Equal(sdk.OneDec(), cValue)
 
 	testAmount := sdk.NewInt64Coin(hc.MintDenom(), 100)
-	suite.Require().NoError(testutil.FundModuleAccount(pstakeApp.BankKeeper, ctx, types.ModuleName, sdk.NewCoins(testAmount)))
+	suite.Require().NoError(testutil.FundModuleAccount(suite.app.BankKeeper, suite.ctx, types.ModuleName, sdk.NewCoins(testAmount)))
 
 	hc.Validators[0].DelegatedAmount = sdk.NewInt(100)
 
-	cValue = pstakeApp.LiquidStakeIBCKeeper.GetHostChainCValue(ctx, hc)
-	suite.Require().Equal(cValue, sdk.OneDec())
+	cValue = suite.app.LiquidStakeIBCKeeper.GetHostChainCValue(suite.ctx, hc)
+	suite.Require().Equal(sdk.OneDec(), cValue)
 }
 
 func (suite *IntegrationTestSuite) TestUpdateHostChainValidatorWeight() {
@@ -262,9 +331,9 @@ func (suite *IntegrationTestSuite) TestUpdateHostChainValidatorWeight() {
 		success          bool
 	}{
 		{
-			name: "validator exists",
+			name: "Case 1",
 			hc: types.HostChain{
-				ChainId: "hc1",
+				ChainId: suite.path.EndpointB.Chain.ChainID,
 				Validators: []*types.Validator{
 					{
 						OperatorAddress: "valoper1",
@@ -279,9 +348,9 @@ func (suite *IntegrationTestSuite) TestUpdateHostChainValidatorWeight() {
 			success:          true,
 		},
 		{
-			name: "validator doesn't exists",
+			name: "NotFound",
 			hc: types.HostChain{
-				ChainId: "hc1",
+				ChainId: suite.path.EndpointB.Chain.ChainID,
 				Validators: []*types.Validator{
 					{
 						OperatorAddress: "valoper1",
@@ -296,9 +365,9 @@ func (suite *IntegrationTestSuite) TestUpdateHostChainValidatorWeight() {
 			success:          false,
 		},
 		{
-			name: "wrong weight value",
+			name: "InvalidRequest",
 			hc: types.HostChain{
-				ChainId: "hc1",
+				ChainId: suite.path.EndpointB.Chain.ChainID,
 				Validators: []*types.Validator{
 					{
 						OperatorAddress: "valoper1",
@@ -316,10 +385,8 @@ func (suite *IntegrationTestSuite) TestUpdateHostChainValidatorWeight() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-			pstakeApp, ctx := suite.app, suite.ctx
-
-			err := pstakeApp.LiquidStakeIBCKeeper.UpdateHostChainValidatorWeight(
-				ctx,
+			err := suite.app.LiquidStakeIBCKeeper.UpdateHostChainValidatorWeight(
+				suite.ctx,
 				&t.hc,
 				t.validatorAddress,
 				t.validatorWeight,
