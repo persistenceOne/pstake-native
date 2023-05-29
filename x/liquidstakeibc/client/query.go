@@ -87,16 +87,7 @@ func QueryHostChainsCmd() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
-			if err != nil {
-				return err
-			}
-
-			req := &types.QueryHostChainsRequest{
-				Pagination: pageReq,
-			}
-
-			res, err := queryClient.HostChains(cmd.Context(), req)
+			res, err := queryClient.HostChains(cmd.Context(), &types.QueryHostChainsRequest{})
 			if err != nil {
 				return err
 			}
@@ -113,16 +104,16 @@ func QueryHostChainsCmd() *cobra.Command {
 // QueryDepositsCmd returns all user deposits.
 func QueryDepositsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deposits",
-		Short: "Query deposit records",
-		Args:  cobra.NoArgs,
+		Use:   "deposits [host-denom]",
+		Short: "Query deposit records for a host chain",
+		Args:  cobra.ExactArgs(1),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`Query all deposits: $ %s query liquidstakeibc deposits`,
+				`Query all deposits: $ %s query liquidstakeibc deposits [host-denom]`,
 				version.AppName,
 			),
 		),
-		RunE: func(cmd *cobra.Command, _ []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
@@ -130,16 +121,7 @@ func QueryDepositsCmd() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
-			if err != nil {
-				return err
-			}
-
-			req := &types.QueryDepositsRequest{
-				Pagination: pageReq,
-			}
-
-			res, err := queryClient.Deposits(cmd.Context(), req)
+			res, err := queryClient.Deposits(cmd.Context(), &types.QueryDepositsRequest{HostDenom: args[0]})
 			if err != nil {
 				return err
 			}

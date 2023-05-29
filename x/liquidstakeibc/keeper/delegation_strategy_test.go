@@ -1,179 +1,172 @@
 package keeper_test
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/pkg/errors"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
-func DecFromStr(str string) sdk.Dec {
+func decFromStr(str string) sdk.Dec {
 	dec, _ := sdk.NewDecFromStr(str)
 	return dec
 }
 
 func (suite *IntegrationTestSuite) TestGenerateDelegateMessages() {
-	pstakeApp, ctx := suite.app, suite.ctx
-	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.path.EndpointB.Chain.ChainID)
+	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.path.EndpointB.Chain.ChainID)
 	suite.Require().Equal(found, true)
 
 	tc := []struct {
 		name                  string
-		hc                    *types.HostChain
 		validators            []*types.Validator
-		expected              map[string]sdk.Int
-		totalDelegationAmount sdk.Int
-		success               bool
+		expected              map[string]int64
+		totalDelegationAmount int64
+		err                   error
 	}{
 		{
-			name: "one validator has delegated tokens",
-			hc:   hc,
+			name: "Case 1",
 			validators: []*types.Validator{
 				{
-					OperatorAddress: "valoper1",
-					Weight:          DecFromStr("0.3"),
+					OperatorAddress: hc.Validators[0].OperatorAddress,
+					Weight:          decFromStr("0.3"),
 					DelegatedAmount: sdk.NewInt(50),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper2",
-					Weight:          DecFromStr("0.2"),
+					OperatorAddress: hc.Validators[1].OperatorAddress,
+					Weight:          decFromStr("0.2"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper3",
-					Weight:          DecFromStr("0.1"),
+					OperatorAddress: hc.Validators[2].OperatorAddress,
+					Weight:          decFromStr("0.1"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper4",
-					Weight:          DecFromStr("0.4"),
+					OperatorAddress: hc.Validators[3].OperatorAddress,
+					Weight:          decFromStr("0.4"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 			},
-			expected: map[string]sdk.Int{
-				"valoper2": sdk.NewInt(30),
-				"valoper3": sdk.NewInt(15),
-				"valoper4": sdk.NewInt(55),
+			expected: map[string]int64{
+				hc.Validators[1].OperatorAddress: int64(30),
+				hc.Validators[2].OperatorAddress: int64(15),
+				hc.Validators[3].OperatorAddress: int64(55),
 			},
-			totalDelegationAmount: sdk.NewInt(100),
-			success:               true,
+			totalDelegationAmount: int64(100),
 		},
 		{
-			name: "validators with 0 weight and not bonded",
-			hc:   hc,
+			name: "Case 2",
 			validators: []*types.Validator{
 				{
-					OperatorAddress: "valoper1",
-					Weight:          DecFromStr("0.6"),
+					OperatorAddress: hc.Validators[0].OperatorAddress,
+					Weight:          decFromStr("0.6"),
 					DelegatedAmount: sdk.NewInt(50),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper2",
-					Weight:          DecFromStr("0.25"),
+					OperatorAddress: hc.Validators[1].OperatorAddress,
+					Weight:          decFromStr("0.25"),
 					DelegatedAmount: sdk.NewInt(60),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper3",
-					Weight:          DecFromStr("0.15"),
+					OperatorAddress: hc.Validators[2].OperatorAddress,
+					Weight:          decFromStr("0.15"),
 					DelegatedAmount: sdk.NewInt(10),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper4",
-					Weight:          DecFromStr("0"),
+					OperatorAddress: hc.Validators[3].OperatorAddress,
+					Weight:          decFromStr("0"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper5",
-					Weight:          DecFromStr("0"),
+					OperatorAddress: hc.Validators[3].OperatorAddress,
+					Weight:          decFromStr("0"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusUnbonded,
 				},
 			},
-			expected: map[string]sdk.Int{
-				"valoper1": sdk.NewInt(58),
-				"valoper3": sdk.NewInt(2),
+			expected: map[string]int64{
+				hc.Validators[0].OperatorAddress: int64(58),
+				hc.Validators[2].OperatorAddress: int64(2),
 			},
-			totalDelegationAmount: sdk.NewInt(60),
-			success:               true,
+			totalDelegationAmount: int64(60),
 		},
 		{
-			name: "validators with 0 weight and not bonded",
-			hc:   hc,
+			name: "Case 3",
 			validators: []*types.Validator{
 				{
-					OperatorAddress: "valoper1",
-					Weight:          DecFromStr("0.25"),
+					OperatorAddress: hc.Validators[0].OperatorAddress,
+					Weight:          decFromStr("0.25"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper2",
-					Weight:          DecFromStr("0.25"),
+					OperatorAddress: hc.Validators[1].OperatorAddress,
+					Weight:          decFromStr("0.25"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper3",
-					Weight:          DecFromStr("0.25"),
+					OperatorAddress: hc.Validators[2].OperatorAddress,
+					Weight:          decFromStr("0.25"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper4",
-					Weight:          DecFromStr("0.25"),
+					OperatorAddress: hc.Validators[3].OperatorAddress,
+					Weight:          decFromStr("0.25"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 			},
-			expected: map[string]sdk.Int{
-				"valoper1": sdk.NewInt(25),
-				"valoper2": sdk.NewInt(25),
-				"valoper3": sdk.NewInt(25),
-				"valoper4": sdk.NewInt(25),
+			expected: map[string]int64{
+				hc.Validators[0].OperatorAddress: int64(25),
+				hc.Validators[1].OperatorAddress: int64(25),
+				hc.Validators[2].OperatorAddress: int64(25),
+				hc.Validators[3].OperatorAddress: int64(25),
 			},
-			totalDelegationAmount: sdk.NewInt(100),
-			success:               true,
+			totalDelegationAmount: int64(100),
 		},
 		{
-			name: "all validators have 0 weight",
-			hc:   hc,
+			name: "Case 4",
 			validators: []*types.Validator{
 				{
-					OperatorAddress: "valoper1",
-					Weight:          DecFromStr("0"),
+					OperatorAddress: hc.Validators[0].OperatorAddress,
+					Weight:          decFromStr("0"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper2",
-					Weight:          DecFromStr("0"),
+					OperatorAddress: hc.Validators[1].OperatorAddress,
+					Weight:          decFromStr("0"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper3",
-					Weight:          DecFromStr("0"),
+					OperatorAddress: hc.Validators[2].OperatorAddress,
+					Weight:          decFromStr("0"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper4",
-					Weight:          DecFromStr("0"),
+					OperatorAddress: hc.Validators[3].OperatorAddress,
+					Weight:          decFromStr("0"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 			},
-			expected:              map[string]sdk.Int{},
-			totalDelegationAmount: sdk.NewInt(100),
-			success:               false,
+			expected:              map[string]int64{},
+			totalDelegationAmount: int64(100),
+			err:                   errorsmod.Wrap(types.ErrInvalidMessages, "no messages to delegate"),
 		},
 	}
 
@@ -181,160 +174,141 @@ func (suite *IntegrationTestSuite) TestGenerateDelegateMessages() {
 		suite.Run(t.name, func() {
 			hc.Validators = t.validators
 
-			if t.success {
-				messages, err := pstakeApp.LiquidStakeIBCKeeper.GenerateDelegateMessages(
-					hc,
-					t.totalDelegationAmount,
-				)
-				suite.Require().Equal(err, nil)
-				suite.Require().Equal(len(messages), len(t.expected))
+			messages, err := suite.app.LiquidStakeIBCKeeper.GenerateDelegateMessages(
+				hc,
+				sdk.NewInt(t.totalDelegationAmount),
+			)
 
-				totalAmount := int64(0)
+			suite.Require().Equal(errors.Cause(t.err), errors.Cause(err))
+			suite.Require().Equal(len(t.expected), len(messages))
+
+			if err == nil {
+				var totalAmount int64
 				for _, message := range messages {
 					msgDelegate := message.(*stakingtypes.MsgDelegate)
 
-					suite.Require().Equal(t.expected[msgDelegate.ValidatorAddress], msgDelegate.Amount.Amount)
+					suite.Require().Equal(t.expected[msgDelegate.ValidatorAddress], msgDelegate.Amount.Amount.Int64())
 
 					totalAmount += msgDelegate.Amount.Amount.Int64()
 				}
-
-				suite.Require().Equal(t.totalDelegationAmount.Int64(), totalAmount)
-			} else {
-				_, err := pstakeApp.LiquidStakeIBCKeeper.GenerateDelegateMessages(
-					hc,
-					t.totalDelegationAmount,
-				)
-				suite.Error(err)
+				suite.Require().Equal(t.totalDelegationAmount, totalAmount)
 			}
 		})
 	}
 }
 
 func (suite *IntegrationTestSuite) TestGenerateUndelegateMessages() {
-	pstakeApp, ctx := suite.app, suite.ctx
-	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.path.EndpointB.Chain.ChainID)
+	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.path.EndpointB.Chain.ChainID)
 	suite.Require().Equal(found, true)
 
 	tc := []struct {
 		name               string
-		hc                 *types.HostChain
 		validators         []*types.Validator
-		expected           map[string]sdk.Int
-		undelegationAmount sdk.Int
-		success            bool
+		expected           map[string]int64
+		undelegationAmount int64
+		err                error
 	}{
 		{
-			name: "most frequent case",
-			hc:   hc,
+			name: "Case 1",
 			validators: []*types.Validator{
 				{
-					OperatorAddress: "valoper1",
-					Weight:          DecFromStr("0.3"),
+					OperatorAddress: hc.Validators[0].OperatorAddress,
+					Weight:          decFromStr("0.3"),
 					DelegatedAmount: sdk.NewInt(45000),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper2",
-					Weight:          DecFromStr("0.2"),
+					OperatorAddress: hc.Validators[1].OperatorAddress,
+					Weight:          decFromStr("0.2"),
 					DelegatedAmount: sdk.NewInt(25000),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper3",
-					Weight:          DecFromStr("0.1"),
+					OperatorAddress: hc.Validators[2].OperatorAddress,
+					Weight:          decFromStr("0.1"),
 					DelegatedAmount: sdk.NewInt(10000),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper4",
-					Weight:          DecFromStr("0.4"),
+					OperatorAddress: hc.Validators[3].OperatorAddress,
+					Weight:          decFromStr("0.4"),
 					DelegatedAmount: sdk.NewInt(56000),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 			},
-			expected: map[string]sdk.Int{
-				"valoper1": sdk.NewInt(8700),
-				"valoper2": sdk.NewInt(800),
-				"valoper4": sdk.NewInt(5500),
+			expected: map[string]int64{
+				hc.Validators[0].OperatorAddress: int64(8700),
+				hc.Validators[1].OperatorAddress: int64(800),
+				hc.Validators[3].OperatorAddress: int64(5500),
 			},
-			undelegationAmount: sdk.NewInt(15000),
-			success:            true,
+			undelegationAmount: int64(15000),
 		},
 		{
-			name: "validators with 0 weight and not bonded",
-			hc:   hc,
+			name: "Case 2",
 			validators: []*types.Validator{
 				{
-					OperatorAddress: "valoper1",
-					Weight:          DecFromStr("0.6"),
+					OperatorAddress: hc.Validators[0].OperatorAddress,
+					Weight:          decFromStr("0.6"),
 					DelegatedAmount: sdk.NewInt(88000),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper2",
-					Weight:          DecFromStr("0.25"),
+					OperatorAddress: hc.Validators[1].OperatorAddress,
+					Weight:          decFromStr("0.25"),
 					DelegatedAmount: sdk.NewInt(42000),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper3",
-					Weight:          DecFromStr("0.15"),
+					OperatorAddress: hc.Validators[2].OperatorAddress,
+					Weight:          decFromStr("0.15"),
 					DelegatedAmount: sdk.NewInt(23000),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper4",
-					Weight:          DecFromStr("0"),
+					OperatorAddress: hc.Validators[3].OperatorAddress,
+					Weight:          decFromStr("0"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
-				{
-					OperatorAddress: "valoper5",
-					Weight:          DecFromStr("0"),
-					DelegatedAmount: sdk.NewInt(0),
-					Status:          stakingtypes.BondStatusUnbonded,
-				},
 			},
-			expected: map[string]sdk.Int{
-				"valoper1": sdk.NewInt(17800),
-				"valoper2": sdk.NewInt(12750),
-				"valoper3": sdk.NewInt(5450),
+			expected: map[string]int64{
+				hc.Validators[0].OperatorAddress: int64(17800),
+				hc.Validators[1].OperatorAddress: int64(12750),
+				hc.Validators[2].OperatorAddress: int64(5450),
 			},
-			undelegationAmount: sdk.NewInt(36000),
-			success:            true,
+			undelegationAmount: int64(36000),
 		},
 		{
-			name: "all validators have 0 weight",
-			hc:   hc,
+			name: "Case 3",
 			validators: []*types.Validator{
 				{
-					OperatorAddress: "valoper1",
-					Weight:          DecFromStr("0"),
+					OperatorAddress: hc.Validators[0].OperatorAddress,
+					Weight:          decFromStr("0"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper2",
-					Weight:          DecFromStr("0"),
+					OperatorAddress: hc.Validators[1].OperatorAddress,
+					Weight:          decFromStr("0"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper3",
-					Weight:          DecFromStr("0"),
+					OperatorAddress: hc.Validators[2].OperatorAddress,
+					Weight:          decFromStr("0"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
-					OperatorAddress: "valoper4",
-					Weight:          DecFromStr("0"),
+					OperatorAddress: hc.Validators[3].OperatorAddress,
+					Weight:          decFromStr("0"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 			},
-			expected:           map[string]sdk.Int{},
-			undelegationAmount: sdk.NewInt(10000),
-			success:            false,
+			expected:           map[string]int64{},
+			undelegationAmount: int64(10000),
+			err:                errorsmod.Wrap(types.ErrInvalidMessages, "no messages to undelegate"),
 		},
 	}
 
@@ -342,30 +316,27 @@ func (suite *IntegrationTestSuite) TestGenerateUndelegateMessages() {
 		suite.Run(t.name, func() {
 			hc.Validators = t.validators
 
-			if t.success {
-				messages, err := pstakeApp.LiquidStakeIBCKeeper.GenerateUndelegateMessages(
-					hc,
-					t.undelegationAmount,
-				)
-				suite.Require().Equal(err, nil)
-				suite.Require().Equal(len(messages), len(t.expected))
+			messages, err := suite.app.LiquidStakeIBCKeeper.GenerateUndelegateMessages(
+				hc,
+				sdk.NewInt(t.undelegationAmount),
+			)
 
-				totalAmount := int64(0)
+			suite.Require().Equal(errors.Cause(t.err), errors.Cause(err))
+			suite.Require().Equal(len(t.expected), len(messages))
+
+			if err == nil {
+				var totalAmount int64
 				for _, message := range messages {
 					msgUndelegate := message.(*stakingtypes.MsgUndelegate)
 
-					suite.Require().Equal(t.expected[msgUndelegate.ValidatorAddress], msgUndelegate.Amount.Amount)
+					suite.Require().Equal(
+						t.expected[msgUndelegate.ValidatorAddress],
+						msgUndelegate.Amount.Amount.Int64(),
+					)
 
 					totalAmount += msgUndelegate.Amount.Amount.Int64()
 				}
-
-				suite.Require().Equal(t.undelegationAmount.Int64(), totalAmount)
-			} else {
-				_, err := pstakeApp.LiquidStakeIBCKeeper.GenerateUndelegateMessages(
-					hc,
-					t.undelegationAmount,
-				)
-				suite.Error(err)
+				suite.Require().Equal(t.undelegationAmount, totalAmount)
 			}
 		})
 	}

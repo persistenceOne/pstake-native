@@ -95,8 +95,6 @@ func (k *Keeper) AdjustDepositsForRedemption(
 	return nil
 }
 
-// TODO: There is many repeated code, have just 1 iterative method and pass in a condition.
-
 func (k *Keeper) GetDepositForChainAndEpoch(
 	ctx sdk.Context,
 	chainID string,
@@ -117,6 +115,24 @@ func (k *Keeper) GetDepositForChainAndEpoch(
 	}
 
 	return nil, false
+}
+
+func (k *Keeper) GetDepositsForHostChain(ctx sdk.Context, chainID string) []*liquidstakeibctypes.Deposit {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	deposits := make([]*liquidstakeibctypes.Deposit, 0)
+	for ; iterator.Valid(); iterator.Next() {
+		deposit := &liquidstakeibctypes.Deposit{}
+		k.cdc.MustUnmarshal(iterator.Value(), deposit)
+
+		if deposit.ChainId == chainID {
+			deposits = append(deposits, deposit)
+		}
+	}
+
+	return deposits
 }
 
 func (k *Keeper) GetDepositsWithSequenceID(ctx sdk.Context, sequenceID string) []*liquidstakeibctypes.Deposit {
