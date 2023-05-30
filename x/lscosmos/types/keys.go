@@ -89,6 +89,11 @@ const (
 	CosmosValOperPrefix = "cosmosvaloper"
 
 	LiquidStakedDenomPrefix = "stk"
+
+	// StakingStoreQuery The staking store, /key is required for proof generation
+	StakingStoreQuery = "store/staking/key"
+	// BankStoreQuery The bank store , /key is required for proof generation
+	BankStoreQuery = "store/bank/key"
 )
 
 // fee limits
