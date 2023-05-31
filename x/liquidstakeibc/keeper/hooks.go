@@ -8,11 +8,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
 
@@ -369,7 +369,7 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 		)
 
 		msg := ibctransfertypes.NewMsgTransfer(
-			ibctransfertypes.TypeMsgTransfer,
+			ibctransfertypes.PortID,
 			hc.ChannelId,
 			deposit.Amount,
 			authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String(),

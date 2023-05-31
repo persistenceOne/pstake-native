@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 	icqtypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"

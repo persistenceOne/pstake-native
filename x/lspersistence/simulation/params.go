@@ -13,12 +13,12 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
-// ParamChanges defines the parameters that can be modified by param change proposals
+// ParamChanges defines the parameters that can be modified by legacy param change proposals
 // on the simulation.
-func ParamChanges(r *rand.Rand) []simtypes.ParamChange {
-	return []simtypes.ParamChange{
+func ParamChanges(r *rand.Rand) []simtypes.LegacyParamChange {
+	return []simtypes.LegacyParamChange{
 
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyWhitelistedValidators),
+		simulation.NewSimLegacyParamChange(types.ModuleName, string(types.KeyWhitelistedValidators),
 			func(r *rand.Rand) string {
 				bz, err := json.Marshal(genWhitelistedValidator(r))
 				if err != nil {
@@ -28,19 +28,19 @@ func ParamChanges(r *rand.Rand) []simtypes.ParamChange {
 			},
 		),
 
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyLiquidBondDenom),
+		simulation.NewSimLegacyParamChange(types.ModuleName, string(types.KeyLiquidBondDenom),
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("\"%s\"", genLiquidBondDenom(r))
 			},
 		),
 
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyUnstakeFeeRate),
+		simulation.NewSimLegacyParamChange(types.ModuleName, string(types.KeyUnstakeFeeRate),
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("\"%s\"", genUnstakeFeeRate(r).String())
 			},
 		),
 
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyMinLiquidStakingAmount),
+		simulation.NewSimLegacyParamChange(types.ModuleName, string(types.KeyMinLiquidStakingAmount),
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("\"%s\"", genMinLiquidStakingAmount(r))
 			},

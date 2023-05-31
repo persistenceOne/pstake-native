@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1beta1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -13,8 +15,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	chain "github.com/persistenceOne/pstake-native/v2/app"
 	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
@@ -300,7 +300,7 @@ func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []
 		err = s.app.StakingKeeper.SetValidatorByConsAddr(s.ctx, val)
 		s.Require().NoError(err)
 		s.app.StakingKeeper.SetNewValidatorByPowerIndex(s.ctx, val)
-		s.app.StakingKeeper.AfterValidatorCreated(s.ctx, val.GetOperator())
+		s.app.StakingKeeper.Hooks().AfterValidatorCreated(s.ctx, val.GetOperator())
 		newShares, err := s.app.StakingKeeper.Delegate(s.ctx, addrs[i], sdk.NewInt(power), stakingtypes.Unbonded, val, true)
 		s.Require().NoError(err)
 		s.Require().Equal(newShares.TruncateInt(), sdk.NewInt(power))
