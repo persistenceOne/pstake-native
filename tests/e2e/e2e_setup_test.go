@@ -276,6 +276,7 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 				fmt.Sprintf("%s/:/root/.pstaked", val.configDir()),
 			},
 			Repository: "persistenceone/pstake-e2e",
+			Tag:        "test-sdk47",
 		}
 
 		// expose the first validator for debugging and communication
