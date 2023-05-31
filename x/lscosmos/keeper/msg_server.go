@@ -7,6 +7,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -589,16 +590,18 @@ func (m msgServer) ReportSlashing(goCtx context.Context, msg *types.MsgReportSla
 		return nil, err
 	}
 
-	delegationRequest := stakingtypes.QueryDelegationRequest{
-		DelegatorAddr: delegationState.HostChainDelegationAddress,
-		ValidatorAddr: msg.ValidatorAddress,
-	}
-	bz, err := m.cdc.Marshal(&delegationRequest)
+	_, delegationAddr, err := bech32.DecodeAndConvert(delegationState.HostChainDelegationAddress)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "Failed to Marshal delegationRequest")
+		return nil, err
 	}
-	m.Keeper.icqKeeper.MakeRequest(ctx, hostChainParams.ConnectionID, hostChainParams.ChainID, "cosmos.staking.v1beta1.Query/Delegation",
-		bz, sdktypes.NewInt(int64(-1)), types.ModuleName, Delegation, 0)
+
+	_, validatorAddr, err := bech32.DecodeAndConvert(msg.ValidatorAddress)
+	if err != nil {
+		return nil, err
+	}
+	delegationRequest := stakingtypes.GetDelegationKey(delegationAddr, validatorAddr)
+	m.Keeper.icqKeeper.MakeRequest(ctx, hostChainParams.ConnectionID, hostChainParams.ChainID, types.StakingStoreQuery,
+		delegationRequest, sdktypes.NewInt(int64(-1)), types.ModuleName, Delegation, 0)
 
 	ctx.EventManager().EmitEvents(sdktypes.Events{
 		sdktypes.NewEvent(

@@ -120,10 +120,11 @@ func (suite *IntegrationTestSuite) SetupTest() {
 			Owner:        suite.chainB.ChainID + "." + types.RewardsICAType,
 			ChannelState: types.ICAAccount_ICA_CHANNEL_CREATED,
 		},
-		Validators:     validators,
-		MinimumDeposit: MinDeposit,
-		CValue:         sdk.OneDec(),
-		NextValsetHash: nil,
+		Validators:      validators,
+		MinimumDeposit:  MinDeposit,
+		CValue:          sdk.OneDec(),
+		NextValsetHash:  nil,
+		UnbondingFactor: 4,
 	}
 
 	suite.app.LiquidStakeIBCKeeper.SetHostChain(suite.ctx, hc)

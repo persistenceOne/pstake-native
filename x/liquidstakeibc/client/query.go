@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -29,8 +28,8 @@ func NewQueryCmd() *cobra.Command {
 		QueryParamsCmd(),
 		QueryHostChainsCmd(),
 		QueryDepositsCmd(),
-		QueryUnbondingCmd(),
-		QueryUserUnbondingCmd(),
+		QueryUnbondingsCmd(),
+		QueryUserUnbondingsCmd(),
 		QueryValidatorUnbondingsCmd(),
 	)
 
@@ -88,16 +87,7 @@ func QueryHostChainsCmd() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
-			if err != nil {
-				return err
-			}
-
-			req := &types.QueryHostChainsRequest{
-				Pagination: pageReq,
-			}
-
-			res, err := queryClient.HostChains(cmd.Context(), req)
+			res, err := queryClient.HostChains(cmd.Context(), &types.QueryHostChainsRequest{})
 			if err != nil {
 				return err
 			}
@@ -114,55 +104,12 @@ func QueryHostChainsCmd() *cobra.Command {
 // QueryDepositsCmd returns all user deposits.
 func QueryDepositsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deposits",
-		Short: "Query deposit records",
-		Args:  cobra.NoArgs,
+		Use:   "deposits [host-denom]",
+		Short: "Query deposit records for a host chain",
+		Args:  cobra.ExactArgs(1),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`Query all deposits: $ %s query liquidstakeibc deposits`,
-				version.AppName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
-			if err != nil {
-				return err
-			}
-
-			req := &types.QueryDepositsRequest{
-				Pagination: pageReq,
-			}
-
-			res, err := queryClient.Deposits(cmd.Context(), req)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// QueryUnbondingCmd returns an unbonding record.
-func QueryUnbondingCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "unbonding [epoch-number] [host-denom]",
-		Short: "Query an unbonding record",
-		Args:  cobra.ExactArgs(2),
-		Long: strings.TrimSpace(
-			fmt.Sprintf(
-				`Query an unbonding record: $ %s query liquidstakeibc unbonding [epoch-number] [host-denom]`,
+				`Query all deposits: $ %s query liquidstakeibc deposits [host-denom]`,
 				version.AppName,
 			),
 		),
@@ -174,18 +121,7 @@ func QueryUnbondingCmd() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			epochNumber, err := strconv.ParseInt(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-
-			res, err := queryClient.Unbonding(
-				context.Background(),
-				&types.QueryUnbondingRequest{
-					EpochNumber: epochNumber,
-					HostDenom:   args[1],
-				},
-			)
+			res, err := queryClient.Deposits(cmd.Context(), &types.QueryDepositsRequest{HostDenom: args[0]})
 			if err != nil {
 				return err
 			}
@@ -199,15 +135,49 @@ func QueryUnbondingCmd() *cobra.Command {
 	return cmd
 }
 
-// QueryUserUnbondingCmd returns a user unbonding record.
-func QueryUserUnbondingCmd() *cobra.Command {
+// QueryUnbondingsCmd returns all unbonding records for a host chain.
+func QueryUnbondingsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "user-unbonding [delegator-address] [epoch-number] [host-denom]",
-		Short: "Query a user unbonding record",
-		Args:  cobra.ExactArgs(3),
+		Use:   "unbondings [host-denom]",
+		Short: "Query all unbonding records for a host chain",
+		Args:  cobra.ExactArgs(1),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`Query a user unbonding record: $ %s query liquidstakeibc user-unbonding [delegator-address] [epoch-number] [host-denom]`,
+				`Query an unbonding record: $ %s query liquidstakeibc unbondings [host-denom]`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Unbondings(context.Background(), &types.QueryUnbondingsRequest{HostDenom: args[0]})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryUserUnbondingsCmd returns all user unbondings.
+func QueryUserUnbondingsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "user-unbondings [delegator-address]",
+		Short: "Query all user unbonding records",
+		Args:  cobra.ExactArgs(1),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query a user unbonding record: $ %s query liquidstakeibc user-unbondings [delegator-address]`,
 				version.AppName,
 			),
 		),
@@ -224,17 +194,10 @@ func QueryUserUnbondingCmd() *cobra.Command {
 				return err
 			}
 
-			epochNumber, err := strconv.ParseInt(args[1], 10, 64)
-			if err != nil {
-				return err
-			}
-
-			res, err := queryClient.UserUnbonding(
+			res, err := queryClient.UserUnbondings(
 				context.Background(),
 				&types.QueryUserUnbondingsRequest{
-					Address:     args[0],
-					EpochNumber: epochNumber,
-					HostDenom:   args[2],
+					Address: args[0],
 				},
 			)
 			if err != nil {

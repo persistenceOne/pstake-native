@@ -89,7 +89,8 @@ func (k *Keeper) RevertUnbondingsState(ctx sdk.Context, unbondings []*types.Unbo
 	for _, unbonding := range unbondings {
 		unbonding.IbcSequenceId = ""
 
-		if unbonding.State != types.Unbonding_UNBONDING_PENDING {
+		if unbonding.State != types.Unbonding_UNBONDING_PENDING &&
+			unbonding.State != types.Unbonding_UNBONDING_FAILED {
 			unbonding.State--
 		}
 

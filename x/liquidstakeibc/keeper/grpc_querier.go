@@ -3,9 +3,7 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -55,27 +53,7 @@ func (k *Keeper) HostChains(
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	store := ctx.KVStore(k.storeKey)
-	hcStore := prefix.NewStore(store, types.HostChainKey)
-
-	var hostChains []types.HostChain
-	pagination, err := query.Paginate(hcStore, request.Pagination, func(key []byte, value []byte) error {
-		var hc types.HostChain
-		if err := k.cdc.Unmarshal(value, &hc); err != nil {
-			return err
-		}
-
-		hostChains = append(hostChains, hc)
-		return nil
-	})
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	return &types.QueryHostChainsResponse{
-		HostChains: hostChains,
-		Pagination: pagination,
-	}, nil
+	return &types.QueryHostChainsResponse{HostChains: k.GetAllHostChains(ctx)}, nil
 }
 
 func (k *Keeper) Deposits(
@@ -88,38 +66,20 @@ func (k *Keeper) Deposits(
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	store := ctx.KVStore(k.storeKey)
-	udStore := prefix.NewStore(store, types.DepositKey)
-
-	var deposits []types.Deposit
-	pagination, err := query.Paginate(udStore, request.Pagination, func(key []byte, value []byte) error {
-		var deposit types.Deposit
-		if err := k.cdc.Unmarshal(value, &deposit); err != nil {
-			return err
-		}
-
-		deposits = append(deposits, deposit)
-		return nil
-	})
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+	hc, found := k.GetHostChainFromHostDenom(ctx, request.HostDenom)
+	if !found {
+		return nil, sdkerrors.ErrKeyNotFound
 	}
 
-	return &types.QueryDepositsResponse{
-		Deposits:   deposits,
-		Pagination: pagination,
-	}, nil
+	return &types.QueryDepositsResponse{Deposits: k.GetDepositsForHostChain(ctx, hc.ChainId)}, nil
 }
 
-func (k *Keeper) Unbonding(
+func (k *Keeper) Unbondings(
 	goCtx context.Context,
-	request *types.QueryUnbondingRequest,
-) (*types.QueryUnbondingResponse, error) {
+	request *types.QueryUnbondingsRequest,
+) (*types.QueryUnbondingsResponse, error) {
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-	if request.EpochNumber <= 0 {
-		return nil, status.Error(codes.InvalidArgument, "epoch number less than equal to 0")
 	}
 	if request.HostDenom == "" {
 		return nil, status.Error(codes.InvalidArgument, "host_denom cannot be empty")
@@ -132,49 +92,42 @@ func (k *Keeper) Unbonding(
 		return nil, sdkerrors.ErrKeyNotFound
 	}
 
-	unbonding, found := k.GetUnbonding(ctx, hc.ChainId, request.EpochNumber)
-	if !found {
-		return nil, sdkerrors.ErrKeyNotFound
-	}
+	unbondings := k.FilterUnbondings(
+		ctx,
+		func(u types.Unbonding) bool {
+			return u.ChainId == hc.ChainId
+		},
+	)
 
-	return &types.QueryUnbondingResponse{Unbonding: *unbonding}, nil
+	return &types.QueryUnbondingsResponse{Unbondings: unbondings}, nil
 }
 
-func (k *Keeper) UserUnbonding(
+func (k *Keeper) UserUnbondings(
 	goCtx context.Context,
 	request *types.QueryUserUnbondingsRequest,
 ) (*types.QueryUserUnbondingsResponse, error) {
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-	if request.EpochNumber <= 0 {
-		return nil, status.Error(codes.InvalidArgument, "epoch number less than equal to 0")
-	}
 	if request.Address == "" {
 		return nil, status.Error(codes.InvalidArgument, "address cannot be empty")
-	}
-	if request.HostDenom == "" {
-		return nil, status.Error(codes.InvalidArgument, "host_denom cannot be empty")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	address, err := sdk.AccAddressFromBech32(request.Address)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid address: %s", err.Error())
-	}
-
-	hc, found := k.GetHostChainFromHostDenom(ctx, request.HostDenom)
-	if !found {
 		return nil, sdkerrors.ErrKeyNotFound
 	}
 
-	userUnbonding, found := k.GetUserUnbonding(ctx, hc.ChainId, address.String(), request.EpochNumber)
-	if !found {
-		return nil, sdkerrors.ErrKeyNotFound
-	}
+	userUnbondings := k.FilterUserUnbondings(
+		ctx,
+		func(u types.UserUnbonding) bool {
+			return u.Address == address.String()
+		},
+	)
 
-	return &types.QueryUserUnbondingsResponse{UserUnbonding: *userUnbonding}, nil
+	return &types.QueryUserUnbondingsResponse{UserUnbondings: userUnbondings}, nil
 }
 
 func (k *Keeper) ValidatorUnbondings(
