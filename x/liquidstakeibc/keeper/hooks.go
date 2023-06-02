@@ -143,7 +143,8 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 
 	// the transfer is part of the undelegation process
 	if data.GetSender() == hc.DelegationAccount.Address &&
-		data.GetReceiver() == k.GetUndelegationModuleAccount(ctx).GetAddress().String() {
+		data.GetReceiver() == k.GetUndelegationModuleAccount(ctx).GetAddress().String() &&
+		data.Memo == "" {
 		k.Logger(ctx).Info(
 			"Received unbonding IBC transfer.",
 			"host chain",
@@ -160,8 +161,7 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		unbondings := k.FilterUnbondings(
 			ctx,
 			func(u liquidstakeibctypes.Unbonding) bool {
-				return u.State == liquidstakeibctypes.Unbonding_UNBONDING_MATURED &&
-					u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
+				return u.ChainId == hc.ChainId && u.State == liquidstakeibctypes.Unbonding_UNBONDING_MATURED
 			},
 		)
 

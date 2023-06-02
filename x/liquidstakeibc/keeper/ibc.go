@@ -83,11 +83,18 @@ func (k *Keeper) OnChanOpenAck(
 	switch icaAccountType {
 	case types.DelegateICAType:
 		hc.DelegationAccount = icaAccount
+		// register reward ICA
+		if err = k.RegisterICAAccount(ctx, hc.ConnectionId, k.RewardsAccountPortOwner(chainID)); err != nil {
+			return errorsmod.Wrapf(
+				types.ErrRegisterFailed,
+				"error registering %s reward ica: %s",
+				chainID,
+				err.Error(),
+			)
+		}
 	case types.RewardsICAType:
 		hc.RewardsAccount = icaAccount
-	}
-
-	if hc.DelegationAccount != nil && hc.RewardsAccount != nil {
+		// set host chain withdraw address
 		err := k.SetWithdrawAddress(ctx, hc)
 		if err != nil {
 			k.Logger(ctx).Error("Could not set withdraw address.", "chain_id", hc.ChainId)

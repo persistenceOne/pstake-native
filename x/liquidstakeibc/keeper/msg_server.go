@@ -92,16 +92,6 @@ func (k msgServer) RegisterHostChain(
 		)
 	}
 
-	// register reward ICA
-	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, k.RewardsAccountPortOwner(chainID)); err != nil {
-		return nil, errorsmod.Wrapf(
-			types.ErrRegisterFailed,
-			"error registering %s reward ica: %s",
-			chainID,
-			err.Error(),
-		)
-	}
-
 	// query the host chain for the validator set
 	if err := k.QueryHostChainValidators(ctx, hc, stakingtypes.QueryValidatorsRequest{}); err != nil {
 		return nil, errorsmod.Wrapf(
