@@ -275,13 +275,6 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		// update the deposit
 		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount.Sub(feeAmount.TruncateInt()))
 		k.SetDeposit(ctx, deposit)
-
-		if hc.RewardsAccount != nil &&
-			hc.RewardsAccount.ChannelState == liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED {
-			if err := k.QueryHostChainAccountBalance(ctx, hc, hc.RewardsAccount.Address); err != nil {
-				return fmt.Errorf("could not send rewards account balance ICQ for host chain %s", hc.ChainId)
-			}
-		}
 	}
 
 	return nil
