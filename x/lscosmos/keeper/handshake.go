@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -298,19 +299,19 @@ func (k Keeper) handleSuccessfulAck(ctx sdk.Context, ack channeltypes.Acknowledg
 			case sdk.MsgTypeURL(&distributiontypes.MsgWithdrawDelegatorReward{}):
 				rewardAddr := k.GetHostChainRewardAddress(ctx)
 
-				balanceQuery := banktypes.QueryBalanceRequest{Address: rewardAddr.Address, Denom: hostChainParams.BaseDenom}
-				bz, err := k.cdc.Marshal(&balanceQuery)
+				_, rewardAccAddr, err := bech32.DecodeAndConvert(rewardAddr.Address)
 				if err != nil {
 					return err
 				}
+				balanceQuery := banktypes.CreatePrefixedAccountStoreKey(rewardAccAddr, []byte(hostChainParams.BaseDenom))
 
 				// total rewards balance withdrawn
 				k.icqKeeper.MakeRequest(
 					ctx,
 					hostChainParams.ConnectionID,
 					hostChainParams.ChainID,
-					"cosmos.bank.v1beta1.Query/Balance",
-					bz,
+					types.BankStoreQuery,
+					balanceQuery,
 					sdk.NewInt(int64(-1)),
 					types.ModuleName,
 					RewardsAccountBalance,
