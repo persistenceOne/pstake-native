@@ -87,13 +87,6 @@ func (k *Keeper) OnChanOpenAck(
 		hc.RewardsAccount = icaAccount
 	}
 
-	if hc.DelegationAccount != nil && hc.RewardsAccount != nil {
-		err := k.SetWithdrawAddress(ctx, hc)
-		if err != nil {
-			k.Logger(ctx).Error("Could not set withdraw address.", "chain_id", hc.ChainId)
-		}
-	}
-
 	// save the changes of the host chain
 	k.SetHostChain(ctx, hc)
 
@@ -101,13 +94,29 @@ func (k *Keeper) OnChanOpenAck(
 	k.RevertDepositsState(ctx, k.GetDelegatingDepositsForChain(ctx, hc.ChainId))
 
 	// send an ICQ query to get the delegator account balance
-	if err := k.QueryHostChainAccountBalance(ctx, hc, hc.DelegationAccount.Address); err != nil {
-		return fmt.Errorf(
-			"error querying host chain %s for delegation account balances: %v",
-			hc.ChainId,
-			err,
-		)
+	if hc.DelegationAccount != nil {
+		if err := k.QueryHostChainAccountBalance(ctx, hc, hc.DelegationAccount.Address); err != nil {
+			return fmt.Errorf(
+				"error querying host chain %s for delegation account balances: %v",
+				hc.ChainId,
+				err,
+			)
+		}
 	}
+
+	k.Logger(ctx).Info(
+		"Created new ICA.",
+		"host chain",
+		hc.ChainId,
+		"type",
+		icaAccountType,
+		"channel",
+		channelID,
+		"owner",
+		portOwner,
+		"address",
+		address,
+	)
 
 	return nil
 }
@@ -238,6 +247,19 @@ func (k *Keeper) OnTimeoutPacket(
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		),
 	)
+
+	k.Logger(ctx).Info(
+		"ICA transaction timed out.",
+		"sequence",
+		packet.Sequence,
+		"channel",
+		packet.SourceChannel,
+		"port",
+		packet.SourcePort,
+		"messages",
+		messages,
+	)
+
 	return nil
 }
 
@@ -287,6 +309,16 @@ func (k *Keeper) handleUnsuccessfulAck(
 			}
 		}
 	}
+
+	k.Logger(ctx).Info(
+		"ICA transaction ACK error.",
+		"sequence",
+		sequence,
+		"channel",
+		channel,
+		"messages",
+		messages,
+	)
 
 	return nil
 }
@@ -354,6 +386,16 @@ func (k *Keeper) handleSuccessfulAck(
 			}
 		}
 	}
+
+	k.Logger(ctx).Info(
+		"ICA transaction ACK success.",
+		"sequence",
+		sequence,
+		"channel",
+		channel,
+		"messages",
+		messages,
+	)
 
 	return nil
 }
