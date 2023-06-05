@@ -66,7 +66,7 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 	sequenceID, err := k.GenerateAndExecuteICATx(
 		ctx,
 		hc.ConnectionId,
-		k.DelegateAccountPortOwner(hc.ChainId),
+		hc.DelegationAccount.Owner,
 		messages,
 	)
 	if err != nil {
@@ -187,9 +187,9 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc *types.HostChain) {
 	}
 
 	// if the channel is closed, and it is not being recreated, recreate it
-	if !k.IsICAChannelActive(ctx, hc, k.GetPortID(k.DelegateAccountPortOwner(hc.ChainId))) &&
+	if !k.IsICAChannelActive(ctx, hc, k.GetPortID(hc.DelegationAccount.Owner)) &&
 		hc.DelegationAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
-		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, k.DelegateAccountPortOwner(hc.ChainId)); err != nil {
+		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, hc.DelegationAccount.Owner); err != nil {
 			k.Logger(ctx).Error("error recreating %s delegate ica: %w", hc.ChainId, err)
 		}
 
@@ -200,9 +200,9 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc *types.HostChain) {
 	}
 
 	// if the channel is closed, and it is not being recreated, recreate it
-	if !k.IsICAChannelActive(ctx, hc, k.GetPortID(k.RewardsAccountPortOwner(hc.ChainId))) &&
+	if !k.IsICAChannelActive(ctx, hc, k.GetPortID(hc.RewardsAccount.Owner)) &&
 		hc.RewardsAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
-		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, k.RewardsAccountPortOwner(hc.ChainId)); err != nil {
+		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, hc.RewardsAccount.Owner); err != nil {
 			k.Logger(ctx).Error("error recreating %s rewards ica: %w", hc.ChainId, err)
 		}
 
@@ -231,7 +231,7 @@ func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostCh
 			unbonding.UnbondAmount,
 			hc.DelegationAccount.Address,
 			authtypes.NewModuleAddress(types.UndelegationModuleAccount).String(),
-			k.DelegateAccountPortOwner(hc.ChainId),
+			hc.DelegationAccount.Owner,
 		)
 		if err != nil {
 			k.Logger(ctx).Error(
@@ -266,7 +266,7 @@ func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostCh
 			validatorUnbonding.Amount,
 			hc.DelegationAccount.Address,
 			k.GetDepositModuleAccount(ctx).GetAddress().String(),
-			k.DelegateAccountPortOwner(hc.ChainId),
+			hc.DelegationAccount.Owner,
 		)
 		if err != nil {
 			k.Logger(ctx).Error(

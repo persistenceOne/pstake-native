@@ -190,7 +190,7 @@ func (k *Keeper) SetWithdrawAddress(ctx sdk.Context, hc *types.HostChain) error 
 	_, err := k.GenerateAndExecuteICATx(
 		ctx,
 		hc.ConnectionId,
-		k.DelegateAccountPortOwner(hc.ChainId),
+		hc.DelegationAccount.Owner,
 		[]proto.Message{msgSetWithdrawAddress},
 	)
 	if err != nil {
@@ -204,16 +204,6 @@ func (k *Keeper) SetWithdrawAddress(ctx sdk.Context, hc *types.HostChain) error 
 func (k *Keeper) IsICAChannelActive(ctx sdk.Context, hc *types.HostChain, owner string) bool {
 	_, isActive := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ConnectionId, owner)
 	return isActive
-}
-
-// DelegateAccountPortOwner generates a delegate ICA port owner given the chain id
-func (k *Keeper) DelegateAccountPortOwner(chainID string) string {
-	return chainID + "." + types.DelegateICAType
-}
-
-// RewardsAccountPortOwner generates a rewards ICA port owner given the chain id
-func (k *Keeper) RewardsAccountPortOwner(chainID string) string {
-	return chainID + "." + types.RewardsICAType
 }
 
 func (k *Keeper) GetEpochNumber(ctx sdk.Context, epoch string) int64 {

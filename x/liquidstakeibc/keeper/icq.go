@@ -118,7 +118,7 @@ func BalancesCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Que
 				hc.RewardsAccount.Balance,
 				hc.RewardsAccount.Address,
 				authtypes.NewModuleAddress(types.DepositModuleAccount).String(),
-				k.RewardsAccountPortOwner(hc.ChainId),
+				hc.RewardsAccount.Owner,
 			)
 			if err != nil {
 				return fmt.Errorf("could not send ICA rewards transfer: %w", err)

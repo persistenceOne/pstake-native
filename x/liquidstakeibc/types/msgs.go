@@ -9,6 +9,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 )
 
 const (
@@ -85,8 +87,8 @@ func (m *MsgRegisterHostChain) ValidateBasic() error {
 	if m.ConnectionId == "" {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "connection id cannot be empty")
 	}
-	if !strings.HasPrefix(m.ConnectionId, "connection") {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "connection id must begin with 'connection'")
+	if !strings.HasPrefix(m.ConnectionId, connectiontypes.ConnectionPrefix) {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, fmt.Sprintf("invalid connection id: %s, must begin with '%s'", m.ConnectionId, connectiontypes.ConnectionPrefix))
 	}
 
 	// validate host denom
@@ -98,10 +100,10 @@ func (m *MsgRegisterHostChain) ValidateBasic() error {
 	}
 
 	// validate channel id
-	if valid := strings.HasPrefix(m.ChannelId, "channel-"); !valid {
+	if valid := strings.HasPrefix(m.ChannelId, channeltypes.ChannelPrefix); !valid {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			fmt.Sprintf("invalid channel id: %s", m.ChannelId),
+			fmt.Sprintf("invalid channel id: %s, must begin with '%s'", m.ChannelId, channeltypes.ChannelPrefix),
 		)
 	}
 
