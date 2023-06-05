@@ -115,6 +115,16 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 	relayer sdk.AccAddress,
 	transferAck ibcexported.Acknowledgement,
 ) error {
+	k.Logger(ctx).Info(
+		"Received incoming IBC transfer.",
+		"sequence",
+		packet.Sequence,
+		"port",
+		packet.DestinationPort,
+		"channel",
+		packet.DestinationChannel,
+	)
+
 	if !transferAck.Success() {
 		return nil
 	}
@@ -133,13 +143,25 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 
 	// the transfer is part of the undelegation process
 	if data.GetSender() == hc.DelegationAccount.Address &&
-		data.GetReceiver() == k.GetUndelegationModuleAccount(ctx).GetAddress().String() {
+		data.GetReceiver() == k.GetUndelegationModuleAccount(ctx).GetAddress().String() &&
+		data.Memo == "" {
+		k.Logger(ctx).Info(
+			"Received unbonding IBC transfer.",
+			"host chain",
+			hc.ChainId,
+			"sequence",
+			packet.Sequence,
+			"port",
+			packet.DestinationPort,
+			"channel",
+			packet.DestinationChannel,
+		)
+
 		// get all the unbondings for that ibc sequence id
 		unbondings := k.FilterUnbondings(
 			ctx,
 			func(u liquidstakeibctypes.Unbonding) bool {
-				return u.State == liquidstakeibctypes.Unbonding_UNBONDING_MATURED &&
-					u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
+				return u.ChainId == hc.ChainId && u.State == liquidstakeibctypes.Unbonding_UNBONDING_MATURED
 			},
 		)
 
@@ -155,6 +177,18 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 	if data.GetSender() == hc.DelegationAccount.Address &&
 		data.GetReceiver() == k.GetDepositModuleAccount(ctx).GetAddress().String() &&
 		data.Memo == "" {
+		k.Logger(ctx).Info(
+			"Received total validator unbonding IBC transfer.",
+			"host chain",
+			hc.ChainId,
+			"sequence",
+			packet.Sequence,
+			"port",
+			packet.DestinationPort,
+			"channel",
+			packet.DestinationChannel,
+		)
+
 		// add the unbonded amount to the deposit record for that chain/epoch
 		currentEpoch := k.GetEpochNumber(ctx, liquidstakeibctypes.DelegationEpoch)
 		deposit, found := k.GetDepositForChainAndEpoch(ctx, hc.ChainId, currentEpoch)
@@ -184,6 +218,18 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 	if data.GetSender() == hc.RewardsAccount.Address &&
 		data.GetReceiver() == k.GetDepositModuleAccount(ctx).GetAddress().String() &&
 		data.Memo == "" {
+		k.Logger(ctx).Info(
+			"Received autocompounding IBC transfer.",
+			"host chain",
+			hc.ChainId,
+			"sequence",
+			packet.Sequence,
+			"port",
+			packet.DestinationPort,
+			"channel",
+			packet.DestinationChannel,
+		)
+
 		// parse the transfer amount
 		transferAmount, ok := sdk.NewIntFromString(data.Amount)
 		if !ok {
@@ -229,13 +275,6 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		// update the deposit
 		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount.Sub(feeAmount.TruncateInt()))
 		k.SetDeposit(ctx, deposit)
-
-		if hc.RewardsAccount != nil &&
-			hc.RewardsAccount.ChannelState == liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED {
-			if err := k.QueryHostChainAccountBalance(ctx, hc, hc.RewardsAccount.Address); err != nil {
-				return fmt.Errorf("could not send rewards account balance ICQ for host chain %s", hc.ChainId)
-			}
-		}
 	}
 
 	return nil
@@ -271,8 +310,7 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 		return fmt.Errorf("could not parse ibc transfer amount %s", data.Amount)
 	}
 
-	// if the sender is the deposit module account, mark the corresponding deposits as received and send an
-	// ICQ query to get the new host delegator account balance
+	// if the sender is the deposit module account, mark the corresponding deposits as received and update the balance
 	if data.GetSender() == authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() {
 		deposits := k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
 		for _, deposit := range deposits {
@@ -295,6 +333,18 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 
 			hc.CValue = k.GetHostChainCValue(ctx, hc)
 			k.SetHostChain(ctx, hc)
+
+			k.Logger(ctx).Info(
+				"Got delegation deposit received ACK.",
+				"host chain",
+				hc.ChainId,
+				"sequence",
+				packet.Sequence,
+				"port",
+				packet.SourceChannel,
+				"channel",
+				packet.SourceChannel,
+			)
 		}
 	}
 
@@ -336,12 +386,26 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 		k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
 	)
 
+	k.Logger(ctx).Info(
+		"Deposit transfer timed out.",
+		"host chain",
+		hc.ChainId,
+		"sequence",
+		packet.Sequence,
+		"port",
+		packet.SourceChannel,
+		"channel",
+		packet.SourceChannel,
+	)
+
 	return nil
 }
 
 // Workflows
 
 func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
+	k.Logger(ctx).Info("Running deposit workflow.", "epoch", epoch)
+
 	deposits := k.GetPendingDepositsBeforeEpoch(ctx, epoch)
 	for _, deposit := range deposits {
 		hc, found := k.GetHostChain(ctx, deposit.ChainId)
@@ -409,6 +473,8 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 }
 
 func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
+	k.Logger(ctx).Info("Running undelegation workflow.", "epoch", epoch)
+
 	for _, hc := range k.GetAllHostChains(ctx) {
 		// don't do anything if the chain is not active
 		if !hc.Active {
@@ -478,6 +544,8 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 }
 
 func (k *Keeper) ValidatorUndelegationWorkflow(ctx sdk.Context, epoch int64) {
+	k.Logger(ctx).Info("Running validator undelegation workflow.", "epoch", epoch)
+
 	for _, hc := range k.GetAllHostChains(ctx) {
 		// don't do anything if the chain is not active
 		if !hc.Active {
@@ -550,6 +618,8 @@ func (k *Keeper) ValidatorUndelegationWorkflow(ctx sdk.Context, epoch int64) {
 }
 
 func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
+	k.Logger(ctx).Info("Running rewards workflow.", "epoch", epoch)
+
 	for _, hc := range k.GetAllHostChains(ctx) {
 		// don't do anything if the chain is not active
 		if !hc.Active {

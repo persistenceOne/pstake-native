@@ -17,13 +17,14 @@ import (
 )
 
 const (
-	KeyValidatorWeight string = "validator_weight"
-	KeyDepositFee      string = "deposit_fee"
-	KeyRestakeFee      string = "restake_fee"
-	KeyUnstakeFee      string = "unstake_fee"
-	KeyRedemptionFee   string = "redemption_fee"
-	KeyMinimumDeposit  string = "min_deposit"
-	KeyActive          string = "active"
+	KeyValidatorWeight    string = "validator_weight"
+	KeyDepositFee         string = "deposit_fee"
+	KeyRestakeFee         string = "restake_fee"
+	KeyUnstakeFee         string = "unstake_fee"
+	KeyRedemptionFee      string = "redemption_fee"
+	KeyMinimumDeposit     string = "min_deposit"
+	KeyActive             string = "active"
+	KeySetWithdrawAddress string = "set_withdraw_address"
 )
 
 type msgServer struct {
@@ -200,6 +201,12 @@ func (k msgServer) UpdateHostChain(
 			}
 
 			hc.Active = active
+		case KeySetWithdrawAddress:
+			err := k.SetWithdrawAddress(ctx, hc)
+			if err != nil {
+				k.Logger(ctx).Error("Could not set withdraw address.", "chain_id", hc.ChainId)
+				return nil, fmt.Errorf("could not set withdraw address for host chain %s", hc.ChainId)
+			}
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}
