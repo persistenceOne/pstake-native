@@ -1,20 +1,21 @@
 package simulation_test
 
 import (
-	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
 	"math/rand"
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
+	stakingtestutil "github.com/cosmos/cosmos-sdk/x/staking/testutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	chain "github.com/persistenceOne/pstake-native/v2/app"
 	"github.com/persistenceOne/pstake-native/v2/app/params"
@@ -123,7 +124,7 @@ func getTestingValidator(t *testing.T, app *chain.PstakeApp, ctx sdk.Context, ac
 	account := accounts[n]
 	valPubKey := account.PubKey
 	valAddr := sdk.ValAddress(account.PubKey.Address().Bytes())
-	validator := teststaking.NewValidator(t, valAddr, valPubKey)
+	validator := stakingtestutil.NewValidator(t, valAddr, valPubKey)
 	validator, err := validator.SetInitialCommission(commission)
 	require.NoError(t, err)
 

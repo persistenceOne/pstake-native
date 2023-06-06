@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"time"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -16,7 +16,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/client"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
@@ -112,17 +111,9 @@ func (a AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valida
 
 func (a AppModule) RegisterInvariants(registry sdk.InvariantRegistry) {}
 
-func (a AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
 // Deprecated: QuerierRoute
 func (a AppModule) QuerierRoute() string {
 	return ""
-}
-
-func (a AppModule) LegacyQuerierHandler(amino *codec.LegacyAmino) sdk.Querier {
-	return nil
 }
 
 func (a AppModule) RegisterServices(configurator module.Configurator) {
@@ -136,14 +127,6 @@ func (a AppModule) ConsensusVersion() uint64 {
 
 // TODO simulations
 func (a AppModule) GenerateGenesisState(input *module.SimulationState) {}
-
-func (a AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
-func (a AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return nil
-}
 
 func (a AppModule) RegisterStoreDecoder(registry sdk.StoreDecoderRegistry) {}
 

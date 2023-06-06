@@ -26,8 +26,8 @@ const (
 )
 
 // ProposalContents defines the module weighted proposals' contents for mocking param changes, other actions with keeper
-func ProposalContents(ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, k keeper.Keeper) []simtypes.WeightedProposalContent {
-	return []simtypes.WeightedProposalContent{
+func ProposalContents(ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, k keeper.Keeper) []simtypes.WeightedProposalContent { //nolint:staticcheck
+	return []simtypes.WeightedProposalContent{ //nolint:staticcheck
 		simulation.NewWeightedProposalContent(
 			OpWeightSimulateAddWhitelistValidatorsProposal,
 			params.DefaultWeightAddWhitelistValidatorsProposal,
@@ -52,8 +52,8 @@ func ProposalContents(ak types.AccountKeeper, bk types.BankKeeper, sk types.Stak
 }
 
 // SimulateAddWhitelistValidatorsProposal generates random add whitelisted validator param change proposal content.
-func SimulateAddWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
-	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
+func SimulateAddWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn { //nolint:staticcheck
+	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content { //nolint:staticcheck
 		params := k.GetParams(ctx)
 
 		vals := sk.GetBondedValidatorsByPower(ctx)
@@ -77,8 +77,8 @@ func SimulateAddWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.Kee
 }
 
 // SimulateUpdateWhitelistValidatorsProposal generates random update whitelisted validator param change proposal content.
-func SimulateUpdateWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
-	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
+func SimulateUpdateWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn { //nolint:staticcheck
+	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content { //nolint:staticcheck
 		params := k.GetParams(ctx)
 
 		targetVal, found := keeper.RandomActiveLiquidValidator(r, ctx, k, sk)
@@ -97,8 +97,8 @@ func SimulateUpdateWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.
 }
 
 // SimulateDeleteWhitelistValidatorsProposal generates random delete whitelisted validator param change proposal content.
-func SimulateDeleteWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn {
-	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
+func SimulateDeleteWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.Keeper) simtypes.ContentSimulatorFn { //nolint:staticcheck
+	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content { //nolint:staticcheck
 		params := k.GetParams(ctx)
 
 		targetVal, found := keeper.RandomActiveLiquidValidator(r, ctx, k, sk)
@@ -121,8 +121,8 @@ func SimulateDeleteWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.
 }
 
 // SimulateCompleteRedelegationUnbonding mocking complete redelegations, unbondings by BlockValidatorUpdates of staking keeper.
-func SimulateCompleteRedelegationUnbonding(sk types.StakingKeeper) simtypes.ContentSimulatorFn {
-	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
+func SimulateCompleteRedelegationUnbonding(sk types.StakingKeeper) simtypes.ContentSimulatorFn { //nolint:staticcheck
+	return func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content { //nolint:staticcheck
 		reds := sk.GetAllRedelegations(ctx, types.LiquidStakingProxyAcc, nil, nil)
 		ubds := sk.GetAllUnbondingDelegations(ctx, types.LiquidStakingProxyAcc)
 		if len(reds) != 0 || len(ubds) != 0 {

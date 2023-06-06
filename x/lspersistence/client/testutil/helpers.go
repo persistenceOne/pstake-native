@@ -16,7 +16,7 @@ import (
 
 var commonArgs = []string{
 	fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-	fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+	fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 	fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))).String()),
 	fmt.Sprintf("--%s=%s", flags.FlagGas, "1000000"),
 	//fmt.Sprintf("--%s=%s", flags.FlagLogLevel, "trace"),

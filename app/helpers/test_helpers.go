@@ -11,30 +11,32 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	"github.com/cosmos/cosmos-sdk/server/types"
+	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/testutil/mock"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
 
 	"github.com/persistenceOne/pstake-native/v2/app"
 	appparams "github.com/persistenceOne/pstake-native/v2/app/params"
@@ -45,8 +47,8 @@ const (
 	SimAppChainID = "pstake-app"
 )
 
-var DefaultConsensusParams = &abci.ConsensusParams{
-	Block: &abci.BlockParams{
+var DefaultConsensusParams = &tmproto.ConsensusParams{
+	Block: &tmproto.BlockParams{
 		MaxBytes: 200000,
 		MaxGas:   2000000,
 	},
@@ -174,7 +176,7 @@ func genesisStateWithValSet(t *testing.T,
 			MinSelfDelegation: sdk.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec(), false))
 
 	}
 	// set validators and delegations
@@ -199,7 +201,7 @@ func genesisStateWithValSet(t *testing.T,
 	})
 
 	// update total supply
-	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{})
+	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{}, []banktypes.SendEnabled{})
 	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(bankGenesis)
 
 	return genesisState
@@ -244,9 +246,18 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 func NewConfig(dbm *dbm.MemDB) network.Config {
 	encCfg := app.MakeEncodingConfig()
 
-	cfg := network.DefaultConfig()
-	cfg.AppConstructor = NewAppConstructor(encCfg, dbm)           // the ABCI application constructor
-	cfg.GenesisState = app.ModuleBasics.DefaultGenesis(cfg.Codec) // farming genesis state to provide
+	cfg := network.DefaultConfig(func() network.TestFixture {
+		return network.TestFixture{
+			AppConstructor: NewAppConstructor(encCfg, dbm),
+			GenesisState:   app.ModuleBasics.DefaultGenesis(encCfg.Marshaler),
+			EncodingConfig: testutil.TestEncodingConfig{
+				InterfaceRegistry: encCfg.InterfaceRegistry,
+				Codec:             encCfg.Marshaler,
+				TxConfig:          encCfg.TxConfig,
+				Amino:             encCfg.Amino,
+			},
+		}
+	})
 	return cfg
 }
 
@@ -254,14 +265,15 @@ func NewConfig(dbm *dbm.MemDB) network.Config {
 //
 //nolint:interfacer
 func NewAppConstructor(encodingCfg appparams.EncodingConfig, db *dbm.MemDB) network.AppConstructor {
-	return func(val network.Validator) types.Application {
-
+	return func(val network.ValidatorI) types.Application {
 		return app.NewpStakeApp(
-			val.Ctx.Logger, db, nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
+			val.GetCtx().Logger, db, nil, true, make(map[int64]bool), val.GetCtx().Config.RootDir, 0,
 			app.MakeEncodingConfig(),
 			EmptyAppOptions{},
-			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),
-			baseapp.SetMinGasPrices(val.AppConfig.MinGasPrices))
+			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.GetAppConfig().Pruning)),
+			baseapp.SetMinGasPrices(val.GetAppConfig().MinGasPrices),
+			baseapp.SetChainID(val.GetCtx().Viper.GetString(flags.FlagChainID)),
+		)
 	}
 }
 

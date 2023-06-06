@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/types/kv"
+	modtestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/simulation"
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
@@ -15,7 +15,7 @@ import (
 
 func TestDecodeLiquidStakingStore(t *testing.T) {
 
-	cdc := simapp.MakeTestEncodingConfig()
+	cdc := modtestutil.MakeTestEncodingConfig()
 	dec := simulation.NewDecodeStore(cdc.Codec)
 
 	tc := types.LiquidValidator{
