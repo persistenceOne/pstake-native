@@ -237,7 +237,7 @@ func (suite *IntegrationTestSuite) TestDelegateAccountPortOwner() {
 	suite.Require().Equal(found, true)
 
 	suite.Require().Equal(
-		pstakeApp.LiquidStakeIBCKeeper.DelegateAccountPortOwner(hc.ChainId),
+		hc.DelegationAccount.Owner,
 		hc.ChainId+"."+types.DelegateICAType,
 	)
 }
@@ -248,7 +248,7 @@ func (suite *IntegrationTestSuite) TestRewardsAccountPortOwner() {
 	suite.Require().Equal(found, true)
 
 	suite.Require().Equal(
-		pstakeApp.LiquidStakeIBCKeeper.RewardsAccountPortOwner(hc.ChainId),
+		hc.RewardsAccount.Owner,
 		hc.ChainId+"."+types.RewardsICAType,
 	)
 }

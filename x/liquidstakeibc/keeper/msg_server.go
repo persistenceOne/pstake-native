@@ -78,13 +78,19 @@ func (k msgServer) RegisterHostChain(
 		NextValsetHash:  []byte{},
 		UnbondingFactor: msg.UnbondingFactor,
 		Active:          false,
+		DelegationAccount: &types.ICAAccount{
+			Owner: types.DefaultDelegateAccountPortOwner(chainID),
+		},
+		RewardsAccount: &types.ICAAccount{
+			Owner: types.DefaultRewardsAccountPortOwner(chainID),
+		},
 	}
 
 	// save the host chain
 	k.SetHostChain(ctx, hc)
 
 	// register delegate ICA
-	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, k.DelegateAccountPortOwner(chainID)); err != nil {
+	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, hc.DelegationAccount.Owner); err != nil {
 		return nil, errorsmod.Wrapf(
 			types.ErrRegisterFailed,
 			"error registering %s delegate ica: %s",
@@ -94,7 +100,7 @@ func (k msgServer) RegisterHostChain(
 	}
 
 	// register reward ICA
-	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, k.RewardsAccountPortOwner(chainID)); err != nil {
+	if err = k.RegisterICAAccount(ctx, hc.ConnectionId, hc.RewardsAccount.Owner); err != nil {
 		return nil, errorsmod.Wrapf(
 			types.ErrRegisterFailed,
 			"error registering %s reward ica: %s",

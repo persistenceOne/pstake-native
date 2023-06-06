@@ -524,7 +524,7 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 		sequenceID, err := k.GenerateAndExecuteICATx(
 			ctx,
 			hc.ConnectionId,
-			k.DelegateAccountPortOwner(hc.ChainId),
+			hc.DelegationAccount.Owner,
 			messages,
 		)
 		if err != nil {
@@ -582,7 +582,7 @@ func (k *Keeper) ValidatorUndelegationWorkflow(ctx sdk.Context, epoch int64) {
 				sequenceID, err := k.GenerateAndExecuteICATx(
 					ctx,
 					hc.ConnectionId,
-					k.DelegateAccountPortOwner(hc.ChainId),
+					hc.DelegationAccount.Owner,
 					[]proto.Message{message},
 				)
 				if err != nil {
@@ -643,7 +643,7 @@ func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
 			_, err := k.GenerateAndExecuteICATx(
 				ctx,
 				hc.ConnectionId,
-				k.DelegateAccountPortOwner(hc.ChainId),
+				hc.DelegationAccount.Owner,
 				messages,
 			)
 			if err != nil {

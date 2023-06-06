@@ -66,12 +66,6 @@ func (k *Keeper) OnChanOpenAck(
 		return fmt.Errorf("host chain with id %s is not registered", chainID)
 	}
 
-	// get the ica account type from the ownership string
-	_, icaAccountType, found := strings.Cut(portOwner, ".")
-	if !found {
-		return fmt.Errorf("unable to parse port owner %s", portOwner)
-	}
-
 	// create the ica account
 	icaAccount := &types.ICAAccount{
 		Address:      address,
@@ -80,11 +74,14 @@ func (k *Keeper) OnChanOpenAck(
 		ChannelState: types.ICAAccount_ICA_CHANNEL_CREATED,
 	}
 
-	switch icaAccountType {
-	case types.DelegateICAType:
+	switch {
+	case portOwner == hc.DelegationAccount.Owner:
 		hc.DelegationAccount = icaAccount
-	case types.RewardsICAType:
+	case portOwner == hc.RewardsAccount.Owner:
 		hc.RewardsAccount = icaAccount
+	default:
+		k.Logger(ctx).Error("Unrecognised ICA account type for the module", "port-id:", portID, "chain-id", chainID)
+		return nil
 	}
 
 	// save the changes of the host chain
@@ -108,8 +105,6 @@ func (k *Keeper) OnChanOpenAck(
 		"Created new ICA.",
 		"host chain",
 		hc.ChainId,
-		"type",
-		icaAccountType,
 		"channel",
 		channelID,
 		"owner",
