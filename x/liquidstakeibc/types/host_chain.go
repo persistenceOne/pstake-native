@@ -2,7 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibctfrtypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	ibctfrtypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
 func (hc *HostChain) IBCDenom() string {

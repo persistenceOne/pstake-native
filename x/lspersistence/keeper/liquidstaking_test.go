@@ -1,9 +1,10 @@
 package keeper_test
 
 import (
+	"time"
+
 	"github.com/persistenceOne/persistence-sdk/v2/x/oracle/testutil"
 	"github.com/persistenceOne/pstake-native/v2/app/helpers"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -302,6 +303,10 @@ func (s *KeeperTestSuite) TestLiquidUnstakeEdgeCases() {
 	stakingParams := s.app.StakingKeeper.GetParams(s.ctx)
 	for i := uint32(0); i < stakingParams.MaxEntries; i++ {
 		s.Require().NoError(s.liquidUnstaking(s.delAddrs[0], sdk.NewInt(1000), false))
+		// Incrementing block height because
+		// ubd entries with same creation_height are updated instead of adding new
+		// see: https://github.com/cosmos/cosmos-sdk/pull/12967
+		s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 1)
 	}
 	// fail in an attempt beyond MaxEntries
 	s.Require().ErrorIs(s.liquidUnstaking(s.delAddrs[0], sdk.NewInt(1000), false), stakingtypes.ErrMaxUnbondingDelegationEntries)

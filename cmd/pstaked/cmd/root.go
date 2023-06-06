@@ -5,6 +5,10 @@ import (
 	"io"
 	"os"
 
+	dbm "github.com/cometbft/cometbft-db"
+	tmcfg "github.com/cometbft/cometbft/config"
+	tmcli "github.com/cometbft/cometbft/libs/cli"
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
@@ -19,15 +23,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-	tmcfg "github.com/tendermint/tendermint/config"
-	tmcli "github.com/tendermint/tendermint/libs/cli"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
 
 	pstakeApp "github.com/persistenceOne/pstake-native/v2/app"
 	"github.com/persistenceOne/pstake-native/v2/app/params"
@@ -105,12 +107,12 @@ func initAppConfig() (string, interface{}) {
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	cfg := sdk.GetConfig()
-
 	cfg.Seal()
 
+	gentxModule := pstakeApp.ModuleBasics[genutiltypes.ModuleName].(genutil.AppModuleBasic)
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(pstakeApp.ModuleBasics, pstakeApp.DefaultNodeHome),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, pstakeApp.DefaultNodeHome),
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, pstakeApp.DefaultNodeHome, gentxModule.GenTxValidator),
 		genutilcli.GenTxCmd(pstakeApp.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, pstakeApp.DefaultNodeHome),
 		genutilcli.ValidateGenesisCmd(pstakeApp.ModuleBasics),
 		AddGenesisAccountCmd(pstakeApp.DefaultNodeHome),
@@ -224,6 +226,7 @@ func (ac appCreator) appExport(
 	forZeroHeight bool,
 	jailAllowedAddrs []string,
 	appOpts servertypes.AppOptions,
+	modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
 	var pStakeApp *pstakeApp.PstakeApp
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
@@ -241,6 +244,6 @@ func (ac appCreator) appExport(
 		pStakeApp = pstakeApp.NewpStakeApp(logger, db, traceStore, true, map[int64]bool{}, homePath, uint(1), ac.encCfg, appOpts)
 	}
 
-	return pStakeApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
+	return pStakeApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 
 }

@@ -9,8 +9,8 @@ import (
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
-	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
+	proto "github.com/cosmos/gogoproto/proto"
+	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
@@ -1417,7 +1417,7 @@ func (m *Unbonding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x22
-	n8, err8 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.MatureTime, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.MatureTime):])
+	n8, err8 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.MatureTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.MatureTime):])
 	if err8 != nil {
 		return 0, err8
 	}
@@ -1546,7 +1546,7 @@ func (m *ValidatorUnbonding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x22
 	}
-	n12, err12 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.MatureTime, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.MatureTime):])
+	n12, err12 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.MatureTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.MatureTime):])
 	if err12 != nil {
 		return 0, err12
 	}
@@ -1780,7 +1780,7 @@ func (m *Unbonding) Size() (n int) {
 	if m.EpochNumber != 0 {
 		n += 1 + sovLiquidstakeibc(uint64(m.EpochNumber))
 	}
-	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.MatureTime)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.MatureTime)
 	n += 1 + l + sovLiquidstakeibc(uint64(l))
 	l = m.BurnAmount.Size()
 	n += 1 + l + sovLiquidstakeibc(uint64(l))
@@ -1833,7 +1833,7 @@ func (m *ValidatorUnbonding) Size() (n int) {
 	if m.EpochNumber != 0 {
 		n += 1 + sovLiquidstakeibc(uint64(m.EpochNumber))
 	}
-	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.MatureTime)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.MatureTime)
 	n += 1 + l + sovLiquidstakeibc(uint64(l))
 	l = len(m.ValidatorAddress)
 	if l > 0 {
@@ -3260,7 +3260,7 @@ func (m *Unbonding) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.MatureTime, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.MatureTime, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3710,7 +3710,7 @@ func (m *ValidatorUnbonding) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.MatureTime, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.MatureTime, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

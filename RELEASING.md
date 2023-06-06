@@ -38,14 +38,6 @@ releases will be based off of that release.
 - create a PR into `main` containing ONLY the CHANGELOG.md updates
 - tag (use `git tag -a`) then push the tags (`git push --tags`)
 
-### Dependency review
-
-Check the `replace` line in `go.mod` of the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk/blob/master/go.mod) for something like:
-```
-replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-```
-Ensure that the same replace line is also used in Gaia's `go.mod` file.
-
 ### Tagging
 
 The following steps are the default for tagging a specific branch commit (usually on a branch labeled `release/vX.X.X`):
