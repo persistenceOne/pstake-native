@@ -102,4 +102,5 @@ type LiquidStakeIBCKeeper interface {
 	SetUnbonding(ctx sdk.Context, ub *liquidstakeibctypes.Unbonding)
 	SetValidatorUnbonding(ctx sdk.Context, vu *liquidstakeibctypes.ValidatorUnbonding)
 	SetUserUnbonding(ctx sdk.Context, ub *liquidstakeibctypes.UserUnbonding)
+	SetDeposit(ctx sdk.Context, deposit *liquidstakeibctypes.Deposit)
 }

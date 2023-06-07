@@ -39,13 +39,13 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 			Address:      delegationState.HostChainDelegationAddress,
 			Balance:      sdk.NewCoin(hcparams.BaseDenom, delegationState.HostDelegationAccountBalance.AmountOf(hcparams.BaseDenom)),
 			Owner:        hostAccounts.DelegatorAccountOwnerID,
-			ChannelState: 1, //add in created state, if closed, the begin blocker RecreateICA will check it out
+			ChannelState: liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED, //add in created state, if closed, the begin blocker RecreateICA will check it out
 		},
 		RewardsAccount: &liquidstakeibctypes.ICAAccount{
 			Address:      hostChainRewardAddress.Address,
 			Balance:      sdk.NewInt64Coin(hcparams.BaseDenom, 0),
 			Owner:        hostAccounts.RewardsAccountOwnerID,
-			ChannelState: 1,
+			ChannelState: liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED,
 		},
 	}
 
@@ -104,18 +104,8 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 				BurnAmount:    unbondingEpochCValue.STKBurn,
 				UnbondAmount:  unbondingEpochCValue.AmountUnbonded,
 				IbcSequenceId: "",
-				State:         2, //UNBONDING_MATURING
+				State:         liquidstakeibctypes.Unbonding_UNBONDING_MATURING, //UNBONDING_MATURING
 			})
-			for _, validatorUnbonding := range validatorUnbondings.UndelegationEntries {
-				k.liquidStakeIBCKeeper.SetValidatorUnbonding(ctx, &liquidstakeibctypes.ValidatorUnbonding{
-					ChainId:          newhc.ChainId,
-					EpochNumber:      validatorUnbondings.EpochNumber,
-					MatureTime:       validatorUnbondings.CompletionTime,
-					ValidatorAddress: validatorUnbonding.ValidatorAddress,
-					Amount:           validatorUnbonding.Amount,
-					IbcSequenceId:    "",
-				})
-			}
 
 		} else {
 			return types.ErrModuleMigrationFailed.Wrapf("failed to migrate, epochNumber %v", validatorUnbondings.EpochNumber)
@@ -145,6 +135,15 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 	// Migrate accounts
 	// DepositModuleAccount
 	depositAccBalance := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(types.DepositModuleAccount))
+	//DELEGATION add to liquidstakeibc delegate
+	currEpoch := k.epochKeeper.GetEpochInfo(ctx, types.DelegationEpochIdentifier)
+	k.liquidStakeIBCKeeper.SetDeposit(ctx, &liquidstakeibctypes.Deposit{
+		ChainId:       newhc.ChainId,
+		Amount:        sdk.NewCoin(newhc.IBCDenom(), depositAccBalance.AmountOf(newhc.IBCDenom())),
+		Epoch:         sdk.NewInt(currEpoch.CurrentEpoch),
+		State:         liquidstakeibctypes.Deposit_DEPOSIT_PENDING,
+		IbcSequenceId: "",
+	})
 	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.DepositModuleAccount, liquidstakeibctypes.DepositModuleAccount, depositAccBalance)
 	if err != nil {
 		return err
