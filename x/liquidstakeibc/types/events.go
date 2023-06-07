@@ -7,6 +7,7 @@ const (
 	EventTypePacket        = "ics27_packet"
 	EventTypeTimeout       = "timeout"
 	EventTypeSlashing      = "slashing"
+	EventTypeUpdateParams  = "update_params"
 
 	AttributeAmount             = "amount"
 	AttributeAmountReceived     = "received"
@@ -20,6 +21,8 @@ const (
 	AttributeExistingDelegation = "existing-delegation"
 	AttributeUpdatedDelegation  = "updated-delegation"
 	AttributeSlashedAmount      = "slashed-amount"
+	AttributeKeyAuthority       = "authority"
+	AttributeKeyUpdatedParams   = "updated_params"
 	AttributeKeyAck             = "acknowledgement"
 	AttributeKeyAckSuccess      = "success"
 	AttributeKeyAckError        = "error"

@@ -6,24 +6,12 @@ import (
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"sigs.k8s.io/yaml"
-
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 const (
 	DefaultAdminAddress string = "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr" // TODO: Use correct address on launch
 	DefaultFeeAddress   string = "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld" // TODO: Use correct address on launch
 )
-
-var (
-	KeyAdminAddress = []byte("AdminAddress")
-	KeyFeeAddress   = []byte("FeeAddress")
-)
-
-// ParamKeyTable for liquidstakeibc module.
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
 
 // NewParams creates a new Params object
 func NewParams(
@@ -62,13 +50,7 @@ func (p *Params) String() string {
 	return string(out)
 }
 
-// ParamSetPairs implements params.ParamSet
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyAdminAddress, &p.AdminAddress, isAddress),
-		paramtypes.NewParamSetPair(KeyFeeAddress, &p.FeeAddress, isAddress),
-	}
-}
+// checks
 
 func isAddress(i interface{}) error {
 	val, ok := i.(string)

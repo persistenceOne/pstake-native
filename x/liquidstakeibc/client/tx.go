@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -30,6 +31,7 @@ func NewTxCmd() *cobra.Command {
 		NewLiquidStakeCmd(),
 		NewLiquidUnstakeCmd(),
 		NewRedeemCmd(),
+		NewUpdateParamsCmd(),
 	)
 
 	return txCmd
@@ -199,6 +201,42 @@ func NewRedeemCmd() *cobra.Command {
 			msg := types.NewMsgRedeem(amount, delegatorAddress, args[1])
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// NewUpdateParamsCmd implements the command to update the module params.
+func NewUpdateParamsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-params [params-file]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Update the module params",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			var params types.Params
+
+			paramsInFile, err := os.ReadFile(args[0])
+			if err != nil {
+				return err
+			}
+
+			err = json.Unmarshal(paramsInFile, &params)
+			if err != nil {
+				return err
+			}
+			authority := clientCtx.GetFromAddress()
+
+			msg := types.NewMsgUpdateParams(authority, params)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 

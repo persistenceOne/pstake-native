@@ -2,18 +2,20 @@
   "messages": [{
     "@type": "/pstake.liquidstakeibc.v1beta1.MsgRegisterHostChain",
     "authority": "persistence10d07y265gmmuvt4z0w9aw880jnsr700j5w4kch",
-    "connection_id": "connection-1",
-    "channel_id": "channel-1",
+    "connection_id": "connection-0",
+    "channel_id": "channel-0",
     "port_id": "transfer",
     "deposit_fee": "0.00",
     "restake_fee": "0.05",
     "unstake_fee": "0.00",
     "redemption_fee": "0.005",
-    "host_denom": "uosmo",
+    "host_denom": "uatom",
     "minimum_deposit": "1",
     "unbonding_factor": "4"
   }],
   "deposit": "10000000uxprt",
   "proposer": "persistence1hcqg5wj9t42zawqkqucs7la85ffyv08ljhhesu",
+  "title": "Register Cosmos",
+  "summary": "Registers the Cosmos host chain to pStake",
   "metadata": ""
 }
