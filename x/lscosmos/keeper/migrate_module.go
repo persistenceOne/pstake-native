@@ -5,23 +5,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/persistenceOne/persistence-sdk/v2/utils"
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
-func (k Keeper) SafeMigrate(ctx sdk.Context) {
-	// keep the controller module plugged in.
-	// add a migrate store.
-	// disable new txns.
-	// edit handshake to only accept relevant port txns.
-	// retry next epoch.
-
-	err := utils.ApplyFuncIfNoError(ctx, k.Migrate)
-	if err != nil {
-		k.Logger(ctx).Error("migration failed with ", "err: ", err)
-	}
-}
 func (k Keeper) Migrate(ctx sdk.Context) error {
 	hcparams := k.GetHostChainParams(ctx)
 	cValue := k.GetCValue(ctx)
