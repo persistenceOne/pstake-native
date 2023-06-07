@@ -56,11 +56,6 @@ func NewKeeper(
 
 	authority string,
 ) Keeper {
-	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	return Keeper{
 		cdc:                 cdc,
 		accountKeeper:       accountKeeper,
@@ -83,13 +78,21 @@ func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // GetParams gets the total set of liquidstakeibc parameters.
 func (k *Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	k.paramSpace.GetParamSet(ctx, &params)
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ParamsKey)
+	if bz == nil {
+		return params
+	}
+
+	k.cdc.MustUnmarshal(bz, &params)
 	return params
 }
 
 // SetParams sets the total set of liquidstakeibc parameters.
 func (k *Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramSpace.SetParamSet(ctx, &params)
+	store := ctx.KVStore(k.storeKey)
+	bytes := k.cdc.MustMarshal(&params)
+	store.Set(types.ParamsKey, bytes)
 }
 
 // GetDepositModuleAccount returns deposit module account interface
