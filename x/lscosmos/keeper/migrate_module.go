@@ -5,10 +5,23 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/persistenceOne/persistence-sdk/v2/utils"
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
+func (k Keeper) SafeMigrate(ctx sdk.Context) {
+	// keep the controller module plugged in.
+	// add a migrate store.
+	// disable new txns.
+	// edit handshake to only accept relevant port txns.
+	// retry next epoch.
+
+	err := utils.ApplyFuncIfNoError(ctx, k.Migrate)
+	if err != nil {
+		k.Logger(ctx).Error("migration failed with ", "err: ", err)
+	}
+}
 func (k Keeper) Migrate(ctx sdk.Context) error {
 	hcparams := k.GetHostChainParams(ctx)
 	cValue := k.GetCValue(ctx)
@@ -18,6 +31,13 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 
 	// port all stores
 	//	HostChainParamsKey
+
+	consensusState, err := k.liquidStakeIBCKeeper.GetLatestConsensusState(ctx, hcparams.ConnectionID)
+	if err != nil {
+		k.Logger(ctx).Error("could not retrieve client state", "host_chain", hcparams.ChainID)
+		return err
+	}
+
 	newhc := &liquidstakeibctypes.HostChain{
 		ChainId:      hcparams.ChainID,
 		ConnectionId: hcparams.ConnectionID,
@@ -32,7 +52,7 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 		HostDenom:       hcparams.BaseDenom,
 		MinimumDeposit:  hcparams.MinDeposit,
 		CValue:          cValue,
-		NextValsetHash:  []byte{},
+		NextValsetHash:  consensusState.NextValidatorsHash,
 		UnbondingFactor: types.UndelegationEpochNumberFactor,
 		Active:          false, // <- disable the module and update it with MsgUpdateHostChain
 		DelegationAccount: &liquidstakeibctypes.ICAAccount{
