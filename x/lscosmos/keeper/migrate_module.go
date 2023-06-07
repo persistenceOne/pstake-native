@@ -14,7 +14,6 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 	cValue := k.GetCValue(ctx)
 	delegationState := k.GetDelegationState(ctx)
 	hostChainRewardAddress := k.GetHostChainRewardAddress(ctx)
-	delegatorUnbondingEpochEntries := k.IterateAllDelegatorUnbondingEpochEntry(ctx)
 	hostAccounts := k.GetHostAccounts(ctx)
 
 	// port all stores
@@ -124,7 +123,7 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 	}
 
 	//	DelegatorUnbondingEpochEntryKey
-	delegatorUnbondingEpochEntries = k.IterateAllDelegatorUnbondingEpochEntry(ctx) //refresh undelegation user entries after claimall
+	delegatorUnbondingEpochEntries := k.IterateAllDelegatorUnbondingEpochEntry(ctx) //refresh undelegation user entries after claimall
 	for _, delegatorUnbondingEpochEntry := range delegatorUnbondingEpochEntries {
 		unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, delegatorUnbondingEpochEntry.EpochNumber)
 		claimableAmount := sdk.NewDecFromInt(delegatorUnbondingEpochEntry.Amount.Amount).Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
