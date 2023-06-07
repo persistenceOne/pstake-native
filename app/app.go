@@ -91,6 +91,7 @@ import (
 	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
+	v6 "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/migrations/v6"
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icahost "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
 	icahostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
@@ -108,6 +109,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 	"github.com/gorilla/mux"
@@ -526,7 +528,7 @@ func NewpStakeApp(
 		app.TransferKeeper,
 		app.ICAControllerKeeper,
 		&app.InterchainQueryKeeper,
-		app.LiquidStakeIBCKeeper,
+		&app.LiquidStakeIBCKeeper,
 		scopedLSCosmosKeeper,
 		app.MsgServiceRouter(),
 	)
@@ -1044,13 +1046,20 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-
+			err := v6.MigrateICS27ChannelCapability(ctx, app.appCodec, app.GetKey(capabilitytypes.StoreKey), app.CapabilityKeeper, lscosmostypes.ModuleName)
+			if err != nil {
+				return nil, err
+			}
+			_, err = ibctmmigrations.PruneExpiredConsensusStates(ctx, app.appCodec, app.IBCKeeper.ClientKeeper)
+			if err != nil {
+				return nil, err
+			}
 			newVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 			if err != nil {
 				return nil, err
 			}
 
-			return newVM, app.LSCosmosKeeper.Migrate()
+			return newVM, app.LSCosmosKeeper.Migrate(ctx)
 		},
 	)
 
@@ -1064,6 +1073,9 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 			Added: []string{
 				liquidstakeibctypes.ModuleName,
 				consensusparamtypes.ModuleName,
+			},
+			Deleted: []string{
+				//lscosmostypes.ModuleName, add this to next upgrade.
 			},
 		}
 
