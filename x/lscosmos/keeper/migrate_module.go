@@ -73,7 +73,7 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 	k.liquidStakeIBCKeeper.SetHostChain(ctx, newhc)
 
 	// for updating valset.
-	err := k.liquidStakeIBCKeeper.QueryHostChainValidators(ctx, newhc, stakingtypes.QueryValidatorsRequest{})
+	err = k.liquidStakeIBCKeeper.QueryHostChainValidators(ctx, newhc, stakingtypes.QueryValidatorsRequest{})
 	if err != nil {
 		return errorsmod.Wrapf(
 			liquidstakeibctypes.ErrFailedICQRequest,
