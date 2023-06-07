@@ -5,9 +5,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
+
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
@@ -94,4 +97,9 @@ type ICQKeeper interface {
 }
 
 type LiquidStakeIBCKeeper interface {
+	SetHostChain(ctx sdk.Context, hc *liquidstakeibctypes.HostChain)
+	QueryHostChainValidators(ctx sdk.Context, hc *liquidstakeibctypes.HostChain, req stakingtypes.QueryValidatorsRequest) error
+	SetUnbonding(ctx sdk.Context, ub *liquidstakeibctypes.Unbonding)
+	SetValidatorUnbonding(ctx sdk.Context, vu *liquidstakeibctypes.ValidatorUnbonding)
+	SetUserUnbonding(ctx sdk.Context, ub *liquidstakeibctypes.UserUnbonding)
 }
