@@ -612,3 +612,35 @@ func (k msgServer) Redeem(
 
 	return &types.MsgRedeemResponse{}, nil
 }
+
+// UpdateParams defines a method for updating the module params
+func (k msgServer) UpdateParams(
+	goCtx context.Context,
+	msg *types.MsgUpdateParams,
+) (*types.MsgUpdateParamsResponse, error) {
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	params := k.GetParams(ctx)
+
+	// authority needs to be either the gov module account (for proposals)
+	// or the module admin account (for normal txs)
+	if msg.Authority != k.authority && msg.Authority != params.AdminAddress {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "tx signer is not a module authority")
+	}
+
+	k.SetParams(ctx, msg.Params)
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+		),
+		sdktypes.NewEvent(
+			types.EventTypeUpdateParams,
+			sdktypes.NewAttribute(types.AttributeKeyAuthority, msg.Authority),
+			sdktypes.NewAttribute(types.AttributeKeyUpdatedParams, msg.Params.String()),
+		),
+	})
+
+	return &types.MsgUpdateParamsResponse{}, nil
+}

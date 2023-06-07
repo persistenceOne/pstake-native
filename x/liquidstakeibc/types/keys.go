@@ -43,6 +43,7 @@ var (
 	UnbondingKey          = []byte{0x03}
 	UserUnbondingKey      = []byte{0x04}
 	ValidatorUnbondingKey = []byte{0x05}
+	ParamsKey             = []byte{0x06}
 )
 
 func GetUnbondingStoreKey(chainID string, epochNumber int64) []byte {

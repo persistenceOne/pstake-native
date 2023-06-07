@@ -19,6 +19,7 @@ const (
 	MsgTypeLiquidStake       string = "msg_liquid_stake"
 	MsgTypeLiquidUnstake     string = "msg_liquid_unstake"
 	MsgTypeRedeem            string = "msg_redeem"
+	MsgTypeUpdateParams      string = "msg_update_params"
 )
 
 var (
@@ -317,5 +318,48 @@ func (m *MsgRedeem) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
 	}
 
+	return nil
+}
+
+//nolint:interfacer
+func NewMsgUpdateParams(authority sdk.AccAddress, amount Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Authority: authority.String(),
+		Params:    amount,
+	}
+}
+
+func (m *MsgUpdateParams) Route() string {
+	return RouterKey
+}
+
+// Type should return the action
+func (m *MsgUpdateParams) Type() string {
+	return MsgTypeUpdateParams
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgUpdateParams) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(m.Authority)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
+}
+
+func (m *MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address %q: %v", m.Authority, err)
+	}
+
+	err := m.Params.Validate()
+	if err != nil {
+		return err
+	}
 	return nil
 }

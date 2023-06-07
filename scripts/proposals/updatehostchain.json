@@ -3,12 +3,19 @@
     "@type": "/pstake.liquidstakeibc.v1beta1.MsgUpdateHostChain",
     "authority": "persistence10d07y265gmmuvt4z0w9aw880jnsr700j5w4kch",
     "chain_id": "gaia-1",
-    "updates": [{
+    "updates": [
+      {
       "key": "validator_weight",
-      "value": "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt,1"
+      "value": "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt,0.5"
+      },
+      {
+      "key": "validator_weight",
+      "value": "cosmosvaloper1lcck2cxh7dzgkrfk53kysg9ktdrsjj6jfwlnm2,0.5"
     }]
   }],
   "deposit": "10000000uxprt",
   "proposer": "persistence1hcqg5wj9t42zawqkqucs7la85ffyv08ljhhesu",
+  "title": "Update Cosmos validator weight",
+  "summary": "Updates the Cosmos validator weights.",
   "metadata": ""
 }
