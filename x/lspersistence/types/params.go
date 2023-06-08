@@ -7,27 +7,19 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
 )
 
 // Parameter store keys
 var (
-	KeyLiquidBondDenom        = []byte("LiquidBondDenom")
-	KeyWhitelistedValidators  = []byte("WhitelistedValidators")
-	KeyUnstakeFeeRate         = []byte("UnstakeFeeRate")
-	KeyStakeFeeRate           = []byte("StakeFeeRate")
-	KeyRestakeFeeRate         = []byte("RestakeFeeRate")
-	KeyRedemptionFeeRate      = []byte("RedemptionFeeRate")
-	KeyMinLiquidStakingAmount = []byte("MinLiquidStakingAmount")
-	KeyAdminAddress           = []byte("AdminAddress")
-	KeyFeeAddress             = []byte("FeeAddress")
-
 	DefaultLiquidBondDenom = "stk/uxprt"
 
 	// DefaultMinLiquidStakingAmount is the default minimum liquid staking amount.
 	DefaultMinLiquidStakingAmount = sdk.NewInt(10000)
 
+	DefaultAdminAddress = authtypes.NewModuleAddress("dummy")
+
+	DefaultFeeAddress = authtypes.NewModuleAddress("dummy")
 	// Const variables
 
 	// RebalancingTrigger if the maximum difference and needed each redelegation amount exceeds it, asset rebalacing will be executed.
@@ -40,13 +32,6 @@ var (
 	LiquidStakingProxyAcc = authtypes.NewModuleAddress(ModuleName + "-LiquidStakingProxyAcc")
 )
 
-var _ paramstypes.ParamSet = (*Params)(nil)
-
-// ParamKeyTable returns the parameter key table.
-func ParamKeyTable() paramstypes.KeyTable {
-	return paramstypes.NewKeyTable().RegisterParamSet(&Params{})
-}
-
 // DefaultParams returns the default liquidstaking module parameters.
 func DefaultParams() Params {
 	return Params{
@@ -57,23 +42,8 @@ func DefaultParams() Params {
 		RestakeFeeRate:         sdk.MustNewDecFromStr("0.05"),
 		RedemptionFeeRate:      sdk.MustNewDecFromStr("0.025"),
 		MinLiquidStakingAmount: DefaultMinLiquidStakingAmount,
-		AdminAddress:           authtypes.NewModuleAddress("dummy").String(),
-		FeeAddress:             authtypes.NewModuleAddress("dummy").String(),
-	}
-}
-
-// ParamSetPairs implements paramstypes.ParamSet.
-func (p *Params) ParamSetPairs() paramstypes.ParamSetPairs {
-	return paramstypes.ParamSetPairs{
-		paramstypes.NewParamSetPair(KeyLiquidBondDenom, &p.LiquidBondDenom, validateLiquidBondDenom),
-		paramstypes.NewParamSetPair(KeyWhitelistedValidators, &p.WhitelistedValidators, validateWhitelistedValidators),
-		paramstypes.NewParamSetPair(KeyUnstakeFeeRate, &p.UnstakeFeeRate, validateUnstakeFeeRate),
-		paramstypes.NewParamSetPair(KeyStakeFeeRate, &p.StakeFeeRate, validateStakeFeeRate),
-		paramstypes.NewParamSetPair(KeyRestakeFeeRate, &p.RestakeFeeRate, validateRestakeFeeRate),
-		paramstypes.NewParamSetPair(KeyRedemptionFeeRate, &p.RedemptionFeeRate, validateRedemptionFeeRate),
-		paramstypes.NewParamSetPair(KeyMinLiquidStakingAmount, &p.MinLiquidStakingAmount, validateMinLiquidStakingAmount),
-		paramstypes.NewParamSetPair(KeyAdminAddress, &p.AdminAddress, validateAdminAddress),
-		paramstypes.NewParamSetPair(KeyFeeAddress, &p.FeeAddress, validateFeeAddress),
+		AdminAddress:           DefaultAdminAddress.String(),
+		FeeAddress:             DefaultFeeAddress.String(),
 	}
 }
 

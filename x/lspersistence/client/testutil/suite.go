@@ -1,7 +1,6 @@
 package testutil
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -11,14 +10,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
-	"github.com/cosmos/cosmos-sdk/testutil"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	paramscutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	stakingcli "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 	"github.com/stretchr/testify/suite"
 
@@ -147,36 +144,13 @@ func (s *IntegrationTestSuite) TestLiquidStaking() {
 			TargetWeight:     sdk.NewInt(10),
 		},
 	}
-	whitelistStr, err := json.Marshal(&whitelist)
-	if err != nil {
-		panic(err)
-	}
 
-	paramChange := paramscutils.ParamChangeProposalJSON{
-		Title:       "test",
-		Description: "test",
-		Changes: []paramscutils.ParamChangeJSON{{
-			Subspace: types.ModuleName,
-			Key:      string(types.KeyWhitelistedValidators),
-			Value:    whitelistStr,
-		},
-		},
-		Deposit: sdk.NewCoin(s.cfg.BondDenom, govtypes.DefaultMinDepositTokens).String(),
-	}
-	paramChangeProp, err := json.Marshal(&paramChange)
-	if err != nil {
-		panic(err)
-	}
+	oldparams := types.DefaultParams()
+	oldparams.WhitelistedValidators = whitelist
 
-	//create a proposal with deposit
-	_, err = MsgParamChangeProposalExec(
-		vals[0].ClientCtx,
-		vals[0].Address.String(),
-		testutil.WriteToNewTempFile(s.T(), string(paramChangeProp)).Name(),
-	)
+	_, err = MsgUpdateParamsExec(clientCtx, oldparams, types.DefaultAdminAddress.String())
 	s.Require().NoError(err)
-	_, err = MsgVote(vals[0].ClientCtx, vals[0].Address.String(), "1", "yes")
-	s.Require().NoError(err)
+
 	err = s.network.WaitForNextBlock()
 	s.Require().NoError(err)
 
