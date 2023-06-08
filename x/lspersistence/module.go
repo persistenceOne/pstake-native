@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
-
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -172,11 +170,6 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 // simulate governance proposals.
 func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent { //nolint:staticcheck
 	return simulation.ProposalContents(am.accountKeeper, am.bankKeeper, am.stakingKeeper, am.keeper)
-}
-
-// RandomizedParams creates randomized liquidstaking param changes for the simulator.
-func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.LegacyParamChange {
-	return simulation.ParamChanges(r)
 }
 
 // RegisterStoreDecoder registers a decoder for liquidstaking module's types

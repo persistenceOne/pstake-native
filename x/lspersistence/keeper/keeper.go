@@ -7,16 +7,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 // Keeper of the liquidstaking store
 type Keeper struct {
-	storeKey   storetypes.StoreKey
-	cdc        codec.BinaryCodec
-	paramSpace paramtypes.Subspace
+	storeKey storetypes.StoreKey
+	cdc      codec.BinaryCodec
 
 	accountKeeper  types.AccountKeeper
 	bankKeeper     types.BankKeeper
@@ -31,24 +29,18 @@ type Keeper struct {
 // - creating new ModuleAccounts for each pool ReserveAccount
 // - sending to and from ModuleAccounts
 // - minting, burning PoolCoins
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
-	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, stakingKeeper types.StakingKeeper,
-	distrKeeper types.DistrKeeper, slashingKeeper types.SlashingKeeper, authority string,
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, accountKeeper types.AccountKeeper,
+	bankKeeper types.BankKeeper, stakingKeeper types.StakingKeeper, distrKeeper types.DistrKeeper,
+	slashingKeeper types.SlashingKeeper, authority string,
 ) Keeper {
 	// ensure liquidstaking module account is set
 	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 
-	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	return Keeper{
 		storeKey:       key,
 		cdc:            cdc,
-		paramSpace:     paramSpace,
 		accountKeeper:  accountKeeper,
 		bankKeeper:     bankKeeper,
 		stakingKeeper:  stakingKeeper,
@@ -63,15 +55,28 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
 
-// GetParams gets the parameters for the liquidstaking module.
-func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	k.paramSpace.GetParamSet(ctx, &params)
-	return params
+// SetParams sets the auth module's parameters.
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
+	if err := params.Validate(); err != nil {
+		return err
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set(types.ParamsKey, bz)
+
+	return nil
 }
 
-// SetParams sets the parameters for the liquidstaking module.
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramSpace.SetParamSet(ctx, &params)
+// GetParams gets the auth module's parameters.
+func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ParamsKey)
+	if bz == nil {
+		return params
+	}
+	k.cdc.MustUnmarshal(bz, &params)
+	return params
 }
 
 // GetCodec return codec.Codec object used by the keeper

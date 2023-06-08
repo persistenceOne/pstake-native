@@ -11,9 +11,8 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
-func (k Keeper) LiquidBondDenom(ctx sdk.Context) (res string) {
-	k.paramSpace.Get(ctx, types.KeyLiquidBondDenom, &res)
-	return
+func (k Keeper) LiquidBondDenom(ctx sdk.Context) string {
+	return k.GetParams(ctx).LiquidBondDenom
 }
 
 // GetNetAmountState calculates the sum of bondedDenom balance, total delegation tokens(slash applied LiquidTokens), total remaining reward of types.LiquidStakingProxyAcc

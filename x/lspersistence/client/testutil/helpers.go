@@ -1,7 +1,10 @@
 package testutil
 
 import (
+	"encoding/json"
 	"fmt"
+	lspersistencetypes "github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
+	"os"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -74,4 +77,25 @@ func MsgLiquidUnstakeExec(clientCtx client.Context, from string, unstakingCoin s
 
 	args = append(args, commonArgs...)
 	return clitestutil.ExecTestCLICmd(clientCtx, cli.NewLiquidUnstakeCmd(), args)
+}
+
+// MsgUpdateParamsExec creates a transaction for udpating params.
+func MsgUpdateParamsExec(clientCtx client.Context, params lspersistencetypes.Params, from string) (testutil.BufferWriter, error) {
+
+	bz, err := json.Marshal(params)
+	if err != nil {
+		return nil, err
+	}
+	err = os.WriteFile("updateParams.json", bz, 0777)
+	if err != nil {
+		return nil, err
+	}
+
+	args := append([]string{
+		"updateParams.json",
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
+	}, commonArgs...)
+
+	args = append(args, commonArgs...)
+	return clitestutil.ExecTestCLICmd(clientCtx, cli.NewUpdateParamsCmd(), args)
 }

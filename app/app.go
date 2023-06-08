@@ -438,8 +438,8 @@ func NewpStakeApp(
 	)
 
 	app.LSPersistenceKeeper = lspersistencekeeper.NewKeeper(appCodec, keys[lspersistencetypes.StoreKey],
-		app.GetSubspace(lspersistencetypes.ModuleName), app.AccountKeeper, app.BankKeeper,
-		app.StakingKeeper, app.DistrKeeper, app.SlashingKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.DistrKeeper, app.SlashingKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
@@ -1009,7 +1009,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(lscosmostypes.ModuleName)
 	paramsKeeper.Subspace(interchainquerytypes.ModuleName)
 	paramsKeeper.Subspace(liquidstakeibctypes.ModuleName)
-	paramsKeeper.Subspace(lspersistencetypes.ModuleName)
 
 	return paramsKeeper
 }

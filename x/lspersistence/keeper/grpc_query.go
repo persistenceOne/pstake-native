@@ -21,8 +21,7 @@ var _ types.QueryServer = Querier{}
 // Params queries the parameters of the liquidstaking module.
 func (k Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	var params types.Params
-	k.paramSpace.GetParamSet(ctx, &params)
+	params := k.GetParams(ctx)
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 
