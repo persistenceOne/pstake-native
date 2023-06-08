@@ -24,4 +24,7 @@ message GenesisState {
 
   // initial user unbondings
   repeated UserUnbonding user_unbondings = 5;
+
+  // validator unbondings
+  repeated ValidatorUnbonding validator_unbondings = 6;
 }

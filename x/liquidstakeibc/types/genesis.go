@@ -2,14 +2,11 @@ package types
 
 import (
 	"fmt"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 // Validate performs basic validation of supply genesis data returning an
 // error for any failed validation criteria.
-func (gs GenesisState) Validate() error {
+func (gs *GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
@@ -18,82 +15,97 @@ func (gs GenesisState) Validate() error {
 	for _, hc := range gs.HostChains {
 		if _, ok := hostChainMap[hc.ChainId]; ok {
 			return fmt.Errorf("duplicated host chain: %s", hc.ChainId)
+		} else {
+			hostChainMap[hc.ChainId] = *hc
 		}
-		if hc.Params.DepositFee.LT(sdk.ZeroDec()) {
-			return fmt.Errorf("host chain %s has negative deposit fee", hc.ChainId)
-		}
-		if hc.Params.RestakeFee.LT(sdk.ZeroDec()) {
-			return fmt.Errorf("host chain %s has negative restake fee", hc.ChainId)
-		}
-		if hc.Params.RedemptionFee.LT(sdk.ZeroDec()) {
-			return fmt.Errorf("host chain %s has negative redemption fee", hc.ChainId)
-		}
-		if hc.Params.UnstakeFee.LT(sdk.ZeroDec()) {
-			return fmt.Errorf("host chain %s has negative unstake fee", hc.ChainId)
-		}
-
-		if hc.MinimumDeposit.LT(sdk.ZeroInt()) {
-			return fmt.Errorf("host chain %s has negative minimum deposit", hc.ChainId)
-		}
-		if hc.CValue.LT(sdk.ZeroDec()) || hc.CValue.GT(sdk.OneDec()) {
-			return fmt.Errorf("host chain %s has c value out of bounds: %d", hc.ChainId, hc.CValue)
-		}
-
-		for _, validator := range hc.Validators {
-			if validator.Status != stakingtypes.Unspecified.String() &&
-				validator.Status != stakingtypes.Unbonded.String() &&
-				validator.Status != stakingtypes.Unbonding.String() &&
-				validator.Status != stakingtypes.Bonded.String() {
-				return fmt.Errorf(
-					"host chain %s validator %s has an invalid status: %s",
-					hc.ChainId,
-					validator.OperatorAddress,
-					validator.Status,
-				)
-			}
-
-			if validator.Weight.LT(sdk.ZeroDec()) || validator.Weight.GT(sdk.OneDec()) {
-				return fmt.Errorf(
-					"host chain %s validator %s has weight out of bounds: %d",
-					hc.ChainId,
-					validator.OperatorAddress,
-					validator.Weight)
-			}
-
-			if validator.DelegatedAmount.LT(sdk.ZeroInt()) {
-				return fmt.Errorf(
-					"host chain %s validator %s has negative delegated amount: %s",
-					hc.ChainId,
-					validator.OperatorAddress,
-					validator.DelegatedAmount.String(),
-				)
-			}
+		if err := hc.Validate(); err != nil {
+			return err
 		}
 	}
 
 	for _, deposit := range gs.Deposits {
-		if deposit.State != Deposit_DEPOSIT_PENDING &&
-			deposit.State != Deposit_DEPOSIT_RECEIVED &&
-			deposit.State != Deposit_DEPOSIT_DELEGATING {
-			return fmt.Errorf(
-				"host chain %s deposit has an invalid state: %s",
-				deposit.ChainId,
-				deposit.State,
-			)
+		if err := deposit.Validate(); err != nil {
+			return err
 		}
-		if deposit.Amount.Amount.LT(sdk.ZeroInt()) {
-			return fmt.Errorf("deposit for chain %s has negative amount", deposit.ChainId)
-		}
-		if _, ok := hostChainMap[deposit.ChainId]; !ok {
+		hc, ok := hostChainMap[deposit.ChainId]
+		if !ok {
 			return fmt.Errorf("deposit for chain %s doesnt have a valid chain id", deposit.ChainId)
 		}
-		if hc, _ := hostChainMap[deposit.ChainId]; hc.HostDenom != deposit.Amount.Denom { //nolint:gosimple
+		if hc.HostDenom != deposit.Amount.Denom { //nolint:gosimple
 			return fmt.Errorf(
 				"deposit for chain %s doesnt have the correct host chain denom: %s, should be %s",
 				deposit.ChainId,
 				deposit.Amount.Denom,
 				hc.HostDenom,
 			)
+		}
+	}
+	for _, unbonding := range gs.Unbondings {
+		hc, ok := hostChainMap[unbonding.ChainId]
+		if !ok {
+			return fmt.Errorf("unbonding for chain %s doesnt have a valid chain id", unbonding.ChainId)
+		}
+		if hc.MintDenom() == unbonding.BurnAmount.Denom {
+			return fmt.Errorf(
+				"unbonding for chain %s doesnt have the correct burn amount denom: %s, should be %s",
+				hc.ChainId,
+				unbonding.BurnAmount.Denom,
+				hc.MintDenom(),
+			)
+		}
+		if hc.HostDenom == unbonding.UnbondAmount.Denom {
+			return fmt.Errorf(
+				"unbonding for chain %s doesnt have the correct host chain denom: %s, should be %s",
+				hc.ChainId,
+				unbonding.UnbondAmount.Denom,
+				hc.HostDenom,
+			)
+		}
+		if err := unbonding.Validate(); err != nil {
+			return err
+		}
+	}
+	for _, userUnbonding := range gs.UserUnbondings {
+		hc, ok := hostChainMap[userUnbonding.ChainId]
+		if !ok {
+			return fmt.Errorf("user unbonding for chain %s doesnt have a valid chain id", userUnbonding.ChainId)
+		}
+		if hc.MintDenom() == userUnbonding.StkAmount.Denom {
+			return fmt.Errorf(
+				"user unbonding for chain %s doesnt have the correct mint amount denom: %s, should be %s",
+				hc.ChainId,
+				userUnbonding.StkAmount.Denom,
+				hc.MintDenom(),
+			)
+		}
+		if hc.HostDenom == userUnbonding.UnbondAmount.Denom {
+			return fmt.Errorf(
+				"user unbonding for chain %s doesnt have the correct host chain denom: %s, should be %s",
+				hc.ChainId,
+				userUnbonding.UnbondAmount.Denom,
+				hc.HostDenom,
+			)
+		}
+		if err := userUnbonding.Validate(); err != nil {
+			return err
+		}
+	}
+	for _, valUnbonding := range gs.ValidatorUnbondings {
+		hc, ok := hostChainMap[valUnbonding.ChainId]
+		if !ok {
+			return fmt.Errorf("validator unbonding for chain %s doesnt have a valid chain id", valUnbonding.ChainId)
+		}
+		if hc.HostDenom == valUnbonding.Amount.Denom {
+			return fmt.Errorf(
+				"validator unbonding for chain %s doesnt have the correct host chain denom: %s, should be %s",
+				hc.ChainId,
+				valUnbonding.Amount.Denom,
+				hc.HostDenom,
+			)
+		}
+
+		if err := valUnbonding.Validate(); err != nil {
+			return err
 		}
 	}
 
@@ -103,8 +115,11 @@ func (gs GenesisState) Validate() error {
 // DefaultGenesisState returns a default liquidstakeibc module genesis state.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params:     DefaultParams(),
-		HostChains: []*HostChain{},
-		Deposits:   []*Deposit{},
+		Params:              DefaultParams(),
+		HostChains:          []*HostChain{},
+		Deposits:            []*Deposit{},
+		Unbondings:          []*Unbonding{},
+		UserUnbondings:      []*UserUnbonding{},
+		ValidatorUnbondings: []*ValidatorUnbonding{},
 	}
 }

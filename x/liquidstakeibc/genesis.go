@@ -19,6 +19,16 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState *types.GenesisState)
 		k.SetDeposit(ctx, deposit)
 	}
 
+	for _, unbonding := range genState.Unbondings {
+		k.SetUnbonding(ctx, unbonding)
+	}
+	for _, userUnbonding := range genState.UserUnbondings {
+		k.SetUserUnbonding(ctx, userUnbonding)
+	}
+	for _, valUnbonding := range genState.ValidatorUnbondings {
+		k.SetValidatorUnbonding(ctx, valUnbonding)
+	}
+
 	k.GetDepositModuleAccount(ctx)
 	k.GetUndelegationModuleAccount(ctx)
 }
@@ -27,8 +37,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState *types.GenesisState)
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 
 	return &types.GenesisState{
-		Params:     k.GetParams(ctx),
-		HostChains: k.GetAllHostChains(ctx),
-		Deposits:   k.GetAllDeposits(ctx),
+		Params:              k.GetParams(ctx),
+		HostChains:          k.GetAllHostChains(ctx),
+		Deposits:            k.GetAllDeposits(ctx),
+		Unbondings:          k.FilterUnbondings(ctx, func(u types.Unbonding) bool { return true }),         //GetAll
+		UserUnbondings:      k.FilterUserUnbondings(ctx, func(u types.UserUnbonding) bool { return true }), //GetAll
+		ValidatorUnbondings: k.FilterValidatorUnbondings(ctx, func(u types.ValidatorUnbonding) bool { return true }),
 	}
 }
