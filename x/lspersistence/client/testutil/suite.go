@@ -149,6 +149,8 @@ func (s *IntegrationTestSuite) TestLiquidStaking() {
 	oldparams.WhitelistedValidators = whitelist
 
 	_, err = MsgUpdateParamsExec(clientCtx, oldparams, types.DefaultAdminAddress.String())
+	s.Require().NoError(err)
+
 	err = s.network.WaitForNextBlock()
 	s.Require().NoError(err)
 

@@ -3,7 +3,6 @@ package testutil
 import (
 	"encoding/json"
 	"fmt"
-	lspersistencetypes "github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -15,6 +14,7 @@ import (
 	paramscli "github.com/cosmos/cosmos-sdk/x/params/client/cli"
 
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/client/cli"
+	lspersistencetypes "github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 var commonArgs = []string{
@@ -86,7 +86,7 @@ func MsgUpdateParamsExec(clientCtx client.Context, params lspersistencetypes.Par
 	if err != nil {
 		return nil, err
 	}
-	err = os.WriteFile("updateParams.json", bz, 0777)
+	err = os.WriteFile("updateParams.json", bz, 0600)
 	if err != nil {
 		return nil, err
 	}
