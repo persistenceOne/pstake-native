@@ -15,9 +15,9 @@ func (gs *GenesisState) Validate() error {
 	for _, hc := range gs.HostChains {
 		if _, ok := hostChainMap[hc.ChainId]; ok {
 			return fmt.Errorf("duplicated host chain: %s", hc.ChainId)
-		} else {
-			hostChainMap[hc.ChainId] = *hc
 		}
+		hostChainMap[hc.ChainId] = *hc
+
 		if err := hc.Validate(); err != nil {
 			return err
 		}
@@ -31,7 +31,7 @@ func (gs *GenesisState) Validate() error {
 		if !ok {
 			return fmt.Errorf("deposit for chain %s doesnt have a valid chain id", deposit.ChainId)
 		}
-		if hc.HostDenom != deposit.Amount.Denom { //nolint:gosimple
+		if hc.HostDenom != deposit.Amount.Denom {
 			return fmt.Errorf(
 				"deposit for chain %s doesnt have the correct host chain denom: %s, should be %s",
 				deposit.ChainId,
