@@ -7,13 +7,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	"github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 func TestParams(t *testing.T) {
-	require.IsType(t, paramstypes.KeyTable{}, types.ParamKeyTable())
 
 	params := types.DefaultParams()
 

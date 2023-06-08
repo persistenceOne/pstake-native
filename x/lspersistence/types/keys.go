@@ -21,6 +21,7 @@ const (
 
 var (
 	// Keys for store prefixes
+	ParamsKey           = []byte{0x00}
 	LiquidValidatorsKey = []byte{0xc0} // prefix for each key to a liquid validator
 )
 
