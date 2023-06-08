@@ -2,8 +2,9 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 	icqtypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
 
@@ -68,19 +69,20 @@ func DelegationCallback(k Keeper, ctx sdk.Context, response []byte, query icqtyp
 
 // HandleRewardsAccountBalanceCallback generates and executes rewards account balance query
 func (k Keeper) HandleRewardsAccountBalanceCallback(ctx sdk.Context, response []byte, _ icqtypes.Query) error {
-	resp := banktypes.QueryBalanceResponse{}
-	err := k.cdc.Unmarshal(response, &resp)
+	hostChainParams := k.GetHostChainParams(ctx)
+
+	resp, err := bankkeeper.UnmarshalBalanceCompat(k.cdc, response, hostChainParams.BaseDenom)
 	if err != nil {
 		return err
 	}
-	k.Logger(ctx).Info("Callback for Rewards account balance", "Balances", resp.GetBalance())
 
-	if resp.Balance.Amount.Equal(sdk.ZeroInt()) {
+	k.Logger(ctx).Info("Callback for Rewards account balance", "Balances", resp)
+
+	if resp.Amount.Equal(sdk.ZeroInt()) {
 		k.Logger(ctx).Info("No amount in rewards account to restake - noop.")
 		return nil
 	}
 
-	hostChainParams := k.GetHostChainParams(ctx)
 	delegationState := k.GetDelegationState(ctx)
 	rewardsAddress := k.GetHostChainRewardAddress(ctx)
 	hostAccounts := k.GetHostAccounts(ctx)
@@ -91,8 +93,8 @@ func (k Keeper) HandleRewardsAccountBalanceCallback(ctx sdk.Context, response []
 
 	atomTVU := sdk.NewDecFromInt(stkAssetSupply.Amount).Quo(cValue)
 	atomTVUCap := atomTVU.Mul(types.RestakeCapPerDay).TruncateInt()
-	sendCoinAmt := resp.Balance.Amount
-	if resp.Balance.Amount.GT(atomTVUCap) {
+	sendCoinAmt := resp.Amount
+	if resp.Amount.GT(atomTVUCap) {
 		sendCoinAmt = atomTVUCap
 	}
 
@@ -100,43 +102,14 @@ func (k Keeper) HandleRewardsAccountBalanceCallback(ctx sdk.Context, response []
 	msg := &banktypes.MsgSend{
 		FromAddress: rewardsAddress.Address,
 		ToAddress:   delegationState.HostChainDelegationAddress,
-		Amount:      sdk.NewCoins(sdk.NewCoin(resp.Balance.Denom, sendCoinAmt)),
+		Amount:      sdk.NewCoins(sdk.NewCoin(resp.Denom, sendCoinAmt)),
 	}
 	return k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID, []proto.Message{msg})
 }
 
 // HandleDelegationCallback generates and executes delegation query
-func (k Keeper) HandleDelegationCallback(ctx sdk.Context, response []byte, _ icqtypes.Query) error {
-	resp := stakingtypes.QueryDelegationResponse{}
-	err := k.cdc.Unmarshal(response, &resp)
-	if err != nil {
-		return err
-	}
-	k.Logger(ctx).Info("Callback for Validator Delegation", "Response: ", resp.GetDelegationResponse())
-
-	//check ack sequences for ica accs, return error for the callback, so it can be retried.
-	pending, err := k.CheckPendingICATxs(ctx)
-	if pending {
-		return err
-	}
-
-	existingDelegation := k.GetHostAccountDelegation(ctx, resp.GetDelegationResponse().Delegation.ValidatorAddress)
-	if resp.GetDelegationResponse().GetBalance().IsLT(existingDelegation.Amount) {
-		//log slashing
-		k.Logger(ctx).Info("Received delegation less than delegation-state ",
-			"validator:", resp.GetDelegationResponse().Delegation.ValidatorAddress,
-			"delegationState:", existingDelegation.Amount,
-			"hostDelegation:", resp.GetDelegationResponse().Balance)
-		// emit event slashing fixed
-		ctx.EventManager().EmitEvents(sdk.Events{
-			sdk.NewEvent(
-				types.EventTypePerformSlashing,
-				sdk.NewAttribute(types.AttributeValidatorAddress, resp.GetDelegationResponse().Delegation.ValidatorAddress),
-				sdk.NewAttribute(types.AttributeExistingDelegation, existingDelegation.Amount.String()),
-				sdk.NewAttribute(types.AttributeUpdatedDelegation, resp.GetDelegationResponse().Balance.String()),
-				sdk.NewAttribute(types.AttributeSlashedAmount, existingDelegation.Amount.Sub(resp.GetDelegationResponse().Balance).String()),
-			)})
-		k.ForceUpdateHostAccountDelegation(ctx, types.NewHostAccountDelegation(resp.GetDelegationResponse().Delegation.ValidatorAddress, resp.GetDelegationResponse().GetBalance()))
-	}
-	return nil
+func (k Keeper) HandleDelegationCallback(ctx sdk.Context, _ []byte, _ icqtypes.Query) error {
+	// TODO support this for slashing
+	// Cannot support till kvstore has information about shares/ total valdiator shares <-> amount exchange.
+	return sdkerrors.ErrNotSupported.Wrapf("Delegation queries are not supported in lscosmos.")
 }
