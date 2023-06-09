@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -34,30 +37,77 @@ func (k *Keeper) QueryHostChainValidators(
 	return nil
 }
 
-// QueryHostChainAccountBalance sends an ICQ query to get a host account balance
-func (k *Keeper) QueryHostChainAccountBalance(
+//// QueryHostChainValidators sends an ICQ query to retrieve the host chain validator set
+//func (k *Keeper) QueryHostChainValidators(
+//	ctx sdk.Context,
+//	hc *types.HostChain,
+//	req stakingtypes.QueryValidatorsRequest,
+//) error {
+//	k.icqKeeper.MakeRequest(
+//		ctx,
+//		hc.ConnectionId,
+//		hc.ChainId,
+//		types.StakingStoreQuery,
+//		stakingtypes.ValidatorsKey,
+//		sdk.NewInt(int64(-1)),
+//		types.ModuleName,
+//		ValidatorSet,
+//		0,
+//	)
+//
+//	return nil
+//}
+
+// QueryDelegationHostChainAccountBalance sends an ICQ query to get the delegation host account balance
+func (k *Keeper) QueryDelegationHostChainAccountBalance(
 	ctx sdk.Context,
 	hc *types.HostChain,
-	address string,
 ) error {
-	balanceQuery := banktypes.QueryBalanceRequest{
-		Address: address,
-		Denom:   hc.HostDenom,
-	}
-	bz, err := k.cdc.Marshal(&balanceQuery)
+	_, byteAddress, err := bech32.DecodeAndConvert(hc.DelegationAccount.Address)
 	if err != nil {
 		return err
 	}
+
+	key := banktypes.CreatePrefixedAccountStoreKey(byteAddress, []byte(hc.HostDenom))
+	fmt.Println(key)
 
 	k.icqKeeper.MakeRequest(
 		ctx,
 		hc.ConnectionId,
 		hc.ChainId,
-		"cosmos.bank.v1beta1.Query/Balance",
-		bz,
+		types.BankStoreQuery,
+		key,
 		sdk.NewInt(int64(-1)),
 		types.ModuleName,
-		Balances,
+		DelegationAccountBalances,
+		0,
+	)
+
+	return nil
+}
+
+// QueryRewardsHostChainAccountBalance sends an ICQ query to get the rewards host account balance
+func (k *Keeper) QueryRewardsHostChainAccountBalance(
+	ctx sdk.Context,
+	hc *types.HostChain,
+) error {
+	_, byteAddress, err := bech32.DecodeAndConvert(hc.RewardsAccount.Address)
+	if err != nil {
+		return err
+	}
+
+	key := banktypes.CreatePrefixedAccountStoreKey(byteAddress, []byte(hc.HostDenom))
+	fmt.Println(key)
+
+	k.icqKeeper.MakeRequest(
+		ctx,
+		hc.ConnectionId,
+		hc.ChainId,
+		types.BankStoreQuery,
+		key,
+		sdk.NewInt(int64(-1)),
+		types.ModuleName,
+		RewardAccountBalances,
 		0,
 	)
 
@@ -93,3 +143,34 @@ func (k *Keeper) QueryValidatorDelegation(
 
 	return nil
 }
+
+//// QueryValidatorDelegation sends an ICQ query to get a validator delegation
+//func (k *Keeper) QueryValidatorDelegation(
+//	ctx sdk.Context,
+//	hc *types.HostChain,
+//	validator *types.Validator,
+//) error {
+//	_, delegatorAddr, err := bech32.DecodeAndConvert(hc.DelegationAccount.Address)
+//	if err != nil {
+//		return err
+//	}
+//
+//	_, validatorAddr, err := bech32.DecodeAndConvert(validator.OperatorAddress)
+//	if err != nil {
+//		return err
+//	}
+//
+//	k.icqKeeper.MakeRequest(
+//		ctx,
+//		hc.ConnectionId,
+//		hc.ChainId,
+//		types.StakingStoreQuery,
+//		stakingtypes.GetDelegationKey(delegatorAddr, validatorAddr),
+//		sdk.NewInt(int64(-1)),
+//		types.ModuleName,
+//		Delegation,
+//		0,
+//	)
+//
+//	return nil
+//}
