@@ -37,27 +37,6 @@ func (k *Keeper) QueryHostChainValidators(
 	return nil
 }
 
-//// QueryHostChainValidators sends an ICQ query to retrieve the host chain validator set
-//func (k *Keeper) QueryHostChainValidators(
-//	ctx sdk.Context,
-//	hc *types.HostChain,
-//	req stakingtypes.QueryValidatorsRequest,
-//) error {
-//	k.icqKeeper.MakeRequest(
-//		ctx,
-//		hc.ConnectionId,
-//		hc.ChainId,
-//		types.StakingStoreQuery,
-//		stakingtypes.ValidatorsKey,
-//		sdk.NewInt(int64(-1)),
-//		types.ModuleName,
-//		ValidatorSet,
-//		0,
-//	)
-//
-//	return nil
-//}
-
 // QueryDelegationHostChainAccountBalance sends an ICQ query to get the delegation host account balance
 func (k *Keeper) QueryDelegationHostChainAccountBalance(
 	ctx sdk.Context,
