@@ -58,6 +58,7 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 					Weight:          sdk.ZeroDec(),
 					DelegatedAmount: sdk.ZeroInt(),
 					TotalAmount:     validator.Tokens,
+					DelegatorShares: validator.DelegatorShares,
 				},
 			)
 			k.SetHostChain(ctx, hc)
@@ -74,6 +75,10 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 				}
 
 				val.Status = validator.Status.String()
+				k.SetHostChainValidator(ctx, hc, val)
+			}
+			if !validator.DelegatorShares.Equal(val.DelegatorShares) {
+				val.DelegatorShares = validator.DelegatorShares
 				k.SetHostChainValidator(ctx, hc, val)
 			}
 			if !validator.Tokens.Equal(val.TotalAmount) {

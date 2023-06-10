@@ -120,11 +120,12 @@ func (k *Keeper) QueryValidatorDelegation(
 	hc *types.HostChain,
 	validator *types.Validator,
 ) error {
-	delegationRequest := stakingtypes.QueryDelegationRequest{
-		DelegatorAddr: hc.DelegationAccount.Address,
-		ValidatorAddr: validator.OperatorAddress,
+	_, delegatorAddr, err := bech32.DecodeAndConvert(hc.DelegationAccount.Address)
+	if err != nil {
+		return err
 	}
-	bz, err := k.cdc.Marshal(&delegationRequest)
+
+	_, validatorAddr, err := bech32.DecodeAndConvert(validator.OperatorAddress)
 	if err != nil {
 		return err
 	}
@@ -133,8 +134,8 @@ func (k *Keeper) QueryValidatorDelegation(
 		ctx,
 		hc.ConnectionId,
 		hc.ChainId,
-		"cosmos.staking.v1beta1.Query/Delegation",
-		bz,
+		types.StakingStoreQuery,
+		stakingtypes.GetDelegationKey(delegatorAddr, validatorAddr),
 		sdk.NewInt(int64(-1)),
 		types.ModuleName,
 		Delegation,
@@ -143,34 +144,3 @@ func (k *Keeper) QueryValidatorDelegation(
 
 	return nil
 }
-
-//// QueryValidatorDelegation sends an ICQ query to get a validator delegation
-//func (k *Keeper) QueryValidatorDelegation(
-//	ctx sdk.Context,
-//	hc *types.HostChain,
-//	validator *types.Validator,
-//) error {
-//	_, delegatorAddr, err := bech32.DecodeAndConvert(hc.DelegationAccount.Address)
-//	if err != nil {
-//		return err
-//	}
-//
-//	_, validatorAddr, err := bech32.DecodeAndConvert(validator.OperatorAddress)
-//	if err != nil {
-//		return err
-//	}
-//
-//	k.icqKeeper.MakeRequest(
-//		ctx,
-//		hc.ConnectionId,
-//		hc.ChainId,
-//		types.StakingStoreQuery,
-//		stakingtypes.GetDelegationKey(delegatorAddr, validatorAddr),
-//		sdk.NewInt(int64(-1)),
-//		types.ModuleName,
-//		Delegation,
-//		0,
-//	)
-//
-//	return nil
-//}
