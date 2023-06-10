@@ -95,12 +95,6 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 		return fmt.Errorf("host chain with id %s is not registered", query.ChainId)
 	}
 
-	//response := stakingtypes.QueryDelegationResponse{}
-	//err := k.cdc.Unmarshal(data, &response)
-	//if err != nil {
-	//	return fmt.Errorf("could not unmarshall ICQ delegation response: %w", err)
-	//}
-
 	delegation, err := stakingtypes.UnmarshalDelegation(k.cdc, data)
 	if err != nil {
 		return fmt.Errorf("could not unmarshall ICQ delegation response: %w", err)
