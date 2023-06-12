@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (v *Validator) SharesToTokens(shares sdk.Dec) sdk.Int {
+func (v *Validator) SharesToTokens(shares sdk.Dec) sdk.Int { //nolint:staticcheck
 	if v.DelegatorShares.IsZero() {
 		return sdk.ZeroInt()
 	}
