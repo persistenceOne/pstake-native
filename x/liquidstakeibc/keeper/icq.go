@@ -94,7 +94,7 @@ func ValidatorSetCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes
 		// if it is a new validator or any of the attributes we track has changed, query for it
 		if !found || val != nil && (validator.Status.String() != val.Status ||
 			!validator.DelegatorShares.Equal(val.DelegatorShares) || !validator.Tokens.Equal(val.TotalAmount)) {
-			if err := k.QueryHostChainValidator(ctx, hc, val.OperatorAddress); err != nil {
+			if err := k.QueryHostChainValidator(ctx, hc, validator.OperatorAddress); err != nil {
 				return errorsmod.Wrapf(types.ErrFailedICQRequest, "error querying for validator: %s", err.Error())
 			}
 		}
