@@ -1,11 +1,10 @@
 package types
 
 import (
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (v *Validator) SharesToTokens(shares sdk.Dec) math.Int {
+func (v *Validator) SharesToTokens(shares sdk.Dec) sdk.Int {
 	if v.DelegatorShares.IsZero() {
 		return sdk.ZeroInt()
 	}

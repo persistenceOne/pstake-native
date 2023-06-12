@@ -16,6 +16,7 @@ import (
 
 const (
 	ValidatorSet              = "validatorset"
+	Validator                 = "validator"
 	RewardAccountBalances     = "reward-balances"
 	DelegationAccountBalances = "delegation-balances"
 	Delegation                = "validator-delegation"
@@ -50,6 +51,7 @@ func (c Callbacks) Has(id string) bool {
 func (c Callbacks) RegisterCallbacks() icqtypes.QueryCallbacks {
 	a := c.
 		AddCallback(ValidatorSet, CallbackFn(ValidatorSetCallback)).
+		AddCallback(Validator, CallbackFn(ValidatorCallback)).
 		AddCallback(RewardAccountBalances, CallbackFn(RewardsAccountBalanceCallback)).
 		AddCallback(DelegationAccountBalances, CallbackFn(DelegationAccountBalanceCallback)).
 		AddCallback(Delegation, CallbackFn(DelegationCallback))
@@ -86,7 +88,33 @@ func ValidatorSetCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes
 		}
 	}
 
-	return k.ProcessHostChainValidatorUpdates(ctx, hc, response.Validators)
+	for _, validator := range response.Validators {
+		val, found := hc.GetValidator(validator.OperatorAddress)
+
+		// if it is a new validator or any of the attributes we track has changed, query for it
+		if !found || val != nil && (validator.Status.String() != val.Status ||
+			!validator.DelegatorShares.Equal(val.DelegatorShares) || !validator.Tokens.Equal(val.TotalAmount)) {
+			if err := k.QueryHostChainValidator(ctx, hc, val.OperatorAddress); err != nil {
+				return errorsmod.Wrapf(types.ErrFailedICQRequest, "error querying for validator: %s", err.Error())
+			}
+		}
+	}
+
+	return nil
+}
+
+func ValidatorCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
+	hc, found := k.GetHostChain(ctx, query.ChainId)
+	if !found {
+		return fmt.Errorf("host chain with id %s is not registered", query.ChainId)
+	}
+
+	validator, err := stakingtypes.UnmarshalValidator(k.cdc, data)
+	if err != nil {
+		return fmt.Errorf("could not unmarshall ICQ validator response: %w", err)
+	}
+
+	return k.ProcessHostChainValidatorUpdates(ctx, hc, validator)
 }
 
 func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {

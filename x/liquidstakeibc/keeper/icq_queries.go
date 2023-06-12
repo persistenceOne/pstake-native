@@ -37,6 +37,33 @@ func (k *Keeper) QueryHostChainValidators(
 	return nil
 }
 
+// QueryHostChainValidator sends an ICQ query to retrieve a specific host chain validator
+func (k *Keeper) QueryHostChainValidator(
+	ctx sdk.Context,
+	hc *types.HostChain,
+	validatorAddress string,
+) error {
+
+	_, byteAddress, err := bech32.DecodeAndConvert(validatorAddress)
+	if err != nil {
+		return err
+	}
+
+	k.icqKeeper.MakeRequest(
+		ctx,
+		hc.ConnectionId,
+		hc.ChainId,
+		types.StakingStoreQuery,
+		stakingtypes.GetValidatorKey(byteAddress),
+		sdk.NewInt(int64(-1)),
+		types.ModuleName,
+		Validator,
+		0,
+	)
+
+	return nil
+}
+
 // QueryDelegationHostChainAccountBalance sends an ICQ query to get the delegation host account balance
 func (k *Keeper) QueryDelegationHostChainAccountBalance(
 	ctx sdk.Context,
