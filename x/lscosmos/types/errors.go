@@ -3,7 +3,10 @@ package types
 // DONTCOVER
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
 // x/lscosmos module sentinel errors
@@ -40,4 +43,5 @@ var (
 	ErrModuleNotInitialised                  = errorsmod.Register(ModuleName, 90, "ErrModuleNotInitialised, Module was never initialised")
 	ErrModuleAlreadyInExpectedState          = errorsmod.Register(ModuleName, 91, "ModuleAlreadyInExpectedState, Module is already in expected state")
 	ErrModuleMigrationFailed                 = errorsmod.Register(ModuleName, 92, "ErrModuleMigrationFailed, Failed to migrate")
+	ErrDeprecated                            = errorsmod.Register(ModuleName, 93, fmt.Sprintf("deprecated, use %s module's apis", liquidstakeibctypes.ModuleName))
 )
