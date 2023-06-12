@@ -135,7 +135,7 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 			hc:   *hcs[0],
 			hcValidators: []*types.Validator{
 				{
-					OperatorAddress: "valoper1",
+					OperatorAddress: TestAddress,
 					Status:          stakingtypes.BondStatusBonded,
 					TotalAmount:     sdk.NewInt(100),
 					DelegatedAmount: sdk.NewInt(10),
@@ -143,9 +143,29 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 			},
 			validators: []stakingtypes.Validator{
 				{
-					OperatorAddress: "valoper1",
+					OperatorAddress: TestAddress,
 					Status:          stakingtypes.Bonded,
 					Tokens:          sdk.NewInt(80),
+				},
+			},
+		},
+		{
+			name: "UpdateShares",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: TestAddress,
+					Status:          stakingtypes.BondStatusBonded,
+					TotalAmount:     sdk.NewInt(100),
+					DelegatorShares: sdk.NewDec(1000),
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress: TestAddress,
+					Status:          stakingtypes.Bonded,
+					Tokens:          sdk.NewInt(100),
+					DelegatorShares: sdk.NewDec(800),
 				},
 			},
 		},
@@ -155,15 +175,18 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 		suite.Run(t.name, func() {
 			t.hc.Validators = t.hcValidators
 
-			err := suite.app.LiquidStakeIBCKeeper.ProcessHostChainValidatorUpdates(suite.ctx, &t.hc, t.validators)
+			for _, validator := range t.validators {
+				err := suite.app.LiquidStakeIBCKeeper.ProcessHostChainValidatorUpdates(suite.ctx, &t.hc, validator)
+				suite.Require().Equal(nil, err)
+			}
 
-			suite.Require().Equal(nil, err)
 			suite.Require().Equal(len(t.validators), len(t.hc.Validators))
 
 			for i, validator := range t.hc.Validators {
 				suite.Require().Equal(t.validators[i].OperatorAddress, validator.OperatorAddress)
 				suite.Require().Equal(t.validators[i].Status.String(), validator.Status)
 				suite.Require().Equal(t.validators[i].Tokens, validator.TotalAmount)
+				suite.Require().Equal(t.validators[i].DelegatorShares, validator.DelegatorShares)
 
 				if validator.Status == stakingtypes.BondStatusUnbonding {
 					suite.Require().Equal(types.CurrentUnbondingEpoch(hcs[0].UnbondingFactor, epoch), validator.UnbondingEpoch)

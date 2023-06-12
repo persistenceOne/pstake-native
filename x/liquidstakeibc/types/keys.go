@@ -30,6 +30,11 @@ const (
 	DelegateICAType = "delegate"
 	RewardsICAType  = "rewards"
 
+	// ICQ query types
+	// /key is required for proof generation
+	StakingStoreQuery = "store/staking/key"
+	BankStoreQuery    = "store/bank/key"
+
 	IBCTimeoutHeightIncrement uint64 = 1000
 
 	ICATimeoutTimestamp = 15 * time.Minute

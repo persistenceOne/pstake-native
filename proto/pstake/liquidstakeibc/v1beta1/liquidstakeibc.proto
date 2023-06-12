@@ -103,7 +103,7 @@ message Validator {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
-  // amount delegated by the module
+  // amount delegated by the module to the validator
   string delegated_amount = 4 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
@@ -115,8 +115,14 @@ message Validator {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  // the unbonding epoch number when the validator transistioned into the state
-  int64 unbonding_epoch = 6;
+  // total number of shares issued by the validator to its delegators
+  string delegator_shares = 6 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  // the unbonding epoch number when the validator transitioned into the state
+  int64 unbonding_epoch = 7;
 }
 
 message Deposit {
