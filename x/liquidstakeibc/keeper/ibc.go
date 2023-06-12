@@ -91,8 +91,8 @@ func (k *Keeper) OnChanOpenAck(
 	k.RevertDepositsState(ctx, k.GetDelegatingDepositsForChain(ctx, hc.ChainId))
 
 	// send an ICQ query to get the delegator account balance
-	if hc.DelegationAccount != nil {
-		if err := k.QueryHostChainAccountBalance(ctx, hc, hc.DelegationAccount.Address); err != nil {
+	if hc.DelegationAccount != nil && hc.DelegationAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATED {
+		if err := k.QueryDelegationHostChainAccountBalance(ctx, hc); err != nil {
 			return fmt.Errorf(
 				"error querying host chain %s for delegation account balances: %v",
 				hc.ChainId,

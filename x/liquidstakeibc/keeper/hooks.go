@@ -658,7 +658,7 @@ func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
 
 		if hc.RewardsAccount != nil &&
 			hc.RewardsAccount.ChannelState == liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED {
-			if err := k.QueryHostChainAccountBalance(ctx, hc, hc.RewardsAccount.Address); err != nil {
+			if err := k.QueryRewardsHostChainAccountBalance(ctx, hc); err != nil {
 				k.Logger(ctx).Error(
 					"Could not send rewards account balance ICQ",
 					"host_chain",

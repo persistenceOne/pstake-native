@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	q "github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icqtypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
 
@@ -15,9 +15,11 @@ import (
 )
 
 const (
-	ValidatorSet = "validatorset"
-	Balances     = "balances"
-	Delegation   = "validator-delegation"
+	ValidatorSet              = "validatorset"
+	Validator                 = "validator"
+	RewardAccountBalances     = "reward-balances"
+	DelegationAccountBalances = "delegation-balances"
+	Delegation                = "validator-delegation"
 )
 
 type CallbackFn func(Keeper, sdk.Context, []byte, icqtypes.Query) error
@@ -49,7 +51,9 @@ func (c Callbacks) Has(id string) bool {
 func (c Callbacks) RegisterCallbacks() icqtypes.QueryCallbacks {
 	a := c.
 		AddCallback(ValidatorSet, CallbackFn(ValidatorSetCallback)).
-		AddCallback(Balances, CallbackFn(BalancesCallback)).
+		AddCallback(Validator, CallbackFn(ValidatorCallback)).
+		AddCallback(RewardAccountBalances, CallbackFn(RewardsAccountBalanceCallback)).
+		AddCallback(DelegationAccountBalances, CallbackFn(DelegationAccountBalanceCallback)).
 		AddCallback(Delegation, CallbackFn(DelegationCallback))
 
 	return a.(Callbacks)
@@ -84,55 +88,33 @@ func ValidatorSetCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes
 		}
 	}
 
-	return k.ProcessHostChainValidatorUpdates(ctx, hc, response.Validators)
+	for _, validator := range response.Validators {
+		val, found := hc.GetValidator(validator.OperatorAddress)
+
+		// if it is a new validator or any of the attributes we track has changed, query for it
+		if !found || val != nil && (validator.Status.String() != val.Status ||
+			!validator.DelegatorShares.Equal(val.DelegatorShares) || !validator.Tokens.Equal(val.TotalAmount)) {
+			if err := k.QueryHostChainValidator(ctx, hc, validator.OperatorAddress); err != nil {
+				return errorsmod.Wrapf(types.ErrFailedICQRequest, "error querying for validator: %s", err.Error())
+			}
+		}
+	}
+
+	return nil
 }
 
-func BalancesCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
+func ValidatorCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
 	hc, found := k.GetHostChain(ctx, query.ChainId)
 	if !found {
 		return fmt.Errorf("host chain with id %s is not registered", query.ChainId)
 	}
 
-	response := banktypes.QueryBalanceResponse{}
-	err := k.cdc.Unmarshal(data, &response)
+	validator, err := stakingtypes.UnmarshalValidator(k.cdc, data)
 	if err != nil {
-		return fmt.Errorf("could not unmarshall ICQ balances response: %w", err)
+		return fmt.Errorf("could not unmarshall ICQ validator response: %w", err)
 	}
 
-	request := banktypes.QueryBalanceRequest{}
-	err = k.cdc.Unmarshal(query.Request, &request)
-	if err != nil {
-		return fmt.Errorf("could not unmarshall ICQ balances request: %w", err)
-	}
-
-	switch request.Address {
-	case hc.DelegationAccount.Address:
-		hc.DelegationAccount.Balance = *response.Balance
-	case hc.RewardsAccount.Address:
-		hc.RewardsAccount.Balance = *response.Balance
-		if !hc.RewardsAccount.Balance.IsZero() {
-			// send all the rewards account balance to the deposit account, so it can be re-staked
-			_, err = k.SendICATransfer(
-				ctx,
-				hc,
-				hc.RewardsAccount.Balance,
-				hc.RewardsAccount.Address,
-				authtypes.NewModuleAddress(types.DepositModuleAccount).String(),
-				hc.RewardsAccount.Owner,
-			)
-			if err != nil {
-				return fmt.Errorf("could not send ICA rewards transfer: %w", err)
-			}
-		}
-	default:
-		return fmt.Errorf("address doesn't belong to any ICA accout of the host chain with id %s", query.ChainId)
-	}
-
-	// recalculate the host chain c value after the local account data has been updated
-	hc.CValue = k.GetHostChainCValue(ctx, hc)
-	k.SetHostChain(ctx, hc)
-
-	return nil
+	return k.ProcessHostChainValidatorUpdates(ctx, hc, validator)
 }
 
 func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
@@ -141,25 +123,25 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 		return fmt.Errorf("host chain with id %s is not registered", query.ChainId)
 	}
 
-	response := stakingtypes.QueryDelegationResponse{}
-	err := k.cdc.Unmarshal(data, &response)
+	delegation, err := stakingtypes.UnmarshalDelegation(k.cdc, data)
 	if err != nil {
 		return fmt.Errorf("could not unmarshall ICQ delegation response: %w", err)
 	}
 
-	validator, found := hc.GetValidator(response.DelegationResponse.Delegation.ValidatorAddress)
+	validator, found := hc.GetValidator(delegation.ValidatorAddress)
 	if !found {
 		return fmt.Errorf(
 			"validator %s for host chain %s not found",
-			response.DelegationResponse.Delegation.ValidatorAddress,
+			delegation.ValidatorAddress,
 			query.ChainId,
 		)
 	}
 
-	if response.DelegationResponse.Balance.Amount.LT(validator.DelegatedAmount) {
-		slashedAmount := validator.DelegatedAmount.Sub(response.DelegationResponse.Balance.Amount)
+	delegatedAmount := validator.SharesToTokens(delegation.Shares)
+	slashedAmount := validator.DelegatedAmount.Sub(delegatedAmount)
 
-		k.Logger(ctx).Info("Validator has ben slashed !!!",
+	if slashedAmount.IsPositive() {
+		k.Logger(ctx).Info("Validator has been slashed !!!",
 			"host-chain:", hc.ChainId,
 			"validator:", validator.OperatorAddress,
 			"slashed-amount:", slashedAmount,
@@ -170,13 +152,67 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 				types.EventTypeSlashing,
 				sdk.NewAttribute(types.AttributeValidatorAddress, validator.OperatorAddress),
 				sdk.NewAttribute(types.AttributeExistingDelegation, validator.DelegatedAmount.String()),
-				sdk.NewAttribute(types.AttributeUpdatedDelegation, response.DelegationResponse.Balance.Amount.String()),
+				sdk.NewAttribute(types.AttributeUpdatedDelegation, delegatedAmount.String()),
 				sdk.NewAttribute(types.AttributeSlashedAmount, slashedAmount.String()),
 			)})
 	}
 
-	validator.DelegatedAmount = response.DelegationResponse.Balance.Amount
+	validator.DelegatedAmount = delegatedAmount
 	k.SetHostChainValidator(ctx, hc, validator)
+
+	return nil
+}
+
+func DelegationAccountBalanceCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
+	hc, found := k.GetHostChain(ctx, query.ChainId)
+	if !found {
+		return fmt.Errorf("host chain with id %s is not registered", query.ChainId)
+	}
+
+	balance, err := bankkeeper.UnmarshalBalanceCompat(k.cdc, data, hc.HostDenom)
+	if err != nil {
+		return fmt.Errorf("could unmarshal balance from ICQ balances request: %w", err)
+	}
+
+	hc.DelegationAccount.Balance = balance
+
+	// recalculate the host chain c value after the local account data has been updated
+	hc.CValue = k.GetHostChainCValue(ctx, hc)
+	k.SetHostChain(ctx, hc)
+
+	return nil
+}
+
+func RewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
+	hc, found := k.GetHostChain(ctx, query.ChainId)
+	if !found {
+		return fmt.Errorf("host chain with id %s is not registered", query.ChainId)
+	}
+
+	balance, err := bankkeeper.UnmarshalBalanceCompat(k.cdc, data, hc.HostDenom)
+	if err != nil {
+		return fmt.Errorf("could unmarshal balance from ICQ balances request: %w", err)
+	}
+
+	hc.RewardsAccount.Balance = balance
+	if !hc.RewardsAccount.Balance.IsZero() {
+		// send all the rewards account balance to the deposit account, so it can be re-staked
+		_, err = k.SendICATransfer(
+			ctx,
+			hc,
+			hc.RewardsAccount.Balance,
+			hc.RewardsAccount.Address,
+			authtypes.NewModuleAddress(types.DepositModuleAccount).String(),
+			hc.RewardsAccount.Owner,
+		)
+		if err != nil {
+			return fmt.Errorf("could not send ICA rewards transfer: %w", err)
+		}
+	}
+
+	// recalculate the host chain c value after the local account data has been updated
+	hc.CValue = k.GetHostChainCValue(ctx, hc)
+	k.SetHostChain(ctx, hc)
 
 	return nil
 }
