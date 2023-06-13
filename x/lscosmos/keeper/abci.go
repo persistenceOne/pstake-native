@@ -7,28 +7,12 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/persistenceOne/persistence-sdk/v2/utils"
-
 	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 // BeginBlock will use utils.ApplyFuncIfNoError to apply the changes made by the functions
 // passed as parameters
-func (k Keeper) BeginBlock(ctx sdk.Context) {
-	if !k.GetModuleState(ctx) {
-		return
-	}
-
-	err := utils.ApplyFuncIfNoError(ctx, k.DoDelegate)
-	if err != nil {
-		k.Logger(ctx).Error("Unable to Delegate tokens with ", "err: ", err)
-	}
-	err = utils.ApplyFuncIfNoError(ctx, k.ProcessMaturedUndelegation)
-	if err != nil {
-		k.Logger(ctx).Error("Unable to process matured undelegations with ", "err: ", err)
-	}
-
-}
+func (k Keeper) BeginBlock(ctx sdk.Context) {}
 
 // DoDelegate generates and executes ICA transactions based on the generated delegation state
 // from DelegateMsgs

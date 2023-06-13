@@ -11,10 +11,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/persistenceOne/persistence-sdk/v2/utils"
-	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
-	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
-
 	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
@@ -29,79 +25,10 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 // and shift the amount to next epoch if the min amount is not reached
 // 3. "undelegate" generated the undelegate transaction for undelegating the amount accumulated over the "undelegate" epoch
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	//params := k.GetParams(ctx)
-	if !k.GetModuleState(ctx) {
-		return nil
-	}
-	hostChainParams := k.GetHostChainParams(ctx)
-	k.Logger(ctx).Info(fmt.Sprintf("Starting AfterEndEpoch for epochIdentifier %s, epochNumber %v", epochIdentifier, epochNumber))
-	if epochIdentifier == lscosmostypes.DelegationEpochIdentifier {
-		wrapperFn := func(ctx sdk.Context) error {
-			return k.DelegationEpochWorkFlow(ctx, hostChainParams)
-		}
-		err := utils.ApplyFuncIfNoError(ctx, wrapperFn)
-		if err != nil {
-			k.Logger(ctx).Error("Failed DelegationEpochIdentifier Function with:", "err: ", err)
-		}
-	}
-	if epochIdentifier == lscosmostypes.RewardEpochIdentifier {
-		wrapperFn := func(ctx sdk.Context) error {
-			return k.RewardEpochEpochWorkFlow(ctx, hostChainParams)
-		}
-		err := utils.ApplyFuncIfNoError(ctx, wrapperFn)
-		if err != nil {
-			k.Logger(ctx).Error("Failed RewardEpochIdentifier Function with:", "err: ", err)
-		}
-	}
-	if epochIdentifier == lscosmostypes.UndelegationEpochIdentifier && epochNumber%lscosmostypes.UndelegationEpochNumberFactor == 0 {
-		wrapperFn := func(ctx sdk.Context) error {
-			return k.UndelegationEpochWorkFlow(ctx, hostChainParams, epochNumber)
-		}
-		err := utils.ApplyFuncIfNoError(ctx, wrapperFn)
-		if err != nil {
-			k.Logger(ctx).Error("Failed UndelegationEpochIdentifier Function with:", "err: ", err)
-			// Fail the unbonding for current epoch
-			currentUnbondingEpochNumber := lscosmostypes.CurrentUnbondingEpoch(epochNumber)
-			hostAccountUndelegationForEpoch, err := k.GetHostAccountUndelegationForEpoch(ctx, epochNumber)
-			if err != nil {
-				return err
-			}
-			err = k.RemoveHostAccountUndelegation(ctx, currentUnbondingEpochNumber)
-			if err != nil {
-				return err
-			}
-			k.FailUnbondingEpochCValue(ctx, currentUnbondingEpochNumber, hostAccountUndelegationForEpoch.TotalUndelegationAmount)
-			k.Logger(ctx).Info(fmt.Sprintf("Failed unbonding for undelegationEpoch: %v", currentUnbondingEpochNumber))
-
-		}
-	}
 	return nil
 }
 
 // ___________________________________________________________________________________________________
-
-// EpochsHooks wrapper struct for incentives keeper
-type EpochsHooks struct {
-	k Keeper
-}
-
-var _ epochstypes.EpochHooks = EpochsHooks{}
-
-// NewEpochHooks Return the wrapper struct
-func (k Keeper) NewEpochHooks() EpochsHooks {
-	return EpochsHooks{k}
-}
-
-// BeforeEpochStart new epoch is next block of epoch end block
-func (h EpochsHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	return h.k.BeforeEpochStart(ctx, epochIdentifier, epochNumber)
-}
-
-// AfterEpochEnd gets called at the end of the epoch, end of epoch is the timestamp of first block
-// produced after epoch duration.
-func (h EpochsHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	return h.k.AfterEpochEnd(ctx, epochIdentifier, epochNumber)
-}
 
 // DelegationEpochWorkFlow handles the delegation epoch work flow :
 // 1. Checks and adds balance present in the rewards module account to delegation module account
@@ -378,27 +305,4 @@ func (k Keeper) OnTimeoutIBCTransferPacket(ctx sdk.Context, packet channeltypes.
 	k.RemoveIBCTransferFromTransientStore(ctx, sdk.NewCoin(ibcDenom.IBCDenom(), amount))
 	//move tokens to deposit account
 	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, lscosmostypes.DelegationModuleAccount, lscosmostypes.DepositModuleAccount, sdk.NewCoins(sdk.NewCoin(ibcDenom.IBCDenom(), amount)))
-}
-
-type IBCTransferHooks struct {
-	k Keeper
-}
-
-var _ ibchookertypes.IBCHandshakeHooks = IBCTransferHooks{}
-
-func (k Keeper) NewIBCTransferHooks() IBCTransferHooks {
-	return IBCTransferHooks{k}
-}
-
-func (i IBCTransferHooks) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferAck ibcexported.Acknowledgement) error {
-	return i.k.OnRecvIBCTransferPacket(ctx, packet, relayer, transferAck)
-}
-
-func (i IBCTransferHooks) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress, transferAckErr error) error {
-	return i.k.OnAcknowledgementIBCTransferPacket(ctx, packet, acknowledgement, relayer, transferAckErr)
-
-}
-
-func (i IBCTransferHooks) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, transferTimeoutErr error) error {
-	return i.k.OnTimeoutIBCTransferPacket(ctx, packet, relayer, transferTimeoutErr)
 }
