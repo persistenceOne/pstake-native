@@ -49,6 +49,7 @@ message MinDepositAndFeeChangeProposal {
 message PstakeFeeAddressChangeProposal {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_stringer) = false;
+  option deprecated = true;
 
   string title = 1;
   string description = 2;
@@ -59,6 +60,7 @@ message PstakeFeeAddressChangeProposal {
 message AllowListedValidatorSetChangeProposal {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_stringer) = false;
+  option deprecated = true;
 
   string title = 1;
   string description = 2;
