@@ -1,10 +1,15 @@
 package keeper
 
 import (
+	"time"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/gogoproto/proto"
+
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
@@ -81,15 +86,29 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 		return types.ErrModuleMigrationFailed.Wrapf("no transient ibc transfer balance expected, clear ibc packets and try again")
 	}
 	if ibcTransientStore.ICADelegate.Amount.IsPositive() {
-		return types.ErrModuleMigrationFailed.Wrapf("no transient ICADelegate balance expected, clear ibc packets and try again")
+		k.Logger(ctx).Info("ibcTransientStore ICADelegate Amount IsPositive ")
+		msgSendToRewards := &banktypes.MsgSend{
+			FromAddress: newhc.DelegationAccount.Address,
+			ToAddress:   newhc.RewardsAccount.Address,
+			Amount:      sdk.NewCoins(ibcTransientStore.ICADelegate),
+		}
+		_, err := k.liquidStakeIBCKeeper.GenerateAndExecuteICATx(
+			ctx,
+			newhc.ConnectionId,
+			newhc.DelegationAccount.Owner,
+			[]proto.Message{msgSendToRewards},
+		)
+		if err != nil {
+			return err
+		}
 	}
 	if len(ibcTransientStore.UndelegatonCompleteIBCTransfer) != 0 {
 		return types.ErrModuleMigrationFailed.Wrapf("no transient ica ibc transfer balance expected, clear ibc packets and try again")
 	}
 
 	//	UnbondingEpochCValueKey : -> Migrates to liquidstakeibctypes UnbondingKey
-	// DO reject/ fail currentEpoch unstaking requests.
-	err = k.FailCurrentUnbonding(ctx)
+	// DO reject/ fail currentEpoch unstaking requests, and previous that might have failed.
+	err = k.FailNotStartedUnbondings(ctx)
 	if err != nil {
 		return err
 	}
@@ -230,17 +249,29 @@ func (k Keeper) ClaimAll(ctx sdk.Context) error {
 	return nil
 }
 
-func (k Keeper) FailCurrentUnbonding(ctx sdk.Context) error {
-	currEpochInfo := k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier)
-	currentUnbondingEpochNumber := types.CurrentUnbondingEpoch(currEpochInfo.CurrentEpoch)
-	hostAccountUndelegationForEpoch, err := k.GetHostAccountUndelegationForEpoch(ctx, currentUnbondingEpochNumber)
+// FailNotStartedUnbondings fails the current unbondings and the previous for which no packet was received.
+func (k Keeper) FailNotStartedUnbondings(ctx sdk.Context) error {
+	delegationState := k.GetDelegationState(ctx)
+	for _, ubd := range delegationState.HostAccountUndelegations {
+		if ubd.CompletionTime.Equal(time.Time{}) {
+			err := k.FailUnbonding(ctx, ubd.EpochNumber)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (k Keeper) FailUnbonding(ctx sdk.Context, epochnumber int64) error {
+	hostAccountUndelegationForEpoch, err := k.GetHostAccountUndelegationForEpoch(ctx, epochnumber)
 	if err != nil {
 		return err
 	}
-	err = k.RemoveHostAccountUndelegation(ctx, currentUnbondingEpochNumber)
+	err = k.RemoveHostAccountUndelegation(ctx, epochnumber)
 	if err != nil {
 		return err
 	}
-	k.FailUnbondingEpochCValue(ctx, currentUnbondingEpochNumber, hostAccountUndelegationForEpoch.TotalUndelegationAmount)
+	k.FailUnbondingEpochCValue(ctx, epochnumber, hostAccountUndelegationForEpoch.TotalUndelegationAmount)
 	return nil
 }
