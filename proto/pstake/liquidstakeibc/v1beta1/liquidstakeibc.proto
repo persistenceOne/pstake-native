@@ -30,23 +30,23 @@ message HostChain {
   // validator set
   repeated Validator validators = 9;
   // minimum ls amount
-  string minimum_deposit = 11 [
+  string minimum_deposit = 10 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
   // redemption rate
-  string c_value = 12 [
+  string c_value = 11 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
   // the hash of the next validator set
-  bytes next_valset_hash = 13;
+  bytes next_valset_hash = 12;
   // undelegation epoch factor
-  int64 unbonding_factor = 14;
+  int64 unbonding_factor = 13;
   // whether the chain is ready to accept delegations or not
-  bool active = 15;
+  bool active = 14;
 }
 
 message HostChainLSParams {
