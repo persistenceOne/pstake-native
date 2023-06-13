@@ -105,4 +105,5 @@ type LiquidStakeIBCKeeper interface {
 	SetUserUnbonding(ctx sdk.Context, ub *liquidstakeibctypes.UserUnbonding)
 	SetDeposit(ctx sdk.Context, deposit *liquidstakeibctypes.Deposit)
 	GetLatestConsensusState(ctx sdk.Context, connectionID string) (*ibctmtypes.ConsensusState, error)
+	GetHostChain(ctx sdk.Context, chainID string) (*liquidstakeibctypes.HostChain, bool)
 }

@@ -13,6 +13,8 @@ option go_package = "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types
 
 // Msg defines the lsCosmos services.
 service Msg {
+  option deprecated = true;
+
   rpc LiquidStake(MsgLiquidStake) returns (MsgLiquidStakeResponse) {
     option (google.api.http).post = "/pstake/lscosmos/v1beta1/LiquidStake";
   }
