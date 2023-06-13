@@ -2,13 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/gogoproto/proto"
 	icqtypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
-
-	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 const (
@@ -69,47 +63,10 @@ func DelegationCallback(k Keeper, ctx sdk.Context, response []byte, query icqtyp
 
 // HandleRewardsAccountBalanceCallback generates and executes rewards account balance query
 func (k Keeper) HandleRewardsAccountBalanceCallback(ctx sdk.Context, response []byte, _ icqtypes.Query) error {
-	hostChainParams := k.GetHostChainParams(ctx)
-
-	resp, err := bankkeeper.UnmarshalBalanceCompat(k.cdc, response, hostChainParams.BaseDenom)
-	if err != nil {
-		return err
-	}
-
-	k.Logger(ctx).Info("Callback for Rewards account balance", "Balances", resp)
-
-	if resp.Amount.Equal(sdk.ZeroInt()) {
-		k.Logger(ctx).Info("No amount in rewards account to restake - noop.")
-		return nil
-	}
-
-	delegationState := k.GetDelegationState(ctx)
-	rewardsAddress := k.GetHostChainRewardAddress(ctx)
-	hostAccounts := k.GetHostAccounts(ctx)
-
-	// Cap the re-staking amount so exchange rate doesn't change drastically.
-	cValue := k.GetCValue(ctx)
-	stkAssetSupply := k.bankKeeper.GetSupply(ctx, hostChainParams.MintDenom)
-
-	atomTVU := sdk.NewDecFromInt(stkAssetSupply.Amount).Quo(cValue)
-	atomTVUCap := atomTVU.Mul(types.RestakeCapPerDay).TruncateInt()
-	sendCoinAmt := resp.Amount
-	if resp.Amount.GT(atomTVUCap) {
-		sendCoinAmt = atomTVUCap
-	}
-
-	//send coins to delegation account.
-	msg := &banktypes.MsgSend{
-		FromAddress: rewardsAddress.Address,
-		ToAddress:   delegationState.HostChainDelegationAddress,
-		Amount:      sdk.NewCoins(sdk.NewCoin(resp.Denom, sendCoinAmt)),
-	}
-	return k.GenerateAndExecuteICATx(ctx, hostChainParams.ConnectionID, hostAccounts.RewardsAccountOwnerID, []proto.Message{msg})
+	return nil
 }
 
 // HandleDelegationCallback generates and executes delegation query
 func (k Keeper) HandleDelegationCallback(ctx sdk.Context, _ []byte, _ icqtypes.Query) error {
-	// TODO support this for slashing
-	// Cannot support till kvstore has information about shares/ total valdiator shares <-> amount exchange.
-	return sdkerrors.ErrNotSupported.Wrapf("Delegation queries are not supported in lscosmos.")
+	return nil
 }

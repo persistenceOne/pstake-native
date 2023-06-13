@@ -533,12 +533,9 @@ func NewpStakeApp(
 		app.MsgServiceRouter(),
 	)
 
-	_ = app.InterchainQueryKeeper.SetCallbackHandler(lscosmostypes.ModuleName, app.LSCosmosKeeper.CallbackHandler())
-
 	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()
 	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(
 		ibchookertypes.NewMultiStakingHooks(
-			app.LSCosmosKeeper.NewIBCTransferHooks(),
 			app.LiquidStakeIBCKeeper.NewIBCTransferHooks(),
 		),
 	)
@@ -607,7 +604,6 @@ func NewpStakeApp(
 
 	app.EpochsKeeper.SetHooks(
 		epochstypes.NewMultiEpochHooks(
-			app.LSCosmosKeeper.NewEpochHooks(),
 			app.LiquidStakeIBCKeeper.NewEpochHooks(),
 		),
 	)

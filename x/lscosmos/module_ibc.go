@@ -5,6 +5,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 // OnChanOpenInit implements the IBCModule interface
@@ -18,7 +19,7 @@ func (am AppModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	return am.keeper.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
+	return "", lscosmostypes.ErrDeprecated
 }
 
 // OnChanOpenTry implements the IBCModule interface
@@ -32,7 +33,7 @@ func (am AppModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	return am.keeper.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
+	return "", lscosmostypes.ErrDeprecated
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -43,7 +44,7 @@ func (am AppModule) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	return am.keeper.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+	return lscosmostypes.ErrDeprecated
 }
 
 // OnChanOpenConfirm implements the IBCModule interface
@@ -52,7 +53,7 @@ func (am AppModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	return am.keeper.OnChanOpenConfirm(ctx, portID, channelID)
+	return lscosmostypes.ErrDeprecated
 }
 
 // OnChanCloseInit implements the IBCModule interface
@@ -62,7 +63,7 @@ func (am AppModule) OnChanCloseInit(
 	channelID string,
 ) error {
 	// Disallow user-initiated channel closing for channels
-	return am.keeper.OnChanCloseInit(ctx, portID, channelID)
+	return lscosmostypes.ErrDeprecated
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
@@ -71,7 +72,7 @@ func (am AppModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	return am.keeper.OnChanCloseConfirm(ctx, portID, channelID)
+	return lscosmostypes.ErrDeprecated
 }
 
 // OnRecvPacket implements the IBCModule interface
@@ -80,7 +81,7 @@ func (am AppModule) OnRecvPacket(
 	modulePacket channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	return am.keeper.OnRecvPacket(ctx, modulePacket, relayer)
+	return nil
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
@@ -90,7 +91,7 @@ func (am AppModule) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	return am.keeper.OnAcknowledgementPacket(ctx, modulePacket, acknowledgement, relayer)
+	return lscosmostypes.ErrDeprecated
 }
 
 // OnTimeoutPacket implements the IBCModule interface
@@ -99,5 +100,5 @@ func (am AppModule) OnTimeoutPacket(
 	modulePacket channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	return am.keeper.OnTimeoutPacket(ctx, modulePacket, relayer)
+	return lscosmostypes.ErrDeprecated
 }
