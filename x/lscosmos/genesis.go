@@ -42,20 +42,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 
 // ExportGenesis returns the capability module's exported genesis.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
-	genesis := types.DefaultGenesis()
-	genesis.Params = k.GetParams(ctx)
-
-	genesis.ModuleEnabled = k.GetModuleState(ctx)
-	genesis.HostChainParams = k.GetHostChainParams(ctx)
-	genesis.AllowListedValidators = k.GetAllowListedValidators(ctx)
-	genesis.DelegationState = k.GetDelegationState(ctx)
-	genesis.HostChainRewardAddress = k.GetHostChainRewardAddress(ctx)
-	genesis.IBCAmountTransientStore = k.GetIBCTransientStore(ctx)
-	genesis.UnbondingEpochCValues = k.IterateAllUnbondingEpochCValues(ctx)
-	genesis.DelegatorUnbondingEpochEntries = k.IterateAllDelegatorUnbondingEpochEntry(ctx)
-	genesis.HostAccounts = k.GetHostAccounts(ctx)
-
 	// this line is used by starport scaffolding # genesis/module/export
-
-	return genesis
+	return k.GetGenesisState(ctx)
 }
