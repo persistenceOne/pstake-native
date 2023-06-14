@@ -25,6 +25,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	}
 
 	cmd.AddCommand(
+		CmdQueryAllState(),
 		CmdQueryParams(),
 		CmdQueryHostChainParams(),
 		CmdQueryDelegationState(),
@@ -58,6 +59,31 @@ func CmdQueryHostChainParams() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.HostChainParams(context.Background(), &types.QueryHostChainParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// CmdQueryAllState implements the all state query command
+func CmdQueryAllState() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "all-state",
+		Short: "shows genesis state",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.AllState(context.Background(), &types.QueryAllStateRequest{})
 			if err != nil {
 				return err
 			}
