@@ -224,11 +224,10 @@ func (m *MsgLiquidStake) ValidateBasic() error {
 }
 
 //nolint:interfacer
-func NewMsgLiquidUnstake(amount sdk.Coin, address sdk.AccAddress, hostDenom string) *MsgLiquidUnstake {
+func NewMsgLiquidUnstake(amount sdk.Coin, address sdk.AccAddress) *MsgLiquidUnstake {
 	return &MsgLiquidUnstake{
 		DelegatorAddress: address.String(),
 		Amount:           amount,
-		HostDenom:        hostDenom,
 	}
 }
 
@@ -273,11 +272,10 @@ func (m *MsgLiquidUnstake) ValidateBasic() error {
 }
 
 //nolint:interfacer
-func NewMsgRedeem(amount sdk.Coin, address sdk.AccAddress, hostDenom string) *MsgRedeem {
+func NewMsgRedeem(amount sdk.Coin, address sdk.AccAddress) *MsgRedeem {
 	return &MsgRedeem{
 		DelegatorAddress: address.String(),
 		Amount:           amount,
-		HostDenom:        hostDenom,
 	}
 }
 
