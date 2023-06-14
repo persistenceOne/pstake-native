@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -33,6 +34,7 @@ func NewQueryCmd() *cobra.Command {
 		QueryValidatorUnbondingsCmd(),
 		QueryDepositAccountBalanceCmd(),
 		QueryExchangeRateCmd(),
+		QueryUnbondingCmd(),
 	)
 
 	return cmd
@@ -158,6 +160,47 @@ func QueryUnbondingsCmd() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.Unbondings(context.Background(), &types.QueryUnbondingsRequest{ChainId: args[0]})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryUnbondingCmd returns an unbonding record for a host chain and an epoch.
+func QueryUnbondingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "unbonding [chain-id] [epoch]",
+		Short: "Query an unbonding record for a host chain and an epoch",
+		Args:  cobra.ExactArgs(2),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query an unbonding record: $ %s query liquidstakeibc unbonding [chain-id] [epoch]`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			epoch, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.Unbonding(
+				context.Background(),
+				&types.QueryUnbondingRequest{ChainId: args[0], Epoch: epoch})
 			if err != nil {
 				return err
 			}

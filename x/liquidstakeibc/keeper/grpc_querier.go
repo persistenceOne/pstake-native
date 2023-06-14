@@ -98,6 +98,33 @@ func (k *Keeper) Unbondings(
 	return &types.QueryUnbondingsResponse{Unbondings: unbondings}, nil
 }
 
+func (k *Keeper) Unbonding(
+	goCtx context.Context,
+	request *types.QueryUnbondingRequest,
+) (*types.QueryUnbondingResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.ChainId == "" {
+		return nil, status.Error(codes.InvalidArgument, "chain_id cannot be empty")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	unbondings := k.FilterUnbondings(
+		ctx,
+		func(u types.Unbonding) bool {
+			return u.ChainId == request.ChainId && u.EpochNumber == request.Epoch
+		},
+	)
+
+	if len(unbondings) == 0 {
+		return nil, sdkerrors.ErrNotFound
+	}
+
+	return &types.QueryUnbondingResponse{Unbonding: unbondings[0]}, nil
+}
+
 func (k *Keeper) UserUnbondings(
 	goCtx context.Context,
 	request *types.QueryUserUnbondingsRequest,

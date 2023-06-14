@@ -40,6 +40,11 @@ service Query {
     option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/unbondings/{chain_id}";
   }
 
+  // Queries an unbonding for a host chain.
+  rpc Unbonding(QueryUnbondingRequest) returns (QueryUnbondingResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/unbonding/{chain_id}/{epoch}";
+  }
+
   // Queries all unbondings for a delegator address.
   rpc UserUnbondings(QueryUserUnbondingsRequest) returns (QueryUserUnbondingsResponse) {
     option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/user_unbondings/{address}";
@@ -96,6 +101,15 @@ message QueryUnbondingsRequest {
 
 message QueryUnbondingsResponse {
   repeated Unbonding unbondings = 1;
+}
+
+message QueryUnbondingRequest {
+  string chain_id = 1;
+  int64 epoch = 2;
+}
+
+message QueryUnbondingResponse {
+  Unbonding unbonding = 1;
 }
 
 message QueryUserUnbondingsRequest {
