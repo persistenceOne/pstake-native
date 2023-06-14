@@ -31,6 +31,7 @@ func NewQueryCmd() *cobra.Command {
 		QueryUnbondingsCmd(),
 		QueryUserUnbondingsCmd(),
 		QueryValidatorUnbondingsCmd(),
+		QueryDepositAccountBalanceCmd(),
 	)
 
 	return cmd
@@ -238,6 +239,43 @@ func QueryValidatorUnbondingsCmd() *cobra.Command {
 				&types.QueryValidatorUnbondingRequest{
 					ChainId: args[0],
 				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryDepositAccountBalanceCmd returns the host chain deposit account balance.
+func QueryDepositAccountBalanceCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deposit-account-balance [chain-id]",
+		Short: "Query deposit records for a host chain",
+		Args:  cobra.ExactArgs(1),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query a host chain deposit account balance: $ %s query liquidstakeibc deposit-account-balance [chain-id]`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.DepositAccountBalance(
+				cmd.Context(),
+				&types.QueryDepositAccountBalanceRequest{ChainId: args[0]},
 			)
 			if err != nil {
 				return err

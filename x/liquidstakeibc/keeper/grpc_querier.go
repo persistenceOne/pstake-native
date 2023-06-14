@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -144,4 +145,26 @@ func (k *Keeper) ValidatorUnbondings(
 	)
 
 	return &types.QueryValidatorUnbondingResponse{ValidatorUnbondings: validatorUnbondings}, nil
+}
+
+func (k *Keeper) DepositAccountBalance(
+	goCtx context.Context,
+	request *types.QueryDepositAccountBalanceRequest,
+) (*types.QueryDepositAccountBalanceResponse, error) {
+	if request == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	hc, found := k.GetHostChain(ctx, request.ChainId)
+	if !found {
+		return nil, sdkerrors.ErrKeyNotFound
+	}
+
+	return &types.QueryDepositAccountBalanceResponse{
+		Balance: k.bankKeeper.GetBalance(
+			ctx,
+			authtypes.NewModuleAddress(types.DepositModuleAccount), hc.IBCDenom()),
+	}, nil
 }

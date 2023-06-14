@@ -4,6 +4,7 @@ package pstake.liquidstakeibc.v1beta1;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 import "pstake/liquidstakeibc/v1beta1/params.proto";
 import "pstake/liquidstakeibc/v1beta1/liquidstakeibc.proto";
@@ -47,6 +48,11 @@ service Query {
   // Queries all validator unbondings for a host chain.
   rpc ValidatorUnbondings(QueryValidatorUnbondingRequest) returns (QueryValidatorUnbondingResponse) {
     option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/validator_unbondings/{chain_id}";
+  }
+
+  // Queries for a host chain deposit account balance.
+  rpc DepositAccountBalance(QueryDepositAccountBalanceRequest) returns (QueryDepositAccountBalanceResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/deposit_account_balance/{chain_id}";
   }
 }
 
@@ -101,4 +107,12 @@ message QueryValidatorUnbondingRequest {
 
 message QueryValidatorUnbondingResponse {
   repeated ValidatorUnbonding validator_unbondings = 1;
+}
+
+message QueryDepositAccountBalanceRequest {
+  string chain_id = 1;
+}
+
+message QueryDepositAccountBalanceResponse {
+  cosmos.base.v1beta1.Coin balance = 1 [(gogoproto.nullable) = false];
 }
