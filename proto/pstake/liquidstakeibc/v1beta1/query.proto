@@ -54,6 +54,11 @@ service Query {
   rpc DepositAccountBalance(QueryDepositAccountBalanceRequest) returns (QueryDepositAccountBalanceResponse) {
     option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/deposit_account_balance/{chain_id}";
   }
+
+  // Queries for a host chain exchange rate between the host token and the stk token.
+  rpc ExchangeRate(QueryExchangeRateRequest) returns (QueryExchangeRateResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/exchange_rate/{chain_id}";
+  }
 }
 
 message QueryParamsRequest {}
@@ -115,4 +120,15 @@ message QueryDepositAccountBalanceRequest {
 
 message QueryDepositAccountBalanceResponse {
   cosmos.base.v1beta1.Coin balance = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryExchangeRateRequest {
+  string chain_id = 1;
+}
+
+message QueryExchangeRateResponse {
+  string rate = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
 }

@@ -32,6 +32,7 @@ func NewQueryCmd() *cobra.Command {
 		QueryUserUnbondingsCmd(),
 		QueryValidatorUnbondingsCmd(),
 		QueryDepositAccountBalanceCmd(),
+		QueryExchangeRateCmd(),
 	)
 
 	return cmd
@@ -277,6 +278,40 @@ func QueryDepositAccountBalanceCmd() *cobra.Command {
 				cmd.Context(),
 				&types.QueryDepositAccountBalanceRequest{ChainId: args[0]},
 			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryExchangeRateCmd returns the host chain exchange rate between the host token and the stk token.
+func QueryExchangeRateCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "exchange-rate [chain-id]",
+		Short: "Query the exchange rate of a host chain",
+		Args:  cobra.ExactArgs(1),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query the exchange rate of a host chain: $ %s query liquidstakeibc exchange-rate [chain-id]`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.ExchangeRate(cmd.Context(), &types.QueryExchangeRateRequest{ChainId: args[0]})
 			if err != nil {
 				return err
 			}

@@ -168,3 +168,21 @@ func (k *Keeper) DepositAccountBalance(
 			authtypes.NewModuleAddress(types.DepositModuleAccount), hc.IBCDenom()),
 	}, nil
 }
+
+func (k *Keeper) ExchangeRate(
+	goCtx context.Context,
+	request *types.QueryExchangeRateRequest,
+) (*types.QueryExchangeRateResponse, error) {
+	if request == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	hc, found := k.GetHostChain(ctx, request.ChainId)
+	if !found {
+		return nil, sdkerrors.ErrKeyNotFound
+	}
+
+	return &types.QueryExchangeRateResponse{Rate: k.GetHostChainCValue(ctx, hc)}, nil
+}
