@@ -66,7 +66,7 @@ func (k *Keeper) Deposits(
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	hc, found := k.GetHostChainFromHostDenom(ctx, request.HostDenom)
+	hc, found := k.GetHostChain(ctx, request.ChainId)
 	if !found {
 		return nil, sdkerrors.ErrKeyNotFound
 	}
@@ -81,21 +81,16 @@ func (k *Keeper) Unbondings(
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-	if request.HostDenom == "" {
-		return nil, status.Error(codes.InvalidArgument, "host_denom cannot be empty")
+	if request.ChainId == "" {
+		return nil, status.Error(codes.InvalidArgument, "chain_id cannot be empty")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	hc, found := k.GetHostChainFromHostDenom(ctx, request.HostDenom)
-	if !found {
-		return nil, sdkerrors.ErrKeyNotFound
-	}
-
 	unbondings := k.FilterUnbondings(
 		ctx,
 		func(u types.Unbonding) bool {
-			return u.ChainId == hc.ChainId
+			return u.ChainId == request.ChainId
 		},
 	)
 
@@ -137,20 +132,15 @@ func (k *Keeper) ValidatorUnbondings(
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-	if request.HostDenom == "" {
-		return nil, status.Error(codes.InvalidArgument, "host_denom cannot be empty")
+	if request.ChainId == "" {
+		return nil, status.Error(codes.InvalidArgument, "chain_id cannot be empty")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	hc, found := k.GetHostChainFromHostDenom(ctx, request.HostDenom)
-	if !found {
-		return nil, sdkerrors.ErrKeyNotFound
-	}
-
 	validatorUnbondings := k.FilterValidatorUnbondings(
 		ctx,
-		func(u types.ValidatorUnbonding) bool { return u.ChainId == hc.ChainId },
+		func(u types.ValidatorUnbonding) bool { return u.ChainId == request.ChainId },
 	)
 
 	return &types.QueryValidatorUnbondingResponse{ValidatorUnbondings: validatorUnbondings}, nil

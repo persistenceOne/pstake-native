@@ -134,15 +134,15 @@ func request_Query_Deposits_0(ctx context.Context, marshaler runtime.Marshaler, 
 		_   = err
 	)
 
-	val, ok = pathParams["host_denom"]
+	val, ok = pathParams["chain_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "host_denom")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "chain_id")
 	}
 
-	protoReq.HostDenom, err = runtime.String(val)
+	protoReq.ChainId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "host_denom", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "chain_id", err)
 	}
 
 	msg, err := client.Deposits(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -161,15 +161,15 @@ func local_request_Query_Deposits_0(ctx context.Context, marshaler runtime.Marsh
 		_   = err
 	)
 
-	val, ok = pathParams["host_denom"]
+	val, ok = pathParams["chain_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "host_denom")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "chain_id")
 	}
 
-	protoReq.HostDenom, err = runtime.String(val)
+	protoReq.ChainId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "host_denom", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "chain_id", err)
 	}
 
 	msg, err := server.Deposits(ctx, &protoReq)
@@ -188,15 +188,15 @@ func request_Query_Unbondings_0(ctx context.Context, marshaler runtime.Marshaler
 		_   = err
 	)
 
-	val, ok = pathParams["host_denom"]
+	val, ok = pathParams["chain_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "host_denom")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "chain_id")
 	}
 
-	protoReq.HostDenom, err = runtime.String(val)
+	protoReq.ChainId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "host_denom", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "chain_id", err)
 	}
 
 	msg, err := client.Unbondings(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -215,15 +215,15 @@ func local_request_Query_Unbondings_0(ctx context.Context, marshaler runtime.Mar
 		_   = err
 	)
 
-	val, ok = pathParams["host_denom"]
+	val, ok = pathParams["chain_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "host_denom")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "chain_id")
 	}
 
-	protoReq.HostDenom, err = runtime.String(val)
+	protoReq.ChainId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "host_denom", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "chain_id", err)
 	}
 
 	msg, err := server.Unbondings(ctx, &protoReq)
@@ -296,15 +296,15 @@ func request_Query_ValidatorUnbondings_0(ctx context.Context, marshaler runtime.
 		_   = err
 	)
 
-	val, ok = pathParams["host_denom"]
+	val, ok = pathParams["chain_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "host_denom")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "chain_id")
 	}
 
-	protoReq.HostDenom, err = runtime.String(val)
+	protoReq.ChainId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "host_denom", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "chain_id", err)
 	}
 
 	msg, err := client.ValidatorUnbondings(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -323,15 +323,15 @@ func local_request_Query_ValidatorUnbondings_0(ctx context.Context, marshaler ru
 		_   = err
 	)
 
-	val, ok = pathParams["host_denom"]
+	val, ok = pathParams["chain_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "host_denom")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "chain_id")
 	}
 
-	protoReq.HostDenom, err = runtime.String(val)
+	protoReq.ChainId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "host_denom", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "chain_id", err)
 	}
 
 	msg, err := server.ValidatorUnbondings(ctx, &protoReq)
@@ -697,13 +697,13 @@ var (
 
 	pattern_Query_HostChains_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"pstake", "liquidstakeibc", "v1beta1", "host_chains"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Deposits_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"pstake", "liquidstakeibc", "v1beta1", "deposits", "host_denom"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Deposits_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"pstake", "liquidstakeibc", "v1beta1", "deposits", "chain_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Unbondings_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"pstake", "liquidstakeibc", "v1beta1", "unbondings", "host_denom"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Unbondings_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"pstake", "liquidstakeibc", "v1beta1", "unbondings", "chain_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_UserUnbondings_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"pstake", "liquidstakeibc", "v1beta1", "user_unbondings", "address"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_ValidatorUnbondings_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"pstake", "liquidstakeibc", "v1beta1", "validator_unbondings", "host_denom"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_ValidatorUnbondings_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"pstake", "liquidstakeibc", "v1beta1", "validator_unbondings", "chain_id"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

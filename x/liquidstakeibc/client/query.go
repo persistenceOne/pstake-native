@@ -104,12 +104,12 @@ func QueryHostChainsCmd() *cobra.Command {
 // QueryDepositsCmd returns all user deposits.
 func QueryDepositsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deposits [host-denom]",
+		Use:   "deposits [chain-id]",
 		Short: "Query deposit records for a host chain",
 		Args:  cobra.ExactArgs(1),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`Query all deposits: $ %s query liquidstakeibc deposits [host-denom]`,
+				`Query all deposits: $ %s query liquidstakeibc deposits [chain-id]`,
 				version.AppName,
 			),
 		),
@@ -121,7 +121,7 @@ func QueryDepositsCmd() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.Deposits(cmd.Context(), &types.QueryDepositsRequest{HostDenom: args[0]})
+			res, err := queryClient.Deposits(cmd.Context(), &types.QueryDepositsRequest{ChainId: args[0]})
 			if err != nil {
 				return err
 			}
@@ -138,12 +138,12 @@ func QueryDepositsCmd() *cobra.Command {
 // QueryUnbondingsCmd returns all unbonding records for a host chain.
 func QueryUnbondingsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "unbondings [host-denom]",
+		Use:   "unbondings [chain-id]",
 		Short: "Query all unbonding records for a host chain",
 		Args:  cobra.ExactArgs(1),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`Query an unbonding record: $ %s query liquidstakeibc unbondings [host-denom]`,
+				`Query an unbonding record: $ %s query liquidstakeibc unbondings [chain-id]`,
 				version.AppName,
 			),
 		),
@@ -155,7 +155,7 @@ func QueryUnbondingsCmd() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.Unbondings(context.Background(), &types.QueryUnbondingsRequest{HostDenom: args[0]})
+			res, err := queryClient.Unbondings(context.Background(), &types.QueryUnbondingsRequest{ChainId: args[0]})
 			if err != nil {
 				return err
 			}
@@ -216,12 +216,12 @@ func QueryUserUnbondingsCmd() *cobra.Command {
 // QueryValidatorUnbondingsCmd returns all validator unbondings for a host chain.
 func QueryValidatorUnbondingsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "validator-unbondings [host-denom]",
-		Short: "Query a user unbonding record",
+		Use:   "validator-unbondings [chain-id]",
+		Short: "Query all validator unbonding records for a host chain",
 		Args:  cobra.ExactArgs(1),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`Query all validator unbondings for a host chain: $ %s query liquidstakeibc validator-unbondings [host-denom]`,
+				`Query all validator unbondings for a host chain: $ %s query liquidstakeibc validator-unbondings [chain-id]`,
 				version.AppName,
 			),
 		),
@@ -236,7 +236,7 @@ func QueryValidatorUnbondingsCmd() *cobra.Command {
 			res, err := queryClient.ValidatorUnbondings(
 				context.Background(),
 				&types.QueryValidatorUnbondingRequest{
-					HostDenom: args[0],
+					ChainId: args[0],
 				},
 			)
 			if err != nil {
