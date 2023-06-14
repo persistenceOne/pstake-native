@@ -185,7 +185,7 @@ func (suite *IntegrationTestSuite) TestQueryUnbondings() {
 		{
 			name: "NotFound",
 			req:  &types.QueryUnbondingsRequest{ChainId: "chain-1"},
-			err:  sdkerrors.ErrKeyNotFound,
+			resp: &types.QueryUnbondingsResponse{Unbondings: make([]*types.Unbonding, 0)},
 		},
 		{
 			name: "InvalidRequest",
@@ -285,7 +285,7 @@ func (suite *IntegrationTestSuite) TestQueryValidatorUnbondings() {
 		{
 			name: "NotFound",
 			req:  &types.QueryValidatorUnbondingRequest{ChainId: "chain-1"},
-			err:  sdkerrors.ErrKeyNotFound,
+			resp: &types.QueryValidatorUnbondingResponse{ValidatorUnbondings: make([]*types.ValidatorUnbonding, 0)},
 		},
 		{
 			name: "InvalidRequest",
