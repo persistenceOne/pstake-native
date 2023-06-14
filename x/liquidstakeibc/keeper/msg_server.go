@@ -150,6 +150,10 @@ func (k msgServer) UpdateHostChain(
 			if err := k.UpdateHostChainValidatorWeight(ctx, hc, validator, weight); err != nil {
 				return nil, fmt.Errorf("invalid validator weight update values: %v", err)
 			}
+			err := k.QueryValidatorDelegation(ctx, hc, &types.Validator{OperatorAddress: validator})
+			if err != nil {
+				return nil, err
+			}
 		case KeyDepositFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
