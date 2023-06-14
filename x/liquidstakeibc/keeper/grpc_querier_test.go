@@ -138,12 +138,12 @@ func (suite *IntegrationTestSuite) TestQueryDeposits() {
 	}{
 		{
 			name: "Success",
-			req:  &types.QueryDepositsRequest{HostDenom: HostDenom},
+			req:  &types.QueryDepositsRequest{ChainId: suite.path.EndpointB.Chain.ChainID},
 			resp: &types.QueryDepositsResponse{Deposits: deposits},
 		},
 		{
 			name: "NotFound",
-			req:  &types.QueryDepositsRequest{HostDenom: "stake"},
+			req:  &types.QueryDepositsRequest{ChainId: "chain-1"},
 			err:  sdkerrors.ErrKeyNotFound,
 		},
 		{
@@ -179,18 +179,18 @@ func (suite *IntegrationTestSuite) TestQueryUnbondings() {
 	}{
 		{
 			name: "Success",
-			req:  &types.QueryUnbondingsRequest{HostDenom: HostDenom},
+			req:  &types.QueryUnbondingsRequest{ChainId: suite.path.EndpointB.Chain.ChainID},
 			resp: &types.QueryUnbondingsResponse{Unbondings: unbondings},
 		},
 		{
 			name: "NotFound",
-			req:  &types.QueryUnbondingsRequest{HostDenom: "stake"},
+			req:  &types.QueryUnbondingsRequest{ChainId: "chain-1"},
 			err:  sdkerrors.ErrKeyNotFound,
 		},
 		{
 			name: "InvalidRequest",
-			req:  &types.QueryUnbondingsRequest{HostDenom: ""},
-			err:  status.Error(codes.InvalidArgument, "host_denom cannot be empty"),
+			req:  &types.QueryUnbondingsRequest{ChainId: ""},
+			err:  status.Error(codes.InvalidArgument, "chain_id cannot be empty"),
 		},
 		{
 			name: "InvalidRequest",
@@ -279,18 +279,18 @@ func (suite *IntegrationTestSuite) TestQueryValidatorUnbondings() {
 	}{
 		{
 			name: "Success",
-			req:  &types.QueryValidatorUnbondingRequest{HostDenom: HostDenom},
+			req:  &types.QueryValidatorUnbondingRequest{ChainId: suite.path.EndpointB.Chain.ChainID},
 			resp: &types.QueryValidatorUnbondingResponse{ValidatorUnbondings: validatorUnbondings},
 		},
 		{
 			name: "NotFound",
-			req:  &types.QueryValidatorUnbondingRequest{HostDenom: "stake"},
+			req:  &types.QueryValidatorUnbondingRequest{ChainId: "chain-1"},
 			err:  sdkerrors.ErrKeyNotFound,
 		},
 		{
 			name: "InvalidRequest",
-			req:  &types.QueryValidatorUnbondingRequest{HostDenom: ""},
-			err:  status.Error(codes.InvalidArgument, "host_denom cannot be empty"),
+			req:  &types.QueryValidatorUnbondingRequest{ChainId: ""},
+			err:  status.Error(codes.InvalidArgument, "chain_id cannot be empty"),
 		},
 		{
 			name: "InvalidRequest",
