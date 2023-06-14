@@ -153,9 +153,9 @@ func NewLiquidStakeCmd() *cobra.Command {
 
 func NewLiquidUnstakeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "liquid-unstake [amount] [host-denom]",
+		Use:   "liquid-unstake [amount]",
 		Short: `Unstake stk tokens from a registered host chain`,
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			clientctx, err := client.GetClientTxContext(cmd)
@@ -169,7 +169,7 @@ func NewLiquidUnstakeCmd() *cobra.Command {
 			}
 
 			delegatorAddress := clientctx.GetFromAddress()
-			msg := types.NewMsgLiquidUnstake(amount, delegatorAddress, args[1])
+			msg := types.NewMsgLiquidUnstake(amount, delegatorAddress)
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
 		},
@@ -182,9 +182,9 @@ func NewLiquidUnstakeCmd() *cobra.Command {
 
 func NewRedeemCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "redeem [amount] [host-denom]",
+		Use:   "redeem [amount]",
 		Short: `Instantly redeem stk tokens from a registered host chain`,
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			clientctx, err := client.GetClientTxContext(cmd)
@@ -198,7 +198,7 @@ func NewRedeemCmd() *cobra.Command {
 			}
 
 			delegatorAddress := clientctx.GetFromAddress()
-			msg := types.NewMsgRedeem(amount, delegatorAddress, args[1])
+			msg := types.NewMsgRedeem(amount, delegatorAddress)
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
 		},

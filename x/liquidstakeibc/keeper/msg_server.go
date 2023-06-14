@@ -361,12 +361,21 @@ func (k msgServer) LiquidUnstake(
 ) (*types.MsgLiquidUnstakeResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
+	// parse the chain host denom from the stk denom
+	_, hostDenom, found := strings.Cut(msg.Amount.Denom, "/")
+	if !found {
+		return nil, errorsmod.Wrapf(types.ErrInvalidHostChain,
+			"could not parse chain host denom from %s",
+			msg.Amount.Denom,
+		)
+	}
+
 	// get the host chain we need to unstake from
-	hc, found := k.GetHostChainFromHostDenom(ctx, msg.HostDenom)
+	hc, found := k.GetHostChainFromHostDenom(ctx, hostDenom)
 	if !found {
 		return nil, errorsmod.Wrapf(types.ErrInvalidHostChain,
 			"host chain with host denom %s not registered",
-			msg.HostDenom,
+			hostDenom,
 		)
 	}
 
@@ -470,12 +479,21 @@ func (k msgServer) Redeem(
 ) (*types.MsgRedeemResponse, error) {
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
+	// parse the chain host denom from the stk denom
+	_, hostDenom, found := strings.Cut(msg.Amount.Denom, "/")
+	if !found {
+		return nil, errorsmod.Wrapf(types.ErrInvalidHostChain,
+			"could not parse chain host denom from %s",
+			msg.Amount.Denom,
+		)
+	}
+
 	// get the host chain we need to unstake from
-	hc, found := k.GetHostChainFromHostDenom(ctx, msg.HostDenom)
+	hc, found := k.GetHostChainFromHostDenom(ctx, hostDenom)
 	if !found {
 		return nil, errorsmod.Wrapf(types.ErrInvalidHostChain,
 			"host chain with host denom %s not registered",
-			msg.HostDenom,
+			hostDenom,
 		)
 	}
 

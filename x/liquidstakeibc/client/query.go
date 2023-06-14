@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -31,6 +32,9 @@ func NewQueryCmd() *cobra.Command {
 		QueryUnbondingsCmd(),
 		QueryUserUnbondingsCmd(),
 		QueryValidatorUnbondingsCmd(),
+		QueryDepositAccountBalanceCmd(),
+		QueryExchangeRateCmd(),
+		QueryUnbondingCmd(),
 	)
 
 	return cmd
@@ -104,12 +108,12 @@ func QueryHostChainsCmd() *cobra.Command {
 // QueryDepositsCmd returns all user deposits.
 func QueryDepositsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deposits [host-denom]",
+		Use:   "deposits [chain-id]",
 		Short: "Query deposit records for a host chain",
 		Args:  cobra.ExactArgs(1),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`Query all deposits: $ %s query liquidstakeibc deposits [host-denom]`,
+				`Query all deposits: $ %s query liquidstakeibc deposits [chain-id]`,
 				version.AppName,
 			),
 		),
@@ -121,7 +125,7 @@ func QueryDepositsCmd() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.Deposits(cmd.Context(), &types.QueryDepositsRequest{HostDenom: args[0]})
+			res, err := queryClient.Deposits(cmd.Context(), &types.QueryDepositsRequest{ChainId: args[0]})
 			if err != nil {
 				return err
 			}
@@ -138,12 +142,12 @@ func QueryDepositsCmd() *cobra.Command {
 // QueryUnbondingsCmd returns all unbonding records for a host chain.
 func QueryUnbondingsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "unbondings [host-denom]",
+		Use:   "unbondings [chain-id]",
 		Short: "Query all unbonding records for a host chain",
 		Args:  cobra.ExactArgs(1),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`Query an unbonding record: $ %s query liquidstakeibc unbondings [host-denom]`,
+				`Query an unbonding record: $ %s query liquidstakeibc unbondings [chain-id]`,
 				version.AppName,
 			),
 		),
@@ -155,7 +159,48 @@ func QueryUnbondingsCmd() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.Unbondings(context.Background(), &types.QueryUnbondingsRequest{HostDenom: args[0]})
+			res, err := queryClient.Unbondings(context.Background(), &types.QueryUnbondingsRequest{ChainId: args[0]})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryUnbondingCmd returns an unbonding record for a host chain and an epoch.
+func QueryUnbondingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "unbonding [chain-id] [epoch]",
+		Short: "Query an unbonding record for a host chain and an epoch",
+		Args:  cobra.ExactArgs(2),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query an unbonding record: $ %s query liquidstakeibc unbonding [chain-id] [epoch]`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			epoch, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.Unbonding(
+				context.Background(),
+				&types.QueryUnbondingRequest{ChainId: args[0], Epoch: epoch})
 			if err != nil {
 				return err
 			}
@@ -216,12 +261,12 @@ func QueryUserUnbondingsCmd() *cobra.Command {
 // QueryValidatorUnbondingsCmd returns all validator unbondings for a host chain.
 func QueryValidatorUnbondingsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "validator-unbondings [host-denom]",
-		Short: "Query a user unbonding record",
+		Use:   "validator-unbondings [chain-id]",
+		Short: "Query all validator unbonding records for a host chain",
 		Args:  cobra.ExactArgs(1),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`Query all validator unbondings for a host chain: $ %s query liquidstakeibc validator-unbondings [host-denom]`,
+				`Query all validator unbondings for a host chain: $ %s query liquidstakeibc validator-unbondings [chain-id]`,
 				version.AppName,
 			),
 		),
@@ -236,9 +281,80 @@ func QueryValidatorUnbondingsCmd() *cobra.Command {
 			res, err := queryClient.ValidatorUnbondings(
 				context.Background(),
 				&types.QueryValidatorUnbondingRequest{
-					HostDenom: args[0],
+					ChainId: args[0],
 				},
 			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryDepositAccountBalanceCmd returns the host chain deposit account balance.
+func QueryDepositAccountBalanceCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deposit-account-balance [chain-id]",
+		Short: "Query deposit records for a host chain",
+		Args:  cobra.ExactArgs(1),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query a host chain deposit account balance: $ %s query liquidstakeibc deposit-account-balance [chain-id]`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.DepositAccountBalance(
+				cmd.Context(),
+				&types.QueryDepositAccountBalanceRequest{ChainId: args[0]},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryExchangeRateCmd returns the host chain exchange rate between the host token and the stk token.
+func QueryExchangeRateCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "exchange-rate [chain-id]",
+		Short: "Query the exchange rate of a host chain",
+		Args:  cobra.ExactArgs(1),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query the exchange rate of a host chain: $ %s query liquidstakeibc exchange-rate [chain-id]`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.ExchangeRate(cmd.Context(), &types.QueryExchangeRateRequest{ChainId: args[0]})
 			if err != nil {
 				return err
 			}

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -66,7 +67,7 @@ func (k *Keeper) Deposits(
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	hc, found := k.GetHostChainFromHostDenom(ctx, request.HostDenom)
+	hc, found := k.GetHostChain(ctx, request.ChainId)
 	if !found {
 		return nil, sdkerrors.ErrKeyNotFound
 	}
@@ -81,25 +82,51 @@ func (k *Keeper) Unbondings(
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-	if request.HostDenom == "" {
-		return nil, status.Error(codes.InvalidArgument, "host_denom cannot be empty")
+	if request.ChainId == "" {
+		return nil, status.Error(codes.InvalidArgument, "chain_id cannot be empty")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	hc, found := k.GetHostChainFromHostDenom(ctx, request.HostDenom)
-	if !found {
+	unbondings := k.FilterUnbondings(
+		ctx,
+		func(u types.Unbonding) bool {
+			return u.ChainId == request.ChainId
+		},
+	)
+
+	if len(unbondings) == 0 {
 		return nil, sdkerrors.ErrKeyNotFound
 	}
+
+	return &types.QueryUnbondingsResponse{Unbondings: unbondings}, nil
+}
+
+func (k *Keeper) Unbonding(
+	goCtx context.Context,
+	request *types.QueryUnbondingRequest,
+) (*types.QueryUnbondingResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.ChainId == "" {
+		return nil, status.Error(codes.InvalidArgument, "chain_id cannot be empty")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	unbondings := k.FilterUnbondings(
 		ctx,
 		func(u types.Unbonding) bool {
-			return u.ChainId == hc.ChainId
+			return u.ChainId == request.ChainId && u.EpochNumber == request.Epoch
 		},
 	)
 
-	return &types.QueryUnbondingsResponse{Unbondings: unbondings}, nil
+	if len(unbondings) == 0 {
+		return nil, sdkerrors.ErrKeyNotFound
+	}
+
+	return &types.QueryUnbondingResponse{Unbonding: unbondings[0]}, nil
 }
 
 func (k *Keeper) UserUnbondings(
@@ -137,21 +164,60 @@ func (k *Keeper) ValidatorUnbondings(
 	if request == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-	if request.HostDenom == "" {
-		return nil, status.Error(codes.InvalidArgument, "host_denom cannot be empty")
+	if request.ChainId == "" {
+		return nil, status.Error(codes.InvalidArgument, "chain_id cannot be empty")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	hc, found := k.GetHostChainFromHostDenom(ctx, request.HostDenom)
+	validatorUnbondings := k.FilterValidatorUnbondings(
+		ctx,
+		func(u types.ValidatorUnbonding) bool { return u.ChainId == request.ChainId },
+	)
+
+	if len(validatorUnbondings) == 0 {
+		return nil, sdkerrors.ErrKeyNotFound
+	}
+
+	return &types.QueryValidatorUnbondingResponse{ValidatorUnbondings: validatorUnbondings}, nil
+}
+
+func (k *Keeper) DepositAccountBalance(
+	goCtx context.Context,
+	request *types.QueryDepositAccountBalanceRequest,
+) (*types.QueryDepositAccountBalanceResponse, error) {
+	if request == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	hc, found := k.GetHostChain(ctx, request.ChainId)
 	if !found {
 		return nil, sdkerrors.ErrKeyNotFound
 	}
 
-	validatorUnbondings := k.FilterValidatorUnbondings(
-		ctx,
-		func(u types.ValidatorUnbonding) bool { return u.ChainId == hc.ChainId },
-	)
+	return &types.QueryDepositAccountBalanceResponse{
+		Balance: k.bankKeeper.GetBalance(
+			ctx,
+			authtypes.NewModuleAddress(types.DepositModuleAccount), hc.IBCDenom()),
+	}, nil
+}
 
-	return &types.QueryValidatorUnbondingResponse{ValidatorUnbondings: validatorUnbondings}, nil
+func (k *Keeper) ExchangeRate(
+	goCtx context.Context,
+	request *types.QueryExchangeRateRequest,
+) (*types.QueryExchangeRateResponse, error) {
+	if request == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	hc, found := k.GetHostChain(ctx, request.ChainId)
+	if !found {
+		return nil, sdkerrors.ErrKeyNotFound
+	}
+
+	return &types.QueryExchangeRateResponse{Rate: k.GetHostChainCValue(ctx, hc)}, nil
 }

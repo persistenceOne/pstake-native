@@ -4,6 +4,7 @@ package pstake.liquidstakeibc.v1beta1;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 import "pstake/liquidstakeibc/v1beta1/params.proto";
 import "pstake/liquidstakeibc/v1beta1/liquidstakeibc.proto";
@@ -31,12 +32,17 @@ service Query {
 
   // Queries for all the deposits for a host chain.
   rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
-    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/deposits/{host_denom}";
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/deposits/{chain_id}";
   }
 
   // Queries all unbondings for a host chain.
   rpc Unbondings(QueryUnbondingsRequest) returns (QueryUnbondingsResponse) {
-    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/unbondings/{host_denom}";
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/unbondings/{chain_id}";
+  }
+
+  // Queries an unbonding for a host chain.
+  rpc Unbonding(QueryUnbondingRequest) returns (QueryUnbondingResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/unbonding/{chain_id}/{epoch}";
   }
 
   // Queries all unbondings for a delegator address.
@@ -46,7 +52,17 @@ service Query {
 
   // Queries all validator unbondings for a host chain.
   rpc ValidatorUnbondings(QueryValidatorUnbondingRequest) returns (QueryValidatorUnbondingResponse) {
-    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/validator_unbondings/{host_denom}";
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/validator_unbondings/{chain_id}";
+  }
+
+  // Queries for a host chain deposit account balance.
+  rpc DepositAccountBalance(QueryDepositAccountBalanceRequest) returns (QueryDepositAccountBalanceResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/deposit_account_balance/{chain_id}";
+  }
+
+  // Queries for a host chain exchange rate between the host token and the stk token.
+  rpc ExchangeRate(QueryExchangeRateRequest) returns (QueryExchangeRateResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/exchange_rate/{chain_id}";
   }
 }
 
@@ -72,7 +88,7 @@ message QueryHostChainsResponse {
 }
 
 message QueryDepositsRequest {
-  string host_denom = 1;
+  string chain_id = 1;
 }
 
 message QueryDepositsResponse {
@@ -80,11 +96,20 @@ message QueryDepositsResponse {
 }
 
 message QueryUnbondingsRequest {
-  string host_denom = 1;
+  string chain_id = 1;
 }
 
 message QueryUnbondingsResponse {
   repeated Unbonding unbondings = 1;
+}
+
+message QueryUnbondingRequest {
+  string chain_id = 1;
+  int64 epoch = 2;
+}
+
+message QueryUnbondingResponse {
+  Unbonding unbonding = 1;
 }
 
 message QueryUserUnbondingsRequest {
@@ -96,9 +121,28 @@ message QueryUserUnbondingsResponse {
 }
 
 message QueryValidatorUnbondingRequest {
-  string host_denom = 1;
+  string chain_id = 1;
 }
 
 message QueryValidatorUnbondingResponse {
   repeated ValidatorUnbonding validator_unbondings = 1;
+}
+
+message QueryDepositAccountBalanceRequest {
+  string chain_id = 1;
+}
+
+message QueryDepositAccountBalanceResponse {
+  cosmos.base.v1beta1.Coin balance = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryExchangeRateRequest {
+  string chain_id = 1;
+}
+
+message QueryExchangeRateResponse {
+  string rate = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
 }

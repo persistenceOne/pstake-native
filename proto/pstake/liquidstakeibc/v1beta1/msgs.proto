@@ -100,7 +100,6 @@ message MsgLiquidUnstake {
 
   string delegator_address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
-  string host_denom = 3;
 }
 
 message MsgLiquidUnstakeResponse {}
@@ -110,7 +109,6 @@ message MsgRedeem {
 
   string delegator_address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
-  string host_denom = 3;
 }
 
 message MsgRedeemResponse {}
