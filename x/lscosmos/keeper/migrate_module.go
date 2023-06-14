@@ -33,7 +33,7 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 	newhc := &liquidstakeibctypes.HostChain{
 		ChainId:      hcparams.ChainID,
 		ConnectionId: hcparams.ConnectionID,
-		ChannelId:    hcparams.ChainID,
+		ChannelId:    hcparams.TransferChannel,
 		PortId:       hcparams.TransferPort,
 		Params: &liquidstakeibctypes.HostChainLSParams{
 			DepositFee:    hcparams.PstakeParams.PstakeDepositFee,
@@ -143,7 +143,7 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 	for _, delegatorUnbondingEpochEntry := range delegatorUnbondingEpochEntries {
 		unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, delegatorUnbondingEpochEntry.EpochNumber)
 		claimableAmount := sdk.NewDecFromInt(delegatorUnbondingEpochEntry.Amount.Amount).Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
-		claimableCoin, _ := sdk.NewDecCoinFromDec(k.GetIBCDenom(ctx), claimableAmount).TruncateDecimal()
+		claimableCoin, _ := sdk.NewDecCoinFromDec(newhc.HostDenom, claimableAmount).TruncateDecimal()
 
 		k.liquidStakeIBCKeeper.SetUserUnbonding(ctx, &liquidstakeibctypes.UserUnbonding{
 			ChainId:      newhc.ChainId,
