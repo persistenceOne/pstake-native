@@ -87,9 +87,6 @@ func (k *Keeper) OnChanOpenAck(
 	// save the changes of the host chain
 	k.SetHostChain(ctx, hc)
 
-	// revert the state for all the deposits that were being delegated on that host chain
-	k.RevertDepositsState(ctx, k.GetDelegatingDepositsForChain(ctx, hc.ChainId))
-
 	// send an ICQ query to get the delegator account balance
 	if hc.DelegationAccount != nil && hc.DelegationAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATED {
 		if err := k.QueryDelegationHostChainAccountBalance(ctx, hc); err != nil {
@@ -183,58 +180,9 @@ func (k *Keeper) OnTimeoutPacket(
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
 	}
 
-	messages, err := icatypes.DeserializeCosmosTx(k.cdc, icaPacket.GetData())
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot deserialize ica packet data: %v", err)
+	if err := k.handleUnsuccessfulAck(ctx, icaPacket, packet.SourceChannel, packet.Sequence); err != nil {
+		return err
 	}
-
-	for _, msg := range messages {
-		switch sdk.MsgTypeURL(msg) {
-		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
-			// revert all the deposits for that sequence to its previous state
-			k.RevertDepositsState(
-				ctx,
-				k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
-			)
-		case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
-			// mark unbondings as failed
-			k.FailAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
-			// delete all validator unbondings so they can be picked up again
-			k.DeleteValidatorUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
-		case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
-			unbondings := k.FilterUnbondings(
-				ctx,
-				func(u types.Unbonding) bool {
-					return u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
-				},
-			)
-			// revert unbonding state so it can be picked up again
-			k.RevertUnbondingsState(ctx, unbondings)
-
-			validatorUnbondings := k.FilterValidatorUnbondings(
-				ctx,
-				func(u types.ValidatorUnbonding) bool {
-					return u.IbcSequenceId == k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)
-				},
-			)
-
-			// empty the ibc sequence id, so they will be picked up again while processing mature delegations
-			for _, validatorUnbonding := range validatorUnbondings {
-				validatorUnbonding.IbcSequenceId = ""
-				k.SetValidatorUnbonding(ctx, validatorUnbonding)
-			}
-		}
-	}
-
-	k.Logger(ctx).Info(
-		fmt.Sprintf(
-			"ICA packet timed out with seq: %v, channel: %s, port: %s, msgs: %s",
-			packet.Sequence,
-			packet.SourceChannel,
-			packet.SourcePort,
-			messages,
-		),
-	)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -251,8 +199,6 @@ func (k *Keeper) OnTimeoutPacket(
 		packet.SourceChannel,
 		"port",
 		packet.SourcePort,
-		"messages",
-		messages,
 	)
 
 	return nil
@@ -304,16 +250,6 @@ func (k *Keeper) handleUnsuccessfulAck(
 			}
 		}
 	}
-
-	k.Logger(ctx).Info(
-		"ICA transaction ACK error.",
-		"sequence",
-		sequence,
-		"channel",
-		channel,
-		"messages",
-		messages,
-	)
 
 	return nil
 }
