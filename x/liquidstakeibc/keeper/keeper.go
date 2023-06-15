@@ -262,3 +262,52 @@ func (k *Keeper) SendICATransfer(
 
 	return sequenceID, nil
 }
+
+func (k *Keeper) UpdateCValues(ctx sdk.Context) {
+	hostChains := k.GetAllHostChains(ctx)
+
+	for _, hc := range hostChains {
+		k.Logger(ctx).Info("Updating CValue for %", hc.ChainId)
+
+		// total stk tokens minted
+		mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
+
+		k.Logger(ctx).Info("Total minted amount: %v.", mintedAmount)
+
+		// amount staked by the module in any of the validators of the host chain
+		stakedAmount := hc.GetHostChainTotalDelegations()
+
+		// amount that is in the staking flow and hasn't left Persistence yet
+		amountOnPersistence := k.GetDepositAmountOnPersistence(ctx, hc.ChainId)
+
+		// amount that is in the staking flow and has arrived to the host chain, but hasn't been staked yet
+		amountOnHostChain := k.GetDepositAmountOnHostChain(ctx, hc.ChainId)
+
+		// amount unbonded from a validator that has been in the Unbonding state for more than 4 unbonding epochs
+		totalUnbondingAmount := k.GetAllValidatorUnbondedAmount(ctx, hc)
+
+		// total amount staked
+		liquidStakedAmount := stakedAmount.Add(amountOnPersistence).Add(amountOnHostChain).Add(totalUnbondingAmount)
+
+		k.Logger(ctx).Info(
+			"Total liquid staked amount: %v. Composed of %v staked tokens, %v tokens on Persistence, %v tokens on the host chain, %v tokens from a validator total unbonding.",
+			liquidStakedAmount,
+			stakedAmount,
+			amountOnPersistence,
+			amountOnHostChain,
+		)
+
+		var cValue sdk.Dec
+		if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {
+			cValue = sdk.OneDec()
+		} else {
+			cValue = sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(liquidStakedAmount))
+		}
+
+		k.Logger(ctx).Info("New c_value: %v - Old c_value: %v", cValue, hc.CValue)
+
+		hc.LastCValue = hc.CValue
+		hc.CValue = cValue
+		k.SetHostChain(ctx, hc)
+	}
+}

@@ -176,8 +176,6 @@ func DelegationAccountBalanceCallback(k Keeper, ctx sdk.Context, data []byte, qu
 
 	hc.DelegationAccount.Balance = balance
 
-	// recalculate the host chain c value after the local account data has been updated
-	hc.CValue = k.GetHostChainCValue(ctx, hc)
 	k.SetHostChain(ctx, hc)
 
 	return nil
@@ -210,8 +208,6 @@ func RewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, data []byte, query
 		}
 	}
 
-	// recalculate the host chain c value after the local account data has been updated
-	hc.CValue = k.GetHostChainCValue(ctx, hc)
 	k.SetHostChain(ctx, hc)
 
 	return nil

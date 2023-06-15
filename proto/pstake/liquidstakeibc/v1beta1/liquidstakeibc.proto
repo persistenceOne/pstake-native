@@ -41,12 +41,18 @@ message HostChain {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
+  // previous redemption rate
+  string last_c_value = 12 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
   // the hash of the next validator set
-  bytes next_valset_hash = 12;
+  bytes next_valset_hash = 13;
   // undelegation epoch factor
-  int64 unbonding_factor = 13;
+  int64 unbonding_factor = 14;
   // whether the chain is ready to accept delegations or not
-  bool active = 14;
+  bool active = 15;
 }
 
 message HostChainLSParams {

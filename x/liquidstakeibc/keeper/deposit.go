@@ -234,3 +234,43 @@ func (k *Keeper) GetDelegatingDepositsForChain(ctx sdk.Context, chainID string) 
 
 	return deposits
 }
+
+func (k *Keeper) GetDepositAmountOnPersistence(ctx sdk.Context, chainID string) sdk.Int {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	amount := sdk.ZeroInt()
+	for ; iterator.Valid(); iterator.Next() {
+		deposit := &liquidstakeibctypes.Deposit{}
+		k.cdc.MustUnmarshal(iterator.Value(), deposit)
+
+		if deposit.ChainId == chainID &&
+			(deposit.State == liquidstakeibctypes.Deposit_DEPOSIT_PENDING ||
+				deposit.State == liquidstakeibctypes.Deposit_DEPOSIT_SENT) {
+			amount = amount.Add(deposit.Amount.Amount)
+		}
+	}
+
+	return amount
+}
+
+func (k *Keeper) GetDepositAmountOnHostChain(ctx sdk.Context, chainID string) sdk.Int {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	amount := sdk.ZeroInt()
+	for ; iterator.Valid(); iterator.Next() {
+		deposit := &liquidstakeibctypes.Deposit{}
+		k.cdc.MustUnmarshal(iterator.Value(), deposit)
+
+		if deposit.ChainId == chainID &&
+			(deposit.State == liquidstakeibctypes.Deposit_DEPOSIT_RECEIVED ||
+				deposit.State == liquidstakeibctypes.Deposit_DEPOSIT_DELEGATING) {
+			amount = amount.Add(deposit.Amount.Amount)
+		}
+	}
+
+	return amount
+}
