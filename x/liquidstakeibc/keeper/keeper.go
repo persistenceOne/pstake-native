@@ -295,6 +295,7 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 			stakedAmount,
 			amountOnPersistence,
 			amountOnHostChain,
+			totalUnbondingAmount,
 		))
 
 		var cValue sdk.Dec
