@@ -24,6 +24,11 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 	// port all stores
 	//	HostChainParamsKey
 
+	pending, err := k.CheckPendingICATxs(ctx)
+	if pending {
+		return types.ErrModuleMigrationFailed.Wrapf("There are pending ica txs/ channels closed, err: %s", err)
+	}
+
 	consensusState, err := k.liquidStakeIBCKeeper.GetLatestConsensusState(ctx, hcparams.ConnectionID)
 	if err != nil {
 		k.Logger(ctx).Error("could not retrieve client state", "host_chain", hcparams.ChainID)
