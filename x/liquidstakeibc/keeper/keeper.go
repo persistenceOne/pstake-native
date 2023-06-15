@@ -289,13 +289,13 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		// total amount staked
 		liquidStakedAmount := stakedAmount.Add(amountOnPersistence).Add(amountOnHostChain).Add(totalUnbondingAmount)
 
-		k.Logger(ctx).Info(
+		k.Logger(ctx).Info(fmt.Sprintf(
 			"Total liquid staked amount: %v. Composed of %v staked tokens, %v tokens on Persistence, %v tokens on the host chain, %v tokens from a validator total unbonding.",
 			liquidStakedAmount,
 			stakedAmount,
 			amountOnPersistence,
 			amountOnHostChain,
-		)
+		))
 
 		var cValue sdk.Dec
 		if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {
@@ -304,10 +304,29 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 			cValue = sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(liquidStakedAmount))
 		}
 
-		k.Logger(ctx).Info("New c_value: %v - Old c_value: %v", cValue, hc.CValue)
+		k.Logger(ctx).Info(fmt.Sprintf("New c_value: %v - Old c_value: %v", cValue, hc.CValue))
 
 		hc.LastCValue = hc.CValue
 		hc.CValue = cValue
 		k.SetHostChain(ctx, hc)
+
+		// if the c value is out of bounds, disable the chain
+		if hc.CValue.GT(k.GetParams(ctx).UpperCValueLimit) || hc.CValue.LT(k.GetParams(ctx).LowerCValueLimit) {
+			hc.Active = false
+			k.SetHostChain(ctx, hc)
+
+			k.Logger(ctx).Error(fmt.Sprintf("C value out of limits !!! Disabling chain %s with c value %v.", hc.ChainId, hc.CValue))
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeChainDisabled,
+					sdk.NewAttribute(types.AttributeChainId, hc.ChainId),
+					sdk.NewAttribute(types.AttributeCValue, hc.CValue.String()),
+				),
+			)
+		}
 	}
+}
+
+func (k *Keeper) CheckCValueWithinLimits(ctx sdk.Context, hc *types.HostChain) bool {
+	return hc.CValue.LT(k.GetParams(ctx).UpperCValueLimit) && hc.CValue.GT(k.GetParams(ctx).LowerCValueLimit)
 }
