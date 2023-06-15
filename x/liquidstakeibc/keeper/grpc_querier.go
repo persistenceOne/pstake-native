@@ -95,10 +95,6 @@ func (k *Keeper) Unbondings(
 		},
 	)
 
-	if len(unbondings) == 0 {
-		return nil, sdkerrors.ErrKeyNotFound
-	}
-
 	return &types.QueryUnbondingsResponse{Unbondings: unbondings}, nil
 }
 
@@ -174,10 +170,6 @@ func (k *Keeper) ValidatorUnbondings(
 		ctx,
 		func(u types.ValidatorUnbonding) bool { return u.ChainId == request.ChainId },
 	)
-
-	if len(validatorUnbondings) == 0 {
-		return nil, sdkerrors.ErrKeyNotFound
-	}
 
 	return &types.QueryValidatorUnbondingResponse{ValidatorUnbondings: validatorUnbondings}, nil
 }
