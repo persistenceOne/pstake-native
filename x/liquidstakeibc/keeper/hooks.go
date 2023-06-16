@@ -418,11 +418,6 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 			continue
 		}
 
-		// don't do anything if the chain is not active
-		if !hc.Active {
-			continue
-		}
-
 		// check if the deposit amount is larger than 0
 		if deposit.Amount.Amount.LTE(sdk.NewInt(0)) {
 			// delete empty deposits to save on storage
@@ -430,6 +425,11 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 				k.DeleteDeposit(ctx, deposit)
 			}
 
+			continue
+		}
+
+		// don't do anything if the chain is not active
+		if !hc.Active {
 			continue
 		}
 
