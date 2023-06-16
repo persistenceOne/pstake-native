@@ -313,7 +313,7 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		k.SetHostChain(ctx, hc)
 
 		// if the c value is out of bounds, disable the chain
-		if hc.CValue.GT(k.GetParams(ctx).UpperCValueLimit) || hc.CValue.LT(k.GetParams(ctx).LowerCValueLimit) {
+		if !k.CValueWithinLimits(ctx, hc) {
 			hc.Active = false
 			k.SetHostChain(ctx, hc)
 
@@ -329,6 +329,6 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 	}
 }
 
-func (k *Keeper) CheckCValueWithinLimits(ctx sdk.Context, hc *types.HostChain) bool {
+func (k *Keeper) CValueWithinLimits(ctx sdk.Context, hc *types.HostChain) bool {
 	return hc.CValue.LT(k.GetParams(ctx).UpperCValueLimit) && hc.CValue.GT(k.GetParams(ctx).LowerCValueLimit)
 }
