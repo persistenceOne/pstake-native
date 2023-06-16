@@ -267,12 +267,11 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 	hostChains := k.GetAllHostChains(ctx)
 
 	for _, hc := range hostChains {
-		k.Logger(ctx).Info("Updating CValue for %", hc.ChainId)
 
 		// total stk tokens minted
 		mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
 
-		k.Logger(ctx).Info("Total minted amount: %v.", mintedAmount)
+		k.Logger(ctx).Info(fmt.Sprintf("", mintedAmount))
 
 		// amount staked by the module in any of the validators of the host chain
 		stakedAmount := hc.GetHostChainTotalDelegations()
@@ -289,15 +288,6 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		// total amount staked
 		liquidStakedAmount := stakedAmount.Add(amountOnPersistence).Add(amountOnHostChain).Add(totalUnbondingAmount)
 
-		k.Logger(ctx).Info(fmt.Sprintf(
-			"Total liquid staked amount: %v. Composed of %v staked tokens, %v tokens on Persistence, %v tokens on the host chain, %v tokens from a validator total unbonding.",
-			liquidStakedAmount,
-			stakedAmount,
-			amountOnPersistence,
-			amountOnHostChain,
-			totalUnbondingAmount,
-		))
-
 		var cValue sdk.Dec
 		if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {
 			cValue = sdk.OneDec()
@@ -305,7 +295,20 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 			cValue = sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(liquidStakedAmount))
 		}
 
-		k.Logger(ctx).Info(fmt.Sprintf("New c_value: %v - Old c_value: %v", cValue, hc.CValue))
+		k.Logger(ctx).Info(
+			fmt.Sprintf(
+				"Updated CValue for %s. Total minted amount: %v. Total liquid staked amount: %v. Composed of %v staked tokens, %v tokens on Persistence, %v tokens on the host chain, %v tokens from a validator total unbonding. New c_value: %v - Old c_value: %v",
+				hc.ChainId,
+				mintedAmount,
+				liquidStakedAmount,
+				stakedAmount,
+				amountOnPersistence,
+				amountOnHostChain,
+				totalUnbondingAmount,
+				cValue,
+				hc.CValue,
+			),
+		)
 
 		hc.LastCValue = hc.CValue
 		hc.CValue = cValue

@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -75,7 +73,6 @@ func (k *Keeper) QueryDelegationHostChainAccountBalance(
 	}
 
 	key := banktypes.CreatePrefixedAccountStoreKey(byteAddress, []byte(hc.HostDenom))
-	fmt.Println(key)
 
 	k.icqKeeper.MakeRequest(
 		ctx,
@@ -103,7 +100,6 @@ func (k *Keeper) QueryRewardsHostChainAccountBalance(
 	}
 
 	key := banktypes.CreatePrefixedAccountStoreKey(byteAddress, []byte(hc.HostDenom))
-	fmt.Println(key)
 
 	k.icqKeeper.MakeRequest(
 		ctx,
