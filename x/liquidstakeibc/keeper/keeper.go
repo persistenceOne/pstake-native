@@ -271,8 +271,6 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		// total stk tokens minted
 		mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
 
-		k.Logger(ctx).Info(fmt.Sprintf("", mintedAmount))
-
 		// amount staked by the module in any of the validators of the host chain
 		stakedAmount := hc.GetHostChainTotalDelegations()
 
@@ -323,7 +321,7 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					types.EventTypeChainDisabled,
-					sdk.NewAttribute(types.AttributeChainId, hc.ChainId),
+					sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
 					sdk.NewAttribute(types.AttributeCValue, hc.CValue.String()),
 				),
 			)

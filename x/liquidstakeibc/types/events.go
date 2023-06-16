@@ -16,7 +16,7 @@ const (
 	AttributePstakeDepositFee   = "pstake-deposit-fee"
 	AttributePstakeUnstakeFee   = "pstake-unstake-fee"
 	AttributePstakeRedeemFee    = "pstake-redeem-fee"
-	AttributeChainId            = "chain-id"
+	AttributeChainID            = "chain-id"
 	AttributeCValue             = "c-value"
 	AttributeUnstakeAmount      = "undelegation-amount"
 	AttributeUnstakeEpoch       = "undelegation-epoch"

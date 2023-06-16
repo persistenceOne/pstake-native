@@ -235,7 +235,7 @@ func (k *Keeper) GetDelegatingDepositsForChain(ctx sdk.Context, chainID string) 
 	return deposits
 }
 
-func (k *Keeper) GetDepositAmountOnPersistence(ctx sdk.Context, chainID string) sdk.Int {
+func (k *Keeper) GetDepositAmountOnPersistence(ctx sdk.Context, chainID string) sdk.Int { //nolint:staticcheck
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
@@ -255,7 +255,7 @@ func (k *Keeper) GetDepositAmountOnPersistence(ctx sdk.Context, chainID string) 
 	return amount
 }
 
-func (k *Keeper) GetDepositAmountOnHostChain(ctx sdk.Context, chainID string) sdk.Int {
+func (k *Keeper) GetDepositAmountOnHostChain(ctx sdk.Context, chainID string) sdk.Int { //nolint:staticcheck
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
