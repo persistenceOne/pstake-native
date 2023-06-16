@@ -262,3 +262,73 @@ func (k *Keeper) SendICATransfer(
 
 	return sequenceID, nil
 }
+
+func (k *Keeper) UpdateCValues(ctx sdk.Context) {
+	hostChains := k.GetAllHostChains(ctx)
+
+	for _, hc := range hostChains {
+
+		// total stk tokens minted
+		mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
+
+		// amount staked by the module in any of the validators of the host chain
+		stakedAmount := hc.GetHostChainTotalDelegations()
+
+		// amount that is in the staking flow and hasn't left Persistence yet
+		amountOnPersistence := k.GetDepositAmountOnPersistence(ctx, hc.ChainId)
+
+		// amount that is in the staking flow and has arrived to the host chain, but hasn't been staked yet
+		amountOnHostChain := k.GetDepositAmountOnHostChain(ctx, hc.ChainId)
+
+		// amount unbonded from a validator that has been in the Unbonding state for more than 4 unbonding epochs
+		totalUnbondingAmount := k.GetAllValidatorUnbondedAmount(ctx, hc)
+
+		// total amount staked
+		liquidStakedAmount := stakedAmount.Add(amountOnPersistence).Add(amountOnHostChain).Add(totalUnbondingAmount)
+
+		var cValue sdk.Dec
+		if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {
+			cValue = sdk.OneDec()
+		} else {
+			cValue = sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(liquidStakedAmount))
+		}
+
+		k.Logger(ctx).Info(
+			fmt.Sprintf(
+				"Updated CValue for %s. Total minted amount: %v. Total liquid staked amount: %v. Composed of %v staked tokens, %v tokens on Persistence, %v tokens on the host chain, %v tokens from a validator total unbonding. New c_value: %v - Old c_value: %v",
+				hc.ChainId,
+				mintedAmount,
+				liquidStakedAmount,
+				stakedAmount,
+				amountOnPersistence,
+				amountOnHostChain,
+				totalUnbondingAmount,
+				cValue,
+				hc.CValue,
+			),
+		)
+
+		hc.LastCValue = hc.CValue
+		hc.CValue = cValue
+		k.SetHostChain(ctx, hc)
+
+		// if the c value is out of bounds, disable the chain
+		if !k.CValueWithinLimits(ctx, hc) {
+			hc.Active = false
+			k.SetHostChain(ctx, hc)
+
+			k.Logger(ctx).Error(fmt.Sprintf("C value out of limits !!! Disabling chain %s with c value %v.", hc.ChainId, hc.CValue))
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeChainDisabled,
+					sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(types.AttributeCValue, hc.CValue.String()),
+				),
+			)
+		}
+	}
+}
+
+func (k *Keeper) CValueWithinLimits(ctx sdk.Context, hc *types.HostChain) bool {
+	return hc.CValue.LT(k.GetParams(ctx).UpperCValueLimit) && hc.CValue.GT(k.GetParams(ctx).LowerCValueLimit)
+}

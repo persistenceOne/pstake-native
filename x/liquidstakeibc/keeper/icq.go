@@ -92,8 +92,8 @@ func ValidatorSetCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes
 		val, found := hc.GetValidator(validator.OperatorAddress)
 
 		// if it is a new validator or any of the attributes we track has changed, query for it
-		if !found || val != nil && (validator.Status.String() != val.Status ||
-			!validator.DelegatorShares.Equal(val.DelegatorShares) || !validator.Tokens.Equal(val.TotalAmount)) {
+		if !found || (val != nil && (validator.Status.String() != val.Status ||
+			!validator.DelegatorShares.Equal(val.DelegatorShares) || !validator.Tokens.Equal(val.TotalAmount))) {
 			if err := k.QueryHostChainValidator(ctx, hc, validator.OperatorAddress); err != nil {
 				return errorsmod.Wrapf(types.ErrFailedICQRequest, "error querying for validator: %s", err.Error())
 			}
@@ -176,8 +176,6 @@ func DelegationAccountBalanceCallback(k Keeper, ctx sdk.Context, data []byte, qu
 
 	hc.DelegationAccount.Balance = balance
 
-	// recalculate the host chain c value after the local account data has been updated
-	hc.CValue = k.GetHostChainCValue(ctx, hc)
 	k.SetHostChain(ctx, hc)
 
 	return nil
@@ -210,8 +208,6 @@ func RewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, data []byte, query
 		}
 	}
 
-	// recalculate the host chain c value after the local account data has been updated
-	hc.CValue = k.GetHostChainCValue(ctx, hc)
 	k.SetHostChain(ctx, hc)
 
 	return nil

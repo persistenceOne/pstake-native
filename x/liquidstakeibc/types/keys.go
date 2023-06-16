@@ -25,6 +25,7 @@ const (
 	DelegationEpoch        = "day"
 	UndelegationEpoch      = "day"
 	RewardsEpochIdentifier = "day"
+	CValueEpoch            = "hour"
 
 	// ICA types
 	DelegateICAType = "delegate"

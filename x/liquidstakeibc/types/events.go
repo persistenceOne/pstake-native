@@ -8,6 +8,7 @@ const (
 	EventTypeTimeout       = "timeout"
 	EventTypeSlashing      = "slashing"
 	EventTypeUpdateParams  = "update_params"
+	EventTypeChainDisabled = "chain_disabled"
 
 	AttributeAmount             = "amount"
 	AttributeAmountReceived     = "received"
@@ -15,6 +16,8 @@ const (
 	AttributePstakeDepositFee   = "pstake-deposit-fee"
 	AttributePstakeUnstakeFee   = "pstake-unstake-fee"
 	AttributePstakeRedeemFee    = "pstake-redeem-fee"
+	AttributeChainID            = "chain-id"
+	AttributeCValue             = "c-value"
 	AttributeUnstakeAmount      = "undelegation-amount"
 	AttributeUnstakeEpoch       = "undelegation-epoch"
 	AttributeValidatorAddress   = "validator-address"

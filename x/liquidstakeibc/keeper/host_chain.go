@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -210,24 +209,6 @@ func (k *Keeper) GetHostChainFromDelegatorAddress(ctx sdk.Context, delegatorAddr
 	}
 
 	return &hc, found
-}
-
-// GetHostChainCValue calculates the host chain c value
-func (k *Keeper) GetHostChainCValue(ctx sdk.Context, hc *types.HostChain) sdk.Dec {
-	// total stk minted amount
-	mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
-
-	// delegated amount + delegation account balance + deposit module account balance
-	liquidStakedAmount := hc.GetHostChainTotalDelegations().
-		Add(hc.DelegationAccount.Balance.Amount).
-		Add(k.GetAllValidatorUnbondedAmount(ctx, hc)).
-		Add(k.bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(types.DepositModuleAccount), hc.IBCDenom()).Amount)
-
-	if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {
-		return sdk.OneDec()
-	}
-
-	return sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(liquidStakedAmount))
 }
 
 // UpdateHostChainValidatorWeight updates a host chain validator weight

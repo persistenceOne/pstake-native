@@ -9,19 +9,28 @@ import (
 )
 
 const (
-	DefaultAdminAddress string = "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr" // TODO: Use correct address on launch
-	DefaultFeeAddress   string = "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld" // TODO: Use correct address on launch
+	DefaultAdminAddress     string = "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr" // TODO: Use correct address on launch
+	DefaultFeeAddress       string = "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld" // TODO: Use correct address on launch
+	DefaultUpperCValueLimit string = "1.1"
+	DefaultLowerCValueLimit string = "0.85"
 )
 
 // NewParams creates a new Params object
 func NewParams(
 	adminAddress string,
 	feeAddress string,
+	upperCValueLimit string,
+	lowerCValueLimit string,
 ) Params {
 
+	upperLimit, _ := sdktypes.NewDecFromStr(upperCValueLimit)
+	lowerLimit, _ := sdktypes.NewDecFromStr(lowerCValueLimit)
+
 	return Params{
-		AdminAddress: adminAddress,
-		FeeAddress:   feeAddress,
+		AdminAddress:     adminAddress,
+		FeeAddress:       feeAddress,
+		UpperCValueLimit: upperLimit,
+		LowerCValueLimit: lowerLimit,
 	}
 }
 
@@ -30,6 +39,8 @@ func DefaultParams() Params {
 	return NewParams(
 		DefaultAdminAddress,
 		DefaultFeeAddress,
+		DefaultUpperCValueLimit,
+		DefaultLowerCValueLimit,
 	)
 }
 
@@ -41,6 +52,13 @@ func (p *Params) Validate() error {
 	if err := isAddress(p.FeeAddress); err != nil {
 		return err
 	}
+	if err := isGTOne(p.UpperCValueLimit); err != nil {
+		return err
+	}
+	if err := isLTOne(p.LowerCValueLimit); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -65,6 +83,32 @@ func isAddress(i interface{}) error {
 	_, err := sdktypes.GetFromBech32(val, "persistence")
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func isGTOne(i interface{}) error {
+	val, ok := i.(sdktypes.Dec)
+	if !ok {
+		return fmt.Errorf("parameter is not valid: %T", i)
+	}
+
+	if !val.GT(sdktypes.OneDec()) {
+		return fmt.Errorf("upper limit must be higher than 1")
+	}
+
+	return nil
+}
+
+func isLTOne(i interface{}) error {
+	val, ok := i.(sdktypes.Dec)
+	if !ok {
+		return fmt.Errorf("parameter is not valid: %T", i)
+	}
+
+	if !val.LT(sdktypes.OneDec()) {
+		return fmt.Errorf("lower limit must be lower than 1")
 	}
 
 	return nil

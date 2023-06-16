@@ -333,16 +333,14 @@ func (suite *IntegrationTestSuite) TestGetHostChainCValue() {
 	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.path.EndpointB.Chain.ChainID)
 	suite.Require().Equal(true, found)
 
-	cValue := suite.app.LiquidStakeIBCKeeper.GetHostChainCValue(suite.ctx, hc)
-	suite.Require().Equal(sdk.OneDec(), cValue)
+	suite.Require().Equal(sdk.OneDec(), hc.CValue)
 
 	testAmount := sdk.NewInt64Coin(hc.MintDenom(), 100)
 	suite.Require().NoError(testutil.FundModuleAccount(suite.app.BankKeeper, suite.ctx, types.ModuleName, sdk.NewCoins(testAmount)))
 
 	hc.Validators[0].DelegatedAmount = sdk.NewInt(100)
 
-	cValue = suite.app.LiquidStakeIBCKeeper.GetHostChainCValue(suite.ctx, hc)
-	suite.Require().Equal(sdk.OneDec(), cValue)
+	suite.Require().Equal(sdk.OneDec(), hc.CValue)
 }
 
 func (suite *IntegrationTestSuite) TestUpdateHostChainValidatorWeight() {

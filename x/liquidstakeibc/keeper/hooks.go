@@ -84,6 +84,11 @@ func (k *Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epoch
 		k.CreateDeposits(ctx, epochNumber)
 	}
 
+	// update the c value for each registered host chain
+	if epochIdentifier == liquidstakeibctypes.CValueEpoch {
+		k.UpdateCValues(ctx)
+	}
+
 	return nil
 }
 
@@ -209,8 +214,8 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 				data.Amount,
 			)
 		}
-		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount)
 
+		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount)
 		k.SetDeposit(ctx, deposit)
 	}
 
@@ -331,7 +336,6 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 				},
 			)
 
-			hc.CValue = k.GetHostChainCValue(ctx, hc)
 			k.SetHostChain(ctx, hc)
 
 			k.Logger(ctx).Info(

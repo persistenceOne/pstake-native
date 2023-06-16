@@ -53,8 +53,6 @@ func (k *Keeper) HandleDelegateResponse(ctx sdk.Context, msg sdk.Msg, channel st
 	validator.DelegatedAmount = validator.DelegatedAmount.Add(parsedMsg.Amount.Amount)
 	k.SetHostChainValidator(ctx, hc, validator)
 
-	// update host the host chain c value
-	hc.CValue = k.GetHostChainCValue(ctx, hc)
 	k.SetHostChain(ctx, hc)
 
 	k.Logger(ctx).Info(
@@ -168,10 +166,6 @@ func (k *Keeper) HandleUndelegateResponse(
 			parsedMsg.Amount.String(),
 		)
 	}
-
-	// finally, update host the host chain c value
-	hc.CValue = k.GetHostChainCValue(ctx, hc)
-	k.SetHostChain(ctx, hc)
 
 	return nil
 }

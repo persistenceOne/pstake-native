@@ -211,5 +211,5 @@ func (k *Keeper) ExchangeRate(
 		return nil, sdkerrors.ErrKeyNotFound
 	}
 
-	return &types.QueryExchangeRateResponse{Rate: k.GetHostChainCValue(ctx, hc)}, nil
+	return &types.QueryExchangeRateResponse{Rate: hc.CValue}, nil
 }
