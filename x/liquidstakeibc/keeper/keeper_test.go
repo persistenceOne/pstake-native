@@ -143,12 +143,16 @@ func (suite *IntegrationTestSuite) TestGetSetParams() {
 		{
 			name: "normal params",
 			params: types.Params{
-				AdminAddress: "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr",
-				FeeAddress:   "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld",
+				AdminAddress:     "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr",
+				FeeAddress:       "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld",
+				UpperCValueLimit: decFromStr("1.1"),
+				LowerCValueLimit: decFromStr("0.9"),
 			},
 			expected: types.Params{
-				AdminAddress: "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr",
-				FeeAddress:   "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld",
+				AdminAddress:     "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr",
+				FeeAddress:       "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld",
+				UpperCValueLimit: decFromStr("1.1"),
+				LowerCValueLimit: decFromStr("0.9"),
 			},
 		},
 	}
