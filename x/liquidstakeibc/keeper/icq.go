@@ -147,6 +147,10 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 			"slashed-amount:", slashedAmount,
 		)
 
+		// update the delegated amount to the slashed amount
+		validator.DelegatedAmount = delegatedAmount
+		k.SetHostChainValidator(ctx, hc, validator)
+
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
 				types.EventTypeSlashing,
