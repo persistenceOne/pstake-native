@@ -20,6 +20,7 @@ const (
 	RewardAccountBalances     = "reward-balances"
 	DelegationAccountBalances = "delegation-balances"
 	Delegation                = "validator-delegation"
+	InitDelegation            = "init-validator-delegation"
 )
 
 type CallbackFn func(Keeper, sdk.Context, []byte, icqtypes.Query) error
@@ -54,7 +55,8 @@ func (c Callbacks) RegisterCallbacks() icqtypes.QueryCallbacks {
 		AddCallback(Validator, CallbackFn(ValidatorCallback)).
 		AddCallback(RewardAccountBalances, CallbackFn(RewardsAccountBalanceCallback)).
 		AddCallback(DelegationAccountBalances, CallbackFn(DelegationAccountBalanceCallback)).
-		AddCallback(Delegation, CallbackFn(DelegationCallback))
+		AddCallback(Delegation, CallbackFn(DelegationCallback)).
+		AddCallback(InitDelegation, CallbackFn(InitValidatorDelegationCallBack))
 
 	return a.(Callbacks)
 }
@@ -156,6 +158,34 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 				sdk.NewAttribute(types.AttributeSlashedAmount, slashedAmount.String()),
 			)})
 	}
+
+	validator.DelegatedAmount = delegatedAmount
+	k.SetHostChainValidator(ctx, hc, validator)
+
+	return nil
+}
+
+func InitValidatorDelegationCallBack(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
+	hc, found := k.GetHostChain(ctx, query.ChainId)
+	if !found {
+		return fmt.Errorf("host chain with id %s is not registered", query.ChainId)
+	}
+
+	delegation, err := stakingtypes.UnmarshalDelegation(k.cdc, data)
+	if err != nil {
+		return fmt.Errorf("could not unmarshall ICQ delegation response: %w", err)
+	}
+
+	validator, found := hc.GetValidator(delegation.ValidatorAddress)
+	if !found {
+		return fmt.Errorf(
+			"validator %s for host chain %s not found",
+			delegation.ValidatorAddress,
+			query.ChainId,
+		)
+	}
+
+	delegatedAmount := validator.SharesToTokens(delegation.Shares)
 
 	validator.DelegatedAmount = delegatedAmount
 	k.SetHostChainValidator(ctx, hc, validator)

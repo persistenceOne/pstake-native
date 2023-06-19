@@ -146,3 +146,34 @@ func (k *Keeper) QueryValidatorDelegation(
 
 	return nil
 }
+
+// QueryInitValidatorDelegation sends an ICQ query to get a validator delegation
+func (k *Keeper) QueryInitValidatorDelegation(
+	ctx sdk.Context,
+	hc *types.HostChain,
+	validatorAddrStr string,
+) error {
+	_, delegatorAddr, err := bech32.DecodeAndConvert(hc.DelegationAccount.Address)
+	if err != nil {
+		return err
+	}
+
+	_, validatorAddr, err := bech32.DecodeAndConvert(validatorAddrStr)
+	if err != nil {
+		return err
+	}
+
+	k.icqKeeper.MakeRequest(
+		ctx,
+		hc.ConnectionId,
+		hc.ChainId,
+		types.StakingStoreQuery,
+		stakingtypes.GetDelegationKey(delegatorAddr, validatorAddr),
+		sdk.NewInt(int64(-1)),
+		types.ModuleName,
+		InitDelegation,
+		0,
+	)
+
+	return nil
+}
