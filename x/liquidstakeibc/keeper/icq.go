@@ -89,10 +89,10 @@ func ValidatorSetCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes
 	}
 
 	for _, validator := range response.Validators {
-		val, found := hc.GetValidator(validator.OperatorAddress)
+		val, exists := hc.GetValidator(validator.OperatorAddress)
 
 		// if it is a new validator or any of the attributes we track has changed, query for it
-		if !found || (val != nil && (validator.Status.String() != val.Status ||
+		if !exists || (val != nil && (validator.Status.String() != val.Status ||
 			!validator.DelegatorShares.Equal(val.DelegatorShares) || !validator.Tokens.Equal(val.TotalAmount))) {
 			if err := k.QueryHostChainValidator(ctx, hc, validator.OperatorAddress); err != nil {
 				return errorsmod.Wrapf(types.ErrFailedICQRequest, "error querying for validator: %s", err.Error())
@@ -147,6 +147,10 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 			"slashed-amount:", slashedAmount,
 		)
 
+		// update the delegated amount to the slashed amount
+		validator.DelegatedAmount = delegatedAmount
+		k.SetHostChainValidator(ctx, hc, validator)
+
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
 				types.EventTypeSlashing,
@@ -156,9 +160,6 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 				sdk.NewAttribute(types.AttributeSlashedAmount, slashedAmount.String()),
 			)})
 	}
-
-	validator.DelegatedAmount = delegatedAmount
-	k.SetHostChainValidator(ctx, hc, validator)
 
 	return nil
 }
