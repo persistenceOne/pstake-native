@@ -107,4 +107,5 @@ type LiquidStakeIBCKeeper interface {
 	GetLatestConsensusState(ctx sdk.Context, connectionID string) (*ibctmtypes.ConsensusState, error)
 	GetHostChain(ctx sdk.Context, chainID string) (*liquidstakeibctypes.HostChain, bool)
 	GenerateAndExecuteICATx(ctx sdk.Context, connectionID string, ownerID string, messages []proto.Message) (string, error)
+	SetParams(ctx sdk.Context, params liquidstakeibctypes.Params)
 }

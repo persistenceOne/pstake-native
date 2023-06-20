@@ -201,6 +201,15 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 		State:         liquidstakeibctypes.Deposit_DEPOSIT_PENDING,
 		IbcSequenceId: "",
 	})
+
+	// set fee address and params to liquidstakeibc
+	k.liquidStakeIBCKeeper.SetParams(ctx, liquidstakeibctypes.Params{
+		AdminAddress:     hcparams.PstakeParams.PstakeFeeAddress,
+		FeeAddress:       hcparams.PstakeParams.PstakeFeeAddress,
+		UpperCValueLimit: sdk.MustNewDecFromStr(liquidstakeibctypes.DefaultUpperCValueLimit),
+		LowerCValueLimit: sdk.MustNewDecFromStr(liquidstakeibctypes.DefaultLowerCValueLimit),
+	})
+
 	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.DepositModuleAccount, liquidstakeibctypes.DepositModuleAccount, depositAccBalance)
 	if err != nil {
 		return err
