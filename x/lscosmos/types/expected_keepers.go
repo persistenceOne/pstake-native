@@ -5,7 +5,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -100,7 +99,7 @@ type ICQKeeper interface {
 
 type LiquidStakeIBCKeeper interface {
 	SetHostChain(ctx sdk.Context, hc *liquidstakeibctypes.HostChain)
-	QueryHostChainValidators(ctx sdk.Context, hc *liquidstakeibctypes.HostChain, req stakingtypes.QueryValidatorsRequest) error
+	QueryHostChainValidator(ctx sdk.Context, hc *liquidstakeibctypes.HostChain, validatorAddress string) error
 	SetUnbonding(ctx sdk.Context, ub *liquidstakeibctypes.Unbonding)
 	SetValidatorUnbonding(ctx sdk.Context, vu *liquidstakeibctypes.ValidatorUnbonding)
 	SetUserUnbonding(ctx sdk.Context, ub *liquidstakeibctypes.UserUnbonding)
@@ -108,4 +107,5 @@ type LiquidStakeIBCKeeper interface {
 	GetLatestConsensusState(ctx sdk.Context, connectionID string) (*ibctmtypes.ConsensusState, error)
 	GetHostChain(ctx sdk.Context, chainID string) (*liquidstakeibctypes.HostChain, bool)
 	GenerateAndExecuteICATx(ctx sdk.Context, connectionID string, ownerID string, messages []proto.Message) (string, error)
+	SetParams(ctx sdk.Context, params liquidstakeibctypes.Params)
 }

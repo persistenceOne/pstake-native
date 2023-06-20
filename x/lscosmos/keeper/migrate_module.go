@@ -20,7 +20,7 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 	delegationState := k.GetDelegationState(ctx)
 	hostChainRewardAddress := k.GetHostChainRewardAddress(ctx)
 	hostAccounts := k.GetHostAccounts(ctx)
-
+	allowlistedVals := k.GetAllowListedValidators(ctx)
 	// port all stores
 	//	HostChainParamsKey
 
@@ -35,6 +35,29 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 		return err
 	}
 
+	// set validators
+	var validators []*liquidstakeibctypes.Validator
+	for _, delval := range delegationState.HostAccountDelegations {
+		allowlistedVal := types.AllowListedValidator{
+			ValidatorAddress: delval.ValidatorAddress,
+			TargetWeight:     sdk.ZeroDec(),
+		}
+		for _, av := range allowlistedVals.AllowListedValidators {
+			if delval.ValidatorAddress == av.ValidatorAddress {
+				allowlistedVal = av
+				continue
+			}
+		}
+		validators = append(validators, &liquidstakeibctypes.Validator{
+			OperatorAddress: delval.ValidatorAddress,
+			Status:          stakingtypes.BondStatusBonded,
+			Weight:          allowlistedVal.TargetWeight,
+			DelegatedAmount: delval.Amount.Amount,
+			TotalAmount:     sdk.OneInt(),
+			DelegatorShares: sdk.OneDec(),
+			UnbondingEpoch:  0,
+		})
+	}
 	newhc := &liquidstakeibctypes.HostChain{
 		ChainId:      hcparams.ChainID,
 		ConnectionId: hcparams.ConnectionID,
@@ -64,19 +87,22 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 			Owner:        hostAccounts.RewardsAccountOwnerID,
 			ChannelState: liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED,
 		},
+		Validators: validators,
 	}
 
 	// save the host chain
 	k.liquidStakeIBCKeeper.SetHostChain(ctx, newhc)
 
-	// for updating valset.
-	err = k.liquidStakeIBCKeeper.QueryHostChainValidators(ctx, newhc, stakingtypes.QueryValidatorsRequest{})
-	if err != nil {
-		return errorsmod.Wrapf(
-			liquidstakeibctypes.ErrFailedICQRequest,
-			"error submitting validators icq: %s",
-			err.Error(),
-		)
+	// for updating valset in liquidstakeibc.
+	for _, v := range newhc.Validators {
+		err = k.liquidStakeIBCKeeper.QueryHostChainValidator(ctx, newhc, v.OperatorAddress)
+		if err != nil {
+			return errorsmod.Wrapf(
+				liquidstakeibctypes.ErrFailedICQRequest,
+				"error submitting validators icq: %s",
+				err.Error(),
+			)
+		}
 	}
 
 	//	AllowListedValidatorsKey <- will be set at MsgUpdateHostChain
@@ -175,6 +201,15 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 		State:         liquidstakeibctypes.Deposit_DEPOSIT_PENDING,
 		IbcSequenceId: "",
 	})
+
+	// set fee address and params to liquidstakeibc
+	k.liquidStakeIBCKeeper.SetParams(ctx, liquidstakeibctypes.Params{
+		AdminAddress:     hcparams.PstakeParams.PstakeFeeAddress,
+		FeeAddress:       hcparams.PstakeParams.PstakeFeeAddress,
+		UpperCValueLimit: sdk.MustNewDecFromStr(liquidstakeibctypes.DefaultUpperCValueLimit),
+		LowerCValueLimit: sdk.MustNewDecFromStr(liquidstakeibctypes.DefaultLowerCValueLimit),
+	})
+
 	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.DepositModuleAccount, liquidstakeibctypes.DepositModuleAccount, depositAccBalance)
 	if err != nil {
 		return err
