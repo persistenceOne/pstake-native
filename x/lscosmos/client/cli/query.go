@@ -56,7 +56,7 @@ func CmdQueryHostChainParams() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			res, err := queryClient.HostChainParams(context.Background(), &types.QueryHostChainParamsRequest{})
 			if err != nil {
@@ -81,7 +81,7 @@ func CmdQueryAllState() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			res, err := queryClient.AllState(context.Background(), &types.QueryAllStateRequest{})
 			if err != nil {
@@ -106,7 +106,7 @@ func CmdQueryDelegationState() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			res, err := queryClient.DelegationState(context.Background(), &types.QueryDelegationStateRequest{})
 			if err != nil {
@@ -131,7 +131,7 @@ func CmdQueryAllowListedValidators() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			res, err := queryClient.AllowListedValidators(context.Background(), &types.QueryAllowListedValidatorsRequest{})
 			if err != nil {
@@ -156,7 +156,7 @@ func CmdQueryCValue() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			res, err := queryClient.CValue(context.Background(), &types.QueryCValueRequest{})
 			if err != nil {
@@ -181,7 +181,7 @@ func CmdQueryModuleState() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			res, err := queryClient.ModuleState(context.Background(), &types.QueryModuleStateRequest{})
 			if err != nil {
@@ -206,7 +206,7 @@ func CmdQueryIBCTransientStore() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			res, err := queryClient.IBCTransientStore(context.Background(), &types.QueryIBCTransientStoreRequest{})
 			if err != nil {
@@ -231,7 +231,7 @@ func CmdQueryUnclaimed() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			delegatorAddress, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -261,7 +261,7 @@ func CmdQueryFailedUnbondings() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			_, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -291,7 +291,7 @@ func CmdQueryPendingUnbondings() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			_, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -321,7 +321,7 @@ func CmdQueryUnbondingEpoch() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			epochNumber, err := strconv.ParseInt(args[0], 10, 64)
 			if err != nil {
@@ -351,7 +351,7 @@ func CmdQueryHostAccountUndelegation() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			epochNumber, err := strconv.ParseInt(args[0], 10, 64)
 			if err != nil {
@@ -381,7 +381,7 @@ func CmdQueryDelegatorUnbodingEpochEntry() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			delegatorAddress, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -416,7 +416,7 @@ func CmdQueryHostAccounts() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			res, err := queryClient.HostAccounts(context.Background(), &types.QueryHostAccountsRequest{})
 			if err != nil {
@@ -441,7 +441,7 @@ func CmdQueryDepositModuleAccount() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			res, err := queryClient.DepositModuleAccount(context.Background(), &types.QueryDepositModuleAccountRequest{})
 			if err != nil {
@@ -466,7 +466,7 @@ func CmdDelegatorUnbondingEpochEntries() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx) //nolint:staticcheck
 
 			delegatorAddress, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
