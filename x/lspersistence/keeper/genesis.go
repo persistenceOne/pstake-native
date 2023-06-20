@@ -17,7 +17,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 	if genState.Params.WhitelistedValidators == nil || len(genState.Params.WhitelistedValidators) == 0 {
 		genState.Params.WhitelistedValidators = []types.WhitelistedValidator{}
 	}
-	k.SetParams(ctx, genState.Params)
+	err := k.SetParams(ctx, genState.Params)
+	if err != nil {
+		panic(err)
+	}
 
 	for _, lv := range genState.LiquidValidators {
 		k.SetLiquidValidator(ctx, lv)

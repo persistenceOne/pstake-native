@@ -74,7 +74,10 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	// this line is used by starport scaffolding # 2
-	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)) //nolint:staticcheck
+	if err != nil {
+		panic(err)
+	}
 
 }
 
@@ -127,8 +130,8 @@ func (AppModule) QuerierRoute() string { return types.QuerierRoute }
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper)) //TODO remove in next version, kept to give proper error messages.
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper)) //nolint:staticcheck //TODO remove in next version, kept to give proper error messages.
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)                      //nolint:staticcheck
 }
 
 // RegisterInvariants registers the capability module's invariants.

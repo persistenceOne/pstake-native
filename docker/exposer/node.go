@@ -38,13 +38,13 @@ func executeCommand(name string, arg ...string) string {
 func getNodeIDHandler(w http.ResponseWriter, r *http.Request) {
 	homeDir := os.Getenv(homeDirKey)
 	clientName := os.Getenv(clientNameKey)
-	io.WriteString(w, executeCommand(clientName, "tendermint", "show-node-id", "--home", homeDir))
+	_, _ = io.WriteString(w, executeCommand(clientName, "tendermint", "show-node-id", "--home", homeDir))
 }
 
 func getPubKeyHandler(w http.ResponseWriter, r *http.Request) {
 	homeDir := os.Getenv(homeDirKey)
 	clientName := os.Getenv(clientNameKey)
-	io.WriteString(w, executeCommand(clientName, "tendermint", "show-validator", "--home", homeDir))
+	_, _ = io.WriteString(w, executeCommand(clientName, "tendermint", "show-validator", "--home", homeDir))
 }
 
 func getGenesisHandler(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +59,7 @@ func getGenesisHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(byteValue)
+	_, _ = w.Write(byteValue)
 }
 
 func main() {

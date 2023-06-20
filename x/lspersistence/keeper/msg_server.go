@@ -90,7 +90,10 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 		return nil, errorsmod.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid authority; expected %s or %s, got %s", k.authority, params.AdminAddress, msg.Authority)
 	}
 
-	k.SetParams(ctx, msg.Params)
+	err := k.SetParams(ctx, msg.Params)
+	if err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(

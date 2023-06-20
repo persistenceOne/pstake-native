@@ -7,7 +7,7 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
-var _ types.QueryServer = Keeper{}
+var _ types.QueryServer = Keeper{} //nolint:staticcheck
 
 // AllState returns genesis state
 func (k Keeper) AllState(c context.Context, request *types.QueryAllStateRequest) (*types.QueryAllStateResponse, error) {

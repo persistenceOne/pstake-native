@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
@@ -11,11 +12,11 @@ type msgServer struct {
 
 // NewMsgServerImpl returns an implementation of the MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) types.MsgServer {
+func NewMsgServerImpl(keeper Keeper) types.MsgServer { //nolint:staticcheck
 	return &msgServer{Keeper: keeper}
 }
 
-var _ types.MsgServer = msgServer{}
+var _ types.MsgServer = msgServer{} //nolint:staticcheck
 
 // LiquidStake defines a method for liquid staking tokens
 func (m msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake) (*types.MsgLiquidStakeResponse, error) {

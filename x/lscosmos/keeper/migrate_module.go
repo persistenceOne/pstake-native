@@ -36,7 +36,7 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 	}
 
 	// set validators
-	var validators []*liquidstakeibctypes.Validator
+	var validators []*liquidstakeibctypes.Validator //nolint:prealloc
 	for _, delval := range delegationState.HostAccountDelegations {
 		allowlistedVal := types.AllowListedValidator{
 			ValidatorAddress: delval.ValidatorAddress,
