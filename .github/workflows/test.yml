@@ -38,6 +38,7 @@ jobs:
             echo "Excluding ${filename} from coverage report..."
             sed -i "/$(echo $filename | sed 's/\//\\\//g')/d" ./coverage.out
           done
+          cat ./coverage.out
 
       - name: Convert coverage to lcov
         if: github.event_name == 'pull_request'
