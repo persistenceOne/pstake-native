@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -11,12 +12,14 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
 const (
+	KeyAddValidator       string = "add_validator"
+	KeyRemoveValidator    string = "remove_validator"
+	KeyValidatorSlashing  string = "validator_slashing"
 	KeyValidatorWeight    string = "validator_weight"
 	KeyDepositFee         string = "deposit_fee"
 	KeyRestakeFee         string = "restake_fee"
@@ -75,7 +78,6 @@ func (k msgServer) RegisterHostChain(
 		HostDenom:       msg.HostDenom,
 		MinimumDeposit:  msg.MinimumDeposit,
 		CValue:          sdktypes.NewDec(1),
-		NextValsetHash:  []byte{},
 		UnbondingFactor: msg.UnbondingFactor,
 		Active:          false,
 		DelegationAccount: &types.ICAAccount{
@@ -109,15 +111,6 @@ func (k msgServer) RegisterHostChain(
 		)
 	}
 
-	// query the host chain for the validator set
-	if err := k.QueryHostChainValidators(ctx, hc, stakingtypes.QueryValidatorsRequest{}); err != nil {
-		return nil, errorsmod.Wrapf(
-			types.ErrFailedICQRequest,
-			"error submitting validators icq: %s",
-			err.Error(),
-		)
-	}
-
 	return &types.MsgRegisterHostChainResponse{}, nil
 }
 
@@ -140,19 +133,56 @@ func (k msgServer) UpdateHostChain(
 	}
 
 	for _, update := range msg.Updates {
+	updateCase:
 		switch update.Key {
-		case KeyValidatorWeight:
-			validator, weight, found := strings.Cut(update.Value, ",")
+		case KeyAddValidator:
+			var validator types.Validator
+			err := json.Unmarshal([]byte(update.Value), &validator)
+			if err != nil {
+				return nil, fmt.Errorf("unable to unmarshal validator update string")
+			}
+
+			_, found = hc.GetValidator(validator.OperatorAddress)
+			if found {
+				return nil, fmt.Errorf("validator %s already registered on %s", validator.OperatorAddress, hc.ChainId)
+			}
+
+			hc.Validators = append(hc.Validators, &validator)
+			k.SetHostChain(ctx, hc)
+		case KeyRemoveValidator:
+			for i, validator := range hc.Validators {
+				if validator.OperatorAddress == update.Value {
+					// remove just when there are no delegated tokens and weight is 0
+					if validator.DelegatedAmount.GT(sdktypes.ZeroInt()) || validator.Weight.GT(sdktypes.ZeroDec()) {
+						return nil, fmt.Errorf(
+							"validator %s can't be removed, it either has weight or staked tokens",
+							validator.OperatorAddress,
+						)
+					}
+					hc.Validators = append(hc.Validators[:i], hc.Validators[i+1:]...)
+					k.SetHostChain(ctx, hc)
+					break updateCase
+				}
+			}
+
+			return nil, types.ErrValidatorNotFound
+		case KeyValidatorSlashing:
+			_, found = hc.GetValidator(update.Value)
 			if !found {
+				return nil, types.ErrValidatorNotFound
+			}
+
+			if err := k.QueryHostChainValidator(ctx, hc, update.Value); err != nil {
+				return nil, fmt.Errorf("unable to send ICQ query for validator")
+			}
+		case KeyValidatorWeight:
+			validator, weight, valid := strings.Cut(update.Value, ",")
+			if !valid {
 				return nil, fmt.Errorf("unable to parse validator update string")
 			}
 
 			if err := k.UpdateHostChainValidatorWeight(ctx, hc, validator, weight); err != nil {
 				return nil, fmt.Errorf("invalid validator weight update values: %v", err)
-			}
-			err := k.QueryInitValidatorDelegation(ctx, hc, validator)
-			if err != nil {
-				return nil, err
 			}
 		case KeyDepositFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)

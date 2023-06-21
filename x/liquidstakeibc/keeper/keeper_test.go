@@ -123,7 +123,6 @@ func (suite *IntegrationTestSuite) SetupTest() {
 		Validators:      validators,
 		MinimumDeposit:  MinDeposit,
 		CValue:          sdk.OneDec(),
-		NextValsetHash:  nil,
 		UnbondingFactor: 4,
 	}
 

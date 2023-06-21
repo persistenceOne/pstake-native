@@ -37,9 +37,8 @@ func (k *Keeper) generateMessages(
 			futureDelegation = currentDelegation.Sub(actionableAmount)
 		}
 
-		if validator.Weight.Equal(sdk.ZeroDec()) ||
-			validator.Status != stakingtypes.BondStatusBonded {
-			continue // skip validators with zero weight or that are not in the active set
+		if validator.Weight.Equal(sdk.ZeroDec()) {
+			continue // skip validators with zero weight
 		}
 
 		// calculate the delegated/undelegated amount difference for the validator:

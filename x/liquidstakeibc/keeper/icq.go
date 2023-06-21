@@ -3,9 +3,7 @@ package keeper
 import (
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	q "github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -15,12 +13,10 @@ import (
 )
 
 const (
-	ValidatorSet              = "validatorset"
 	Validator                 = "validator"
+	Delegation                = "validator-delegation"
 	RewardAccountBalances     = "reward-balances"
 	DelegationAccountBalances = "delegation-balances"
-	Delegation                = "validator-delegation"
-	InitDelegation            = "init-validator-delegation"
 )
 
 type CallbackFn func(Keeper, sdk.Context, []byte, icqtypes.Query) error
@@ -51,59 +47,15 @@ func (c Callbacks) Has(id string) bool {
 
 func (c Callbacks) RegisterCallbacks() icqtypes.QueryCallbacks {
 	a := c.
-		AddCallback(ValidatorSet, CallbackFn(ValidatorSetCallback)).
 		AddCallback(Validator, CallbackFn(ValidatorCallback)).
 		AddCallback(RewardAccountBalances, CallbackFn(RewardsAccountBalanceCallback)).
 		AddCallback(DelegationAccountBalances, CallbackFn(DelegationAccountBalanceCallback)).
-		AddCallback(Delegation, CallbackFn(DelegationCallback)).
-		AddCallback(InitDelegation, CallbackFn(InitValidatorDelegationCallBack))
+		AddCallback(Delegation, CallbackFn(DelegationCallback))
 
 	return a.(Callbacks)
 }
 
 // Callbacks
-
-func ValidatorSetCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
-	hc, found := k.GetHostChain(ctx, query.ChainId)
-	if !found {
-		return fmt.Errorf("host chain with id %s is not registered", query.ChainId)
-	}
-
-	response := stakingtypes.QueryValidatorsResponse{}
-	err := k.cdc.Unmarshal(data, &response)
-	if err != nil {
-		return fmt.Errorf("could not unmarshall ICQ validatorset response: %w", err)
-	}
-
-	// if the result is not complete, submit an ICQ query to gather the next chunk
-	if response.Pagination != nil && len(response.Pagination.NextKey) > 0 {
-		request := stakingtypes.QueryValidatorsRequest{}
-		err = k.cdc.Unmarshal(query.Request, &request)
-		if err != nil {
-			return fmt.Errorf("could not unmarshall ICQ validatorset request: %w", err)
-		}
-
-		request.Pagination = new(q.PageRequest)
-		request.Pagination.Key = response.Pagination.NextKey
-		if err = k.QueryHostChainValidators(ctx, hc, request); err != nil {
-			return errorsmod.Wrapf(types.ErrFailedICQRequest, "error submitting validators icq: %s", err.Error())
-		}
-	}
-
-	for _, validator := range response.Validators {
-		val, exists := hc.GetValidator(validator.OperatorAddress)
-
-		// if it is a new validator or any of the attributes we track has changed, query for it
-		if !exists || (val != nil && (validator.Status.String() != val.Status ||
-			!validator.DelegatorShares.Equal(val.DelegatorShares) || !validator.Tokens.Equal(val.TotalAmount))) {
-			if err := k.QueryHostChainValidator(ctx, hc, validator.OperatorAddress); err != nil {
-				return errorsmod.Wrapf(types.ErrFailedICQRequest, "error querying for validator: %s", err.Error())
-			}
-		}
-	}
-
-	return nil
-}
 
 func ValidatorCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
 	hc, found := k.GetHostChain(ctx, query.ChainId)
@@ -139,8 +91,8 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 		)
 	}
 
-	delegatedAmount := validator.SharesToTokens(delegation.Shares)
-	slashedAmount := validator.DelegatedAmount.Sub(delegatedAmount)
+	delegatedAmount := validator.ExchangeRate.Mul(delegation.Shares)
+	slashedAmount := sdk.NewDecFromInt(validator.DelegatedAmount).Sub(delegatedAmount)
 
 	if slashedAmount.IsPositive() {
 		k.Logger(ctx).Info("Validator has been slashed !!!",
@@ -150,7 +102,7 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 		)
 
 		// update the delegated amount to the slashed amount
-		validator.DelegatedAmount = delegatedAmount
+		validator.DelegatedAmount = delegatedAmount.TruncateInt()
 		k.SetHostChainValidator(ctx, hc, validator)
 
 		ctx.EventManager().EmitEvents(sdk.Events{
@@ -162,34 +114,6 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 				sdk.NewAttribute(types.AttributeSlashedAmount, slashedAmount.String()),
 			)})
 	}
-
-	return nil
-}
-
-func InitValidatorDelegationCallBack(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
-	hc, found := k.GetHostChain(ctx, query.ChainId)
-	if !found {
-		return fmt.Errorf("host chain with id %s is not registered", query.ChainId)
-	}
-
-	delegation, err := stakingtypes.UnmarshalDelegation(k.cdc, data)
-	if err != nil {
-		return fmt.Errorf("could not unmarshall ICQ delegation response: %w", err)
-	}
-
-	validator, found := hc.GetValidator(delegation.ValidatorAddress)
-	if !found {
-		return fmt.Errorf(
-			"validator %s for host chain %s not found",
-			delegation.ValidatorAddress,
-			query.ChainId,
-		)
-	}
-
-	delegatedAmount := validator.SharesToTokens(delegation.Shares)
-
-	validator.DelegatedAmount = delegatedAmount
-	k.SetHostChainValidator(ctx, hc, validator)
 
 	return nil
 }
