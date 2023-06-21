@@ -47,7 +47,7 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 			Status:          stakingtypes.BondStatusBonded,
 			Weight:          allowlistedVal.TargetWeight,
 			DelegatedAmount: delval.Amount.Amount,
-			ExchangeRate:    sdk.ZeroDec(),
+			ExchangeRate:    sdk.OneDec(),
 			UnbondingEpoch:  0,
 		})
 	}
