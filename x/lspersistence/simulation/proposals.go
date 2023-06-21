@@ -68,7 +68,7 @@ func SimulateAddWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.Kee
 						TargetWeight:     genTargetWeight(r),
 					})
 				// manually set params for simulation
-				k.SetParams(ctx, params)
+				_ = k.SetParams(ctx, params)
 				break
 			}
 		}
@@ -87,7 +87,7 @@ func SimulateUpdateWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.
 				if params.WhitelistedValidators[i].ValidatorAddress == targetVal.OperatorAddress {
 					params.WhitelistedValidators[i].TargetWeight = genTargetWeight(r)
 					// manually set params for simulation
-					k.SetParams(ctx, params)
+					_ = k.SetParams(ctx, params)
 					break
 				}
 			}
@@ -111,7 +111,7 @@ func SimulateDeleteWhitelistValidatorsProposal(sk types.StakingKeeper, k keeper.
 				if params.WhitelistedValidators[i].ValidatorAddress == targetVal.OperatorAddress {
 					params.WhitelistedValidators[i].TargetWeight = genTargetWeight(r)
 					params.WhitelistedValidators = remove(params.WhitelistedValidators, i)
-					k.SetParams(ctx, params)
+					_ = k.SetParams(ctx, params)
 					break
 				}
 			}
