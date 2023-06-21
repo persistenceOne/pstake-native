@@ -135,6 +135,26 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 				},
 			},
 		},
+		{
+			name: "UpdateExchangeRateZeroShares",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: TestAddress,
+					Status:          stakingtypes.BondStatusBonded,
+					DelegatedAmount: sdk.NewInt(10),
+					ExchangeRate:    sdk.NewDec(1),
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress: TestAddress,
+					Status:          stakingtypes.Bonded,
+					Tokens:          sdk.NewInt(100),
+					DelegatorShares: sdk.NewDec(0),
+				},
+			},
+		},
 	}
 
 	for _, t := range tc {
@@ -151,7 +171,14 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 			for i, validator := range t.hc.Validators {
 				suite.Require().Equal(t.validators[i].OperatorAddress, validator.OperatorAddress)
 				suite.Require().Equal(t.validators[i].Status.String(), validator.Status)
-				suite.Require().Equal(sdk.NewDecFromInt(t.validators[i].Tokens).Quo(t.validators[i].DelegatorShares), validator.ExchangeRate)
+
+				var exchangeRate sdk.Dec
+				if t.validators[i].DelegatorShares.IsZero() {
+					exchangeRate = sdk.OneDec()
+				} else {
+					exchangeRate = sdk.NewDecFromInt(t.validators[i].Tokens).Quo(t.validators[i].DelegatorShares)
+				}
+				suite.Require().Equal(exchangeRate, validator.ExchangeRate)
 
 				if validator.Status == stakingtypes.BondStatusUnbonding {
 					suite.Require().Equal(types.CurrentUnbondingEpoch(hcs[0].UnbondingFactor, epoch), validator.UnbondingEpoch)
