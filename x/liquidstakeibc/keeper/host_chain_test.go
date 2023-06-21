@@ -84,37 +84,20 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 		expected     []*types.Validator
 	}{
 		{
-			name:         "Create",
-			hc:           *hcs[0],
-			hcValidators: []*types.Validator{},
-			validators: []stakingtypes.Validator{
-				{
-					OperatorAddress: "valoper1",
-					Status:          stakingtypes.Bonded,
-					Tokens:          sdk.NewInt(100),
-				},
-				{
-					OperatorAddress: "valoper2",
-					Status:          stakingtypes.Bonded,
-					Tokens:          sdk.NewInt(100),
-				},
-			},
-		},
-		{
 			name: "UpdateState",
 			hc:   *hcs[0],
 			hcValidators: []*types.Validator{
 				{
 					OperatorAddress: "valoper1",
 					Status:          stakingtypes.BondStatusBonded,
-					TotalAmount:     sdk.NewInt(100),
 					UnbondingEpoch:  0,
+					ExchangeRate:    sdk.NewDec(1),
 				},
 				{
 					OperatorAddress: "valoper2",
 					Status:          stakingtypes.BondStatusUnbonding,
-					TotalAmount:     sdk.NewInt(100),
 					UnbondingEpoch:  types.CurrentUnbondingEpoch(hcs[0].UnbondingFactor, epoch),
+					ExchangeRate:    sdk.NewDec(1),
 				},
 			},
 			validators: []stakingtypes.Validator{
@@ -122,42 +105,25 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					OperatorAddress: "valoper1",
 					Status:          stakingtypes.Unbonding,
 					Tokens:          sdk.NewInt(100),
+					DelegatorShares: sdk.NewDec(100),
 				},
 				{
 					OperatorAddress: "valoper2",
 					Status:          stakingtypes.Bonded,
 					Tokens:          sdk.NewInt(100),
+					DelegatorShares: sdk.NewDec(100),
 				},
 			},
 		},
 		{
-			name: "UpdateAmount",
+			name: "UpdateExchangeRate",
 			hc:   *hcs[0],
 			hcValidators: []*types.Validator{
 				{
 					OperatorAddress: TestAddress,
 					Status:          stakingtypes.BondStatusBonded,
-					TotalAmount:     sdk.NewInt(100),
 					DelegatedAmount: sdk.NewInt(10),
-				},
-			},
-			validators: []stakingtypes.Validator{
-				{
-					OperatorAddress: TestAddress,
-					Status:          stakingtypes.Bonded,
-					Tokens:          sdk.NewInt(80),
-				},
-			},
-		},
-		{
-			name: "UpdateShares",
-			hc:   *hcs[0],
-			hcValidators: []*types.Validator{
-				{
-					OperatorAddress: TestAddress,
-					Status:          stakingtypes.BondStatusBonded,
-					TotalAmount:     sdk.NewInt(100),
-					DelegatorShares: sdk.NewDec(1000),
+					ExchangeRate:    sdk.NewDec(2),
 				},
 			},
 			validators: []stakingtypes.Validator{
@@ -165,7 +131,7 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					OperatorAddress: TestAddress,
 					Status:          stakingtypes.Bonded,
 					Tokens:          sdk.NewInt(100),
-					DelegatorShares: sdk.NewDec(800),
+					DelegatorShares: sdk.NewDec(100),
 				},
 			},
 		},
@@ -185,8 +151,7 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 			for i, validator := range t.hc.Validators {
 				suite.Require().Equal(t.validators[i].OperatorAddress, validator.OperatorAddress)
 				suite.Require().Equal(t.validators[i].Status.String(), validator.Status)
-				suite.Require().Equal(t.validators[i].Tokens, validator.TotalAmount)
-				suite.Require().Equal(t.validators[i].DelegatorShares, validator.DelegatorShares)
+				suite.Require().Equal(sdk.NewDecFromInt(t.validators[i].Tokens).Quo(t.validators[i].DelegatorShares), validator.ExchangeRate)
 
 				if validator.Status == stakingtypes.BondStatusUnbonding {
 					suite.Require().Equal(types.CurrentUnbondingEpoch(hcs[0].UnbondingFactor, epoch), validator.UnbondingEpoch)

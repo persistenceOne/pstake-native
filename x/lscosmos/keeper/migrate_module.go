@@ -29,12 +29,6 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 		return types.ErrModuleMigrationFailed.Wrapf("There are pending ica txs/ channels closed, err: %s", err)
 	}
 
-	consensusState, err := k.liquidStakeIBCKeeper.GetLatestConsensusState(ctx, hcparams.ConnectionID)
-	if err != nil {
-		k.Logger(ctx).Error("could not retrieve client state", "host_chain", hcparams.ChainID)
-		return err
-	}
-
 	// set validators
 	var validators []*liquidstakeibctypes.Validator
 	for _, delval := range delegationState.HostAccountDelegations {
@@ -53,8 +47,7 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 			Status:          stakingtypes.BondStatusBonded,
 			Weight:          allowlistedVal.TargetWeight,
 			DelegatedAmount: delval.Amount.Amount,
-			TotalAmount:     sdk.OneInt(),
-			DelegatorShares: sdk.OneDec(),
+			ExchangeRate:    sdk.ZeroDec(),
 			UnbondingEpoch:  0,
 		})
 	}
@@ -72,7 +65,6 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 		HostDenom:       hcparams.BaseDenom,
 		MinimumDeposit:  hcparams.MinDeposit,
 		CValue:          cValue,
-		NextValsetHash:  consensusState.NextValidatorsHash,
 		UnbondingFactor: types.UndelegationEpochNumberFactor,
 		Active:          false, // <- disable the module and update it with MsgUpdateHostChain
 		DelegationAccount: &liquidstakeibctypes.ICAAccount{
