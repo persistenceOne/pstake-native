@@ -68,7 +68,12 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 	}
 
 	// process exchange rate update
-	exchangeRate := sdk.NewDecFromInt(validator.Tokens).Quo(validator.DelegatorShares)
+	var exchangeRate sdk.Dec
+	if validator.DelegatorShares.IsZero() {
+		exchangeRate = sdk.OneDec()
+	} else {
+		exchangeRate = sdk.NewDecFromInt(validator.Tokens).Quo(validator.DelegatorShares)
+	}
 	if !exchangeRate.Equal(val.ExchangeRate) {
 		if val.DelegatedAmount.GT(sdk.ZeroInt()) {
 			if err := k.QueryValidatorDelegation(ctx, hc, val); err != nil {
