@@ -86,6 +86,7 @@ func (k msgServer) RegisterHostChain(
 		RewardsAccount: &types.ICAAccount{
 			Owner: types.DefaultRewardsAccountPortOwner(chainID),
 		},
+		AutoCompoundFactor: sdktypes.NewDec(msg.AutoCompoundFactor).Quo(sdktypes.NewDec(100)).Quo(sdktypes.NewDec(365)),
 	}
 
 	// save the host chain

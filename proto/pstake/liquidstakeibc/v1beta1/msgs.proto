@@ -69,6 +69,7 @@ message MsgRegisterHostChain {
     (gogoproto.nullable) = false
   ];
   int64 unbonding_factor = 11;
+  int64 auto_compound_factor = 12;
 }
 
 message MsgRegisterHostChainResponse {}

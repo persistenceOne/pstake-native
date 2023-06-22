@@ -42,6 +42,7 @@ func NewMsgRegisterHostChain(
 	minimumDeposit math.Int,
 	unbondingFactor int64,
 	authority string,
+	autocompoundFactor int64,
 ) *MsgRegisterHostChain {
 	depositFeeDec, _ := sdk.NewDecFromStr(depositFee)
 	restakeFeeDec, _ := sdk.NewDecFromStr(restakeFee)
@@ -49,17 +50,18 @@ func NewMsgRegisterHostChain(
 	redemptionFeeDec, _ := sdk.NewDecFromStr(redemptionFee)
 
 	return &MsgRegisterHostChain{
-		ConnectionId:    connectionID,
-		HostDenom:       hostDenom,
-		ChannelId:       channelID,
-		PortId:          portID,
-		MinimumDeposit:  minimumDeposit,
-		UnbondingFactor: unbondingFactor,
-		DepositFee:      depositFeeDec,
-		RestakeFee:      restakeFeeDec,
-		UnstakeFee:      unstakeFeeDec,
-		RedemptionFee:   redemptionFeeDec,
-		Authority:       authority,
+		ConnectionId:       connectionID,
+		HostDenom:          hostDenom,
+		ChannelId:          channelID,
+		PortId:             portID,
+		MinimumDeposit:     minimumDeposit,
+		UnbondingFactor:    unbondingFactor,
+		DepositFee:         depositFeeDec,
+		RestakeFee:         restakeFeeDec,
+		UnstakeFee:         unstakeFeeDec,
+		RedemptionFee:      redemptionFeeDec,
+		Authority:          authority,
+		AutoCompoundFactor: autocompoundFactor,
 	}
 }
 
