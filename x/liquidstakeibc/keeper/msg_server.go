@@ -87,7 +87,7 @@ func (k msgServer) RegisterHostChain(
 		RewardsAccount: &types.ICAAccount{
 			Owner: types.DefaultRewardsAccountPortOwner(chainID),
 		},
-		AutoCompoundFactor: sdktypes.NewDec(msg.AutoCompoundFactor).Quo(sdktypes.NewDec(100)).Quo(sdktypes.NewDec(365)),
+		AutoCompoundFactor: k.CalculateAutocompoundLimit(sdktypes.NewDec(msg.AutoCompoundFactor)),
 	}
 
 	// save the host chain
@@ -250,15 +250,15 @@ func (k msgServer) UpdateHostChain(
 				return nil, fmt.Errorf("could not set withdraw address for host chain %s", hc.ChainId)
 			}
 		case KeyAutocompoundFactor:
-			autocompoundFactor, err := strconv.Atoi(update.Value)
+			autocompoundFactor, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec")
 			}
 
-			if autocompoundFactor <= 0 {
+			if autocompoundFactor.LTE(sdktypes.NewDec(0)) {
 				return nil, fmt.Errorf("invalid autocompound factor value less or equal than zero")
 			}
-			hc.AutoCompoundFactor = sdktypes.NewDec(int64(autocompoundFactor)).Quo(sdktypes.NewDec(100)).Quo(sdktypes.NewDec(365))
+			hc.AutoCompoundFactor = k.CalculateAutocompoundLimit(autocompoundFactor)
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}
