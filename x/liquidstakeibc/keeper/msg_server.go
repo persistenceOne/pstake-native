@@ -28,6 +28,7 @@ const (
 	KeyMinimumDeposit     string = "min_deposit"
 	KeyActive             string = "active"
 	KeySetWithdrawAddress string = "set_withdraw_address"
+	KeyAutocompoundFactor string = "autocompound_factor"
 )
 
 type msgServer struct {
@@ -86,6 +87,7 @@ func (k msgServer) RegisterHostChain(
 		RewardsAccount: &types.ICAAccount{
 			Owner: types.DefaultRewardsAccountPortOwner(chainID),
 		},
+		AutoCompoundFactor: k.CalculateAutocompoundLimit(sdktypes.NewDec(msg.AutoCompoundFactor)),
 	}
 
 	// save the host chain
@@ -247,6 +249,16 @@ func (k msgServer) UpdateHostChain(
 				k.Logger(ctx).Error("Could not set withdraw address.", "chain_id", hc.ChainId)
 				return nil, fmt.Errorf("could not set withdraw address for host chain %s", hc.ChainId)
 			}
+		case KeyAutocompoundFactor:
+			autocompoundFactor, err := sdktypes.NewDecFromStr(update.Value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse string to sdk.Dec")
+			}
+
+			if autocompoundFactor.LTE(sdktypes.NewDec(0)) {
+				return nil, fmt.Errorf("invalid autocompound factor value less or equal than zero")
+			}
+			hc.AutoCompoundFactor = k.CalculateAutocompoundLimit(autocompoundFactor)
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}

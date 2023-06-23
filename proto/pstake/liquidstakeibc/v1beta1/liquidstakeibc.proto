@@ -51,6 +51,12 @@ message HostChain {
   int64 unbonding_factor = 13;
   // whether the chain is ready to accept delegations or not
   bool active = 14;
+  // factor limit for auto-compounding, daily periodic rate (APY / 365s)
+  string auto_compound_factor = 15 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message HostChainLSParams {

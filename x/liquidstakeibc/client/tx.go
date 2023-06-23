@@ -40,8 +40,8 @@ func NewTxCmd() *cobra.Command {
 // NewRegisterHostChainCmd implements the command to register a host chain.
 func NewRegisterHostChainCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "register-host-chain [connection-id] [channel-id] [port-id] [deposit-fee] [restake-fee] [unstake-fee] [redemption-fee] [host-denom] [minimum-deposit] [unbonding-factor]",
-		Args:  cobra.ExactArgs(10),
+		Use:   "register-host-chain [connection-id] [channel-id] [port-id] [deposit-fee] [restake-fee] [unstake-fee] [redemption-fee] [host-denom] [minimum-deposit] [unbonding-factor] [autocompound-factor]",
+		Args:  cobra.ExactArgs(11),
 		Short: "Register a host chain",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -59,6 +59,11 @@ func NewRegisterHostChainCmd() *cobra.Command {
 				return fmt.Errorf("unable to parse string to int64")
 			}
 
+			autocompoundFactor, err := strconv.ParseInt(args[10], 10, 64)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to int64")
+			}
+
 			msg := types.NewMsgRegisterHostChain(
 				args[0],
 				args[1],
@@ -71,6 +76,7 @@ func NewRegisterHostChainCmd() *cobra.Command {
 				minimumDeposit,
 				unbondingFactor,
 				clientCtx.FromAddress.String(),
+				autocompoundFactor,
 			)
 
 			if err := msg.ValidateBasic(); err != nil {

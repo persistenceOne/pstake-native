@@ -149,11 +149,21 @@ func RewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, data []byte, query
 
 	hc.RewardsAccount.Balance = balance
 	if !hc.RewardsAccount.Balance.IsZero() {
+
+		// limit the auto-compounded rewards to the host chain autocompound factor
+		var autocompoundRewards sdk.Coin
+		maxAmountToTransfer := sdk.NewDecFromInt(hc.GetHostChainTotalDelegations()).Mul(hc.AutoCompoundFactor).TruncateInt()
+		if maxAmountToTransfer.GT(hc.RewardsAccount.Balance.Amount) {
+			autocompoundRewards = hc.RewardsAccount.Balance
+		} else {
+			autocompoundRewards = sdk.NewCoin(hc.RewardsAccount.Balance.Denom, maxAmountToTransfer)
+		}
+
 		// send all the rewards account balance to the deposit account, so it can be re-staked
 		_, err = k.SendICATransfer(
 			ctx,
 			hc,
-			hc.RewardsAccount.Balance,
+			autocompoundRewards,
 			hc.RewardsAccount.Address,
 			authtypes.NewModuleAddress(types.DepositModuleAccount).String(),
 			hc.RewardsAccount.Owner,

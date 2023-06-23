@@ -332,3 +332,7 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 func (k *Keeper) CValueWithinLimits(ctx sdk.Context, hc *types.HostChain) bool {
 	return hc.CValue.LT(k.GetParams(ctx).UpperCValueLimit) && hc.CValue.GT(k.GetParams(ctx).LowerCValueLimit)
 }
+
+func (k *Keeper) CalculateAutocompoundLimit(autocompoundFactor sdk.Dec) sdk.Dec {
+	return autocompoundFactor.Quo(sdk.NewDec(100)).Quo(sdk.NewDec(365))
+}
