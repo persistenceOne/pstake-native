@@ -9,32 +9,6 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
-// QueryHostChainValidators sends an ICQ query to retrieve the host chain validator set
-func (k *Keeper) QueryHostChainValidators(
-	ctx sdk.Context,
-	hc *types.HostChain,
-	req stakingtypes.QueryValidatorsRequest,
-) error {
-	bz, err := k.cdc.Marshal(&req)
-	if err != nil {
-		return err
-	}
-
-	k.icqKeeper.MakeRequest(
-		ctx,
-		hc.ConnectionId,
-		hc.ChainId,
-		"cosmos.staking.v1beta1.Query/Validators",
-		bz,
-		sdk.NewInt(int64(-1)),
-		types.ModuleName,
-		ValidatorSet,
-		0,
-	)
-
-	return nil
-}
-
 // QueryHostChainValidator sends an ICQ query to retrieve a specific host chain validator
 func (k *Keeper) QueryHostChainValidator(
 	ctx sdk.Context,
@@ -56,6 +30,37 @@ func (k *Keeper) QueryHostChainValidator(
 		sdk.NewInt(int64(-1)),
 		types.ModuleName,
 		Validator,
+		0,
+	)
+
+	return nil
+}
+
+// QueryValidatorDelegation sends an ICQ query to get a validator delegation
+func (k *Keeper) QueryValidatorDelegation(
+	ctx sdk.Context,
+	hc *types.HostChain,
+	validator *types.Validator,
+) error {
+	_, delegatorAddr, err := bech32.DecodeAndConvert(hc.DelegationAccount.Address)
+	if err != nil {
+		return err
+	}
+
+	_, validatorAddr, err := bech32.DecodeAndConvert(validator.OperatorAddress)
+	if err != nil {
+		return err
+	}
+
+	k.icqKeeper.MakeRequest(
+		ctx,
+		hc.ConnectionId,
+		hc.ChainId,
+		types.StakingStoreQuery,
+		stakingtypes.GetDelegationKey(delegatorAddr, validatorAddr),
+		sdk.NewInt(int64(-1)),
+		types.ModuleName,
+		Delegation,
 		0,
 	)
 
@@ -110,68 +115,6 @@ func (k *Keeper) QueryRewardsHostChainAccountBalance(
 		sdk.NewInt(int64(-1)),
 		types.ModuleName,
 		RewardAccountBalances,
-		0,
-	)
-
-	return nil
-}
-
-// QueryValidatorDelegation sends an ICQ query to get a validator delegation
-func (k *Keeper) QueryValidatorDelegation(
-	ctx sdk.Context,
-	hc *types.HostChain,
-	validator *types.Validator,
-) error {
-	_, delegatorAddr, err := bech32.DecodeAndConvert(hc.DelegationAccount.Address)
-	if err != nil {
-		return err
-	}
-
-	_, validatorAddr, err := bech32.DecodeAndConvert(validator.OperatorAddress)
-	if err != nil {
-		return err
-	}
-
-	k.icqKeeper.MakeRequest(
-		ctx,
-		hc.ConnectionId,
-		hc.ChainId,
-		types.StakingStoreQuery,
-		stakingtypes.GetDelegationKey(delegatorAddr, validatorAddr),
-		sdk.NewInt(int64(-1)),
-		types.ModuleName,
-		Delegation,
-		0,
-	)
-
-	return nil
-}
-
-// QueryInitValidatorDelegation sends an ICQ query to get a validator delegation
-func (k *Keeper) QueryInitValidatorDelegation(
-	ctx sdk.Context,
-	hc *types.HostChain,
-	validatorAddrStr string,
-) error {
-	_, delegatorAddr, err := bech32.DecodeAndConvert(hc.DelegationAccount.Address)
-	if err != nil {
-		return err
-	}
-
-	_, validatorAddr, err := bech32.DecodeAndConvert(validatorAddrStr)
-	if err != nil {
-		return err
-	}
-
-	k.icqKeeper.MakeRequest(
-		ctx,
-		hc.ConnectionId,
-		hc.ChainId,
-		types.StakingStoreQuery,
-		stakingtypes.GetDelegationKey(delegatorAddr, validatorAddr),
-		sdk.NewInt(int64(-1)),
-		types.ModuleName,
-		InitDelegation,
 		0,
 	)
 

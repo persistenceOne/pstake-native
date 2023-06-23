@@ -46,53 +46,47 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 	validator stakingtypes.Validator,
 ) error {
 	val, found := hc.GetValidator(validator.OperatorAddress)
-
 	if !found {
-		hc.Validators = append(
-			hc.Validators,
-			&types.Validator{
-				OperatorAddress: validator.OperatorAddress,
-				Status:          validator.Status.String(),
-				Weight:          sdk.ZeroDec(),
-				DelegatedAmount: sdk.ZeroInt(),
-				TotalAmount:     validator.Tokens,
-				DelegatorShares: validator.DelegatorShares,
-			},
-		)
-		k.SetHostChain(ctx, hc)
+		return fmt.Errorf("validator with address %s not registered", validator.OperatorAddress)
+	}
+
+	// process status update
+	if validator.Status.String() != val.Status {
+		// validator transitioned into unbonding
+		if validator.Status.String() == stakingtypes.BondStatusUnbonding ||
+			validator.Status.String() == stakingtypes.BondStatusUnbonded {
+			epochNumber := k.epochsKeeper.GetEpochInfo(ctx, types.UndelegationEpoch).CurrentEpoch
+			val.UnbondingEpoch = types.CurrentUnbondingEpoch(hc.UnbondingFactor, epochNumber)
+		}
+		// validator transitioned into bonded
+		if validator.Status.String() == stakingtypes.BondStatusBonded {
+			val.UnbondingEpoch = 0
+		}
+
+		val.Status = validator.Status.String()
+		k.SetHostChainValidator(ctx, hc, val)
+	}
+
+	// process exchange rate update
+	var exchangeRate sdk.Dec
+	if validator.DelegatorShares.IsZero() {
+		exchangeRate = sdk.OneDec()
 	} else {
-		if validator.Status.String() != val.Status {
-			// validator transitioned into unbonding
-			if validator.Status.String() == stakingtypes.BondStatusUnbonding {
-				epochNumber := k.epochsKeeper.GetEpochInfo(ctx, types.UndelegationEpoch).CurrentEpoch
-				val.UnbondingEpoch = types.CurrentUnbondingEpoch(hc.UnbondingFactor, epochNumber)
+		exchangeRate = sdk.NewDecFromInt(validator.Tokens).Quo(validator.DelegatorShares)
+	}
+	if !exchangeRate.Equal(val.ExchangeRate) {
+		if val.DelegatedAmount.GT(sdk.ZeroInt()) {
+			if err := k.QueryValidatorDelegation(ctx, hc, val); err != nil {
+				return fmt.Errorf(
+					"error while querying validator %s delegation: %s",
+					val.OperatorAddress,
+					err.Error(),
+				)
 			}
-			// validator transitioned into bonded
-			if validator.Status.String() == stakingtypes.BondStatusBonded {
-				val.UnbondingEpoch = 0
-			}
+		}
 
-			val.Status = validator.Status.String()
-			k.SetHostChainValidator(ctx, hc, val)
-		}
-		if !validator.DelegatorShares.Equal(val.DelegatorShares) {
-			val.DelegatorShares = validator.DelegatorShares
-			k.SetHostChainValidator(ctx, hc, val)
-		}
-		if !validator.Tokens.Equal(val.TotalAmount) {
-			if val.DelegatedAmount.GT(sdk.ZeroInt()) {
-				if err := k.QueryValidatorDelegation(ctx, hc, val); err != nil {
-					return fmt.Errorf(
-						"error while querying validator %s delegation: %s",
-						val.OperatorAddress,
-						err.Error(),
-					)
-				}
-			}
-
-			val.TotalAmount = validator.Tokens
-			k.SetHostChainValidator(ctx, hc, val)
-		}
+		val.ExchangeRate = exchangeRate
+		k.SetHostChainValidator(ctx, hc, val)
 	}
 
 	return nil

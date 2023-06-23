@@ -47,12 +47,10 @@ message HostChain {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
-  // the hash of the next validator set
-  bytes next_valset_hash = 13;
   // undelegation epoch factor
-  int64 unbonding_factor = 14;
+  int64 unbonding_factor = 13;
   // whether the chain is ready to accept delegations or not
-  bool active = 15;
+  bool active = 14;
 }
 
 message HostChainLSParams {
@@ -115,20 +113,14 @@ message Validator {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  // total amount delegated to the validator (including amount not delegated by the module)
-  string total_amount = 5 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
-  ];
-  // total number of shares issued by the validator to its delegators
-  string delegator_shares = 6 [
+  // the validator token exchange rate, total bonded tokens divided by total shares issued
+  string exchange_rate = 5 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
   // the unbonding epoch number when the validator transitioned into the state
-  int64 unbonding_epoch = 7;
+  int64 unbonding_epoch = 6;
 }
 
 message Deposit {
