@@ -79,7 +79,8 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 			Owner:        hostAccounts.RewardsAccountOwnerID,
 			ChannelState: liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED,
 		},
-		Validators: validators,
+		Validators:         validators,
+		AutoCompoundFactor: types.RestakeCapPerDay,
 	}
 
 	// save the host chain
