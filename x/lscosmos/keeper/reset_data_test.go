@@ -35,6 +35,7 @@ var (
 func (suite *IntegrationTestSuite) TestFork() {
 	pstakeApp, ctx := suite.app, suite.ctx
 	k := pstakeApp.LSCosmosKeeper
+	k.GetUndelegationModuleAccount(ctx)
 	allowListedVals := k.GetAllowListedValidators(ctx) //3 validators
 	hcp := k.GetHostChainParams(ctx)
 
@@ -121,9 +122,10 @@ func (suite *IntegrationTestSuite) TestFork() {
 
 	// add amount to undelegation account
 	stkatomswithModule := failedUndelegation1.TotalUndelegationAmount.Add(failedUndelegation2.TotalUndelegationAmount).Add(failedUndelegation3.TotalUndelegationAmount)
+
 	suite.Require().NoError(simapp.FundAccount(pstakeApp.BankKeeper, ctx, authtypes.NewModuleAddress(types.UndelegationModuleAccount), sdk.NewCoins(stkatomswithModule)))
 
-	err := k.ClaimMatured(ctx, types.DelegatorUnbondingEpochEntry{
+	err := k.ClaimFailed(ctx, types.DelegatorUnbondingEpochEntry{
 		DelegatorAddress: Addr1.String(),
 		EpochNumber:      deletedUndelegation.EpochNumber,
 		Amount:           sdk.NewCoin(deletedUndelegation.TotalUndelegationAmount.Denom, deletedUndelegation.TotalUndelegationAmount.Amount.QuoRaw(3)), // 1/3rd undelegation is always Addr1

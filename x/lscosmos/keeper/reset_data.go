@@ -52,13 +52,13 @@ func (k Keeper) Fork(ctx sdk.Context) error {
 	}
 
 	// Do claims for all matured undelegations users (claim atoms).
-	allDelegatorUnbondingEntries := k.IterateAllDelegatorUnbondingEpochEntry(ctx)
-	for _, delegatorUnbondingEntry := range allDelegatorUnbondingEntries {
-		err := k.ClaimMatured(ctx, delegatorUnbondingEntry)
-		if err != nil {
-			return err
-		}
-	}
+	//allDelegatorUnbondingEntries := k.IterateAllDelegatorUnbondingEpochEntry(ctx)
+	//for _, delegatorUnbondingEntry := range allDelegatorUnbondingEntries {
+	//	err := k.ClaimMatured(ctx, delegatorUnbondingEntry)
+	//	if err != nil {
+	//		return err
+	//	}
+	//}
 	// CheckDelegatorUnbondings Calculate for claims of stkatom. failed unbondings
 	stkAtomExpectedInUnbondingAcc := k.CheckDelegatorUnbondings(ctx)
 	currentStkAtomBalance := k.bankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(types.UndelegationModuleAccount), hostChainParams.MintDenom)
@@ -95,13 +95,13 @@ func (k Keeper) Fork(ctx sdk.Context) error {
 	}
 
 	// Claim failed unbondings
-	allDelegatorUnbondingEntries = k.IterateAllDelegatorUnbondingEpochEntry(ctx)
-	for _, delegatorUnbondingEntry := range allDelegatorUnbondingEntries {
-		err := k.ClaimFailed(ctx, delegatorUnbondingEntry)
-		if err != nil {
-			return err
-		}
-	}
+	//allDelegatorUnbondingEntries = k.IterateAllDelegatorUnbondingEpochEntry(ctx)
+	//for _, delegatorUnbondingEntry := range allDelegatorUnbondingEntries {
+	//	err := k.ClaimFailed(ctx, delegatorUnbondingEntry)
+	//	if err != nil {
+	//		return err
+	//	}
+	//}
 	return nil
 }
 
@@ -176,39 +176,39 @@ func findHostAccUnbonding(allHostAccUndelegations []types.HostAccountUndelegatio
 	}
 	return types.HostAccountUndelegation{}, false
 }
-func (k Keeper) ClaimMatured(ctx sdk.Context, unbondingEntry types.DelegatorUnbondingEpochEntry) error {
 
-	delegatorAddress := sdk.MustAccAddressFromBech32(unbondingEntry.DelegatorAddress)
-	unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, unbondingEntry.EpochNumber)
-	if unbondingEpochCValue.IsMatured {
-		// get c value from the UnbondingEpochCValue struct
-		// calculate claimable amount from un inverse c value
-		claimableAmount := sdk.NewDecFromInt(unbondingEntry.Amount.Amount).Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
-
-		// calculate claimable coin and community coin to be sent to delegator account and community pool respectively
-		claimableCoin, _ := sdk.NewDecCoinFromDec(k.GetIBCDenom(ctx), claimableAmount).TruncateDecimal()
-
-		// send coin to delegator address from undelegation module account
-		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.UndelegationModuleAccount, delegatorAddress, sdk.NewCoins(claimableCoin))
-		if err != nil {
-			return err
-		}
-
-		ctx.EventManager().EmitEvents(sdk.Events{
-			sdk.NewEvent(
-				types.EventTypeClaim,
-				sdk.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
-				sdk.NewAttribute(types.AttributeAmount, unbondingEntry.Amount.String()),
-				sdk.NewAttribute(types.AttributeClaimedAmount, claimableAmount.String()),
-			)},
-		)
-
-		// remove entry from unbonding epoch entry
-		k.RemoveDelegatorUnbondingEpochEntry(ctx, delegatorAddress, unbondingEntry.EpochNumber)
-	}
-	return nil
-}
-
+// func (k Keeper) ClaimMatured(ctx sdk.Context, unbondingEntry types.DelegatorUnbondingEpochEntry) error {
+//
+//		delegatorAddress := sdk.MustAccAddressFromBech32(unbondingEntry.DelegatorAddress)
+//		unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, unbondingEntry.EpochNumber)
+//		if unbondingEpochCValue.IsMatured {
+//			// get c value from the UnbondingEpochCValue struct
+//			// calculate claimable amount from un inverse c value
+//			claimableAmount := sdk.NewDecFromInt(unbondingEntry.Amount.Amount).Quo(unbondingEpochCValue.GetUnbondingEpochCValue())
+//
+//			// calculate claimable coin and community coin to be sent to delegator account and community pool respectively
+//			claimableCoin, _ := sdk.NewDecCoinFromDec(k.GetIBCDenom(ctx), claimableAmount).TruncateDecimal()
+//
+//			// send coin to delegator address from undelegation module account
+//			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.UndelegationModuleAccount, delegatorAddress, sdk.NewCoins(claimableCoin))
+//			if err != nil {
+//				return err
+//			}
+//
+//			ctx.EventManager().EmitEvents(sdk.Events{
+//				sdk.NewEvent(
+//					types.EventTypeClaim,
+//					sdk.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
+//					sdk.NewAttribute(types.AttributeAmount, unbondingEntry.Amount.String()),
+//					sdk.NewAttribute(types.AttributeClaimedAmount, claimableAmount.String()),
+//				)},
+//			)
+//
+//			// remove entry from unbonding epoch entry
+//			k.RemoveDelegatorUnbondingEpochEntry(ctx, delegatorAddress, unbondingEntry.EpochNumber)
+//		}
+//		return nil
+//	}
 func (k Keeper) ClaimFailed(ctx sdk.Context, unbondingEntry types.DelegatorUnbondingEpochEntry) error {
 	delegatorAddress := sdk.MustAccAddressFromBech32(unbondingEntry.DelegatorAddress)
 	unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, unbondingEntry.EpochNumber)
