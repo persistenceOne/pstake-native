@@ -21,6 +21,7 @@ const CHAIN_ID = "core-1"
 const PROTOCOL_ACC = "persistence12d7ett36q9vmtzztudt48f9rtyxlayflz5gun3" //TODO REPLACE
 
 var FAILED_EPOCHS = []int64{164, 216, 228}
+var TO_FORCE_FAIL_EPOCHS = []int64{216}
 var RESET_EPOCHS = []int64{232}
 
 var UNBONDING_CREATION_HEIGHT_EPOCHS = map[int64]int64{232: 15826532, 236: 15881865}
@@ -51,6 +52,13 @@ func (k Keeper) Fork(ctx sdk.Context) error {
 		k.AddHostAccountUndelegation(ctx, undelegations)
 	}
 
+	for _, epoch := range TO_FORCE_FAIL_EPOCHS {
+		err := k.RemoveHostAccountUndelegation(ctx, epoch)
+		if err != nil {
+			return err
+		}
+		k.FailUnbondingEpochCValue(ctx, epoch, sdk.NewCoin(hostChainParams.MintDenom, sdk.ZeroInt()))
+	}
 	// Do claims for all matured undelegations users (claim atoms).
 	//allDelegatorUnbondingEntries := k.IterateAllDelegatorUnbondingEpochEntry(ctx)
 	//for _, delegatorUnbondingEntry := range allDelegatorUnbondingEntries {
