@@ -2,10 +2,11 @@ package keeper_test
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/simapp"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"testing"
 	"time"
+
+	"github.com/cosmos/cosmos-sdk/simapp"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -125,13 +126,6 @@ func (suite *IntegrationTestSuite) TestFork() {
 
 	suite.Require().NoError(simapp.FundAccount(pstakeApp.BankKeeper, ctx, authtypes.NewModuleAddress(types.UndelegationModuleAccount), sdk.NewCoins(stkatomswithModule)))
 
-	err := k.ClaimFailed(ctx, types.DelegatorUnbondingEpochEntry{
-		DelegatorAddress: Addr1.String(),
-		EpochNumber:      deletedUndelegation.EpochNumber,
-		Amount:           sdk.NewCoin(deletedUndelegation.TotalUndelegationAmount.Denom, deletedUndelegation.TotalUndelegationAmount.Amount.QuoRaw(3)), // 1/3rd undelegation is always Addr1
-	})
-	suite.Require().NoError(err)
-
-	err = k.Fork(ctx)
+	err := k.Fork(ctx)
 	suite.Require().NoError(err)
 }
