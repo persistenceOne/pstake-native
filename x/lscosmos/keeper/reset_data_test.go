@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/pstake-native/v2/app"
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/keeper"
@@ -457,9 +458,22 @@ func PrepareTest(ctx sdk.Context, app *app.PstakeApp) (k keeper.Keeper, totalStk
 // creationheight 15826532 => epoch 232, 15881865 => 236
 
 func TestParseHostAccountUnbondings(t *testing.T) {
-	mintDenom := "stk/uatom"
-	baseDenom := "uatom"
-	// create a map to quickly access each undelegation epoch entry and initialise it
-	hostAccountUndelegationsMap := keeper.ParseHostAccountUnbondings(mintDenom, baseDenom)
-	fmt.Println(hostAccountUndelegationsMap)
+	t.Run("", func(t *testing.T) {
+		hostAccountUndelegationsMap := keeper.ParseHostAccountUnbondings("stk/uatom", "uatom")
+		fmt.Println(hostAccountUndelegationsMap)
+
+		require.Equal(t, 2, len(hostAccountUndelegationsMap))
+
+		hostAccountUndelegation, ok := hostAccountUndelegationsMap[15826532]
+		require.Equal(t, true, ok)
+		require.Equal(t, sdk.NewCoin("stk/uatom", sdk.ZeroInt()), hostAccountUndelegation.TotalUndelegationAmount)
+		require.Equal(t, 62, len(hostAccountUndelegation.UndelegationEntries))
+		require.Equal(t, "2023-07-13 12:39:32.384744689 +0000 UTC", hostAccountUndelegation.CompletionTime.String())
+
+		hostAccountUndelegation, ok = hostAccountUndelegationsMap[15881865]
+		require.Equal(t, true, ok)
+		require.Equal(t, sdk.NewCoin("stk/uatom", sdk.ZeroInt()), hostAccountUndelegation.TotalUndelegationAmount)
+		require.Equal(t, 62, len(hostAccountUndelegation.UndelegationEntries))
+		require.Equal(t, "2023-07-17 12:39:44.851993255 +0000 UTC", hostAccountUndelegation.CompletionTime.String())
+	})
 }

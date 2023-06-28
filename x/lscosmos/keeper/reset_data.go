@@ -285,7 +285,7 @@ func (k Keeper) ClaimFailed(ctx sdk.Context, unbondingEntry types.DelegatorUnbon
 
 // to fetch the data from the cosmoshub chain:
 // curl -X GET -H "Content-Type: application/json" -H "x-cosmos-block-height: 15884400" "https://rest.cosmos.audit.one/cosmos/staking/v1beta1/delegators/cosmos13t4996czrgft9gw43epuwauccrldu5whx6uprjdmvsmuf7ylg8yqcxgzk3/unbonding_delegations" -o undelegations.json
-// creationheight 15826532 => epoch 232, 15881865 => 236
+// creation_height 15826532 => epoch 232, 15881865 => 236
 
 type UnbondingEntry struct {
 	CreationHeight          string    `json:"creation_height"`
@@ -325,6 +325,7 @@ func ParseHostAccountUnbondings(mintDenom string, baseDenom string) map[int64]ty
 		CompletionTime:          time.Time{},
 		UndelegationEntries:     make([]types.UndelegationEntry, 0),
 	}
+
 	// read the file contents and unmarshal them
 	contents, err := os.ReadFile("undelegations.json")
 	if err != nil {
@@ -345,7 +346,10 @@ func ParseHostAccountUnbondings(mintDenom string, baseDenom string) map[int64]ty
 			}
 
 			// get the undelegation object from the map
-			hostAccountUndelegation := hostAccountUndelegationsMap[ubdCreationHeight]
+			hostAccountUndelegation, ok := hostAccountUndelegationsMap[ubdCreationHeight]
+			if !ok {
+				continue
+			}
 
 			// parse the balance
 			balance, ok := sdk.NewIntFromString(unbondingEntry.Balance)
