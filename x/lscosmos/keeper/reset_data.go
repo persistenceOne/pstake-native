@@ -138,6 +138,8 @@ func (k Keeper) calculateTotalUndelegatingStkAtomAmount(ctx sdk.Context) sdk.Int
 		k.epochKeeper.GetEpochInfo(ctx, types.UndelegationEpochIdentifier).CurrentEpoch,
 	)
 
+	allUnbondingEpochCValues := k.IterateAllUnbondingEpochCValues(ctx)
+
 	totalStkAtomToBeInUnbondingAcc := sdk.ZeroInt()
 	for _, delegatorUnbondingEntry := range k.IterateAllDelegatorUnbondingEpochEntry(ctx) {
 		// the current epoch has no unbondingEpochCvalue, so just add their stkATOMs
@@ -147,7 +149,7 @@ func (k Keeper) calculateTotalUndelegatingStkAtomAmount(ctx sdk.Context) sdk.Int
 		}
 
 		// retrieve the unbonding c value for the delegator unbonding entry
-		unbondingEpochCValue, found := k.findUnbondingCValue(ctx, delegatorUnbondingEntry.EpochNumber)
+		unbondingEpochCValue, found := findUnbondingCValue(allUnbondingEpochCValues, delegatorUnbondingEntry.EpochNumber)
 		if !found {
 			// should never occur as per the code logic, but if not found, just continue.
 			k.Logger(ctx).Error(
@@ -166,7 +168,10 @@ func (k Keeper) calculateTotalUndelegatingStkAtomAmount(ctx sdk.Context) sdk.Int
 		}
 
 		// get the host account unbonding for the epoch
-		hostAccUnbonding, found := k.findHostAccUnbonding(ctx, delegatorUnbondingEntry.EpochNumber)
+		hostAccUnbonding, found := findHostAccUnbonding(
+			k.GetDelegationState(ctx).HostAccountUndelegations,
+			delegatorUnbondingEntry.EpochNumber,
+		)
 
 		// filter the unbonding requests that are in the maturing state but have no maturing time set
 		// this should filter out [164, 216, 228] epochs
@@ -186,18 +191,24 @@ func (k Keeper) calculateTotalUndelegatingStkAtomAmount(ctx sdk.Context) sdk.Int
 	return totalStkAtomToBeInUnbondingAcc
 }
 
-func (k Keeper) findUnbondingCValue(ctx sdk.Context, epoch int64) (types.UnbondingEpochCValue, bool) {
-	for _, unbondingEpochCvalue := range k.IterateAllUnbondingEpochCValues(ctx) {
-		if epoch == unbondingEpochCvalue.EpochNumber {
-			return unbondingEpochCvalue, true
+func findUnbondingCValue(
+	allUnbondingCValues []types.UnbondingEpochCValue,
+	epoch int64,
+) (types.UnbondingEpochCValue, bool) {
+	for _, unbondingEpochCValue := range allUnbondingCValues {
+		if epoch == unbondingEpochCValue.EpochNumber {
+			return unbondingEpochCValue, true
 		}
 	}
 
 	return types.UnbondingEpochCValue{}, false
 }
 
-func (k Keeper) findHostAccUnbonding(ctx sdk.Context, epoch int64) (types.HostAccountUndelegation, bool) {
-	for _, hostAccUndelgation := range k.GetDelegationState(ctx).HostAccountUndelegations {
+func findHostAccUnbonding(
+	allHostAccUndelegations []types.HostAccountUndelegation,
+	epoch int64,
+) (types.HostAccountUndelegation, bool) {
+	for _, hostAccUndelgation := range allHostAccUndelegations {
 		if epoch == hostAccUndelgation.EpochNumber {
 			return hostAccUndelgation, true
 		}
@@ -248,6 +259,28 @@ PacketLoop:
 		return unbondingEpochFound[0], nil
 	}
 	return 0, sdkerrors.ErrNotFound.Wrapf("Unstaking epoch not found for packet msgs %v", packetMsgs)
+}
+
+func (k Keeper) ClaimFailed(ctx sdk.Context, unbondingEntry types.DelegatorUnbondingEpochEntry) error {
+	delegatorAddress := sdk.MustAccAddressFromBech32(unbondingEntry.DelegatorAddress)
+	unbondingEpochCValue := k.GetUnbondingEpochCValue(ctx, unbondingEntry.EpochNumber)
+
+	if unbondingEpochCValue.IsFailed {
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(
+			ctx,
+			types.UndelegationModuleAccount,
+			delegatorAddress,
+			sdk.NewCoins(unbondingEntry.Amount),
+		)
+		if err != nil {
+			return err
+		}
+
+		// remove entry from unbonding epoch entry
+		k.RemoveDelegatorUnbondingEpochEntry(ctx, delegatorAddress, unbondingEntry.EpochNumber)
+	}
+
+	return nil
 }
 
 // to fetch the data from the cosmoshub chain:
