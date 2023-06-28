@@ -65,7 +65,7 @@ func (suite *IntegrationTestSuite) TestFork() {
 			CompletionTime:          time.Now().Add(time.Hour * completionTime), // 0 days, 4 days, 8days etc..
 			UndelegationEntries:     undelegationEntries,
 		})
-		atoms := sdk.NewInt64Coin(hcp.MintDenom, 920780*3*int64(i))
+		atoms := sdk.NewInt64Coin(hcp.BaseDenom, 920780*3*int64(i))
 
 		k.SetUnbondingEpochCValue(ctx, types.UnbondingEpochCValue{
 			EpochNumber:    int64(i),
