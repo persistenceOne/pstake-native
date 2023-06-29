@@ -464,7 +464,7 @@ func (k Keeper) resetToPreICATx(ctx sdk.Context, icaPacket icatypes.InterchainAc
 			}
 			if i == 0 && sdk.MsgTypeURL(msg) == sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}) {
 				if ctx.BlockHeight() >= HALT_HEIGHT && ctx.ChainID() == CHAIN_ID {
-					epochNumber, err := k.CheckUnstakingEpochForPacket(ctx, msgs)
+					epochNumber, err := k.GetUnstakingEpochForPacket(ctx, msgs)
 					if err != nil {
 						return err
 					}
