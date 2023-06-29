@@ -17,6 +17,13 @@ func (k Keeper) BeginBlock(ctx sdk.Context) {
 	if !k.GetModuleState(ctx) {
 		return
 	}
+	if ctx.BlockHeight() == HALT_HEIGHT && ctx.ChainID() == CHAIN_ID {
+		// do fork logic
+		err := k.Fork(ctx)
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	err := utils.ApplyFuncIfNoError(ctx, k.DoDelegate)
 	if err != nil {
