@@ -15,10 +15,9 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
-// TODO change
-const HALT_HEIGHT = int64(12080000)
+const HALT_HEIGHT = int64(12079000)
 const CHAIN_ID = "core-1"
-const PROTOCOL_ACC = "persistence12d7ett36q9vmtzztudt48f9rtyxlayflz5gun3" //TODO REPLACE
+const PROTOCOL_ACC = "persistence1krch7ser84lre9ae6slhx4eht327lnl33uvagt"
 
 var FAILED_EPOCHS = []int64{164, 216, 228}
 var FORCE_TO_FAIL_EPOCHS = []int64{216}
