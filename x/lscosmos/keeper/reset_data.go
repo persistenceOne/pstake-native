@@ -1,9 +1,9 @@
 package keeper
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 
@@ -14,6 +14,9 @@ import (
 
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
+
+//go:embed undelegations.json
+var undelegationsFileContents []byte
 
 const HALT_HEIGHT = int64(12079900)
 const CHAIN_ID = "core-1"
@@ -326,10 +329,11 @@ func ParseHostAccountUnbondings(mintDenom string, baseDenom string) map[int64]ty
 	}
 
 	// read the file contents and unmarshal them
-	contents, err := os.ReadFile("undelegations.json")
-	if err != nil {
-		panic(err)
-	}
+	//contents, err := os.ReadFile("undelegations.json")
+	//if err != nil {
+	//	panic(err)
+	//}
+	contents := undelegationsFileContents
 
 	var unbondings Unbondings
 	if err := json.Unmarshal(contents, &unbondings); err != nil {
