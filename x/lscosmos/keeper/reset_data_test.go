@@ -138,6 +138,9 @@ func (suite *IntegrationTestSuite) TestForkSuccessFirstCase() {
 		suite.Require().NoError(err)
 	}
 
+	// check that no unbonding epoch entries have been created
+	suite.Require().Equal(0, len(k.IterateDelegatorUnbondingEpochEntry(ctx, protocolAccAddr)))
+
 	// check the undelegation module account has had the total stkATOM amount removed
 	suite.Require().Equal(
 		sdk.NewInt(FUNDING_AMOUNT).Sub(totalStkAtomsNeeded.Amount),
@@ -237,6 +240,9 @@ func (suite *IntegrationTestSuite) TestForkSuccessSecondCase() {
 		suite.Require().NoError(err)
 	}
 
+	// check that at least one delegator unbonding epoch entry has been created
+	suite.Require().GreaterOrEqual(1, len(k.IterateDelegatorUnbondingEpochEntry(ctx, protocolAccAddr)))
+
 	// check the undelegation module account has just used the required amount for claims
 	suite.Require().Equal(
 		sdk.ZeroInt(),
@@ -334,6 +340,9 @@ func (suite *IntegrationTestSuite) TestForkSuccessThirdCaseCase() {
 		})
 		suite.Require().NoError(err)
 	}
+
+	// check that no unbonding epoch entries have been created
+	suite.Require().Equal(0, len(k.IterateDelegatorUnbondingEpochEntry(ctx, protocolAccAddr)))
 
 	// check the undelegation module account has had the total stkATOM amount removed
 	suite.Require().Equal(
