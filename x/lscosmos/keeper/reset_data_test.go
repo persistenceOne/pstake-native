@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"testing"
 	"time"
 
@@ -361,7 +362,7 @@ func (suite *IntegrationTestSuite) TestForkUnsuccessful() {
 
 	k, _ := PrepareTest(ctx, pstakeApp)
 
-	suite.Require().Panics(func() { k.Fork(ctx) })
+	suite.Require().Panics(func() { _ = k.Fork(ctx) })
 }
 
 func PrepareTest(ctx sdk.Context, app *app.PstakeApp) (k keeper.Keeper, totalStkAtomsNeeded sdk.Coin) {
@@ -485,4 +486,60 @@ func TestParseHostAccountUnbondings(t *testing.T) {
 		require.Equal(t, 62, len(hostAccountUndelegation.UndelegationEntries))
 		require.Equal(t, "2023-07-17 12:39:44.851993255 +0000 UTC", hostAccountUndelegation.CompletionTime.String())
 	})
+}
+func (suite *IntegrationTestSuite) TestGetUnstakingEpochForPacket() {
+	pstakeApp, ctx := suite.app, suite.ctx
+
+	k, _ := PrepareTest(ctx, pstakeApp)
+	delegationState := k.GetDelegationState(ctx)
+	hcp := k.GetHostChainParams(ctx)
+
+	k.AddHostAccountUndelegation(ctx, types.HostAccountUndelegation{
+		EpochNumber:             1000,
+		TotalUndelegationAmount: sdk.Coin{},
+		CompletionTime:          time.Time{},
+		UndelegationEntries: []types.UndelegationEntry{{
+			ValidatorAddress: "val1",
+			Amount:           sdk.NewInt64Coin(hcp.BaseDenom, 10000),
+		}, {
+			ValidatorAddress: "val3",
+			Amount:           sdk.NewInt64Coin(hcp.BaseDenom, 20000),
+		}, {
+			ValidatorAddress: "val4",
+			Amount:           sdk.NewInt64Coin(hcp.BaseDenom, 30000),
+		}, {
+			ValidatorAddress: "val2",
+			Amount:           sdk.NewInt64Coin(hcp.BaseDenom, 40000),
+		}},
+	})
+	msgs := []sdk.Msg{
+		&stakingtypes.MsgUndelegate{
+			DelegatorAddress: delegationState.HostChainDelegationAddress,
+			ValidatorAddress: "val4",
+			Amount:           sdk.NewInt64Coin(hcp.BaseDenom, 30000),
+		}, &stakingtypes.MsgUndelegate{
+			DelegatorAddress: delegationState.HostChainDelegationAddress,
+			ValidatorAddress: "val1",
+			Amount:           sdk.NewInt64Coin(hcp.BaseDenom, 10000),
+		}, &stakingtypes.MsgUndelegate{
+			DelegatorAddress: delegationState.HostChainDelegationAddress,
+			ValidatorAddress: "val2",
+			Amount:           sdk.NewInt64Coin(hcp.BaseDenom, 40000),
+		}, &stakingtypes.MsgUndelegate{
+			DelegatorAddress: delegationState.HostChainDelegationAddress,
+			ValidatorAddress: "val3",
+			Amount:           sdk.NewInt64Coin(hcp.BaseDenom, 20000),
+		},
+	}
+	epoch, err := k.GetUnstakingEpochForPacket(ctx, msgs)
+	suite.Require().NoError(err)
+	suite.Require().Equal(int64(1000), epoch)
+	msgs2 := append(msgs, &stakingtypes.MsgUndelegate{
+		DelegatorAddress: delegationState.HostChainDelegationAddress,
+		ValidatorAddress: "val5",
+		Amount:           sdk.NewInt64Coin(hcp.BaseDenom, 20000),
+	})
+	epoch, err = k.GetUnstakingEpochForPacket(ctx, msgs2)
+	suite.Require().Error(err)
+	suite.Require().Equal(int64(0), epoch)
 }
