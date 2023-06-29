@@ -15,7 +15,7 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
-const HALT_HEIGHT = int64(12079000)
+const HALT_HEIGHT = int64(12124500)
 const CHAIN_ID = "core-1"
 const PROTOCOL_ACC = "persistence1krch7ser84lre9ae6slhx4eht327lnl33uvagt"
 
