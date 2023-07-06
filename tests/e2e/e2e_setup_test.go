@@ -23,6 +23,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/spf13/viper"
@@ -30,14 +34,38 @@ import (
 )
 
 const (
-	photonDenom    = "photon"
-	initBalanceStr = "110000000000stake,100000000000photon"
-	minGasPrice    = "0.00001"
+	persistenceDenom          = "uxprt"
+	initialPersistenceBalance = "100000000000000000000uxprt"
+	gaiaDenom                 = "uatom"
+	initialGaiaBalance        = "100000000000000000000uatom"
+	minGasPrice               = "0.00001"
 )
 
 var (
-	stakeAmount, _  = sdk.NewIntFromString("100000000000")
-	stakeAmountCoin = sdk.NewCoin("stake", stakeAmount)
+	stakeAmount, _         = sdk.NewIntFromString("100000000000")
+	stakeAmountPersistence = sdk.NewCoin(persistenceDenom, stakeAmount)
+	stakeAmountGaia        = sdk.NewCoin(gaiaDenom, stakeAmount)
+
+	chainMeta = map[string]map[string]string{
+		"persistence": persistenceMeta,
+		"gaia":        gaiaMeta,
+	}
+
+	persistenceMeta = map[string]string{
+		"denom":          persistenceDenom,
+		"initialBalance": initialPersistenceBalance,
+		"dir":            ".pstaked",
+		"image":          "marcpt/persistenceone-pstake-e2e",
+		"tag":            "latest",
+	}
+
+	gaiaMeta = map[string]string{
+		"denom":          gaiaDenom,
+		"initialBalance": initialGaiaBalance,
+		"dir":            ".gaia",
+		"image":          "marcpt/gaia-10.0.2-e2e",
+		"tag":            "latest",
+	}
 )
 
 type IntegrationTestSuite struct {
@@ -60,10 +88,10 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.T().Log("setting up e2e integration test suite...")
 
 	var err error
-	s.chainA, err = newChain()
+	s.chainA, err = newChain("persistence")
 	s.Require().NoError(err)
 
-	s.chainB, err = newChain()
+	s.chainB, err = newChain("gaia")
 	s.Require().NoError(err)
 
 	s.dkrPool, err = dockertest.NewPool("")
@@ -85,13 +113,13 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.initNodes(s.chainA)
 	s.initGenesis(s.chainA)
 	s.initValidatorConfigs(s.chainA)
-	s.runValidators(s.chainA, 0)
+	s.runValidators(s.chainA, "marcpt/persistenceone-pstake-e2e", "latest", 0)
 
 	s.T().Logf("starting e2e infrastructure for chain B; chain-id: %s; datadir: %s", s.chainB.id, s.chainB.dataDir)
 	s.initNodes(s.chainB)
 	s.initGenesis(s.chainB)
 	s.initValidatorConfigs(s.chainB)
-	s.runValidators(s.chainB, 10)
+	s.runValidators(s.chainB, "marcpt/gaia-9.1.0-e2e", "latest", 10)
 
 	s.runIBCRelayer()
 }
@@ -135,7 +163,7 @@ func (s *IntegrationTestSuite) initNodes(c *chain) {
 		addr, err := val.keyInfo.GetAddress()
 		s.Require().NoError(err)
 		s.Require().NoError(
-			addGenesisAccount(val0ConfigDir, "", initBalanceStr, addr),
+			addGenesisAccount(val0ConfigDir, "", chainMeta[c.name]["initialBalance"], addr),
 		)
 	}
 
@@ -165,13 +193,13 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 
 	bankGenState.DenomMetadata = append(bankGenState.DenomMetadata, banktypes.Metadata{
 		Description: "An example stable token",
-		Display:     photonDenom,
-		Base:        photonDenom,
-		Symbol:      photonDenom,
-		Name:        photonDenom,
+		Display:     chainMeta[c.name]["denom"],
+		Base:        chainMeta[c.name]["denom"],
+		Symbol:      chainMeta[c.name]["denom"],
+		Name:        chainMeta[c.name]["denom"],
 		DenomUnits: []*banktypes.DenomUnit{
 			{
-				Denom:    photonDenom,
+				Denom:    chainMeta[c.name]["denom"],
 				Exponent: 0,
 			},
 		},
@@ -181,13 +209,40 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 	s.Require().NoError(err)
 	appGenState[banktypes.ModuleName] = bz
 
+	var mintGenState minttypes.GenesisState
+	s.Require().NoError(cdc.UnmarshalJSON(appGenState[minttypes.ModuleName], &mintGenState))
+
+	mintGenState.Params.MintDenom = chainMeta[c.name]["denom"]
+
+	bz, err = cdc.MarshalJSON(&mintGenState)
+	s.Require().NoError(err)
+	appGenState[minttypes.ModuleName] = bz
+
+	var stakingGenState stakingtypes.GenesisState
+	s.Require().NoError(cdc.UnmarshalJSON(appGenState[stakingtypes.ModuleName], &stakingGenState))
+
+	stakingGenState.Params.BondDenom = chainMeta[c.name]["denom"]
+
+	bz, err = cdc.MarshalJSON(&stakingGenState)
+	s.Require().NoError(err)
+	appGenState[stakingtypes.ModuleName] = bz
+
+	var govGenState govtypesv1.GenesisState
+	s.Require().NoError(cdc.UnmarshalJSON(appGenState[govtypes.ModuleName], &govGenState))
+
+	govGenState.Params.MinDeposit[0].Denom = chainMeta[c.name]["denom"]
+
+	bz, err = cdc.MarshalJSON(&govGenState)
+	s.Require().NoError(err)
+	appGenState[govtypes.ModuleName] = bz
+
 	var genUtilGenState genutiltypes.GenesisState
 	s.Require().NoError(cdc.UnmarshalJSON(appGenState[genutiltypes.ModuleName], &genUtilGenState))
 
 	// generate genesis txs
 	genTxs := make([]json.RawMessage, len(c.validators))
 	for i, val := range c.validators {
-		createValmsg, err := val.buildCreateValidatorMsg(stakeAmountCoin)
+		createValmsg, err := val.buildCreateValidatorMsg(sdk.NewCoin(chainMeta[c.name]["denom"], stakeAmount))
 		s.Require().NoError(err)
 
 		signedTx, err := val.signMsg(createValmsg)
@@ -216,6 +271,32 @@ func (s *IntegrationTestSuite) initGenesis(c *chain) {
 	// write the updated genesis file to each validator
 	for _, val := range c.validators {
 		writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), bz)
+
+		input, err := ioutil.ReadFile(filepath.Join(val.configDir(), "config", "genesis.json"))
+		if err != nil {
+			panic(err)
+		}
+
+		lines := strings.Split(string(input), "\n")
+
+		for i, line := range lines {
+			if strings.Contains(line, "max_gas") {
+				lines[i] += ",\n      \"time_iota_ms\": \"1000\""
+			}
+			if strings.Contains(line, "symbol") {
+				lines[i] = lines[i][:len(lines[i])-1]
+			}
+			if strings.Contains(line, "\"uri\"") {
+				lines = append(lines[:i], lines[i+1:]...)
+				lines = append(lines[:i], lines[i+1:]...)
+			}
+			if strings.Contains(line, "\"send_enabled\"") {
+				lines = append(lines[:i], lines[i+1:]...)
+			}
+		}
+		output := strings.Join(lines, "\n")
+		fmt.Println(output)
+		writeFile(filepath.Join(val.configDir(), "config", "genesis.json"), []byte(output))
 	}
 }
 
@@ -258,14 +339,14 @@ func (s *IntegrationTestSuite) initValidatorConfigs(c *chain) {
 
 		appConfig := srvconfig.DefaultConfig()
 		appConfig.API.Enable = true
-		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrice, photonDenom)
+		appConfig.MinGasPrices = fmt.Sprintf("%s%s", minGasPrice, chainMeta[c.name]["denom"])
 
 		srvconfig.WriteConfigFile(appCfgPath, appConfig)
 	}
 }
 
-func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
-	s.T().Logf("starting PStake %s validator containers...", c.id)
+func (s *IntegrationTestSuite) runValidators(c *chain, repo, tag string, portOffset int) {
+	s.T().Logf("starting %s validator containers...", c.id)
 
 	s.valResources[c.id] = make([]*dockertest.Resource, len(c.validators))
 	for i, val := range c.validators {
@@ -273,10 +354,10 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 			Name:      val.instanceName(),
 			NetworkID: s.dkrNet.Network.ID,
 			Mounts: []string{
-				fmt.Sprintf("%s/:/root/.pstaked", val.configDir()),
+				fmt.Sprintf("%s/:/root/"+chainMeta[c.name]["dir"], val.configDir()),
 			},
-			Repository: "persistenceone/pstake-e2e",
-			Tag:        "test-sdk47",
+			Repository: repo,
+			Tag:        tag,
 		}
 
 		// expose the first validator for debugging and communication
@@ -299,7 +380,7 @@ func (s *IntegrationTestSuite) runValidators(c *chain, portOffset int) {
 		s.Require().NoError(err)
 
 		s.valResources[c.id][i] = resource
-		s.T().Logf("started PStake %s validator container: %s", c.id, resource.Container.ID)
+		s.T().Logf("started %s validator container: %s", c.id, resource.Container.ID)
 	}
 
 	rpcClient, err := rpchttp.New("tcp://localhost:26657", "/websocket")
@@ -349,8 +430,8 @@ func (s *IntegrationTestSuite) runIBCRelayer() {
 	s.hermesResource, err = s.dkrPool.RunWithOptions(
 		&dockertest.RunOptions{
 			Name:       fmt.Sprintf("%s-%s-relayer", s.chainA.id, s.chainB.id),
-			Repository: "ghcr.io/cosmos/hermes-e2e",
-			Tag:        "0.12.0",
+			Repository: "marcpt/hermes-e2e",
+			Tag:        "latest",
 			NetworkID:  s.dkrNet.Network.ID,
 			Mounts: []string{
 				fmt.Sprintf("%s/:/root/hermes", hermesCfgPath),

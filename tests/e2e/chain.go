@@ -45,17 +45,19 @@ func init() {
 type chain struct {
 	dataDir    string
 	id         string
+	name       string
 	validators []*validator
 }
 
-func newChain() (*chain, error) {
+func newChain(name string) (*chain, error) {
 	tmpDir, err := ioutil.TempDir("", "pstake-e2e-testnet-")
 	if err != nil {
 		return nil, err
 	}
 
 	return &chain{
-		id:      "chain-" + tmrand.NewRand().Str(6),
+		id:      name + "-" + tmrand.NewRand().Str(6),
+		name:    name,
 		dataDir: tmpDir,
 	}, nil
 }
@@ -121,6 +123,6 @@ func (c *chain) createValidator(index int) *validator {
 	return &validator{
 		chain:   c,
 		index:   index,
-		moniker: fmt.Sprintf("%s-gaia-%d", c.id, index),
+		moniker: fmt.Sprintf("%s-%s-%d", c.id, c.name, index),
 	}
 }

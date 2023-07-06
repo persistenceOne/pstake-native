@@ -14,7 +14,7 @@ func (s *IntegrationTestSuite) TestIBCTokenTransfer() {
 	s.Run("send_photon_to_chainB", func() {
 		recipient, er := s.chainB.validators[0].keyInfo.GetAddress()
 		s.Require().Nil(er)
-		token := sdk.NewInt64Coin(photonDenom, 3300000000) // 3,300photon
+		token := sdk.NewInt64Coin("photonDenom", 3300000000) // 3,300photon
 		s.sendIBC(s.chainA.id, s.chainB.id, recipient.String(), token)
 
 		chainBAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chainB.id][0].GetHostPort("1317/tcp"))

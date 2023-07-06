@@ -49,9 +49,10 @@ rpc_timeout = '10s'
 account_prefix = 'persistence'
 key_name = 'val01-pstake-a'
 store_prefix = 'ibc'
-max_gas = 6000000
-gas_price = { price = 0.001, denom = 'photon' }
-gas_adjustment = 1.0
+default_gas = 500000
+max_gas = 900000
+gas_price = { price = 0.001, denom = 'uxprt' }
+gas_multiplier = 2
 clock_drift = '1m' # to accomdate docker containers
 trusting_period = '14days'
 trust_threshold = { numerator = '1', denominator = '3' }
@@ -65,17 +66,21 @@ rpc_timeout = '10s'
 account_prefix = 'persistence'
 key_name = 'val01-pstake-b'
 store_prefix = 'ibc'
-max_gas = 6000000
-gas_price = { price = 0.001, denom = 'photon' }
-gas_adjustment = 1.0
+default_gas = 500000
+max_gas = 900000
+gas_price = { price = 0.001, denom = 'uxprt' }
+gas_multiplier = 2
 clock_drift = '1m' # to accomdate docker containers
 trusting_period = '14days'
 trust_threshold = { numerator = '1', denominator = '3' }
 EOF
 
+echo ${PSTAKE_B_E2E_VAL_MNEMONIC} >> /root/.hermes/pstake_b_e2e_chain_mnemonic.txt
+echo ${PSTAKE_A_E2E_VAL_MNEMONIC} >> /root/.hermes/pstake_a_e2e_chain_mnemonic.txt
+
 # import keys
-hermes keys restore ${PSTAKE_B_E2E_CHAIN_ID} -n "val01-pstake-b" -m "${PSTAKE_B_E2E_VAL_MNEMONIC}"
-hermes keys restore ${PSTAKE_A_E2E_CHAIN_ID} -n "val01-pstake-a" -m "${PSTAKE_A_E2E_VAL_MNEMONIC}"
+hermes keys add --chain ${PSTAKE_B_E2E_CHAIN_ID} --key-name "val01-pstake-b" --mnemonic-file /root/.hermes/pstake_b_e2e_chain_mnemonic.txt
+hermes keys add --chain ${PSTAKE_A_E2E_CHAIN_ID} --key-name "val01-pstake-a" --mnemonic-file /root/.hermes/pstake_a_e2e_chain_mnemonic.txt
 
 # start Hermes relayer
 hermes start
