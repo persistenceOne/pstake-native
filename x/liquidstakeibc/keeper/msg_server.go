@@ -475,8 +475,7 @@ func (k msgServer) LiquidUnstake(
 
 	// calculate the host chain token unbond amount from the stk amount
 	decTokenAmount := sdktypes.NewDecCoinFromCoin(unstakeAmount).Amount.Mul(sdktypes.OneDec().Quo(hc.CValue))
-	tokenAmount, _ := sdktypes.NewDecCoinFromDec(hc.HostDenom, decTokenAmount).TruncateDecimal()
-	unbondAmount := sdktypes.NewCoin(hc.HostDenom, tokenAmount.Amount)
+	unbondAmount, _ := sdktypes.NewDecCoinFromDec(hc.HostDenom, decTokenAmount).TruncateDecimal()
 
 	// calculate the current unbonding epoch
 	epoch := k.epochsKeeper.GetEpochInfo(ctx, types.UndelegationEpoch)
@@ -487,14 +486,14 @@ func (k msgServer) LiquidUnstake(
 	k.IncreaseUndelegatingAmountForEpoch(ctx, hc.ChainId, unbondingEpoch, unstakeAmount, unbondAmount)
 
 	// check if the total unbonding amount for the next unbonding epoch is less than what is currently staked
-	totalUnbondings, _ := k.GetUnbonding(ctx, hc.ChainId, unbondingEpoch)
+	totalUnbondingsForEpoch, _ := k.GetUnbonding(ctx, hc.ChainId, unbondingEpoch)
 	totalDelegations := hc.GetHostChainTotalDelegations()
-	if totalDelegations.LT(unbondAmount.Amount) {
+	if totalDelegations.LTE(totalUnbondingsForEpoch.UnbondAmount.Amount) {
 		return nil, errorsmod.Wrapf(
 			types.ErrNotEnoughDelegations,
 			"delegated amount %s is less than the total undelegation %s for epoch %d",
 			totalDelegations,
-			totalUnbondings,
+			totalUnbondingsForEpoch,
 			unbondingEpoch,
 		)
 	}
@@ -605,7 +604,7 @@ func (k msgServer) Redeem(
 
 	// amount of tokens to be redeemed
 	stkAmount := msg.Amount.Sub(fee)
-	redeemAmount := sdktypes.NewDecCoinFromCoin(stkAmount).Amount.Mul(hc.CValue)
+	redeemAmount := sdktypes.NewDecCoinFromCoin(stkAmount).Amount.Quo(hc.CValue)
 	redeemToken, _ := sdktypes.NewDecCoinFromDec(hc.IBCDenom(), redeemAmount).TruncateDecimal()
 
 	// check if there is enough deposits to fulfill the instant redemption request
