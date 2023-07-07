@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -127,7 +126,7 @@ func (suite *IntegrationTestSuite) TestQueryDeposits() {
 	for i := 0; i < MultipleTestSize; i += 1 {
 		deposit := &types.Deposit{
 			ChainId: suite.path.EndpointB.Chain.ChainID,
-			Epoch:   sdk.NewInt(int64(i)),
+			Epoch:   int64(i),
 		}
 		suite.app.LiquidStakeIBCKeeper.SetDeposit(suite.ctx, deposit)
 		deposits = append(deposits, deposit)
