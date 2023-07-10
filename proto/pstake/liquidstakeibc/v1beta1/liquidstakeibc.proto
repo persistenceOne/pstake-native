@@ -147,11 +147,7 @@ message Deposit {
     (gogoproto.nullable) = false
   ];
   // epoch number of the deposit
-  string epoch = 3 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
-  ];
+  int64 epoch = 3;
   // state
   DepositState state = 4;
   // sequence id of the ibc transaction

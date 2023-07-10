@@ -63,3 +63,7 @@ func GetUserUnbondingStoreKey(chainID, delegatorAddress string, epochNumber int6
 func GetValidatorUnbondingStoreKey(chainID, validatorAddress string, epochNumber int64) []byte {
 	return append([]byte(chainID), append([]byte(validatorAddress), []byte(strconv.FormatInt(epochNumber, 10))...)...)
 }
+
+func GetDepositStoreKey(chainID string, epochNumber int64) []byte {
+	return append([]byte(chainID), []byte(strconv.FormatInt(epochNumber, 10))...)
+}
