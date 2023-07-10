@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"testing"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 
 func init() {
 	app.SetAddressPrefixes()
+	types.RegisterInterfaces(codectypes.NewInterfaceRegistry())
 }
 
 func TestCurrentUnbondingEpoch(t *testing.T) {

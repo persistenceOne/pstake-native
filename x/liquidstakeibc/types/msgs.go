@@ -86,6 +86,10 @@ func (m *MsgRegisterHostChain) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgRegisterHostChain) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address %q: %v", m.Authority, err)
+	}
+
 	// connection id cannot be empty and must begin with "connection"
 	if m.ConnectionId == "" {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "connection id cannot be empty")
@@ -174,6 +178,9 @@ func (m *MsgUpdateHostChain) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgUpdateHostChain) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address %q: %v", m.Authority, err)
+	}
 	return nil
 }
 
@@ -270,6 +277,10 @@ func (m *MsgLiquidUnstake) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
 	}
 
+	if !IsLiquidStakingDenom(m.Amount.Denom) {
+		return sdkerrors.ErrInvalidCoins.Wrapf("invalid denom, required stk/{host-denom} got %s", m.Amount.Denom)
+	}
+
 	return nil
 }
 
@@ -318,6 +329,9 @@ func (m *MsgRedeem) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
 	}
 
+	if !IsLiquidStakingDenom(m.Amount.Denom) {
+		return sdkerrors.ErrInvalidCoins.Wrapf("invalid denom, required stk/{host-denom} got %s", m.Amount.Denom)
+	}
 	return nil
 }
 
