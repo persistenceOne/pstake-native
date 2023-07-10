@@ -199,8 +199,8 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 	k.liquidStakeIBCKeeper.SetParams(ctx, liquidstakeibctypes.Params{
 		AdminAddress:     hcparams.PstakeParams.PstakeFeeAddress,
 		FeeAddress:       hcparams.PstakeParams.PstakeFeeAddress,
-		UpperCValueLimit: sdk.MustNewDecFromStr(liquidstakeibctypes.DefaultUpperCValueLimit),
-		LowerCValueLimit: sdk.MustNewDecFromStr(liquidstakeibctypes.DefaultLowerCValueLimit),
+		UpperCValueLimit: liquidstakeibctypes.DefaultUpperCValueLimit,
+		LowerCValueLimit: liquidstakeibctypes.DefaultLowerCValueLimit,
 	})
 
 	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.DepositModuleAccount, liquidstakeibctypes.DepositModuleAccount, depositAccBalance)

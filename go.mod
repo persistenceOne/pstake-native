@@ -30,7 +30,6 @@ require (
 	google.golang.org/grpc v1.56.2
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
-	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
@@ -322,6 +321,7 @@ require (
 	mvdan.cc/unparam v0.0.0-20221223090309-7455f1af531d // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
 	pgregory.net/rapid v0.5.5 // indirect
+	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
 replace (
