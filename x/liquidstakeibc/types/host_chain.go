@@ -26,7 +26,7 @@ func (hc *HostChain) GetValidator(operatorAddress string) (*Validator, bool) {
 	return nil, false
 }
 
-func (hc *HostChain) GetHostChainTotalDelegations() math.Int { //nolint:staticcheck
+func (hc *HostChain) GetHostChainTotalDelegations() math.Int {
 	totalDelegations := sdk.ZeroInt()
 	for _, validator := range hc.Validators {
 		totalDelegations = totalDelegations.Add(validator.DelegatedAmount)
