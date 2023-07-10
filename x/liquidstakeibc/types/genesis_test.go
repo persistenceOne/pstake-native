@@ -46,7 +46,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "host chains invalid",
 			genState: func() *types.GenesisState {
 				genesis := ValidGenesis()
-				genesis.HostChains[0].CValue = sdk.MustNewDecFromStr("1.1")
+				genesis.HostChains[0].CValue = sdk.MustNewDecFromStr("-1")
 				return genesis
 			},
 			valid: false,

@@ -58,7 +58,7 @@ func (hc *HostChain) Validate() error {
 	if hc.MinimumDeposit.LT(sdk.ZeroInt()) {
 		return fmt.Errorf("host chain %s has negative minimum deposit", hc.ChainId)
 	}
-	if hc.CValue.LT(sdk.ZeroDec()) || hc.CValue.GT(sdk.OneDec()) {
+	if hc.CValue.LT(sdk.ZeroDec()) { //GT limits should be checked by module level params, invariants.
 		return fmt.Errorf("host chain %s has c value out of bounds: %d", hc.ChainId, hc.CValue)
 	}
 

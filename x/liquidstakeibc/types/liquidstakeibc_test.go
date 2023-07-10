@@ -291,7 +291,7 @@ func TestHostChain_Validate(t *testing.T) {
 			name: "invalid cvalue",
 			fields: func() fields {
 				newfields := validFields()
-				newfields.CValue = sdk.MustNewDecFromStr("2")
+				newfields.CValue = sdk.MustNewDecFromStr("-2")
 				return newfields
 			},
 			wantErr: true,
