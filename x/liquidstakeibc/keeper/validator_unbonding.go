@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -51,6 +52,8 @@ func (k *Keeper) GetAllValidatorUnbondedAmount(ctx sdk.Context, hc *types.HostCh
 func (k *Keeper) DeleteValidatorUnbonding(ctx sdk.Context, ub *types.ValidatorUnbonding) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ValidatorUnbondingKey)
 	store.Delete(types.GetValidatorUnbondingStoreKey(ub.ChainId, ub.ValidatorAddress, ub.EpochNumber))
+
+	telemetry.IncrCounter(float32(-1), ub.ChainId, "validator_unbondings")
 }
 
 func (k *Keeper) DeleteValidatorUnbondingsForSequenceID(ctx sdk.Context, sequenceID string) {

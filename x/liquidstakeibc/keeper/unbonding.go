@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -67,10 +68,15 @@ func (k *Keeper) IncreaseUndelegatingAmountForEpoch(
 			IbcSequenceId: "",
 			State:         types.Unbonding_UNBONDING_PENDING,
 		}
+
+		telemetry.ModuleSetGauge(types.ModuleName, float32(epochNumber), chainID, "unbonding_epoch")
 	} else {
 		unbonding.UnbondAmount = unbonding.UnbondAmount.Add(unbondAmount)
 		unbonding.BurnAmount = unbonding.BurnAmount.Add(burnAmount)
 	}
+
+	telemetry.ModuleSetGauge(types.ModuleName, float32(unbonding.UnbondAmount.Amount.Int64()), chainID, "unbond_amount")
+	telemetry.ModuleSetGauge(types.ModuleName, float32(unbonding.BurnAmount.Amount.Int64()), chainID, "burn_amount")
 
 	k.SetUnbonding(ctx, unbonding)
 }
