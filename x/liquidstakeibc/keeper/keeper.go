@@ -16,8 +16,10 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ibctmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibclocalhosttypes "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -120,7 +122,7 @@ func (k *Keeper) SendProtocolFee(ctx sdk.Context, protocolFee sdk.Coins, moduleA
 }
 
 // GetClientState retrieves the client state given a connection id
-func (k *Keeper) GetClientState(ctx sdk.Context, connectionID string) (*ibctmtypes.ClientState, error) {
+func (k *Keeper) GetClientState(ctx sdk.Context, connectionID string) (exported.ClientState, error) {
 	conn, found := k.ibcKeeper.ConnectionKeeper.GetConnection(ctx, connectionID)
 	if !found {
 		return nil, fmt.Errorf("invalid connection id, \"%s\" not found", connectionID)
@@ -131,32 +133,7 @@ func (k *Keeper) GetClientState(ctx sdk.Context, connectionID string) (*ibctmtyp
 		return nil, fmt.Errorf("client id \"%s\" not found for connection \"%s\"", conn.ClientId, connectionID)
 	}
 
-	client, ok := clientState.(*ibctmtypes.ClientState)
-	if !ok {
-		return nil, fmt.Errorf("invalid client state for connection \"%s\"", connectionID)
-	}
-
-	return client, nil
-}
-
-// GetLatestConsensusState retrieves the last tendermint consensus state
-func (k *Keeper) GetLatestConsensusState(ctx sdk.Context, connectionID string) (*ibctmtypes.ConsensusState, error) {
-	conn, found := k.ibcKeeper.ConnectionKeeper.GetConnection(ctx, connectionID)
-	if !found {
-		return nil, fmt.Errorf("invalid connection id, \"%s\" not found", connectionID)
-	}
-
-	consensusState, found := k.ibcKeeper.ClientKeeper.GetLatestClientConsensusState(ctx, conn.ClientId)
-	if !found {
-		return nil, fmt.Errorf("client id \"%s\" not found for connection \"%s\"", conn.ClientId, connectionID)
-	}
-
-	state, ok := consensusState.(*ibctmtypes.ConsensusState)
-	if !ok {
-		return nil, fmt.Errorf("invalid consensus state for connection \"%s\"", connectionID)
-	}
-
-	return state, nil
+	return clientState, nil
 }
 
 // GetChainID gets the id of the host chain given a connection id
@@ -166,7 +143,14 @@ func (k *Keeper) GetChainID(ctx sdk.Context, connectionID string) (string, error
 		return "", fmt.Errorf("client state not found for connection \"%s\": \"%s\"", connectionID, err.Error())
 	}
 
-	return clientState.ChainId, nil
+	switch clientType := clientState.(type) {
+	case *ibctmtypes.ClientState:
+		return clientType.ChainId, nil
+	case *ibclocalhosttypes.ClientState:
+		return ctx.ChainID(), nil
+	default:
+		return "", fmt.Errorf("unexpected type of client, cannot determine chain-id: clientType: %s, connectionid: %s", clientState.ClientType(), connectionID)
+	}
 }
 
 // GetPortID constructs a port id given the port owner

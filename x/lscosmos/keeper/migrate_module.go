@@ -190,7 +190,7 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 	k.liquidStakeIBCKeeper.SetDeposit(ctx, &liquidstakeibctypes.Deposit{
 		ChainId:       newhc.ChainId,
 		Amount:        sdk.NewCoin(newhc.IBCDenom(), depositAccBalance.AmountOf(newhc.IBCDenom())),
-		Epoch:         sdk.NewInt(currEpoch.CurrentEpoch),
+		Epoch:         currEpoch.CurrentEpoch,
 		State:         liquidstakeibctypes.Deposit_DEPOSIT_PENDING,
 		IbcSequenceId: "",
 	})

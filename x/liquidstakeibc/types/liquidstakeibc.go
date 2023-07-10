@@ -111,6 +111,18 @@ func (u *Unbonding) Validate() error {
 	if u.UnbondAmount.IsNegative() {
 		return fmt.Errorf("unbonding entry %s has negative unbond amount: %s", u.String(), u.UnbondAmount)
 	}
+	if u.State != Unbonding_UNBONDING_PENDING &&
+		u.State != Unbonding_UNBONDING_INITIATED &&
+		u.State != Unbonding_UNBONDING_MATURING &&
+		u.State != Unbonding_UNBONDING_MATURED &&
+		u.State != Unbonding_UNBONDING_CLAIMABLE &&
+		u.State != Unbonding_UNBONDING_FAILED {
+		return fmt.Errorf(
+			"host chain %s unbonding has an invalid state: %s",
+			u.ChainId,
+			u.State,
+		)
+	}
 	return nil
 }
 

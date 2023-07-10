@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
 
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -104,7 +103,6 @@ type LiquidStakeIBCKeeper interface {
 	SetValidatorUnbonding(ctx sdk.Context, vu *liquidstakeibctypes.ValidatorUnbonding)
 	SetUserUnbonding(ctx sdk.Context, ub *liquidstakeibctypes.UserUnbonding)
 	SetDeposit(ctx sdk.Context, deposit *liquidstakeibctypes.Deposit)
-	GetLatestConsensusState(ctx sdk.Context, connectionID string) (*ibctmtypes.ConsensusState, error)
 	GetHostChain(ctx sdk.Context, chainID string) (*liquidstakeibctypes.HostChain, bool)
 	GenerateAndExecuteICATx(ctx sdk.Context, connectionID string, ownerID string, messages []proto.Message) (string, error)
 	SetParams(ctx sdk.Context, params liquidstakeibctypes.Params)
