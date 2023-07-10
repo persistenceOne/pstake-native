@@ -14,12 +14,11 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 
 func CValueLimits(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		params := k.GetParams(ctx)
 		hostChains := k.GetAllHostChains(ctx)
 		str := ""
 		broken := false
 		for _, hc := range hostChains {
-			if hc.CValue.GT(params.UpperCValueLimit) {
+			if !k.CValueWithinLimits(ctx, hc) {
 				str = fmt.Sprintf("chainID: %s, cValue: %s \n", hc.ChainId, hc.CValue)
 			}
 		}
