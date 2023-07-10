@@ -109,7 +109,9 @@ func (a AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valida
 	return []abci.ValidatorUpdate{}
 }
 
-func (a AppModule) RegisterInvariants(registry sdk.InvariantRegistry) {}
+func (a AppModule) RegisterInvariants(registry sdk.InvariantRegistry) {
+	keeper.RegisterInvariants(registry, a.keeper)
+}
 
 // Deprecated: QuerierRoute
 func (a AppModule) QuerierRoute() string {
