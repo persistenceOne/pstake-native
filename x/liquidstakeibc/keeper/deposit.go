@@ -12,12 +12,12 @@ import (
 func (k *Keeper) SetDeposit(ctx sdk.Context, deposit *liquidstakeibctypes.Deposit) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	bytes := k.cdc.MustMarshal(deposit)
-	store.Set(append([]byte(deposit.ChainId), sdk.Uint64ToBigEndian(uint64(deposit.Epoch))...), bytes)
+	store.Set(liquidstakeibctypes.GetDepositStoreKey(deposit.ChainId, deposit.Epoch), bytes)
 }
 
 func (k *Keeper) DeleteDeposit(ctx sdk.Context, deposit *liquidstakeibctypes.Deposit) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
-	store.Delete(append([]byte(deposit.ChainId), sdk.Uint64ToBigEndian(uint64(deposit.Epoch))...))
+	store.Delete(liquidstakeibctypes.GetDepositStoreKey(deposit.ChainId, deposit.Epoch))
 }
 
 func (k *Keeper) CreateDeposits(ctx sdk.Context, epoch int64) {
@@ -33,7 +33,7 @@ func (k *Keeper) CreateDeposits(ctx sdk.Context, epoch int64) {
 			IbcSequenceId: "",
 		}
 		bytes := k.cdc.MustMarshal(deposit)
-		store.Set(append([]byte(deposit.ChainId), sdk.Uint64ToBigEndian(uint64(deposit.Epoch))...), bytes)
+		store.Set(liquidstakeibctypes.GetDepositStoreKey(deposit.ChainId, deposit.Epoch), bytes)
 	}
 }
 
