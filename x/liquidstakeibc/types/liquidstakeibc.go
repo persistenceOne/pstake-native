@@ -25,13 +25,13 @@ func CurrentUnbondingEpoch(factor, epochNumber int64) int64 {
 // DefaultDelegateAccountPortOwner generates a delegate ICA port owner given the chain id
 // Only Use this function while registering a new chain
 func DefaultDelegateAccountPortOwner(chainID string) string {
-	return chainID + "." + DelegateICAType
+	return fmt.Sprintf("%s.%s", chainID, DelegateICAType)
 }
 
 // DefaultRewardsAccountPortOwner generates a rewards ICA port owner given the chain id
 // Only Use this function while registering a new chain
 func DefaultRewardsAccountPortOwner(chainID string) string {
-	return chainID + "." + RewardsICAType
+	return fmt.Sprintf("%s.%s", chainID, RewardsICAType)
 }
 
 func (deposit *Deposit) Validate() error {
@@ -51,19 +51,10 @@ func (deposit *Deposit) Validate() error {
 }
 
 func (hc *HostChain) Validate() error {
-	if hc.Params.DepositFee.LT(sdk.ZeroDec()) {
-		return fmt.Errorf("host chain %s has negative deposit fee", hc.ChainId)
+	err := hc.Params.Validate()
+	if err != nil {
+		return fmt.Errorf("host chain %s validation failed with err, err: %s", hc.ChainId, err)
 	}
-	if hc.Params.RestakeFee.LT(sdk.ZeroDec()) {
-		return fmt.Errorf("host chain %s has negative restake fee", hc.ChainId)
-	}
-	if hc.Params.RedemptionFee.LT(sdk.ZeroDec()) {
-		return fmt.Errorf("host chain %s has negative redemption fee", hc.ChainId)
-	}
-	if hc.Params.UnstakeFee.LT(sdk.ZeroDec()) {
-		return fmt.Errorf("host chain %s has negative unstake fee", hc.ChainId)
-	}
-
 	if hc.MinimumDeposit.LT(sdk.ZeroInt()) {
 		return fmt.Errorf("host chain %s has negative minimum deposit", hc.ChainId)
 	}
@@ -72,35 +63,66 @@ func (hc *HostChain) Validate() error {
 	}
 
 	for _, validator := range hc.Validators {
-		if validator.Status != stakingtypes.Unspecified.String() &&
-			validator.Status != stakingtypes.Unbonded.String() &&
-			validator.Status != stakingtypes.Unbonding.String() &&
-			validator.Status != stakingtypes.Bonded.String() {
-			return fmt.Errorf(
-				"host chain %s validator %s has an invalid status: %s",
-				hc.ChainId,
-				validator.OperatorAddress,
-				validator.Status,
-			)
-		}
-
-		if validator.Weight.LT(sdk.ZeroDec()) || validator.Weight.GT(sdk.OneDec()) {
-			return fmt.Errorf(
-				"host chain %s validator %s has weight out of bounds: %d",
-				hc.ChainId,
-				validator.OperatorAddress,
-				validator.Weight)
-		}
-
-		if validator.DelegatedAmount.LT(sdk.ZeroInt()) {
-			return fmt.Errorf(
-				"host chain %s validator %s has negative delegated amount: %s",
-				hc.ChainId,
-				validator.OperatorAddress,
-				validator.DelegatedAmount.String(),
-			)
+		err := validator.Validate()
+		if err != nil {
+			return fmt.Errorf("host chain %s validator is invalid, err: %s", hc.ChainId, err)
 		}
 	}
+	return nil
+}
+
+func (params *HostChainLSParams) Validate() error {
+	if params.DepositFee.LT(sdk.ZeroDec()) || params.DepositFee.GT(sdk.OneDec()) {
+		return fmt.Errorf("host chain lsparams has invalid deposit fee, should be 0<=fee<=1")
+	}
+	if params.RestakeFee.LT(sdk.ZeroDec()) || params.RestakeFee.GT(sdk.OneDec()) {
+		return fmt.Errorf("host chain lsparams has invalid restake fee, should be 0<=fee<=1\"")
+	}
+	if params.RedemptionFee.LT(sdk.ZeroDec()) || params.RedemptionFee.GT(sdk.OneDec()) {
+		return fmt.Errorf("host chain lsparams has invalid redemption fee, should be 0<=fee<=1\"")
+	}
+	if params.UnstakeFee.LT(sdk.ZeroDec()) || params.UnstakeFee.GT(sdk.OneDec()) {
+		return fmt.Errorf("host chain lsparams has invalid unstake fee, should be 0<=fee<=1\"")
+	}
+	return nil
+}
+
+func (validator *Validator) Validate() error {
+	if validator.Status != stakingtypes.Unspecified.String() &&
+		validator.Status != stakingtypes.Unbonded.String() &&
+		validator.Status != stakingtypes.Unbonding.String() &&
+		validator.Status != stakingtypes.Bonded.String() {
+		return fmt.Errorf(
+			"host chain validator %s has an invalid status: %s",
+			validator.OperatorAddress,
+			validator.Status,
+		)
+	}
+
+	if validator.Weight.LT(sdk.ZeroDec()) || validator.Weight.GT(sdk.OneDec()) {
+		return fmt.Errorf(
+			"host chain validator %s has weight out of bounds: %d",
+			validator.OperatorAddress,
+			validator.Weight)
+	}
+
+	if validator.DelegatedAmount.LT(sdk.ZeroInt()) {
+		return fmt.Errorf(
+			"host chain validator %s has negative delegated amount: %s",
+			validator.OperatorAddress,
+			validator.DelegatedAmount.String(),
+		)
+	}
+
+	_, _, err := bech32.DecodeAndConvert(validator.OperatorAddress)
+	if err != nil {
+		return fmt.Errorf(
+			"host chain validator %s is invalid bech32 addr, err: %s",
+			validator.OperatorAddress,
+			err,
+		)
+	}
+
 	return nil
 }
 
