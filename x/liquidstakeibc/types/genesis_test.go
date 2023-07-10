@@ -288,7 +288,7 @@ func ValidGenesis() *types.GenesisState {
 				ChannelState: 0,
 			},
 			Validators: []*types.Validator{{
-				OperatorAddress: "",
+				OperatorAddress: authtypes.NewModuleAddressOrBech32Address("testval").String(),
 				Status:          stakingtypes.BondStatusBonded,
 				Weight:          sdk.OneDec(),
 				DelegatedAmount: sdk.NewInt(1221),
