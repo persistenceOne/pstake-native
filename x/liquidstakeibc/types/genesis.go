@@ -31,12 +31,12 @@ func (gs *GenesisState) Validate() error {
 		if !ok {
 			return fmt.Errorf("deposit for chain %s doesnt have a valid chain id", deposit.ChainId)
 		}
-		if hc.HostDenom != deposit.Amount.Denom {
+		if hc.IBCDenom() != deposit.Amount.Denom {
 			return fmt.Errorf(
 				"deposit for chain %s doesnt have the correct host chain denom: %s, should be %s",
 				deposit.ChainId,
 				deposit.Amount.Denom,
-				hc.HostDenom,
+				hc.IBCDenom(),
 			)
 		}
 	}
@@ -45,7 +45,7 @@ func (gs *GenesisState) Validate() error {
 		if !ok {
 			return fmt.Errorf("unbonding for chain %s doesnt have a valid chain id", unbonding.ChainId)
 		}
-		if hc.MintDenom() == unbonding.BurnAmount.Denom {
+		if hc.MintDenom() != unbonding.BurnAmount.Denom {
 			return fmt.Errorf(
 				"unbonding for chain %s doesnt have the correct burn amount denom: %s, should be %s",
 				hc.ChainId,
@@ -53,7 +53,7 @@ func (gs *GenesisState) Validate() error {
 				hc.MintDenom(),
 			)
 		}
-		if hc.HostDenom == unbonding.UnbondAmount.Denom {
+		if hc.HostDenom != unbonding.UnbondAmount.Denom {
 			return fmt.Errorf(
 				"unbonding for chain %s doesnt have the correct host chain denom: %s, should be %s",
 				hc.ChainId,
@@ -70,7 +70,7 @@ func (gs *GenesisState) Validate() error {
 		if !ok {
 			return fmt.Errorf("user unbonding for chain %s doesnt have a valid chain id", userUnbonding.ChainId)
 		}
-		if hc.MintDenom() == userUnbonding.StkAmount.Denom {
+		if hc.MintDenom() != userUnbonding.StkAmount.Denom {
 			return fmt.Errorf(
 				"user unbonding for chain %s doesnt have the correct mint amount denom: %s, should be %s",
 				hc.ChainId,
@@ -78,7 +78,7 @@ func (gs *GenesisState) Validate() error {
 				hc.MintDenom(),
 			)
 		}
-		if hc.HostDenom == userUnbonding.UnbondAmount.Denom {
+		if hc.HostDenom != userUnbonding.UnbondAmount.Denom {
 			return fmt.Errorf(
 				"user unbonding for chain %s doesnt have the correct host chain denom: %s, should be %s",
 				hc.ChainId,
@@ -95,7 +95,7 @@ func (gs *GenesisState) Validate() error {
 		if !ok {
 			return fmt.Errorf("validator unbonding for chain %s doesnt have a valid chain id", valUnbonding.ChainId)
 		}
-		if hc.HostDenom == valUnbonding.Amount.Denom {
+		if hc.HostDenom != valUnbonding.Amount.Denom {
 			return fmt.Errorf(
 				"validator unbonding for chain %s doesnt have the correct host chain denom: %s, should be %s",
 				hc.ChainId,
