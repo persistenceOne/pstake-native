@@ -421,7 +421,7 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 		// check if the deposit amount is larger than 0
 		if deposit.Amount.Amount.LTE(sdk.NewInt(0)) {
 			// delete empty deposits to save on storage
-			if deposit.Epoch.Int64() < epoch {
+			if deposit.Epoch < epoch {
 				k.DeleteDeposit(ctx, deposit)
 			}
 

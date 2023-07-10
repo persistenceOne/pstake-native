@@ -12,12 +12,12 @@ import (
 func (k *Keeper) SetDeposit(ctx sdk.Context, deposit *liquidstakeibctypes.Deposit) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	bytes := k.cdc.MustMarshal(deposit)
-	store.Set([]byte(deposit.ChainId+deposit.Epoch.String()), bytes)
+	store.Set(liquidstakeibctypes.GetDepositStoreKey(deposit.ChainId, deposit.Epoch), bytes)
 }
 
 func (k *Keeper) DeleteDeposit(ctx sdk.Context, deposit *liquidstakeibctypes.Deposit) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
-	store.Delete([]byte(deposit.ChainId + deposit.Epoch.String()))
+	store.Delete(liquidstakeibctypes.GetDepositStoreKey(deposit.ChainId, deposit.Epoch))
 }
 
 func (k *Keeper) CreateDeposits(ctx sdk.Context, epoch int64) {
@@ -28,12 +28,12 @@ func (k *Keeper) CreateDeposits(ctx sdk.Context, epoch int64) {
 		deposit := &liquidstakeibctypes.Deposit{
 			ChainId:       hc.ChainId,
 			Amount:        sdk.NewCoin(hc.IBCDenom(), sdk.NewInt(0)),
-			Epoch:         sdk.NewInt(epoch),
+			Epoch:         epoch,
 			State:         liquidstakeibctypes.Deposit_DEPOSIT_PENDING,
 			IbcSequenceId: "",
 		}
 		bytes := k.cdc.MustMarshal(deposit)
-		store.Set([]byte(deposit.ChainId+deposit.Epoch.String()), bytes)
+		store.Set(liquidstakeibctypes.GetDepositStoreKey(deposit.ChainId, deposit.Epoch), bytes)
 	}
 }
 
@@ -108,7 +108,7 @@ func (k *Keeper) GetDepositForChainAndEpoch(
 		deposit := &liquidstakeibctypes.Deposit{}
 		k.cdc.MustUnmarshal(iterator.Value(), deposit)
 
-		if deposit.Epoch.Int64() == epoch &&
+		if deposit.Epoch == epoch &&
 			deposit.ChainId == chainID {
 			return deposit, true
 		}
@@ -163,7 +163,7 @@ func (k *Keeper) GetPendingDepositsBeforeEpoch(ctx sdk.Context, epoch int64) []*
 		deposit := &liquidstakeibctypes.Deposit{}
 		k.cdc.MustUnmarshal(iterator.Value(), deposit)
 
-		if deposit.Epoch.Int64() <= epoch &&
+		if deposit.Epoch <= epoch &&
 			deposit.State == liquidstakeibctypes.Deposit_DEPOSIT_PENDING {
 			deposits = append(deposits, deposit)
 		}
