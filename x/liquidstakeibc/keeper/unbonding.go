@@ -75,9 +75,6 @@ func (k *Keeper) IncreaseUndelegatingAmountForEpoch(
 		unbonding.BurnAmount = unbonding.BurnAmount.Add(burnAmount)
 	}
 
-	telemetry.ModuleSetGauge(types.ModuleName, float32(unbonding.UnbondAmount.Amount.Int64()), chainID, "unbond_amount")
-	telemetry.ModuleSetGauge(types.ModuleName, float32(unbonding.BurnAmount.Amount.Int64()), chainID, "burn_amount")
-
 	k.SetUnbonding(ctx, unbonding)
 }
 
