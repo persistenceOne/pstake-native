@@ -22,4 +22,5 @@ var (
 	ErrBurnFailed           = errorsmod.Register(ModuleName, 2014, "burn failed")
 	ErrParsingAmount        = errorsmod.Register(ModuleName, 2015, "could not parse message amount")
 	ErrHostChainInactive    = errorsmod.Register(ModuleName, 2016, "host chain is not active")
+	ErrInvalidParams        = errorsmod.Register(ModuleName, 2017, "invalid params")
 )

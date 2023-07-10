@@ -8,8 +8,6 @@ option go_package = "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc
 
 // Params defines the parameters for the module.
 message Params {
-  option (gogoproto.goproto_stringer) = false;
-
   string admin_address = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressString"
   ]; // protocol admin address
