@@ -5,6 +5,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -604,6 +605,8 @@ func (k *Keeper) ValidatorUndelegationWorkflow(ctx sdk.Context, epoch int64) {
 
 				// redistribute the unbonding validator weight among all the other validators with weight
 				k.RedistributeValidatorWeight(ctx, hc, validator)
+
+				telemetry.IncrCounter(float32(1), hc.ChainId, "validator_unbondings")
 
 				k.Logger(ctx).Info(
 					"Started total validator unbonding.",

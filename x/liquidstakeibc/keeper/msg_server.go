@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -266,6 +267,14 @@ func (k msgServer) UpdateHostChain(
 
 	k.SetHostChain(ctx, hc)
 
+	defer func() {
+		if hc.Active {
+			telemetry.ModuleSetGauge(types.ModuleName, float32(1), hc.ChainId, "active")
+		} else {
+			telemetry.ModuleSetGauge(types.ModuleName, float32(0), hc.ChainId, "active")
+		}
+	}()
+
 	return &types.MsgUpdateHostChainResponse{}, nil
 }
 
@@ -397,6 +406,9 @@ func (k msgServer) LiquidStake(
 			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
 		)},
 	)
+
+	telemetry.IncrCounter(float32(1), hostChain.ChainId, "liquid_stake")
+
 	return &types.MsgLiquidStakeResponse{}, nil
 }
 
@@ -513,6 +525,8 @@ func (k msgServer) LiquidUnstake(
 			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.GetDelegatorAddress()),
 		)},
 	)
+
+	telemetry.IncrCounter(float32(1), hc.ChainId, "liquid_unstake")
 
 	return &types.MsgLiquidUnstakeResponse{}, nil
 }
@@ -672,6 +686,8 @@ func (k msgServer) Redeem(
 			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
 		)},
 	)
+
+	telemetry.IncrCounter(float32(1), hc.ChainId, "redeem")
 
 	return &types.MsgRedeemResponse{}, nil
 }
