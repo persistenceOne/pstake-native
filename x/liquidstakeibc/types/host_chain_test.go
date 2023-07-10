@@ -1,12 +1,13 @@
 package types_test
 
 import (
+	"reflect"
+	"testing"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"reflect"
-	"testing"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
