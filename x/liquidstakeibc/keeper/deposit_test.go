@@ -99,7 +99,7 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 				},
 			},
 			expected: map[int64]sdk.Coin{
-				1: {Denom: HostDenom, Amount: sdk.NewInt(5000)},
+				epoch: {Denom: HostDenom, Amount: sdk.NewInt(5000)},
 			},
 			redemptionAmount: sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(5000)},
 		},
@@ -114,7 +114,7 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 				},
 			},
 			expected: map[int64]sdk.Coin{
-				1: {Denom: HostDenom, Amount: sdk.NewInt(3500)},
+				epoch: {Denom: HostDenom, Amount: sdk.NewInt(3500)},
 			},
 			redemptionAmount: sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(5000)},
 		},
@@ -148,8 +148,8 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 				},
 			},
 			expected: map[int64]sdk.Coin{
-				1: {Denom: HostDenom, Amount: sdk.NewInt(5000)},
-				2: {Denom: HostDenom, Amount: sdk.NewInt(5000)},
+				epoch:     {Denom: HostDenom, Amount: sdk.NewInt(5000)},
+				epoch + 1: {Denom: HostDenom, Amount: sdk.NewInt(5000)},
 			},
 			redemptionAmount: sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(5000)},
 		},
@@ -170,7 +170,7 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 				},
 			},
 			expected: map[int64]sdk.Coin{
-				2: {Denom: HostDenom, Amount: sdk.NewInt(5000)},
+				epoch + 1: {Denom: HostDenom, Amount: sdk.NewInt(5000)},
 			},
 			redemptionAmount: sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(10000)},
 		},
