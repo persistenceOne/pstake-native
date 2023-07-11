@@ -1,6 +1,9 @@
 package types
 
 import (
+	"fmt"
+
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctfrtypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
@@ -10,7 +13,7 @@ func (hc *HostChain) IBCDenom() string {
 }
 
 func (hc *HostChain) MintDenom() string {
-	return "stk" + "/" + hc.HostDenom
+	return fmt.Sprintf("%s/%s", LiquidStakeDenomPrefix, hc.HostDenom)
 }
 
 func (hc *HostChain) GetValidator(operatorAddress string) (*Validator, bool) {
@@ -23,7 +26,7 @@ func (hc *HostChain) GetValidator(operatorAddress string) (*Validator, bool) {
 	return nil, false
 }
 
-func (hc *HostChain) GetHostChainTotalDelegations() sdk.Int { //nolint:staticcheck
+func (hc *HostChain) GetHostChainTotalDelegations() math.Int {
 	totalDelegations := sdk.ZeroInt()
 	for _, validator := range hc.Validators {
 		totalDelegations = totalDelegations.Add(validator.DelegatedAmount)

@@ -2,12 +2,17 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
+
+func IsLiquidStakingDenom(denom string) bool {
+	return strings.HasPrefix(denom, fmt.Sprintf("%s/", LiquidStakeDenomPrefix))
+}
 
 func IsUnbondingEpoch(factor, epochNumber int64) bool {
 	return epochNumber%factor == 0

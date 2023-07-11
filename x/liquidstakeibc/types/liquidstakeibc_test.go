@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -15,6 +16,7 @@ import (
 
 func init() {
 	app.SetAddressPrefixes()
+	types.RegisterInterfaces(codectypes.NewInterfaceRegistry())
 }
 
 func TestCurrentUnbondingEpoch(t *testing.T) {

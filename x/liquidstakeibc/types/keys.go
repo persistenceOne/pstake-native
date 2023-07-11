@@ -36,6 +36,8 @@ const (
 	StakingStoreQuery = "store/staking/key"
 	BankStoreQuery    = "store/bank/key"
 
+	LiquidStakeDenomPrefix = "stk"
+
 	IBCTimeoutHeightIncrement uint64 = 1000
 
 	ICATimeoutTimestamp = 15 * time.Minute
