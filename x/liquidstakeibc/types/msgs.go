@@ -115,34 +115,40 @@ func (m *MsgRegisterHostChain) ValidateBasic() error {
 	}
 
 	// deposit fee must be positive or zero
-	if m.DepositFee.LT(sdk.NewDec(0)) {
+	if m.DepositFee.LT(sdk.ZeroDec()) || m.DepositFee.GT(sdk.OneDec()) {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			"deposit fee quantity must be greater or equal than zero",
+			"deposit fee quantity must be greater or equal than zero and less than equal one",
 		)
 	}
 
 	// restake fee must be positive or zero
-	if m.RestakeFee.LT(sdk.NewDec(0)) {
+	if m.RestakeFee.LT(sdk.ZeroDec()) || m.RestakeFee.GT(sdk.OneDec()) {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			"restake fee quantity must be greater or equal than zero",
+			"restake fee quantity must be greater or equal than zero and less than equal one",
 		)
 	}
 
 	// unstake fee must be positive or zero
-	if m.UnstakeFee.LT(sdk.NewDec(0)) {
+	if m.UnstakeFee.LT(sdk.ZeroDec()) || m.UnstakeFee.GT(sdk.OneDec()) {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			"unstake fee quantity must be greater or equal than zero",
+			"unstake fee quantity must be greater or equal than zero and less than equal one",
 		)
 	}
 
 	// redemption deposit must be positive or zero
-	if m.RedemptionFee.LT(sdk.NewDec(0)) {
+	if m.RedemptionFee.LT(sdk.ZeroDec()) || m.RedemptionFee.GT(sdk.OneDec()) {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			"redemption fee quantity must be greater or equal than zero",
+			"redemption fee quantity must be greater or equal than zero and less than equal one",
+		)
+	}
+
+	if m.MinimumDeposit.LTE(sdk.ZeroInt()) {
+		return sdkerrors.ErrInvalidRequest.Wrapf(
+			"minimum deposit should be greater than zero",
 		)
 	}
 

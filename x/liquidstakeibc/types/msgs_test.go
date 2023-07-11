@@ -165,6 +165,10 @@ func TestMsgRegisterHostChain(t *testing.T) {
 	invalidMsg = *msgRegisterHostChain
 	invalidMsg.RedemptionFee = sdk.MustNewDecFromStr("-1")
 	require.Error(t, invalidMsg.ValidateBasic())
+
+	invalidMsg = *msgRegisterHostChain
+	invalidMsg.MinimumDeposit = sdk.ZeroInt()
+	require.Error(t, invalidMsg.ValidateBasic())
 }
 
 func TestMsgUpdateHostChain(t *testing.T) {
