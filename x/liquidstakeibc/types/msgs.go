@@ -3,13 +3,13 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"strconv"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
