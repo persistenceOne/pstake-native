@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -487,6 +488,70 @@ func (suite *IntegrationTestSuite) TestGetDelegatingDepositsForChain() {
 				suite.Require().Equal(t.chainID, hc.ChainId)
 				suite.Require().Equal(types.Deposit_DEPOSIT_DELEGATING, hc.State)
 			}
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestGetDepositAmountOnPersistence() {
+
+	tc := []struct {
+		name     string
+		deposits []types.Deposit
+		chainID  string
+		expected math.Int
+	}{
+		{
+			name: "found test",
+			deposits: []types.Deposit{
+				{Amount: sdk.NewInt64Coin("ibc/uatom", 1), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 1, State: types.Deposit_DEPOSIT_PENDING},
+				{Amount: sdk.NewInt64Coin("ibc/uatom", 2), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 2, State: types.Deposit_DEPOSIT_SENT},
+				{Amount: sdk.NewInt64Coin("ibc/uatom", 3), ChainId: suite.path.EndpointA.Chain.ChainID, Epoch: 2, State: types.Deposit_DEPOSIT_SENT},
+				{Amount: sdk.NewInt64Coin("ibc/uatom", 4), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 3, State: types.Deposit_DEPOSIT_DELEGATING},
+				{Amount: sdk.NewInt64Coin("ibc/uatom", 5), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 4, State: types.Deposit_DEPOSIT_RECEIVED},
+			},
+			chainID:  suite.path.EndpointB.Chain.ChainID,
+			expected: sdk.NewInt(3),
+		}}
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+			for _, deposit := range t.deposits {
+				suite.app.LiquidStakeIBCKeeper.SetDeposit(suite.ctx, &deposit)
+			}
+
+			amt := suite.app.LiquidStakeIBCKeeper.GetDepositAmountOnPersistence(suite.ctx, t.chainID)
+			suite.Require().Equal(t.expected, amt)
+
+		})
+	}
+}
+func (suite *IntegrationTestSuite) TestGetDepositAmountOnHostChain() {
+	tc := []struct {
+		name     string
+		deposits []types.Deposit
+		chainID  string
+		expected math.Int
+	}{
+		{
+			name: "found test",
+			deposits: []types.Deposit{
+				{Amount: sdk.NewInt64Coin("ibc/uatom", 1), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 1, State: types.Deposit_DEPOSIT_PENDING},
+				{Amount: sdk.NewInt64Coin("ibc/uatom", 2), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 2, State: types.Deposit_DEPOSIT_SENT},
+				{Amount: sdk.NewInt64Coin("ibc/uatom", 3), ChainId: suite.path.EndpointA.Chain.ChainID, Epoch: 2, State: types.Deposit_DEPOSIT_SENT},
+				{Amount: sdk.NewInt64Coin("ibc/uatom", 4), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 3, State: types.Deposit_DEPOSIT_DELEGATING},
+				{Amount: sdk.NewInt64Coin("ibc/uatom", 5), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 4, State: types.Deposit_DEPOSIT_RECEIVED},
+			},
+			chainID:  suite.path.EndpointB.Chain.ChainID,
+			expected: sdk.NewInt(9),
+		}}
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+			for _, deposit := range t.deposits {
+				suite.app.LiquidStakeIBCKeeper.SetDeposit(suite.ctx, &deposit)
+			}
+
+			amt := suite.app.LiquidStakeIBCKeeper.GetDepositAmountOnHostChain(suite.ctx, t.chainID)
+			suite.Require().Equal(t.expected, amt)
+
 		})
 	}
 }
