@@ -165,23 +165,58 @@ func TestMsgRegisterHostChain(t *testing.T) {
 	invalidMsg = *msgRegisterHostChain
 	invalidMsg.RedemptionFee = sdk.MustNewDecFromStr("-1")
 	require.Error(t, invalidMsg.ValidateBasic())
+
+	invalidMsg = *msgRegisterHostChain
+	invalidMsg.MinimumDeposit = sdk.ZeroInt()
+	require.Error(t, invalidMsg.ValidateBasic())
 }
 
 func TestMsgUpdateHostChain(t *testing.T) {
+	validKVUpdates := []*types.KVUpdate{
+		{
+			Key:   types.KeySetWithdrawAddress,
+			Value: "",
+		}, {
+			Key:   types.KeyAddValidator,
+			Value: "{\"operator_address\":\"cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt\",\"status\":\"BOND_STATUS_UNSPECIFIED\",\"weight\":\"0\",\"delegated_amount\":\"0\",\"exchange_rate\":\"1\"}",
+		}, {
+			Key:   types.KeyRemoveValidator,
+			Value: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
+		}, {
+			Key:   types.KeyValidatorSlashing,
+			Value: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
+		}, {
+			Key:   types.KeyValidatorWeight,
+			Value: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt,1",
+		}, {
+			Key:   types.KeyRedemptionFee,
+			Value: "0",
+		}, {
+			Key:   types.KeyDepositFee,
+			Value: "0",
+		}, {
+			Key:   types.KeyRestakeFee,
+			Value: "0",
+		}, {
+			Key:   types.KeyUnstakeFee,
+			Value: "0",
+		}, {
+			Key:   types.KeyMinimumDeposit,
+			Value: "1",
+		}, {
+			Key:   types.KeyActive,
+			Value: "true",
+		}, {
+			Key:   types.KeyAutocompoundFactor,
+			Value: "2",
+		},
+	}
 	msgUpdateHostChain := &types.MsgUpdateHostChain{
 		Authority: addr1.String(),
 		ChainId:   "chain-1",
-		Updates: []*types.KVUpdate{
-			{
-				Key:   "add_val",
-				Value: "cosmos1someval",
-			},
-		},
+		Updates:   validKVUpdates,
 	}
-	newMsgUpdateHostChain := types.NewMsgUpdateHostChain("chain-1", addr1.String(), []*types.KVUpdate{{
-		Key:   "add_val",
-		Value: "cosmos1someval",
-	}})
+	newMsgUpdateHostChain := types.NewMsgUpdateHostChain("chain-1", addr1.String(), validKVUpdates)
 	require.Equal(t, msgUpdateHostChain, newMsgUpdateHostChain)
 	require.Equal(t, types.ModuleName, msgUpdateHostChain.Route())
 	require.Equal(t, types.MsgTypeUpdateHostChain, msgUpdateHostChain.Type())
@@ -194,6 +229,83 @@ func TestMsgUpdateHostChain(t *testing.T) {
 	invalidAddrMsg.Authority = "test"
 	require.Error(t, invalidAddrMsg.ValidateBasic())
 	require.Panics(t, func() { invalidAddrMsg.GetSigners() })
+
+	invalidKVUpdates := []*types.KVUpdate{
+		{
+			Key:   types.KeyAddValidator,
+			Value: "InvalidJson",
+		}, {
+			Key:   types.KeyAddValidator,
+			Value: "{\"operator_address\":\"cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt\"}",
+		}, {
+			Key:   types.KeyRemoveValidator,
+			Value: "testval",
+		}, {
+			Key:   types.KeyValidatorSlashing,
+			Value: "testval",
+		}, {
+			Key:   types.KeyValidatorWeight,
+			Value: "testval",
+		}, {
+			Key:   types.KeyValidatorWeight,
+			Value: "testval,1",
+		}, {
+			Key:   types.KeyValidatorWeight,
+			Value: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt,2",
+		}, {
+			Key:   types.KeyValidatorWeight,
+			Value: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt,invalidDec",
+		}, {
+			Key:   types.KeyDepositFee,
+			Value: "2",
+		}, {
+			Key:   types.KeyDepositFee,
+			Value: "InvalidDec",
+		}, {
+			Key:   types.KeyRestakeFee,
+			Value: "2",
+		}, {
+			Key:   types.KeyRestakeFee,
+			Value: "InvalidDec",
+		}, {
+			Key:   types.KeyUnstakeFee,
+			Value: "2",
+		}, {
+			Key:   types.KeyUnstakeFee,
+			Value: "invalidDec",
+		}, {
+			Key:   types.KeyRedemptionFee,
+			Value: "2",
+		}, {
+			Key:   types.KeyRedemptionFee,
+			Value: "invalidDec",
+		}, {
+			Key:   types.KeyMinimumDeposit,
+			Value: "0",
+		}, {
+			Key:   types.KeyMinimumDeposit,
+			Value: "InvalidInt",
+		}, {
+			Key:   types.KeyActive,
+			Value: "not bool",
+		}, {
+			Key:   types.KeySetWithdrawAddress,
+			Value: "SomeStrHere",
+		}, {
+			Key:   types.KeyAutocompoundFactor,
+			Value: "0",
+		}, {
+			Key:   types.KeyAutocompoundFactor,
+			Value: "InvalidDec",
+		}, {
+			Key:   "InvalidKey",
+			Value: "InvalidKey",
+		},
+	}
+	for _, update := range invalidKVUpdates {
+		invalidMsg := types.NewMsgUpdateHostChain("chain-1", addr1.String(), []*types.KVUpdate{update})
+		require.Error(t, invalidMsg.ValidateBasic())
+	}
 }
 
 func TestMsgUpdateParams(t *testing.T) {
