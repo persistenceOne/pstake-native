@@ -17,21 +17,6 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
-const (
-	KeyAddValidator       string = "add_validator"
-	KeyRemoveValidator    string = "remove_validator"
-	KeyValidatorSlashing  string = "validator_slashing"
-	KeyValidatorWeight    string = "validator_weight"
-	KeyDepositFee         string = "deposit_fee"
-	KeyRestakeFee         string = "restake_fee"
-	KeyUnstakeFee         string = "unstake_fee"
-	KeyRedemptionFee      string = "redemption_fee"
-	KeyMinimumDeposit     string = "min_deposit"
-	KeyActive             string = "active"
-	KeySetWithdrawAddress string = "set_withdraw_address"
-	KeyAutocompoundFactor string = "autocompound_factor"
-)
-
 type msgServer struct {
 	Keeper
 }
@@ -138,7 +123,7 @@ func (k msgServer) UpdateHostChain(
 	for _, update := range msg.Updates {
 	updateCase:
 		switch update.Key {
-		case KeyAddValidator:
+		case types.KeyAddValidator:
 			var validator types.Validator
 			err := json.Unmarshal([]byte(update.Value), &validator)
 			if err != nil {
@@ -152,7 +137,7 @@ func (k msgServer) UpdateHostChain(
 
 			hc.Validators = append(hc.Validators, &validator)
 			k.SetHostChain(ctx, hc)
-		case KeyRemoveValidator:
+		case types.KeyRemoveValidator:
 			for i, validator := range hc.Validators {
 				if validator.OperatorAddress == update.Value {
 					// remove just when there are no delegated tokens and weight is 0
@@ -169,7 +154,7 @@ func (k msgServer) UpdateHostChain(
 			}
 
 			return nil, types.ErrValidatorNotFound
-		case KeyValidatorSlashing:
+		case types.KeyValidatorSlashing:
 			_, found = hc.GetValidator(update.Value)
 			if !found {
 				return nil, types.ErrValidatorNotFound
@@ -178,7 +163,7 @@ func (k msgServer) UpdateHostChain(
 			if err := k.QueryHostChainValidator(ctx, hc, update.Value); err != nil {
 				return nil, fmt.Errorf("unable to send ICQ query for validator")
 			}
-		case KeyValidatorWeight:
+		case types.KeyValidatorWeight:
 			validator, weight, valid := strings.Cut(update.Value, ",")
 			if !valid {
 				return nil, fmt.Errorf("unable to parse validator update string")
@@ -187,78 +172,62 @@ func (k msgServer) UpdateHostChain(
 			if err := k.UpdateHostChainValidatorWeight(ctx, hc, validator, weight); err != nil {
 				return nil, fmt.Errorf("invalid validator weight update values: %v", err)
 			}
-		case KeyDepositFee:
+		case types.KeyDepositFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-
+			//fee limits validated in msg.ValidateBasic()
 			hc.Params.DepositFee = fee
-			if fee.LT(sdktypes.NewDec(0)) {
-				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
-			}
-		case KeyRestakeFee:
+
+		case types.KeyRestakeFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-
+			//fee limits validated in msg.ValidateBasic()
 			hc.Params.RestakeFee = fee
-			if fee.LT(sdktypes.NewDec(0)) {
-				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
-			}
-		case KeyRedemptionFee:
+
+		case types.KeyRedemptionFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-
+			//fee limits validated in msg.ValidateBasic()
 			hc.Params.RedemptionFee = fee
-			if fee.LT(sdktypes.NewDec(0)) {
-				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
-			}
-		case KeyUnstakeFee:
+		case types.KeyUnstakeFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-
+			//fee limits validated in msg.ValidateBasic()
 			hc.Params.UnstakeFee = fee
-			if fee.LT(sdktypes.NewDec(0)) {
-				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
-			}
-		case KeyMinimumDeposit:
+		case types.KeyMinimumDeposit:
 			minimumDeposit, ok := sdktypes.NewIntFromString(update.Value)
 			if !ok {
 				return nil, fmt.Errorf("unable to parse string to sdk.Int")
 			}
-
+			//min deposit limits validated in msg.ValidateBasic()
 			hc.MinimumDeposit = minimumDeposit
-			if minimumDeposit.LT(sdktypes.NewInt(0)) {
-				return nil, fmt.Errorf("invalid minimum deposit value less than zero")
-			}
-		case KeyActive:
+		case types.KeyActive:
 			active, err := strconv.ParseBool(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to bool")
 			}
 
 			hc.Active = active
-		case KeySetWithdrawAddress:
+		case types.KeySetWithdrawAddress:
 			err := k.SetWithdrawAddress(ctx, hc)
 			if err != nil {
 				k.Logger(ctx).Error("Could not set withdraw address.", "chain_id", hc.ChainId)
 				return nil, fmt.Errorf("could not set withdraw address for host chain %s", hc.ChainId)
 			}
-		case KeyAutocompoundFactor:
+		case types.KeyAutocompoundFactor:
 			autocompoundFactor, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec")
 			}
-
-			if autocompoundFactor.LTE(sdktypes.NewDec(0)) {
-				return nil, fmt.Errorf("invalid autocompound factor value less or equal than zero")
-			}
+			//autoCompoundFactor limits validated in msg.ValidateBasic()
 			hc.AutoCompoundFactor = k.CalculateAutocompoundLimit(autocompoundFactor)
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)

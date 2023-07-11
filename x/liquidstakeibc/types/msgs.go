@@ -1,7 +1,10 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
+	"strconv"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -187,6 +190,114 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address %q: %v", m.Authority, err)
 	}
+	for _, update := range m.Updates {
+		switch update.Key {
+		case KeyAddValidator:
+			var validator Validator
+			err := json.Unmarshal([]byte(update.Value), &validator)
+			if err != nil {
+				return fmt.Errorf("unable to unmarshal validator update string")
+			}
+			err = validator.Validate()
+			if err != nil {
+				return err
+			}
+
+		case KeyRemoveValidator:
+			_, _, err := bech32.DecodeAndConvert(update.Value)
+			if err != nil {
+				return err
+			}
+		case KeyValidatorSlashing:
+			_, _, err := bech32.DecodeAndConvert(update.Value)
+			if err != nil {
+				return err
+			}
+		case KeyValidatorWeight:
+			validator, weight, valid := strings.Cut(update.Value, ",")
+			if !valid {
+				return fmt.Errorf("unable to parse validator update string")
+			}
+			_, _, err := bech32.DecodeAndConvert(validator)
+			if err != nil {
+				return err
+			}
+			decWt, err := sdk.NewDecFromStr(weight)
+			if err != nil {
+				return err
+			}
+			if decWt.GT(sdk.OneDec()) || decWt.LT(sdk.ZeroDec()) {
+				return fmt.Errorf("weight should be, 0 <= weight <= 1")
+			}
+
+		case KeyDepositFee:
+			fee, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid deposit fee value should be 0 <= fee <= 1")
+			}
+		case KeyRestakeFee:
+			fee, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid restake fee value should be 0 <= fee <= 1")
+			}
+		case KeyRedemptionFee:
+			fee, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid redemption fee value should be 0 <= fee <= 1")
+			}
+		case KeyUnstakeFee:
+			fee, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid unstake fee value should be 0 <= fee <= 1")
+			}
+		case KeyMinimumDeposit:
+			minimumDeposit, ok := sdk.NewIntFromString(update.Value)
+			if !ok {
+				return sdkerrors.ErrInvalidRequest.Wrapf("")
+			}
+
+			if minimumDeposit.LTE(sdk.ZeroInt()) {
+				return fmt.Errorf("invalid minimum deposit value less or equal than zero")
+			}
+		case KeyActive:
+			_, err := strconv.ParseBool(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to bool")
+			}
+		case KeySetWithdrawAddress:
+			if update.Value != "" {
+				return fmt.Errorf("expected value for key:SetWithdrawAddress is empty")
+			}
+		case KeyAutocompoundFactor:
+			autocompoundFactor, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec")
+			}
+
+			if autocompoundFactor.LTE(sdk.ZeroDec()) {
+				return fmt.Errorf("invalid autocompound factor value less or equal than zero")
+			}
+		default:
+			return fmt.Errorf("invalid or unexpected update key: %s", update.Key)
+		}
+	}
+
 	return nil
 }
 
