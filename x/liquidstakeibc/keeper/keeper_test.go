@@ -2,15 +2,11 @@ package keeper_test
 
 import (
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"
 
@@ -52,15 +48,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *IntegrationTestSuite) SetupTest() {
-	_, pstakeApp, ctx := helpers.CreateTestApp(suite.T())
-
-	keeper := pstakeApp.LiquidStakeIBCKeeper
-
-	params := types.DefaultParams()
-	keeper.SetParams(ctx, params)
-
-	suite.app = &pstakeApp
-	suite.ctx = ctx
+	//_, pstakeApp, ctx := helpers.CreateTestApp(suite.T())
 
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -70,6 +58,14 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	suite.path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
 	suite.path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
 	suite.coordinator.SetupConnections(suite.path)
+
+	suite.app = suite.chainA.App.(*app.PstakeApp)
+	suite.ctx = suite.chainA.GetContext()
+
+	keeper := suite.app.LiquidStakeIBCKeeper
+
+	params := types.DefaultParams()
+	keeper.SetParams(suite.ctx, params)
 
 	// set host chain params
 	depositFee, err := sdk.NewDecFromStr("0.01")
@@ -128,9 +124,6 @@ func (suite *IntegrationTestSuite) SetupTest() {
 
 	suite.app.LiquidStakeIBCKeeper.SetHostChain(suite.ctx, hc)
 
-	pstakeApp.IBCKeeper.ClientKeeper.SetClientState(ctx, "07-tendermint-0", &ibctmtypes.ClientState{ChainId: suite.chainB.ChainID, TrustingPeriod: time.Hour, LatestHeight: clienttypes.Height{RevisionNumber: 1, RevisionHeight: 100}})
-	pstakeApp.IBCKeeper.ClientKeeper.SetClientConsensusState(ctx, "07-tendermint-0", clienttypes.Height{RevisionNumber: 1, RevisionHeight: 100}, &ibctmtypes.ConsensusState{Timestamp: ctx.BlockTime()})
-	pstakeApp.IBCKeeper.ConnectionKeeper.SetConnection(ctx, suite.path.EndpointA.ConnectionID, connectiontypes.ConnectionEnd{ClientId: "07-tendermint-0"})
 }
 
 func (suite *IntegrationTestSuite) TestGetSetParams() {
