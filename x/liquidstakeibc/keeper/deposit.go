@@ -176,7 +176,7 @@ func (k *Keeper) GetPendingDepositsBeforeEpoch(ctx sdk.Context, epoch int64) []*
 func (k *Keeper) GetRedeemableDepositsForHostChain(
 	ctx sdk.Context,
 	hc *liquidstakeibctypes.HostChain,
-) ([]*liquidstakeibctypes.Deposit, math.Int) { //nolint:staticcheck
+) ([]*liquidstakeibctypes.Deposit, math.Int) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
@@ -236,7 +236,7 @@ func (k *Keeper) GetDelegatingDepositsForChain(ctx sdk.Context, chainID string) 
 	return deposits
 }
 
-func (k *Keeper) GetDepositAmountOnPersistence(ctx sdk.Context, chainID string) math.Int { //nolint:staticcheck
+func (k *Keeper) GetDepositAmountOnPersistence(ctx sdk.Context, chainID string) math.Int {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
@@ -256,7 +256,7 @@ func (k *Keeper) GetDepositAmountOnPersistence(ctx sdk.Context, chainID string) 
 	return amount
 }
 
-func (k *Keeper) GetDepositAmountOnHostChain(ctx sdk.Context, chainID string) math.Int { //nolint:staticcheck
+func (k *Keeper) GetDepositAmountOnHostChain(ctx sdk.Context, chainID string) math.Int {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.DepositKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
