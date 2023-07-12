@@ -3,6 +3,7 @@ package keeper
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,7 +34,7 @@ func (k *Keeper) GetValidatorUnbonding(
 	return &validatorUnbonding, true
 }
 
-func (k *Keeper) GetAllValidatorUnbondedAmount(ctx sdk.Context, hc *types.HostChain) sdk.Int { //nolint:staticcheck
+func (k *Keeper) GetAllValidatorUnbondedAmount(ctx sdk.Context, hc *types.HostChain) math.Int {
 	validatorUnbondings := k.FilterValidatorUnbondings(
 		ctx,
 		func(u types.ValidatorUnbonding) bool {
