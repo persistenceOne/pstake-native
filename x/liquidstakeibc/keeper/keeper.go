@@ -189,8 +189,8 @@ func (k *Keeper) SetWithdrawAddress(ctx sdk.Context, hc *types.HostChain) error 
 }
 
 // IsICAChannelActive checks if an ICA channel is active
-func (k *Keeper) IsICAChannelActive(ctx sdk.Context, hc *types.HostChain, owner string) bool {
-	_, isActive := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ConnectionId, owner)
+func (k *Keeper) IsICAChannelActive(ctx sdk.Context, hc *types.HostChain, portID string) bool {
+	_, isActive := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ConnectionId, portID)
 	return isActive
 }
 

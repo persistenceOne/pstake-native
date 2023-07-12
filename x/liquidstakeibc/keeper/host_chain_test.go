@@ -339,6 +339,8 @@ func (suite *IntegrationTestSuite) TestGetHostChainFromIBCDenom() {
 }
 
 func (suite *IntegrationTestSuite) TestGetHostChainFromDelegatorAddress() {
+	hcFromChainID, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.chainB.ChainID)
+	suite.Require().True(found)
 	tc := []struct {
 		name             string
 		delegatorAddress string
@@ -346,7 +348,7 @@ func (suite *IntegrationTestSuite) TestGetHostChainFromDelegatorAddress() {
 	}{
 		{
 			name:             "Success",
-			delegatorAddress: "cosmos1mykw6u6dq4z7qhw9aztpk5yp8j8y5n0c6usg9faqepw83y2u4nzq2qxaxc",
+			delegatorAddress: hcFromChainID.DelegationAccount.Address,
 			found:            true,
 		},
 		{

@@ -1,6 +1,11 @@
 package keeper_test
 
 import (
+	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -9,12 +14,6 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
-	"github.com/stretchr/testify/require"
-	"testing"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"
 
@@ -24,10 +23,6 @@ import (
 )
 
 var (
-	//ChainID          = "cosmoshub-4"
-	//ConnectionID     = "connection-0"
-	//TransferChannel  = "channel-0"
-	//TransferPort     = "transfer"
 	HostDenom        = "uatom"
 	MintDenom        = "stk/uatom"
 	MinDeposit       = sdk.NewInt(5)
@@ -54,9 +49,12 @@ type IntegrationTestSuite struct {
 	govHandler govtypes.Handler
 
 	coordinator *ibctesting.Coordinator
-	chainA      *ibctesting.TestChain
-	chainB      *ibctesting.TestChain
-	path        *ibctesting.Path
+	chainA      *ibctesting.TestChain //pstake chain
+	chainB      *ibctesting.TestChain //host chain, run tests of active chains
+	chainC      *ibctesting.TestChain //host chain 2, run tests of to activate chains
+
+	transferPathAB *ibctesting.Path // chainA - chainB transfer path
+	transferPathAC *ibctesting.Path // chainA - chainC transfer path
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -65,25 +63,45 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *IntegrationTestSuite) SetupTest() {
 
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 0)
 
-	suite.path = NewTransferPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(suite.path)
+	ibctesting.DefaultTestingAppInit = helpers.SetupTestingApp
+	suite.chainA = ibctesting.NewTestChain(suite.T(), suite.coordinator, ibctesting.GetChainID(1))
+
+	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
+	suite.chainB = ibctesting.NewTestChain(suite.T(), suite.coordinator, ibctesting.GetChainID(2))
+	suite.chainC = ibctesting.NewTestChain(suite.T(), suite.coordinator, ibctesting.GetChainID(3))
+
+	suite.coordinator.Chains = map[string]*ibctesting.TestChain{
+		ibctesting.GetChainID(1): suite.chainA,
+		ibctesting.GetChainID(2): suite.chainB,
+		ibctesting.GetChainID(3): suite.chainC,
+	}
+
+	suite.transferPathAB = NewTransferPath(suite.chainA, suite.chainB)
+	suite.coordinator.Setup(suite.transferPathAB)
+
+	suite.transferPathAC = NewTransferPath(suite.chainA, suite.chainC)
+	suite.coordinator.Setup(suite.transferPathAC)
 
 	suite.app = suite.chainA.App.(*app.PstakeApp)
 	suite.ctx = suite.chainA.GetContext()
 
-	keeper := suite.app.LiquidStakeIBCKeeper
+	suite.SetupHostChainAB()
+	suite.SetupICAChannelsAB()
 
-	params := types.DefaultParams()
-	keeper.SetParams(suite.ctx, params)
-
-	suite.SetupHostChain()
-
+	suite.CleanupSetup()
 }
-func (suite *IntegrationTestSuite) SetupHostChain() {
+
+func (suite *IntegrationTestSuite) CleanupSetup() {
+	pstakeApp, ctx := suite.app, suite.ctx
+	deposits := pstakeApp.LiquidStakeIBCKeeper.GetAllDeposits(ctx)
+	for _, deposit := range deposits {
+		pstakeApp.LiquidStakeIBCKeeper.DeleteDeposit(ctx, deposit)
+	}
+}
+
+func (suite *IntegrationTestSuite) SetupHostChainAB() {
 	// set host chain params
 	depositFee, err := sdk.NewDecFromStr("0.01")
 	suite.NoError(err)
@@ -116,21 +134,21 @@ func (suite *IntegrationTestSuite) SetupHostChain() {
 
 	hc := &types.HostChain{
 		ChainId:      suite.chainB.ChainID,
-		ConnectionId: suite.path.EndpointA.ConnectionID,
+		ConnectionId: suite.transferPathAB.EndpointA.ConnectionID,
 		Params:       hostChainLSParams,
 		HostDenom:    HostDenom,
-		ChannelId:    "channel-0", //suite.path.EndpointA.ChannelID,
-		PortId:       suite.path.EndpointA.ChannelConfig.PortID,
+		ChannelId:    "channel-0", //suite.transferPathAB.EndpointA.ChannelID,
+		PortId:       suite.transferPathAB.EndpointA.ChannelConfig.PortID,
 		DelegationAccount: &types.ICAAccount{
-			Address:      "cosmos1mykw6u6dq4z7qhw9aztpk5yp8j8y5n0c6usg9faqepw83y2u4nzq2qxaxc",
+			Address:      "cosmos1mykw6u6dq4z7qhw9aztpk5yp8j8y5n0c6usg9faqepw83y2u4nzq2qxaxc", //gets replaced
 			Balance:      sdk.Coin{Denom: HostDenom, Amount: sdk.ZeroInt()},
-			Owner:        suite.chainB.ChainID + "." + types.DelegateICAType,
+			Owner:        types.DefaultDelegateAccountPortOwner(suite.chainB.ChainID),
 			ChannelState: types.ICAAccount_ICA_CHANNEL_CREATED,
 		},
 		RewardsAccount: &types.ICAAccount{
-			Address:      "cosmos19dade3sxq2wqvy6fenytxmn0y3njw8r2p88cn27pj4naxcyzzs8qgxrun3",
+			Address:      "cosmos19dade3sxq2wqvy6fenytxmn0y3njw8r2p88cn27pj4naxcyzzs8qgxrun3", //gets replaced
 			Balance:      sdk.Coin{Denom: HostDenom, Amount: sdk.ZeroInt()},
-			Owner:        suite.chainB.ChainID + "." + types.RewardsICAType,
+			Owner:        types.DefaultRewardsAccountPortOwner(suite.chainB.ChainID),
 			ChannelState: types.ICAAccount_ICA_CHANNEL_CREATED,
 		},
 		Validators:      validators,
@@ -151,21 +169,32 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 
 	return path
 }
-func (suite *IntegrationTestSuite) SetupICAChannels() *ibctesting.Path {
+func (suite *IntegrationTestSuite) SetupICAChannelsAB() {
 	icapath := NewICAPath(suite.chainA, suite.chainB)
-	icapath.EndpointA.ClientID = suite.path.EndpointA.ClientID
-	icapath.EndpointB.ClientID = suite.path.EndpointB.ClientID
-	icapath.EndpointA.ConnectionID = suite.path.EndpointA.ConnectionID
-	icapath.EndpointB.ConnectionID = suite.path.EndpointB.ConnectionID
-	icapath.EndpointA.ClientConfig = suite.path.EndpointA.ClientConfig
-	icapath.EndpointB.ClientConfig = suite.path.EndpointB.ClientConfig
-	icapath.EndpointA.ConnectionConfig = suite.path.EndpointA.ConnectionConfig
-	icapath.EndpointB.ConnectionConfig = suite.path.EndpointB.ConnectionConfig
+	icapath.EndpointA.ClientID = suite.transferPathAB.EndpointA.ClientID
+	icapath.EndpointB.ClientID = suite.transferPathAB.EndpointB.ClientID
+	icapath.EndpointA.ConnectionID = suite.transferPathAB.EndpointA.ConnectionID
+	icapath.EndpointB.ConnectionID = suite.transferPathAB.EndpointB.ConnectionID
+	icapath.EndpointA.ClientConfig = suite.transferPathAB.EndpointA.ClientConfig
+	icapath.EndpointB.ClientConfig = suite.transferPathAB.EndpointB.ClientConfig
+	icapath.EndpointA.ConnectionConfig = suite.transferPathAB.EndpointA.ConnectionConfig
+	icapath.EndpointB.ConnectionConfig = suite.transferPathAB.EndpointB.ConnectionConfig
+
+	icapath2 := NewICAPath(suite.chainA, suite.chainB)
+	icapath2.EndpointA.ClientID = suite.transferPathAB.EndpointA.ClientID
+	icapath2.EndpointB.ClientID = suite.transferPathAB.EndpointB.ClientID
+	icapath2.EndpointA.ConnectionID = suite.transferPathAB.EndpointA.ConnectionID
+	icapath2.EndpointB.ConnectionID = suite.transferPathAB.EndpointB.ConnectionID
+	icapath2.EndpointA.ClientConfig = suite.transferPathAB.EndpointA.ClientConfig
+	icapath2.EndpointB.ClientConfig = suite.transferPathAB.EndpointB.ClientConfig
+	icapath2.EndpointA.ConnectionConfig = suite.transferPathAB.EndpointA.ConnectionConfig
+	icapath2.EndpointB.ConnectionConfig = suite.transferPathAB.EndpointB.ConnectionConfig
 
 	err := suite.SetupICAPath(icapath, types.DefaultDelegateAccountPortOwner(suite.chainB.ChainID))
 	suite.Require().NoError(err)
 
-	return icapath
+	err = suite.SetupICAPath(icapath2, types.DefaultRewardsAccountPortOwner(suite.chainB.ChainID))
+	suite.Require().NoError(err)
 }
 func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
@@ -358,29 +387,29 @@ func (suite *IntegrationTestSuite) TestGetClientState() {
 	pstakeApp, ctx := suite.app, suite.ctx
 
 	// check client state
-	state, err := pstakeApp.LiquidStakeIBCKeeper.GetClientState(ctx, suite.path.EndpointA.ConnectionID)
-	require.NoError(suite.T(), err)
-	require.Equal(suite.T(), ibcexported.Tendermint, state.ClientType())
+	state, err := pstakeApp.LiquidStakeIBCKeeper.GetClientState(ctx, suite.transferPathAB.EndpointA.ConnectionID)
+	suite.Require().NoError(err)
+	suite.Require().Equal(ibcexported.Tendermint, state.ClientType())
 
 	// check localhost client exists
 	state, err = pstakeApp.LiquidStakeIBCKeeper.GetClientState(ctx, ibcexported.LocalhostConnectionID)
-	require.NoError(suite.T(), err)
-	require.Equal(suite.T(), ibcexported.Localhost, state.ClientType())
+	suite.Require().NoError(err)
+	suite.Require().Equal(ibcexported.Localhost, state.ClientType())
 
 	//no connection found
-	_, err = pstakeApp.LiquidStakeIBCKeeper.GetClientState(ctx, "connection-1")
-	require.Error(suite.T(), err)
+	_, err = pstakeApp.LiquidStakeIBCKeeper.GetClientState(ctx, "connection-2")
+	suite.Require().Error(err)
 
 	// set connection without an active client-id
-	pstakeApp.IBCKeeper.ConnectionKeeper.SetConnection(ctx, "connection-1", connectiontypes.ConnectionEnd{ClientId: "client-1"})
-	_, err = pstakeApp.LiquidStakeIBCKeeper.GetClientState(ctx, "connection-1")
-	require.Error(suite.T(), err)
+	pstakeApp.IBCKeeper.ConnectionKeeper.SetConnection(ctx, "connection-2", connectiontypes.ConnectionEnd{ClientId: "client-1"})
+	_, err = pstakeApp.LiquidStakeIBCKeeper.GetClientState(ctx, "connection-2")
+	suite.Require().Error(err)
 }
 
 func (suite *IntegrationTestSuite) TestGetChainID() {
 	pstakeApp, ctx := suite.app, suite.ctx
 
-	chainID, err := pstakeApp.LiquidStakeIBCKeeper.GetChainID(ctx, suite.path.EndpointA.ConnectionID)
+	chainID, err := pstakeApp.LiquidStakeIBCKeeper.GetChainID(ctx, suite.transferPathAB.EndpointA.ConnectionID)
 	suite.Require().NoError(err)
 	suite.Require().Equal(suite.chainB.ChainID, chainID)
 
@@ -391,12 +420,12 @@ func (suite *IntegrationTestSuite) TestGetChainID() {
 	// random type of client not supported
 	solomachine.RegisterInterfaces(pstakeApp.InterfaceRegistry())
 	pstakeApp.IBCKeeper.ClientKeeper.SetClientState(ctx, "client-1", &solomachine.ClientState{ConsensusState: &solomachine.ConsensusState{}})
-	pstakeApp.IBCKeeper.ConnectionKeeper.SetConnection(ctx, "connection-1", connectiontypes.NewConnectionEnd(connectiontypes.OPEN, "client-1", connectiontypes.NewCounterparty("--", "--", commitmenttypes.NewMerklePrefix([]byte("New"))), nil, 1))
-	_, err = pstakeApp.LiquidStakeIBCKeeper.GetChainID(ctx, "connection-1")
+	pstakeApp.IBCKeeper.ConnectionKeeper.SetConnection(ctx, "connection-2", connectiontypes.NewConnectionEnd(connectiontypes.OPEN, "client-1", connectiontypes.NewCounterparty("--", "--", commitmenttypes.NewMerklePrefix([]byte("New"))), nil, 1))
+	_, err = pstakeApp.LiquidStakeIBCKeeper.GetChainID(ctx, "connection-2")
 	suite.Require().Error(err)
 
 	//connection not found
-	_, err = pstakeApp.LiquidStakeIBCKeeper.GetChainID(ctx, "connection-2")
+	_, err = pstakeApp.LiquidStakeIBCKeeper.GetChainID(ctx, "connection-3")
 	suite.Require().Error(err)
 
 }
@@ -408,17 +437,25 @@ func (suite *IntegrationTestSuite) TestGetPortID() {
 
 func (suite *IntegrationTestSuite) TestRegisterICAAccount() {
 	pstakeApp, ctx := suite.app, suite.ctx
-	err := pstakeApp.LiquidStakeIBCKeeper.RegisterICAAccount(ctx, suite.path.EndpointA.ConnectionID, types.DefaultDelegateAccountPortOwner(suite.chainB.ChainID))
+	err := pstakeApp.LiquidStakeIBCKeeper.RegisterICAAccount(ctx, suite.transferPathAC.EndpointA.ConnectionID, types.DefaultDelegateAccountPortOwner(suite.chainB.ChainID))
 	suite.Require().NoError(err)
 }
 
 func (suite *IntegrationTestSuite) TestSetWithdrawAddress() {
 	pstakeApp, ctx := suite.app, suite.ctx
 	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
-	require.Equal(suite.T(), true, found)
-	require.NotNil(suite.T(), hc)
+	suite.Require().Equal(true, found)
+	suite.Require().NotNil(hc)
 
-	_ = suite.SetupICAChannels()
 	err := pstakeApp.LiquidStakeIBCKeeper.SetWithdrawAddress(ctx, hc)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
+}
+func (suite *IntegrationTestSuite) TestIsICAChannelActive() {
+	pstakeApp, ctx := suite.app, suite.ctx
+	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
+	suite.Require().Equal(true, found)
+	suite.Require().NotNil(hc)
+
+	active := pstakeApp.LiquidStakeIBCKeeper.IsICAChannelActive(ctx, hc, pstakeApp.LiquidStakeIBCKeeper.GetPortID(hc.DelegationAccount.Owner))
+	suite.Require().Equal(true, active)
 }
