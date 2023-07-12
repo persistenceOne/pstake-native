@@ -72,6 +72,13 @@ func (suite *IntegrationTestSuite) TestFilterUnbondings() {
 
 func (suite *IntegrationTestSuite) TestIncreaseUndelegatingAmountForEpoch() {
 	epoch := suite.app.EpochsKeeper.GetEpochInfo(suite.ctx, types.DelegationEpoch).CurrentEpoch
+	ubd1 := &types.Unbonding{
+		ChainId:      suite.chainB.ChainID,
+		EpochNumber:  epoch,
+		BurnAmount:   sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
+		UnbondAmount: sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
+	}
+	suite.app.LiquidStakeIBCKeeper.SetUnbonding(suite.ctx, ubd1)
 
 	tc := []struct {
 		name      string
@@ -80,15 +87,10 @@ func (suite *IntegrationTestSuite) TestIncreaseUndelegatingAmountForEpoch() {
 		unbonding *types.Unbonding
 	}{
 		{
-			name:   "Success",
-			burn:   sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
-			unbond: sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
-			unbonding: &types.Unbonding{
-				ChainId:      suite.chainB.ChainID,
-				EpochNumber:  epoch,
-				BurnAmount:   sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
-				UnbondAmount: sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
-			},
+			name:      "Success",
+			burn:      sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
+			unbond:    sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
+			unbonding: ubd1,
 		},
 		{
 			name:   "NotFound",
@@ -105,7 +107,6 @@ func (suite *IntegrationTestSuite) TestIncreaseUndelegatingAmountForEpoch() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-			suite.app.LiquidStakeIBCKeeper.SetUnbonding(suite.ctx, t.unbonding)
 
 			suite.app.LiquidStakeIBCKeeper.IncreaseUndelegatingAmountForEpoch(
 				suite.ctx,
