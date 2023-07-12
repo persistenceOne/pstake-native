@@ -141,31 +141,31 @@ func (suite *IntegrationTestSuite) TestGenerateDelegateMessages() {
 			validators: []*types.Validator{
 				{
 					OperatorAddress: hc.Validators[0].OperatorAddress,
-					Weight:          decFromStr("0"),
+					Weight:          decFromStr("0.2"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
 					OperatorAddress: hc.Validators[1].OperatorAddress,
-					Weight:          decFromStr("0"),
+					Weight:          decFromStr("0.2"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
 					OperatorAddress: hc.Validators[2].OperatorAddress,
-					Weight:          decFromStr("0"),
+					Weight:          decFromStr("0.33"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 				{
 					OperatorAddress: hc.Validators[3].OperatorAddress,
-					Weight:          decFromStr("0"),
+					Weight:          decFromStr("0.27"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
 				},
 			},
 			expected:              map[string]int64{},
-			totalDelegationAmount: int64(100),
+			totalDelegationAmount: int64(0),
 			err:                   errorsmod.Wrap(types.ErrInvalidMessages, "no messages to delegate"),
 		},
 	}

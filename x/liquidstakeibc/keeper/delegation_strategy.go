@@ -2,6 +2,7 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
@@ -15,17 +16,17 @@ type DelegateAmount struct {
 	Amount     sdk.Dec
 }
 
-func (k *Keeper) GenerateDelegateMessages(hc *types.HostChain, depositAmount sdk.Int) ([]proto.Message, error) { //nolint:staticcheck
+func (k *Keeper) GenerateDelegateMessages(hc *types.HostChain, depositAmount math.Int) ([]proto.Message, error) {
 	return k.generateMessages(hc, depositAmount, false)
 }
 
-func (k *Keeper) GenerateUndelegateMessages(hc *types.HostChain, unbondAmount sdk.Int) ([]proto.Message, error) { //nolint:staticcheck
+func (k *Keeper) GenerateUndelegateMessages(hc *types.HostChain, unbondAmount math.Int) ([]proto.Message, error) {
 	return k.generateMessages(hc, unbondAmount, true)
 }
 
 func (k *Keeper) generateMessages(
 	hc *types.HostChain,
-	actionableAmount sdk.Int, //nolint:staticcheck
+	actionableAmount math.Int,
 	undelegating bool,
 ) ([]proto.Message, error) {
 	delegateAmounts := make([]DelegateAmount, 0)
@@ -86,7 +87,7 @@ func (k *Keeper) generateMessages(
 			}
 			messages = append(messages, message)
 
-			return messages, nil
+			break
 		}
 
 		// add the amount to the message and append it
