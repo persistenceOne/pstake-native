@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -82,6 +83,7 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 		hcValidators []*types.Validator
 		validators   []stakingtypes.Validator
 		expected     []*types.Validator
+		err          error
 	}{
 		{
 			name: "UpdateState",
@@ -114,6 +116,32 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares: sdk.NewDec(100),
 				},
 			},
+		}, {
+			name: "Validator not found.",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper1",
+					Status:          stakingtypes.BondStatusBonded,
+					UnbondingEpoch:  0,
+					ExchangeRate:    sdk.NewDec(1),
+				},
+				{
+					OperatorAddress: "valoper2",
+					Status:          stakingtypes.BondStatusUnbonding,
+					UnbondingEpoch:  types.CurrentUnbondingEpoch(hcs[0].UnbondingFactor, epoch),
+					ExchangeRate:    sdk.NewDec(1),
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress: "valoper3",
+					Status:          stakingtypes.Unbonding,
+					Tokens:          sdk.NewInt(100),
+					DelegatorShares: sdk.NewDec(100),
+				},
+			},
+			err: fmt.Errorf("validator with address %s not registered", "valoper3"),
 		},
 		{
 			name: "UpdateExchangeRate",
@@ -154,6 +182,27 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares: sdk.NewDec(0),
 				},
 			},
+		}, {
+			name: "UpdateState",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper2",
+					Status:          stakingtypes.BondStatusUnbonding,
+					UnbondingEpoch:  types.CurrentUnbondingEpoch(hcs[0].UnbondingFactor, epoch),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(100),
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress: "valoper2",
+					Status:          stakingtypes.Bonded,
+					Tokens:          sdk.NewInt(100),
+					DelegatorShares: sdk.NewDec(101),
+				},
+			},
+			err: fmt.Errorf("error while querying validator valoper2 delegation: decoding bech32 failed: invalid separator index -1"),
 		},
 	}
 
@@ -163,27 +212,28 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 
 			for _, validator := range t.validators {
 				err := suite.app.LiquidStakeIBCKeeper.ProcessHostChainValidatorUpdates(suite.ctx, &t.hc, validator)
-				suite.Require().Equal(nil, err)
+				suite.Require().Equal(t.err, err)
 			}
+			if t.err == nil {
+				suite.Require().Equal(len(t.validators), len(t.hc.Validators))
 
-			suite.Require().Equal(len(t.validators), len(t.hc.Validators))
+				for i, validator := range t.hc.Validators {
+					suite.Require().Equal(t.validators[i].OperatorAddress, validator.OperatorAddress)
+					suite.Require().Equal(t.validators[i].Status.String(), validator.Status)
 
-			for i, validator := range t.hc.Validators {
-				suite.Require().Equal(t.validators[i].OperatorAddress, validator.OperatorAddress)
-				suite.Require().Equal(t.validators[i].Status.String(), validator.Status)
+					var exchangeRate sdk.Dec
+					if t.validators[i].DelegatorShares.IsZero() {
+						exchangeRate = sdk.OneDec()
+					} else {
+						exchangeRate = sdk.NewDecFromInt(t.validators[i].Tokens).Quo(t.validators[i].DelegatorShares)
+					}
+					suite.Require().Equal(exchangeRate, validator.ExchangeRate)
 
-				var exchangeRate sdk.Dec
-				if t.validators[i].DelegatorShares.IsZero() {
-					exchangeRate = sdk.OneDec()
-				} else {
-					exchangeRate = sdk.NewDecFromInt(t.validators[i].Tokens).Quo(t.validators[i].DelegatorShares)
-				}
-				suite.Require().Equal(exchangeRate, validator.ExchangeRate)
-
-				if validator.Status == stakingtypes.BondStatusUnbonding {
-					suite.Require().Equal(types.CurrentUnbondingEpoch(hcs[0].UnbondingFactor, epoch), validator.UnbondingEpoch)
-				} else if validator.Status == stakingtypes.BondStatusBonded {
-					suite.Require().Equal(int64(0), validator.UnbondingEpoch)
+					if validator.Status == stakingtypes.BondStatusUnbonding {
+						suite.Require().Equal(types.CurrentUnbondingEpoch(hcs[0].UnbondingFactor, epoch), validator.UnbondingEpoch)
+					} else if validator.Status == stakingtypes.BondStatusBonded {
+						suite.Require().Equal(int64(0), validator.UnbondingEpoch)
+					}
 				}
 			}
 		})
@@ -412,6 +462,39 @@ func (suite *IntegrationTestSuite) TestUpdateHostChainValidatorWeight() {
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal(len(t.hc.Validators), 1)
+			}
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestGetHostChainFromHostDenom() {
+	tc := []struct {
+		name      string
+		hostdenom string
+		found     bool
+	}{
+		{
+			name:      "Success",
+			hostdenom: "uatom",
+			found:     true,
+		},
+		{
+			name:      "NotFound",
+			hostdenom: "notuatom",
+			found:     false,
+		},
+	}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+			hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChainFromHostDenom(suite.ctx, t.hostdenom)
+
+			suite.Require().Equal(t.found, found)
+
+			if t.found {
+				suite.Require().Equal(suite.chainB.ChainID, hc.ChainId)
+			} else {
+				suite.Require().Equal("", hc.ChainId)
 			}
 		})
 	}
