@@ -15,7 +15,7 @@ func decFromStr(str string) sdk.Dec {
 }
 
 func (suite *IntegrationTestSuite) TestGenerateDelegateMessages() {
-	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.path.EndpointB.Chain.ChainID)
+	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.chainB.ChainID)
 	suite.Require().Equal(found, true)
 
 	tc := []struct {
@@ -198,7 +198,7 @@ func (suite *IntegrationTestSuite) TestGenerateDelegateMessages() {
 }
 
 func (suite *IntegrationTestSuite) TestGenerateUndelegateMessages() {
-	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.path.EndpointB.Chain.ChainID)
+	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.chainB.ChainID)
 	suite.Require().Equal(found, true)
 
 	tc := []struct {

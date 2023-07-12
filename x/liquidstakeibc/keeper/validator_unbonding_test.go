@@ -14,7 +14,7 @@ func (suite *IntegrationTestSuite) TestGetSetValidatorUnbonding() {
 	suite.app.LiquidStakeIBCKeeper.SetValidatorUnbonding(
 		suite.ctx,
 		&types.ValidatorUnbonding{
-			ChainId:          suite.path.EndpointB.Chain.ChainID,
+			ChainId:          suite.chainB.ChainID,
 			ValidatorAddress: TestAddress,
 			EpochNumber:      epoch,
 		},
@@ -22,7 +22,7 @@ func (suite *IntegrationTestSuite) TestGetSetValidatorUnbonding() {
 
 	unbonding, found := suite.app.LiquidStakeIBCKeeper.GetValidatorUnbonding(
 		suite.ctx,
-		suite.path.EndpointB.Chain.ChainID,
+		suite.chainB.ChainID,
 		TestAddress,
 		epoch,
 	)
@@ -35,7 +35,7 @@ func (suite *IntegrationTestSuite) TestDeleteValidatorUnbonding() {
 	epoch := suite.app.EpochsKeeper.GetEpochInfo(suite.ctx, types.DelegationEpoch).CurrentEpoch
 
 	unbonding := &types.ValidatorUnbonding{
-		ChainId:          suite.path.EndpointB.Chain.ChainID,
+		ChainId:          suite.chainB.ChainID,
 		ValidatorAddress: TestAddress,
 		EpochNumber:      epoch,
 	}
@@ -46,7 +46,7 @@ func (suite *IntegrationTestSuite) TestDeleteValidatorUnbonding() {
 	unbonding, found := suite.app.LiquidStakeIBCKeeper.GetValidatorUnbonding(
 		suite.ctx,
 		TestAddress,
-		suite.path.EndpointB.Chain.ChainID,
+		suite.chainB.ChainID,
 		epoch,
 	)
 
@@ -58,19 +58,19 @@ func (suite *IntegrationTestSuite) TestDeleteValidatorUnbondingsForSequenceID() 
 
 	unbondings := []*types.ValidatorUnbonding{
 		{
-			ChainId:          suite.path.EndpointB.Chain.ChainID,
+			ChainId:          suite.chainB.ChainID,
 			ValidatorAddress: TestAddress,
 			EpochNumber:      epoch,
 			IbcSequenceId:    "sequence-1",
 		},
 		{
-			ChainId:          suite.path.EndpointB.Chain.ChainID,
+			ChainId:          suite.chainB.ChainID,
 			ValidatorAddress: TestAddress,
 			EpochNumber:      epoch + 1,
 			IbcSequenceId:    "sequence-1",
 		},
 		{
-			ChainId:          suite.path.EndpointB.Chain.ChainID,
+			ChainId:          suite.chainB.ChainID,
 			ValidatorAddress: TestAddress,
 			EpochNumber:      epoch + 2,
 			IbcSequenceId:    "sequence-2",
@@ -97,21 +97,21 @@ func (suite *IntegrationTestSuite) TestGetAllValidatorUnbondedAmount() {
 
 	unbondings := []*types.ValidatorUnbonding{
 		{
-			ChainId:          suite.path.EndpointB.Chain.ChainID,
+			ChainId:          suite.chainB.ChainID,
 			ValidatorAddress: TestAddress,
 			EpochNumber:      epoch,
 			MatureTime:       time.Now(),
 			Amount:           sdk.NewCoin(HostDenom, sdk.NewInt(100)),
 		},
 		{
-			ChainId:          suite.path.EndpointB.Chain.ChainID,
+			ChainId:          suite.chainB.ChainID,
 			ValidatorAddress: TestAddress,
 			EpochNumber:      epoch + 1,
 			MatureTime:       time.Now(),
 			Amount:           sdk.NewCoin(HostDenom, sdk.NewInt(100)),
 		},
 		{
-			ChainId:          suite.path.EndpointB.Chain.ChainID,
+			ChainId:          suite.chainB.ChainID,
 			ValidatorAddress: TestAddress,
 			EpochNumber:      epoch + 2,
 			MatureTime:       time.Time{},
@@ -123,7 +123,7 @@ func (suite *IntegrationTestSuite) TestGetAllValidatorUnbondedAmount() {
 		suite.app.LiquidStakeIBCKeeper.SetValidatorUnbonding(suite.ctx, unbonding)
 	}
 
-	hc, _ := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.path.EndpointB.Chain.ChainID)
+	hc, _ := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.chainB.ChainID)
 	amount := suite.app.LiquidStakeIBCKeeper.GetAllValidatorUnbondedAmount(suite.ctx, hc)
 
 	suite.Require().Equal(int64(200), amount.Int64())
@@ -133,7 +133,7 @@ func (suite *IntegrationTestSuite) TestFilterValidatorUnbondings() {
 	epoch := suite.app.EpochsKeeper.GetEpochInfo(suite.ctx, types.DelegationEpoch).CurrentEpoch
 
 	unbonding := &types.ValidatorUnbonding{
-		ChainId:          suite.path.EndpointB.Chain.ChainID,
+		ChainId:          suite.chainB.ChainID,
 		ValidatorAddress: TestAddress,
 		EpochNumber:      epoch,
 	}
@@ -143,7 +143,7 @@ func (suite *IntegrationTestSuite) TestFilterValidatorUnbondings() {
 	unbondings := suite.app.LiquidStakeIBCKeeper.FilterValidatorUnbondings(
 		suite.ctx,
 		func(u types.ValidatorUnbonding) bool {
-			return u.ChainId == suite.path.EndpointB.Chain.ChainID &&
+			return u.ChainId == suite.chainB.ChainID &&
 				u.ValidatorAddress == TestAddress &&
 				u.EpochNumber == epoch
 		},

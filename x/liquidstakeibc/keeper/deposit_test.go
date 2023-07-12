@@ -8,15 +8,15 @@ import (
 )
 
 func (suite *IntegrationTestSuite) TestGetSetDeposit() {
-	suite.app.LiquidStakeIBCKeeper.SetDeposit(suite.ctx, &types.Deposit{ChainId: suite.path.EndpointB.Chain.ChainID})
+	suite.app.LiquidStakeIBCKeeper.SetDeposit(suite.ctx, &types.Deposit{ChainId: suite.chainB.ChainID})
 	deposits := suite.app.LiquidStakeIBCKeeper.GetAllDeposits(suite.ctx)
 
 	suite.Require().Equal(1, len(deposits))
-	suite.Require().Equal(suite.path.EndpointB.Chain.ChainID, deposits[0].ChainId)
+	suite.Require().Equal(suite.chainB.ChainID, deposits[0].ChainId)
 }
 
 func (suite *IntegrationTestSuite) TestDeleteDeposit() {
-	deposit := &types.Deposit{ChainId: suite.path.EndpointB.Chain.ChainID}
+	deposit := &types.Deposit{ChainId: suite.chainB.ChainID}
 
 	suite.app.LiquidStakeIBCKeeper.SetDeposit(suite.ctx, deposit)
 	suite.app.LiquidStakeIBCKeeper.DeleteDeposit(suite.ctx, deposit)
@@ -93,7 +93,7 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 			name: "Case 1",
 			deposits: []*types.Deposit{
 				{
-					ChainId: suite.path.EndpointB.Chain.ChainID,
+					ChainId: suite.chainB.ChainID,
 					Epoch:   epoch,
 					Amount:  sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(10000)},
 					State:   types.Deposit_DEPOSIT_PENDING,
@@ -108,7 +108,7 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 			name: "Case 2",
 			deposits: []*types.Deposit{
 				{
-					ChainId: suite.path.EndpointB.Chain.ChainID,
+					ChainId: suite.chainB.ChainID,
 					Epoch:   epoch,
 					Amount:  sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(3500)},
 					State:   types.Deposit_DEPOSIT_PENDING,
@@ -123,7 +123,7 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 			name: "Case 3",
 			deposits: []*types.Deposit{
 				{
-					ChainId: suite.path.EndpointB.Chain.ChainID,
+					ChainId: suite.chainB.ChainID,
 					Epoch:   epoch,
 					Amount:  sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(5000)},
 					State:   types.Deposit_DEPOSIT_PENDING,
@@ -136,13 +136,13 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 			name: "Case 4",
 			deposits: []*types.Deposit{
 				{
-					ChainId: suite.path.EndpointB.Chain.ChainID,
+					ChainId: suite.chainB.ChainID,
 					Epoch:   epoch,
 					Amount:  sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(10000)},
 					State:   types.Deposit_DEPOSIT_PENDING,
 				},
 				{
-					ChainId: suite.path.EndpointB.Chain.ChainID,
+					ChainId: suite.chainB.ChainID,
 					Epoch:   epoch + 1,
 					Amount:  sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(5000)},
 					State:   types.Deposit_DEPOSIT_PENDING,
@@ -158,13 +158,13 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 			name: "Case 5",
 			deposits: []*types.Deposit{
 				{
-					ChainId: suite.path.EndpointB.Chain.ChainID,
+					ChainId: suite.chainB.ChainID,
 					Epoch:   epoch,
 					Amount:  sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(5000)},
 					State:   types.Deposit_DEPOSIT_PENDING,
 				},
 				{
-					ChainId: suite.path.EndpointB.Chain.ChainID,
+					ChainId: suite.chainB.ChainID,
 					Epoch:   epoch + 1,
 					Amount:  sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(10000)},
 					State:   types.Deposit_DEPOSIT_PENDING,
@@ -179,13 +179,13 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 			name: "Case 6",
 			deposits: []*types.Deposit{
 				{
-					ChainId: suite.path.EndpointB.Chain.ChainID,
+					ChainId: suite.chainB.ChainID,
 					Epoch:   epoch,
 					Amount:  sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(10000)},
 					State:   types.Deposit_DEPOSIT_PENDING,
 				},
 				{
-					ChainId: suite.path.EndpointB.Chain.ChainID,
+					ChainId: suite.chainB.ChainID,
 					Epoch:   epoch + 1,
 					Amount:  sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(5000)},
 					State:   types.Deposit_DEPOSIT_PENDING,
@@ -205,7 +205,7 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 
 			err := suite.app.LiquidStakeIBCKeeper.AdjustDepositsForRedemption(
 				suite.ctx,
-				&types.HostChain{ChainId: suite.path.EndpointB.Chain.ChainID},
+				&types.HostChain{ChainId: suite.chainB.ChainID},
 				t.redemptionAmount,
 			)
 
@@ -235,25 +235,25 @@ func (suite *IntegrationTestSuite) TestGetDepositForChainAndEpoch() {
 		{
 			name: "Success",
 			deposits: []types.Deposit{
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch},
-				{ChainId: suite.path.EndpointA.Chain.ChainID, Epoch: epoch + 1},
-				{ChainId: suite.path.EndpointA.Chain.ChainID, Epoch: epoch},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 1},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch},
+				{ChainId: suite.chainA.ChainID, Epoch: epoch + 1},
+				{ChainId: suite.chainA.ChainID, Epoch: epoch},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 1},
 			},
-			chainID:  suite.path.EndpointB.Chain.ChainID,
+			chainID:  suite.chainB.ChainID,
 			epoch:    epoch,
-			expected: types.Deposit{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch},
+			expected: types.Deposit{ChainId: suite.chainB.ChainID, Epoch: epoch},
 			found:    true,
 		},
 		{
 			name: "unsuccessful test",
 			deposits: []types.Deposit{
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 1},
-				{ChainId: suite.path.EndpointA.Chain.ChainID, Epoch: epoch},
-				{ChainId: suite.path.EndpointA.Chain.ChainID, Epoch: epoch + 1},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 1},
+				{ChainId: suite.chainA.ChainID, Epoch: epoch},
+				{ChainId: suite.chainA.ChainID, Epoch: epoch + 1},
 			},
-			chainID:  suite.path.EndpointA.Chain.ChainID,
+			chainID:  suite.chainA.ChainID,
 			epoch:    epoch + 2,
 			expected: types.Deposit{},
 			found:    false,
@@ -290,15 +290,15 @@ func (suite *IntegrationTestSuite) TestGetDepositsWithSequenceID() {
 		{
 			name: "Success",
 			deposits: []types.Deposit{
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch, IbcSequenceId: "seq-1"},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 1, IbcSequenceId: "seq-2"},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 2, IbcSequenceId: "seq-3"},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 3, IbcSequenceId: "seq-4"},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch, IbcSequenceId: "seq-1"},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 1, IbcSequenceId: "seq-2"},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 2, IbcSequenceId: "seq-3"},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 3, IbcSequenceId: "seq-4"},
 			},
 			sequenceID: "seq-1",
 			expected: []types.Deposit{
 				{
-					ChainId:       suite.path.EndpointB.Chain.ChainID,
+					ChainId:       suite.chainB.ChainID,
 					Epoch:         1,
 					IbcSequenceId: "seq-1",
 				},
@@ -307,10 +307,10 @@ func (suite *IntegrationTestSuite) TestGetDepositsWithSequenceID() {
 		{
 			name: "NotFound",
 			deposits: []types.Deposit{
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch, IbcSequenceId: "seq-1"},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 1, IbcSequenceId: "seq-2"},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 2, IbcSequenceId: "seq-3"},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 3, IbcSequenceId: "seq-4"},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch, IbcSequenceId: "seq-1"},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 1, IbcSequenceId: "seq-2"},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 2, IbcSequenceId: "seq-3"},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 3, IbcSequenceId: "seq-4"},
 			},
 			sequenceID: "seq-8",
 			expected:   []types.Deposit{},
@@ -398,24 +398,24 @@ func (suite *IntegrationTestSuite) TestGetDelegableDepositsForChain() {
 		{
 			name: "Success",
 			deposits: []types.Deposit{
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch, State: types.Deposit_DEPOSIT_RECEIVED},
-				{ChainId: suite.path.EndpointA.Chain.ChainID, Epoch: epoch + 1, State: types.Deposit_DEPOSIT_RECEIVED},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 2, State: types.Deposit_DEPOSIT_RECEIVED},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 3, State: types.Deposit_DEPOSIT_PENDING},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch, State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: suite.chainA.ChainID, Epoch: epoch + 1, State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 2, State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 3, State: types.Deposit_DEPOSIT_PENDING},
 			},
-			chainID: suite.path.EndpointB.Chain.ChainID,
+			chainID: suite.chainB.ChainID,
 			expected: []types.Deposit{
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch, State: types.Deposit_DEPOSIT_RECEIVED},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 2, State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch, State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 2, State: types.Deposit_DEPOSIT_RECEIVED},
 			},
 		},
 		{
 			name: "NotFound",
 			deposits: []types.Deposit{
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch, State: types.Deposit_DEPOSIT_RECEIVED},
-				{ChainId: suite.path.EndpointA.Chain.ChainID, Epoch: epoch + 1, State: types.Deposit_DEPOSIT_RECEIVED},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 2, State: types.Deposit_DEPOSIT_RECEIVED},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 3, State: types.Deposit_DEPOSIT_PENDING},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch, State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: suite.chainA.ChainID, Epoch: epoch + 1, State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 2, State: types.Deposit_DEPOSIT_RECEIVED},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 3, State: types.Deposit_DEPOSIT_PENDING},
 			},
 			chainID:  "test-chain-id",
 			expected: []types.Deposit{},
@@ -451,9 +451,9 @@ func (suite *IntegrationTestSuite) TestGetDelegatingDepositsForChain() {
 		{
 			name: "found test",
 			deposits: []types.Deposit{
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch, State: types.Deposit_DEPOSIT_DELEGATING},
-				{ChainId: suite.path.EndpointA.Chain.ChainID, Epoch: epoch + 1, State: types.Deposit_DEPOSIT_DELEGATING},
-				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 2, State: types.Deposit_DEPOSIT_DELEGATING},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch, State: types.Deposit_DEPOSIT_DELEGATING},
+				{ChainId: suite.chainA.ChainID, Epoch: epoch + 1, State: types.Deposit_DEPOSIT_DELEGATING},
+				{ChainId: suite.chainB.ChainID, Epoch: epoch + 2, State: types.Deposit_DEPOSIT_DELEGATING},
 				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 3, State: types.Deposit_DEPOSIT_PENDING},
 			},
 			chainID: suite.path.EndpointB.Chain.ChainID,
@@ -466,7 +466,7 @@ func (suite *IntegrationTestSuite) TestGetDelegatingDepositsForChain() {
 			name: "not found test",
 			deposits: []types.Deposit{
 				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch, State: types.Deposit_DEPOSIT_DELEGATING},
-				{ChainId: suite.path.EndpointA.Chain.ChainID, Epoch: epoch + 1, State: types.Deposit_DEPOSIT_DELEGATING},
+				{ChainId: suite.chainA.ChainID, Epoch: epoch + 1, State: types.Deposit_DEPOSIT_DELEGATING},
 				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 2, State: types.Deposit_DEPOSIT_DELEGATING},
 				{ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: epoch + 3, State: types.Deposit_DEPOSIT_PENDING},
 			},
@@ -505,7 +505,7 @@ func (suite *IntegrationTestSuite) TestGetDepositAmountOnPersistence() {
 			deposits: []types.Deposit{
 				{Amount: sdk.NewInt64Coin("ibc/uatom", 1), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 1, State: types.Deposit_DEPOSIT_PENDING},
 				{Amount: sdk.NewInt64Coin("ibc/uatom", 2), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 2, State: types.Deposit_DEPOSIT_SENT},
-				{Amount: sdk.NewInt64Coin("ibc/uatom", 3), ChainId: suite.path.EndpointA.Chain.ChainID, Epoch: 2, State: types.Deposit_DEPOSIT_SENT},
+				{Amount: sdk.NewInt64Coin("ibc/uatom", 3), ChainId: suite.chainA.ChainID, Epoch: 2, State: types.Deposit_DEPOSIT_SENT},
 				{Amount: sdk.NewInt64Coin("ibc/uatom", 4), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 3, State: types.Deposit_DEPOSIT_DELEGATING},
 				{Amount: sdk.NewInt64Coin("ibc/uatom", 5), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 4, State: types.Deposit_DEPOSIT_RECEIVED},
 			},
@@ -536,7 +536,7 @@ func (suite *IntegrationTestSuite) TestGetDepositAmountOnHostChain() {
 			deposits: []types.Deposit{
 				{Amount: sdk.NewInt64Coin("ibc/uatom", 1), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 1, State: types.Deposit_DEPOSIT_PENDING},
 				{Amount: sdk.NewInt64Coin("ibc/uatom", 2), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 2, State: types.Deposit_DEPOSIT_SENT},
-				{Amount: sdk.NewInt64Coin("ibc/uatom", 3), ChainId: suite.path.EndpointA.Chain.ChainID, Epoch: 2, State: types.Deposit_DEPOSIT_SENT},
+				{Amount: sdk.NewInt64Coin("ibc/uatom", 3), ChainId: suite.chainA.ChainID, Epoch: 2, State: types.Deposit_DEPOSIT_SENT},
 				{Amount: sdk.NewInt64Coin("ibc/uatom", 4), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 3, State: types.Deposit_DEPOSIT_DELEGATING},
 				{Amount: sdk.NewInt64Coin("ibc/uatom", 5), ChainId: suite.path.EndpointB.Chain.ChainID, Epoch: 4, State: types.Deposit_DEPOSIT_RECEIVED},
 			},

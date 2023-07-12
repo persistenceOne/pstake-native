@@ -1,7 +1,10 @@
 package keeper_test
 
 import (
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -125,7 +128,7 @@ func (suite *IntegrationTestSuite) TestQueryDeposits() {
 	deposits := make([]*types.Deposit, 0)
 	for i := 0; i < MultipleTestSize; i += 1 {
 		deposit := &types.Deposit{
-			ChainId: suite.path.EndpointB.Chain.ChainID,
+			ChainId: suite.chainB.ChainID,
 			Epoch:   int64(i),
 		}
 		suite.app.LiquidStakeIBCKeeper.SetDeposit(suite.ctx, deposit)
@@ -140,7 +143,7 @@ func (suite *IntegrationTestSuite) TestQueryDeposits() {
 	}{
 		{
 			name: "Success",
-			req:  &types.QueryDepositsRequest{ChainId: suite.path.EndpointB.Chain.ChainID},
+			req:  &types.QueryDepositsRequest{ChainId: suite.chainB.ChainID},
 			resp: &types.QueryDepositsResponse{Deposits: deposits},
 		},
 		{
@@ -168,7 +171,7 @@ func (suite *IntegrationTestSuite) TestQueryDeposits() {
 func (suite *IntegrationTestSuite) TestQueryUnbondings() {
 	unbondings := make([]*types.Unbonding, 0)
 	for i := 0; i < MultipleTestSize; i += 1 {
-		unbonding := &types.Unbonding{ChainId: suite.path.EndpointB.Chain.ChainID, EpochNumber: int64(i)}
+		unbonding := &types.Unbonding{ChainId: suite.chainB.ChainID, EpochNumber: int64(i)}
 		suite.app.LiquidStakeIBCKeeper.SetUnbonding(suite.ctx, unbonding)
 		unbondings = append(unbondings, unbonding)
 	}
@@ -181,7 +184,7 @@ func (suite *IntegrationTestSuite) TestQueryUnbondings() {
 	}{
 		{
 			name: "Success",
-			req:  &types.QueryUnbondingsRequest{ChainId: suite.path.EndpointB.Chain.ChainID},
+			req:  &types.QueryUnbondingsRequest{ChainId: suite.chainB.ChainID},
 			resp: &types.QueryUnbondingsResponse{Unbondings: unbondings},
 		},
 		{
@@ -215,7 +218,7 @@ func (suite *IntegrationTestSuite) TestQueryUserUnbondings() {
 	userUnbondings := make([]*types.UserUnbonding, 0)
 	for i := 0; i < MultipleTestSize; i += 1 {
 		userUnbonding := &types.UserUnbonding{
-			ChainId:     suite.path.EndpointB.Chain.ChainID,
+			ChainId:     suite.chainB.ChainID,
 			Address:     TestAddress,
 			EpochNumber: int64(i),
 		}
@@ -265,7 +268,7 @@ func (suite *IntegrationTestSuite) TestQueryValidatorUnbondings() {
 	validatorUnbondings := make([]*types.ValidatorUnbonding, 0)
 	for i := 0; i < MultipleTestSize; i += 1 {
 		validatorUnbonding := &types.ValidatorUnbonding{
-			ChainId:          suite.path.EndpointB.Chain.ChainID,
+			ChainId:          suite.chainB.ChainID,
 			ValidatorAddress: TestAddress,
 			EpochNumber:      int64(i),
 		}
@@ -281,7 +284,7 @@ func (suite *IntegrationTestSuite) TestQueryValidatorUnbondings() {
 	}{
 		{
 			name: "Success",
-			req:  &types.QueryValidatorUnbondingRequest{ChainId: suite.path.EndpointB.Chain.ChainID},
+			req:  &types.QueryValidatorUnbondingRequest{ChainId: suite.chainB.ChainID},
 			resp: &types.QueryValidatorUnbondingResponse{ValidatorUnbondings: validatorUnbondings},
 		},
 		{
@@ -304,6 +307,116 @@ func (suite *IntegrationTestSuite) TestQueryValidatorUnbondings() {
 		suite.Run(t.name, func() {
 
 			resp, err := suite.app.LiquidStakeIBCKeeper.ValidatorUnbondings(suite.ctx, t.req)
+
+			suite.Require().Equal(err, t.err)
+			suite.Require().Equal(resp, t.resp)
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestQueryUnbonding() {
+	unbonding := &types.Unbonding{ChainId: suite.chainB.ChainID, EpochNumber: int64(1)}
+	suite.app.LiquidStakeIBCKeeper.SetUnbonding(suite.ctx, unbonding)
+
+	tc := []struct {
+		name string
+		req  *types.QueryUnbondingRequest
+		resp *types.QueryUnbondingResponse
+		err  error
+	}{{
+		name: "Valid",
+		req: &types.QueryUnbondingRequest{
+			ChainId: suite.chainB.ChainID,
+			Epoch:   1,
+		},
+		resp: &types.QueryUnbondingResponse{Unbonding: unbonding},
+		err:  nil,
+	}, {
+		name: "NotFound",
+		req:  &types.QueryUnbondingRequest{ChainId: "chain-1"},
+		resp: nil,
+		err:  sdkerrors.ErrKeyNotFound,
+	}, {
+		name: "InvalidRequest",
+		req:  &types.QueryUnbondingRequest{ChainId: ""},
+		err:  status.Error(codes.InvalidArgument, "chain_id cannot be empty"),
+	}, {
+		name: "InvalidRequest",
+		err:  status.Error(codes.InvalidArgument, "empty request"),
+	},
+	}
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+
+			resp, err := suite.app.LiquidStakeIBCKeeper.Unbonding(suite.ctx, t.req)
+
+			suite.Require().Equal(t.err, err)
+			suite.Require().Equal(t.resp, resp)
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestQueryDepositAccountBalance() {
+
+	err := testutil.FundAccount(suite.app.BankKeeper, suite.ctx,
+		authtypes.NewModuleAddress(types.DepositModuleAccount),
+		sdktypes.NewCoins(sdktypes.NewInt64Coin("ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", 1000)))
+	suite.Require().NoError(err)
+
+	tc := []struct {
+		name string
+		req  *types.QueryDepositAccountBalanceRequest
+		resp *types.QueryDepositAccountBalanceResponse
+		err  error
+	}{{
+		name: "Valid",
+		req:  &types.QueryDepositAccountBalanceRequest{ChainId: suite.chainB.ChainID},
+		resp: &types.QueryDepositAccountBalanceResponse{Balance: sdktypes.NewInt64Coin("ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", 1000)},
+		err:  nil,
+	}, {
+		name: "NotFound",
+		req:  &types.QueryDepositAccountBalanceRequest{ChainId: "chain-1"},
+		err:  sdkerrors.ErrKeyNotFound,
+	}, {
+		name: "InvalidRequest",
+		err:  status.Error(codes.InvalidArgument, "empty request"),
+	}}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+
+			resp, err := suite.app.LiquidStakeIBCKeeper.DepositAccountBalance(suite.ctx, t.req)
+
+			suite.Require().Equal(err, t.err)
+			suite.Require().Equal(resp, t.resp)
+		})
+	}
+}
+func (suite *IntegrationTestSuite) TestQueryExchangeRate() {
+
+	tc := []struct {
+		name string
+		req  *types.QueryExchangeRateRequest
+		resp *types.QueryExchangeRateResponse
+		err  error
+	}{{
+		name: "Valid",
+		req:  &types.QueryExchangeRateRequest{ChainId: suite.chainB.ChainID},
+		resp: &types.QueryExchangeRateResponse{Rate: sdktypes.OneDec()},
+		err:  nil,
+	}, {
+		name: "NotFound",
+		req:  &types.QueryExchangeRateRequest{ChainId: "chain-1"},
+		err:  sdkerrors.ErrKeyNotFound,
+	}, {
+		name: "InvalidRequest",
+		err:  status.Error(codes.InvalidArgument, "empty request"),
+	}}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+
+			resp, err := suite.app.LiquidStakeIBCKeeper.ExchangeRate(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)
 			suite.Require().Equal(resp, t.resp)

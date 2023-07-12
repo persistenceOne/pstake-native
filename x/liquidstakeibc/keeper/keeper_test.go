@@ -98,7 +98,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	}
 
 	hc := &types.HostChain{
-		ChainId:      suite.path.EndpointB.Chain.ChainID,
+		ChainId:      suite.chainB.ChainID,
 		ConnectionId: suite.path.EndpointA.ConnectionID,
 		Params:       hostChainLSParams,
 		HostDenom:    HostDenom,
@@ -192,7 +192,7 @@ func (suite *IntegrationTestSuite) TestSendProtocolFee() {
 	}
 
 	pstakeApp, ctx := suite.app, suite.ctx
-	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.path.EndpointB.Chain.ChainID)
+	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
 	suite.Require().Equal(found, true)
 
 	baseFee := sdk.NewInt64Coin(hc.MintDenom(), 100)
@@ -229,7 +229,7 @@ func (suite *IntegrationTestSuite) TestSendProtocolFee() {
 
 func (suite *IntegrationTestSuite) TestDelegateAccountPortOwner() {
 	pstakeApp, ctx := suite.app, suite.ctx
-	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.path.EndpointB.Chain.ChainID)
+	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
 	suite.Require().Equal(found, true)
 
 	suite.Require().Equal(
@@ -240,7 +240,7 @@ func (suite *IntegrationTestSuite) TestDelegateAccountPortOwner() {
 
 func (suite *IntegrationTestSuite) TestRewardsAccountPortOwner() {
 	pstakeApp, ctx := suite.app, suite.ctx
-	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.path.EndpointB.Chain.ChainID)
+	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
 	suite.Require().Equal(found, true)
 
 	suite.Require().Equal(

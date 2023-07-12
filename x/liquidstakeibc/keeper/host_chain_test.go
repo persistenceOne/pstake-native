@@ -17,13 +17,13 @@ func (suite *IntegrationTestSuite) TestGetSetHostChain() {
 	}{
 		{
 			name:     "Success",
-			input:    types.HostChain{ChainId: suite.path.EndpointB.Chain.ChainID},
-			expected: types.HostChain{ChainId: suite.path.EndpointB.Chain.ChainID},
+			input:    types.HostChain{ChainId: suite.chainB.ChainID},
+			expected: types.HostChain{ChainId: suite.chainB.ChainID},
 			found:    true,
 		},
 		{
 			name:     "NotFound",
-			input:    types.HostChain{ChainId: suite.path.EndpointB.Chain.ChainID},
+			input:    types.HostChain{ChainId: suite.chainB.ChainID},
 			expected: types.HostChain{ChainId: ""},
 			found:    false,
 		},
@@ -322,7 +322,7 @@ func (suite *IntegrationTestSuite) TestGetHostChainFromDelegatorAddress() {
 }
 
 func (suite *IntegrationTestSuite) TestGetHostChainCValue() {
-	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.path.EndpointB.Chain.ChainID)
+	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.chainB.ChainID)
 	suite.Require().Equal(true, found)
 
 	suite.Require().Equal(sdk.OneDec(), hc.CValue)
@@ -346,7 +346,7 @@ func (suite *IntegrationTestSuite) TestUpdateHostChainValidatorWeight() {
 		{
 			name: "Case 1",
 			hc: types.HostChain{
-				ChainId: suite.path.EndpointB.Chain.ChainID,
+				ChainId: suite.chainB.ChainID,
 				Validators: []*types.Validator{
 					{
 						OperatorAddress: "valoper1",
@@ -363,7 +363,7 @@ func (suite *IntegrationTestSuite) TestUpdateHostChainValidatorWeight() {
 		{
 			name: "NotFound",
 			hc: types.HostChain{
-				ChainId: suite.path.EndpointB.Chain.ChainID,
+				ChainId: suite.chainB.ChainID,
 				Validators: []*types.Validator{
 					{
 						OperatorAddress: "valoper1",
@@ -380,7 +380,7 @@ func (suite *IntegrationTestSuite) TestUpdateHostChainValidatorWeight() {
 		{
 			name: "InvalidRequest",
 			hc: types.HostChain{
-				ChainId: suite.path.EndpointB.Chain.ChainID,
+				ChainId: suite.chainB.ChainID,
 				Validators: []*types.Validator{
 					{
 						OperatorAddress: "valoper1",
