@@ -155,7 +155,7 @@ func (k *Keeper) GetChainID(ctx sdk.Context, connectionID string) (string, error
 
 // GetPortID constructs a port id given the port owner
 func (k *Keeper) GetPortID(owner string) string {
-	return icatypes.ControllerPortPrefix + owner
+	return fmt.Sprintf("%s%s", icatypes.ControllerPortPrefix, owner)
 }
 
 // RegisterICAAccount registers an ICA
