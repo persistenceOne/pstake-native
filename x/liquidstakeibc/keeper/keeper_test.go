@@ -1,12 +1,20 @@
 package keeper_test
 
 import (
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"
 
@@ -16,14 +24,22 @@ import (
 )
 
 var (
-	ChainID          = "cosmoshub-4"
-	ConnectionID     = "connection-0"
-	TransferChannel  = "channel-0"
-	TransferPort     = "transfer"
+	//ChainID          = "cosmoshub-4"
+	//ConnectionID     = "connection-0"
+	//TransferChannel  = "channel-0"
+	//TransferPort     = "transfer"
 	HostDenom        = "uatom"
 	MintDenom        = "stk/uatom"
 	MinDeposit       = sdk.NewInt(5)
 	PstakeFeeAddress = "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld"
+	// TestVersion defines a reusable interchainaccounts version string for testing purposes
+	TestVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
+		Version:                icatypes.Version,
+		ControllerConnectionId: ibctesting.FirstConnectionID,
+		HostConnectionId:       ibctesting.FirstConnectionID,
+		Encoding:               icatypes.EncodingProtobuf,
+		TxType:                 icatypes.TxTypeSDKMultiMsg,
+	}))
 )
 
 func init() {
@@ -48,16 +64,13 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *IntegrationTestSuite) SetupTest() {
-	//_, pstakeApp, ctx := helpers.CreateTestApp(suite.T())
 
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
-	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
-	suite.path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
-	suite.coordinator.SetupConnections(suite.path)
+	suite.path = NewTransferPath(suite.chainA, suite.chainB)
+	suite.coordinator.Setup(suite.path)
 
 	suite.app = suite.chainA.App.(*app.PstakeApp)
 	suite.ctx = suite.chainA.GetContext()
@@ -67,6 +80,10 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	params := types.DefaultParams()
 	keeper.SetParams(suite.ctx, params)
 
+	suite.SetupHostChain()
+
+}
+func (suite *IntegrationTestSuite) SetupHostChain() {
 	// set host chain params
 	depositFee, err := sdk.NewDecFromStr("0.01")
 	suite.NoError(err)
@@ -123,9 +140,88 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	}
 
 	suite.app.LiquidStakeIBCKeeper.SetHostChain(suite.ctx, hc)
-
 }
 
+func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
+	path := ibctesting.NewPath(chainA, chainB)
+	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+	path.EndpointA.ChannelConfig.Version = ibctransfertypes.Version
+	path.EndpointB.ChannelConfig.Version = ibctransfertypes.Version
+
+	return path
+}
+func (suite *IntegrationTestSuite) SetupICAChannels() *ibctesting.Path {
+	icapath := NewICAPath(suite.chainA, suite.chainB)
+	icapath.EndpointA.ClientID = suite.path.EndpointA.ClientID
+	icapath.EndpointB.ClientID = suite.path.EndpointB.ClientID
+	icapath.EndpointA.ConnectionID = suite.path.EndpointA.ConnectionID
+	icapath.EndpointB.ConnectionID = suite.path.EndpointB.ConnectionID
+	icapath.EndpointA.ClientConfig = suite.path.EndpointA.ClientConfig
+	icapath.EndpointB.ClientConfig = suite.path.EndpointB.ClientConfig
+	icapath.EndpointA.ConnectionConfig = suite.path.EndpointA.ConnectionConfig
+	icapath.EndpointB.ConnectionConfig = suite.path.EndpointB.ConnectionConfig
+
+	err := suite.SetupICAPath(icapath, types.DefaultDelegateAccountPortOwner(suite.chainB.ChainID))
+	suite.Require().NoError(err)
+
+	return icapath
+}
+func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
+	path := ibctesting.NewPath(chainA, chainB)
+	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
+	path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
+	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
+	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
+	path.EndpointA.ChannelConfig.Version = TestVersion
+	path.EndpointB.ChannelConfig.Version = TestVersion
+
+	return path
+}
+
+func (suite *IntegrationTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
+	portID, err := icatypes.NewControllerPortID(owner)
+	if err != nil {
+		return err
+	}
+
+	channelSequence := suite.app.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
+
+	if err := suite.app.ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, TestVersion); err != nil {
+		return err
+	}
+
+	// commit state changes for proof verification
+	endpoint.Chain.NextBlock()
+
+	// update port/channel ids
+	endpoint.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
+	endpoint.ChannelConfig.PortID = portID
+	endpoint.ChannelConfig.Version = TestVersion
+
+	return nil
+}
+
+// SetupICAPath invokes the InterchainAccounts entrypoint and subsequent channel handshake handlers
+func (suite *IntegrationTestSuite) SetupICAPath(path *ibctesting.Path, owner string) error {
+	if err := suite.RegisterInterchainAccount(path.EndpointA, owner); err != nil {
+		return err
+	}
+
+	if err := path.EndpointB.ChanOpenTry(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointA.ChanOpenAck(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
+		return err
+	}
+
+	return nil
+}
 func (suite *IntegrationTestSuite) TestGetSetParams() {
 	tc := []struct {
 		name     string
@@ -256,4 +352,73 @@ func (suite *IntegrationTestSuite) TestGetEpochNumber() {
 		pstakeApp.LiquidStakeIBCKeeper.GetEpochNumber(ctx, types.DelegationEpoch),
 		pstakeApp.EpochsKeeper.GetEpochInfo(ctx, types.DelegationEpoch).CurrentEpoch,
 	)
+}
+
+func (suite *IntegrationTestSuite) TestGetClientState() {
+	pstakeApp, ctx := suite.app, suite.ctx
+
+	// check client state
+	state, err := pstakeApp.LiquidStakeIBCKeeper.GetClientState(ctx, suite.path.EndpointA.ConnectionID)
+	require.NoError(suite.T(), err)
+	require.Equal(suite.T(), ibcexported.Tendermint, state.ClientType())
+
+	// check localhost client exists
+	state, err = pstakeApp.LiquidStakeIBCKeeper.GetClientState(ctx, ibcexported.LocalhostConnectionID)
+	require.NoError(suite.T(), err)
+	require.Equal(suite.T(), ibcexported.Localhost, state.ClientType())
+
+	//no connection found
+	_, err = pstakeApp.LiquidStakeIBCKeeper.GetClientState(ctx, "connection-1")
+	require.Error(suite.T(), err)
+
+	// set connection without an active client-id
+	pstakeApp.IBCKeeper.ConnectionKeeper.SetConnection(ctx, "connection-1", connectiontypes.ConnectionEnd{ClientId: "client-1"})
+	_, err = pstakeApp.LiquidStakeIBCKeeper.GetClientState(ctx, "connection-1")
+	require.Error(suite.T(), err)
+}
+
+func (suite *IntegrationTestSuite) TestGetChainID() {
+	pstakeApp, ctx := suite.app, suite.ctx
+
+	chainID, err := pstakeApp.LiquidStakeIBCKeeper.GetChainID(ctx, suite.path.EndpointA.ConnectionID)
+	suite.Require().NoError(err)
+	suite.Require().Equal(suite.chainB.ChainID, chainID)
+
+	chainID, err = pstakeApp.LiquidStakeIBCKeeper.GetChainID(ctx, ibcexported.LocalhostConnectionID)
+	suite.Require().NoError(err)
+	suite.Require().Equal(suite.chainA.ChainID, chainID)
+
+	// random type of client not supported
+	solomachine.RegisterInterfaces(pstakeApp.InterfaceRegistry())
+	pstakeApp.IBCKeeper.ClientKeeper.SetClientState(ctx, "client-1", &solomachine.ClientState{ConsensusState: &solomachine.ConsensusState{}})
+	pstakeApp.IBCKeeper.ConnectionKeeper.SetConnection(ctx, "connection-1", connectiontypes.NewConnectionEnd(connectiontypes.OPEN, "client-1", connectiontypes.NewCounterparty("--", "--", commitmenttypes.NewMerklePrefix([]byte("New"))), nil, 1))
+	_, err = pstakeApp.LiquidStakeIBCKeeper.GetChainID(ctx, "connection-1")
+	suite.Require().Error(err)
+
+	//connection not found
+	_, err = pstakeApp.LiquidStakeIBCKeeper.GetChainID(ctx, "connection-2")
+	suite.Require().Error(err)
+
+}
+
+func (suite *IntegrationTestSuite) TestGetPortID() {
+	portID := suite.app.LiquidStakeIBCKeeper.GetPortID("owner")
+	suite.Require().Equal(icatypes.ControllerPortPrefix+"owner", portID)
+}
+
+func (suite *IntegrationTestSuite) TestRegisterICAAccount() {
+	pstakeApp, ctx := suite.app, suite.ctx
+	err := pstakeApp.LiquidStakeIBCKeeper.RegisterICAAccount(ctx, suite.path.EndpointA.ConnectionID, types.DefaultDelegateAccountPortOwner(suite.chainB.ChainID))
+	suite.Require().NoError(err)
+}
+
+func (suite *IntegrationTestSuite) TestSetWithdrawAddress() {
+	pstakeApp, ctx := suite.app, suite.ctx
+	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
+	require.Equal(suite.T(), true, found)
+	require.NotNil(suite.T(), hc)
+
+	_ = suite.SetupICAChannels()
+	err := pstakeApp.LiquidStakeIBCKeeper.SetWithdrawAddress(ctx, hc)
+	require.NoError(suite.T(), err)
 }
