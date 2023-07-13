@@ -111,12 +111,12 @@ func (suite *IntegrationTestSuite) Test_msgServer_Redeem() {
 		wantErr bool
 	}{
 		{
-			name: "No staked tokens to redeem",
+			name: "success",
 			args: args{
 				goCtx: ctx,
 				msg: &types.MsgRedeem{
 					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
-					Amount:           sdk.NewInt64Coin(hc.HostDenom, 100),
+					Amount:           sdk.NewInt64Coin(hc.MintDenom(), 100),
 				},
 			},
 			want:    nil,
