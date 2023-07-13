@@ -2,17 +2,24 @@ package keeper_test
 
 import (
 	"context"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"reflect"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
 func (suite *IntegrationTestSuite) Test_msgServer_LiquidStake() {
 	pstakeapp, ctx := suite.app, suite.ctx
 	hc, found := pstakeapp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
 	suite.Require().True(found)
+	epoch := pstakeapp.EpochsKeeper.GetEpochInfo(suite.chainA.GetContext(), types.DelegationEpoch)
+	suite.NotNil(epoch)
+	err := pstakeapp.LiquidStakeIBCKeeper.BeforeEpochStart(suite.chainA.GetContext(), epoch.Identifier, epoch.CurrentEpoch)
+	suite.Require().NoError(err)
+
 	type args struct {
 		goCtx context.Context
 		msg   *types.MsgLiquidStake

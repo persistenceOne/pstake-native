@@ -1,16 +1,17 @@
 package keeper_test
 
 import (
-	"cosmossdk.io/math"
 	"fmt"
-	"github.com/cosmos/gogoproto/proto"
 	"strconv"
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/gogoproto/proto"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -72,7 +73,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	ibctesting.DefaultTestingAppInit = helpers.SetupTestingApp
 	sdk.DefaultBondDenom = "uxprt"
 	suite.chainA = ibctesting.NewTestChain(suite.T(), suite.coordinator, ibctesting.GetChainID(1))
-
+	suite.ResetEpochs()
 	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
 	sdk.DefaultBondDenom = HostDenom
 	suite.chainB = ibctesting.NewTestChain(suite.T(), suite.coordinator, ibctesting.GetChainID(2))
@@ -105,12 +106,31 @@ func (suite *IntegrationTestSuite) SetupTest() {
 
 func (suite *IntegrationTestSuite) CleanupSetup() {
 	pstakeApp := suite.app
+
 	params := pstakeApp.LiquidStakeIBCKeeper.GetParams(suite.chainA.GetContext())
 	params.AdminAddress = suite.chainA.SenderAccount.GetAddress().String()
 	suite.app.LiquidStakeIBCKeeper.SetParams(suite.chainA.GetContext(), params)
 
 	epoch := suite.app.EpochsKeeper.GetEpochInfo(suite.chainA.GetContext(), types.DelegationEpoch).CurrentEpoch
 	pstakeApp.LiquidStakeIBCKeeper.DepositWorkflow(suite.chainA.GetContext(), epoch)
+}
+func (suite *IntegrationTestSuite) ResetEpochs() {
+	ctx := suite.chainA.GetContext()
+
+	//ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
+	epochsKeeper := suite.chainA.App.(*app.PstakeApp).EpochsKeeper
+
+	for _, epoch := range epochsKeeper.AllEpochInfos(ctx) {
+		epoch.StartTime = ctx.BlockTime()
+		epoch.CurrentEpoch = int64(1)
+		epoch.CurrentEpochStartTime = ctx.BlockTime()
+		epoch.CurrentEpochStartHeight = ctx.BlockHeight()
+		epochsKeeper.DeleteEpochInfo(ctx, epoch.Identifier)
+		err := epochsKeeper.AddEpochInfo(ctx, epoch)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func (suite *IntegrationTestSuite) SetupHostChainAB() {
@@ -290,6 +310,12 @@ func (suite *IntegrationTestSuite) TestOneFullFlow() {
 	k := pstakeApp.LiquidStakeIBCKeeper
 	hc, ok := k.GetHostChain(suite.chainA.GetContext(), suite.chainB.ChainID)
 	suite.True(ok)
+
+	epoch := pstakeApp.EpochsKeeper.GetEpochInfo(suite.chainA.GetContext(), types.DelegationEpoch)
+	suite.NotNil(epoch)
+	err := k.BeforeEpochStart(suite.chainA.GetContext(), epoch.Identifier, epoch.CurrentEpoch)
+	suite.Require().NoError(err)
+
 	senderAcc := suite.chainA.SenderAccount
 	//user liquidstakes
 	msgLiquidStake := types.NewMsgLiquidStake(sdk.NewInt64Coin(hc.IBCDenom(), 1000000), senderAcc.GetAddress())
@@ -303,7 +329,8 @@ func (suite *IntegrationTestSuite) TestOneFullFlow() {
 	suite.NotNil(result)
 	suite.NoError(err)
 
-	epoch := pstakeApp.EpochsKeeper.GetEpochInfo(suite.chainA.GetContext(), types.DelegationEpoch)
+	// Do ica staking
+	epoch = pstakeApp.EpochsKeeper.GetEpochInfo(suite.chainA.GetContext(), types.DelegationEpoch)
 	suite.NotNil(epoch)
 
 	deposit, found := k.GetDepositForChainAndEpoch(suite.chainA.GetContext(), hc.ChainId, epoch.CurrentEpoch)
@@ -329,7 +356,7 @@ func (suite *IntegrationTestSuite) TestOneFullFlow() {
 	suite.Require().Equal(types.Deposit_DEPOSIT_DELEGATING, deposit.State)
 
 	timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().UnixNano()) + uint64(types.ICATimeoutTimestamp.Nanoseconds()) - uint64(time.Second*5) //sub one b
-	data, err := suite.CreateICAData(deposit.Amount.Amount, hc)
+	data, err := suite.CreateICAData(deposit.Amount.Amount, hc, 0)
 	suite.NoError(err)
 
 	packet, err := CreateICADelegatePacketHardcoded(data,
@@ -342,7 +369,38 @@ func (suite *IntegrationTestSuite) TestOneFullFlow() {
 	suite.Require().Nil(deposit)
 	// ^ Fin staking
 
-	fmt.Println()
+	// Do unstake
+	undelegateAmount := int64(100000)
+	msgUnstake := types.NewMsgLiquidUnstake(sdk.NewInt64Coin(hc.MintDenom(), undelegateAmount), senderAcc.GetAddress())
+	result, err = suite.app.MsgServiceRouter().Handler(msgUnstake)(suite.chainA.GetContext(), msgUnstake)
+	suite.NotNil(result)
+	suite.NoError(err)
+
+	epoch = pstakeApp.EpochsKeeper.GetEpochInfo(suite.chainA.GetContext(), types.DelegationEpoch)
+	suite.NotNil(epoch)
+
+	userUnbonding, found := k.GetUserUnbonding(suite.chainA.GetContext(), hc.ChainId, senderAcc.GetAddress().String(), types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch))
+	suite.Require().True(found)
+	suite.Require().NotNil(userUnbonding)
+
+	unbonding, found := k.GetUnbonding(suite.chainA.GetContext(), hc.ChainId, types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch))
+	suite.Require().True(found)
+	suite.Require().Equal(types.Unbonding_UNBONDING_PENDING, unbonding.State)
+	//Force undelegation by manipulating epoch number
+	ctx = suite.chainA.GetContext()
+	err = k.AfterEpochEnd(ctx, epoch.Identifier, types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch))
+	packets, err = ParsePacketsFromEvents(ctx.EventManager().Events())
+	suite.NoError(err)
+	unbonding, found = k.GetUnbonding(suite.chainA.GetContext(), hc.ChainId, types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch))
+	suite.Require().True(found)
+	suite.Require().Equal(types.Unbonding_UNBONDING_INITIATED, unbonding.State)
+
+	suite.chainA.NextBlock() //commit the packets and their commitments so its available in context
+
+	suite.RelayAllPacketsAB(packets)
+	unbonding, found = k.GetUnbonding(suite.chainA.GetContext(), hc.ChainId, types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch))
+	suite.Require().True(found)
+	suite.Require().Equal(types.Unbonding_UNBONDING_MATURING, unbonding.State)
 }
 
 func (suite *IntegrationTestSuite) RelayAllPacketsAB(packets []channeltypes.Packet) {
@@ -424,16 +482,27 @@ func ParsePacketsFromEvents(events sdk.Events) ([]channeltypes.Packet, error) {
 	}
 }
 
-func (suite *IntegrationTestSuite) CreateICAData(amount math.Int, hc *types.HostChain) (string, error) {
+func (suite *IntegrationTestSuite) CreateICAData(amount math.Int, hc *types.HostChain, txtype int) (string, error) {
 
 	messages := make([]proto.Message, 0)
 	for _, vals := range hc.Validators {
 		var message proto.Message
-		message = &stakingtypes.MsgDelegate{
-			DelegatorAddress: hc.DelegationAccount.Address,
-			ValidatorAddress: vals.OperatorAddress,
-			Amount:           sdk.NewCoin(hc.HostDenom, vals.Weight.MulInt(amount).TruncateInt()),
+		switch txtype {
+		case 0:
+			message = &stakingtypes.MsgDelegate{
+				DelegatorAddress: hc.DelegationAccount.Address,
+				ValidatorAddress: vals.OperatorAddress,
+				Amount:           sdk.NewCoin(hc.HostDenom, vals.Weight.MulInt(amount).TruncateInt()),
+			}
+		case 1:
+		case 2:
+			message = &distributiontypes.MsgWithdrawDelegatorReward{
+				DelegatorAddress: hc.DelegationAccount.Address,
+				ValidatorAddress: vals.OperatorAddress,
+			}
+
 		}
+
 		messages = append(messages, message)
 	}
 	msgData, err := icatypes.SerializeCosmosTx(suite.app.AppCodec(), messages)
