@@ -101,6 +101,10 @@ func (suite *IntegrationTestSuite) SetupTest() {
 
 func (suite *IntegrationTestSuite) CleanupSetup() {
 	pstakeApp, ctx := suite.app, suite.ctx
+	params := pstakeApp.LiquidStakeIBCKeeper.GetParams(ctx)
+	params.AdminAddress = suite.chainA.SenderAccount.GetAddress().String()
+	suite.app.LiquidStakeIBCKeeper.SetParams(ctx, params)
+
 	epoch := suite.app.EpochsKeeper.GetEpochInfo(ctx, types.DelegationEpoch).CurrentEpoch
 	pstakeApp.LiquidStakeIBCKeeper.DepositWorkflow(ctx, epoch)
 }
