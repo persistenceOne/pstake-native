@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -209,6 +210,11 @@ func (suite *IntegrationTestSuite) TestSetWithdrawAddress() {
 
 	err := pstakeApp.LiquidStakeIBCKeeper.SetWithdrawAddress(ctx, hc)
 	suite.Require().NoError(err)
+
+	hc2 := hc
+	hc2.ConnectionId = "connection-3"
+	err = pstakeApp.LiquidStakeIBCKeeper.SetWithdrawAddress(ctx, hc2)
+	suite.Require().Error(err)
 }
 func (suite *IntegrationTestSuite) TestIsICAChannelActive() {
 	pstakeApp, ctx := suite.app, suite.ctx
@@ -218,4 +224,57 @@ func (suite *IntegrationTestSuite) TestIsICAChannelActive() {
 
 	active := pstakeApp.LiquidStakeIBCKeeper.IsICAChannelActive(ctx, hc, pstakeApp.LiquidStakeIBCKeeper.GetPortID(hc.DelegationAccount.Owner))
 	suite.Require().Equal(true, active)
+}
+func (suite *IntegrationTestSuite) TestSendICATransfer() {
+	pstakeApp, ctx := suite.app, suite.ctx
+	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
+	suite.Require().Equal(true, found)
+	suite.Require().NotNil(hc)
+
+	_, err := pstakeApp.LiquidStakeIBCKeeper.SendICATransfer(ctx, hc, sdk.NewInt64Coin(hc.HostDenom, 10),
+		hc.DelegationAccount.Address, authtypes.NewModuleAddress(types.UndelegationModuleAccount).String(),
+		hc.DelegationAccount.Owner)
+	suite.Require().NoError(err)
+
+	_, err = pstakeApp.LiquidStakeIBCKeeper.SendICATransfer(ctx, hc, sdk.NewInt64Coin(hc.HostDenom, 10),
+		hc.DelegationAccount.Address, authtypes.NewModuleAddress(types.UndelegationModuleAccount).String(),
+		"invalid owner")
+
+	hc2 := hc
+	hc2.PortId = ""
+	_, err = pstakeApp.LiquidStakeIBCKeeper.SendICATransfer(ctx, hc2, sdk.NewInt64Coin(hc.HostDenom, 10),
+		hc.DelegationAccount.Address, authtypes.NewModuleAddress(types.UndelegationModuleAccount).String(),
+		hc.DelegationAccount.Owner)
+	suite.Require().Error(err)
+}
+func (suite *IntegrationTestSuite) TestUpdateCValues() {
+	pstakeApp, ctx := suite.app, suite.ctx
+	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
+	suite.Require().Equal(true, found)
+	suite.Require().NotNil(hc)
+
+	suite.Require().NotPanics(func() { pstakeApp.LiquidStakeIBCKeeper.UpdateCValues(ctx) })
+
+	{
+		epoch := pstakeApp.EpochsKeeper.GetEpochInfo(suite.chainA.GetContext(), types.DelegationEpoch)
+		suite.NotNil(epoch)
+		err := pstakeApp.LiquidStakeIBCKeeper.BeforeEpochStart(suite.chainA.GetContext(), epoch.Identifier, epoch.CurrentEpoch)
+		suite.Require().NoError(err)
+
+		senderAcc := suite.chainA.SenderAccount
+		//user liquidstakes
+		msgLiquidStake := types.NewMsgLiquidStake(sdk.NewInt64Coin(hc.IBCDenom(), 1000000), senderAcc.GetAddress())
+		result, err := suite.app.MsgServiceRouter().Handler(msgLiquidStake)(suite.chainA.GetContext(), msgLiquidStake)
+		suite.NotNil(result)
+		suite.NoError(err)
+	}
+	suite.Require().NotPanics(func() { pstakeApp.LiquidStakeIBCKeeper.UpdateCValues(ctx) })
+
+	//lower limits so that chain goes out of limits
+	params := pstakeApp.LiquidStakeIBCKeeper.GetParams(ctx)
+	params.UpperCValueLimit = sdk.MustNewDecFromStr("0.5")
+	pstakeApp.LiquidStakeIBCKeeper.SetParams(ctx, params)
+	suite.Require().NotPanics(func() { pstakeApp.LiquidStakeIBCKeeper.UpdateCValues(ctx) })
+	hc, _ = pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
+	suite.Require().Equal(false, hc.Active)
 }
