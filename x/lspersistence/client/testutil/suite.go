@@ -45,6 +45,7 @@ func NewAppConstructor(encodingCfg params.EncodingConfig) network.AppConstructor
 	}
 }
 
+//nolint:staticcheck
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.T().Log("setting up integration test suite")
 	db := tmdb.NewMemDB()
@@ -59,13 +60,13 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	d := time.Duration(15) * time.Second
 	genesisStateGov := govtypes.DefaultGenesisState()
-	dp := govtypes.NewDepositParams(sdk.NewCoins(sdk.NewCoin(cfg.BondDenom, govtypes.DefaultMinDepositTokens)), &d) //nolint:staticcheck
-	genesisStateGov.DepositParams = &dp                                                                             //nolint:staticcheck
+	dp := govtypes.NewDepositParams(sdk.NewCoins(sdk.NewCoin(cfg.BondDenom, govtypes.DefaultMinDepositTokens)), &d)
+	genesisStateGov.DepositParams = &dp
 
 	d = time.Duration(3) * time.Second
-	vp := govtypes.NewVotingParams(&d)                                          //nolint:staticcheck
-	genesisStateGov.VotingParams = &vp                                          //nolint:staticcheck
-	genesisStateGov.TallyParams.Quorum = sdk.MustNewDecFromStr("0.01").String() //nolint:staticcheck
+	vp := govtypes.NewVotingParams(&d)
+	genesisStateGov.VotingParams = &vp
+	genesisStateGov.TallyParams.Quorum = sdk.MustNewDecFromStr("0.01").String()
 	bz, err := cfg.Codec.MarshalJSON(genesisStateGov)
 	s.Require().NoError(err)
 	cfg.GenesisState["gov"] = bz
