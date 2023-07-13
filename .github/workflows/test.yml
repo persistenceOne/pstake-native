@@ -24,7 +24,7 @@ jobs:
           make test
         env:
           TEST_TARGET: "./x/..."
-          TEST_ARGS: "-timeout 5m -race -coverprofile=./coverage.out -covermode=atomic -v"
+          TEST_ARGS: "-timeout 10m -race -coverprofile=./coverage.out -covermode=atomic -v"
 
       - name: filter out DONTCOVER
         if: github.event_name == 'pull_request'

@@ -1,13 +1,20 @@
 package keeper_test
 
 import (
+	"fmt"
+	"strconv"
 	"testing"
+	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/gogoproto/proto"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"
@@ -50,6 +57,9 @@ type IntegrationTestSuite struct {
 
 	transferPathAB *ibctesting.Path // chainA - chainB transfer path
 	transferPathAC *ibctesting.Path // chainA - chainC transfer path
+
+	delegationPathAB *ibctesting.Path // chainA - chain B delegation ica path
+	rewardsPathAB    *ibctesting.Path // chainA - chainB rewards ica path
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -63,7 +73,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	ibctesting.DefaultTestingAppInit = helpers.SetupTestingApp
 	sdk.DefaultBondDenom = "uxprt"
 	suite.chainA = ibctesting.NewTestChain(suite.T(), suite.coordinator, ibctesting.GetChainID(1))
-
+	suite.ResetEpochs()
 	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
 	sdk.DefaultBondDenom = HostDenom
 	suite.chainB = ibctesting.NewTestChain(suite.T(), suite.coordinator, ibctesting.GetChainID(2))
@@ -83,7 +93,6 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	suite.coordinator.Setup(suite.transferPathAC)
 
 	suite.app = suite.chainA.App.(*app.PstakeApp)
-	suite.ctx = suite.chainA.GetContext()
 
 	suite.SetupHostChainAB()
 	suite.SetupICAChannelsAB()
@@ -92,33 +101,36 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	suite.Transfer(suite.transferPathAC, "uosmo")
 
 	suite.CleanupSetup()
+	suite.ctx = suite.chainA.GetContext()
 }
 
 func (suite *IntegrationTestSuite) CleanupSetup() {
-	pstakeApp, ctx := suite.app, suite.ctx
-	params := pstakeApp.LiquidStakeIBCKeeper.GetParams(ctx)
+	pstakeApp := suite.app
+
+	params := pstakeApp.LiquidStakeIBCKeeper.GetParams(suite.chainA.GetContext())
 	params.AdminAddress = suite.chainA.SenderAccount.GetAddress().String()
-	suite.app.LiquidStakeIBCKeeper.SetParams(ctx, params)
+	suite.app.LiquidStakeIBCKeeper.SetParams(suite.chainA.GetContext(), params)
 
-	epoch := suite.app.EpochsKeeper.GetEpochInfo(ctx, types.DelegationEpoch).CurrentEpoch
-	pstakeApp.LiquidStakeIBCKeeper.DepositWorkflow(ctx, epoch)
+	epoch := suite.app.EpochsKeeper.GetEpochInfo(suite.chainA.GetContext(), types.DelegationEpoch).CurrentEpoch
+	pstakeApp.LiquidStakeIBCKeeper.DepositWorkflow(suite.chainA.GetContext(), epoch)
 }
-func (suite *IntegrationTestSuite) TestOneFullFlow() {
-	pstakeApp, ctx := suite.app, suite.ctx
-	k := pstakeApp.LiquidStakeIBCKeeper
-	hc, ok := k.GetHostChain(ctx, suite.chainB.ChainID)
-	suite.True(ok)
-	senderAcc := suite.chainA.SenderAccount
-	//user liquidstakes
-	msgLiquidStake := types.NewMsgLiquidStake(sdk.NewInt64Coin(hc.IBCDenom(), 1000000), senderAcc.GetAddress())
-	result, err := suite.chainA.SendMsgs(msgLiquidStake)
-	suite.NotNil(result)
-	suite.NoError(err)
+func (suite *IntegrationTestSuite) ResetEpochs() {
+	ctx := suite.chainA.GetContext()
 
-	msgRedeem := types.NewMsgRedeem(sdk.NewInt64Coin(hc.MintDenom(), 100000), senderAcc.GetAddress())
-	result, err = suite.chainA.SendMsgs(msgRedeem)
-	suite.NotNil(result)
-	suite.NoError(err)
+	//ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
+	epochsKeeper := suite.chainA.App.(*app.PstakeApp).EpochsKeeper
+
+	for _, epoch := range epochsKeeper.AllEpochInfos(ctx) {
+		epoch.StartTime = ctx.BlockTime()
+		epoch.CurrentEpoch = int64(1)
+		epoch.CurrentEpochStartTime = ctx.BlockTime()
+		epoch.CurrentEpochStartHeight = ctx.BlockHeight()
+		epochsKeeper.DeleteEpochInfo(ctx, epoch.Identifier)
+		err := epochsKeeper.AddEpochInfo(ctx, epoch)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func (suite *IntegrationTestSuite) SetupHostChainAB() {
@@ -143,12 +155,14 @@ func (suite *IntegrationTestSuite) SetupHostChainAB() {
 	}
 
 	validators := make([]*types.Validator, 0)
+	equalWeight := sdk.OneDec().Quo(sdk.NewDecFromInt(sdk.NewInt(int64(len(suite.chainB.Vals.Validators)))))
 	for _, validator := range suite.chainB.Vals.Validators {
 		validators = append(validators, &types.Validator{
-			OperatorAddress: validator.Address.String(),
+			OperatorAddress: sdk.MustBech32ifyAddressBytes(app.Bech32PrefixValAddr, validator.Address),
 			Status:          stakingtypes.Bonded.String(),
-			Weight:          sdk.ZeroDec(),
+			Weight:          equalWeight,
 			DelegatedAmount: sdk.ZeroInt(),
+			ExchangeRate:    sdk.OneDec(),
 		})
 	}
 
@@ -178,7 +192,7 @@ func (suite *IntegrationTestSuite) SetupHostChainAB() {
 		Active:          true,
 	}
 
-	suite.app.LiquidStakeIBCKeeper.SetHostChain(suite.ctx, hc)
+	suite.app.LiquidStakeIBCKeeper.SetHostChain(suite.chainA.GetContext(), hc)
 }
 
 func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
@@ -216,6 +230,7 @@ func (suite *IntegrationTestSuite) SetupICAChannelsAB() {
 	icapath.EndpointB.ClientConfig = suite.transferPathAB.EndpointB.ClientConfig
 	icapath.EndpointA.ConnectionConfig = suite.transferPathAB.EndpointA.ConnectionConfig
 	icapath.EndpointB.ConnectionConfig = suite.transferPathAB.EndpointB.ConnectionConfig
+	suite.delegationPathAB = icapath
 
 	icapath2 := NewICAPath(suite.chainA, suite.chainB)
 	icapath2.EndpointA.ClientID = suite.transferPathAB.EndpointA.ClientID
@@ -226,11 +241,12 @@ func (suite *IntegrationTestSuite) SetupICAChannelsAB() {
 	icapath2.EndpointB.ClientConfig = suite.transferPathAB.EndpointB.ClientConfig
 	icapath2.EndpointA.ConnectionConfig = suite.transferPathAB.EndpointA.ConnectionConfig
 	icapath2.EndpointB.ConnectionConfig = suite.transferPathAB.EndpointB.ConnectionConfig
+	suite.rewardsPathAB = icapath2
 
-	err := suite.SetupICAPath(icapath, types.DefaultDelegateAccountPortOwner(suite.chainB.ChainID))
+	err := suite.SetupICAPath(suite.delegationPathAB, types.DefaultDelegateAccountPortOwner(suite.chainB.ChainID))
 	suite.Require().NoError(err)
 
-	err = suite.SetupICAPath(icapath2, types.DefaultRewardsAccountPortOwner(suite.chainB.ChainID))
+	err = suite.SetupICAPath(suite.rewardsPathAB, types.DefaultRewardsAccountPortOwner(suite.chainB.ChainID))
 	suite.Require().NoError(err)
 }
 func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
@@ -287,4 +303,269 @@ func (suite *IntegrationTestSuite) SetupICAPath(path *ibctesting.Path, owner str
 	}
 
 	return nil
+}
+
+func (suite *IntegrationTestSuite) TestOneFullFlow() {
+	pstakeApp := suite.app
+	k := pstakeApp.LiquidStakeIBCKeeper
+	hc, ok := k.GetHostChain(suite.chainA.GetContext(), suite.chainB.ChainID)
+	suite.True(ok)
+
+	epoch := pstakeApp.EpochsKeeper.GetEpochInfo(suite.chainA.GetContext(), types.DelegationEpoch)
+	suite.NotNil(epoch)
+	err := k.BeforeEpochStart(suite.chainA.GetContext(), epoch.Identifier, epoch.CurrentEpoch)
+	suite.Require().NoError(err)
+
+	senderAcc := suite.chainA.SenderAccount
+	//user liquidstakes
+	msgLiquidStake := types.NewMsgLiquidStake(sdk.NewInt64Coin(hc.IBCDenom(), 1000000), senderAcc.GetAddress())
+	result, err := suite.app.MsgServiceRouter().Handler(msgLiquidStake)(suite.chainA.GetContext(), msgLiquidStake)
+	suite.NotNil(result)
+	suite.NoError(err)
+
+	// user redeems
+	msgRedeem := types.NewMsgRedeem(sdk.NewInt64Coin(hc.MintDenom(), 100000), senderAcc.GetAddress())
+	result, err = suite.app.MsgServiceRouter().Handler(msgRedeem)(suite.chainA.GetContext(), msgRedeem)
+	suite.NotNil(result)
+	suite.NoError(err)
+
+	// Do ica staking
+	epoch = pstakeApp.EpochsKeeper.GetEpochInfo(suite.chainA.GetContext(), types.DelegationEpoch)
+	suite.NotNil(epoch)
+
+	deposit, found := k.GetDepositForChainAndEpoch(suite.chainA.GetContext(), hc.ChainId, epoch.CurrentEpoch)
+	suite.Require().True(found)
+	suite.Require().Equal(types.Deposit_DEPOSIT_PENDING, deposit.State)
+
+	ctx := suite.chainA.GetContext() //use separate context so we can fetch events out of it
+	err = k.AfterEpochEnd(ctx, epoch.Identifier, epoch.CurrentEpoch)
+	suite.NoError(err)
+	packets, err := ParsePacketsFromEvents(ctx.EventManager().Events())
+	suite.NoError(err)
+
+	deposit, found = k.GetDepositForChainAndEpoch(suite.chainA.GetContext(), hc.ChainId, epoch.CurrentEpoch)
+	suite.Require().True(found)
+	suite.Require().Equal(types.Deposit_DEPOSIT_SENT, deposit.State)
+
+	suite.chainA.NextBlock() //commit the packets and their commitments so its available in context
+
+	suite.RelayAllPacketsAB(packets) //also calls for Next Block causing Deposit_DEPOSIT_RECEIVED to just pass
+
+	deposit, found = k.GetDepositForChainAndEpoch(suite.chainA.GetContext(), hc.ChainId, epoch.CurrentEpoch)
+	suite.Require().True(found)
+	suite.Require().Equal(types.Deposit_DEPOSIT_DELEGATING, deposit.State)
+
+	timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().UnixNano()) + uint64(types.ICATimeoutTimestamp.Nanoseconds()) - uint64(time.Second*5) //sub one b
+	data, err := suite.CreateICAData(deposit.Amount.Amount, hc, 0)
+	suite.NoError(err)
+
+	packet, err := CreateICADelegatePacketHardcoded(data,
+		"1", "0-0", fmt.Sprintf("%d", timeoutTimestamp))
+	suite.NoError(err)
+	suite.chainA.NextBlock() //commit the packets and their commitments so its available in context
+	suite.RelayAllPacketsAB([]channeltypes.Packet{packet})
+	deposit, found = k.GetDepositForChainAndEpoch(suite.chainA.GetContext(), hc.ChainId, epoch.CurrentEpoch)
+	suite.Require().False(found)
+	suite.Require().Nil(deposit)
+	// ^ Fin staking
+
+	// Do unstake
+	undelegateAmount := int64(100000)
+	msgUnstake := types.NewMsgLiquidUnstake(sdk.NewInt64Coin(hc.MintDenom(), undelegateAmount), senderAcc.GetAddress())
+	result, err = suite.app.MsgServiceRouter().Handler(msgUnstake)(suite.chainA.GetContext(), msgUnstake)
+	suite.NotNil(result)
+	suite.NoError(err)
+
+	epoch = pstakeApp.EpochsKeeper.GetEpochInfo(suite.chainA.GetContext(), types.DelegationEpoch)
+	suite.NotNil(epoch)
+
+	userUnbonding, found := k.GetUserUnbonding(suite.chainA.GetContext(), hc.ChainId, senderAcc.GetAddress().String(), types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch))
+	suite.Require().True(found)
+	suite.Require().NotNil(userUnbonding)
+
+	unbonding, found := k.GetUnbonding(suite.chainA.GetContext(), hc.ChainId, types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch))
+	suite.Require().True(found)
+	suite.Require().Equal(types.Unbonding_UNBONDING_PENDING, unbonding.State)
+	//Force undelegation by manipulating epoch number
+	ctx = suite.chainA.GetContext()
+	err = k.AfterEpochEnd(ctx, epoch.Identifier, types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch))
+	packets, err = ParsePacketsFromEvents(ctx.EventManager().Events())
+	suite.NoError(err)
+	unbonding, found = k.GetUnbonding(suite.chainA.GetContext(), hc.ChainId, types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch))
+	suite.Require().True(found)
+	suite.Require().Equal(types.Unbonding_UNBONDING_INITIATED, unbonding.State)
+
+	suite.chainA.NextBlock() //commit the packets and their commitments so its available in context
+
+	suite.RelayAllPacketsAB(packets)
+	unbonding, found = k.GetUnbonding(suite.chainA.GetContext(), hc.ChainId, types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch))
+	suite.Require().True(found)
+	suite.Require().Equal(types.Unbonding_UNBONDING_MATURING, unbonding.State)
+}
+
+func (suite *IntegrationTestSuite) RelayAllPacketsAB(packets []channeltypes.Packet) {
+	suite.Require().NotEqual(0, len(packets), "No packets to relay")
+	hc, _ := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.chainA.GetContext(), suite.chainB.ChainID)
+	for _, packet := range packets {
+		if packet.SourcePort == hc.PortId {
+			err := suite.transferPathAB.RelayPacket(packet)
+			suite.Require().NoError(err)
+		} else if packet.SourcePort == suite.app.LiquidStakeIBCKeeper.GetPortID(hc.DelegationAccount.Owner) {
+			err := suite.delegationPathAB.RelayPacket(packet)
+			suite.Require().NoError(err)
+		} else if packet.SourcePort == suite.app.LiquidStakeIBCKeeper.GetPortID(hc.RewardsAccount.Owner) {
+			err := suite.rewardsPathAB.RelayPacket(packet)
+			suite.Require().NoError(err)
+		}
+	}
+}
+
+// ParsePacketsFromEvents parses events emitted from a MsgRecvPacket and returns the
+// acknowledgement.
+func ParsePacketsFromEvents(events sdk.Events) ([]channeltypes.Packet, error) {
+	packets := make([]channeltypes.Packet, 0)
+	for _, ev := range events {
+		if ev.Type == channeltypes.EventTypeSendPacket {
+			packet := channeltypes.Packet{}
+			for _, attr := range ev.Attributes {
+				switch attr.Key {
+				case channeltypes.AttributeKeyData: //nolint:staticcheck // DEPRECATED
+					packet.Data = []byte(attr.Value)
+
+				case channeltypes.AttributeKeySequence:
+					seq, err := strconv.ParseUint(attr.Value, 10, 64)
+					if err != nil {
+						return []channeltypes.Packet{}, err
+					}
+
+					packet.Sequence = seq
+
+				case channeltypes.AttributeKeySrcPort:
+					packet.SourcePort = attr.Value
+
+				case channeltypes.AttributeKeySrcChannel:
+					packet.SourceChannel = attr.Value
+
+				case channeltypes.AttributeKeyDstPort:
+					packet.DestinationPort = attr.Value
+
+				case channeltypes.AttributeKeyDstChannel:
+					packet.DestinationChannel = attr.Value
+
+				case channeltypes.AttributeKeyTimeoutHeight:
+					height, err := clienttypes.ParseHeight(attr.Value)
+					if err != nil {
+						return []channeltypes.Packet{}, err
+					}
+
+					packet.TimeoutHeight = height
+
+				case channeltypes.AttributeKeyTimeoutTimestamp:
+					timestamp, err := strconv.ParseUint(attr.Value, 10, 64)
+					if err != nil {
+						return []channeltypes.Packet{}, err
+					}
+
+					packet.TimeoutTimestamp = timestamp
+
+				default:
+					continue
+				}
+			}
+			packets = append(packets, packet)
+		}
+	}
+	if len(packets) == 0 {
+		return []channeltypes.Packet{}, fmt.Errorf("acknowledgement event attribute not found")
+	} else {
+		return packets, nil
+	}
+}
+
+func (suite *IntegrationTestSuite) CreateICAData(amount math.Int, hc *types.HostChain, txtype int) (string, error) {
+
+	messages := make([]proto.Message, 0)
+	for _, vals := range hc.Validators {
+		var message proto.Message
+		switch txtype {
+		case 0:
+			message = &stakingtypes.MsgDelegate{
+				DelegatorAddress: hc.DelegationAccount.Address,
+				ValidatorAddress: vals.OperatorAddress,
+				Amount:           sdk.NewCoin(hc.HostDenom, vals.Weight.MulInt(amount).TruncateInt()),
+			}
+		case 1:
+		case 2:
+			message = &distributiontypes.MsgWithdrawDelegatorReward{
+				DelegatorAddress: hc.DelegationAccount.Address,
+				ValidatorAddress: vals.OperatorAddress,
+			}
+
+		}
+
+		messages = append(messages, message)
+	}
+	msgData, err := icatypes.SerializeCosmosTx(suite.app.AppCodec(), messages)
+	if err != nil {
+		return "", err
+	}
+
+	icaPacketData := icatypes.InterchainAccountPacketData{
+		Type: icatypes.EXECUTE_TX,
+		Data: msgData,
+	}
+	return string(icaPacketData.GetBytes()), nil
+}
+
+func CreateICADelegatePacketHardcoded(data, sequence, timeoutHeight, timeoutTimestamp string) (channeltypes.Packet, error) {
+	seq, err := strconv.ParseUint(sequence, 10, 64)
+	if err != nil {
+		return channeltypes.Packet{}, err
+	}
+	height, err := clienttypes.ParseHeight(timeoutHeight)
+	if err != nil {
+		return channeltypes.Packet{}, err
+	}
+
+	timestamp, err := strconv.ParseUint(timeoutTimestamp, 10, 64)
+	if err != nil {
+		return channeltypes.Packet{}, err
+	}
+	packet := channeltypes.Packet{
+		Sequence:           seq,
+		SourcePort:         "icacontroller-testchain2-1.delegate",
+		SourceChannel:      "channel-2",
+		DestinationPort:    "icahost",
+		DestinationChannel: "channel-1",
+		Data:               []byte(data),
+		TimeoutHeight:      height,
+		TimeoutTimestamp:   timestamp,
+	}
+	return packet, nil
+}
+func CreateICARewardsPacketHardcoded(data, sequence, timeoutHeight, timeoutTimestamp string) (channeltypes.Packet, error) {
+	seq, err := strconv.ParseUint(sequence, 10, 64)
+	if err != nil {
+		return channeltypes.Packet{}, err
+	}
+	height, err := clienttypes.ParseHeight(timeoutHeight)
+	if err != nil {
+		return channeltypes.Packet{}, err
+	}
+
+	timestamp, err := strconv.ParseUint(timeoutTimestamp, 10, 64)
+	if err != nil {
+		return channeltypes.Packet{}, err
+	}
+	packet := channeltypes.Packet{
+		Sequence:           seq,
+		SourcePort:         "icacontroller-testchain2-1.rewards",
+		SourceChannel:      "channel-3",
+		DestinationPort:    "icahost",
+		DestinationChannel: "channel-2",
+		Data:               []byte(data),
+		TimeoutHeight:      height,
+		TimeoutTimestamp:   timestamp,
+	}
+	return packet, nil
 }
