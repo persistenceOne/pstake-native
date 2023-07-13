@@ -11,7 +11,7 @@ func (suite *IntegrationTestSuite) TestGetSetDeposit() {
 	suite.app.LiquidStakeIBCKeeper.SetDeposit(suite.ctx, &types.Deposit{ChainId: suite.chainB.ChainID})
 	deposits := suite.app.LiquidStakeIBCKeeper.GetAllDeposits(suite.ctx)
 
-	suite.Require().Equal(1, len(deposits))
+	suite.Require().Equal(2, len(deposits))
 	suite.Require().Equal(suite.chainB.ChainID, deposits[0].ChainId)
 }
 
@@ -22,7 +22,8 @@ func (suite *IntegrationTestSuite) TestDeleteDeposit() {
 	suite.app.LiquidStakeIBCKeeper.DeleteDeposit(suite.ctx, deposit)
 	deposits := suite.app.LiquidStakeIBCKeeper.GetAllDeposits(suite.ctx)
 
-	suite.Require().Equal(0, len(deposits))
+	// preexisting deposit
+	suite.Require().Equal(1, len(deposits))
 }
 
 func (suite *IntegrationTestSuite) TestCreateDeposits() {
@@ -211,12 +212,12 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 
 			suite.Require().Equal(t.err, err)
 
-			deposits := suite.app.LiquidStakeIBCKeeper.GetAllDeposits(suite.ctx)
-			for _, deposit := range deposits {
-				suite.Require().Equal(t.expected[deposit.Epoch], deposit.Amount)
+			for epoch, deposit := range t.expected {
+				depositState, ok := suite.app.LiquidStakeIBCKeeper.GetDepositForChainAndEpoch(suite.ctx, suite.chainB.ChainID, epoch)
+				suite.True(ok)
+				suite.Require().Equal(depositState.Amount, deposit)
 			}
 
-			suite.Require().Equal(len(t.expected), len(deposits))
 		})
 	}
 }
@@ -376,7 +377,7 @@ func (suite *IntegrationTestSuite) TestGetPendingDepositsBeforeEpoch() {
 			}
 
 			hcs := suite.app.LiquidStakeIBCKeeper.GetPendingDepositsBeforeEpoch(suite.ctx, t.epoch)
-			suite.Require().Equal(len(t.expected), len(hcs))
+			suite.Require().Equal(len(t.expected)+1, len(hcs))
 
 			for _, hc := range hcs {
 				suite.Require().LessOrEqual(hc.Epoch, t.epoch)

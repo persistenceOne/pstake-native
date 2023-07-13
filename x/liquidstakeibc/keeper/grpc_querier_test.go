@@ -124,8 +124,11 @@ func (suite *IntegrationTestSuite) TestQueryHostChains() {
 }
 
 func (suite *IntegrationTestSuite) TestQueryDeposits() {
-
-	deposits := make([]*types.Deposit, 0)
+	deposits := suite.app.LiquidStakeIBCKeeper.GetAllDeposits(suite.ctx)
+	for _, deposit := range deposits {
+		suite.app.LiquidStakeIBCKeeper.DeleteDeposit(suite.ctx, deposit)
+	}
+	deposits = make([]*types.Deposit, 0)
 	for i := 0; i < MultipleTestSize; i += 1 {
 		deposit := &types.Deposit{
 			ChainId: suite.chainB.ChainID,

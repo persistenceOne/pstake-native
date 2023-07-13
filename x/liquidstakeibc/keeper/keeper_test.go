@@ -66,10 +66,13 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 0)
 
 	ibctesting.DefaultTestingAppInit = helpers.SetupTestingApp
+	sdk.DefaultBondDenom = "uxprt"
 	suite.chainA = ibctesting.NewTestChain(suite.T(), suite.coordinator, ibctesting.GetChainID(1))
 
 	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
+	sdk.DefaultBondDenom = HostDenom
 	suite.chainB = ibctesting.NewTestChain(suite.T(), suite.coordinator, ibctesting.GetChainID(2))
+	sdk.DefaultBondDenom = "uosmo"
 	suite.chainC = ibctesting.NewTestChain(suite.T(), suite.coordinator, ibctesting.GetChainID(3))
 
 	suite.coordinator.Chains = map[string]*ibctesting.TestChain{
@@ -90,15 +93,16 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	suite.SetupHostChainAB()
 	suite.SetupICAChannelsAB()
 
+	suite.Transfer(suite.transferPathAB, "uatom")
+	suite.Transfer(suite.transferPathAC, "uosmo")
+
 	suite.CleanupSetup()
 }
 
 func (suite *IntegrationTestSuite) CleanupSetup() {
 	pstakeApp, ctx := suite.app, suite.ctx
-	deposits := pstakeApp.LiquidStakeIBCKeeper.GetAllDeposits(ctx)
-	for _, deposit := range deposits {
-		pstakeApp.LiquidStakeIBCKeeper.DeleteDeposit(ctx, deposit)
-	}
+	epoch := suite.app.EpochsKeeper.GetEpochInfo(ctx, types.DelegationEpoch).CurrentEpoch
+	pstakeApp.LiquidStakeIBCKeeper.DepositWorkflow(ctx, epoch)
 }
 
 func (suite *IntegrationTestSuite) SetupHostChainAB() {
@@ -155,6 +159,7 @@ func (suite *IntegrationTestSuite) SetupHostChainAB() {
 		MinimumDeposit:  MinDeposit,
 		CValue:          sdk.OneDec(),
 		UnbondingFactor: 4,
+		Active:          true,
 	}
 
 	suite.app.LiquidStakeIBCKeeper.SetHostChain(suite.ctx, hc)
@@ -168,6 +173,22 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path.EndpointB.ChannelConfig.Version = ibctransfertypes.Version
 
 	return path
+}
+func (suite *IntegrationTestSuite) Transfer(path *ibctesting.Path, denom string) {
+	coin := sdk.NewCoin(denom, sdk.NewInt(1000000000000))
+
+	transferMsg := ibctransfertypes.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID,
+		path.EndpointB.ChannelID, coin, path.EndpointB.Chain.SenderAccount.GetAddress().String(),
+		path.EndpointA.Chain.SenderAccount.GetAddress().String(), path.EndpointA.Chain.GetTimeoutHeight(),
+		0, "")
+	result, err := path.EndpointB.Chain.SendMsgs(transferMsg)
+	suite.Require().NoError(err) // message committed
+
+	packet, err := ibctesting.ParsePacketFromEvents(result.GetEvents())
+	suite.Require().NoError(err)
+
+	err = path.RelayPacket(packet)
+	suite.Require().NoError(err)
 }
 func (suite *IntegrationTestSuite) SetupICAChannelsAB() {
 	icapath := NewICAPath(suite.chainA, suite.chainB)
@@ -251,6 +272,7 @@ func (suite *IntegrationTestSuite) SetupICAPath(path *ibctesting.Path, owner str
 
 	return nil
 }
+
 func (suite *IntegrationTestSuite) TestGetSetParams() {
 	tc := []struct {
 		name     string
