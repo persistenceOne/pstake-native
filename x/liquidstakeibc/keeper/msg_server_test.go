@@ -41,8 +41,53 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStake() {
 			},
 			want:    &types.MsgLiquidStakeResponse{},
 			wantErr: false,
+		}, {
+			name: "host chain with ibc denom not found",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStake{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Amount:           sdk.NewInt64Coin(hc.HostDenom, 1000),
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		}, {
+			name: "amount less than mint amount",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStake{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Amount:           sdk.NewInt64Coin(hc.IBCDenom(), 0),
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		}, {
+			name: "invalid delegator address",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStake{
+					DelegatorAddress: "invalidaddr",
+					Amount:           sdk.NewInt64Coin(hc.IBCDenom(), 1000),
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		}, {
+			name: "failed to send tokens",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStake{
+					DelegatorAddress: suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(),
+					Amount:           sdk.NewInt64Coin(hc.IBCDenom(), 1000),
+				},
+			},
+			want:    nil,
+			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			k := keeper.NewMsgServerImpl(suite.app.LiquidStakeIBCKeeper)
@@ -221,6 +266,9 @@ func (suite *IntegrationTestSuite) Test_msgServer_UpdateHostChain() {
 					Updates: []*types.KVUpdate{{
 						Key:   types.KeyActive,
 						Value: "true",
+					}, {
+						Key:   types.KeyAutocompoundFactor,
+						Value: "20",
 					}},
 				},
 			},
