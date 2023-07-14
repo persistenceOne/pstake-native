@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: gaia
-data:
-  chain.id: gaiad-1

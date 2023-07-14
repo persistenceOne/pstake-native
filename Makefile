@@ -200,11 +200,42 @@ test-race:
 test-cover:
 	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.out -covermode=atomic -v -tags='ledger test_ledger_mock' $(TEST_TARGET) $(TEST_ARGS)
 
-test-e2e:
-	$(MAKE) test-cover  TEST_TARGET=./tests/e2e/...
-
 benchmark:
 	@go test -mod=readonly -bench=. $(TEST_TARGET) $(TEST_ARGS)
+
+###############################################################################
+###                   Docker Build (heighliner)                             ###
+###############################################################################
+
+get-heighliner:
+	git clone https://github.com/strangelove-ventures/heighliner.git
+	cd heighliner && go install
+
+local-image:
+ifeq (,$(shell which heighliner))
+	echo 'heighliner' binary not found. Consider running `make get-heighliner`
+else
+	heighliner build -c pstake --local -f ./chains.yaml
+endif
+
+.PHONY: get-heighliner local-image
+
+###############################################################################
+###                             e2e interchain test                         ###
+###############################################################################
+
+# Executes basic chain tests via interchaintest
+e2e-test-basic: rm-testcache
+	cd interchaintest && go test -race -v -run TestBasicPersistenceStart .
+
+# Executes IBC tests via interchaintest
+e2e-test-ibc-transfer: rm-testcache
+	cd interchaintest && go test -race -v -run TestPersistenceGaiaIBCTransfer .
+
+rm-testcache:
+	go clean -testcache
+
+.PHONY: e2e-test-basic e2e-test-ibc-transfer
 
 
 ###############################################################################

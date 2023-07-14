@@ -1,8 +1,0 @@
-#!/usr/bin/expect -f
-set timeout -1
-
-spawn bash -c "bash /scripts/chain0.sh"
-expect "Enter mnemonic 🔑: "
-
-send -- "tag apart multiply food bleak isolate describe stand guide field session design cable combine excess shrug abuse pause course ketchup umbrella program labor ripple\n"
-expect eof

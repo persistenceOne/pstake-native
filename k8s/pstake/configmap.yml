@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: pstake
-data:
-  chain.id: pstaked-1
