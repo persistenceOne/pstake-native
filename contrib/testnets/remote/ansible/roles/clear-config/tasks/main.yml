@@ -1,9 +1,0 @@
----
-- name: Stop service
-  service: name=pstaked state=stopped
-
-- name: Delete files
-  file: "path={{item}} state=absent"
-  with_items:
-    - /usr/bin/pstaked
-    - /home/pstaked/.gaia

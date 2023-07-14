@@ -22,7 +22,4 @@ pstaked add-genesis-account test 10000000000000000000stake,1000000000ustkstake  
 pstaked gentx test 100000000stake --chain-id test --keyring-backend=test
 pstaked collect-gentxs
 
-
-#pstaked start
-
-
+pstaked start
