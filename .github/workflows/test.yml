@@ -74,7 +74,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           lcov-file: coverage.lcov
 
-  build-docker:
+  prepare-e2e-environment:
     runs-on: ubuntu-latest
     steps:
       - name: Get branch name
