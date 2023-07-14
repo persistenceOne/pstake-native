@@ -1,8 +1,10 @@
-PROCESS=pstake
-IMAGE_NAME=persistenceone/$(PROCESS)
-TAG_NAME=latest
-CONTAINER_NAME=container-$(PROCESS)
-FILE=Dockerfile
+PROCESS = pstake
+IMAGE_NAME = persistenceone/$(PROCESS)
+TAG_NAME = latest
+CONTAINER_NAME = container-$(PROCESS)
+DOCKER_FILE = Dockerfile
+
+DOCKER := $(shell which docker)
 
 _DOCKER_ENV=\
 	-e CHAIN_ID=pstake \
@@ -17,12 +19,13 @@ _DOCKER_VOLUME=\
 _DOCKER_ARGS=\
 	-p 26656:26656 \
 	-p 26657:26657 \
+	-p 8080:8080 \
 	--network=host \
 	$(DOCKER_ARGS)
 
 # Command for dockerization
 docker-build:
-	docker buildx build . --platform=linux/amd64 -f docker/$(PROCESS)/$(FILE) -t $(IMAGE_NAME):$(TAG_NAME)
+	docker buildx build . --platform=linux/amd64 -f docker/$(PROCESS)/$(DOCKER_FILE) -t $(IMAGE_NAME):$(TAG_NAME)
 
 docker-run:
 	docker run --rm -it --name=$(CONTAINER_NAME) \
