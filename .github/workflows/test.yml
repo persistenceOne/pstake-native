@@ -74,7 +74,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           lcov-file: coverage.lcov
 
-  prepare-e2e-environment:
+  build-e2e-environment:
     runs-on: ubuntu-latest
     steps:
       - name: Get branch name
@@ -122,7 +122,7 @@ jobs:
 
 
   e2e-tests:
-    needs: build-docker
+    needs: build-e2e-environment
     runs-on: ubuntu-latest
     strategy:
       matrix:
