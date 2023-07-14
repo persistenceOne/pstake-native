@@ -185,11 +185,12 @@ func (suite *IntegrationTestSuite) SetupHostChainAB() {
 			Owner:        types.DefaultRewardsAccountPortOwner(suite.chainB.ChainID),
 			ChannelState: types.ICAAccount_ICA_CHANNEL_CREATED,
 		},
-		Validators:      validators,
-		MinimumDeposit:  MinDeposit,
-		CValue:          sdk.OneDec(),
-		UnbondingFactor: 4,
-		Active:          true,
+		Validators:         validators,
+		MinimumDeposit:     MinDeposit,
+		CValue:             sdk.OneDec(),
+		UnbondingFactor:    4,
+		AutoCompoundFactor: suite.app.LiquidStakeIBCKeeper.CalculateAutocompoundLimit(sdk.NewDec(20)),
+		Active:             true,
 	}
 
 	suite.app.LiquidStakeIBCKeeper.SetHostChain(suite.chainA.GetContext(), hc)
