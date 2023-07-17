@@ -93,9 +93,6 @@ endif
 
 #$(info $$BUILD_FLAGS is [$(BUILD_FLAGS)])
 
-# The below include contains the tools target.
-include contrib/devtools/Makefile
-
 ###############################################################################
 ###                              Documentation                              ###
 ###############################################################################
