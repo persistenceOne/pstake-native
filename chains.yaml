@@ -1,0 +1,13 @@
+# This file is used to create docker images using the heighliner binary.
+# see: https://github.com/strangelove-ventures/heighliner
+
+- name: pstake
+  github-organization: persistenceOne
+  github-repo: pstake-native
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/pstaked
+  build-env:
+    - LEDGER_ENABLED=false
+    - BUILD_TAGS=muslc

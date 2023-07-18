@@ -7,7 +7,7 @@ RUN apk add --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev p
 WORKDIR /go/src/github.com/persistenceOne/pstake-native
 
 # Add source files
-COPY . .
+COPY ../.. .
 
 # Install minimum necessary dependencies, build Cosmos SDK, remove packages
 RUN make install
@@ -24,4 +24,6 @@ WORKDIR /root
 # Copy over binaries from the build-env
 COPY --from=build-env /go/bin/pstaked /usr/bin/pstaked
 
-EXPOSE 26657
+EXPOSE 1317 26656 26657 9090
+
+CMD ["/usr/bin/pstaked", "version", "--long"]

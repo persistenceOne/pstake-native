@@ -28,7 +28,7 @@ func CValueLimits(k Keeper) sdk.Invariant {
 		}
 		return sdk.FormatInvariant(
 			types.ModuleName, "cvalue-limits",
-			fmt.Sprintf("cvalue out of bounds as follows \n%s ", str),
+			fmt.Sprintf("cvalue out of bounds: %v, values as follows \n %s ", broken, str),
 		), broken
 	}
 }
