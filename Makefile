@@ -93,9 +93,6 @@ endif
 
 #$(info $$BUILD_FLAGS is [$(BUILD_FLAGS)])
 
-# The below include contains the tools target.
-#include contrib/devtools/Makefile
-
 ###############################################################################
 ###                              Documentation                              ###
 ###############################################################################
@@ -313,3 +310,80 @@ proto-update-deps:
 	$(DOCKER) run --rm -v $(CURDIR)/proto:/workspace --workdir /workspace $(protoImageName) buf mod update
 
 .PHONY: proto-all proto-gen proto-format proto-lint proto-check-breaking proto-update-deps
+
+###############################################################################
+###                                 Tools                                   ###
+###############################################################################
+
+BIN ?= /usr/local/bin
+UNAME_S ?= $(shell uname -s)
+UNAME_M ?= $(shell uname -m)
+
+TOOLS_DESTDIR  ?= $(GOPATH)/bin
+RUNSIM         = $(TOOLS_DESTDIR)/runsim
+
+BUF_VERSION ?= 0.7.0
+PROTOC_VERSION ?= 3.11.2
+
+ifeq ($(UNAME_S),Linux)
+  PROTOC_ZIP ?= protoc-3.11.2-linux-x86_64.zip
+endif
+ifeq ($(UNAME_S),Darwin)
+  PROTOC_ZIP ?= protoc-3.11.2-osx-x86_64.zip
+endif
+
+all: tools
+
+tools: tools-stamp
+
+tools-stamp: $(RUNSIM)
+	touch $@
+
+# Install the runsim binary with a temporary workaround of entering an outside
+# directory as the "go get" command ignores the -mod option and will polute the
+# go.{mod, sum} files.
+#
+# ref: https://github.com/golang/go/issues/30515
+runsim: $(RUNSIM)
+$(RUNSIM):
+	@echo "Installing runsim..."
+	@(cd /tmp && go get github.com/cosmos/tools/cmd/runsim@v1.0.0)
+
+protoc:
+	@echo "Installing protoc compiler..."
+	@(cd /tmp; \
+	curl -sSOL "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"; \
+	unzip -o ${PROTOC_ZIP} -d /usr/local bin/protoc; \
+	unzip -o ${PROTOC_ZIP} -d /usr/local 'include/*'; \
+	rm -f ${PROTOC_ZIP})
+
+protoc-gen-gocosmos:
+	@echo "Installing protoc-gen-gocosmos..."
+	@go install github.com/regen-network/cosmos-proto/protoc-gen-gocosmos
+
+buf: protoc-gen-buf-check-breaking protoc-gen-buf-check-lint
+	@echo "Installing buf..."
+	@(cd /tmp; \
+	curl -sSOL "https://github.com/bufbuild/buf/releases/download/v${BUF_VERSION}/buf-${UNAME_S}-${UNAME_M}"; \
+	mv buf-${UNAME_S}-${UNAME_M} "${BIN}/buf"; \
+	chmod +x "${BIN}/buf")
+
+protoc-gen-buf-check-breaking:
+	@echo "Installing protoc-gen-buf-check-breaking..."
+	@(cd /tmp; \
+	curl -sSOL "https://github.com/bufbuild/buf/releases/download/v${BUF_VERSION}/protoc-gen-buf-check-breaking-${UNAME_S}-${UNAME_M}"; \
+	mv protoc-gen-buf-check-breaking-${UNAME_S}-${UNAME_M} "${BIN}/protoc-gen-buf-check-breaking"; \
+	chmod +x "${BIN}/protoc-gen-buf-check-breaking")
+
+protoc-gen-buf-check-lint:
+	@echo "Installing protoc-gen-buf-check-lint..."
+	@(cd /tmp; \
+	curl -sSOL "https://github.com/bufbuild/buf/releases/download/v${BUF_VERSION}/protoc-gen-buf-check-lint-${UNAME_S}-${UNAME_M}"; \
+	mv protoc-gen-buf-check-lint-${UNAME_S}-${UNAME_M} "${BIN}/protoc-gen-buf-check-lint"; \
+	chmod +x "${BIN}/protoc-gen-buf-check-lint")
+
+tools-clean:
+	rm -f $(RUNSIM)
+	rm -f tools-stamp
+
+.PHONY: all tools tools-clean protoc buf protoc-gen-buf-check-breaking protoc-gen-buf-check-lint protoc-gen-gocosmos
