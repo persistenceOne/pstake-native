@@ -263,7 +263,7 @@ func (suite *IntegrationTestSuite) Test_msgServer_UpdateHostChain() {
 				msg: &types.MsgUpdateHostChain{
 					Authority: suite.chainA.SenderAccount.GetAddress().String(),
 					ChainId:   hc.ChainId,
-					Updates: []*types.KVUpdate{{
+					Updates: []*types.KV{{
 						Key:   types.KeyActive,
 						Value: "true",
 					}, {

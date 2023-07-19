@@ -3,6 +3,8 @@ package types
 import (
 	"strconv"
 	"time"
+
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
 const (
@@ -36,11 +38,16 @@ const (
 	StakingStoreQuery = "store/staking/key"
 	BankStoreQuery    = "store/bank/key"
 
+	// Host chain flags
+	LSMFlag = "lsm"
+
 	LiquidStakeDenomPrefix = "stk"
 
 	IBCTimeoutHeightIncrement uint64 = 1000
 
 	ICATimeoutTimestamp = 15 * time.Minute
+
+	IBCPrefix = transfertypes.DenomPrefix + "/"
 
 	UnbondingStateEpochLimit = 4
 )
@@ -59,6 +66,7 @@ const (
 	KeyActive             string = "active"
 	KeySetWithdrawAddress string = "set_withdraw_address"
 	KeyAutocompoundFactor string = "autocompound_factor"
+	KeyFlags              string = "flags"
 )
 
 var (
@@ -68,6 +76,7 @@ var (
 	UserUnbondingKey      = []byte{0x04}
 	ValidatorUnbondingKey = []byte{0x05}
 	ParamsKey             = []byte{0x06}
+	LSMDepositKey         = []byte{0x07}
 )
 
 func GetUnbondingStoreKey(chainID string, epochNumber int64) []byte {
@@ -84,4 +93,8 @@ func GetValidatorUnbondingStoreKey(chainID, validatorAddress string, epochNumber
 
 func GetDepositStoreKey(chainID string, epochNumber int64) []byte {
 	return append([]byte(chainID), []byte(strconv.FormatInt(epochNumber, 10))...)
+}
+
+func GetLSMDepositStoreKey(chainID, delegatorAddress, denom string) []byte {
+	return append(append([]byte(chainID), []byte(delegatorAddress)...), []byte(denom)...)
 }

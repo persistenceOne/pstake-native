@@ -23,4 +23,7 @@ var (
 	ErrParsingAmount        = errorsmod.Register(ModuleName, 2015, "could not parse message amount")
 	ErrHostChainInactive    = errorsmod.Register(ModuleName, 2016, "host chain is not active")
 	ErrInvalidParams        = errorsmod.Register(ModuleName, 2017, "invalid params")
+	ErrInvalidLSMDenom      = errorsmod.Register(ModuleName, 2018, "invalid lsm token denom")
+	ErrInvalidIBCDenomTrace = errorsmod.Register(ModuleName, 2019, "invalid ibc denom trace")
+	ErrLSMNotEnabled        = errorsmod.Register(ModuleName, 2020, "host chain has LSM staking disabled")
 )

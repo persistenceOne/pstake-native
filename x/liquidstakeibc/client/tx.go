@@ -29,6 +29,7 @@ func NewTxCmd() *cobra.Command {
 		NewRegisterHostChainCmd(),
 		NewUpdateHostChainCmd(),
 		NewLiquidStakeCmd(),
+		NewLiquidStakeCmdLSM(),
 		NewLiquidUnstakeCmd(),
 		NewRedeemCmd(),
 		NewUpdateParamsCmd(),
@@ -104,7 +105,7 @@ func NewUpdateHostChainCmd() *cobra.Command {
 				return err
 			}
 
-			updates := make([]*types.KVUpdate, 0)
+			updates := make([]*types.KV, 0)
 			if err = json.Unmarshal([]byte(args[1]), &updates); err != nil {
 				return err
 			}
@@ -147,6 +148,36 @@ func NewLiquidStakeCmd() *cobra.Command {
 
 			delegatorAddress := clientctx.GetFromAddress()
 			msg := types.NewMsgLiquidStake(amount, delegatorAddress)
+
+			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewLiquidStakeCmdLSM() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "liquid-stake-lsm [delegations]",
+		Short: `Liquid Stake an existing delegation from a registered host chain into stk tokens`,
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			clientctx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			var delegations []*sdk.Coin
+			err = json.Unmarshal([]byte(args[0]), &delegations)
+			if err != nil {
+				return err
+			}
+
+			delegatorAddress := clientctx.GetFromAddress()
+			msg := types.NewMsgLiquidStakeLSM(delegations, delegatorAddress)
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
 		},

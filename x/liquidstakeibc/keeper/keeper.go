@@ -14,6 +14,7 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/gogoproto/proto"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -33,6 +34,7 @@ type Keeper struct {
 	epochsKeeper        types.EpochsKeeper
 	icaControllerKeeper types.ICAControllerKeeper
 	ibcKeeper           *ibckeeper.Keeper
+	ibcTransferKeeper   ibctransferkeeper.Keeper
 	icqKeeper           types.ICQKeeper
 
 	paramSpace paramtypes.Subspace
@@ -51,6 +53,7 @@ func NewKeeper(
 	epochsKeeper types.EpochsKeeper,
 	icaControllerKeeper types.ICAControllerKeeper,
 	ibcKeeper *ibckeeper.Keeper,
+	ibcTransferKeeper ibctransferkeeper.Keeper,
 	icqKeeper types.ICQKeeper,
 
 	paramSpace paramtypes.Subspace,
@@ -66,6 +69,7 @@ func NewKeeper(
 		epochsKeeper:        epochsKeeper,
 		icaControllerKeeper: icaControllerKeeper,
 		ibcKeeper:           ibcKeeper,
+		ibcTransferKeeper:   ibcTransferKeeper,
 		icqKeeper:           icqKeeper,
 		storeKey:            storeKey,
 		paramSpace:          paramSpace,
@@ -256,6 +260,10 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		// total stk tokens minted
 		mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
 
+		// TODO: This takes into account that LSM tokens represent tokens, but this will be changed so they represent shares https://github.com/iqlusioninc/cosmos-sdk/pull/19
+		// total tokenized staked amount
+		tokenizedStakedAmount := k.GetLSMDepositAmountUntokenized(ctx, hc.ChainId)
+
 		// amount staked by the module in any of the validators of the host chain
 		stakedAmount := hc.GetHostChainTotalDelegations()
 
@@ -269,7 +277,7 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		totalUnbondingAmount := k.GetAllValidatorUnbondedAmount(ctx, hc)
 
 		// total amount staked
-		liquidStakedAmount := stakedAmount.Add(amountOnPersistence).Add(amountOnHostChain).Add(totalUnbondingAmount)
+		liquidStakedAmount := tokenizedStakedAmount.Add(stakedAmount).Add(amountOnPersistence).Add(amountOnHostChain).Add(totalUnbondingAmount)
 
 		var cValue sdk.Dec
 		if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {

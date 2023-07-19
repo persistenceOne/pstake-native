@@ -57,6 +57,8 @@ message HostChain {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
+  // host chain flags
+  repeated KV flags = 16;
 }
 
 message HostChainLSParams {
@@ -154,6 +156,40 @@ message Deposit {
   string ibc_sequence_id = 5;
 }
 
+message LSMDeposit {
+  enum LSMDepositState {
+    // no action has been initiated on the deposit
+    DEPOSIT_PENDING = 0;
+    // deposit sent to the host chain delegator address
+    DEPOSIT_SENT = 1;
+    // deposit received by the host chain delegator address
+    DEPOSIT_RECEIVED = 2;
+    // deposit started the untokenization process
+    DEPOSIT_UNTOKENIZING = 3;
+    // deposit failed to be untokenized
+    DEPOSIT_UNTOKENIZING_FAILED = 4;
+  }
+
+  // deposit target chain
+  string chain_id = 1;
+  // LSM token amount
+  string amount = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // LSM token denom
+  string denom = 3;
+  // LSM token ibc denom
+  string ibc_denom = 4;
+  // address of the delegator
+  string delegator_address = 5;
+  // state o the deposit
+  LSMDepositState state = 6;
+  // sequence id of the ibc transaction
+  string ibc_sequence_id = 7;
+}
+
 message Unbonding {
   enum UnbondingState {
     // no action has been initiated on the unbonding
@@ -216,7 +252,7 @@ message ValidatorUnbonding {
   string ibc_sequence_id = 6;
 }
 
-message KVUpdate {
+message KV {
   string key = 1;
   string value = 2;
 }

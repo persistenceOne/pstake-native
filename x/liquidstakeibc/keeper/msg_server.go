@@ -13,6 +13,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -229,6 +230,15 @@ func (k msgServer) UpdateHostChain(
 			}
 			//autoCompoundFactor limits validated in msg.ValidateBasic()
 			hc.AutoCompoundFactor = k.CalculateAutocompoundLimit(autocompoundFactor)
+		case types.KeyFlags:
+			flags := make([]*types.KV, 0)
+			err := json.Unmarshal([]byte(update.Value), &flags)
+			if err != nil {
+				return nil, fmt.Errorf("unable to unmarshal flags update string")
+			}
+
+			hc.Flags = flags
+			k.SetHostChain(ctx, hc)
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}
@@ -379,6 +389,105 @@ func (k msgServer) LiquidStake(
 	telemetry.IncrCounter(float32(1), hostChain.ChainId, "liquid_stake")
 
 	return &types.MsgLiquidStakeResponse{}, nil
+}
+
+// LiquidStakeLSM defines a method for liquid staking tokens using the LSM
+func (k msgServer) LiquidStakeLSM(
+	goCtx context.Context,
+	msg *types.MsgLiquidStakeLSM,
+) (*types.MsgLiquidStakeLSMResponse, error) {
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	for _, delegation := range msg.Delegations {
+		// check if the ibc denom contains the ibc prefix
+		if !strings.HasPrefix(delegation.Denom, types.IBCPrefix) {
+			return nil,
+				errorsmod.Wrapf(
+					types.ErrInvalidLSMDenom,
+					"IBC denom %s doesn't belong to a LSM token",
+					delegation.Denom,
+				)
+		}
+
+		// parse the ibc denom to extract the original LSM token denom
+		hexHash := delegation.Denom[len(types.IBCPrefix):]
+		hexBytes, err := transfertypes.ParseHexHash(hexHash)
+		if err != nil {
+			return nil, errorsmod.Wrapf(err, "could not parse ibc hash from ibc hex %s", hexHash)
+		}
+
+		// get the denom trace from the parsed ibc denom hex hash
+		denomTrace, found := k.ibcTransferKeeper.GetDenomTrace(ctx, hexBytes)
+		if !found {
+			return nil,
+				errorsmod.Wrapf(
+					types.ErrInvalidLSMDenom,
+					"IBC denom %s doesn't belong to a LSM token",
+					delegation.Denom,
+				)
+		}
+
+		// retrieve the host chain associated with the liquid stake action
+		channelId, found := strings.CutPrefix(denomTrace.Path, fmt.Sprintf("%s/", transfertypes.PortID))
+		if !found {
+			return nil, errorsmod.Wrapf(types.ErrInvalidIBCDenomTrace, "invalid IBC denom trace %s", delegation.Denom)
+		}
+		hc, found := k.GetHostChain(ctx, channelId)
+		if !found {
+			return nil, errorsmod.Wrapf(sdkerrors.ErrKeyNotFound, "host chain with channel id %s not registered", channelId)
+		}
+
+		// check if the host chain is active
+		if !hc.Active {
+			return nil, types.ErrHostChainInactive
+		}
+
+		// check if the host chain accepts LSM delegations
+		lsmActiveFlag, found := hc.GetFlag(types.LSMFlag)
+		lsmActive, _ := strconv.ParseBool(lsmActiveFlag)
+		if !lsmActive || !found {
+			return nil, types.ErrLSMNotEnabled
+		}
+
+		// check if the validator is within the module active set
+		operatorAddress, _, found := strings.Cut(denomTrace.BaseDenom, "/")
+		if !found {
+			return nil, errorsmod.Wrapf(types.ErrInvalidIBCDenomTrace, "invalid IBC denom trace %s", delegation.Denom)
+		}
+		_, found = hc.GetValidator(operatorAddress)
+		if !found {
+			return nil,
+				errorsmod.Wrapf(
+					sdkerrors.ErrKeyNotFound,
+					"validator %s is not part of the module active set for chain %s",
+					operatorAddress,
+					hc.ChainId,
+				)
+		}
+
+		// check delegator has enough LSM tokens
+		delegator := sdktypes.MustAccAddressFromBech32(msg.DelegatorAddress)
+		if k.bankKeeper.GetBalance(ctx, delegator, delegation.Denom).Amount.LT(delegation.Amount) {
+			return nil, errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "not enough tokenized delegation funds")
+		}
+
+		k.FilterLSMDeposits(
+			ctx,
+			func(d types.LSMDeposit) bool {
+				return d.ChainId == hc.ChainId
+			},
+		)
+
+		// check if there is an existing deposit for that LSM token
+		// if there is, update it
+		// if not, create a new one
+
+		// mint stk tokens and transfer them to the user
+	}
+
+	// add events
+
+	return &types.MsgLiquidStakeLSMResponse{}, nil
 }
 
 // LiquidUnstake defines a method for unstaking liquid staked tokens

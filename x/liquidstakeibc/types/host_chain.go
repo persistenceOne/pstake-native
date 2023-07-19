@@ -26,6 +26,16 @@ func (hc *HostChain) GetValidator(operatorAddress string) (*Validator, bool) {
 	return nil, false
 }
 
+func (hc *HostChain) GetFlag(flagKey string) (string, bool) {
+	for _, flag := range hc.Flags {
+		if flag.Key == flagKey {
+			return flag.Value, true
+		}
+	}
+
+	return "", false
+}
+
 func (hc *HostChain) GetHostChainTotalDelegations() math.Int {
 	totalDelegations := sdk.ZeroInt()
 	for _, validator := range hc.Validators {
