@@ -281,7 +281,7 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 				return fmt.Errorf("unable to parse string to bool")
 			}
 		case KeySetWithdrawAddress:
-			if update.Value != "" {
+			if update.Value == "" {
 				return fmt.Errorf("expected value for key:SetWithdrawAddress is empty")
 			}
 		case KeyAutocompoundFactor:
