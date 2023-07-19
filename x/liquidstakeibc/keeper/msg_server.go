@@ -432,7 +432,8 @@ func (k msgServer) LiquidStakeLSM(
 		if !found {
 			return nil, errorsmod.Wrapf(types.ErrInvalidIBCDenomTrace, "invalid IBC denom trace %s", delegation.Denom)
 		}
-		hc, found := k.GetHostChain(ctx, channelId)
+
+		hc, found := k.GetHostChainFromChannelId(ctx, channelId)
 		if !found {
 			return nil, errorsmod.Wrapf(sdkerrors.ErrKeyNotFound, "host chain with channel id %s not registered", channelId)
 		}
@@ -471,21 +472,90 @@ func (k msgServer) LiquidStakeLSM(
 			return nil, errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "not enough tokenized delegation funds")
 		}
 
-		k.FilterLSMDeposits(
+		// create and store the LSM deposit
+		deposit := &types.LSMDeposit{
+			ChainId:          hc.ChainId,
+			Amount:           delegation.Amount, // TODO: This needs to be updated after https://github.com/iqlusioninc/cosmos-sdk/pull/19
+			Denom:            denomTrace.BaseDenom,
+			IbcDenom:         delegation.Denom,
+			DelegatorAddress: msg.DelegatorAddress,
+			State:            types.LSMDeposit_DEPOSIT_PENDING,
+			IbcSequenceId:    "",
+		}
+		k.SetLSMDeposit(ctx, deposit)
+
+		// mint stk tokens
+		mintDenom := hc.MintDenom()
+		mintAmount := sdktypes.NewDecFromInt(deposit.Amount).Mul(hc.CValue) // TODO: This needs to be updated after https://github.com/iqlusioninc/cosmos-sdk/pull/19 (shares * validator_exchange_rate * c_value)
+		mintToken, _ := sdktypes.NewDecCoinFromDec(mintDenom, mintAmount).TruncateDecimal()
+		err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdktypes.NewCoins(mintToken))
+		if err != nil {
+			return nil, errorsmod.Wrapf(
+				types.ErrMintFailed,
+				"failed to mint coins in module %s: %s",
+				types.ModuleName, err,
+			)
+		}
+
+		// send the deposit to the deposit-module account
+		depositAmount := sdktypes.NewCoins(sdktypes.NewCoin(deposit.Denom, deposit.Amount))
+		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, delegator, types.DepositModuleAccount, depositAmount)
+		if err != nil {
+			return nil, errorsmod.Wrapf(
+				types.ErrFailedDeposit,
+				"failed to deposit tokens to module account %s: %s",
+				types.DepositModuleAccount,
+				err,
+			)
+		}
+
+		// calculate protocol fee
+		protocolFeeAmount := hc.Params.DepositFee.MulInt(mintToken.Amount)
+		protocolFee, _ := sdktypes.NewDecCoinFromDec(mintDenom, protocolFeeAmount).TruncateDecimal()
+
+		// send stk tokens to the delegator address
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(
 			ctx,
-			func(d types.LSMDeposit) bool {
-				return d.ChainId == hc.ChainId
-			},
+			types.ModuleName,
+			delegator,
+			sdktypes.NewCoins(mintToken.Sub(protocolFee)),
 		)
+		if err != nil {
+			return nil, errorsmod.Wrapf(
+				types.ErrMintFailed,
+				"failed to send coins from module %s to account %s: %s",
+				types.ModuleName,
+				delegator.String(),
+				err,
+			)
+		}
 
-		// check if there is an existing deposit for that LSM token
-		// if there is, update it
-		// if not, create a new one
-
-		// mint stk tokens and transfer them to the user
+		// send the protocol fee to the protocol pool
+		if protocolFee.IsPositive() {
+			err = k.SendProtocolFee(ctx, sdktypes.NewCoins(protocolFee), types.ModuleName, k.GetParams(ctx).FeeAddress)
+			if err != nil {
+				return nil, errorsmod.Wrapf(
+					types.ErrFailedDeposit,
+					"failed to send protocol fee to pStake fee address %s: %s",
+					k.GetParams(ctx).FeeAddress,
+					err,
+				)
+			}
+		}
 	}
 
-	// add events
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeLiquidStakeLSM,
+			sdktypes.NewAttribute(types.AttributeDelegatorAddress, msg.DelegatorAddress),
+			// TODO: Add events
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
+		)},
+	)
 
 	return &types.MsgLiquidStakeLSMResponse{}, nil
 }
