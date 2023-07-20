@@ -60,6 +60,12 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: jandelgado/gcov2lcov-action@v1
 
+      - name: LCOV Minimum test coverage checker
+        uses: terencetcf/github-actions-lcov-minimum-coverage-checker@v1
+        with:
+          coverage-file: coverage.lcov
+          minimum-coverage: 60
+
       - name: Coveralls
         if: github.event_name == 'pull_request'
         uses: coverallsapp/github-action@v2.2.1
@@ -73,6 +79,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           lcov-file: coverage.lcov
+          update-comment: true
 
   build-e2e-environment:
     runs-on: ubuntu-latest
