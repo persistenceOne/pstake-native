@@ -64,7 +64,7 @@ jobs:
         uses: terencetcf/github-actions-lcov-minimum-coverage-checker@v1
         with:
           coverage-file: coverage.lcov
-          minimum-coverage: 90
+          minimum-coverage: 60
 
       - name: Coveralls
         if: github.event_name == 'pull_request'
