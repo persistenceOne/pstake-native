@@ -159,7 +159,7 @@ func (m *MsgRegisterHostChain) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgUpdateHostChain(chainID, authority string, updates []*KV) *MsgUpdateHostChain {
+func NewMsgUpdateHostChain(chainID, authority string, updates []*KVUpdate) *MsgUpdateHostChain {
 	return &MsgUpdateHostChain{
 		ChainId:   chainID,
 		Authority: authority,
@@ -295,19 +295,10 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 				return fmt.Errorf("invalid autocompound factor value less or equal than zero")
 			}
 		case KeyFlags:
-			flags := make([]*KV, 0)
+			var flags HostChainFlags
 			err := json.Unmarshal([]byte(update.Value), &flags)
 			if err != nil {
 				return fmt.Errorf("unable to unmarshal flags update string")
-			}
-
-			for _, flag := range flags {
-				if flag.Key == LSMFlag {
-					_, err := strconv.ParseBool(flag.Value)
-					if err != nil {
-						return fmt.Errorf("unable to parse string to bool")
-					}
-				}
 			}
 		default:
 			return fmt.Errorf("invalid or unexpected update key: %s", update.Key)

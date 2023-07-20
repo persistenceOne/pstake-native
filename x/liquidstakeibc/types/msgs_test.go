@@ -172,7 +172,7 @@ func TestMsgRegisterHostChain(t *testing.T) {
 }
 
 func TestMsgUpdateHostChain(t *testing.T) {
-	validKVUpdates := []*types.KV{
+	validKVUpdates := []*types.KVUpdate{
 		{
 			Key:   types.KeySetWithdrawAddress,
 			Value: "",
@@ -230,7 +230,7 @@ func TestMsgUpdateHostChain(t *testing.T) {
 	require.Error(t, invalidAddrMsg.ValidateBasic())
 	require.Panics(t, func() { invalidAddrMsg.GetSigners() })
 
-	invalidKVUpdates := []*types.KV{
+	invalidKVUpdates := []*types.KVUpdate{
 		{
 			Key:   types.KeyAddValidator,
 			Value: "InvalidJson",
@@ -303,7 +303,7 @@ func TestMsgUpdateHostChain(t *testing.T) {
 		},
 	}
 	for _, update := range invalidKVUpdates {
-		invalidMsg := types.NewMsgUpdateHostChain("chain-1", addr1.String(), []*types.KV{update})
+		invalidMsg := types.NewMsgUpdateHostChain("chain-1", addr1.String(), []*types.KVUpdate{update})
 		require.Error(t, invalidMsg.ValidateBasic())
 	}
 }

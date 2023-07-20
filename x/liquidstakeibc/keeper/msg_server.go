@@ -75,6 +75,9 @@ func (k msgServer) RegisterHostChain(
 			Owner: types.DefaultRewardsAccountPortOwner(chainID),
 		},
 		AutoCompoundFactor: k.CalculateAutocompoundLimit(sdktypes.NewDec(msg.AutoCompoundFactor)),
+		Flags: &types.HostChainFlags{
+			Lsm: false,
+		},
 	}
 
 	// save the host chain
@@ -231,13 +234,13 @@ func (k msgServer) UpdateHostChain(
 			//autoCompoundFactor limits validated in msg.ValidateBasic()
 			hc.AutoCompoundFactor = k.CalculateAutocompoundLimit(autocompoundFactor)
 		case types.KeyFlags:
-			flags := make([]*types.KV, 0)
+			var flags types.HostChainFlags
 			err := json.Unmarshal([]byte(update.Value), &flags)
 			if err != nil {
 				return nil, fmt.Errorf("unable to unmarshal flags update string")
 			}
 
-			hc.Flags = flags
+			hc.Flags = &flags
 			k.SetHostChain(ctx, hc)
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
@@ -444,9 +447,7 @@ func (k msgServer) LiquidStakeLSM(
 		}
 
 		// check if the host chain accepts LSM delegations
-		lsmActiveFlag, found := hc.GetFlag(types.LSMFlag)
-		lsmActive, _ := strconv.ParseBool(lsmActiveFlag)
-		if !lsmActive || !found {
+		if !hc.Flags.Lsm {
 			return nil, types.ErrLSMNotEnabled
 		}
 

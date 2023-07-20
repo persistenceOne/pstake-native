@@ -105,7 +105,7 @@ func NewUpdateHostChainCmd() *cobra.Command {
 				return err
 			}
 
-			updates := make([]*types.KV, 0)
+			updates := make([]*types.KVUpdate, 0)
 			if err = json.Unmarshal([]byte(args[1]), &updates); err != nil {
 				return err
 			}

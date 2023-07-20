@@ -58,7 +58,11 @@ message HostChain {
     (gogoproto.nullable) = false
   ];
   // host chain flags
-  repeated KV flags = 16;
+  HostChainFlags flags = 16;
+}
+
+message HostChainFlags {
+  bool lsm = 1;
 }
 
 message HostChainLSParams {
@@ -252,7 +256,7 @@ message ValidatorUnbonding {
   string ibc_sequence_id = 6;
 }
 
-message KV {
+message KVUpdate {
   string key = 1;
   string value = 2;
 }
