@@ -35,6 +35,11 @@ service Query {
     option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/deposits/{chain_id}";
   }
 
+  // Queries for all the deposits for a host chain.
+  rpc LSMDeposits(QueryLSMDepositsRequest) returns (QueryLSMDepositsResponse) {
+    option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/lsm_deposits/{chain_id}";
+  }
+
   // Queries all unbondings for a host chain.
   rpc Unbondings(QueryUnbondingsRequest) returns (QueryUnbondingsResponse) {
     option (google.api.http).get = "/pstake/liquidstakeibc/v1beta1/unbondings/{chain_id}";
@@ -93,6 +98,14 @@ message QueryDepositsRequest {
 
 message QueryDepositsResponse {
   repeated Deposit deposits = 1;
+}
+
+message QueryLSMDepositsRequest {
+  string chain_id = 1;
+}
+
+message QueryLSMDepositsResponse {
+  repeated LSMDeposit deposits = 1;
 }
 
 message QueryUnbondingsRequest {

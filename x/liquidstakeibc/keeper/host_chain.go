@@ -183,8 +183,8 @@ func (k *Keeper) GetHostChainFromHostDenom(ctx sdk.Context, hostDenom string) (*
 	return &hc, found
 }
 
-// GetHostChainFromChannelId returns a host chain given its channel id
-func (k *Keeper) GetHostChainFromChannelId(ctx sdk.Context, channelId string) (*types.HostChain, bool) {
+// GetHostChainFromChannelID returns a host chain given its channel id
+func (k *Keeper) GetHostChainFromChannelID(ctx sdk.Context, channelID string) (*types.HostChain, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKey)
 	iterator := sdk.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
@@ -195,7 +195,7 @@ func (k *Keeper) GetHostChainFromChannelId(ctx sdk.Context, channelId string) (*
 		chain := types.HostChain{}
 		k.cdc.MustUnmarshal(iterator.Value(), &chain)
 
-		if chain.ChannelId == channelId {
+		if chain.ChannelId == channelID {
 			hc = chain
 			found = true
 			break
