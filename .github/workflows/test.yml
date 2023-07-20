@@ -74,7 +74,7 @@ jobs:
           minimum-coverage: 90
           artifact-name: code-coverage-report
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          working-directory: x
+          working-directory: ./
           update-comment: true
 
   #      - name: Code Coverage Report
