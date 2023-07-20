@@ -176,22 +176,28 @@ message LSMDeposit {
 
   // deposit target chain
   string chain_id = 1;
-  // LSM token amount
+  // native token amount as per the validator exchange rate
   string amount = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  // LSM token shares
+  string shares = 3 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
   // LSM token denom
-  string denom = 3;
+  string denom = 4;
   // LSM token ibc denom
-  string ibc_denom = 4;
+  string ibc_denom = 5;
   // address of the delegator
-  string delegator_address = 5;
+  string delegator_address = 6;
   // state o the deposit
-  LSMDepositState state = 6;
+  LSMDepositState state = 7;
   // sequence id of the ibc transaction
-  string ibc_sequence_id = 7;
+  string ibc_sequence_id = 8;
 }
 
 message Unbonding {

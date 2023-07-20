@@ -402,81 +402,20 @@ func (k msgServer) LiquidStakeLSM(
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
 	for _, delegation := range msg.Delegations {
-		// check if the ibc denom contains the ibc prefix
-		if !strings.HasPrefix(delegation.Denom, types.IBCPrefix) {
-			return nil,
-				errorsmod.Wrapf(
-					types.ErrInvalidLSMDenom,
-					"IBC denom %s doesn't belong to a LSM token",
-					delegation.Denom,
-				)
-		}
-
-		// parse the ibc denom to extract the original LSM token denom
-		hexHash := delegation.Denom[len(types.IBCPrefix):]
-		hexBytes, err := transfertypes.ParseHexHash(hexHash)
-		if err != nil {
-			return nil, errorsmod.Wrapf(err, "could not parse ibc hash from ibc hex %s", hexHash)
-		}
-
-		// get the denom trace from the parsed ibc denom hex hash
-		denomTrace, found := k.ibcTransferKeeper.GetDenomTrace(ctx, hexBytes)
-		if !found {
-			return nil,
-				errorsmod.Wrapf(
-					types.ErrInvalidLSMDenom,
-					"IBC denom %s doesn't belong to a LSM token",
-					delegation.Denom,
-				)
-		}
-
-		// retrieve the host chain associated with the liquid stake action
-		channelId, found := strings.CutPrefix(denomTrace.Path, fmt.Sprintf("%s/", transfertypes.PortID))
-		if !found {
-			return nil, errorsmod.Wrapf(types.ErrInvalidIBCDenomTrace, "invalid IBC denom trace %s", delegation.Denom)
-		}
-
-		hc, found := k.GetHostChainFromChannelId(ctx, channelId)
-		if !found {
-			return nil, errorsmod.Wrapf(sdkerrors.ErrKeyNotFound, "host chain with channel id %s not registered", channelId)
-		}
-
-		// check if the host chain is active
-		if !hc.Active {
-			return nil, types.ErrHostChainInactive
-		}
-
-		// check if the host chain accepts LSM delegations
-		if !hc.Flags.Lsm {
-			return nil, types.ErrLSMNotEnabled
-		}
-
-		// check if the validator is within the module active set
-		operatorAddress, _, found := strings.Cut(denomTrace.BaseDenom, "/")
-		if !found {
-			return nil, errorsmod.Wrapf(types.ErrInvalidIBCDenomTrace, "invalid IBC denom trace %s", delegation.Denom)
-		}
-		_, found = hc.GetValidator(operatorAddress)
-		if !found {
-			return nil,
-				errorsmod.Wrapf(
-					sdkerrors.ErrKeyNotFound,
-					"validator %s is not part of the module active set for chain %s",
-					operatorAddress,
-					hc.ChainId,
-				)
-		}
-
-		// check delegator has enough LSM tokens
+		// parse the delegator address
 		delegator := sdktypes.MustAccAddressFromBech32(msg.DelegatorAddress)
-		if k.bankKeeper.GetBalance(ctx, delegator, delegation.Denom).Amount.LT(delegation.Amount) {
-			return nil, errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "not enough tokenized delegation funds")
+
+		// validate the delegation
+		hc, validator, denomTrace, err := k.validateLiquidStakeLSMDeposit(ctx, delegator, delegation)
+		if err != nil {
+			return nil, err
 		}
 
 		// create and store the LSM deposit
 		deposit := &types.LSMDeposit{
 			ChainId:          hc.ChainId,
-			Amount:           delegation.Amount, // TODO: This needs to be updated after https://github.com/iqlusioninc/cosmos-sdk/pull/19
+			Shares:           sdktypes.NewDecFromInt(delegation.Amount),                                           // TODO: This needs to be updated after https://github.com/iqlusioninc/cosmos-sdk/pull/19
+			Amount:           sdktypes.NewDecFromInt(delegation.Amount).Mul(validator.ExchangeRate).TruncateInt(), // TODO: This needs to be updated after https://github.com/iqlusioninc/cosmos-sdk/pull/19
 			Denom:            denomTrace.BaseDenom,
 			IbcDenom:         delegation.Denom,
 			DelegatorAddress: msg.DelegatorAddress,
@@ -487,19 +426,15 @@ func (k msgServer) LiquidStakeLSM(
 
 		// mint stk tokens
 		mintDenom := hc.MintDenom()
-		mintAmount := sdktypes.NewDecFromInt(deposit.Amount).Mul(hc.CValue) // TODO: This needs to be updated after https://github.com/iqlusioninc/cosmos-sdk/pull/19 (shares * validator_exchange_rate * c_value)
+		mintAmount := sdktypes.NewDecFromInt(deposit.Amount).Mul(hc.CValue)
 		mintToken, _ := sdktypes.NewDecCoinFromDec(mintDenom, mintAmount).TruncateDecimal()
 		err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdktypes.NewCoins(mintToken))
 		if err != nil {
-			return nil, errorsmod.Wrapf(
-				types.ErrMintFailed,
-				"failed to mint coins in module %s: %s",
-				types.ModuleName, err,
-			)
+			return nil, errorsmod.Wrapf(types.ErrMintFailed, "failed to mint coins in module %s: %s", types.ModuleName, err)
 		}
 
 		// send the deposit to the deposit-module account
-		depositAmount := sdktypes.NewCoins(sdktypes.NewCoin(deposit.Denom, deposit.Amount))
+		depositAmount := sdktypes.NewCoins(*delegation)
 		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, delegator, types.DepositModuleAccount, depositAmount)
 		if err != nil {
 			return nil, errorsmod.Wrapf(
@@ -544,19 +479,6 @@ func (k msgServer) LiquidStakeLSM(
 			}
 		}
 	}
-
-	ctx.EventManager().EmitEvents(sdktypes.Events{
-		sdktypes.NewEvent(
-			types.EventTypeLiquidStakeLSM,
-			sdktypes.NewAttribute(types.AttributeDelegatorAddress, msg.DelegatorAddress),
-			// TODO: Add events
-		),
-		sdktypes.NewEvent(
-			sdktypes.EventTypeMessage,
-			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
-			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
-		)},
-	)
 
 	return &types.MsgLiquidStakeLSMResponse{}, nil
 }
@@ -871,4 +793,60 @@ func (k msgServer) UpdateParams(
 	})
 
 	return &types.MsgUpdateParamsResponse{}, nil
+}
+
+func (k msgServer) validateLiquidStakeLSMDeposit(
+	ctx sdktypes.Context,
+	delegatorAddress sdktypes.AccAddress,
+	delegation *sdktypes.Coin,
+) (*types.HostChain, *types.Validator, *transfertypes.DenomTrace, error) {
+	// check if the ibc denom contains the ibc prefix
+	if !strings.HasPrefix(delegation.Denom, types.IBCPrefix) {
+		return nil, nil, nil, errorsmod.Wrapf(types.ErrInvalidLSMDenom, "IBC denom %s doesn't belong to a LSM token", delegation.Denom)
+	}
+
+	// parse the ibc denom to extract the original LSM token denom
+	hexHash := delegation.Denom[len(types.IBCPrefix):]
+	hexBytes, err := transfertypes.ParseHexHash(hexHash)
+	if err != nil {
+		return nil, nil, nil, errorsmod.Wrapf(err, "could not parse ibc hash from ibc hex %s", hexHash)
+	}
+
+	// get the denom trace from the parsed ibc denom hex hash
+	denomTrace, found := k.ibcTransferKeeper.GetDenomTrace(ctx, hexBytes)
+	if !found {
+		return nil, nil, nil, errorsmod.Wrapf(types.ErrInvalidLSMDenom, "IBC denom %s doesn't belong to a LSM token", delegation.Denom)
+	}
+
+	// retrieve the host chain associated with the liquid stake action
+	channelID := strings.TrimPrefix(denomTrace.Path, fmt.Sprintf("%s/", transfertypes.PortID))
+	hc, found := k.GetHostChainFromChannelID(ctx, channelID)
+	if !found {
+		return nil, nil, nil, errorsmod.Wrapf(sdkerrors.ErrKeyNotFound, "host chain with channel id %s not registered", channelID)
+	}
+
+	// check if the host chain is active
+	if !hc.Active {
+		return nil, nil, nil, types.ErrHostChainInactive
+	}
+
+	// check if the host chain accepts LSM delegations
+	if !hc.Flags.Lsm {
+		return nil, nil, nil, types.ErrLSMNotEnabled
+	}
+
+	// check if the validator is within the module active set
+	operatorAddress, _, _ := strings.Cut(denomTrace.BaseDenom, "/")
+	validator, found := hc.GetValidator(operatorAddress)
+	if !found {
+		return nil, nil, nil, errorsmod.Wrapf(sdkerrors.ErrKeyNotFound, "validator %s is not part of the module active set for chain %s", operatorAddress, hc.ChainId)
+	}
+
+	// check delegator has enough LSM tokens
+	delegatorBalance := k.bankKeeper.GetBalance(ctx, delegatorAddress, delegation.Denom).Amount
+	if delegatorBalance.LT(delegation.Amount) {
+		return nil, nil, nil, errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "not enough tokenized delegation funds")
+	}
+
+	return hc, validator, &denomTrace, nil
 }
