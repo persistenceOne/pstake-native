@@ -35,11 +35,11 @@ func (k *Keeper) GetLSMDepositsFromIbcDenom(ctx sdk.Context, ibcDenom string) []
 	)
 }
 
-func (k *Keeper) GetLSMDepositsFromIbcSequenceId(ctx sdk.Context, ibcSequenceId string) []*liquidstakeibctypes.LSMDeposit {
+func (k *Keeper) GetLSMDepositsFromIbcSequenceID(ctx sdk.Context, ibcSequenceID string) []*liquidstakeibctypes.LSMDeposit {
 	return k.FilterLSMDeposits(
 		ctx,
 		func(d liquidstakeibctypes.LSMDeposit) bool {
-			return d.IbcSequenceId == ibcSequenceId
+			return d.IbcSequenceId == ibcSequenceID
 		},
 	)
 }

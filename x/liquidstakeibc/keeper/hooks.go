@@ -354,7 +354,7 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 		}
 
 		// mark tokenized LSM token delegations as received and add the IBC sequence
-		lsmDeposits := k.GetLSMDepositsFromIbcSequenceId(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
+		lsmDeposits := k.GetLSMDepositsFromIbcSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
 		k.UpdateLSMDepositsStateAndSequence(ctx, lsmDeposits, liquidstakeibctypes.LSMDeposit_DEPOSIT_RECEIVED, "")
 	}
 

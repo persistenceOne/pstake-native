@@ -430,7 +430,6 @@ func (k msgServer) LiquidStakeLSM(
 				errorsmod.Wrapf(
 					types.ErrLSMDepositProcessing,
 					"already processing LSM deposit for token %s and delegator %s",
-					types.ModuleName,
 					deposit.Denom,
 					deposit.DelegatorAddress,
 				)
