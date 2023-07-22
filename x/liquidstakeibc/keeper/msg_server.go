@@ -411,7 +411,7 @@ func (k msgServer) LiquidStakeLSM(
 			return nil, err
 		}
 
-		// create and store the LSM deposit
+		// create the LSM deposit
 		deposit := &types.LSMDeposit{
 			ChainId:          hc.ChainId,
 			Shares:           sdktypes.NewDecFromInt(delegation.Amount),                                           // TODO: This needs to be updated after https://github.com/iqlusioninc/cosmos-sdk/pull/19
@@ -422,7 +422,22 @@ func (k msgServer) LiquidStakeLSM(
 			State:            types.LSMDeposit_DEPOSIT_PENDING,
 			IbcSequenceId:    "",
 		}
-		k.SetOrUpdateLSMDeposit(ctx, deposit)
+
+		// we won't process more than one deposit for a user and token
+		_, found := k.GetLSMDeposit(ctx, deposit.ChainId, deposit.DelegatorAddress, deposit.Denom)
+		if found {
+			return nil,
+				errorsmod.Wrapf(
+					types.ErrLSMDepositProcessing,
+					"already processing LSM deposit for token %s and delegator %s",
+					types.ModuleName,
+					deposit.Denom,
+					deposit.DelegatorAddress,
+				)
+		}
+
+		// store the deposit
+		k.SetLSMDeposit(ctx, deposit)
 
 		// mint stk tokens
 		mintDenom := hc.MintDenom()

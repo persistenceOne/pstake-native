@@ -25,4 +25,5 @@ var (
 	ErrInvalidParams        = errorsmod.Register(ModuleName, 2017, "invalid params")
 	ErrInvalidLSMDenom      = errorsmod.Register(ModuleName, 2018, "invalid lsm token denom")
 	ErrLSMNotEnabled        = errorsmod.Register(ModuleName, 2019, "host chain has LSM staking disabled")
+	ErrLSMDepositProcessing = errorsmod.Register(ModuleName, 2020, "already processing LSM deposit")
 )

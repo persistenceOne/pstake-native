@@ -194,12 +194,10 @@ message LSMDeposit {
   string ibc_denom = 5;
   // address of the delegator
   string delegator_address = 6;
-  // epoch when the deposit is created
-  int64 epoch = 7;
   // state o the deposit
-  LSMDepositState state = 8;
+  LSMDepositState state = 7;
   // sequence id of the ibc transaction
-  string ibc_sequence_id = 9;
+  string ibc_sequence_id = 8;
 }
 
 message Unbonding {
