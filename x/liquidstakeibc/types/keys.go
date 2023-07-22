@@ -95,6 +95,6 @@ func GetDepositStoreKey(chainID string, epochNumber int64) []byte {
 	return append([]byte(chainID), []byte(strconv.FormatInt(epochNumber, 10))...)
 }
 
-func GetLSMDepositStoreKey(chainID, delegatorAddress, denom string) []byte {
-	return append(append([]byte(chainID), []byte(delegatorAddress)...), []byte(denom)...)
+func GetLSMDepositStoreKey(chainID, delegatorAddress, denom string, epochNumber int64) []byte {
+	return append(append(append([]byte(chainID), []byte(delegatorAddress)...), []byte(denom)...), []byte(strconv.FormatInt(epochNumber, 10))...)
 }

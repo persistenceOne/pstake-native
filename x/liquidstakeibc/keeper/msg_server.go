@@ -422,7 +422,7 @@ func (k msgServer) LiquidStakeLSM(
 			State:            types.LSMDeposit_DEPOSIT_PENDING,
 			IbcSequenceId:    "",
 		}
-		k.SetLSMDeposit(ctx, deposit)
+		k.SetOrUpdateLSMDeposit(ctx, deposit)
 
 		// mint stk tokens
 		mintDenom := hc.MintDenom()
