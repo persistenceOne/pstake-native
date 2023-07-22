@@ -800,8 +800,9 @@ func (k msgServer) validateLiquidStakeLSMDeposit(
 	delegatorAddress sdktypes.AccAddress,
 	delegation *sdktypes.Coin,
 ) (*types.HostChain, *types.Validator, *transfertypes.DenomTrace, error) {
-	// check if the ibc denom contains the ibc prefix
-	if !strings.HasPrefix(delegation.Denom, types.IBCPrefix) {
+
+	// check if the ibc denom is valid
+	if err := transfertypes.ValidateIBCDenom(delegation.Denom); err != nil {
 		return nil, nil, nil, errorsmod.Wrapf(types.ErrInvalidLSMDenom, "IBC denom %s doesn't belong to a LSM token", delegation.Denom)
 	}
 
