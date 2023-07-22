@@ -180,6 +180,6 @@ replace (
 
 // use persistence's forks with LSM implemented
 replace (
-	github.com/cosmos/cosmos-sdk => github.com/persistenceOne/cosmos-sdk v0.0.0-20230611231946-790aaf168429
+	github.com/cosmos/cosmos-sdk => github.com/persistenceOne/cosmos-sdk v0.47.3-lsm2
 	github.com/cosmos/ibc-go/v7 => github.com/persistenceOne/ibc-go/v7 v7.0.0-rc0.0.20230612095033-b776ca4647aa
 )

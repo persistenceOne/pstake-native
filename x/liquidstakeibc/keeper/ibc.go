@@ -248,6 +248,16 @@ func (k *Keeper) handleUnsuccessfulAck(
 				validatorUnbonding.IbcSequenceId = ""
 				k.SetValidatorUnbonding(ctx, validatorUnbonding)
 			}
+		case sdk.MsgTypeURL(&stakingtypes.MsgRedeemTokensForShares{}):
+			deposits := k.FilterLSMDeposits(
+				ctx,
+				func(d types.LSMDeposit) bool {
+					return d.IbcSequenceId == k.GetTransactionSequenceID(channel, sequence)
+				},
+			)
+
+			// revert the state of the deposit, so it will be retried
+			k.RevertLSMDepositsState(ctx, deposits)
 		}
 	}
 

@@ -318,6 +318,7 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 
 	// if the sender is the deposit module account, mark the corresponding deposits as received and update the balance
 	if data.GetSender() == authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() {
+		// process liquid stake deposits
 		deposits := k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
 		for _, deposit := range deposits {
 			// update the deposit state
@@ -351,6 +352,10 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 				packet.SourceChannel,
 			)
 		}
+
+		// mark tokenized LSM token delegations as received and add the IBC sequence
+		lsmDeposits := k.GetLSMDepositsFromIbcSequenceId(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
+		k.UpdateLSMDepositsStateAndSequence(ctx, lsmDeposits, liquidstakeibctypes.LSMDeposit_DEPOSIT_RECEIVED, "")
 	}
 
 	return nil
@@ -371,30 +376,23 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 		return err
 	}
 
-	// if the transfer doesn't belong to any of the registered host chains, return
-	ibcDenom := ibctransfertypes.ParseDenomTrace(data.GetDenom()).IBCDenom()
-	hc, found := k.GetHostChainFromIbcDenom(ctx, ibcDenom)
-	if !found {
-		return nil
-	}
+	// just take action when the transfer has been, send from the deposit module account
+	if data.GetSender() == authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() {
+		// revert the state of the deposits that timed out
+		k.RevertDepositsState(
+			ctx,
+			k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+		)
 
-	// if the transfer is not from deposit module account -> delegation host account, return
-	if data.GetSender() != authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() ||
-		data.GetReceiver() != hc.DelegationAccount.Address ||
-		data.GetDenom() != ibctransfertypes.GetPrefixedDenom(hc.PortId, hc.ChannelId, hc.HostDenom) {
-		return nil
+		// revert the state of the LSM deposits that timed out
+		k.RevertLSMDepositsState(
+			ctx,
+			k.GetLSMDepositsFromIbcDenom(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+		)
 	}
-
-	// revert the state of the deposits that timed out
-	k.RevertDepositsState(
-		ctx,
-		k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
-	)
 
 	k.Logger(ctx).Info(
 		"Deposit transfer timed out.",
-		"host chain",
-		hc.ChainId,
 		"sequence",
 		packet.Sequence,
 		"port",

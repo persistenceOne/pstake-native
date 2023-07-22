@@ -14,7 +14,6 @@ func (k *Keeper) SetLSMDeposit(ctx sdk.Context, deposit *liquidstakeibctypes.LSM
 	store.Set(liquidstakeibctypes.GetLSMDepositStoreKey(deposit.ChainId, deposit.DelegatorAddress, deposit.Denom), bytes)
 }
 
-// GetLSMDeposit returns a host chain given its id
 func (k *Keeper) GetLSMDeposit(ctx sdk.Context, chainID, delegator, denom string) (*liquidstakeibctypes.LSMDeposit, bool) {
 	hc := liquidstakeibctypes.LSMDeposit{}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.LSMDepositKey)
@@ -25,6 +24,42 @@ func (k *Keeper) GetLSMDeposit(ctx sdk.Context, chainID, delegator, denom string
 
 	k.cdc.MustUnmarshal(bytes, &hc)
 	return &hc, true
+}
+
+func (k *Keeper) GetLSMDepositsFromIbcDenom(ctx sdk.Context, ibcDenom string) []*liquidstakeibctypes.LSMDeposit {
+	return k.FilterLSMDeposits(
+		ctx,
+		func(d liquidstakeibctypes.LSMDeposit) bool {
+			return d.IbcDenom == ibcDenom
+		},
+	)
+}
+
+func (k *Keeper) GetLSMDepositsFromIbcSequenceId(ctx sdk.Context, ibcSequenceId string) []*liquidstakeibctypes.LSMDeposit {
+	return k.FilterLSMDeposits(
+		ctx,
+		func(d liquidstakeibctypes.LSMDeposit) bool {
+			return d.IbcSequenceId == ibcSequenceId
+		},
+	)
+}
+
+func (k *Keeper) GetTransferableLSMDeposits(ctx sdk.Context, chainID string) []*liquidstakeibctypes.LSMDeposit {
+	return k.FilterLSMDeposits(
+		ctx,
+		func(d liquidstakeibctypes.LSMDeposit) bool {
+			return d.ChainId == chainID && d.State == liquidstakeibctypes.LSMDeposit_DEPOSIT_PENDING
+		},
+	)
+}
+
+func (k *Keeper) GetRedeemableLSMDeposits(ctx sdk.Context, chainID string) []*liquidstakeibctypes.LSMDeposit {
+	return k.FilterLSMDeposits(
+		ctx,
+		func(d liquidstakeibctypes.LSMDeposit) bool {
+			return d.ChainId == chainID && d.State == liquidstakeibctypes.LSMDeposit_DEPOSIT_RECEIVED
+		},
+	)
 }
 
 func (k *Keeper) DeleteLSMDeposit(ctx sdk.Context, deposit *liquidstakeibctypes.LSMDeposit) {
@@ -40,6 +75,19 @@ func (k *Keeper) RevertLSMDepositsState(ctx sdk.Context, deposits []*liquidstake
 			deposit.State--
 		}
 
+		k.SetLSMDeposit(ctx, deposit)
+	}
+}
+
+func (k *Keeper) UpdateLSMDepositsStateAndSequence(
+	ctx sdk.Context,
+	deposits []*liquidstakeibctypes.LSMDeposit,
+	state liquidstakeibctypes.LSMDeposit_LSMDepositState,
+	ibcSequence string,
+) {
+	for _, deposit := range deposits {
+		deposit.IbcSequenceId = ibcSequence
+		deposit.State = state
 		k.SetLSMDeposit(ctx, deposit)
 	}
 }
