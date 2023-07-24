@@ -36,7 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v2.2.0] - 2023-07-24
+
 ### Features
+
 - [#560](https://github.com/persistenceOne/pstake-native/pull/560) liquidstakeibc: allow localhost client type.
 - [#524](https://github.com/persistenceOne/pstake-native/pull/524) [LiquidStakeIbc] Query Updates
 - [#474](https://github.com/persistenceOne/pstake-native/pull/474) Liquidstakeibc Unstake
@@ -50,7 +53,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - [#488](https://github.com/persistenceOne/pstake-native/pull/488) Liquidstakeibc - update unbonding queries
 - [#487](https://github.com/persistenceOne/pstake-native/pull/487) Liquidstakeibc - Withdraw delegator rewards
 - [#513](https://github.com/persistenceOne/pstake-native/pull/513) [LiquidStakeIbc] ICQ Proofs
-- [#511](https://github.com/persistenceOne/pstake-native/pull/511) use params store in lspersistence instead of params module
+- [#511](https://github.com/persistenceOne/pstake-native/pull/511) use params store in lspersistence instead of params
+  module
 - [#478](https://github.com/persistenceOne/pstake-native/pull/478) stkxprt: add fees for staking
 - [#483](https://github.com/persistenceOne/pstake-native/pull/483) stkxprt: add fees for unstake.
 - [#480](https://github.com/persistenceOne/pstake-native/pull/480) stkxprt: add fees for restake.
@@ -58,12 +62,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - [#514](https://github.com/persistenceOne/pstake-native/pull/514) add proto checks to github actions
 
 ### Improvements
+
 - [#588](https://github.com/persistenceOne/pstake-native/pull/588) Cleanup repository
 - [#492](https://github.com/persistenceOne/pstake-native/pull/492),[#558](https://github.com/persistenceOne/pstake-native/pull/558),[#561](https://github.com/persistenceOne/pstake-native/pull/561),[#563](https://github.com/persistenceOne/pstake-native/pull/563),[#564](https://github.com/persistenceOne/pstake-native/pull/564),[#565](https://github.com/persistenceOne/pstake-native/pull/565),[#566](https://github.com/persistenceOne/pstake-native/pull/566),[#567](https://github.com/persistenceOne/pstake-native/pull/567),[#568](https://github.com/persistenceOne/pstake-native/pull/568),[#569](https://github.com/persistenceOne/pstake-native/pull/569),[#570](https://github.com/persistenceOne/pstake-native/pull/570),[#571](https://github.com/persistenceOne/pstake-native/pull/571),[#573](https://github.com/persistenceOne/pstake-native/pull/573),[#574](https://github.com/persistenceOne/pstake-native/pull/574),[#576](https://github.com/persistenceOne/pstake-native/pull/576),[#577](https://github.com/persistenceOne/pstake-native/pull/577),[#580](https://github.com/persistenceOne/pstake-native/pull/580),[#581](https://github.com/persistenceOne/pstake-native/pull/581),[#582](https://github.com/persistenceOne/pstake-native/pull/582),[#585](https://github.com/persistenceOne/pstake-native/pull/585)
   unit tests for liquidstake ibc
 - [#587](https://github.com/persistenceOne/pstake-native/pull/587) [LiquidStakeIbc] e2e test setup
 - [#522](https://github.com/persistenceOne/pstake-native/pull/522) [LiquidStakeIbc] Cleanups
-- [#501](https://github.com/persistenceOne/pstake-native/pull/501) liquidstakeibc: use icaaccount.owner instead of keeper func,
+- [#501](https://github.com/persistenceOne/pstake-native/pull/501) liquidstakeibc: use icaaccount.owner instead of
+  keeper func,
 - [#518](https://github.com/persistenceOne/pstake-native/pull/518),[#528](https://github.com/persistenceOne/pstake-native/pull/528),[#491](https://github.com/persistenceOne/pstake-native/pull/491),[#536](https://github.com/persistenceOne/pstake-native/pull/536),[#508](https://github.com/persistenceOne/pstake-native/pull/508),
   add migrations.
 - [#459](https://github.com/persistenceOne/pstake-native/pull/459) LS module refactor - Part 1
@@ -71,6 +77,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - [#539](https://github.com/persistenceOne/pstake-native/pull/539) ci-separate module tests with e2e.
 
 ### Bug Fixes
+
 - [#556](https://github.com/persistenceOne/pstake-native/pull/556) LiquidStakeIbc notional Audit
 - [#540](https://github.com/persistenceOne/pstake-native/pull/540) [LiquidStakeIbc] Fix Auto Slashing Mechanism
 - [#542](https://github.com/persistenceOne/pstake-native/pull/542) [LiquidstakeIbc] Limit Auto Compounding
@@ -125,10 +132,10 @@ Never released.
 
 - [#397](https://github.com/persistenceOne/pstake-native/pull/397) use default auth ante.go
 - [#399](https://github.com/persistenceOne/pstake-native/pull/399) add equal condition for undelegation.CompletionTime
-while checking mature undelegations
+  while checking mature undelegations
 - [#401](https://github.com/persistenceOne/pstake-native/pull/401) bind baseDenom and mintDenom.
 - [#403](https://github.com/persistenceOne/pstake-native/pull/403) disallow jumpstarting module from getting a second
-chance once enabled
+  chance once enabled
 
 ### Removed
 
