@@ -329,6 +329,10 @@ func (k *Keeper) DoRedeemLSMTokens(ctx sdk.Context, hc *types.HostChain) {
 		)
 	}
 
+	if len(messages) == 0 {
+		return
+	}
+
 	// execute the ICA transaction
 	sequenceID, err := k.GenerateAndExecuteICATx(
 		ctx,
