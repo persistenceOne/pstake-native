@@ -260,7 +260,6 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		// total stk tokens minted
 		mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
 
-		// TODO: This takes into account that LSM tokens represent tokens, but this will be changed so they represent shares https://github.com/iqlusioninc/cosmos-sdk/pull/19
 		// total tokenized staked amount
 		tokenizedStakedAmount := k.GetLSMDepositAmountUntokenized(ctx, hc.ChainId)
 

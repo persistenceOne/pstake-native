@@ -174,13 +174,14 @@ message LSMDeposit {
 
   // deposit target chain
   string chain_id = 1;
-  // native token amount as per the validator exchange rate
+  // this is calculated when liquid staking [lsm_shares * validator_exchange_rate]
   string amount = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  // LSM token shares
+  // LSM token shares, they are mapped 1:1 with the delegator shares that are tokenized
+  // https://github.com/iqlusioninc/cosmos-sdk/pull/19
   string shares = 3 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",

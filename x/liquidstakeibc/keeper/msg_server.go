@@ -414,8 +414,8 @@ func (k msgServer) LiquidStakeLSM(
 		// create the LSM deposit
 		deposit := &types.LSMDeposit{
 			ChainId:          hc.ChainId,
-			Shares:           sdktypes.NewDecFromInt(delegation.Amount),                                           // TODO: This needs to be updated after https://github.com/iqlusioninc/cosmos-sdk/pull/19
-			Amount:           sdktypes.NewDecFromInt(delegation.Amount).Mul(validator.ExchangeRate).TruncateInt(), // TODO: This needs to be updated after https://github.com/iqlusioninc/cosmos-sdk/pull/19
+			Shares:           sdktypes.NewDecFromInt(delegation.Amount),
+			Amount:           sdktypes.NewDecFromInt(delegation.Amount).Mul(validator.ExchangeRate).TruncateInt(),
 			Denom:            denomTrace.BaseDenom,
 			IbcDenom:         delegation.Denom,
 			DelegatorAddress: msg.DelegatorAddress,
