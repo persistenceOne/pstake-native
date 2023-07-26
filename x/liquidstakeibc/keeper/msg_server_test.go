@@ -6,6 +6,9 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibctfrtypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -100,6 +103,178 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStake() {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("LiquidStake() got = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
+	pstakeapp, ctx := suite.app, suite.ctx
+	hc, found := pstakeapp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
+	suite.Require().True(found)
+
+	lsmIbcDenom := ibctfrtypes.ParseDenomTrace(
+		ibctfrtypes.GetPrefixedDenom(hc.PortId, hc.ChannelId, hc.Validators[0].OperatorAddress+"/1"),
+	).IBCDenom()
+	suite.Require().Equal(nil, transfertypes.ValidateIBCDenom(lsmIbcDenom))
+
+	type args struct {
+		goCtx               context.Context
+		msg                 *types.MsgLiquidStakeLSM
+		chainActive         bool
+		lsmActive           bool
+		createSecondDeposit bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *types.MsgLiquidStakeLSMResponse
+		wantErr bool
+	}{
+		{
+			name: "Success",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStakeLSM{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Delegations:      []*sdk.Coin{{Denom: lsmIbcDenom, Amount: sdk.NewInt(1000)}},
+				},
+				chainActive:         true,
+				lsmActive:           true,
+				createSecondDeposit: false,
+			},
+			want:    &types.MsgLiquidStakeLSMResponse{},
+			wantErr: false,
+		}, {
+			name: "Invalid IBC denom",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStakeLSM{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Delegations:      []*sdk.Coin{{Denom: "ibc", Amount: sdk.NewInt(1000)}},
+				},
+				chainActive:         true,
+				lsmActive:           true,
+				createSecondDeposit: false,
+			},
+			want:    nil,
+			wantErr: true,
+		}, {
+			name: "Invalid IBC hex hash",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStakeLSM{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Delegations:      []*sdk.Coin{{Denom: "uatom", Amount: sdk.NewInt(1000)}},
+				},
+				chainActive:         true,
+				lsmActive:           true,
+				createSecondDeposit: false,
+			},
+			want:    nil,
+			wantErr: true,
+		}, {
+			name: "No IBC denom trace",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStakeLSM{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Delegations:      []*sdk.Coin{{Denom: "ibc/27394FB092D2EAAD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", Amount: sdk.NewInt(1000)}},
+				},
+				chainActive:         true,
+				lsmActive:           true,
+				createSecondDeposit: false,
+			},
+			want:    nil,
+			wantErr: true,
+		}, {
+			name: "Host chain not active",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStakeLSM{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Delegations:      []*sdk.Coin{{Denom: lsmIbcDenom, Amount: sdk.NewInt(1000)}},
+				},
+				chainActive:         false,
+				lsmActive:           true,
+				createSecondDeposit: false,
+			},
+			want:    nil,
+			wantErr: true,
+		}, {
+			name: "Host chain LSM flag not active",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStakeLSM{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Delegations:      []*sdk.Coin{{Denom: lsmIbcDenom, Amount: sdk.NewInt(1000)}},
+				},
+				chainActive:         true,
+				lsmActive:           false,
+				createSecondDeposit: false,
+			},
+			want:    nil,
+			wantErr: true,
+		}, {
+			name: "Not enough balance",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStakeLSM{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Delegations:      []*sdk.Coin{{Denom: lsmIbcDenom, Amount: sdk.NewInt(1000000)}},
+				},
+				chainActive:         true,
+				lsmActive:           true,
+				createSecondDeposit: false,
+			},
+			want:    nil,
+			wantErr: true,
+		}, {
+			name: "Deposit already exists",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStakeLSM{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Delegations:      []*sdk.Coin{{Denom: lsmIbcDenom, Amount: sdk.NewInt(1000)}},
+				},
+				chainActive:         true,
+				lsmActive:           true,
+				createSecondDeposit: true,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		suite.T().Run(tt.name, func(t *testing.T) {
+			k := keeper.NewMsgServerImpl(suite.app.LiquidStakeIBCKeeper)
+
+			suite.UpdateChainActive(tt.args.chainActive, hc)
+			suite.UpdateChainLSMActive(tt.args.lsmActive, hc)
+
+			if tt.args.createSecondDeposit {
+				deposit := &types.LSMDeposit{
+					ChainId:          suite.chainB.ChainID,
+					Denom:            hc.Validators[0].OperatorAddress + "/1",
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+				}
+				suite.app.LiquidStakeIBCKeeper.SetLSMDeposit(
+					ctx,
+					deposit,
+				)
+			}
+
+			got, err := k.LiquidStakeLSM(tt.args.goCtx, tt.args.msg)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("LiquidStake() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("LiquidStake() got = %v, want %v", got, tt.want)
+			}
+
+			suite.UpdateChainActive(true, hc)
+			suite.UpdateChainLSMActive(true, hc)
 		})
 	}
 }

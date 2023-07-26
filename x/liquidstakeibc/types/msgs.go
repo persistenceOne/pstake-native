@@ -370,7 +370,7 @@ func (m *MsgLiquidStakeLSM) Route() string {
 
 // Type should return the action
 func (m *MsgLiquidStakeLSM) Type() string {
-	return MsgTypeLiquidStake
+	return MsgTypeLiquidStakeLSM
 }
 
 // GetSignBytes encodes the message for signing

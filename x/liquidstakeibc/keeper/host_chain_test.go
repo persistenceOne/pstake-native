@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -361,6 +362,41 @@ func (suite *IntegrationTestSuite) TestGetHostChainFromDelegatorAddress() {
 	for _, t := range tc {
 		suite.Run(t.name, func() {
 			hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChainFromDelegatorAddress(suite.ctx, t.delegatorAddress)
+
+			suite.Require().Equal(t.found, found)
+
+			if t.found {
+				suite.Require().Equal(suite.chainB.ChainID, hc.ChainId)
+			} else {
+				suite.Require().Equal("", hc.ChainId)
+			}
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestGetHostChainFromChannelID() {
+	hcFromChainID, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.chainB.ChainID)
+	suite.Require().True(found)
+	tc := []struct {
+		name      string
+		channelId string
+		found     bool
+	}{
+		{
+			name:      "Success",
+			channelId: hcFromChainID.ChannelId,
+			found:     true,
+		},
+		{
+			name:      "NotFound",
+			channelId: "channel-1",
+			found:     false,
+		},
+	}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+			hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChainFromChannelID(suite.ctx, t.channelId)
 
 			suite.Require().Equal(t.found, found)
 
