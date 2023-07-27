@@ -195,6 +195,16 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 		IbcSequenceId: "",
 	})
 
+	if delegationState.HostDelegationAccountBalance.AmountOf(hcparams.BaseDenom).GT(sdk.ZeroInt()) {
+		k.liquidStakeIBCKeeper.SetDeposit(ctx, &liquidstakeibctypes.Deposit{
+			ChainId:       newhc.ChainId,
+			Amount:        sdk.NewCoin(newhc.IBCDenom(), delegationState.HostDelegationAccountBalance.AmountOf(hcparams.BaseDenom)),
+			Epoch:         currEpoch.CurrentEpoch - 1,
+			State:         liquidstakeibctypes.Deposit_DEPOSIT_RECEIVED,
+			IbcSequenceId: "",
+		})
+	}
+
 	// set fee address and params to liquidstakeibc
 	k.liquidStakeIBCKeeper.SetParams(ctx, liquidstakeibctypes.Params{
 		AdminAddress:     hcparams.PstakeParams.PstakeFeeAddress,

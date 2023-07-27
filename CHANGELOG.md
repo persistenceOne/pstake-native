@@ -36,6 +36,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v2.2.1] - 2023-07-27
+
+### Improvements
+
+- [#603](https://github.com/persistenceOne/pstake-native/pull/603) Add extra code for lscosmos migration to account for
+  unrelayed packets.
+
 ## [v2.2.0] - 2023-07-24
 
 ### Features
