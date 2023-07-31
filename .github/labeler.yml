@@ -9,8 +9,8 @@
   # Also match any module.go update
   - x/**/module.go
 
-"C:x/liquidstakibc":
-  - x/liquidstakibc/**/*
+"C:x/liquidstakeibc":
+  - x/liquidstakeibc/**/*
 "C:x/lspersistence":
   - x/lspersistence/**/*
 "C:x/lscosmos":
