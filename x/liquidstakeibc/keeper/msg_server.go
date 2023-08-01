@@ -99,6 +99,16 @@ func (k msgServer) RegisterHostChain(
 		)
 	}
 
+	// create a deposit for the current epoch
+	deposit := &types.Deposit{
+		ChainId:       hc.ChainId,
+		Amount:        sdktypes.NewCoin(hc.IBCDenom(), sdktypes.ZeroInt()),
+		Epoch:         k.epochsKeeper.GetEpochInfo(ctx, types.DelegationEpoch).CurrentEpoch,
+		State:         types.Deposit_DEPOSIT_PENDING,
+		IbcSequenceId: "",
+	}
+	k.SetDeposit(ctx, deposit)
+
 	return &types.MsgRegisterHostChainResponse{}, nil
 }
 
