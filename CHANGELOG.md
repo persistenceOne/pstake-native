@@ -37,6 +37,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [Unreleased]
 
 - [#604](https://github.com/persistenceOne/pstake-native/pull/604) Create an empty deposit when a host chain is registered.
+- [#594](https://github.com/persistenceOne/pstake-native/pull/594) LSM integration.
 
 ## [v2.2.1] - 2023-07-27
 
