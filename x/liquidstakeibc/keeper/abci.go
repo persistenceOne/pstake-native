@@ -35,11 +35,14 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 		// attempt to process any matured unbondings
 		k.DoProcessMaturedUndelegations(ctx, hc)
 
-		// attempt to transfer all LSM token deposits
-		k.DoTransferLSMTokens(ctx, hc)
+		// attempt to transfer and redeem tokens
+		if hc.Flags.Lsm {
+			// attempt to transfer all LSM token deposits
+			k.DoTransferLSMTokens(ctx, hc)
 
-		// attempt to redeem all LSM token deposits
-		k.DoRedeemLSMTokens(ctx, hc)
+			// attempt to redeem all LSM token deposits
+			k.DoRedeemLSMTokens(ctx, hc)
+		}
 	}
 }
 

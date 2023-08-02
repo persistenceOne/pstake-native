@@ -2,9 +2,11 @@ package types
 
 import (
 	"cosmossdk.io/math"
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	persistencetypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
 )
 
@@ -39,4 +41,8 @@ type ICQKeeper interface {
 
 type EpochsKeeper interface {
 	GetEpochInfo(ctx sdk.Context, identifier string) persistencetypes.EpochInfo
+}
+
+type IBCTransferKeeper interface {
+	GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (transfertypes.DenomTrace, bool)
 }

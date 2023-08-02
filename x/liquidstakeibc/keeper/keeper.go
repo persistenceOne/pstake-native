@@ -34,7 +34,7 @@ type Keeper struct {
 	epochsKeeper        types.EpochsKeeper
 	icaControllerKeeper types.ICAControllerKeeper
 	ibcKeeper           *ibckeeper.Keeper
-	ibcTransferKeeper   ibctransferkeeper.Keeper
+	ibcTransferKeeper   types.IBCTransferKeeper
 	icqKeeper           types.ICQKeeper
 
 	paramSpace paramtypes.Subspace
