@@ -19,6 +19,7 @@ import (
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
 
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 type EpochsHooks struct {
@@ -96,6 +97,8 @@ func (k *Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epoch
 func (k *Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	if epochIdentifier == liquidstakeibctypes.DelegationEpoch {
 		k.DepositWorkflow(ctx, epochNumber)
+
+		k.LSMWorkflow(ctx)
 	}
 
 	if epochIdentifier == liquidstakeibctypes.UndelegationEpoch {
@@ -671,6 +674,65 @@ func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
 				)
 				continue
 			}
+		}
+	}
+}
+
+func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
+	for _, hc := range k.GetAllHostChains(ctx) {
+		if !hc.Active || !hc.Flags.Lsm {
+			// don't do anything on inactive or non-LSM chains
+			continue
+		}
+
+		// attempt to transfer all available LSM deposits
+		for _, deposit := range k.GetTransferableLSMDeposits(ctx, hc.ChainId) {
+			clientState, err := k.GetClientState(ctx, hc.ConnectionId)
+			if err != nil {
+				// we can't error out here as all the deposits need to be executed
+				continue
+			}
+
+			timeoutHeight := clienttypes.NewHeight(
+				clientState.GetLatestHeight().GetRevisionNumber(),
+				clientState.GetLatestHeight().GetRevisionHeight()+types.IBCTimeoutHeightIncrement,
+			)
+
+			// craft the IBC message
+			msg := ibctransfertypes.NewMsgTransfer(
+				ibctransfertypes.PortID,
+				hc.ChannelId,
+				sdk.NewCoin(deposit.IbcDenom, deposit.Shares.TruncateInt()),
+				authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String(),
+				hc.DelegationAccount.Address,
+				timeoutHeight,
+				0,
+				"",
+			)
+
+			// send the message
+			handler := k.msgRouter.Handler(msg)
+			res, err := handler(ctx, msg)
+			if err != nil {
+				k.Logger(ctx).Error(fmt.Sprintf("could not send transfer msg via MsgServiceRouter, error: %s", err))
+				// we can't error out here as all the deposits need to be executed
+				continue
+			}
+			ctx.EventManager().EmitEvents(res.GetEvents())
+
+			var msgTransferResponse ibctransfertypes.MsgTransferResponse
+			if err = k.cdc.Unmarshal(res.MsgResponses[0].Value, &msgTransferResponse); err != nil {
+				// we can't error out here as all the deposits need to be executed
+				continue
+			}
+
+			// update the deposit state and add the IBC sequence id
+			k.UpdateLSMDepositsStateAndSequence(
+				ctx,
+				[]*liquidstakeibctypes.LSMDeposit{deposit},
+				liquidstakeibctypes.LSMDeposit_DEPOSIT_SENT,
+				k.GetTransactionSequenceID(hc.ChannelId, msgTransferResponse.Sequence),
+			)
 		}
 	}
 }

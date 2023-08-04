@@ -8,8 +8,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -35,12 +33,8 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 		// attempt to process any matured unbondings
 		k.DoProcessMaturedUndelegations(ctx, hc)
 
-		// attempt to transfer and redeem tokens
+		// attempt to redeem LSM tokens
 		if hc.Flags.Lsm {
-			// attempt to transfer all LSM token deposits
-			k.DoTransferLSMTokens(ctx, hc)
-
-			// attempt to redeem all LSM token deposits
 			k.DoRedeemLSMTokens(ctx, hc)
 		}
 	}
@@ -264,57 +258,6 @@ func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostCh
 		// update the validator unbonding sequence id and state
 		validatorUnbonding.IbcSequenceId = sequenceID
 		k.SetValidatorUnbonding(ctx, validatorUnbonding)
-	}
-}
-
-func (k *Keeper) DoTransferLSMTokens(ctx sdk.Context, hc *types.HostChain) {
-	for _, deposit := range k.GetTransferableLSMDeposits(ctx, hc.ChainId) {
-		clientState, err := k.GetClientState(ctx, hc.ConnectionId)
-		if err != nil {
-			// we can't error out here as all the deposits need to be executed
-			continue
-		}
-
-		timeoutHeight := clienttypes.NewHeight(
-			clientState.GetLatestHeight().GetRevisionNumber(),
-			clientState.GetLatestHeight().GetRevisionHeight()+types.IBCTimeoutHeightIncrement,
-		)
-
-		// craft the IBC message
-		msg := ibctransfertypes.NewMsgTransfer(
-			ibctransfertypes.PortID,
-			hc.ChannelId,
-			sdk.NewCoin(deposit.IbcDenom, deposit.Shares.TruncateInt()),
-			authtypes.NewModuleAddress(types.DepositModuleAccount).String(),
-			hc.DelegationAccount.Address,
-			timeoutHeight,
-			0,
-			"",
-		)
-
-		// send the message
-		handler := k.msgRouter.Handler(msg)
-		res, err := handler(ctx, msg)
-		if err != nil {
-			k.Logger(ctx).Error(fmt.Sprintf("could not send transfer msg via MsgServiceRouter, error: %s", err))
-			// we can't error out here as all the deposits need to be executed
-			continue
-		}
-		ctx.EventManager().EmitEvents(res.GetEvents())
-
-		var msgTransferResponse ibctransfertypes.MsgTransferResponse
-		if err = k.cdc.Unmarshal(res.MsgResponses[0].Value, &msgTransferResponse); err != nil {
-			// we can't error out here as all the deposits need to be executed
-			continue
-		}
-
-		// update the deposit state and add the IBC sequence id
-		k.UpdateLSMDepositsStateAndSequence(
-			ctx,
-			[]*types.LSMDeposit{deposit},
-			types.LSMDeposit_DEPOSIT_SENT,
-			k.GetTransactionSequenceID(hc.ChannelId, msgTransferResponse.Sequence),
-		)
 	}
 }
 
