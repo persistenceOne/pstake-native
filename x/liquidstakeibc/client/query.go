@@ -29,6 +29,7 @@ func NewQueryCmd() *cobra.Command {
 		QueryParamsCmd(),
 		QueryHostChainsCmd(),
 		QueryDepositsCmd(),
+		QueryLSMDepositsCmd(),
 		QueryUnbondingsCmd(),
 		QueryUserUnbondingsCmd(),
 		QueryValidatorUnbondingsCmd(),
@@ -126,6 +127,40 @@ func QueryDepositsCmd() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.Deposits(cmd.Context(), &types.QueryDepositsRequest{ChainId: args[0]})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryLSMDepositsCmd returns all user LSM deposits.
+func QueryLSMDepositsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "lsm-deposits [chain-id]",
+		Short: "Query LSM deposit records for a host chain",
+		Args:  cobra.ExactArgs(1),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query all deposits: $ %s query liquidstakeibc lsm-deposits [chain-id]`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.LSMDeposits(cmd.Context(), &types.QueryLSMDepositsRequest{ChainId: args[0]})
 			if err != nil {
 				return err
 			}

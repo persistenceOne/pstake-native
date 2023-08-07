@@ -248,6 +248,16 @@ func (k *Keeper) handleUnsuccessfulAck(
 				validatorUnbonding.IbcSequenceId = ""
 				k.SetValidatorUnbonding(ctx, validatorUnbonding)
 			}
+		case sdk.MsgTypeURL(&stakingtypes.MsgRedeemTokensForShares{}):
+			deposits := k.FilterLSMDeposits(
+				ctx,
+				func(d types.LSMDeposit) bool {
+					return d.IbcSequenceId == k.GetTransactionSequenceID(channel, sequence)
+				},
+			)
+
+			// revert the state of the deposit, so it will be retried
+			k.RevertLSMDepositsState(ctx, deposits)
 		}
 	}
 
@@ -313,6 +323,25 @@ func (k *Keeper) handleSuccessfulAck(
 			}
 
 			if err = k.HandleMsgTransfer(ctx, msg, msgResponse, channel, sequence); err != nil {
+				return err
+			}
+		case sdk.MsgTypeURL(&stakingtypes.MsgRedeemTokensForShares{}):
+			var data []byte
+			if len(txMsgData.Data) == 0 {
+				data = txMsgData.GetMsgResponses()[i].Value
+			} else {
+				data = txMsgData.Data[i].Data
+			}
+
+			var msgResponse stakingtypes.MsgRedeemTokensForSharesResponse
+			if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
+				return errorsmod.Wrapf(
+					sdkerrors.ErrJSONUnmarshal, "cannot unmarshal redeem tokens response message: %s",
+					err.Error(),
+				)
+			}
+
+			if err = k.HandleMsgRedeemTokensForShares(ctx, msg, msgResponse, channel, sequence); err != nil {
 				return err
 			}
 		}

@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"strconv"
+
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -164,6 +166,52 @@ func (suite *IntegrationTestSuite) TestQueryDeposits() {
 		suite.Run(t.name, func() {
 
 			resp, err := suite.app.LiquidStakeIBCKeeper.Deposits(suite.ctx, t.req)
+
+			suite.Require().Equal(err, t.err)
+			suite.Require().Equal(resp, t.resp)
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestQueryLSMDeposits() {
+	deposits := make([]*types.LSMDeposit, 0)
+	for i := 0; i < MultipleTestSize; i += 1 {
+		deposit := &types.LSMDeposit{
+			ChainId:          suite.chainB.ChainID,
+			DelegatorAddress: "cosmos" + strconv.Itoa(i),
+			Denom:            "u" + strconv.Itoa(i),
+			Shares:           sdktypes.ZeroDec(),
+		}
+		suite.app.LiquidStakeIBCKeeper.SetLSMDeposit(suite.ctx, deposit)
+		deposits = append(deposits, deposit)
+	}
+
+	tc := []struct {
+		name string
+		req  *types.QueryLSMDepositsRequest
+		resp *types.QueryLSMDepositsResponse
+		err  error
+	}{
+		{
+			name: "Success",
+			req:  &types.QueryLSMDepositsRequest{ChainId: suite.chainB.ChainID},
+			resp: &types.QueryLSMDepositsResponse{Deposits: deposits},
+		},
+		{
+			name: "NotFound",
+			req:  &types.QueryLSMDepositsRequest{ChainId: "chain-1"},
+			err:  sdkerrors.ErrKeyNotFound,
+		},
+		{
+			name: "InvalidRequest",
+			err:  status.Error(codes.InvalidArgument, "empty request"),
+		},
+	}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+
+			resp, err := suite.app.LiquidStakeIBCKeeper.LSMDeposits(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)
 			suite.Require().Equal(resp, t.resp)

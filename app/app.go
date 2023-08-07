@@ -505,6 +505,7 @@ func NewpStakeApp(
 		app.EpochsKeeper,
 		app.ICAControllerKeeper,
 		app.IBCKeeper, // TODO: Move to module interface
+		app.TransferKeeper,
 		&app.InterchainQueryKeeper,
 		app.GetSubspace(liquidstakeibctypes.ModuleName),
 		app.MsgServiceRouter(),

@@ -20,6 +20,7 @@ const (
 	MsgTypeRegisterHostChain string = "msg_register_host_chain"
 	MsgTypeUpdateHostChain   string = "msg_update_host_chain"
 	MsgTypeLiquidStake       string = "msg_liquid_stake"
+	MsgTypeLiquidStakeLSM    string = "msg_liquid_stake_lsm"
 	MsgTypeLiquidUnstake     string = "msg_liquid_unstake"
 	MsgTypeRedeem            string = "msg_redeem"
 	MsgTypeUpdateParams      string = "msg_update_params"
@@ -293,6 +294,12 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			if autocompoundFactor.LTE(sdk.ZeroDec()) {
 				return fmt.Errorf("invalid autocompound factor value less or equal than zero")
 			}
+		case KeyFlags:
+			var flags HostChainFlags
+			err := json.Unmarshal([]byte(update.Value), &flags)
+			if err != nil {
+				return fmt.Errorf("unable to unmarshal flags update string")
+			}
 		default:
 			return fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}
@@ -347,6 +354,60 @@ func (m *MsgLiquidStake) ValidateBasic() error {
 	}
 
 	return ibctransfertypes.ValidateIBCDenom(m.Amount.Denom)
+}
+
+//nolint:interfacer
+func NewMsgLiquidStakeLSM(delegations []*sdk.Coin, address sdk.AccAddress) *MsgLiquidStakeLSM {
+	return &MsgLiquidStakeLSM{
+		DelegatorAddress: address.String(),
+		Delegations:      delegations,
+	}
+}
+
+func (m *MsgLiquidStakeLSM) Route() string {
+	return RouterKey
+}
+
+// Type should return the action
+func (m *MsgLiquidStakeLSM) Type() string {
+	return MsgTypeLiquidStakeLSM
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgLiquidStakeLSM) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgLiquidStakeLSM) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// ValidateBasic performs stateless checks
+func (m *MsgLiquidStakeLSM) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.DelegatorAddress)
+	}
+
+	for _, delegation := range m.Delegations {
+		if !delegation.IsValid() {
+			return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, delegation.String())
+		}
+
+		if !delegation.Amount.IsPositive() {
+			return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, delegation.Amount.String())
+		}
+
+		if err := ibctransfertypes.ValidateIBCDenom(delegation.Denom); err != nil {
+			return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, delegation.Amount.String())
+		}
+	}
+
+	return nil
 }
 
 //nolint:interfacer

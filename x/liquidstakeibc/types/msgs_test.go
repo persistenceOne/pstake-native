@@ -44,6 +44,31 @@ func TestMsgLiquidStake(t *testing.T) {
 	require.Error(t, invalidAddrMsg.ValidateBasic())
 	require.Panics(t, func() { invalidAddrMsg.GetSigners() })
 }
+func TestMsgLiquidStakeLSM(t *testing.T) {
+	msgLiquidStakeLSM := &types.MsgLiquidStakeLSM{
+		DelegatorAddress: addr1.String(),
+		Delegations:      []*sdk.Coin{{ibcDenom, sdk.NewInt(10000)}},
+	}
+	newMsgLiquidStake := types.NewMsgLiquidStakeLSM([]*sdk.Coin{{ibcDenom, sdk.NewInt(10000)}}, addr1)
+	require.Equal(t, msgLiquidStakeLSM, newMsgLiquidStake)
+	require.Equal(t, types.ModuleName, msgLiquidStakeLSM.Route())
+	require.Equal(t, types.MsgTypeLiquidStakeLSM, msgLiquidStakeLSM.Type())
+	require.Equal(t, addr1, msgLiquidStakeLSM.GetSigners()[0])
+	require.NotPanics(t, func() { msgLiquidStakeLSM.GetSignBytes() })
+
+	require.Equal(t, nil, msgLiquidStakeLSM.ValidateBasic())
+
+	invalidDelegations := []*sdk.Coin{{ibcDenom, sdk.NewInt(-10000)}}
+	invalidCoinMsg := types.NewMsgLiquidStakeLSM(invalidDelegations, addr1)
+	require.Error(t, invalidCoinMsg.ValidateBasic())
+
+	zeroCoinMsg := types.NewMsgLiquidStakeLSM([]*sdk.Coin{{ibcDenom, sdk.ZeroInt()}}, addr1)
+	require.Error(t, zeroCoinMsg.ValidateBasic())
+
+	invalidAddrMsg := types.NewMsgLiquidStakeLSM([]*sdk.Coin{{ibcDenom, sdk.NewInt(10000)}}, sdk.AccAddress("test"))
+	require.Error(t, invalidAddrMsg.ValidateBasic())
+	require.Panics(t, func() { invalidAddrMsg.GetSigners() })
+}
 func TestMsgLiquidUnstake(t *testing.T) {
 	msgLiquidUnstake := &types.MsgLiquidUnstake{
 		DelegatorAddress: addr1.String(),

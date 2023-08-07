@@ -57,6 +57,12 @@ message HostChain {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
+  // host chain flags
+  HostChainFlags flags = 16;
+}
+
+message HostChainFlags {
+  bool lsm = 1;
 }
 
 message HostChainLSParams {
@@ -152,6 +158,45 @@ message Deposit {
   DepositState state = 4;
   // sequence id of the ibc transaction
   string ibc_sequence_id = 5;
+}
+
+message LSMDeposit {
+  enum LSMDepositState {
+    // no action has been initiated on the deposit
+    DEPOSIT_PENDING = 0;
+    // deposit sent to the host chain delegator address
+    DEPOSIT_SENT = 1;
+    // deposit received by the host chain delegator address
+    DEPOSIT_RECEIVED = 2;
+    // deposit started the untokenization process
+    DEPOSIT_UNTOKENIZING = 3;
+  }
+
+  // deposit target chain
+  string chain_id = 1;
+  // this is calculated when liquid staking [lsm_shares * validator_exchange_rate]
+  string amount = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // LSM token shares, they are mapped 1:1 with the delegator shares that are tokenized
+  // https://github.com/iqlusioninc/cosmos-sdk/pull/19
+  string shares = 3 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  // LSM token denom
+  string denom = 4;
+  // LSM token ibc denom
+  string ibc_denom = 5;
+  // address of the delegator
+  string delegator_address = 6;
+  // state o the deposit
+  LSMDepositState state = 7;
+  // sequence id of the ibc transaction
+  string ibc_sequence_id = 8;
 }
 
 message Unbonding {

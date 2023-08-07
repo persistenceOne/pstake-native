@@ -97,8 +97,10 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	suite.SetupHostChainAB()
 	suite.SetupICAChannelsAB()
 
-	suite.Transfer(suite.transferPathAB, "uatom")
-	suite.Transfer(suite.transferPathAC, "uosmo")
+	suite.Transfer(suite.transferPathAB, sdk.NewCoin("uatom", sdk.NewInt(1000000000000)))
+	suite.Transfer(suite.transferPathAC, sdk.NewCoin("uosmo", sdk.NewInt(1000000000000)))
+
+	suite.SetupLSM()
 
 	suite.CleanupSetup()
 	suite.ctx = suite.chainA.GetContext()
@@ -191,9 +193,42 @@ func (suite *IntegrationTestSuite) SetupHostChainAB() {
 		UnbondingFactor:    4,
 		AutoCompoundFactor: suite.app.LiquidStakeIBCKeeper.CalculateAutocompoundLimit(sdk.NewDec(20)),
 		Active:             true,
+		Flags:              &types.HostChainFlags{Lsm: true},
 	}
 
 	suite.app.LiquidStakeIBCKeeper.SetHostChain(suite.chainA.GetContext(), hc)
+}
+
+func (suite *IntegrationTestSuite) SetupLSM() {
+	// delegate from an address on Cosmos
+	msgDelegate := &stakingtypes.MsgDelegate{
+		DelegatorAddress: suite.chainB.SenderAccount.GetAddress().String(),
+		ValidatorAddress: sdk.MustBech32ifyAddressBytes(app.Bech32PrefixValAddr, suite.chainB.Vals.Validators[0].Address),
+		Amount:           sdk.NewCoin(HostDenom, sdk.NewInt(1000000000)),
+	}
+	res, err := suite.chainB.SendMsgs(msgDelegate)
+	suite.Require().NotNil(res)
+	suite.NoError(err)
+
+	// tokenize the whole delegation
+	msgTokenizeShares := &stakingtypes.MsgTokenizeShares{
+		ValidatorAddress:    sdk.MustBech32ifyAddressBytes(app.Bech32PrefixValAddr, suite.chainB.Vals.Validators[0].Address),
+		DelegatorAddress:    suite.chainB.SenderAccount.GetAddress().String(),
+		Amount:              sdk.NewCoin(HostDenom, sdk.NewInt(1000000000)),
+		TokenizedShareOwner: suite.chainB.SenderAccount.GetAddress().String(),
+	}
+	res, err = suite.chainB.SendMsgs(msgTokenizeShares)
+	suite.Require().NotNil(res)
+	suite.NoError(err)
+
+	// send it via IBC to persistence
+	suite.Transfer(
+		suite.transferPathAB,
+		sdk.NewCoin(
+			sdk.MustBech32ifyAddressBytes(app.Bech32PrefixValAddr, suite.chainB.Vals.Validators[0].Address)+"/1",
+			sdk.NewInt(1000),
+		),
+	)
 }
 
 func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
@@ -205,9 +240,7 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 
 	return path
 }
-func (suite *IntegrationTestSuite) Transfer(path *ibctesting.Path, denom string) {
-	coin := sdk.NewCoin(denom, sdk.NewInt(1000000000000))
-
+func (suite *IntegrationTestSuite) Transfer(path *ibctesting.Path, coin sdk.Coin) {
 	transferMsg := ibctransfertypes.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID,
 		path.EndpointB.ChannelID, coin, path.EndpointB.Chain.SenderAccount.GetAddress().String(),
 		path.EndpointA.Chain.SenderAccount.GetAddress().String(), path.EndpointA.Chain.GetTimeoutHeight(),
@@ -569,4 +602,14 @@ func CreateICARewardsPacketHardcoded(data, sequence, timeoutHeight, timeoutTimes
 		TimeoutTimestamp:   timestamp,
 	}
 	return packet, nil
+}
+
+func (suite *IntegrationTestSuite) UpdateChainActive(active bool, hc *types.HostChain) {
+	hc.Active = active
+	suite.app.LiquidStakeIBCKeeper.SetHostChain(suite.ctx, hc)
+}
+
+func (suite *IntegrationTestSuite) UpdateChainLSMActive(active bool, hc *types.HostChain) {
+	hc.Flags.Lsm = active
+	suite.app.LiquidStakeIBCKeeper.SetHostChain(suite.ctx, hc)
 }

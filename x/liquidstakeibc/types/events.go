@@ -1,14 +1,15 @@
 package types
 
 const (
-	EventTypeLiquidStake   = "liquid-stake"
-	EventTypeLiquidUnstake = "liquid-unstake"
-	EventTypeRedeem        = "redeem"
-	EventTypePacket        = "ics27_packet"
-	EventTypeTimeout       = "timeout"
-	EventTypeSlashing      = "slashing"
-	EventTypeUpdateParams  = "update_params"
-	EventTypeChainDisabled = "chain_disabled"
+	EventTypeLiquidStake    = "liquid-stake"
+	EventTypeLiquidStakeLSM = "liquid-stake-lsm"
+	EventTypeLiquidUnstake  = "liquid-unstake"
+	EventTypeRedeem         = "redeem"
+	EventTypePacket         = "ics27_packet"
+	EventTypeTimeout        = "timeout"
+	EventTypeSlashing       = "slashing"
+	EventTypeUpdateParams   = "update_params"
+	EventTypeChainDisabled  = "chain_disabled"
 
 	AttributeAmount             = "amount"
 	AttributeAmountReceived     = "received"

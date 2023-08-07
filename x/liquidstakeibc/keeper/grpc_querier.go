@@ -75,6 +75,31 @@ func (k *Keeper) Deposits(
 	return &types.QueryDepositsResponse{Deposits: k.GetDepositsForHostChain(ctx, hc.ChainId)}, nil
 }
 
+func (k *Keeper) LSMDeposits(
+	goCtx context.Context,
+	request *types.QueryLSMDepositsRequest,
+) (*types.QueryLSMDepositsResponse, error) {
+	if request == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	hc, found := k.GetHostChain(ctx, request.ChainId)
+	if !found {
+		return nil, sdkerrors.ErrKeyNotFound
+	}
+
+	deposits := k.FilterLSMDeposits(
+		ctx,
+		func(d types.LSMDeposit) bool {
+			return d.ChainId == hc.ChainId
+		},
+	)
+
+	return &types.QueryLSMDepositsResponse{Deposits: deposits}, nil
+}
+
 func (k *Keeper) Unbondings(
 	goCtx context.Context,
 	request *types.QueryUnbondingsRequest,
