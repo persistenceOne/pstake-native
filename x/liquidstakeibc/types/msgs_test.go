@@ -47,9 +47,9 @@ func TestMsgLiquidStake(t *testing.T) {
 func TestMsgLiquidStakeLSM(t *testing.T) {
 	msgLiquidStakeLSM := &types.MsgLiquidStakeLSM{
 		DelegatorAddress: addr1.String(),
-		Delegations:      []*sdk.Coin{{ibcDenom, sdk.NewInt(10000)}},
+		Delegations:      sdk.NewCoins(sdk.NewCoin(ibcDenom, sdk.NewInt(10000))),
 	}
-	newMsgLiquidStake := types.NewMsgLiquidStakeLSM([]*sdk.Coin{{ibcDenom, sdk.NewInt(10000)}}, addr1)
+	newMsgLiquidStake := types.NewMsgLiquidStakeLSM(sdk.NewCoins(sdk.NewCoin(ibcDenom, sdk.NewInt(10000))), addr1)
 	require.Equal(t, msgLiquidStakeLSM, newMsgLiquidStake)
 	require.Equal(t, types.ModuleName, msgLiquidStakeLSM.Route())
 	require.Equal(t, types.MsgTypeLiquidStakeLSM, msgLiquidStakeLSM.Type())
@@ -58,14 +58,17 @@ func TestMsgLiquidStakeLSM(t *testing.T) {
 
 	require.Equal(t, nil, msgLiquidStakeLSM.ValidateBasic())
 
-	invalidDelegations := []*sdk.Coin{{ibcDenom, sdk.NewInt(-10000)}}
+	invalidDelegations := sdk.Coins{sdk.Coin{Denom: ibcDenom, Amount: sdk.NewInt(-10000)}}
 	invalidCoinMsg := types.NewMsgLiquidStakeLSM(invalidDelegations, addr1)
 	require.Error(t, invalidCoinMsg.ValidateBasic())
 
-	zeroCoinMsg := types.NewMsgLiquidStakeLSM([]*sdk.Coin{{ibcDenom, sdk.ZeroInt()}}, addr1)
+	zeroCoinMsg := types.NewMsgLiquidStakeLSM(sdk.Coins{sdk.Coin{Denom: ibcDenom, Amount: sdk.NewInt(0)}}, addr1)
 	require.Error(t, zeroCoinMsg.ValidateBasic())
 
-	invalidAddrMsg := types.NewMsgLiquidStakeLSM([]*sdk.Coin{{ibcDenom, sdk.NewInt(10000)}}, sdk.AccAddress("test"))
+	zeroCoinMsg2 := types.NewMsgLiquidStakeLSM(sdk.NewCoins(sdk.NewCoin(ibcDenom, sdk.ZeroInt())), addr1)
+	require.Error(t, zeroCoinMsg2.ValidateBasic())
+
+	invalidAddrMsg := types.NewMsgLiquidStakeLSM(sdk.NewCoins(sdk.NewCoin(ibcDenom, sdk.NewInt(10000))), sdk.AccAddress("test"))
 	require.Error(t, invalidAddrMsg.ValidateBasic())
 	require.Panics(t, func() { invalidAddrMsg.GetSigners() })
 }

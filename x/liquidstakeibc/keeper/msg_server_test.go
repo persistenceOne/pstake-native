@@ -136,7 +136,7 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 				goCtx: ctx,
 				msg: &types.MsgLiquidStakeLSM{
 					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
-					Delegations:      []*sdk.Coin{{Denom: lsmIbcDenom, Amount: sdk.NewInt(1000)}},
+					Delegations:      sdk.NewCoins(sdk.NewCoin(lsmIbcDenom, sdk.NewInt(1000))),
 				},
 				chainActive:         true,
 				lsmActive:           true,
@@ -150,7 +150,7 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 				goCtx: ctx,
 				msg: &types.MsgLiquidStakeLSM{
 					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
-					Delegations:      []*sdk.Coin{{Denom: "ibc", Amount: sdk.NewInt(1000)}},
+					Delegations:      sdk.NewCoins(sdk.NewCoin("ibc", sdk.NewInt(1000))),
 				},
 				chainActive:         true,
 				lsmActive:           true,
@@ -164,7 +164,7 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 				goCtx: ctx,
 				msg: &types.MsgLiquidStakeLSM{
 					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
-					Delegations:      []*sdk.Coin{{Denom: "uatom", Amount: sdk.NewInt(1000)}},
+					Delegations:      sdk.NewCoins(sdk.NewCoin("uatom", sdk.NewInt(1000))),
 				},
 				chainActive:         true,
 				lsmActive:           true,
@@ -178,7 +178,7 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 				goCtx: ctx,
 				msg: &types.MsgLiquidStakeLSM{
 					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
-					Delegations:      []*sdk.Coin{{Denom: "ibc/27394FB092D2EAAD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", Amount: sdk.NewInt(1000)}},
+					Delegations:      sdk.NewCoins(sdk.NewCoin("ibc/27394FB092D2EAAD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", sdk.NewInt(1000))),
 				},
 				chainActive:         true,
 				lsmActive:           true,
@@ -192,7 +192,7 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 				goCtx: ctx,
 				msg: &types.MsgLiquidStakeLSM{
 					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
-					Delegations:      []*sdk.Coin{{Denom: lsmIbcDenom, Amount: sdk.NewInt(1000)}},
+					Delegations:      sdk.NewCoins(sdk.NewCoin(lsmIbcDenom, sdk.NewInt(1000))),
 				},
 				chainActive:         false,
 				lsmActive:           true,
@@ -206,7 +206,7 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 				goCtx: ctx,
 				msg: &types.MsgLiquidStakeLSM{
 					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
-					Delegations:      []*sdk.Coin{{Denom: lsmIbcDenom, Amount: sdk.NewInt(1000)}},
+					Delegations:      sdk.NewCoins(sdk.NewCoin(lsmIbcDenom, sdk.NewInt(1000))),
 				},
 				chainActive:         true,
 				lsmActive:           false,
@@ -220,7 +220,7 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 				goCtx: ctx,
 				msg: &types.MsgLiquidStakeLSM{
 					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
-					Delegations:      []*sdk.Coin{{Denom: lsmIbcDenom, Amount: sdk.NewInt(1000000)}},
+					Delegations:      sdk.NewCoins(sdk.NewCoin(lsmIbcDenom, sdk.NewInt(1000000))),
 				},
 				chainActive:         true,
 				lsmActive:           true,
@@ -234,7 +234,7 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 				goCtx: ctx,
 				msg: &types.MsgLiquidStakeLSM{
 					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
-					Delegations:      []*sdk.Coin{{Denom: lsmIbcDenom, Amount: sdk.NewInt(1000)}},
+					Delegations:      sdk.NewCoins(sdk.NewCoin(lsmIbcDenom, sdk.NewInt(1000))),
 				},
 				chainActive:         true,
 				lsmActive:           true,
