@@ -458,7 +458,7 @@ func (k msgServer) LiquidStakeLSM(
 		}
 
 		// send the deposit to the deposit-module account
-		depositAmount := sdktypes.NewCoins(*delegation)
+		depositAmount := sdktypes.NewCoins(delegation)
 		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, delegator, types.DepositModuleAccount, depositAmount)
 		if err != nil {
 			return nil, errorsmod.Wrapf(
@@ -822,7 +822,7 @@ func (k msgServer) UpdateParams(
 func (k msgServer) validateLiquidStakeLSMDeposit(
 	ctx sdktypes.Context,
 	delegatorAddress sdktypes.AccAddress,
-	delegation *sdktypes.Coin,
+	delegation sdktypes.Coin,
 ) (*types.HostChain, *types.Validator, *transfertypes.DenomTrace, error) {
 
 	// check if the ibc denom is valid

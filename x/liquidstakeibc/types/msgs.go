@@ -357,7 +357,7 @@ func (m *MsgLiquidStake) ValidateBasic() error {
 }
 
 //nolint:interfacer
-func NewMsgLiquidStakeLSM(delegations []*sdk.Coin, address sdk.AccAddress) *MsgLiquidStakeLSM {
+func NewMsgLiquidStakeLSM(delegations sdk.Coins, address sdk.AccAddress) *MsgLiquidStakeLSM {
 	return &MsgLiquidStakeLSM{
 		DelegatorAddress: address.String(),
 		Delegations:      delegations,
