@@ -393,15 +393,14 @@ func (m *MsgLiquidStakeLSM) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.DelegatorAddress)
 	}
 
+	if !m.Delegations.IsValid() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Delegations.String())
+	}
+	if !m.Delegations.IsAllPositive() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Delegations.String())
+	}
+
 	for _, delegation := range m.Delegations {
-		if !delegation.IsValid() {
-			return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, delegation.String())
-		}
-
-		if !delegation.Amount.IsPositive() {
-			return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, delegation.Amount.String())
-		}
-
 		if err := ibctransfertypes.ValidateIBCDenom(delegation.Denom); err != nil {
 			return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, delegation.Amount.String())
 		}
