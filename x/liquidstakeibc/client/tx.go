@@ -170,14 +170,13 @@ func NewLiquidStakeCmdLSM() *cobra.Command {
 				return err
 			}
 
-			var delegations []*sdk.Coin
-			err = json.Unmarshal([]byte(args[0]), &delegations)
+			coins, err := sdk.ParseCoinsNormalized(args[0])
 			if err != nil {
 				return err
 			}
 
 			delegatorAddress := clientctx.GetFromAddress()
-			msg := types.NewMsgLiquidStakeLSM(delegations, delegatorAddress)
+			msg := types.NewMsgLiquidStakeLSM(coins, delegatorAddress)
 
 			return tx.GenerateOrBroadcastTxCLI(clientctx, cmd.Flags(), msg)
 		},

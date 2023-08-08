@@ -629,9 +629,10 @@ func (m *Deposit) GetIbcSequenceId() string {
 type LSMDeposit struct {
 	// deposit target chain
 	ChainId string `protobuf:"bytes,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
-	// native token amount as per the validator exchange rate
+	// this is calculated when liquid staking [lsm_shares * validator_exchange_rate]
 	Amount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount"`
-	// LSM token shares
+	// LSM token shares, they are mapped 1:1 with the delegator shares that are tokenized
+	// https://github.com/iqlusioninc/cosmos-sdk/pull/19
 	Shares github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=shares,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"shares"`
 	// LSM token denom
 	Denom string `protobuf:"bytes,4,opt,name=denom,proto3" json:"denom,omitempty"`
