@@ -19,6 +19,7 @@ import (
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.ModuleName,
+		Aliases:                    []string{"liquidstake", "lsibc"},
 		Short:                      "Pstake liquid staking ibc transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
