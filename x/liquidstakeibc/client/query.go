@@ -19,6 +19,7 @@ import (
 func NewQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
+		Aliases:                    []string{"liquidstake", "lsibc"},
 		Short:                      "Querying commands for the pstake liquid staking ibc module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
