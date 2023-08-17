@@ -1040,7 +1040,19 @@ func (app *PstakeApp) GetTxConfig() client.TxConfig {
 
 func (app *PstakeApp) RegisterUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		upgradeName,
+		testnetUpgradeName,
+		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			newVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
+			if err != nil {
+				return nil, err
+			}
+
+			return newVM, app.LiquidStakeIBCKeeper.Migrate(ctx)
+		},
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		mainnetUpgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 			baseapp.MigrateParams(ctx, baseAppLegacySS, &app.ConsensusParamsKeeper)
@@ -1068,7 +1080,7 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 		panic(err)
 	}
 
-	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == mainnetUpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
 			Added: []string{
 				liquidstakeibctypes.ModuleName,
