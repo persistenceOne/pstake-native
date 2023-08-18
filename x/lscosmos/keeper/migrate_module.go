@@ -81,6 +81,7 @@ func (k Keeper) Migrate(ctx sdk.Context) error {
 		},
 		Validators:         validators,
 		AutoCompoundFactor: types.RestakeCapPerDay,
+		Flags:              &liquidstakeibctypes.HostChainFlags{Lsm: false},
 	}
 
 	// save the host chain
