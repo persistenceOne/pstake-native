@@ -12,43 +12,7 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
-func (k *Keeper) BeginBlock(ctx sdk.Context, height int64) {
-
-	if height == 1 {
-		hc := &types.HostChain{
-			ChainId:      "chain-1",
-			ConnectionId: "connection",
-			ChannelId:    "channel-0",
-			PortId:       "port-1",
-			Params: &types.HostChainLSParams{
-				DepositFee:    sdk.ZeroDec(),
-				RestakeFee:    sdk.ZeroDec(),
-				UnstakeFee:    sdk.ZeroDec(),
-				RedemptionFee: sdk.ZeroDec(),
-			},
-			HostDenom:       "uatom",
-			MinimumDeposit:  sdk.OneInt(),
-			CValue:          sdk.OneDec(),
-			UnbondingFactor: 0,
-			Active:          false,
-			DelegationAccount: &types.ICAAccount{
-				Address:      "addr1",
-				Balance:      sdk.NewCoin("denom1", sdk.ZeroInt()),
-				Owner:        "owner1",
-				ChannelState: 1,
-			},
-			RewardsAccount: &types.ICAAccount{
-				Address:      "addr2",
-				Balance:      sdk.NewCoin("denom2", sdk.ZeroInt()),
-				Owner:        "owner2",
-				ChannelState: 1,
-			},
-			Validators:         []*types.Validator{},
-			AutoCompoundFactor: sdk.OneDec(),
-		}
-
-		k.SetHostChain(ctx, hc)
-	}
+func (k *Keeper) BeginBlock(ctx sdk.Context) {
 
 	// perform BeginBlocker tasks for each chain
 	for _, hc := range k.GetAllHostChains(ctx) {
