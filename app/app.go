@@ -1043,11 +1043,6 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 		testnetUpgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-			//if err != nil {
-			//	return nil, err
-			//}
-			//
-			//return newVM, app.LiquidStakeIBCKeeper.Migrate(ctx)
 		},
 	)
 

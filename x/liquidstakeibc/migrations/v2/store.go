@@ -9,7 +9,7 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
-// MigrateStore performs in-place store migrations from v2.x to v2.2.0.
+// MigrateStore performs in-place store migrations from v2.x to v2.3.0.
 // The migration includes:
 //
 // - Migrate host chains to include the Flag attribute.
