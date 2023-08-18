@@ -121,10 +121,15 @@ func (a AppModule) QuerierRoute() string {
 func (a AppModule) RegisterServices(configurator module.Configurator) {
 	types.RegisterMsgServer(configurator.MsgServer(), keeper.NewMsgServerImpl(a.keeper))
 	types.RegisterQueryServer(configurator.QueryServer(), &a.keeper)
+
+	err := configurator.RegisterMigration(types.ModuleName, 1, keeper.NewMigrator(a.keeper).Migrate1to2)
+	if err != nil {
+		panic(fmt.Sprintf("failed to migrate x/%s from version 1 to 2: %v", types.ModuleName, err))
+	}
 }
 
 func (a AppModule) ConsensusVersion() uint64 {
-	return 1
+	return 1 // TODO: Update this to 2 before the upgrade
 }
 
 // TODO simulations
