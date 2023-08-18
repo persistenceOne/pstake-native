@@ -1,6 +1,7 @@
 package app
 
 const (
-	appName     = "pStake"
-	upgradeName = "v2.x"
+	appName            = "pStake"
+	mainnetUpgradeName = "v2.2.0"
+	testnetUpgradeName = "v2.3.0"
 )
