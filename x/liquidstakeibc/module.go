@@ -129,7 +129,7 @@ func (a AppModule) RegisterServices(configurator module.Configurator) {
 }
 
 func (a AppModule) ConsensusVersion() uint64 {
-	return 1 // TODO: Update this to 2 before the upgrade
+	return 2
 }
 
 // TODO simulations
