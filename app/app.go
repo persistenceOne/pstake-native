@@ -1042,12 +1042,12 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		testnetUpgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			newVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
-			if err != nil {
-				return nil, err
-			}
-
-			return newVM, app.LiquidStakeIBCKeeper.Migrate(ctx)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+			//if err != nil {
+			//	return nil, err
+			//}
+			//
+			//return newVM, app.LiquidStakeIBCKeeper.Migrate(ctx)
 		},
 	)
 
