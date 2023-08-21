@@ -14,7 +14,6 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/gogoproto/proto"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -53,7 +52,7 @@ func NewKeeper(
 	epochsKeeper types.EpochsKeeper,
 	icaControllerKeeper types.ICAControllerKeeper,
 	ibcKeeper *ibckeeper.Keeper,
-	ibcTransferKeeper ibctransferkeeper.Keeper,
+	ibcTransferKeeper types.IBCTransferKeeper,
 	icqKeeper types.ICQKeeper,
 
 	paramSpace paramtypes.Subspace,
