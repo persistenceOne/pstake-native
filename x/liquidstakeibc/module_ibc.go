@@ -1,6 +1,8 @@
 package liquidstakeibc
 
 import (
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -98,21 +100,21 @@ func (m IBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (version string, err error) {
-	panic("UNIMPLEMENTED")
+	return "", nil
 }
 
-func (m IBCModule) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
-	panic("UNIMPLEMENTED")
+func (m IBCModule) OnChanOpenConfirm(_ sdk.Context, _, _ string) error {
+	return nil
 }
 
-func (m IBCModule) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
-	panic("UNIMPLEMENTED")
+func (m IBCModule) OnChanCloseInit(_ sdk.Context, _, _ string) error {
+	return nil
 }
 
-func (m IBCModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
-	panic("UNIMPLEMENTED")
+func (m IBCModule) OnChanCloseConfirm(_ sdk.Context, _, _ string) error {
+	return nil
 }
 
-func (m IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
-	panic("UNIMPLEMENTED")
+func (m IBCModule) OnRecvPacket(_ sdk.Context, _ channeltypes.Packet, _ sdk.AccAddress) ibcexported.Acknowledgement {
+	return channeltypes.NewErrorAcknowledgement(errors.New("ICA packets can't be received by the auth module"))
 }

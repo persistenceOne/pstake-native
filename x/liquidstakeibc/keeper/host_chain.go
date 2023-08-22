@@ -53,8 +53,7 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 	// process status update
 	if validator.Status.String() != val.Status {
 		// validator transitioned into unbonding
-		if validator.Status.String() == stakingtypes.BondStatusUnbonding ||
-			validator.Status.String() == stakingtypes.BondStatusUnbonded {
+		if validator.Status.String() != stakingtypes.BondStatusBonded {
 			epochNumber := k.epochsKeeper.GetEpochInfo(ctx, types.UndelegationEpoch).CurrentEpoch
 			val.UnbondingEpoch = types.CurrentUnbondingEpoch(hc.UnbondingFactor, epochNumber)
 		}
