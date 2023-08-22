@@ -375,7 +375,7 @@ func (k msgServer) LiquidStake(
 		sdktypes.NewEvent(
 			types.EventTypeLiquidStake,
 			sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
-			sdktypes.NewAttribute(types.AttributeAmount, mintToken.String()),
+			sdktypes.NewAttribute(types.AttributeAmount, depositAmount.String()),
 			sdktypes.NewAttribute(types.AttributeAmountReceived, mintToken.Sub(protocolFee).String()),
 			sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolFee.String()),
 		),
