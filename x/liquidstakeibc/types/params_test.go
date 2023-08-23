@@ -10,8 +10,8 @@ import (
 
 func TestParams_Validate(t *testing.T) {
 	type fields struct {
-		AdminAddress     string
-		FeeAddress       string
+		AdminAddress     sdk.AccAddress
+		FeeAddress       sdk.AccAddress
 		UpperCValueLimit sdk.Dec
 		LowerCValueLimit sdk.Dec
 	}
@@ -33,7 +33,7 @@ func TestParams_Validate(t *testing.T) {
 		{
 			name: "Invalid admin address",
 			fields: fields{
-				AdminAddress:     "",
+				AdminAddress:     sdk.AccAddress{},
 				FeeAddress:       types.DefaultFeeAddress,
 				UpperCValueLimit: sdk.OneDec(),
 				LowerCValueLimit: sdk.ZeroDec(),
@@ -44,7 +44,7 @@ func TestParams_Validate(t *testing.T) {
 			name: "invalid fee address",
 			fields: fields{
 				AdminAddress:     types.DefaultAdminAddress,
-				FeeAddress:       "",
+				FeeAddress:       sdk.AccAddress{},
 				UpperCValueLimit: sdk.OneDec(),
 				LowerCValueLimit: sdk.ZeroDec(),
 			},
@@ -64,8 +64,8 @@ func TestParams_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &types.Params{
-				AdminAddress:     tt.fields.AdminAddress,
-				FeeAddress:       tt.fields.FeeAddress,
+				AdminAddress:     tt.fields.AdminAddress.String(),
+				FeeAddress:       tt.fields.FeeAddress.String(),
 				UpperCValueLimit: tt.fields.UpperCValueLimit,
 				LowerCValueLimit: tt.fields.LowerCValueLimit,
 			}
