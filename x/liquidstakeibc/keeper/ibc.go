@@ -66,19 +66,15 @@ func (k *Keeper) OnChanOpenAck(
 		return fmt.Errorf("host chain with id %s is not registered", chainID)
 	}
 
-	// create the ica account
-	icaAccount := &types.ICAAccount{
-		Address:      address,
-		Balance:      sdk.Coin{Amount: sdk.ZeroInt(), Denom: hc.HostDenom},
-		Owner:        portOwner,
-		ChannelState: types.ICAAccount_ICA_CHANNEL_CREATED,
-	}
-
 	switch {
 	case portOwner == hc.DelegationAccount.Owner:
-		hc.DelegationAccount = icaAccount
+		hc.DelegationAccount.Address = address
+		hc.DelegationAccount.Owner = portOwner
+		hc.DelegationAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATED
 	case portOwner == hc.RewardsAccount.Owner:
-		hc.RewardsAccount = icaAccount
+		hc.RewardsAccount.Address = address
+		hc.RewardsAccount.Owner = portOwner
+		hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATED
 	default:
 		k.Logger(ctx).Error("Unrecognised ICA account type for the module", "port-id:", portID, "chain-id", chainID)
 		return nil

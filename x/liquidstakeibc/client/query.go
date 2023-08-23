@@ -48,10 +48,12 @@ func QueryParamsCmd() *cobra.Command {
 		Use:   "params",
 		Short: "Query the current liquidstakeibc parameters",
 		Args:  cobra.NoArgs,
-		Long: strings.TrimSpace(`Query the current liquidstakeibc parameters:
-
-$ <appd> query liquidstakeibc params
-`),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query the current liquidstakeibc parameters: $ %s query liquidstakeibc params`,
+				version.AppName,
+			),
+		),
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {

@@ -560,9 +560,6 @@ func NewpStakeApp(
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(liquidstakeibctypes.ModuleName, icaControllerStack)
 
-	// TODO: Migrate
-	//AddRoute(lscosmostypes.ModuleName, icaControllerStack)
-
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// register the proposal types
@@ -781,8 +778,6 @@ func NewpStakeApp(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
-		// ibcTransferHooksMiddleware, TODO implement simulationModule interface
-		//icaModule,
 		lscosmos.NewAppModule(appCodec, liquidStakeIBCModule, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
 		lspersistence.NewAppModule(appCodec, app.LSPersistenceKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 	)
