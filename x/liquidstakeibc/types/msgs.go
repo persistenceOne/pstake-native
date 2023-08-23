@@ -150,9 +150,24 @@ func (m *MsgRegisterHostChain) ValidateBasic() error {
 		)
 	}
 
+	// minimum deposit must be at least one
 	if m.MinimumDeposit.LTE(sdk.ZeroInt()) {
 		return sdkerrors.ErrInvalidRequest.Wrapf(
 			"minimum deposit should be greater than zero",
+		)
+	}
+
+	// unbonding factor must be greater than zero
+	if m.UnbondingFactor <= 0 {
+		return sdkerrors.ErrInvalidRequest.Wrapf(
+			"unbonding factor should be greater than zero",
+		)
+	}
+
+	// autocompound factor must be greater than zero
+	if m.AutoCompoundFactor <= 0 {
+		return sdkerrors.ErrInvalidRequest.Wrapf(
+			"autocompound factor should be greater than zero",
 		)
 	}
 
