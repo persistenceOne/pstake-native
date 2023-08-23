@@ -1,10 +1,10 @@
+use cosmwasm_std::{Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult, to_binary};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, GetCountResponse, InstantiateMsg, QueryMsg};
+use crate::msg::{ExecuteMsg, GetCountResponse, InstantiateMsg, PstakeMsg, QueryMsg};
 use crate::state::{State, STATE};
 
 // version info for migration info
@@ -34,37 +34,54 @@ pub fn instantiate(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
-) -> Result<Response, ContractError> {
+) -> Result<Response<PstakeMsg>, ContractError> {
     match msg {
-        ExecuteMsg::Increment {} => execute::increment(deps),
-        ExecuteMsg::Reset { count } => execute::reset(deps, info, count),
+        // ExecuteMsg::Increment {} => execute::increment(deps),
+        // ExecuteMsg::Reset { count } => execute::reset(deps, info, count),
+        ExecuteMsg::LiquidStake { receiver } => execute::liquid_stake(deps, env, info, receiver),
+        _ => unimplemented!()
     }
 }
 
 pub mod execute {
+    use crate::msg::PstakeMsg;
+
     use super::*;
 
-    pub fn increment(deps: DepsMut) -> Result<Response, ContractError> {
-        STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
-            state.count += 1;
-            Ok(state)
-        })?;
+// pub fn increment(deps: DepsMut) -> Result<Response, ContractError> {
+    //     STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
+    //         state.count += 1;
+    //         Ok(state)
+    //     })?;
+    //
+    //     Ok(Response::new())
+    // }
+    //
+    // pub fn reset(deps: DepsMut, info: MessageInfo, count: i32) -> Result<Response, ContractError> {
+    //     STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
+    //         if info.sender != state.owner {
+    //             return Err(ContractError::Unauthorized {});
+    //         }
+    //         state.count = count;
+    //         Ok(state)
+    //     })?;
+    //     Ok(Response::new().add_attribute("action", "reset"))
+    // }
 
-        Ok(Response::new().add_attribute("action", "increment"))
-    }
+    pub fn liquid_stake(_deps: DepsMut, _env: Env, info: MessageInfo, receiver: String) -> Result<Response<PstakeMsg>, ContractError> {
+        let msg = CosmosMsg::Custom(PstakeMsg::MsgLiquidStake {
+            delegator_address: receiver,
+            amount: info.funds.clone().into_iter().nth(0).unwrap(),
+        });
 
-    pub fn reset(deps: DepsMut, info: MessageInfo, count: i32) -> Result<Response, ContractError> {
-        STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
-            if info.sender != state.owner {
-                return Err(ContractError::Unauthorized {});
-            }
-            state.count = count;
-            Ok(state)
-        })?;
-        Ok(Response::new().add_attribute("action", "reset"))
+        let response = Response::new().add_message(msg)
+            .add_attribute("method", "instantiate")
+            .add_attribute("owner", info.sender)
+            .add_attribute("who did it?", "definitely me");
+        Ok(response)
     }
 }
 
@@ -86,9 +103,10 @@ pub mod query {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{coins, from_binary};
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+
+    use super::*;
 
     #[test]
     fn proper_initialization() {
