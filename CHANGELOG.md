@@ -40,6 +40,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - [#594](https://github.com/persistenceOne/pstake-native/pull/594) LSM integration.
 
+
+## [v2.2.3] - 2023-08-23
+
 ### Bug Fixes
 
 - [#621](https://github.com/persistenceOne/pstake-native/pull/621) ICA recreation timeout fix.
