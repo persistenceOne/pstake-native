@@ -157,12 +157,12 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc *types.HostChain) {
 		hc.DelegationAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
 		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, hc.DelegationAccount.Owner); err != nil {
 			k.Logger(ctx).Error("error recreating %s delegate ica: %w", hc.ChainId, err)
+		} else {
+			k.Logger(ctx).Info("Recreating delegate ICA.", "chain", hc.ChainId)
+
+			hc.DelegationAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
+			k.SetHostChain(ctx, hc)
 		}
-
-		k.Logger(ctx).Info("Recreating delegate ICA.", "chain", hc.ChainId)
-
-		hc.DelegationAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
-		k.SetHostChain(ctx, hc)
 	}
 
 	// if the channel is closed, and it is not being recreated, recreate it
@@ -170,12 +170,12 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc *types.HostChain) {
 		hc.RewardsAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
 		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, hc.RewardsAccount.Owner); err != nil {
 			k.Logger(ctx).Error("error recreating %s rewards ica: %w", hc.ChainId, err)
+		} else {
+			k.Logger(ctx).Info("Recreating rewards ICA.", "chain", hc.ChainId)
+
+			hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
+			k.SetHostChain(ctx, hc)
 		}
-
-		k.Logger(ctx).Info("Recreating rewards ICA.", "chain", hc.ChainId)
-
-		hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
-		k.SetHostChain(ctx, hc)
 	}
 }
 

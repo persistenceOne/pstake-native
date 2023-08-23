@@ -68,10 +68,12 @@ func (k msgServer) RegisterHostChain(
 		UnbondingFactor: msg.UnbondingFactor,
 		Active:          false,
 		DelegationAccount: &types.ICAAccount{
-			Owner: types.DefaultDelegateAccountPortOwner(chainID),
+			Owner:   types.DefaultDelegateAccountPortOwner(chainID),
+			Balance: sdktypes.Coin{Amount: sdktypes.ZeroInt(), Denom: msg.HostDenom},
 		},
 		RewardsAccount: &types.ICAAccount{
-			Owner: types.DefaultRewardsAccountPortOwner(chainID),
+			Owner:   types.DefaultRewardsAccountPortOwner(chainID),
+			Balance: sdktypes.Coin{Amount: sdktypes.ZeroInt(), Denom: msg.HostDenom},
 		},
 		AutoCompoundFactor: k.CalculateAutocompoundLimit(sdktypes.NewDec(msg.AutoCompoundFactor)),
 	}

@@ -2,14 +2,12 @@ package types
 
 import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
-)
-
-const (
-	DefaultAdminAddress string = "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr" // TODO: Use correct address on launch
-	DefaultFeeAddress   string = "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld" // TODO: Use correct address on launch
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 var (
+	DefaultAdminAddress     = authtypes.NewModuleAddress("placeholder") // will be set manually upon module initialisation
+	DefaultFeeAddress       = authtypes.NewModuleAddress("placeholder") // will be set manually upon module initialisation
 	DefaultUpperCValueLimit = sdktypes.MustNewDecFromStr("1.1")
 	DefaultLowerCValueLimit = sdktypes.MustNewDecFromStr("0.85")
 )
@@ -33,8 +31,8 @@ func NewParams(
 // DefaultParams returns the default set of parameters of the module
 func DefaultParams() Params {
 	return NewParams(
-		DefaultAdminAddress,
-		DefaultFeeAddress,
+		DefaultAdminAddress.String(),
+		DefaultFeeAddress.String(),
 		DefaultUpperCValueLimit,
 		DefaultLowerCValueLimit,
 	)
