@@ -11,10 +11,6 @@
 
 "C:x/liquidstakeibc":
   - x/liquidstakeibc/**/*
-"C:x/lspersistence":
-  - x/lspersistence/**/*
-"C:x/lscosmos":
-  - x/lscosmos/**/*
 "T:build":
   - Makefile
   - Dockerfile
