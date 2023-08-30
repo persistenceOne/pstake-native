@@ -19,7 +19,6 @@ import (
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
 
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 type EpochsHooks struct {
@@ -695,7 +694,7 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 
 			timeoutHeight := clienttypes.NewHeight(
 				clientState.GetLatestHeight().GetRevisionNumber(),
-				clientState.GetLatestHeight().GetRevisionHeight()+types.IBCTimeoutHeightIncrement,
+				clientState.GetLatestHeight().GetRevisionHeight()+liquidstakeibctypes.IBCTimeoutHeightIncrement,
 			)
 
 			// craft the IBC message
