@@ -1,6 +1,0 @@
-{
-  "title": "register host chain proposal",
-  "description": "this proposal register host chain params in the chain",
-  "pstake_fee_address": "persistence1hcqg5wj9t42zawqkqucs7la85ffyv08ljhhesu",
-  "deposit": "1000000uxprt"
-}
