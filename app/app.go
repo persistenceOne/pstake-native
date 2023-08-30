@@ -92,7 +92,6 @@ import (
 	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
-	v6 "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/migrations/v6"
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icahost "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
 	icahostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
@@ -110,7 +109,6 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 	"github.com/gorilla/mux"
@@ -131,13 +129,6 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc"
 	liquidstakeibckeeper "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	"github.com/persistenceOne/pstake-native/v2/x/lscosmos"
-	lscosmosclient "github.com/persistenceOne/pstake-native/v2/x/lscosmos/client"
-	lscosmoskeeper "github.com/persistenceOne/pstake-native/v2/x/lscosmos/keeper"
-	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
-	"github.com/persistenceOne/pstake-native/v2/x/lspersistence"
-	lspersistencekeeper "github.com/persistenceOne/pstake-native/v2/x/lspersistence/keeper"
-	lspersistencetypes "github.com/persistenceOne/pstake-native/v2/x/lspersistence/types"
 )
 
 var (
@@ -161,10 +152,7 @@ var (
 			upgradeclient.LegacyCancelProposalHandler,
 			ibcclientclient.UpdateClientProposalHandler,
 			ibcclientclient.UpgradeProposalHandler,
-			lscosmosclient.MinDepositAndFeeChangeProposalHandler,
-			lscosmosclient.PstakeFeeAddressChangeProposalHandler,
-			lscosmosclient.AllowListValidatorSetChangeProposalHandler},
-		),
+		}),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
@@ -180,10 +168,8 @@ var (
 		vesting.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		epochs.AppModuleBasic{},
-		lscosmos.AppModuleBasic{},
 		interchainquery.AppModuleBasic{},
 		liquidstakeibc.AppModuleBasic{},
-		lspersistence.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 	)
 
@@ -198,21 +184,12 @@ var (
 		govtypes.ModuleName:                           {authtypes.Burner},
 		ibctransfertypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
 		ibcfeetypes.ModuleName:                        nil,
-		lscosmostypes.ModuleName:                      {authtypes.Minter, authtypes.Burner},
-		lscosmostypes.DepositModuleAccount:            nil,
-		lscosmostypes.DelegationModuleAccount:         nil,
-		lscosmostypes.RewardModuleAccount:             nil,
-		lscosmostypes.UndelegationModuleAccount:       nil,
-		lscosmostypes.RewardBoosterModuleAccount:      nil, //legacy, blocklist, no permissions
 		liquidstakeibctypes.ModuleName:                {authtypes.Minter, authtypes.Burner},
 		liquidstakeibctypes.DepositModuleAccount:      nil,
 		liquidstakeibctypes.UndelegationModuleAccount: {authtypes.Burner},
-		lspersistencetypes.ModuleName:                 {authtypes.Minter, authtypes.Burner},
 	}
 
 	receiveAllowedMAcc = map[string]bool{
-		lscosmostypes.UndelegationModuleAccount:       true,
-		lscosmostypes.DelegationModuleAccount:         true,
 		liquidstakeibctypes.DepositModuleAccount:      true,
 		liquidstakeibctypes.UndelegationModuleAccount: true,
 	}
@@ -264,17 +241,14 @@ type PstakeApp struct {
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	AuthzKeeper           authzkeeper.Keeper
 	EpochsKeeper          *epochskeeper.Keeper
-	LSCosmosKeeper        lscosmoskeeper.Keeper
 	InterchainQueryKeeper interchainquerykeeper.Keeper
 	LiquidStakeIBCKeeper  liquidstakeibckeeper.Keeper
-	LSPersistenceKeeper   lspersistencekeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper      capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
 	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
-	ScopedLSCosmosKeeper      capabilitykeeper.ScopedKeeper
 
 	// the module manager
 	mm *module.Manager
@@ -320,11 +294,11 @@ func NewpStakeApp(
 		govtypes.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, icahosttypes.StoreKey,
-		icacontrollertypes.StoreKey, epochstypes.StoreKey, lscosmostypes.StoreKey, interchainquerytypes.StoreKey,
-		ibcfeetypes.StoreKey, liquidstakeibctypes.StoreKey, lspersistencetypes.StoreKey, consensusparamtypes.StoreKey,
+		icacontrollertypes.StoreKey, epochstypes.StoreKey, interchainquerytypes.StoreKey,
+		ibcfeetypes.StoreKey, liquidstakeibctypes.StoreKey, consensusparamtypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
-	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, lscosmostypes.MemStoreKey)
+	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	app := &PstakeApp{
 		BaseApp:           bApp,
@@ -354,7 +328,6 @@ func NewpStakeApp(
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
 	scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
-	scopedLSCosmosKeeper := app.CapabilityKeeper.ScopeToModule(lscosmostypes.ModuleName)
 	app.CapabilityKeeper.Seal()
 
 	// add keepers
@@ -438,11 +411,6 @@ func NewpStakeApp(
 		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
 	)
 
-	app.LSPersistenceKeeper = lspersistencekeeper.NewKeeper(appCodec, keys[lspersistencetypes.StoreKey],
-		app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.DistrKeeper, app.SlashingKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
-
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
 		keys[ibcexported.StoreKey],
@@ -516,25 +484,6 @@ func NewpStakeApp(
 
 	liquidStakeIBCModule := liquidstakeibc.NewIBCModule(app.LiquidStakeIBCKeeper)
 
-	app.LSCosmosKeeper = lscosmoskeeper.NewKeeper(
-		appCodec,
-		keys[lscosmostypes.StoreKey],
-		memKeys[lscosmostypes.MemStoreKey],
-		app.GetSubspace(lscosmostypes.ModuleName),
-		app.BankKeeper,
-		app.AccountKeeper,
-		app.EpochsKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper,
-		app.TransferKeeper,
-		app.ICAControllerKeeper,
-		&app.InterchainQueryKeeper,
-		&app.LiquidStakeIBCKeeper,
-		scopedLSCosmosKeeper,
-		app.MsgServiceRouter(),
-	)
-
 	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()
 	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(
 		ibchookertypes.NewMultiStakingHooks(
@@ -550,7 +499,6 @@ func NewpStakeApp(
 	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
 
 	var icaControllerStack porttypes.IBCModule = liquidStakeIBCModule
-	//icaControllerStack = lscosmos.NewAppModule(appCodec, icaControllerStack, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper)
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 
 	ibcRouter := porttypes.NewRouter()
@@ -639,10 +587,8 @@ func NewpStakeApp(
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		//ibchooker.NewAppModule(),
-		lscosmos.NewAppModule(appCodec, liquidStakeIBCModule, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
 		interchainQueryModule,
 		liquidstakeibc.NewAppModule(app.LiquidStakeIBCKeeper),
-		lspersistence.NewAppModule(appCodec, app.LSPersistenceKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 	)
 
@@ -662,7 +608,6 @@ func NewpStakeApp(
 		ibcexported.ModuleName,
 		ibcfeetypes.ModuleName,
 		icatypes.ModuleName,
-		lscosmostypes.ModuleName,
 		epochstypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
@@ -678,7 +623,6 @@ func NewpStakeApp(
 		ibchookertypes.ModuleName, //Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
-		lspersistencetypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
@@ -691,7 +635,6 @@ func NewpStakeApp(
 		icatypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
-		lscosmostypes.ModuleName,
 		epochstypes.ModuleName,
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
@@ -707,7 +650,6 @@ func NewpStakeApp(
 		ibchookertypes.ModuleName, //Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
-		lspersistencetypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -735,7 +677,6 @@ func NewpStakeApp(
 		feegrant.ModuleName,
 		authz.ModuleName,
 		genutiltypes.ModuleName,
-		lscosmostypes.ModuleName,
 		epochstypes.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
@@ -743,7 +684,6 @@ func NewpStakeApp(
 		ibchookertypes.ModuleName, //Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
-		lspersistencetypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -778,8 +718,6 @@ func NewpStakeApp(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
-		lscosmos.NewAppModule(appCodec, liquidStakeIBCModule, app.LSCosmosKeeper, app.AccountKeeper, app.BankKeeper),
-		lspersistence.NewAppModule(appCodec, app.LSPersistenceKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
@@ -823,7 +761,6 @@ func NewpStakeApp(
 	app.ScopedTransferKeeper = scopedTransferKeeper
 	app.ScopedICAHostKeeper = scopedICAHostKeeper
 	app.ScopedICAControllerKeeper = scopedICAControllerKeeper
-	app.ScopedLSCosmosKeeper = scopedLSCosmosKeeper
 
 	return app
 }
@@ -1000,7 +937,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
-	paramsKeeper.Subspace(lscosmostypes.ModuleName).WithKeyTable(lscosmostypes.ParamKeyTable())
 
 	return paramsKeeper
 }
@@ -1044,24 +980,7 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		mainnetUpgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
-			baseapp.MigrateParams(ctx, baseAppLegacySS, &app.ConsensusParamsKeeper)
-
-			err := v6.MigrateICS27ChannelCapability(ctx, app.appCodec, app.GetKey(capabilitytypes.StoreKey), app.CapabilityKeeper, lscosmostypes.ModuleName)
-			if err != nil {
-				return nil, err
-			}
-
-			_, err = ibctmmigrations.PruneExpiredConsensusStates(ctx, app.appCodec, app.IBCKeeper.ClientKeeper)
-			if err != nil {
-				return nil, err
-			}
-			newVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
-			if err != nil {
-				return nil, err
-			}
-
-			return newVM, app.LSCosmosKeeper.Migrate(ctx)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
 
@@ -1074,7 +993,6 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 		storeUpgrades := store.StoreUpgrades{
 			Added: []string{
 				liquidstakeibctypes.ModuleName,
-				lspersistencetypes.ModuleName,
 				consensusparamtypes.ModuleName,
 				crisistypes.ModuleName,
 				ibcfeetypes.ModuleName,
