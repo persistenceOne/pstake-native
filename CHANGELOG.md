@@ -39,6 +39,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 - [#594](https://github.com/persistenceOne/pstake-native/pull/594) LSM integration.
+- [#631](https://github.com/persistenceOne/pstake-native/pull/631) Add telemetry to measure time taken in begin/end block #631
 
 ### Bug Fixes
 
