@@ -515,6 +515,21 @@ func (k msgServer) LiquidStakeLSM(
 				)
 			}
 		}
+
+		ctx.EventManager().EmitEvents(sdktypes.Events{
+			sdktypes.NewEvent(
+				types.EventTypeLiquidStakeLSM,
+				sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegator.String()),
+				sdktypes.NewAttribute(types.AttributeAmount, depositAmount.String()),
+				sdktypes.NewAttribute(types.AttributeAmountReceived, mintToken.Sub(protocolFee).String()),
+				sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolFee.String()),
+			),
+			sdktypes.NewEvent(
+				sdktypes.EventTypeMessage,
+				sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+				sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
+			)},
+		)
 	}
 
 	return &types.MsgLiquidStakeLSMResponse{}, nil
