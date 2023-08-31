@@ -13,6 +13,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -893,6 +894,10 @@ func (k msgServer) validateLiquidStakeLSMDeposit(
 	validator, found := hc.GetValidator(operatorAddress)
 	if !found {
 		return nil, nil, nil, errorsmod.Wrapf(sdkerrors.ErrKeyNotFound, "validator %s is not part of the module active set for chain %s", operatorAddress, hc.ChainId)
+	}
+
+	if validator.Status != stakingtypes.BondStatusBonded {
+		return nil, nil, nil, errorsmod.Wrapf(types.ErrLSMValidatorInvalidState, "validator %s is not in the bonded state, it is in %s", operatorAddress, validator.Status)
 	}
 
 	// check delegator has enough LSM tokens
