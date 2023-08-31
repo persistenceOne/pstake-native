@@ -423,6 +423,17 @@ func (k msgServer) LiquidStakeLSM(
 			return nil, err
 		}
 
+		// check for minimum deposit amount
+		if delegation.Amount.LT(hc.MinimumDeposit) {
+			return nil, errorsmod.Wrapf(
+				types.ErrMinDeposit,
+				"expected amount for delegation %s more than %s, got %s",
+				delegation.Denom,
+				hc.MinimumDeposit,
+				delegation.Amount,
+			)
+		}
+
 		// create the LSM deposit
 		deposit := &types.LSMDeposit{
 			ChainId:          hc.ChainId,
