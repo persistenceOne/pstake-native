@@ -971,14 +971,7 @@ func (app *PstakeApp) GetTxConfig() client.TxConfig {
 
 func (app *PstakeApp) RegisterUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		testnetUpgradeName,
-		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-		},
-	)
-
-	app.UpgradeKeeper.SetUpgradeHandler(
-		mainnetUpgradeName,
+		UpgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
@@ -989,16 +982,12 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 		panic(err)
 	}
 
-	if upgradeInfo.Name == mainnetUpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
-			Added: []string{
-				liquidstakeibctypes.ModuleName,
-				consensusparamtypes.ModuleName,
-				crisistypes.ModuleName,
-				ibcfeetypes.ModuleName,
-			},
+			Added: []string{},
 			Deleted: []string{
-				//lscosmostypes.ModuleName, add this to next upgrade.
+				"lscosmos",
+				"lspersistence", //if present
 			},
 		}
 
