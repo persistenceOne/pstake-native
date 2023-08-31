@@ -102,10 +102,14 @@ func (a AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawM
 }
 
 func (a AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
+
 	a.keeper.BeginBlock(ctx)
 }
 
 func (a AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyEndBlocker)
+
 	return []abci.ValidatorUpdate{}
 }
 
