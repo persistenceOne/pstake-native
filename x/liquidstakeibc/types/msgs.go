@@ -291,14 +291,15 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			if validatorCap.LT(sdk.ZeroDec()) || validatorCap.GT(sdk.OneDec()) {
 				return sdkerrors.ErrInvalidRequest.Wrapf("invalid validator cap value should be 0 <= cap <= 1")
 			}
-		case KeyLSMBondCap:
+		case KeyLSMBondFactor:
 			bondFactor, err := sdk.NewDecFromStr(update.Value)
 			if err != nil {
 				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
 
-			if bondFactor.LT(sdk.OneDec()) {
-				return sdkerrors.ErrInvalidRequest.Wrapf("invalid validator bond factor value should be 0 <= bond factor")
+			// -1 is the default bond factor value
+			if bondFactor.LT(sdk.NewDec(-1)) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid validator bond factor value should be -1 <= bond factor")
 			}
 		case KeyMinimumDeposit:
 			minimumDeposit, ok := sdk.NewIntFromString(update.Value)

@@ -224,7 +224,7 @@ func (k msgServer) UpdateHostChain(
 			}
 			//cap limits validated in msg.ValidateBasic()
 			hc.Params.LsmValidatorCap = validatorCap
-		case types.KeyLSMBondCap:
+		case types.KeyLSMBondFactor:
 			bondFactor, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)

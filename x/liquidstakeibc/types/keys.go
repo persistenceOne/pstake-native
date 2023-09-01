@@ -63,7 +63,7 @@ const (
 	KeyUnstakeFee         string = "unstake_fee"
 	KeyRedemptionFee      string = "redemption_fee"
 	KeyLSMValidatorCap    string = "lsm_validator_cap"
-	KeyLSMBondCap         string = "lsm_bond_factor"
+	KeyLSMBondFactor      string = "lsm_bond_factor"
 	KeyMinimumDeposit     string = "min_deposit"
 	KeyActive             string = "active"
 	KeySetWithdrawAddress string = "set_withdraw_address"
