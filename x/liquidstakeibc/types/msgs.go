@@ -282,6 +282,24 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
 				return sdkerrors.ErrInvalidRequest.Wrapf("invalid unstake fee value should be 0 <= fee <= 1")
 			}
+		case KeyLSMValidatorCap:
+			validatorCap, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if validatorCap.LT(sdk.ZeroDec()) || validatorCap.GT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid validator cap value should be 0 <= cap <= 1")
+			}
+		case KeyLSMBondCap:
+			bondFactor, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if bondFactor.LT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid validator bond factor value should be 0 <= bond factor")
+			}
 		case KeyMinimumDeposit:
 			minimumDeposit, ok := sdk.NewIntFromString(update.Value)
 			if !ok {
