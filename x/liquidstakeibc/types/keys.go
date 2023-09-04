@@ -56,7 +56,7 @@ const (
 const (
 	KeyAddValidator       string = "add_validator"
 	KeyRemoveValidator    string = "remove_validator"
-	KeyValidatorSlashing  string = "validator_slashing"
+	KeyValidatorUpdate    string = "validator_update"
 	KeyValidatorWeight    string = "validator_weight"
 	KeyDepositFee         string = "deposit_fee"
 	KeyRestakeFee         string = "restake_fee"

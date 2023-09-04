@@ -224,7 +224,7 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			if err != nil {
 				return err
 			}
-		case KeyValidatorSlashing:
+		case KeyValidatorUpdate:
 			_, _, err := bech32.DecodeAndConvert(update.Value)
 			if err != nil {
 				return err

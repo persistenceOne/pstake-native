@@ -171,7 +171,7 @@ func (k msgServer) UpdateHostChain(
 			}
 
 			return nil, types.ErrValidatorNotFound
-		case types.KeyValidatorSlashing:
+		case types.KeyValidatorUpdate:
 			_, found = hc.GetValidator(update.Value)
 			if !found {
 				return nil, types.ErrValidatorNotFound
