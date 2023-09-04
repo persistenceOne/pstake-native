@@ -204,6 +204,63 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 				},
 			},
 			err: fmt.Errorf("error while querying validator valoper2 delegation: decoding bech32 failed: invalid separator index -1"),
+		}, {
+			name: "ValidatorDelegable",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper2",
+					ExchangeRate:    sdk.NewDec(1),
+					Delegable:       false,
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress:     "valoper2",
+					LiquidShares:        sdk.NewDec(30),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+			},
+		}, {
+			name: "ValidatorNotDelegableCap",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper2",
+					ExchangeRate:    sdk.NewDec(1),
+					Delegable:       true,
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress:     "valoper2",
+					LiquidShares:        sdk.NewDec(60),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+			},
+		}, {
+			name: "ValidatorNotDelegableBondFactor",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper2",
+					ExchangeRate:    sdk.NewDec(1),
+					Delegable:       true,
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress:     "valoper2",
+					LiquidShares:        sdk.NewDec(30),
+					ValidatorBondShares: sdk.NewDec(0),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+			},
 		},
 	}
 
@@ -235,6 +292,10 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					} else if validator.Status == stakingtypes.BondStatusBonded {
 						suite.Require().Equal(int64(0), validator.UnbondingEpoch)
 					}
+
+					delegable := t.validators[i].LiquidShares.Quo(t.validators[i].DelegatorShares).LTE(t.hc.Params.LsmValidatorCap) &&
+						t.validators[i].LiquidShares.LT(t.validators[i].ValidatorBondShares.Mul(t.hc.Params.LsmBondFactor))
+					suite.Require().Equal(delegable, validator.Delegable)
 				}
 			}
 		})
