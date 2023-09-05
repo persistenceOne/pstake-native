@@ -79,12 +79,13 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 	hcs := suite.app.LiquidStakeIBCKeeper.GetAllHostChains(suite.ctx)
 
 	tc := []struct {
-		name         string
-		hc           types.HostChain
-		hcValidators []*types.Validator
-		validators   []stakingtypes.Validator
-		expected     []*types.Validator
-		err          error
+		name                   string
+		hc                     types.HostChain
+		hcValidators           []*types.Validator
+		validators             []stakingtypes.Validator
+		expected               []*types.Validator
+		expectedDelegableState map[string]bool
+		err                    error
 	}{
 		{
 			name: "UpdateState",
@@ -123,6 +124,10 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
+			expectedDelegableState: map[string]bool{
+				"valoper1": true,
+				"valoper2": true,
+			},
 		}, {
 			name: "Validator not found.",
 			hc:   *hcs[0],
@@ -152,6 +157,11 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
+			expectedDelegableState: map[string]bool{
+				"valoper1": true,
+				"valoper2": true,
+				"valoper3": true,
+			},
 			err: fmt.Errorf("validator with address %s not registered", "valoper3"),
 		},
 		{
@@ -176,6 +186,9 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
+			expectedDelegableState: map[string]bool{
+				TestAddress: true,
+			},
 		},
 		{
 			name: "UpdateExchangeRateZeroShares",
@@ -198,6 +211,9 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					Tokens:              sdk.NewInt(100),
 					DelegatorShares:     sdk.NewDec(0),
 				},
+			},
+			expectedDelegableState: map[string]bool{
+				TestAddress: true,
 			},
 		}, {
 			name: "UpdateState",
@@ -222,6 +238,9 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(101),
 				},
 			},
+			expectedDelegableState: map[string]bool{
+				"valoper2": true,
+			},
 			err: fmt.Errorf("error while querying validator valoper2 delegation: decoding bech32 failed: invalid separator index -1"),
 		}, {
 			name: "ValidatorDelegable",
@@ -242,6 +261,9 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
+			expectedDelegableState: map[string]bool{
+				"valoper2": true,
+			},
 		}, {
 			name: "ValidatorNotDelegableCap",
 			hc:   *hcs[0],
@@ -261,6 +283,9 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
+			expectedDelegableState: map[string]bool{
+				"valoper2": false,
+			},
 		}, {
 			name: "ValidatorNotDelegableBondFactor",
 			hc:   *hcs[0],
@@ -279,6 +304,9 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					Tokens:              sdk.NewInt(100),
 					DelegatorShares:     sdk.NewDec(100),
 				},
+			},
+			expectedDelegableState: map[string]bool{
+				"valoper2": false,
 			},
 		},
 	}
@@ -312,14 +340,7 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 						suite.Require().Equal(int64(0), validator.UnbondingEpoch)
 					}
 
-					var delegable bool
-					if t.validators[i].DelegatorShares.IsZero() {
-						delegable = true
-					} else {
-						delegable = t.validators[i].LiquidShares.Quo(t.validators[i].DelegatorShares).LTE(t.hc.Params.LsmValidatorCap) &&
-							t.validators[i].LiquidShares.LTE(t.validators[i].ValidatorBondShares.Mul(t.hc.Params.LsmBondFactor))
-					}
-					suite.Require().Equal(delegable, validator.Delegable)
+					suite.Require().Equal(t.expectedDelegableState[validator.OperatorAddress], validator.Delegable)
 				}
 			}
 		})
