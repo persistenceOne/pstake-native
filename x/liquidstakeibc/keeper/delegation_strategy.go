@@ -12,34 +12,59 @@ import (
 
 type DelegateAmount struct {
 	ValAddress string
-	ValWeight  sdk.Dec
 	Amount     sdk.Dec
 }
 
 func (k *Keeper) GenerateDelegateMessages(hc *types.HostChain, depositAmount math.Int) ([]proto.Message, error) {
-	return k.generateMessages(hc, depositAmount, false)
+	// filter out validators which are non-delegable (which reached any LSM cap)
+	delegableValidators := make([]*types.Validator, 0)
+	nonDelegableWeight := sdk.ZeroDec()
+	nonDelegableDelegations := sdk.ZeroInt()
+	for _, validator := range hc.Validators {
+		if validator.Delegable {
+			delegableValidators = append(delegableValidators, validator)
+		} else {
+			nonDelegableWeight = nonDelegableWeight.Add(validator.Weight)
+			nonDelegableDelegations = nonDelegableDelegations.Add(validator.DelegatedAmount)
+		}
+	}
+
+	// if there are no delegable validators, do nothing
+	if len(delegableValidators) == 0 {
+		return nil, errorsmod.Wrap(types.ErrInvalidMessages, "no delegable validators")
+	}
+
+	// the weight of the un-delegable validators is distributed evenly among the others
+	if nonDelegableWeight.GT(sdk.ZeroDec()) {
+		weightDelta := nonDelegableWeight.Quo(sdk.NewDec(int64(len(delegableValidators))))
+		for _, validator := range delegableValidators {
+			validator.Weight = validator.Weight.Add(weightDelta)
+		}
+	}
+
+	// subtract the delegations from non-delegable validators to get the effective total delegated amount
+	effectiveTotalDelegatedAmount := hc.GetHostChainTotalDelegations().Sub(nonDelegableDelegations)
+
+	return k.generateMessages(hc, delegableValidators, effectiveTotalDelegatedAmount, depositAmount, false)
 }
 
 func (k *Keeper) GenerateUndelegateMessages(hc *types.HostChain, unbondAmount math.Int) ([]proto.Message, error) {
-	return k.generateMessages(hc, unbondAmount, true)
+	return k.generateMessages(hc, hc.Validators, hc.GetHostChainTotalDelegations(), unbondAmount, true)
 }
 
 func (k *Keeper) generateMessages(
 	hc *types.HostChain,
+	validators []*types.Validator,
+	totalDelegatedAmount math.Int,
 	actionableAmount math.Int,
 	undelegating bool,
 ) ([]proto.Message, error) {
 	delegateAmounts := make([]DelegateAmount, 0)
-	for _, validator := range hc.Validators {
+	for _, validator := range validators {
 		// calculate the new total delegated amount for the host chain
-		currentDelegation := hc.GetHostChainTotalDelegations()
-		futureDelegation := currentDelegation.Add(actionableAmount)
+		futureDelegation := totalDelegatedAmount.Add(actionableAmount)
 		if undelegating {
-			futureDelegation = currentDelegation.Sub(actionableAmount)
-		}
-
-		if validator.Weight.Equal(sdk.ZeroDec()) {
-			continue // skip validators with zero weight
+			futureDelegation = totalDelegatedAmount.Sub(actionableAmount)
 		}
 
 		// calculate the delegated/undelegated amount difference for the validator:
@@ -56,13 +81,14 @@ func (k *Keeper) generateMessages(
 
 		delegateAmounts = append(delegateAmounts, DelegateAmount{
 			ValAddress: validator.OperatorAddress,
-			ValWeight:  validator.Weight,
 			Amount:     newDelegationDifference,
 		})
 	}
 
 	messages := make([]proto.Message, 0)
-	for _, delegationAmount := range delegateAmounts {
+	for i, delegationAmount := range delegateAmounts {
+		// create the basic structure of the delegate / undelegate message
+		// containing both the delegator and validator addresses
 		var message proto.Message
 		if !undelegating {
 			message = &stakingtypes.MsgDelegate{
@@ -76,8 +102,9 @@ func (k *Keeper) generateMessages(
 			}
 		}
 
-		// return when there is nothing more to delegate/undelegate
-		if actionableAmount.LTE(delegationAmount.Amount.TruncateInt()) {
+		// if what's left to delegate is less than what needs to be delegated OR we are in the last validator just delegate everything that is left
+		// this will also remove any remainder tokens that can be left because of precision issues
+		if actionableAmount.LTE(delegationAmount.Amount.TruncateInt()) || i == len(delegateAmounts)-1 {
 			if !undelegating {
 				msgDelegate := message.(*stakingtypes.MsgDelegate)
 				msgDelegate.Amount = sdk.NewCoin(hc.HostDenom, actionableAmount)
