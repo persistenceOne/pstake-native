@@ -95,26 +95,32 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					Status:          stakingtypes.BondStatusBonded,
 					UnbondingEpoch:  0,
 					ExchangeRate:    sdk.NewDec(1),
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: "valoper2",
 					Status:          stakingtypes.BondStatusUnbonding,
 					UnbondingEpoch:  types.CurrentUnbondingEpoch(hcs[0].UnbondingFactor, epoch),
 					ExchangeRate:    sdk.NewDec(1),
+					Delegable:       true,
 				},
 			},
 			validators: []stakingtypes.Validator{
 				{
-					OperatorAddress: "valoper1",
-					Status:          stakingtypes.Unbonding,
-					Tokens:          sdk.NewInt(100),
-					DelegatorShares: sdk.NewDec(100),
+					OperatorAddress:     "valoper1",
+					Status:              stakingtypes.Unbonding,
+					LiquidShares:        sdk.NewDec(0),
+					ValidatorBondShares: sdk.NewDec(0),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
 				},
 				{
-					OperatorAddress: "valoper2",
-					Status:          stakingtypes.Bonded,
-					Tokens:          sdk.NewInt(100),
-					DelegatorShares: sdk.NewDec(100),
+					OperatorAddress:     "valoper2",
+					Status:              stakingtypes.Bonded,
+					LiquidShares:        sdk.NewDec(0),
+					ValidatorBondShares: sdk.NewDec(0),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
 		}, {
@@ -126,20 +132,24 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					Status:          stakingtypes.BondStatusBonded,
 					UnbondingEpoch:  0,
 					ExchangeRate:    sdk.NewDec(1),
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: "valoper2",
 					Status:          stakingtypes.BondStatusUnbonding,
 					UnbondingEpoch:  types.CurrentUnbondingEpoch(hcs[0].UnbondingFactor, epoch),
 					ExchangeRate:    sdk.NewDec(1),
+					Delegable:       true,
 				},
 			},
 			validators: []stakingtypes.Validator{
 				{
-					OperatorAddress: "valoper3",
-					Status:          stakingtypes.Unbonding,
-					Tokens:          sdk.NewInt(100),
-					DelegatorShares: sdk.NewDec(100),
+					OperatorAddress:     "valoper3",
+					Status:              stakingtypes.Unbonding,
+					LiquidShares:        sdk.NewDec(0),
+					ValidatorBondShares: sdk.NewDec(0),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
 			err: fmt.Errorf("validator with address %s not registered", "valoper3"),
@@ -153,14 +163,17 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					Status:          stakingtypes.BondStatusBonded,
 					DelegatedAmount: sdk.NewInt(10),
 					ExchangeRate:    sdk.NewDec(2),
+					Delegable:       true,
 				},
 			},
 			validators: []stakingtypes.Validator{
 				{
-					OperatorAddress: TestAddress,
-					Status:          stakingtypes.Bonded,
-					Tokens:          sdk.NewInt(100),
-					DelegatorShares: sdk.NewDec(100),
+					OperatorAddress:     TestAddress,
+					Status:              stakingtypes.Bonded,
+					LiquidShares:        sdk.NewDec(0),
+					ValidatorBondShares: sdk.NewDec(0),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
 		},
@@ -173,14 +186,17 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					Status:          stakingtypes.BondStatusBonded,
 					DelegatedAmount: sdk.NewInt(10),
 					ExchangeRate:    sdk.NewDec(1),
+					Delegable:       true,
 				},
 			},
 			validators: []stakingtypes.Validator{
 				{
-					OperatorAddress: TestAddress,
-					Status:          stakingtypes.Bonded,
-					Tokens:          sdk.NewInt(100),
-					DelegatorShares: sdk.NewDec(0),
+					OperatorAddress:     TestAddress,
+					Status:              stakingtypes.Bonded,
+					LiquidShares:        sdk.NewDec(0),
+					ValidatorBondShares: sdk.NewDec(0),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(0),
 				},
 			},
 		}, {
@@ -193,14 +209,17 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					UnbondingEpoch:  types.CurrentUnbondingEpoch(hcs[0].UnbondingFactor, epoch),
 					ExchangeRate:    sdk.NewDec(1),
 					DelegatedAmount: sdk.NewInt(100),
+					Delegable:       true,
 				},
 			},
 			validators: []stakingtypes.Validator{
 				{
-					OperatorAddress: "valoper2",
-					Status:          stakingtypes.Bonded,
-					Tokens:          sdk.NewInt(100),
-					DelegatorShares: sdk.NewDec(101),
+					OperatorAddress:     "valoper2",
+					Status:              stakingtypes.Bonded,
+					LiquidShares:        sdk.NewDec(0),
+					ValidatorBondShares: sdk.NewDec(0),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(101),
 				},
 			},
 			err: fmt.Errorf("error while querying validator valoper2 delegation: decoding bech32 failed: invalid separator index -1"),
@@ -293,8 +312,13 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 						suite.Require().Equal(int64(0), validator.UnbondingEpoch)
 					}
 
-					delegable := t.validators[i].LiquidShares.Quo(t.validators[i].DelegatorShares).LTE(t.hc.Params.LsmValidatorCap) &&
-						t.validators[i].LiquidShares.LT(t.validators[i].ValidatorBondShares.Mul(t.hc.Params.LsmBondFactor))
+					var delegable bool
+					if t.validators[i].DelegatorShares.IsZero() {
+						delegable = true
+					} else {
+						delegable = t.validators[i].LiquidShares.Quo(t.validators[i].DelegatorShares).LTE(t.hc.Params.LsmValidatorCap) &&
+							t.validators[i].LiquidShares.LTE(t.validators[i].ValidatorBondShares.Mul(t.hc.Params.LsmBondFactor))
+					}
 					suite.Require().Equal(delegable, validator.Delegable)
 				}
 			}

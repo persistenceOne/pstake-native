@@ -88,11 +88,19 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 		k.SetHostChainValidator(ctx, hc, val)
 	}
 
+	// process LSM cap updates
 	if hc.Flags.Lsm {
-		// check if a validator can accept delegations by looking at the LSM cap & validator LMS bond factor
-		isValidatorDelegable := validator.LiquidShares.Quo(validator.DelegatorShares).LT(hc.Params.LsmValidatorCap) &&
-			validator.LiquidShares.LT(validator.ValidatorBondShares.Mul(hc.Params.LsmBondFactor))
+		var isValidatorDelegable bool
+		if validator.DelegatorShares.IsZero() {
+			isValidatorDelegable = true
+		} else {
+			// in order for a validator to accept delegations, it has to both not exceed the validator LSM cap, and it
+			// needs to have enough bonded shares
+			isValidatorDelegable = validator.LiquidShares.Quo(validator.DelegatorShares).LTE(hc.Params.LsmValidatorCap) &&
+				validator.LiquidShares.LTE(validator.ValidatorBondShares.Mul(hc.Params.LsmBondFactor))
+		}
 
+		// update the validator if its delegable status has changed
 		if isValidatorDelegable != val.Delegable {
 			val.Delegable = isValidatorDelegable
 			k.SetHostChainValidator(ctx, hc, val)
