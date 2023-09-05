@@ -119,13 +119,13 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					OperatorAddress:     "valoper2",
 					Status:              stakingtypes.Bonded,
 					LiquidShares:        sdk.NewDec(0),
-					ValidatorBondShares: sdk.NewDec(0),
+					ValidatorBondShares: sdk.NewDec(10),
 					Tokens:              sdk.NewInt(100),
 					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
 			expectedDelegableState: map[string]bool{
-				"valoper1": true,
+				"valoper1": false,
 				"valoper2": true,
 			},
 		}, {
@@ -187,7 +187,7 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 				},
 			},
 			expectedDelegableState: map[string]bool{
-				TestAddress: true,
+				TestAddress: false,
 			},
 		},
 		{
@@ -199,7 +199,7 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					Status:          stakingtypes.BondStatusBonded,
 					DelegatedAmount: sdk.NewInt(10),
 					ExchangeRate:    sdk.NewDec(1),
-					Delegable:       true,
+					Delegable:       false,
 				},
 			},
 			validators: []stakingtypes.Validator{
@@ -213,7 +213,7 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 				},
 			},
 			expectedDelegableState: map[string]bool{
-				TestAddress: true,
+				TestAddress: false,
 			},
 		}, {
 			name: "UpdateState",

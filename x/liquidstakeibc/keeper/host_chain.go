@@ -95,7 +95,7 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 		if validator.DelegatorShares.IsZero() {
 			validatorHasRoomForDelegations = true // if no shares are issued yet, the validator can accept more delegations
 		} else {
-			validatorHasRoomForDelegations = validator.LiquidShares.Quo(validator.DelegatorShares).LTE(hc.Params.LsmValidatorCap)
+			validatorHasRoomForDelegations = validator.LiquidShares.Quo(validator.DelegatorShares).LT(hc.Params.LsmValidatorCap)
 		}
 
 		// check if the validator has reached the bonded shares cap
@@ -105,7 +105,7 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 		if hc.Params.LsmBondFactor.Equal(sdk.NewDecFromInt(sdk.NewInt(-1))) {
 			validatorHasEnoughBond = true
 		} else {
-			validatorHasEnoughBond = validator.LiquidShares.LTE(validator.ValidatorBondShares.Mul(hc.Params.LsmBondFactor))
+			validatorHasEnoughBond = validator.LiquidShares.LT(validator.ValidatorBondShares.Mul(hc.Params.LsmBondFactor))
 		}
 
 		// update the validator if its delegable status has changed
