@@ -173,6 +173,7 @@ func (suite *IntegrationTestSuite) SetupHostChainAB() {
 			Weight:          equalWeight,
 			DelegatedAmount: sdk.ZeroInt(),
 			ExchangeRate:    sdk.OneDec(),
+			Delegable:       true,
 		})
 	}
 
