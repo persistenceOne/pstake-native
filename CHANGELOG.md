@@ -36,6 +36,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v2.3.1] - 2023-09-06
+
 ### Bug Fixes
 
 - [#637](https://github.com/persistenceOne/pstake-native/pull/637) LSM bond factor validation fix.
@@ -45,7 +47,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 - [#594](https://github.com/persistenceOne/pstake-native/pull/594) LSM integration.
-- [#631](https://github.com/persistenceOne/pstake-native/pull/631) Add telemetry to measure time taken in begin/end block #631
+- [#631](https://github.com/persistenceOne/pstake-native/pull/631) Add telemetry to measure time taken in begin/end block.
 
 ### Bug Fixes
 
