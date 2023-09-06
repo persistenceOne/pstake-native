@@ -224,7 +224,7 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			if err != nil {
 				return err
 			}
-		case KeyValidatorSlashing:
+		case KeyValidatorUpdate:
 			_, _, err := bech32.DecodeAndConvert(update.Value)
 			if err != nil {
 				return err
@@ -281,6 +281,25 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 
 			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
 				return sdkerrors.ErrInvalidRequest.Wrapf("invalid unstake fee value should be 0 <= fee <= 1")
+			}
+		case KeyLSMValidatorCap:
+			validatorCap, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if validatorCap.LT(sdk.ZeroDec()) || validatorCap.GT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid validator cap value should be 0 <= cap <= 1")
+			}
+		case KeyLSMBondFactor:
+			bondFactor, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			// -1 is the default bond factor value
+			if !bondFactor.Equal(sdk.NewDec(-1)) || bondFactor.GTE(sdk.ZeroDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid validator bond factor value should be -1 == bond factor >= 0")
 			}
 		case KeyMinimumDeposit:
 			minimumDeposit, ok := sdk.NewIntFromString(update.Value)

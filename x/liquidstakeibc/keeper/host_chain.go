@@ -88,6 +88,31 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 		k.SetHostChainValidator(ctx, hc, val)
 	}
 
+	// process LSM cap updates
+	if hc.Flags.Lsm {
+		// check if the validator has reached the LSM validator bond
+		var validatorHasRoomForDelegations bool
+		if validator.DelegatorShares.IsZero() {
+			validatorHasRoomForDelegations = true // if no shares are issued yet, the validator can accept more delegations
+		} else {
+			validatorHasRoomForDelegations = validator.LiquidShares.Quo(validator.DelegatorShares).LT(hc.Params.LsmValidatorCap)
+		}
+
+		// check if the validator has reached the bonded shares cap
+		var validatorHasEnoughBond bool
+		// this is the default value for the bond factor, which disables the functionality
+		// https://github.com/cosmos/cosmos-sdk/blob/0af2f4da004cbea6414a8bad56e8bdcd45badf1e/x/staking/types/params.go#L36-L73
+		if hc.Params.LsmBondFactor.Equal(sdk.NewDecFromInt(sdk.NewInt(-1))) {
+			validatorHasEnoughBond = true
+		} else {
+			validatorHasEnoughBond = validator.LiquidShares.LT(validator.ValidatorBondShares.Mul(hc.Params.LsmBondFactor))
+		}
+
+		// update the validator if its delegable status has changed
+		val.Delegable = validatorHasRoomForDelegations && validatorHasEnoughBond
+		k.SetHostChainValidator(ctx, hc, val)
+	}
+
 	return nil
 }
 

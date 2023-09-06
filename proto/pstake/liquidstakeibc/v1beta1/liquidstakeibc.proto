@@ -86,6 +86,20 @@ message HostChainLSParams {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ]; // protocol fee in percentage
+  // LSM validator cap
+  //  Should be used only when HostChainFlag.Lsm == true, orelse default
+  string lsm_validator_cap = 6 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  // LSM bond factor
+  //  Should be used only when HostChainFlag.Lsm == true, orelse default
+  string lsm_bond_factor = 7 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message ICAAccount {
@@ -133,6 +147,8 @@ message Validator {
   ];
   // the unbonding epoch number when the validator transitioned into the state
   int64 unbonding_epoch = 6;
+  // whether the validator can accept delegations or not, default true for non-lsm chains
+  bool delegable = 7;
 }
 
 message Deposit {

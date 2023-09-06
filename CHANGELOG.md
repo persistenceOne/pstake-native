@@ -43,6 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+- [#632](https://github.com/persistenceOne/pstake-native/pull/632) LSM cap fix.
 - [#621](https://github.com/persistenceOne/pstake-native/pull/621) ICA recreation timeout fix.
 
 ### Removed

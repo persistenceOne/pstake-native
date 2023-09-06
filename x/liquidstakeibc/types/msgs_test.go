@@ -211,7 +211,7 @@ func TestMsgUpdateHostChain(t *testing.T) {
 			Key:   types.KeyRemoveValidator,
 			Value: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
 		}, {
-			Key:   types.KeyValidatorSlashing,
+			Key:   types.KeyValidatorUpdate,
 			Value: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
 		}, {
 			Key:   types.KeyValidatorWeight,
@@ -269,7 +269,7 @@ func TestMsgUpdateHostChain(t *testing.T) {
 			Key:   types.KeyRemoveValidator,
 			Value: "testval",
 		}, {
-			Key:   types.KeyValidatorSlashing,
+			Key:   types.KeyValidatorUpdate,
 			Value: "testval",
 		}, {
 			Key:   types.KeyValidatorWeight,

@@ -171,7 +171,7 @@ func (k msgServer) UpdateHostChain(
 			}
 
 			return nil, types.ErrValidatorNotFound
-		case types.KeyValidatorSlashing:
+		case types.KeyValidatorUpdate:
 			_, found = hc.GetValidator(update.Value)
 			if !found {
 				return nil, types.ErrValidatorNotFound
@@ -196,7 +196,6 @@ func (k msgServer) UpdateHostChain(
 			}
 			//fee limits validated in msg.ValidateBasic()
 			hc.Params.DepositFee = fee
-
 		case types.KeyRestakeFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
@@ -204,7 +203,6 @@ func (k msgServer) UpdateHostChain(
 			}
 			//fee limits validated in msg.ValidateBasic()
 			hc.Params.RestakeFee = fee
-
 		case types.KeyRedemptionFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
@@ -219,6 +217,20 @@ func (k msgServer) UpdateHostChain(
 			}
 			//fee limits validated in msg.ValidateBasic()
 			hc.Params.UnstakeFee = fee
+		case types.KeyLSMValidatorCap:
+			validatorCap, err := sdktypes.NewDecFromStr(update.Value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+			//cap limits validated in msg.ValidateBasic()
+			hc.Params.LsmValidatorCap = validatorCap
+		case types.KeyLSMBondFactor:
+			bondFactor, err := sdktypes.NewDecFromStr(update.Value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+			//factor limits validated in msg.ValidateBasic()
+			hc.Params.LsmBondFactor = bondFactor
 		case types.KeyMinimumDeposit:
 			minimumDeposit, ok := sdktypes.NewIntFromString(update.Value)
 			if !ok {

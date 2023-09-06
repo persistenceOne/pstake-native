@@ -149,11 +149,19 @@ func (suite *IntegrationTestSuite) SetupHostChainAB() {
 	redemptionFee, err := sdk.NewDecFromStr("0.03")
 	suite.NoError(err)
 
+	lsmValidatorCap, err := sdk.NewDecFromStr("0.5")
+	suite.NoError(err)
+
+	lsmBondFactor, err := sdk.NewDecFromStr("250")
+	suite.NoError(err)
+
 	hostChainLSParams := &types.HostChainLSParams{
-		DepositFee:    depositFee,
-		RestakeFee:    restakeFee,
-		UnstakeFee:    unstakeFee,
-		RedemptionFee: redemptionFee,
+		DepositFee:      depositFee,
+		RestakeFee:      restakeFee,
+		UnstakeFee:      unstakeFee,
+		RedemptionFee:   redemptionFee,
+		LsmValidatorCap: lsmValidatorCap,
+		LsmBondFactor:   lsmBondFactor,
 	}
 
 	validators := make([]*types.Validator, 0)
@@ -165,6 +173,7 @@ func (suite *IntegrationTestSuite) SetupHostChainAB() {
 			Weight:          equalWeight,
 			DelegatedAmount: sdk.ZeroInt(),
 			ExchangeRate:    sdk.OneDec(),
+			Delegable:       true,
 		})
 	}
 
