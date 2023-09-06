@@ -94,6 +94,7 @@ message HostChainLSParams {
     (gogoproto.nullable) = false
   ];
   // LSM bond factor
+  //  Should be used only when HostChainFlag.Lsm == true, orelse default
   string lsm_bond_factor = 7 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
