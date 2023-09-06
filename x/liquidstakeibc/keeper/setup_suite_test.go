@@ -152,7 +152,7 @@ func (suite *IntegrationTestSuite) SetupHostChainAB() {
 	lsmValidatorCap, err := sdk.NewDecFromStr("0.5")
 	suite.NoError(err)
 
-	lsmBondFactor, err := sdk.NewDecFromStr("250")
+	lsmBondFactor, err := sdk.NewDecFromStr("50")
 	suite.NoError(err)
 
 	hostChainLSParams := &types.HostChainLSParams{

@@ -111,6 +111,68 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 		// update the validator if its delegable status has changed
 		val.Delegable = validatorHasRoomForDelegations && validatorHasEnoughBond
 		k.SetHostChainValidator(ctx, hc, val)
+
+		// this part of the code checks whether there is actually room to delegate on the validator.
+		// it can happen that a validator will have not reached any of the caps but the amount that
+		// pStake wants to stake is higher than the room available until reaching the cap.
+		// if that happens, delegations will keep failing and start the loop that we wanted to avoid.
+		// in order to avoid this, we simulate the generation of delegation messages to calculate the
+		// exact amount that would be delegated to each validator, and then compare it to the room left on that
+		// validator both on the validator cap and on the bond factor side.
+
+		// if the validator is not delegable, no messages will be generated for it, so there is nothing else to do
+		if !val.Delegable {
+			return nil
+		}
+
+		// we use both deposits waiting to be delegated and deposits that are being delegated as the delegating workflow
+		// is run every block, and there could be situations where not all deposits are being taken into account.
+		delegableDeposits := append(k.GetDelegableDepositsForChain(ctx, hc.ChainId), k.GetDelegatingDepositsForChain(ctx, hc.ChainId)...)
+		totalDepositDelegation := sdk.ZeroInt()
+		for _, deposit := range delegableDeposits {
+			totalDepositDelegation = totalDepositDelegation.Add(deposit.Amount.Amount)
+		}
+
+		// get a copy of the host chain, this is needed as GetHostChain returns a pointer.
+		// the GenerateDelegateMessages messes with weights and later in the code we store the validators,
+		// so in order to not modify the original chain object (and its validators) we need a copy of it.
+		hcCopy, _ := k.GetHostChain(ctx, hc.ChainId)
+		messages, err := k.GenerateDelegateMessages(hcCopy, totalDepositDelegation)
+		if err != nil {
+			k.Logger(ctx).Error(
+				"could not simulate generating delegate messages after ICQ validator update",
+				"host_chain",
+				hc.ChainId,
+			)
+		}
+
+		// there is a case where a validator can have much more delegation than what its weight dictates.
+		// in this case, there won't be a message for that validator within the generated messages.
+		// in order to not mess with the delegable state of the validator, and since we won't need to calculate the
+		// room for it because it is not receiving any delegation, the default value of the room flag is true.
+		validatorHasEnoughRoom := true
+		for _, message := range messages {
+			msgDelegate := message.(*stakingtypes.MsgDelegate)
+			if validator.OperatorAddress == msgDelegate.ValidatorAddress {
+
+				// calculate the amount of shares left to reach the validator lsm cap
+				// shares * validator_lsm_cap - liquid_shares
+				capRoom := validator.DelegatorShares.Mul(hc.Params.LsmValidatorCap).Sub(validator.LiquidShares)
+
+				// calculate the amount of shares left to reach the validator bond cap
+				// bond_shares * bond_factor - liquid_shares
+				bondRoom := validator.ValidatorBondShares.Mul(hc.Params.LsmBondFactor).Sub(validator.LiquidShares)
+
+				// if there is room on both caps, the validator can accept the delegation we will send on the next
+				// delegation workflow (next block).
+				validatorHasEnoughRoom = msgDelegate.Amount.Amount.LT(capRoom.TruncateInt()) &&
+					msgDelegate.Amount.Amount.LT(bondRoom.TruncateInt())
+			}
+		}
+
+		// recalculate the delegable state of the validator with the new flag
+		val.Delegable = validatorHasRoomForDelegations && validatorHasEnoughBond && validatorHasEnoughRoom
+		k.SetHostChainValidator(ctx, hc, val)
 	}
 
 	return nil
