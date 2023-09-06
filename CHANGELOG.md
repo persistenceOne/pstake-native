@@ -36,6 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Bug Fixes
+
+- [#637](https://github.com/persistenceOne/pstake-native/pull/637) LSM bond factor validation fix.
+
 ## [v2.3.0] - 2023-09-06
 
 ### Features
