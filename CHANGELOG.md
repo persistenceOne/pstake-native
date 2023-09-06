@@ -36,6 +36,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v2.3.2] - 2023-09-07
+
+### Bug Fixes
+
+- [#639](https://github.com/persistenceOne/pstake-native/pull/639) LSM cap room bug.
+
 ## [v2.3.1] - 2023-09-06
 
 ### Bug Fixes
