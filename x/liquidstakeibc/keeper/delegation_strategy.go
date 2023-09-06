@@ -15,6 +15,7 @@ type DelegateAmount struct {
 	Amount     sdk.Dec
 }
 
+// GenerateDelegateMessages produces the same result regardless the LSM flag on the host chain.
 func (k *Keeper) GenerateDelegateMessages(hc *types.HostChain, depositAmount math.Int) ([]proto.Message, error) {
 	// filter out validators which are non-delegable (which reached any LSM cap)
 	delegableValidators := make([]*types.Validator, 0)
