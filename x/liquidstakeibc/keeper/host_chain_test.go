@@ -2,6 +2,8 @@ package keeper_test
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
@@ -83,6 +85,7 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 		hc                     types.HostChain
 		hcValidators           []*types.Validator
 		validators             []stakingtypes.Validator
+		deposits               []*types.Deposit
 		expected               []*types.Validator
 		expectedDelegableState map[string]bool
 		err                    error
@@ -124,11 +127,13 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
+			deposits: []*types.Deposit{},
 			expectedDelegableState: map[string]bool{
 				"valoper1": false,
 				"valoper2": true,
 			},
-		}, {
+		},
+		{
 			name: "Validator not found.",
 			hc:   *hcs[0],
 			hcValidators: []*types.Validator{
@@ -157,6 +162,7 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
+			deposits: []*types.Deposit{},
 			expectedDelegableState: map[string]bool{
 				"valoper1": true,
 				"valoper2": true,
@@ -186,6 +192,7 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
+			deposits: []*types.Deposit{},
 			expectedDelegableState: map[string]bool{
 				TestAddress: false,
 			},
@@ -212,10 +219,12 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(0),
 				},
 			},
+			deposits: []*types.Deposit{},
 			expectedDelegableState: map[string]bool{
 				TestAddress: false,
 			},
-		}, {
+		},
+		{
 			name: "UpdateState",
 			hc:   *hcs[0],
 			hcValidators: []*types.Validator{
@@ -238,12 +247,14 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(101),
 				},
 			},
+			deposits: []*types.Deposit{},
 			expectedDelegableState: map[string]bool{
 				"valoper2": true,
 			},
 			err: fmt.Errorf("error while querying validator valoper2 delegation: decoding bech32 failed: invalid separator index -1"),
-		}, {
-			name: "ValidatorDelegable",
+		},
+		{
+			name: "ValidatorDelegableWithNoDeposits",
 			hc:   *hcs[0],
 			hcValidators: []*types.Validator{
 				{
@@ -261,10 +272,600 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
+			deposits: []*types.Deposit{},
 			expectedDelegableState: map[string]bool{
 				"valoper2": true,
 			},
-		}, {
+		},
+		{
+			name: "ValidatorDelegableWithDepositsAndRoom",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper2",
+					Weight:          sdk.OneDec(),
+					ExchangeRate:    sdk.NewDec(1),
+					Delegable:       false,
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress:     "valoper2",
+					LiquidShares:        sdk.NewDec(30),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+			},
+			deposits: []*types.Deposit{
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(5)),
+					State:   types.Deposit_DEPOSIT_RECEIVED,
+				},
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(5)),
+					State:   types.Deposit_DEPOSIT_DELEGATING,
+				},
+			},
+			expectedDelegableState: map[string]bool{
+				"valoper2": true,
+			},
+		},
+		{
+			name: "ValidatorNotDelegableWithDepositsAndNoRoomBecauseDepositReceived",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper2",
+					Weight:          sdk.OneDec(),
+					ExchangeRate:    sdk.NewDec(1),
+					Delegable:       false,
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress:     "valoper2",
+					LiquidShares:        sdk.NewDec(30),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+			},
+			deposits: []*types.Deposit{
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(20)),
+					Epoch:   int64(1),
+					State:   types.Deposit_DEPOSIT_RECEIVED,
+				},
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(5)),
+					Epoch:   int64(2),
+					State:   types.Deposit_DEPOSIT_DELEGATING,
+				},
+			},
+			expectedDelegableState: map[string]bool{
+				"valoper2": false,
+			},
+		},
+		{
+			name: "ValidatorNotDelegableWithDepositsAndNoRoomBecauseDepositDelegating",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper2",
+					Weight:          sdk.OneDec(),
+					ExchangeRate:    sdk.NewDec(1),
+					Delegable:       false,
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress:     "valoper2",
+					LiquidShares:        sdk.NewDec(30),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+			},
+			deposits: []*types.Deposit{
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(5)),
+					Epoch:   int64(1),
+					State:   types.Deposit_DEPOSIT_RECEIVED,
+				},
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(20)),
+					Epoch:   int64(2),
+					State:   types.Deposit_DEPOSIT_DELEGATING,
+				},
+			},
+			expectedDelegableState: map[string]bool{
+				"valoper2": false,
+			},
+		},
+		{
+			name: "ValidatorNotDelegableWithDepositsAndNoRoomBecauseExactAmount",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper2",
+					Weight:          sdk.OneDec(),
+					ExchangeRate:    sdk.NewDec(1),
+					Delegable:       false,
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress:     "valoper2",
+					LiquidShares:        sdk.NewDec(30),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+			},
+			deposits: []*types.Deposit{
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(1),
+					State:   types.Deposit_DEPOSIT_RECEIVED,
+				},
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(2),
+					State:   types.Deposit_DEPOSIT_DELEGATING,
+				},
+			},
+			expectedDelegableState: map[string]bool{
+				"valoper2": false,
+			},
+		},
+		{
+			name: "MultipleValidatorsWithOverDelegated",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper1",
+					Weight:          decFromStr("0.7"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(10),
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: "valoper2",
+					Weight:          decFromStr("0.1"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(45),
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: "valoper3",
+					Weight:          decFromStr("0.1"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(45),
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: "valoper4",
+					Weight:          decFromStr("0.1"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(45),
+					Delegable:       false,
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress:     "valoper1",
+					LiquidShares:        sdk.NewDec(10),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+				{
+					OperatorAddress:     "valoper2",
+					LiquidShares:        sdk.NewDec(45),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+				{
+					OperatorAddress:     "valoper3",
+					LiquidShares:        sdk.NewDec(45),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+				{
+					OperatorAddress:     "valoper4",
+					LiquidShares:        sdk.NewDec(45),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+			},
+			deposits: []*types.Deposit{
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(1),
+					State:   types.Deposit_DEPOSIT_RECEIVED,
+				},
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(2),
+					State:   types.Deposit_DEPOSIT_DELEGATING,
+				},
+			},
+			expectedDelegableState: map[string]bool{
+				"valoper1": true,
+				"valoper2": true,
+				"valoper3": true,
+				"valoper4": true,
+			},
+		},
+		{
+			name: "MultipleValidatorsWithAllUnderDelegated",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper1",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(25),
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: "valoper2",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(25),
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: "valoper3",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(25),
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: "valoper4",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(25),
+					Delegable:       false,
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress:     "valoper1",
+					LiquidShares:        sdk.NewDec(25),
+					ValidatorBondShares: sdk.NewDec(2),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+				{
+					OperatorAddress:     "valoper2",
+					LiquidShares:        sdk.NewDec(25),
+					ValidatorBondShares: sdk.NewDec(2),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+				{
+					OperatorAddress:     "valoper3",
+					LiquidShares:        sdk.NewDec(25),
+					ValidatorBondShares: sdk.NewDec(2),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+				{
+					OperatorAddress:     "valoper4",
+					LiquidShares:        sdk.NewDec(25),
+					ValidatorBondShares: sdk.NewDec(2),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+			},
+			deposits: []*types.Deposit{
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(1),
+					State:   types.Deposit_DEPOSIT_RECEIVED,
+				},
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(2),
+					State:   types.Deposit_DEPOSIT_DELEGATING,
+				},
+			},
+			expectedDelegableState: map[string]bool{
+				"valoper1": true,
+				"valoper2": true,
+				"valoper3": true,
+				"valoper4": true,
+			},
+		},
+		{
+			name: "MultipleValidatorsWithTwoOnValidatorCapAndNoneDelegable",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper1",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(50),
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: "valoper2",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(20),
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: "valoper3",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(50),
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: "valoper4",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(20),
+					Delegable:       false,
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress:     "valoper1",
+					LiquidShares:        sdk.NewDec(50),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(50),
+					DelegatorShares:     sdk.NewDec(50),
+				},
+				{
+					OperatorAddress:     "valoper2",
+					LiquidShares:        sdk.NewDec(20),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(50),
+					DelegatorShares:     sdk.NewDec(50),
+				},
+				{
+					OperatorAddress:     "valoper3",
+					LiquidShares:        sdk.NewDec(50),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(50),
+					DelegatorShares:     sdk.NewDec(50),
+				},
+				{
+					OperatorAddress:     "valoper4",
+					LiquidShares:        sdk.NewDec(20),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(50),
+					DelegatorShares:     sdk.NewDec(50),
+				},
+			},
+			deposits: []*types.Deposit{
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(1),
+					State:   types.Deposit_DEPOSIT_PENDING,
+				},
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(2),
+					State:   types.Deposit_DEPOSIT_RECEIVED,
+				},
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(3),
+					State:   types.Deposit_DEPOSIT_DELEGATING,
+				},
+			},
+			expectedDelegableState: map[string]bool{
+				"valoper1": false,
+				"valoper2": false,
+				"valoper3": false,
+				"valoper4": false,
+			},
+		},
+		{
+			name: "MultipleValidatorsWithTwoOnValidatorCap",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper1",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(50),
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: "valoper2",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(25),
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: "valoper3",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(50),
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: "valoper4",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(25),
+					Delegable:       false,
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress:     "valoper1",
+					LiquidShares:        sdk.NewDec(50),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+				{
+					OperatorAddress:     "valoper2",
+					LiquidShares:        sdk.NewDec(25),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+				{
+					OperatorAddress:     "valoper3",
+					LiquidShares:        sdk.NewDec(50),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+				{
+					OperatorAddress:     "valoper4",
+					LiquidShares:        sdk.NewDec(25),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(100),
+					DelegatorShares:     sdk.NewDec(100),
+				},
+			},
+			deposits: []*types.Deposit{
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(1),
+					State:   types.Deposit_DEPOSIT_SENT,
+				},
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(2),
+					State:   types.Deposit_DEPOSIT_RECEIVED,
+				},
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(3),
+					State:   types.Deposit_DEPOSIT_DELEGATING,
+				},
+			},
+			expectedDelegableState: map[string]bool{
+				"valoper1": false,
+				"valoper2": true,
+				"valoper3": false,
+				"valoper4": true,
+			},
+		},
+		{
+			name: "MultipleValidatorsWithAllOnCap",
+			hc:   *hcs[0],
+			hcValidators: []*types.Validator{
+				{
+					OperatorAddress: "valoper1",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(50),
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: "valoper2",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(50),
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: "valoper3",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(50),
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: "valoper4",
+					Weight:          decFromStr("0.25"),
+					ExchangeRate:    sdk.NewDec(1),
+					DelegatedAmount: sdk.NewInt(50),
+					Delegable:       false,
+				},
+			},
+			validators: []stakingtypes.Validator{
+				{
+					OperatorAddress:     "valoper1",
+					LiquidShares:        sdk.NewDec(50),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(150),
+					DelegatorShares:     sdk.NewDec(150),
+				},
+				{
+					OperatorAddress:     "valoper2",
+					LiquidShares:        sdk.NewDec(50),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(150),
+					DelegatorShares:     sdk.NewDec(150),
+				},
+				{
+					OperatorAddress:     "valoper3",
+					LiquidShares:        sdk.NewDec(50),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(150),
+					DelegatorShares:     sdk.NewDec(150),
+				},
+				{
+					OperatorAddress:     "valoper4",
+					LiquidShares:        sdk.NewDec(50),
+					ValidatorBondShares: sdk.NewDec(1),
+					Tokens:              sdk.NewInt(150),
+					DelegatorShares:     sdk.NewDec(150),
+				},
+			},
+			deposits: []*types.Deposit{
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(1),
+					State:   types.Deposit_DEPOSIT_PENDING,
+				},
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(2),
+					State:   types.Deposit_DEPOSIT_RECEIVED,
+				},
+				{
+					ChainId: hcs[0].ChainId,
+					Amount:  sdk.NewCoin("denom", sdk.NewInt(10)),
+					Epoch:   int64(3),
+					State:   types.Deposit_DEPOSIT_DELEGATING,
+				},
+			},
+			expectedDelegableState: map[string]bool{
+				"valoper1": false,
+				"valoper2": false,
+				"valoper3": false,
+				"valoper4": false,
+			},
+		},
+		{
 			name: "ValidatorNotDelegableCap",
 			hc:   *hcs[0],
 			hcValidators: []*types.Validator{
@@ -283,10 +884,12 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
+			deposits: []*types.Deposit{},
 			expectedDelegableState: map[string]bool{
 				"valoper2": false,
 			},
-		}, {
+		},
+		{
 			name: "ValidatorNotDelegableBondFactor",
 			hc:   *hcs[0],
 			hcValidators: []*types.Validator{
@@ -305,6 +908,7 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 					DelegatorShares:     sdk.NewDec(100),
 				},
 			},
+			deposits: []*types.Deposit{},
 			expectedDelegableState: map[string]bool{
 				"valoper2": false,
 			},
@@ -314,6 +918,13 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 	for _, t := range tc {
 		suite.Run(t.name, func() {
 			t.hc.Validators = t.hcValidators
+			for _, deposit := range t.deposits {
+				suite.app.LiquidStakeIBCKeeper.SetDeposit(suite.ctx, deposit)
+			}
+
+			// add randomness in the order we process validator, to simulate ICQ arriving asynchronously
+			rand.Seed(time.Now().UnixNano())
+			rand.Shuffle(len(t.validators), func(i, j int) { t.validators[i], t.validators[j] = t.validators[j], t.validators[i] })
 
 			for _, validator := range t.validators {
 				err := suite.app.LiquidStakeIBCKeeper.ProcessHostChainValidatorUpdates(suite.ctx, &t.hc, validator)
@@ -322,7 +933,10 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 			if t.err == nil {
 				suite.Require().Equal(len(t.validators), len(t.hc.Validators))
 
-				for i, validator := range t.hc.Validators {
+				for i, _ := range t.validators {
+					// get back the HC validator using the shuffled order
+					validator, _ := t.hc.GetValidator(t.validators[i].OperatorAddress)
+
 					suite.Require().Equal(t.validators[i].OperatorAddress, validator.OperatorAddress)
 					suite.Require().Equal(t.validators[i].Status.String(), validator.Status)
 
@@ -342,6 +956,10 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 
 					suite.Require().Equal(t.expectedDelegableState[validator.OperatorAddress], validator.Delegable)
 				}
+			}
+
+			for _, deposit := range t.deposits {
+				suite.app.LiquidStakeIBCKeeper.DeleteDeposit(suite.ctx, deposit)
 			}
 		})
 	}
