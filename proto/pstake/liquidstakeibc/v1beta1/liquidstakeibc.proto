@@ -147,7 +147,7 @@ message Validator {
   ];
   // the unbonding epoch number when the validator transitioned into the state
   int64 unbonding_epoch = 6;
-  // whether the validator can accept delegations or not
+  // whether the validator can accept delegations or not, default true for non-lsm chains
   bool delegable = 7;
 }
 
