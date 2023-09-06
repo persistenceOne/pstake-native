@@ -232,6 +232,24 @@ func TestMsgUpdateHostChain(t *testing.T) {
 			Key:   types.KeyMinimumDeposit,
 			Value: "1",
 		}, {
+			Key:   types.KeyLSMValidatorCap,
+			Value: "0",
+		}, {
+			Key:   types.KeyLSMValidatorCap,
+			Value: "1",
+		}, {
+			Key:   types.KeyLSMValidatorCap,
+			Value: "0.5",
+		}, {
+			Key:   types.KeyLSMBondFactor,
+			Value: "-1",
+		}, {
+			Key:   types.KeyLSMBondFactor,
+			Value: "250",
+		}, {
+			Key:   types.KeyLSMBondFactor,
+			Value: "0",
+		}, {
 			Key:   types.KeyActive,
 			Value: "true",
 		}, {
@@ -307,6 +325,18 @@ func TestMsgUpdateHostChain(t *testing.T) {
 		}, {
 			Key:   types.KeyRedemptionFee,
 			Value: "invalidDec",
+		}, {
+			Key:   types.KeyLSMValidatorCap,
+			Value: "-0.5",
+		}, {
+			Key:   types.KeyLSMValidatorCap,
+			Value: "2",
+		}, {
+			Key:   types.KeyLSMBondFactor,
+			Value: "-0.5",
+		}, {
+			Key:   types.KeyLSMBondFactor,
+			Value: "-1.5",
 		}, {
 			Key:   types.KeyMinimumDeposit,
 			Value: "0",

@@ -298,8 +298,8 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			}
 
 			// -1 is the default bond factor value
-			if !bondFactor.Equal(sdk.NewDec(-1)) || bondFactor.GTE(sdk.ZeroDec()) {
-				return sdkerrors.ErrInvalidRequest.Wrapf("invalid validator bond factor value should be -1 == bond factor >= 0")
+			if bondFactor.LT(sdk.ZeroDec()) && !bondFactor.Equal(sdk.NewDec(-1)) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid validator bond factor value should be bond_factor == -1 || bond_factor >= 0")
 			}
 		case KeyMinimumDeposit:
 			minimumDeposit, ok := sdk.NewIntFromString(update.Value)
