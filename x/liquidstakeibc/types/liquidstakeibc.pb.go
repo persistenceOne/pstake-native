@@ -372,8 +372,12 @@ type HostChainLSParams struct {
 	UnstakeFee    github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=unstake_fee,json=unstakeFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"unstake_fee"`
 	RedemptionFee github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=redemption_fee,json=redemptionFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"redemption_fee"`
 	// LSM validator cap
+	//
+	//	Should be used only when HostChainFlag.Lsm == true, orelse default
 	LsmValidatorCap github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,6,opt,name=lsm_validator_cap,json=lsmValidatorCap,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"lsm_validator_cap"`
 	// LSM bond factor
+	//
+	//	Should be used only when HostChainFlag.Lsm == true, orelse default
 	LsmBondFactor github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,7,opt,name=lsm_bond_factor,json=lsmBondFactor,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"lsm_bond_factor"`
 }
 
@@ -494,7 +498,7 @@ type Validator struct {
 	ExchangeRate github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,5,opt,name=exchange_rate,json=exchangeRate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"exchange_rate"`
 	// the unbonding epoch number when the validator transitioned into the state
 	UnbondingEpoch int64 `protobuf:"varint,6,opt,name=unbonding_epoch,json=unbondingEpoch,proto3" json:"unbonding_epoch,omitempty"`
-	// whether the validator can accept delegations or not
+	// whether the validator can accept delegations or not, default true for non-lsm chains
 	Delegable bool `protobuf:"varint,7,opt,name=delegable,proto3" json:"delegable,omitempty"`
 }
 
