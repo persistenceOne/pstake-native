@@ -1,0 +1,27 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - puneet/test
+
+env:
+  TAR_PATH: heighliner.tar
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-test-coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - uses: actions/checkout@v4
+
+      - name: LL test
+        run: echo "github.event_name=${{ github.event_name }}"
