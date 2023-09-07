@@ -36,9 +36,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v2.3.3] - 2023-09-07
+
 ### Bug Fixes
 
-- [#643](https://github.com/persistenceOne/pstake-native/pull/643) Re-add LSCosmos types to enable parsing of older transactions and gov data.
+- [#643](https://github.com/persistenceOne/pstake-native/pull/643) Re-add LSCosmos types to enable parsing of older
+  transactions and gov data.
 
 ## [v2.3.2] - 2023-09-07
 
@@ -57,7 +60,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 - [#594](https://github.com/persistenceOne/pstake-native/pull/594) LSM integration.
-- [#631](https://github.com/persistenceOne/pstake-native/pull/631) Add telemetry to measure time taken in begin/end block.
+- [#631](https://github.com/persistenceOne/pstake-native/pull/631) Add telemetry to measure time taken in begin/end
+  block.
 
 ### Bug Fixes
 
@@ -65,8 +69,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - [#621](https://github.com/persistenceOne/pstake-native/pull/621) ICA recreation timeout fix.
 
 ### Removed
-- [#627](https://github.com/persistenceOne/pstake-native/pull/627) Remove lscosmos, lspersistence in favour of liquidstakeibc.
 
+- [#627](https://github.com/persistenceOne/pstake-native/pull/627) Remove lscosmos, lspersistence in favour of
+  liquidstakeibc.
 
 ## [v2.2.2] - 2023-08-07
 
