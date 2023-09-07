@@ -129,6 +129,8 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc"
 	liquidstakeibckeeper "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v2/x/lscosmos"
+	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
 )
 
 var (
@@ -169,6 +171,7 @@ var (
 		ica.AppModuleBasic{},
 		epochs.AppModuleBasic{},
 		interchainquery.AppModuleBasic{},
+		lscosmos.AppModuleBasic{},
 		liquidstakeibc.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 	)
@@ -986,7 +989,7 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 		storeUpgrades := store.StoreUpgrades{
 			Added: []string{},
 			Deleted: []string{
-				"lscosmos",
+				lscosmostypes.StoreKey,
 				"lspersistence", //if present
 			},
 		}

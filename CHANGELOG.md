@@ -36,6 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Bug Fixes
+
+- [#643](https://github.com/persistenceOne/pstake-native/pull/643) Re-add LSCosmos types to enable parsing of older transactions and gov data.
+
 ## [v2.3.2] - 2023-09-07
 
 ### Bug Fixes
