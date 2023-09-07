@@ -1,6 +1,9 @@
 name: Test
 
 on:
+  pull_request:
+    branches:
+      - puneet/main
   push:
     branches:
       - puneet/test
@@ -13,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  unit-test-coverage:
+  check-actions:
     runs-on: ubuntu-latest
 
     steps:
