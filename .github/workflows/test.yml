@@ -44,7 +44,6 @@ jobs:
           TEST_ARGS: "-timeout 10m -race -coverprofile=./coverage.out -covermode=atomic -v"
 
       - name: Filter out DONTCOVER
-        if: github.event_name == 'pull_request'
         run: |
           excludelist="$(find ./ -type f -name '*.go' | xargs grep -l 'DONTCOVER')"
           excludelist+=" $(find ./ -type f -name '*.pb.go')"
@@ -57,7 +56,6 @@ jobs:
           done
 
       - name: Convert coverage to lcov
-        if: github.event_name == 'pull_request'
         uses: jandelgado/gcov2lcov-action@v1
 
       - name: LCOV Minimum test coverage checker
@@ -67,7 +65,6 @@ jobs:
           minimum-coverage: 70
 
       - name: Coveralls
-        if: github.event_name == 'pull_request'
         uses: coverallsapp/github-action@v2.2.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
