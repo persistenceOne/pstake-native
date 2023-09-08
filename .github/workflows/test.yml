@@ -65,7 +65,7 @@ jobs:
           minimum-coverage: 70
 
       - name: Coveralls
-        uses: coverallsapp/github-action@v2.2.2
+        uses: coverallsapp/github-action@v2.2.3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: coverage.lcov
