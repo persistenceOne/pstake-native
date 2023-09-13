@@ -14,6 +14,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgRegisterHostChain{}, "pstake/MsgRegisterHostChain", nil)
 	cdc.RegisterConcrete(&MsgUpdateHostChain{}, "pstake/MsgUpdateHostChain", nil)
 	cdc.RegisterConcrete(&MsgLiquidStake{}, "pstake/MsgLiquidStake", nil)
+	cdc.RegisterConcrete(&MsgLiquidStakeLSM{}, "pstake/MsgLiquidStakeLSM", nil)
 	cdc.RegisterConcrete(&MsgLiquidUnstake{}, "pstake/MsgLiquidUnstake", nil)
 	cdc.RegisterConcrete(&MsgRedeem{}, "pstake/MsgRedeem", nil)
 	cdc.RegisterConcrete(&MsgUpdateParams{}, "pstake/MsgUpdateParams", nil)
@@ -24,6 +25,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgRegisterHostChain{},
 		&MsgUpdateHostChain{},
 		&MsgLiquidStake{},
+		&MsgLiquidStakeLSM{},
 		&MsgLiquidUnstake{},
 		&MsgRedeem{},
 		&MsgUpdateParams{},
