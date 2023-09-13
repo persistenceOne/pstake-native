@@ -36,6 +36,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v2.4.0] - 2023-09-13
+
+### Bug Fixes
+
+- [#652](https://github.com/persistenceOne/pstake-native/pull/652) Register MsgLiquidStakeLSM into amino codec.
+
 ## [v2.3.3] - 2023-09-07
 
 ### Bug Fixes
