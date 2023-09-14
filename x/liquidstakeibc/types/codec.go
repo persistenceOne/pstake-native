@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,13 +12,13 @@ import (
 // RegisterLegacyAminoCodec registers the necessary x/liquidstakeibc interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgRegisterHostChain{}, "pstake/MsgRegisterHostChain", nil)
-	cdc.RegisterConcrete(&MsgUpdateHostChain{}, "pstake/MsgUpdateHostChain", nil)
-	cdc.RegisterConcrete(&MsgLiquidStake{}, "pstake/MsgLiquidStake", nil)
-	cdc.RegisterConcrete(&MsgLiquidStakeLSM{}, "pstake/MsgLiquidStakeLSM", nil)
-	cdc.RegisterConcrete(&MsgLiquidUnstake{}, "pstake/MsgLiquidUnstake", nil)
-	cdc.RegisterConcrete(&MsgRedeem{}, "pstake/MsgRedeem", nil)
-	cdc.RegisterConcrete(&MsgUpdateParams{}, "pstake/MsgUpdateParams", nil)
+	legacy.RegisterAminoMsg(cdc, &MsgRegisterHostChain{}, "pstake/MsgRegisterHostChain")
+	legacy.RegisterAminoMsg(cdc, &MsgUpdateHostChain{}, "pstake/MsgUpdateHostChain")
+	legacy.RegisterAminoMsg(cdc, &MsgLiquidStake{}, "pstake/MsgLiquidStake")
+	legacy.RegisterAminoMsg(cdc, &MsgLiquidStakeLSM{}, "pstake/MsgLiquidStakeLSM")
+	legacy.RegisterAminoMsg(cdc, &MsgLiquidUnstake{}, "pstake/MsgLiquidUnstake")
+	legacy.RegisterAminoMsg(cdc, &MsgRedeem{}, "pstake/MsgRedeem")
+	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, "pstake/MsgUpdateParams")
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
