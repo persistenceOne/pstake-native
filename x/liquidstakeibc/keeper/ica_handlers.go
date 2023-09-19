@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"strings"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -228,6 +230,77 @@ func (k *Keeper) HandleMsgTransfer(
 			k.DeleteValidatorUnbonding(ctx, validatorUnbonding)
 		}
 	}
+
+	return nil
+}
+
+func (k *Keeper) HandleMsgRedeemTokensForShares(
+	ctx sdk.Context,
+	msg sdk.Msg,
+	resp stakingtypes.MsgRedeemTokensForSharesResponse,
+	channel string,
+	sequence uint64,
+) error {
+	parsedMsg, ok := msg.(*stakingtypes.MsgRedeemTokensForShares)
+	if !ok {
+		return errorsmod.Wrapf(
+			sdkerrors.ErrInvalidType,
+			"unable to cast msg of type %s to MsgRedeemTokensForShares",
+			sdk.MsgTypeURL(msg),
+		)
+	}
+
+	// remove LSM deposits for this sequence (if any)
+	deposits := k.GetLSMDepositsFromIbcSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence))
+	for _, deposit := range deposits {
+		k.DeleteLSMDeposit(ctx, deposit)
+	}
+
+	// get the host chain of the delegation using its delegator address
+	hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.DelegatorAddress)
+	if !found {
+		return errorsmod.Wrapf(
+			types.ErrInvalidHostChain,
+			"host chain with delegator address %s not registered, or account not associated",
+			parsedMsg.DelegatorAddress,
+		)
+	}
+
+	// parse the validator address from the LSM token denom
+	operatorAddress, _, found := strings.Cut(parsedMsg.Amount.Denom, "/")
+	if !found {
+		return errorsmod.Wrapf(
+			types.ErrInvalidLSMDenom,
+			"could not parse validator address from LSM token %s",
+			operatorAddress,
+		)
+	}
+
+	// get the validator that the delegation was performed to
+	validator, found := hc.GetValidator(operatorAddress)
+	if !found {
+		return errorsmod.Wrapf(
+			types.ErrValidatorNotFound,
+			"validator with operator address %s not found",
+			operatorAddress,
+		)
+	}
+
+	// update the validator delegated amount
+	validator.DelegatedAmount = validator.DelegatedAmount.Add(resp.Amount.Amount)
+	k.SetHostChainValidator(ctx, hc, validator)
+
+	k.SetHostChain(ctx, hc)
+
+	k.Logger(ctx).Info(
+		"Received lsm token redeem acknowledgement",
+		"delegator",
+		parsedMsg.DelegatorAddress,
+		"validator",
+		operatorAddress,
+		"amount",
+		resp.Amount.String(),
+	)
 
 	return nil
 }

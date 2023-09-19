@@ -1,10 +1,13 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -29,6 +32,11 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 
 		// attempt to process any matured unbondings
 		k.DoProcessMaturedUndelegations(ctx, hc)
+
+		// attempt to redeem LSM tokens
+		if hc.Flags.Lsm {
+			k.DoRedeemLSMTokens(ctx, hc)
+		}
 	}
 }
 
@@ -157,12 +165,12 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc *types.HostChain) {
 		hc.DelegationAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
 		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, hc.DelegationAccount.Owner); err != nil {
 			k.Logger(ctx).Error("error recreating %s delegate ica: %w", hc.ChainId, err)
+		} else {
+			k.Logger(ctx).Info("Recreating delegate ICA.", "chain", hc.ChainId)
+
+			hc.DelegationAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
+			k.SetHostChain(ctx, hc)
 		}
-
-		k.Logger(ctx).Info("Recreating delegate ICA.", "chain", hc.ChainId)
-
-		hc.DelegationAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
-		k.SetHostChain(ctx, hc)
 	}
 
 	// if the channel is closed, and it is not being recreated, recreate it
@@ -170,12 +178,12 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc *types.HostChain) {
 		hc.RewardsAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
 		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, hc.RewardsAccount.Owner); err != nil {
 			k.Logger(ctx).Error("error recreating %s rewards ica: %w", hc.ChainId, err)
+		} else {
+			k.Logger(ctx).Info("Recreating rewards ICA.", "chain", hc.ChainId)
+
+			hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
+			k.SetHostChain(ctx, hc)
 		}
-
-		k.Logger(ctx).Info("Recreating rewards ICA.", "chain", hc.ChainId)
-
-		hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
-		k.SetHostChain(ctx, hc)
 	}
 }
 
@@ -251,4 +259,51 @@ func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostCh
 		validatorUnbonding.IbcSequenceId = sequenceID
 		k.SetValidatorUnbonding(ctx, validatorUnbonding)
 	}
+}
+
+func (k *Keeper) DoRedeemLSMTokens(ctx sdk.Context, hc *types.HostChain) {
+	// generate the ICA messages
+	messages := make([]proto.Message, 0)
+	deposits := k.GetRedeemableLSMDeposits(ctx, hc.ChainId)
+	for _, deposit := range deposits {
+		messages = append(
+			messages,
+			&stakingtypes.MsgRedeemTokensForShares{
+				DelegatorAddress: hc.DelegationAccount.Address,
+				Amount:           sdk.NewCoin(deposit.Denom, deposit.Shares.TruncateInt()),
+			},
+		)
+	}
+
+	if len(messages) == 0 {
+		return
+	}
+
+	// execute the ICA transaction
+	sequenceID, err := k.GenerateAndExecuteICATx(
+		ctx,
+		hc.ConnectionId,
+		hc.DelegationAccount.Owner,
+		messages,
+	)
+	if err != nil {
+		k.Logger(ctx).Error("could not send ICA untokenize tx", "host_chain", hc.ChainId)
+		return
+	}
+
+	// update the deposits state and add the IBC sequence
+	k.UpdateLSMDepositsStateAndSequence(
+		ctx,
+		deposits,
+		types.LSMDeposit_DEPOSIT_UNTOKENIZING,
+		sequenceID,
+	)
+
+	k.Logger(ctx).Info(
+		fmt.Sprintf("Redeeming %v deposits.", len(deposits)),
+		"host chain",
+		hc.ChainId,
+		"sequence-id",
+		sequenceID,
+	)
 }

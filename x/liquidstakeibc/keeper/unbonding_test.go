@@ -12,26 +12,26 @@ func (suite *IntegrationTestSuite) TestGetSetUnbonding() {
 	suite.app.LiquidStakeIBCKeeper.SetUnbonding(
 		suite.ctx,
 		&types.Unbonding{
-			ChainId:     suite.path.EndpointB.Chain.ChainID,
+			ChainId:     suite.chainB.ChainID,
 			EpochNumber: epoch,
 		},
 	)
 
 	unbonding, found := suite.app.LiquidStakeIBCKeeper.GetUnbonding(
 		suite.ctx,
-		suite.path.EndpointB.Chain.ChainID,
+		suite.chainB.ChainID,
 		epoch,
 	)
 
 	suite.Require().Equal(true, found)
-	suite.Require().Equal(suite.path.EndpointB.Chain.ChainID, unbonding.ChainId)
+	suite.Require().Equal(suite.chainB.ChainID, unbonding.ChainId)
 }
 
 func (suite *IntegrationTestSuite) TestDeleteUnbonding() {
 	epoch := suite.app.EpochsKeeper.GetEpochInfo(suite.ctx, types.DelegationEpoch).CurrentEpoch
 
 	unbonding := &types.Unbonding{
-		ChainId:     suite.path.EndpointB.Chain.ChainID,
+		ChainId:     suite.chainB.ChainID,
 		EpochNumber: epoch,
 	}
 
@@ -40,7 +40,7 @@ func (suite *IntegrationTestSuite) TestDeleteUnbonding() {
 
 	unbonding, found := suite.app.LiquidStakeIBCKeeper.GetUnbonding(
 		suite.ctx,
-		suite.path.EndpointB.Chain.ChainID,
+		suite.chainB.ChainID,
 		epoch,
 	)
 
@@ -51,7 +51,7 @@ func (suite *IntegrationTestSuite) TestFilterUnbondings() {
 	epoch := suite.app.EpochsKeeper.GetEpochInfo(suite.ctx, types.DelegationEpoch).CurrentEpoch
 
 	unbonding := &types.Unbonding{
-		ChainId:     suite.path.EndpointB.Chain.ChainID,
+		ChainId:     suite.chainB.ChainID,
 		EpochNumber: epoch,
 	}
 
@@ -60,18 +60,25 @@ func (suite *IntegrationTestSuite) TestFilterUnbondings() {
 	unbondings := suite.app.LiquidStakeIBCKeeper.FilterUnbondings(
 		suite.ctx,
 		func(u types.Unbonding) bool {
-			return u.ChainId == suite.path.EndpointB.Chain.ChainID &&
+			return u.ChainId == suite.chainB.ChainID &&
 				u.EpochNumber == epoch
 		},
 	)
 
 	suite.Require().Equal(1, len(unbondings))
-	suite.Require().Equal(suite.path.EndpointB.Chain.ChainID, unbondings[0].ChainId)
+	suite.Require().Equal(suite.chainB.ChainID, unbondings[0].ChainId)
 	suite.Require().Equal(epoch, unbondings[0].EpochNumber)
 }
 
 func (suite *IntegrationTestSuite) TestIncreaseUndelegatingAmountForEpoch() {
 	epoch := suite.app.EpochsKeeper.GetEpochInfo(suite.ctx, types.DelegationEpoch).CurrentEpoch
+	ubd1 := &types.Unbonding{
+		ChainId:      suite.chainB.ChainID,
+		EpochNumber:  epoch,
+		BurnAmount:   sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
+		UnbondAmount: sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
+	}
+	suite.app.LiquidStakeIBCKeeper.SetUnbonding(suite.ctx, ubd1)
 
 	tc := []struct {
 		name      string
@@ -80,22 +87,17 @@ func (suite *IntegrationTestSuite) TestIncreaseUndelegatingAmountForEpoch() {
 		unbonding *types.Unbonding
 	}{
 		{
-			name:   "Success",
-			burn:   sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
-			unbond: sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
-			unbonding: &types.Unbonding{
-				ChainId:      suite.path.EndpointB.Chain.ChainID,
-				EpochNumber:  epoch,
-				BurnAmount:   sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
-				UnbondAmount: sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
-			},
+			name:      "Success",
+			burn:      sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
+			unbond:    sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
+			unbonding: ubd1,
 		},
 		{
 			name:   "NotFound",
 			burn:   sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
 			unbond: sdk.NewCoin(HostDenom, sdk.NewInt(1000)),
 			unbonding: &types.Unbonding{
-				ChainId:      suite.path.EndpointB.Chain.ChainID,
+				ChainId:      suite.chainB.ChainID,
 				EpochNumber:  epoch + 1,
 				BurnAmount:   sdk.NewCoin(HostDenom, sdk.NewInt(0)),
 				UnbondAmount: sdk.NewCoin(HostDenom, sdk.NewInt(0)),
@@ -105,7 +107,6 @@ func (suite *IntegrationTestSuite) TestIncreaseUndelegatingAmountForEpoch() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-			suite.app.LiquidStakeIBCKeeper.SetUnbonding(suite.ctx, t.unbonding)
 
 			suite.app.LiquidStakeIBCKeeper.IncreaseUndelegatingAmountForEpoch(
 				suite.ctx,
@@ -132,19 +133,19 @@ func (suite *IntegrationTestSuite) TestFailAllUnbondingsForSequenceID() {
 
 	unbondings := []*types.Unbonding{
 		{
-			ChainId:       suite.path.EndpointB.Chain.ChainID,
+			ChainId:       suite.chainB.ChainID,
 			EpochNumber:   epoch,
 			IbcSequenceId: "sequence-1",
 			State:         types.Unbonding_UNBONDING_PENDING,
 		},
 		{
-			ChainId:       suite.path.EndpointB.Chain.ChainID,
+			ChainId:       suite.chainB.ChainID,
 			EpochNumber:   epoch + 1,
 			IbcSequenceId: "sequence-1",
 			State:         types.Unbonding_UNBONDING_MATURING,
 		},
 		{
-			ChainId:       suite.path.EndpointB.Chain.ChainID,
+			ChainId:       suite.chainB.ChainID,
 			EpochNumber:   epoch + 2,
 			IbcSequenceId: "sequence-2",
 			State:         types.Unbonding_UNBONDING_MATURED,
@@ -176,32 +177,32 @@ func (suite *IntegrationTestSuite) TestRevertUnbondingsState() {
 
 	unbondings := []*types.Unbonding{
 		{
-			ChainId:     suite.path.EndpointB.Chain.ChainID,
+			ChainId:     suite.chainB.ChainID,
 			EpochNumber: epoch,
 			State:       types.Unbonding_UNBONDING_PENDING,
 		},
 		{
-			ChainId:     suite.path.EndpointB.Chain.ChainID,
+			ChainId:     suite.chainB.ChainID,
 			EpochNumber: epoch + 1,
 			State:       types.Unbonding_UNBONDING_INITIATED,
 		},
 		{
-			ChainId:     suite.path.EndpointB.Chain.ChainID,
+			ChainId:     suite.chainB.ChainID,
 			EpochNumber: epoch + 2,
 			State:       types.Unbonding_UNBONDING_MATURING,
 		},
 		{
-			ChainId:     suite.path.EndpointB.Chain.ChainID,
+			ChainId:     suite.chainB.ChainID,
 			EpochNumber: epoch + 3,
 			State:       types.Unbonding_UNBONDING_MATURED,
 		},
 		{
-			ChainId:     suite.path.EndpointB.Chain.ChainID,
+			ChainId:     suite.chainB.ChainID,
 			EpochNumber: epoch + 4,
 			State:       types.Unbonding_UNBONDING_CLAIMABLE,
 		},
 		{
-			ChainId:     suite.path.EndpointB.Chain.ChainID,
+			ChainId:     suite.chainB.ChainID,
 			EpochNumber: epoch + 5,
 			State:       types.Unbonding_UNBONDING_FAILED,
 		},

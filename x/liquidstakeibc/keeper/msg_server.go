@@ -8,27 +8,15 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-)
-
-const (
-	KeyAddValidator       string = "add_validator"
-	KeyRemoveValidator    string = "remove_validator"
-	KeyValidatorSlashing  string = "validator_slashing"
-	KeyValidatorWeight    string = "validator_weight"
-	KeyDepositFee         string = "deposit_fee"
-	KeyRestakeFee         string = "restake_fee"
-	KeyUnstakeFee         string = "unstake_fee"
-	KeyRedemptionFee      string = "redemption_fee"
-	KeyMinimumDeposit     string = "min_deposit"
-	KeyActive             string = "active"
-	KeySetWithdrawAddress string = "set_withdraw_address"
-	KeyAutocompoundFactor string = "autocompound_factor"
 )
 
 type msgServer struct {
@@ -82,12 +70,17 @@ func (k msgServer) RegisterHostChain(
 		UnbondingFactor: msg.UnbondingFactor,
 		Active:          false,
 		DelegationAccount: &types.ICAAccount{
-			Owner: types.DefaultDelegateAccountPortOwner(chainID),
+			Owner:   types.DefaultDelegateAccountPortOwner(chainID),
+			Balance: sdktypes.Coin{Amount: sdktypes.ZeroInt(), Denom: msg.HostDenom},
 		},
 		RewardsAccount: &types.ICAAccount{
-			Owner: types.DefaultRewardsAccountPortOwner(chainID),
+			Owner:   types.DefaultRewardsAccountPortOwner(chainID),
+			Balance: sdktypes.Coin{Amount: sdktypes.ZeroInt(), Denom: msg.HostDenom},
 		},
 		AutoCompoundFactor: k.CalculateAutocompoundLimit(sdktypes.NewDec(msg.AutoCompoundFactor)),
+		Flags: &types.HostChainFlags{
+			Lsm: false,
+		},
 	}
 
 	// save the host chain
@@ -113,6 +106,16 @@ func (k msgServer) RegisterHostChain(
 		)
 	}
 
+	// create a deposit for the current epoch
+	deposit := &types.Deposit{
+		ChainId:       hc.ChainId,
+		Amount:        sdktypes.NewCoin(hc.IBCDenom(), sdktypes.ZeroInt()),
+		Epoch:         k.epochsKeeper.GetEpochInfo(ctx, types.DelegationEpoch).CurrentEpoch,
+		State:         types.Deposit_DEPOSIT_PENDING,
+		IbcSequenceId: "",
+	}
+	k.SetDeposit(ctx, deposit)
+
 	return &types.MsgRegisterHostChainResponse{}, nil
 }
 
@@ -137,7 +140,7 @@ func (k msgServer) UpdateHostChain(
 	for _, update := range msg.Updates {
 	updateCase:
 		switch update.Key {
-		case KeyAddValidator:
+		case types.KeyAddValidator:
 			var validator types.Validator
 			err := json.Unmarshal([]byte(update.Value), &validator)
 			if err != nil {
@@ -151,7 +154,7 @@ func (k msgServer) UpdateHostChain(
 
 			hc.Validators = append(hc.Validators, &validator)
 			k.SetHostChain(ctx, hc)
-		case KeyRemoveValidator:
+		case types.KeyRemoveValidator:
 			for i, validator := range hc.Validators {
 				if validator.OperatorAddress == update.Value {
 					// remove just when there are no delegated tokens and weight is 0
@@ -168,7 +171,7 @@ func (k msgServer) UpdateHostChain(
 			}
 
 			return nil, types.ErrValidatorNotFound
-		case KeyValidatorSlashing:
+		case types.KeyValidatorUpdate:
 			_, found = hc.GetValidator(update.Value)
 			if !found {
 				return nil, types.ErrValidatorNotFound
@@ -177,7 +180,7 @@ func (k msgServer) UpdateHostChain(
 			if err := k.QueryHostChainValidator(ctx, hc, update.Value); err != nil {
 				return nil, fmt.Errorf("unable to send ICQ query for validator")
 			}
-		case KeyValidatorWeight:
+		case types.KeyValidatorWeight:
 			validator, weight, valid := strings.Cut(update.Value, ",")
 			if !valid {
 				return nil, fmt.Errorf("unable to parse validator update string")
@@ -186,85 +189,98 @@ func (k msgServer) UpdateHostChain(
 			if err := k.UpdateHostChainValidatorWeight(ctx, hc, validator, weight); err != nil {
 				return nil, fmt.Errorf("invalid validator weight update values: %v", err)
 			}
-		case KeyDepositFee:
+		case types.KeyDepositFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-
+			//fee limits validated in msg.ValidateBasic()
 			hc.Params.DepositFee = fee
-			if fee.LT(sdktypes.NewDec(0)) {
-				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
-			}
-		case KeyRestakeFee:
+		case types.KeyRestakeFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-
+			//fee limits validated in msg.ValidateBasic()
 			hc.Params.RestakeFee = fee
-			if fee.LT(sdktypes.NewDec(0)) {
-				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
-			}
-		case KeyRedemptionFee:
+		case types.KeyRedemptionFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-
+			//fee limits validated in msg.ValidateBasic()
 			hc.Params.RedemptionFee = fee
-			if fee.LT(sdktypes.NewDec(0)) {
-				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
-			}
-		case KeyUnstakeFee:
+		case types.KeyUnstakeFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-
+			//fee limits validated in msg.ValidateBasic()
 			hc.Params.UnstakeFee = fee
-			if fee.LT(sdktypes.NewDec(0)) {
-				return nil, fmt.Errorf("invalid deposit fee value, less than zero")
+		case types.KeyLSMValidatorCap:
+			validatorCap, err := sdktypes.NewDecFromStr(update.Value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-		case KeyMinimumDeposit:
+			//cap limits validated in msg.ValidateBasic()
+			hc.Params.LsmValidatorCap = validatorCap
+		case types.KeyLSMBondFactor:
+			bondFactor, err := sdktypes.NewDecFromStr(update.Value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+			//factor limits validated in msg.ValidateBasic()
+			hc.Params.LsmBondFactor = bondFactor
+		case types.KeyMinimumDeposit:
 			minimumDeposit, ok := sdktypes.NewIntFromString(update.Value)
 			if !ok {
 				return nil, fmt.Errorf("unable to parse string to sdk.Int")
 			}
-
+			//min deposit limits validated in msg.ValidateBasic()
 			hc.MinimumDeposit = minimumDeposit
-			if minimumDeposit.LT(sdktypes.NewInt(0)) {
-				return nil, fmt.Errorf("invalid minimum deposit value less than zero")
-			}
-		case KeyActive:
+		case types.KeyActive:
 			active, err := strconv.ParseBool(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to bool")
 			}
 
 			hc.Active = active
-		case KeySetWithdrawAddress:
+		case types.KeySetWithdrawAddress:
 			err := k.SetWithdrawAddress(ctx, hc)
 			if err != nil {
 				k.Logger(ctx).Error("Could not set withdraw address.", "chain_id", hc.ChainId)
 				return nil, fmt.Errorf("could not set withdraw address for host chain %s", hc.ChainId)
 			}
-		case KeyAutocompoundFactor:
+		case types.KeyAutocompoundFactor:
 			autocompoundFactor, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec")
 			}
-
-			if autocompoundFactor.LTE(sdktypes.NewDec(0)) {
-				return nil, fmt.Errorf("invalid autocompound factor value less or equal than zero")
-			}
+			//autoCompoundFactor limits validated in msg.ValidateBasic()
 			hc.AutoCompoundFactor = k.CalculateAutocompoundLimit(autocompoundFactor)
+		case types.KeyFlags:
+			var flags types.HostChainFlags
+			err := json.Unmarshal([]byte(update.Value), &flags)
+			if err != nil {
+				return nil, fmt.Errorf("unable to unmarshal flags update string")
+			}
+
+			hc.Flags = &flags
+			k.SetHostChain(ctx, hc)
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}
 	}
 
 	k.SetHostChain(ctx, hc)
+
+	defer func() {
+		if hc.Active {
+			telemetry.ModuleSetGauge(types.ModuleName, float32(1), hc.ChainId, "active")
+		} else {
+			telemetry.ModuleSetGauge(types.ModuleName, float32(0), hc.ChainId, "active")
+		}
+	}()
 
 	return &types.MsgUpdateHostChainResponse{}, nil
 }
@@ -387,7 +403,7 @@ func (k msgServer) LiquidStake(
 		sdktypes.NewEvent(
 			types.EventTypeLiquidStake,
 			sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
-			sdktypes.NewAttribute(types.AttributeAmount, mintToken.String()),
+			sdktypes.NewAttribute(types.AttributeAmount, depositAmount.String()),
 			sdktypes.NewAttribute(types.AttributeAmountReceived, mintToken.Sub(protocolFee).String()),
 			sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolFee.String()),
 		),
@@ -397,7 +413,139 @@ func (k msgServer) LiquidStake(
 			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
 		)},
 	)
+
+	telemetry.IncrCounter(float32(1), hostChain.ChainId, "liquid_stake")
+
 	return &types.MsgLiquidStakeResponse{}, nil
+}
+
+// LiquidStakeLSM defines a method for liquid staking tokens using the LSM
+func (k msgServer) LiquidStakeLSM(
+	goCtx context.Context,
+	msg *types.MsgLiquidStakeLSM,
+) (*types.MsgLiquidStakeLSMResponse, error) {
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	for _, delegation := range msg.Delegations {
+		// parse the delegator address
+		delegator := sdktypes.MustAccAddressFromBech32(msg.DelegatorAddress)
+
+		// validate the delegation
+		hc, validator, denomTrace, err := k.validateLiquidStakeLSMDeposit(ctx, delegator, delegation)
+		if err != nil {
+			return nil, err
+		}
+
+		// check for minimum deposit amount
+		if delegation.Amount.LT(hc.MinimumDeposit) {
+			return nil, errorsmod.Wrapf(
+				types.ErrMinDeposit,
+				"expected amount for delegation %s more than %s, got %s",
+				delegation.Denom,
+				hc.MinimumDeposit,
+				delegation.Amount,
+			)
+		}
+
+		// create the LSM deposit
+		deposit := &types.LSMDeposit{
+			ChainId:          hc.ChainId,
+			Shares:           sdktypes.NewDecFromInt(delegation.Amount),
+			Amount:           sdktypes.NewDecFromInt(delegation.Amount).Mul(validator.ExchangeRate).TruncateInt(),
+			Denom:            denomTrace.BaseDenom,
+			IbcDenom:         delegation.Denom,
+			DelegatorAddress: msg.DelegatorAddress,
+			State:            types.LSMDeposit_DEPOSIT_PENDING,
+			IbcSequenceId:    "",
+		}
+
+		// we won't process more than one deposit for a user and token
+		_, found := k.GetLSMDeposit(ctx, deposit.ChainId, deposit.DelegatorAddress, deposit.Denom)
+		if found {
+			return nil,
+				errorsmod.Wrapf(
+					types.ErrLSMDepositProcessing,
+					"already processing LSM deposit for token %s and delegator %s",
+					deposit.Denom,
+					deposit.DelegatorAddress,
+				)
+		}
+
+		// store the deposit
+		k.SetLSMDeposit(ctx, deposit)
+
+		// mint stk tokens
+		mintDenom := hc.MintDenom()
+		mintAmount := sdktypes.NewDecFromInt(deposit.Amount).Mul(hc.CValue)
+		mintToken, _ := sdktypes.NewDecCoinFromDec(mintDenom, mintAmount).TruncateDecimal()
+		err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdktypes.NewCoins(mintToken))
+		if err != nil {
+			return nil, errorsmod.Wrapf(types.ErrMintFailed, "failed to mint coins in module %s: %s", types.ModuleName, err)
+		}
+
+		// send the deposit to the deposit-module account
+		depositAmount := sdktypes.NewCoins(delegation)
+		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, delegator, types.DepositModuleAccount, depositAmount)
+		if err != nil {
+			return nil, errorsmod.Wrapf(
+				types.ErrFailedDeposit,
+				"failed to deposit tokens to module account %s: %s",
+				types.DepositModuleAccount,
+				err,
+			)
+		}
+
+		// calculate protocol fee
+		protocolFeeAmount := hc.Params.DepositFee.MulInt(mintToken.Amount)
+		protocolFee, _ := sdktypes.NewDecCoinFromDec(mintDenom, protocolFeeAmount).TruncateDecimal()
+
+		// send stk tokens to the delegator address
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(
+			ctx,
+			types.ModuleName,
+			delegator,
+			sdktypes.NewCoins(mintToken.Sub(protocolFee)),
+		)
+		if err != nil {
+			return nil, errorsmod.Wrapf(
+				types.ErrMintFailed,
+				"failed to send coins from module %s to account %s: %s",
+				types.ModuleName,
+				delegator.String(),
+				err,
+			)
+		}
+
+		// send the protocol fee to the protocol pool
+		if protocolFee.IsPositive() {
+			err = k.SendProtocolFee(ctx, sdktypes.NewCoins(protocolFee), types.ModuleName, k.GetParams(ctx).FeeAddress)
+			if err != nil {
+				return nil, errorsmod.Wrapf(
+					types.ErrFailedDeposit,
+					"failed to send protocol fee to pStake fee address %s: %s",
+					k.GetParams(ctx).FeeAddress,
+					err,
+				)
+			}
+		}
+
+		ctx.EventManager().EmitEvents(sdktypes.Events{
+			sdktypes.NewEvent(
+				types.EventTypeLiquidStakeLSM,
+				sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegator.String()),
+				sdktypes.NewAttribute(types.AttributeAmount, depositAmount.String()),
+				sdktypes.NewAttribute(types.AttributeAmountReceived, mintToken.Sub(protocolFee).String()),
+				sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolFee.String()),
+			),
+			sdktypes.NewEvent(
+				sdktypes.EventTypeMessage,
+				sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+				sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
+			)},
+		)
+	}
+
+	return &types.MsgLiquidStakeLSMResponse{}, nil
 }
 
 // LiquidUnstake defines a method for unstaking liquid staked tokens
@@ -475,8 +623,7 @@ func (k msgServer) LiquidUnstake(
 
 	// calculate the host chain token unbond amount from the stk amount
 	decTokenAmount := sdktypes.NewDecCoinFromCoin(unstakeAmount).Amount.Mul(sdktypes.OneDec().Quo(hc.CValue))
-	tokenAmount, _ := sdktypes.NewDecCoinFromDec(hc.HostDenom, decTokenAmount).TruncateDecimal()
-	unbondAmount := sdktypes.NewCoin(hc.HostDenom, tokenAmount.Amount)
+	unbondAmount, _ := sdktypes.NewDecCoinFromDec(hc.HostDenom, decTokenAmount).TruncateDecimal()
 
 	// calculate the current unbonding epoch
 	epoch := k.epochsKeeper.GetEpochInfo(ctx, types.UndelegationEpoch)
@@ -487,14 +634,14 @@ func (k msgServer) LiquidUnstake(
 	k.IncreaseUndelegatingAmountForEpoch(ctx, hc.ChainId, unbondingEpoch, unstakeAmount, unbondAmount)
 
 	// check if the total unbonding amount for the next unbonding epoch is less than what is currently staked
-	totalUnbondings, _ := k.GetUnbonding(ctx, hc.ChainId, unbondingEpoch)
+	totalUnbondingsForEpoch, _ := k.GetUnbonding(ctx, hc.ChainId, unbondingEpoch)
 	totalDelegations := hc.GetHostChainTotalDelegations()
-	if totalDelegations.LT(unbondAmount.Amount) {
+	if totalDelegations.LTE(totalUnbondingsForEpoch.UnbondAmount.Amount) {
 		return nil, errorsmod.Wrapf(
 			types.ErrNotEnoughDelegations,
 			"delegated amount %s is less than the total undelegation %s for epoch %d",
 			totalDelegations,
-			totalUnbondings,
+			totalUnbondingsForEpoch,
 			unbondingEpoch,
 		)
 	}
@@ -514,6 +661,8 @@ func (k msgServer) LiquidUnstake(
 			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.GetDelegatorAddress()),
 		)},
 	)
+
+	telemetry.IncrCounter(float32(1), hc.ChainId, "liquid_unstake")
 
 	return &types.MsgLiquidUnstakeResponse{}, nil
 }
@@ -605,7 +754,7 @@ func (k msgServer) Redeem(
 
 	// amount of tokens to be redeemed
 	stkAmount := msg.Amount.Sub(fee)
-	redeemAmount := sdktypes.NewDecCoinFromCoin(stkAmount).Amount.Mul(hc.CValue)
+	redeemAmount := sdktypes.NewDecCoinFromCoin(stkAmount).Amount.Quo(hc.CValue)
 	redeemToken, _ := sdktypes.NewDecCoinFromDec(hc.IBCDenom(), redeemAmount).TruncateDecimal()
 
 	// check if there is enough deposits to fulfill the instant redemption request
@@ -674,6 +823,8 @@ func (k msgServer) Redeem(
 		)},
 	)
 
+	telemetry.IncrCounter(float32(1), hc.ChainId, "redeem")
+
 	return &types.MsgRedeemResponse{}, nil
 }
 
@@ -707,4 +858,65 @@ func (k msgServer) UpdateParams(
 	})
 
 	return &types.MsgUpdateParamsResponse{}, nil
+}
+
+func (k msgServer) validateLiquidStakeLSMDeposit(
+	ctx sdktypes.Context,
+	delegatorAddress sdktypes.AccAddress,
+	delegation sdktypes.Coin,
+) (*types.HostChain, *types.Validator, *transfertypes.DenomTrace, error) {
+
+	// check if the ibc denom is valid
+	if err := transfertypes.ValidateIBCDenom(delegation.Denom); err != nil {
+		return nil, nil, nil, errorsmod.Wrapf(types.ErrInvalidLSMDenom, "IBC denom %s doesn't belong to a LSM token", delegation.Denom)
+	}
+
+	// parse the ibc denom to extract the original LSM token denom
+	hexHash := delegation.Denom[len(types.IBCPrefix):]
+	hexBytes, err := transfertypes.ParseHexHash(hexHash)
+	if err != nil {
+		return nil, nil, nil, errorsmod.Wrapf(err, "could not parse ibc hash from ibc hex %s", hexHash)
+	}
+
+	// get the denom trace from the parsed ibc denom hex hash
+	denomTrace, found := k.ibcTransferKeeper.GetDenomTrace(ctx, hexBytes)
+	if !found {
+		return nil, nil, nil, errorsmod.Wrapf(types.ErrInvalidLSMDenom, "IBC denom %s doesn't belong to a LSM token", delegation.Denom)
+	}
+
+	// retrieve the host chain associated with the liquid stake action
+	channelID := strings.TrimPrefix(denomTrace.Path, fmt.Sprintf("%s/", transfertypes.PortID))
+	hc, found := k.GetHostChainFromChannelID(ctx, channelID)
+	if !found {
+		return nil, nil, nil, errorsmod.Wrapf(sdkerrors.ErrKeyNotFound, "host chain with channel id %s not registered", channelID)
+	}
+
+	// check if the host chain is active
+	if !hc.Active {
+		return nil, nil, nil, types.ErrHostChainInactive
+	}
+
+	// check if the host chain accepts LSM delegations
+	if !hc.Flags.Lsm {
+		return nil, nil, nil, types.ErrLSMNotEnabled
+	}
+
+	// check if the validator is within the module active set
+	operatorAddress, _, _ := strings.Cut(denomTrace.BaseDenom, "/")
+	validator, found := hc.GetValidator(operatorAddress)
+	if !found {
+		return nil, nil, nil, errorsmod.Wrapf(sdkerrors.ErrKeyNotFound, "validator %s is not part of the module active set for chain %s", operatorAddress, hc.ChainId)
+	}
+
+	if validator.Status != stakingtypes.BondStatusBonded {
+		return nil, nil, nil, errorsmod.Wrapf(types.ErrLSMValidatorInvalidState, "validator %s is not in the bonded state, it is in %s", operatorAddress, validator.Status)
+	}
+
+	// check delegator has enough LSM tokens
+	delegatorBalance := k.bankKeeper.GetBalance(ctx, delegatorAddress, delegation.Denom).Amount
+	if delegatorBalance.LT(delegation.Amount) {
+		return nil, nil, nil, errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "not enough tokenized delegation funds")
+	}
+
+	return hc, validator, &denomTrace, nil
 }

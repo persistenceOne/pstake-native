@@ -1,12 +1,15 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -17,6 +20,7 @@ const (
 	MsgTypeRegisterHostChain string = "msg_register_host_chain"
 	MsgTypeUpdateHostChain   string = "msg_update_host_chain"
 	MsgTypeLiquidStake       string = "msg_liquid_stake"
+	MsgTypeLiquidStakeLSM    string = "msg_liquid_stake_lsm"
 	MsgTypeLiquidUnstake     string = "msg_liquid_unstake"
 	MsgTypeRedeem            string = "msg_redeem"
 	MsgTypeUpdateParams      string = "msg_update_params"
@@ -86,6 +90,10 @@ func (m *MsgRegisterHostChain) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgRegisterHostChain) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address %q: %v", m.Authority, err)
+	}
+
 	// connection id cannot be empty and must begin with "connection"
 	if m.ConnectionId == "" {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "connection id cannot be empty")
@@ -111,34 +119,55 @@ func (m *MsgRegisterHostChain) ValidateBasic() error {
 	}
 
 	// deposit fee must be positive or zero
-	if m.DepositFee.LT(sdk.NewDec(0)) {
+	if m.DepositFee.LT(sdk.ZeroDec()) || m.DepositFee.GT(sdk.OneDec()) {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			"deposit fee quantity must be greater or equal than zero",
+			"deposit fee quantity must be greater or equal than zero and less than equal one",
 		)
 	}
 
 	// restake fee must be positive or zero
-	if m.RestakeFee.LT(sdk.NewDec(0)) {
+	if m.RestakeFee.LT(sdk.ZeroDec()) || m.RestakeFee.GT(sdk.OneDec()) {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			"restake fee quantity must be greater or equal than zero",
+			"restake fee quantity must be greater or equal than zero and less than equal one",
 		)
 	}
 
 	// unstake fee must be positive or zero
-	if m.UnstakeFee.LT(sdk.NewDec(0)) {
+	if m.UnstakeFee.LT(sdk.ZeroDec()) || m.UnstakeFee.GT(sdk.OneDec()) {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			"unstake fee quantity must be greater or equal than zero",
+			"unstake fee quantity must be greater or equal than zero and less than equal one",
 		)
 	}
 
 	// redemption deposit must be positive or zero
-	if m.RedemptionFee.LT(sdk.NewDec(0)) {
+	if m.RedemptionFee.LT(sdk.ZeroDec()) || m.RedemptionFee.GT(sdk.OneDec()) {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			"redemption fee quantity must be greater or equal than zero",
+			"redemption fee quantity must be greater or equal than zero and less than equal one",
+		)
+	}
+
+	// minimum deposit must be at least one
+	if m.MinimumDeposit.LTE(sdk.ZeroInt()) {
+		return sdkerrors.ErrInvalidRequest.Wrapf(
+			"minimum deposit should be greater than zero",
+		)
+	}
+
+	// unbonding factor must be greater than zero
+	if m.UnbondingFactor <= 0 {
+		return sdkerrors.ErrInvalidRequest.Wrapf(
+			"unbonding factor should be greater than zero",
+		)
+	}
+
+	// autocompound factor must be greater than zero
+	if m.AutoCompoundFactor <= 0 {
+		return sdkerrors.ErrInvalidRequest.Wrapf(
+			"autocompound factor should be greater than zero",
 		)
 	}
 
@@ -174,6 +203,142 @@ func (m *MsgUpdateHostChain) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgUpdateHostChain) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address %q: %v", m.Authority, err)
+	}
+	for _, update := range m.Updates {
+		switch update.Key {
+		case KeyAddValidator:
+			var validator Validator
+			err := json.Unmarshal([]byte(update.Value), &validator)
+			if err != nil {
+				return fmt.Errorf("unable to unmarshal validator update string")
+			}
+			err = validator.Validate()
+			if err != nil {
+				return err
+			}
+
+		case KeyRemoveValidator:
+			_, _, err := bech32.DecodeAndConvert(update.Value)
+			if err != nil {
+				return err
+			}
+		case KeyValidatorUpdate:
+			_, _, err := bech32.DecodeAndConvert(update.Value)
+			if err != nil {
+				return err
+			}
+		case KeyValidatorWeight:
+			validator, weight, valid := strings.Cut(update.Value, ",")
+			if !valid {
+				return fmt.Errorf("unable to parse validator update string")
+			}
+			_, _, err := bech32.DecodeAndConvert(validator)
+			if err != nil {
+				return err
+			}
+			decWt, err := sdk.NewDecFromStr(weight)
+			if err != nil {
+				return err
+			}
+			if decWt.GT(sdk.OneDec()) || decWt.LT(sdk.ZeroDec()) {
+				return fmt.Errorf("weight should be, 0 <= weight <= 1")
+			}
+
+		case KeyDepositFee:
+			fee, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid deposit fee value should be 0 <= fee <= 1")
+			}
+		case KeyRestakeFee:
+			fee, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid restake fee value should be 0 <= fee <= 1")
+			}
+		case KeyRedemptionFee:
+			fee, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid redemption fee value should be 0 <= fee <= 1")
+			}
+		case KeyUnstakeFee:
+			fee, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid unstake fee value should be 0 <= fee <= 1")
+			}
+		case KeyLSMValidatorCap:
+			validatorCap, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if validatorCap.LT(sdk.ZeroDec()) || validatorCap.GT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid validator cap value should be 0 <= cap <= 1")
+			}
+		case KeyLSMBondFactor:
+			bondFactor, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			// -1 is the default bond factor value
+			if bondFactor.LT(sdk.ZeroDec()) && !bondFactor.Equal(sdk.NewDec(-1)) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid validator bond factor value should be bond_factor == -1 || bond_factor >= 0")
+			}
+		case KeyMinimumDeposit:
+			minimumDeposit, ok := sdk.NewIntFromString(update.Value)
+			if !ok {
+				return sdkerrors.ErrInvalidRequest.Wrapf("")
+			}
+
+			if minimumDeposit.LTE(sdk.ZeroInt()) {
+				return fmt.Errorf("invalid minimum deposit value less or equal than zero")
+			}
+		case KeyActive:
+			_, err := strconv.ParseBool(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to bool")
+			}
+		case KeySetWithdrawAddress:
+			if update.Value != "" {
+				return fmt.Errorf("expected value for key:SetWithdrawAddress is empty")
+			}
+		case KeyAutocompoundFactor:
+			autocompoundFactor, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec")
+			}
+
+			if autocompoundFactor.LTE(sdk.ZeroDec()) {
+				return fmt.Errorf("invalid autocompound factor value less or equal than zero")
+			}
+		case KeyFlags:
+			var flags HostChainFlags
+			err := json.Unmarshal([]byte(update.Value), &flags)
+			if err != nil {
+				return fmt.Errorf("unable to unmarshal flags update string")
+			}
+		default:
+			return fmt.Errorf("invalid or unexpected update key: %s", update.Key)
+		}
+	}
+
 	return nil
 }
 
@@ -226,6 +391,59 @@ func (m *MsgLiquidStake) ValidateBasic() error {
 }
 
 //nolint:interfacer
+func NewMsgLiquidStakeLSM(delegations sdk.Coins, address sdk.AccAddress) *MsgLiquidStakeLSM {
+	return &MsgLiquidStakeLSM{
+		DelegatorAddress: address.String(),
+		Delegations:      delegations,
+	}
+}
+
+func (m *MsgLiquidStakeLSM) Route() string {
+	return RouterKey
+}
+
+// Type should return the action
+func (m *MsgLiquidStakeLSM) Type() string {
+	return MsgTypeLiquidStakeLSM
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgLiquidStakeLSM) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgLiquidStakeLSM) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// ValidateBasic performs stateless checks
+func (m *MsgLiquidStakeLSM) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.DelegatorAddress)
+	}
+
+	if !m.Delegations.IsValid() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Delegations.String())
+	}
+	if !m.Delegations.IsAllPositive() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Delegations.String())
+	}
+
+	for _, delegation := range m.Delegations {
+		if err := ibctransfertypes.ValidateIBCDenom(delegation.Denom); err != nil {
+			return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, delegation.Amount.String())
+		}
+	}
+
+	return nil
+}
+
+//nolint:interfacer
 func NewMsgLiquidUnstake(amount sdk.Coin, address sdk.AccAddress) *MsgLiquidUnstake {
 	return &MsgLiquidUnstake{
 		DelegatorAddress: address.String(),
@@ -268,6 +486,10 @@ func (m *MsgLiquidUnstake) ValidateBasic() error {
 
 	if !m.Amount.IsPositive() {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
+	}
+
+	if !IsLiquidStakingDenom(m.Amount.Denom) {
+		return sdkerrors.ErrInvalidCoins.Wrapf("invalid denom, required stk/{host-denom} got %s", m.Amount.Denom)
 	}
 
 	return nil
@@ -318,6 +540,9 @@ func (m *MsgRedeem) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
 	}
 
+	if !IsLiquidStakingDenom(m.Amount.Denom) {
+		return sdkerrors.ErrInvalidCoins.Wrapf("invalid denom, required stk/{host-denom} got %s", m.Amount.Denom)
+	}
 	return nil
 }
 

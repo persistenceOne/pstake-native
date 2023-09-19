@@ -5,6 +5,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -95,6 +96,8 @@ func (k *Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epoch
 func (k *Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	if epochIdentifier == liquidstakeibctypes.DelegationEpoch {
 		k.DepositWorkflow(ctx, epochNumber)
+
+		k.LSMWorkflow(ctx)
 	}
 
 	if epochIdentifier == liquidstakeibctypes.UndelegationEpoch {
@@ -317,6 +320,7 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 
 	// if the sender is the deposit module account, mark the corresponding deposits as received and update the balance
 	if data.GetSender() == authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() {
+		// process liquid stake deposits
 		deposits := k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
 		for _, deposit := range deposits {
 			// update the deposit state
@@ -350,6 +354,10 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 				packet.SourceChannel,
 			)
 		}
+
+		// mark tokenized LSM token delegations as received and add the IBC sequence
+		lsmDeposits := k.GetLSMDepositsFromIbcSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
+		k.UpdateLSMDepositsStateAndSequence(ctx, lsmDeposits, liquidstakeibctypes.LSMDeposit_DEPOSIT_RECEIVED, "")
 	}
 
 	return nil
@@ -370,30 +378,23 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 		return err
 	}
 
-	// if the transfer doesn't belong to any of the registered host chains, return
-	ibcDenom := ibctransfertypes.ParseDenomTrace(data.GetDenom()).IBCDenom()
-	hc, found := k.GetHostChainFromIbcDenom(ctx, ibcDenom)
-	if !found {
-		return nil
-	}
+	// just take action when the transfer has been, send from the deposit module account
+	if data.GetSender() == authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() {
+		// revert the state of the deposits that timed out
+		k.RevertDepositsState(
+			ctx,
+			k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+		)
 
-	// if the transfer is not from deposit module account -> delegation host account, return
-	if data.GetSender() != authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() ||
-		data.GetReceiver() != hc.DelegationAccount.Address ||
-		data.GetDenom() != ibctransfertypes.GetPrefixedDenom(hc.PortId, hc.ChannelId, hc.HostDenom) {
-		return nil
+		// revert the state of the LSM deposits that timed out
+		k.RevertLSMDepositsState(
+			ctx,
+			k.GetLSMDepositsFromIbcDenom(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+		)
 	}
-
-	// revert the state of the deposits that timed out
-	k.RevertDepositsState(
-		ctx,
-		k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
-	)
 
 	k.Logger(ctx).Info(
 		"Deposit transfer timed out.",
-		"host chain",
-		hc.ChainId,
 		"sequence",
 		packet.Sequence,
 		"port",
@@ -421,7 +422,7 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 		// check if the deposit amount is larger than 0
 		if deposit.Amount.Amount.LTE(sdk.NewInt(0)) {
 			// delete empty deposits to save on storage
-			if deposit.Epoch.Int64() < epoch {
+			if deposit.Epoch < epoch {
 				k.DeleteDeposit(ctx, deposit)
 			}
 
@@ -605,6 +606,8 @@ func (k *Keeper) ValidatorUndelegationWorkflow(ctx sdk.Context, epoch int64) {
 				// redistribute the unbonding validator weight among all the other validators with weight
 				k.RedistributeValidatorWeight(ctx, hc, validator)
 
+				telemetry.IncrCounter(float32(1), hc.ChainId, "validator_unbondings")
+
 				k.Logger(ctx).Info(
 					"Started total validator unbonding.",
 					"host_chain",
@@ -670,6 +673,65 @@ func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
 				)
 				continue
 			}
+		}
+	}
+}
+
+func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
+	for _, hc := range k.GetAllHostChains(ctx) {
+		if !hc.Active || !hc.Flags.Lsm {
+			// don't do anything on inactive or non-LSM chains
+			continue
+		}
+
+		// attempt to transfer all available LSM deposits
+		for _, deposit := range k.GetTransferableLSMDeposits(ctx, hc.ChainId) {
+			clientState, err := k.GetClientState(ctx, hc.ConnectionId)
+			if err != nil {
+				// we can't error out here as all the deposits need to be executed
+				continue
+			}
+
+			timeoutHeight := clienttypes.NewHeight(
+				clientState.GetLatestHeight().GetRevisionNumber(),
+				clientState.GetLatestHeight().GetRevisionHeight()+liquidstakeibctypes.IBCTimeoutHeightIncrement,
+			)
+
+			// craft the IBC message
+			msg := ibctransfertypes.NewMsgTransfer(
+				ibctransfertypes.PortID,
+				hc.ChannelId,
+				sdk.NewCoin(deposit.IbcDenom, deposit.Shares.TruncateInt()),
+				authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String(),
+				hc.DelegationAccount.Address,
+				timeoutHeight,
+				0,
+				"",
+			)
+
+			// send the message
+			handler := k.msgRouter.Handler(msg)
+			res, err := handler(ctx, msg)
+			if err != nil {
+				k.Logger(ctx).Error(fmt.Sprintf("could not send transfer msg via MsgServiceRouter, error: %s", err))
+				// we can't error out here as all the deposits need to be executed
+				continue
+			}
+			ctx.EventManager().EmitEvents(res.GetEvents())
+
+			var msgTransferResponse ibctransfertypes.MsgTransferResponse
+			if err = k.cdc.Unmarshal(res.MsgResponses[0].Value, &msgTransferResponse); err != nil {
+				// we can't error out here as all the deposits need to be executed
+				continue
+			}
+
+			// update the deposit state and add the IBC sequence id
+			k.UpdateLSMDepositsStateAndSequence(
+				ctx,
+				[]*liquidstakeibctypes.LSMDeposit{deposit},
+				liquidstakeibctypes.LSMDeposit_DEPOSIT_SENT,
+				k.GetTransactionSequenceID(hc.ChannelId, msgTransferResponse.Sequence),
+			)
 		}
 	}
 }

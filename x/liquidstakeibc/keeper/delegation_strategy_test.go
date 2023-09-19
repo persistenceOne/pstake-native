@@ -15,7 +15,7 @@ func decFromStr(str string) sdk.Dec {
 }
 
 func (suite *IntegrationTestSuite) TestGenerateDelegateMessages() {
-	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.path.EndpointB.Chain.ChainID)
+	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.chainB.ChainID)
 	suite.Require().Equal(found, true)
 
 	tc := []struct {
@@ -33,24 +33,28 @@ func (suite *IntegrationTestSuite) TestGenerateDelegateMessages() {
 					Weight:          decFromStr("0.3"),
 					DelegatedAmount: sdk.NewInt(50),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: hc.Validators[1].OperatorAddress,
 					Weight:          decFromStr("0.2"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: hc.Validators[2].OperatorAddress,
 					Weight:          decFromStr("0.1"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: hc.Validators[3].OperatorAddress,
 					Weight:          decFromStr("0.4"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 			},
 			expected: map[string]int64{
@@ -68,30 +72,35 @@ func (suite *IntegrationTestSuite) TestGenerateDelegateMessages() {
 					Weight:          decFromStr("0.6"),
 					DelegatedAmount: sdk.NewInt(50),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: hc.Validators[1].OperatorAddress,
 					Weight:          decFromStr("0.25"),
 					DelegatedAmount: sdk.NewInt(60),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: hc.Validators[2].OperatorAddress,
 					Weight:          decFromStr("0.15"),
 					DelegatedAmount: sdk.NewInt(10),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: hc.Validators[3].OperatorAddress,
 					Weight:          decFromStr("0"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: hc.Validators[3].OperatorAddress,
 					Weight:          decFromStr("0"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusUnbonded,
+					Delegable:       true,
 				},
 			},
 			expected: map[string]int64{
@@ -108,24 +117,28 @@ func (suite *IntegrationTestSuite) TestGenerateDelegateMessages() {
 					Weight:          decFromStr("0.25"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: hc.Validators[1].OperatorAddress,
 					Weight:          decFromStr("0.25"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: hc.Validators[2].OperatorAddress,
 					Weight:          decFromStr("0.25"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: hc.Validators[3].OperatorAddress,
 					Weight:          decFromStr("0.25"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 			},
 			expected: map[string]int64{
@@ -141,32 +154,248 @@ func (suite *IntegrationTestSuite) TestGenerateDelegateMessages() {
 			validators: []*types.Validator{
 				{
 					OperatorAddress: hc.Validators[0].OperatorAddress,
-					Weight:          decFromStr("0"),
+					Weight:          decFromStr("0.2"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: hc.Validators[1].OperatorAddress,
-					Weight:          decFromStr("0"),
+					Weight:          decFromStr("0.2"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: hc.Validators[2].OperatorAddress,
-					Weight:          decFromStr("0"),
+					Weight:          decFromStr("0.33"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
 				},
 				{
 					OperatorAddress: hc.Validators[3].OperatorAddress,
-					Weight:          decFromStr("0"),
+					Weight:          decFromStr("0.27"),
 					DelegatedAmount: sdk.NewInt(0),
 					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
+				},
+			},
+			expected:              map[string]int64{},
+			totalDelegationAmount: int64(0),
+			err:                   errorsmod.Wrap(types.ErrInvalidMessages, "no messages to delegate"),
+		},
+		{
+			name: "Case 5",
+			validators: []*types.Validator{
+				{
+					OperatorAddress: hc.Validators[0].OperatorAddress,
+					Weight:          decFromStr("0.25"),
+					DelegatedAmount: sdk.NewInt(0),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: hc.Validators[1].OperatorAddress,
+					Weight:          decFromStr("0.25"),
+					DelegatedAmount: sdk.NewInt(0),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: hc.Validators[2].OperatorAddress,
+					Weight:          decFromStr("0.25"),
+					DelegatedAmount: sdk.NewInt(0),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: hc.Validators[3].OperatorAddress,
+					Weight:          decFromStr("0.25"),
+					DelegatedAmount: sdk.NewInt(0),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
+				},
+			},
+			expected: map[string]int64{
+				hc.Validators[0].OperatorAddress: int64(33),
+				hc.Validators[2].OperatorAddress: int64(33),
+				hc.Validators[3].OperatorAddress: int64(34),
+			},
+			totalDelegationAmount: int64(100),
+		},
+		{
+			name: "Case 6",
+			validators: []*types.Validator{
+				{
+					OperatorAddress: hc.Validators[0].OperatorAddress,
+					Weight:          decFromStr("0.3"),
+					DelegatedAmount: sdk.NewInt(0),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: hc.Validators[1].OperatorAddress,
+					Weight:          decFromStr("0.2"),
+					DelegatedAmount: sdk.NewInt(0),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: hc.Validators[2].OperatorAddress,
+					Weight:          decFromStr("0.1"),
+					DelegatedAmount: sdk.NewInt(0),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: hc.Validators[3].OperatorAddress,
+					Weight:          decFromStr("0.4"),
+					DelegatedAmount: sdk.NewInt(0),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
+				},
+			},
+			expected: map[string]int64{
+				hc.Validators[0].OperatorAddress: int64(45),
+				hc.Validators[3].OperatorAddress: int64(55),
+			},
+			totalDelegationAmount: int64(100),
+		},
+		{
+			name: "Case 7",
+			validators: []*types.Validator{
+				{
+					OperatorAddress: hc.Validators[0].OperatorAddress,
+					Weight:          decFromStr("0.6"),
+					DelegatedAmount: sdk.NewInt(50),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: hc.Validators[1].OperatorAddress,
+					Weight:          decFromStr("0.25"),
+					DelegatedAmount: sdk.NewInt(60),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: hc.Validators[2].OperatorAddress,
+					Weight:          decFromStr("0.15"),
+					DelegatedAmount: sdk.NewInt(10),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
+				},
+			},
+			expected: map[string]int64{
+				hc.Validators[0].OperatorAddress: int64(66),
+				hc.Validators[2].OperatorAddress: int64(34),
+			},
+			totalDelegationAmount: int64(100),
+		},
+		{
+			name: "Case 8",
+			validators: []*types.Validator{
+				{
+					OperatorAddress: hc.Validators[0].OperatorAddress,
+					Weight:          decFromStr("0.6"),
+					DelegatedAmount: sdk.NewInt(50),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: hc.Validators[1].OperatorAddress,
+					Weight:          decFromStr("0.25"),
+					DelegatedAmount: sdk.NewInt(60),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: hc.Validators[2].OperatorAddress,
+					Weight:          decFromStr("0.15"),
+					DelegatedAmount: sdk.NewInt(10),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       false,
+				},
+			},
+			expected: map[string]int64{
+				hc.Validators[0].OperatorAddress: int64(100),
+			},
+			totalDelegationAmount: int64(100),
+		},
+		{
+			name: "Case 9",
+			validators: []*types.Validator{
+				{
+					OperatorAddress: hc.Validators[0].OperatorAddress,
+					Weight:          decFromStr("0.3"),
+					DelegatedAmount: sdk.NewInt(50),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: hc.Validators[1].OperatorAddress,
+					Weight:          decFromStr("0.25"),
+					DelegatedAmount: sdk.NewInt(60),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: hc.Validators[2].OperatorAddress,
+					Weight:          decFromStr("0.15"),
+					DelegatedAmount: sdk.NewInt(10),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       true,
+				},
+				{
+					OperatorAddress: hc.Validators[3].OperatorAddress,
+					Weight:          decFromStr("0.3"),
+					DelegatedAmount: sdk.NewInt(30),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       false,
+				},
+			},
+			expected: map[string]int64{
+				hc.Validators[0].OperatorAddress: int64(19),
+				hc.Validators[2].OperatorAddress: int64(41),
+			},
+			totalDelegationAmount: int64(60),
+		},
+		{
+			name: "Case 10",
+			validators: []*types.Validator{
+				{
+					OperatorAddress: hc.Validators[0].OperatorAddress,
+					Weight:          decFromStr("0.3"),
+					DelegatedAmount: sdk.NewInt(50),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: hc.Validators[1].OperatorAddress,
+					Weight:          decFromStr("0.25"),
+					DelegatedAmount: sdk.NewInt(60),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: hc.Validators[2].OperatorAddress,
+					Weight:          decFromStr("0.15"),
+					DelegatedAmount: sdk.NewInt(10),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       false,
+				},
+				{
+					OperatorAddress: hc.Validators[3].OperatorAddress,
+					Weight:          decFromStr("0.3"),
+					DelegatedAmount: sdk.NewInt(30),
+					Status:          stakingtypes.BondStatusBonded,
+					Delegable:       false,
 				},
 			},
 			expected:              map[string]int64{},
 			totalDelegationAmount: int64(100),
-			err:                   errorsmod.Wrap(types.ErrInvalidMessages, "no messages to delegate"),
+			err:                   errorsmod.Wrap(types.ErrInvalidMessages, "no delegable validators"),
 		},
 	}
 
@@ -198,7 +427,7 @@ func (suite *IntegrationTestSuite) TestGenerateDelegateMessages() {
 }
 
 func (suite *IntegrationTestSuite) TestGenerateUndelegateMessages() {
-	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.path.EndpointB.Chain.ChainID)
+	hc, found := suite.app.LiquidStakeIBCKeeper.GetHostChain(suite.ctx, suite.chainB.ChainID)
 	suite.Require().Equal(found, true)
 
 	tc := []struct {

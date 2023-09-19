@@ -3,6 +3,8 @@ package types
 import (
 	"strconv"
 	"time"
+
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
 const (
@@ -36,11 +38,37 @@ const (
 	StakingStoreQuery = "store/staking/key"
 	BankStoreQuery    = "store/bank/key"
 
+	// Host chain flags
+	LSMFlag = "lsm"
+
+	LiquidStakeDenomPrefix = "stk"
+
 	IBCTimeoutHeightIncrement uint64 = 1000
 
 	ICATimeoutTimestamp = 15 * time.Minute
 
+	IBCPrefix = transfertypes.DenomPrefix + "/"
+
 	UnbondingStateEpochLimit = 4
+)
+
+// Consts for KV updates, update host chain
+const (
+	KeyAddValidator       string = "add_validator"
+	KeyRemoveValidator    string = "remove_validator"
+	KeyValidatorUpdate    string = "validator_update"
+	KeyValidatorWeight    string = "validator_weight"
+	KeyDepositFee         string = "deposit_fee"
+	KeyRestakeFee         string = "restake_fee"
+	KeyUnstakeFee         string = "unstake_fee"
+	KeyRedemptionFee      string = "redemption_fee"
+	KeyLSMValidatorCap    string = "lsm_validator_cap"
+	KeyLSMBondFactor      string = "lsm_bond_factor"
+	KeyMinimumDeposit     string = "min_deposit"
+	KeyActive             string = "active"
+	KeySetWithdrawAddress string = "set_withdraw_address"
+	KeyAutocompoundFactor string = "autocompound_factor"
+	KeyFlags              string = "flags"
 )
 
 var (
@@ -50,6 +78,7 @@ var (
 	UserUnbondingKey      = []byte{0x04}
 	ValidatorUnbondingKey = []byte{0x05}
 	ParamsKey             = []byte{0x06}
+	LSMDepositKey         = []byte{0x07}
 )
 
 func GetUnbondingStoreKey(chainID string, epochNumber int64) []byte {
@@ -62,4 +91,12 @@ func GetUserUnbondingStoreKey(chainID, delegatorAddress string, epochNumber int6
 
 func GetValidatorUnbondingStoreKey(chainID, validatorAddress string, epochNumber int64) []byte {
 	return append([]byte(chainID), append([]byte(validatorAddress), []byte(strconv.FormatInt(epochNumber, 10))...)...)
+}
+
+func GetDepositStoreKey(chainID string, epochNumber int64) []byte {
+	return append([]byte(chainID), []byte(strconv.FormatInt(epochNumber, 10))...)
+}
+
+func GetLSMDepositStoreKey(chainID, delegatorAddress, denom string) []byte {
+	return append(append([]byte(chainID), []byte(delegatorAddress)...), []byte(denom)...)
 }

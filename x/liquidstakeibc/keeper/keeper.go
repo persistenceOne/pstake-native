@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -15,8 +16,10 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ibctmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibclocalhosttypes "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -30,6 +33,7 @@ type Keeper struct {
 	epochsKeeper        types.EpochsKeeper
 	icaControllerKeeper types.ICAControllerKeeper
 	ibcKeeper           *ibckeeper.Keeper
+	ibcTransferKeeper   types.IBCTransferKeeper
 	icqKeeper           types.ICQKeeper
 
 	paramSpace paramtypes.Subspace
@@ -48,6 +52,7 @@ func NewKeeper(
 	epochsKeeper types.EpochsKeeper,
 	icaControllerKeeper types.ICAControllerKeeper,
 	ibcKeeper *ibckeeper.Keeper,
+	ibcTransferKeeper types.IBCTransferKeeper,
 	icqKeeper types.ICQKeeper,
 
 	paramSpace paramtypes.Subspace,
@@ -63,6 +68,7 @@ func NewKeeper(
 		epochsKeeper:        epochsKeeper,
 		icaControllerKeeper: icaControllerKeeper,
 		ibcKeeper:           ibcKeeper,
+		ibcTransferKeeper:   ibcTransferKeeper,
 		icqKeeper:           icqKeeper,
 		storeKey:            storeKey,
 		paramSpace:          paramSpace,
@@ -119,7 +125,7 @@ func (k *Keeper) SendProtocolFee(ctx sdk.Context, protocolFee sdk.Coins, moduleA
 }
 
 // GetClientState retrieves the client state given a connection id
-func (k *Keeper) GetClientState(ctx sdk.Context, connectionID string) (*ibctmtypes.ClientState, error) {
+func (k *Keeper) GetClientState(ctx sdk.Context, connectionID string) (exported.ClientState, error) {
 	conn, found := k.ibcKeeper.ConnectionKeeper.GetConnection(ctx, connectionID)
 	if !found {
 		return nil, fmt.Errorf("invalid connection id, \"%s\" not found", connectionID)
@@ -130,32 +136,7 @@ func (k *Keeper) GetClientState(ctx sdk.Context, connectionID string) (*ibctmtyp
 		return nil, fmt.Errorf("client id \"%s\" not found for connection \"%s\"", conn.ClientId, connectionID)
 	}
 
-	client, ok := clientState.(*ibctmtypes.ClientState)
-	if !ok {
-		return nil, fmt.Errorf("invalid client state for connection \"%s\"", connectionID)
-	}
-
-	return client, nil
-}
-
-// GetLatestConsensusState retrieves the last tendermint consensus state
-func (k *Keeper) GetLatestConsensusState(ctx sdk.Context, connectionID string) (*ibctmtypes.ConsensusState, error) {
-	conn, found := k.ibcKeeper.ConnectionKeeper.GetConnection(ctx, connectionID)
-	if !found {
-		return nil, fmt.Errorf("invalid connection id, \"%s\" not found", connectionID)
-	}
-
-	consensusState, found := k.ibcKeeper.ClientKeeper.GetLatestClientConsensusState(ctx, conn.ClientId)
-	if !found {
-		return nil, fmt.Errorf("client id \"%s\" not found for connection \"%s\"", conn.ClientId, connectionID)
-	}
-
-	state, ok := consensusState.(*ibctmtypes.ConsensusState)
-	if !ok {
-		return nil, fmt.Errorf("invalid consensus state for connection \"%s\"", connectionID)
-	}
-
-	return state, nil
+	return clientState, nil
 }
 
 // GetChainID gets the id of the host chain given a connection id
@@ -165,12 +146,19 @@ func (k *Keeper) GetChainID(ctx sdk.Context, connectionID string) (string, error
 		return "", fmt.Errorf("client state not found for connection \"%s\": \"%s\"", connectionID, err.Error())
 	}
 
-	return clientState.ChainId, nil
+	switch clientType := clientState.(type) {
+	case *ibctmtypes.ClientState:
+		return clientType.ChainId, nil
+	case *ibclocalhosttypes.ClientState:
+		return ctx.ChainID(), nil
+	default:
+		return "", fmt.Errorf("unexpected type of client, cannot determine chain-id: clientType: %s, connectionid: %s", clientState.ClientType(), connectionID)
+	}
 }
 
 // GetPortID constructs a port id given the port owner
 func (k *Keeper) GetPortID(owner string) string {
-	return icatypes.ControllerPortPrefix + owner
+	return fmt.Sprintf("%s%s", icatypes.ControllerPortPrefix, owner)
 }
 
 // RegisterICAAccount registers an ICA
@@ -204,8 +192,8 @@ func (k *Keeper) SetWithdrawAddress(ctx sdk.Context, hc *types.HostChain) error 
 }
 
 // IsICAChannelActive checks if an ICA channel is active
-func (k *Keeper) IsICAChannelActive(ctx sdk.Context, hc *types.HostChain, owner string) bool {
-	_, isActive := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ConnectionId, owner)
+func (k *Keeper) IsICAChannelActive(ctx sdk.Context, hc *types.HostChain, portID string) bool {
+	_, isActive := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ConnectionId, portID)
 	return isActive
 }
 
@@ -271,6 +259,9 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		// total stk tokens minted
 		mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
 
+		// total tokenized staked amount
+		tokenizedStakedAmount := k.GetLSMDepositAmountUntokenized(ctx, hc.ChainId)
+
 		// amount staked by the module in any of the validators of the host chain
 		stakedAmount := hc.GetHostChainTotalDelegations()
 
@@ -284,7 +275,7 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		totalUnbondingAmount := k.GetAllValidatorUnbondedAmount(ctx, hc)
 
 		// total amount staked
-		liquidStakedAmount := stakedAmount.Add(amountOnPersistence).Add(amountOnHostChain).Add(totalUnbondingAmount)
+		liquidStakedAmount := tokenizedStakedAmount.Add(stakedAmount).Add(amountOnPersistence).Add(amountOnHostChain).Add(totalUnbondingAmount)
 
 		var cValue sdk.Dec
 		if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {
@@ -312,10 +303,19 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		hc.CValue = cValue
 		k.SetHostChain(ctx, hc)
 
+		defer func() {
+			cValueFloat, _ := hc.CValue.Float64()
+			telemetry.ModuleSetGauge(types.ModuleName, float32(cValueFloat), hc.ChainId, "c_value")
+		}()
+
 		// if the c value is out of bounds, disable the chain
 		if !k.CValueWithinLimits(ctx, hc) {
 			hc.Active = false
 			k.SetHostChain(ctx, hc)
+
+			defer func() {
+				telemetry.ModuleSetGauge(types.ModuleName, float32(0), hc.ChainId, "active")
+			}()
 
 			k.Logger(ctx).Error(fmt.Sprintf("C value out of limits !!! Disabling chain %s with c value %v.", hc.ChainId, hc.CValue))
 			ctx.EventManager().EmitEvent(

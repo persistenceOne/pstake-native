@@ -102,14 +102,20 @@ func (a AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawM
 }
 
 func (a AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
+
 	a.keeper.BeginBlock(ctx)
 }
 
 func (a AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyEndBlocker)
+
 	return []abci.ValidatorUpdate{}
 }
 
-func (a AppModule) RegisterInvariants(registry sdk.InvariantRegistry) {}
+func (a AppModule) RegisterInvariants(registry sdk.InvariantRegistry) {
+	keeper.RegisterInvariants(registry, a.keeper)
+}
 
 // Deprecated: QuerierRoute
 func (a AppModule) QuerierRoute() string {
@@ -119,10 +125,15 @@ func (a AppModule) QuerierRoute() string {
 func (a AppModule) RegisterServices(configurator module.Configurator) {
 	types.RegisterMsgServer(configurator.MsgServer(), keeper.NewMsgServerImpl(a.keeper))
 	types.RegisterQueryServer(configurator.QueryServer(), &a.keeper)
+
+	err := configurator.RegisterMigration(types.ModuleName, 1, keeper.NewMigrator(a.keeper).Migrate1to2)
+	if err != nil {
+		panic(fmt.Sprintf("failed to migrate x/%s from version 1 to 2: %v", types.ModuleName, err))
+	}
 }
 
 func (a AppModule) ConsensusVersion() uint64 {
-	return 1
+	return 2
 }
 
 // TODO simulations
