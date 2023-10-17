@@ -2,6 +2,7 @@ syntax = "proto3";
 package pstake.liquidstakeibc.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "cosmos/base/v1beta1/coin.proto";
@@ -156,6 +157,7 @@ message QueryExchangeRateRequest {
 message QueryExchangeRateResponse {
   string rate = 1 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable) = false
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar)  = "cosmos.Dec"
   ];
 }
