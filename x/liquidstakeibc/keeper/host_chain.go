@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -62,6 +63,17 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 			val.UnbondingEpoch = 0
 		}
 
+		// emit the status update event
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeValidatorStatusUpdate,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(types.AttributeValidatorAddress, val.OperatorAddress),
+				sdk.NewAttribute(types.AttributeKeyValidatorOldStatus, val.Status),
+				sdk.NewAttribute(types.AttributeKeyValidatorNewStatus, validator.Status.String()),
+			),
+		)
+
 		val.Status = validator.Status.String()
 		k.SetHostChainValidator(ctx, hc, val)
 	}
@@ -83,6 +95,17 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 				)
 			}
 		}
+
+		// emit the exchange rate event
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeValidatorExchangeRateUpdate,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(types.AttributeValidatorAddress, val.OperatorAddress),
+				sdk.NewAttribute(types.AttributeKeyValidatorOldExchangeRate, val.ExchangeRate.String()),
+				sdk.NewAttribute(types.AttributeKeyValidatorNewExchangeRate, exchangeRate.String()),
+			),
+		)
 
 		val.ExchangeRate = exchangeRate
 		k.SetHostChainValidator(ctx, hc, val)
@@ -108,6 +131,9 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 			validatorHasEnoughBond = validator.LiquidShares.LT(validator.ValidatorBondShares.Mul(hc.Params.LsmBondFactor))
 		}
 
+		// save the old delegable flag for event purposes
+		oldDelegableFlag := val.Delegable
+
 		// update the validator if its delegable status has changed
 		val.Delegable = validatorHasRoomForDelegations && validatorHasEnoughBond
 		k.SetHostChainValidator(ctx, hc, val)
@@ -122,6 +148,18 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 
 		// if the validator is not delegable, no messages will be generated for it, so there is nothing else to do
 		if !val.Delegable {
+			// emit the delegable status event
+			if oldDelegableFlag != val.Delegable {
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EventTypeValidatorDelegableStateUpdate,
+						sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+						sdk.NewAttribute(types.AttributeValidatorAddress, val.OperatorAddress),
+						sdk.NewAttribute(types.AttributeKeyValidatorDelegable, strconv.FormatBool(val.Delegable)),
+					),
+				)
+			}
+
 			return nil
 		}
 
@@ -173,6 +211,18 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 		// recalculate the delegable state of the validator with the new flag
 		val.Delegable = validatorHasRoomForDelegations && validatorHasEnoughBond && validatorHasEnoughRoom
 		k.SetHostChainValidator(ctx, hc, val)
+
+		// emit the delegable status event
+		if oldDelegableFlag != val.Delegable {
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeValidatorDelegableStateUpdate,
+					sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(types.AttributeValidatorAddress, val.OperatorAddress),
+					sdk.NewAttribute(types.AttributeKeyValidatorDelegable, strconv.FormatBool(val.Delegable)),
+				),
+			)
+		}
 	}
 
 	return nil
