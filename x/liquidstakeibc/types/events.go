@@ -13,7 +13,7 @@ const (
 	EventTypeValidatorStatusUpdate         = "validator_status_update"
 	EventTypeValidatorExchangeRateUpdate   = "validator_exchange_rate_update"
 	EventTypeValidatorDelegableStateUpdate = "validator_delegable_state_update"
-	EventTypeValidatorWeightUpdate         = "validator_weight_update"
+	EventTypeDoDelegation                  = "send_delegation"
 
 	AttributeInputAmount                 = "input_amount"
 	AttributeOutputAmount                = "output_amount"
@@ -24,7 +24,7 @@ const (
 	AttributeChainID                     = "chain_id"
 	AttributeNewCValue                   = "new_c_value"
 	AttributeOldCValue                   = "old_c_value"
-	AttributeUnstakeEpoch                = "undelegation_epoch"
+	AttributeEpoch                       = "epoch_number"
 	AttributeValidatorAddress            = "validator_address"
 	AttributeExistingDelegation          = "existing_delegation"
 	AttributeUpdatedDelegation           = "updated_delegation"
@@ -38,8 +38,9 @@ const (
 	AttributeKeyValidatorOldStatus       = "validator_old_status"
 	AttributeKeyValidatorNewExchangeRate = "validator_new_exchange_rate"
 	AttributeKeyValidatorOldExchangeRate = "validator_old_exchange_rate"
-	AttributeKeyValidatorNewWeight       = "validator_new_weight"
-	AttributeKeyValidatorOldWeight       = "validator_old_weight"
 	AttributeKeyValidatorDelegable       = "validator_delegable"
+	AttributeTotalDelegatedAmount        = "total_delegated_amount"
+	AttributeIBCSequenceID               = "ibc_sequence_id"
+	AttributeICAMessages                 = "ica_messages"
 	AttributeValueCategory               = ModuleName
 )

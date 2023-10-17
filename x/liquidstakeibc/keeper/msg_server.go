@@ -665,7 +665,7 @@ func (k msgServer) LiquidUnstake(
 				sdktypes.NewCoin(hc.HostDenom, unbondAmount.Amount).String()),
 			sdktypes.NewAttribute(types.AttributePstakeUnstakeFee,
 				sdktypes.NewCoin(hc.MintDenom(), feeAmount).String()),
-			sdktypes.NewAttribute(types.AttributeUnstakeEpoch, strconv.FormatInt(unbondingEpoch, 10)),
+			sdktypes.NewAttribute(types.AttributeEpoch, strconv.FormatInt(unbondingEpoch, 10)),
 		),
 		sdktypes.NewEvent(
 			sdktypes.EventTypeMessage,

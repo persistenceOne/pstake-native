@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -82,11 +85,27 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 	}
 
 	// if everything went well, update the deposit states and set the sequence id
+	lastEpoch := 0 // highest epoch among deposits, used for event emission
 	for _, deposit := range deposits {
 		deposit.IbcSequenceId = sequenceID
 		deposit.State = types.Deposit_DEPOSIT_DELEGATING
 		k.SetDeposit(ctx, deposit)
+
+		lastEpoch = int(deposit.Epoch)
 	}
+
+	// emit the delegation event
+	encMsgs, _ := json.Marshal(&messages)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeDoDelegation,
+			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdk.NewAttribute(types.AttributeEpoch, strconv.Itoa(lastEpoch)),
+			sdk.NewAttribute(types.AttributeTotalDelegatedAmount, sdk.NewCoin(hc.HostDenom, totalDepositDelegation).String()),
+			sdk.NewAttribute(types.AttributeICAMessages, base64.StdEncoding.EncodeToString(encMsgs)),
+			sdk.NewAttribute(types.AttributeIBCSequenceID, sequenceID),
+		),
+	)
 }
 
 func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
