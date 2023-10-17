@@ -322,7 +322,8 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 				sdk.NewEvent(
 					types.EventTypeChainDisabled,
 					sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
-					sdk.NewAttribute(types.AttributeCValue, hc.CValue.String()),
+					sdk.NewAttribute(types.AttributeOldCValue, hc.LastCValue.String()),
+					sdk.NewAttribute(types.AttributeNewCValue, hc.CValue.String()),
 				),
 			)
 		}
