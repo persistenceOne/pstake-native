@@ -14,6 +14,7 @@ const (
 	EventTypeValidatorExchangeRateUpdate   = "validator_exchange_rate_update"
 	EventTypeValidatorDelegableStateUpdate = "validator_delegable_state_update"
 	EventTypeDoDelegation                  = "send_delegation"
+	EventTypeClaimedUnbondings             = "claimed_unbondings"
 
 	AttributeInputAmount                 = "input_amount"
 	AttributeOutputAmount                = "output_amount"
@@ -42,5 +43,7 @@ const (
 	AttributeTotalDelegatedAmount        = "total_delegated_amount"
 	AttributeIBCSequenceID               = "ibc_sequence_id"
 	AttributeICAMessages                 = "ica_messages"
+	AttributeClaimAmount                 = "claimed_amount"
+	AttributeClaimAddress                = "claim_address"
 	AttributeValueCategory               = ModuleName
 )

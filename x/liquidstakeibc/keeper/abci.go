@@ -85,13 +85,13 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 	}
 
 	// if everything went well, update the deposit states and set the sequence id
-	lastEpoch := 0 // highest epoch among deposits, used for event emission
+	lastEpoch := int64(0) // highest epoch among deposits, used for event emission
 	for _, deposit := range deposits {
 		deposit.IbcSequenceId = sequenceID
 		deposit.State = types.Deposit_DEPOSIT_DELEGATING
 		k.SetDeposit(ctx, deposit)
 
-		lastEpoch = int(deposit.Epoch)
+		lastEpoch = deposit.Epoch
 	}
 
 	// emit the delegation event
@@ -100,7 +100,7 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 		sdk.NewEvent(
 			types.EventTypeDoDelegation,
 			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
-			sdk.NewAttribute(types.AttributeEpoch, strconv.Itoa(lastEpoch)),
+			sdk.NewAttribute(types.AttributeEpoch, strconv.FormatInt(lastEpoch, 10)),
 			sdk.NewAttribute(types.AttributeTotalDelegatedAmount, sdk.NewCoin(hc.HostDenom, totalDepositDelegation).String()),
 			sdk.NewAttribute(types.AttributeICAMessages, base64.StdEncoding.EncodeToString(encMsgs)),
 			sdk.NewAttribute(types.AttributeIBCSequenceID, sequenceID),
@@ -133,12 +133,15 @@ func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
 			}
 
 			var claimableCoins sdk.Coins
+			var eventAmount sdk.Coin // used for claim events
 			switch unbonding.State {
 			case types.Unbonding_UNBONDING_CLAIMABLE:
 				claimableCoins = sdk.NewCoins(sdk.NewCoin(hc.IBCDenom(), userUnbonding.UnbondAmount.Amount))
+				eventAmount = sdk.NewCoin(hc.HostDenom, userUnbonding.UnbondAmount.Amount)
 				unbonding.UnbondAmount = unbonding.UnbondAmount.Sub(userUnbonding.UnbondAmount)
 			case types.Unbonding_UNBONDING_FAILED:
 				claimableCoins = sdk.NewCoins(sdk.NewCoin(hc.MintDenom(), userUnbonding.StkAmount.Amount))
+				eventAmount = sdk.NewCoin(hc.MintDenom(), userUnbonding.StkAmount.Amount)
 				unbonding.BurnAmount = unbonding.BurnAmount.Sub(userUnbonding.StkAmount)
 			}
 
@@ -167,6 +170,16 @@ func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
 			}
 
 			k.DeleteUserUnbonding(ctx, userUnbonding)
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeClaimedUnbondings,
+					sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(types.AttributeEpoch, strconv.FormatInt(epochNumber, 10)),
+					sdk.NewAttribute(types.AttributeClaimAmount, eventAmount.String()),
+					sdk.NewAttribute(types.AttributeClaimAddress, userUnbonding.Address),
+				),
+			)
 		}
 	}
 }
