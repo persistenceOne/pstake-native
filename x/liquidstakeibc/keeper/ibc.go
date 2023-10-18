@@ -106,6 +106,16 @@ func (k *Keeper) OnChanOpenAck(
 		address,
 	)
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventICAChannelCreated,
+			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdk.NewAttribute(types.AttributeICAChannelID, channelID),
+			sdk.NewAttribute(types.AttributeICAPortOwner, portOwner),
+			sdk.NewAttribute(types.AttributeICAAddress, address),
+		),
+	)
+
 	return nil
 }
 

@@ -26,6 +26,11 @@ const (
 	EventTypeUnbondingMaturedReceived          = "unbonding_matured"
 	EventTypeValidatorUnbondingMaturedReceived = "validator_unbonding_matured"
 	EventAutocompoundRewardsReceived           = "autocompound_rewards_received"
+	EventStakingDepositTransferReceived        = "staking_deposit_received"
+	EventStakingDepositTransferTimeout         = "staking_deposit_timeout"
+	EventLSMDepositTransferReceived            = "lsm_deposit_received"
+	EventLSMDepositTransferTimeout             = "lsm_deposit_timeout"
+	EventICAChannelCreated                     = "ica_channel_created"
 
 	AttributeInputAmount                     = "input_amount"
 	AttributeOutputAmount                    = "output_amount"
@@ -73,5 +78,8 @@ const (
 	AttributeUnbondingMaturedAmount          = "unbonding_matured_amount"
 	AttributeValidatorUnbondingMaturedAmount = "validator_unbonding_matured_amount"
 	AttributeAutocompoundTransfer            = "autocompound_transfer_amount"
+	AttributeICAPortOwner                    = "ica_port_owner"
+	AttributeICAChannelID                    = "ica_channel_id"
+	AttributeICAAddress                      = "ica_address"
 	AttributeValueCategory                   = ModuleName
 )

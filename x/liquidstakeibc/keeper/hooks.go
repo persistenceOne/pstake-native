@@ -184,14 +184,14 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 			k.SetUnbonding(ctx, unbonding)
 
 			// emit event for the received transfer
-			ctx.EventManager().EmitEvents(sdk.Events{
+			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					liquidstakeibctypes.EventTypeUnbondingMaturedReceived,
 					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
 					sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(unbonding.EpochNumber, 10)),
 					sdk.NewAttribute(liquidstakeibctypes.AttributeUnbondingMaturedAmount, sdk.NewCoin(hc.HostDenom, unbonding.UnbondAmount.Amount).String()),
 				),
-			})
+			)
 		}
 	}
 
@@ -235,13 +235,13 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount)
 		k.SetDeposit(ctx, deposit)
 
-		ctx.EventManager().EmitEvents(sdk.Events{
+		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				liquidstakeibctypes.EventTypeValidatorUnbondingMaturedReceived,
 				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
 				sdk.NewAttribute(liquidstakeibctypes.AttributeValidatorUnbondingMaturedAmount, sdk.NewCoin(hc.HostDenom, transferAmount).String()),
 			),
-		})
+		)
 	}
 
 	// the transfer is part of the autocompounding process
@@ -307,14 +307,14 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		k.SetDeposit(ctx, deposit)
 
 		// emit autocompound received event
-		ctx.EventManager().EmitEvents(sdk.Events{
+		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				liquidstakeibctypes.EventAutocompoundRewardsReceived,
 				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
-				sdk.NewAttribute(liquidstakeibctypes.AttributeValidatorUnbondingMaturedAmount, sdk.NewCoin(hc.HostDenom, transferAmount).String()),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeAutocompoundTransfer, sdk.NewCoin(hc.HostDenom, transferAmount).String()),
 				sdk.NewAttribute(liquidstakeibctypes.AttributePstakeAutocompoundFee, sdk.NewCoin(hc.HostDenom, feeAmount.TruncateInt()).String()),
 			),
-		})
+		)
 	}
 
 	return nil
@@ -390,6 +390,28 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 		// mark tokenized LSM token delegations as received and add the IBC sequence
 		lsmDeposits := k.GetLSMDepositsFromIbcSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
 		k.UpdateLSMDepositsStateAndSequence(ctx, lsmDeposits, liquidstakeibctypes.LSMDeposit_DEPOSIT_RECEIVED, "")
+
+		// emit the deposit transfer received event
+		denom := data.GetDenom()
+		hc, found := k.GetHostChainFromHostDenom(ctx, denom)
+		if !found {
+			return nil
+		}
+
+		eventType := ""
+		if len(deposits) > 0 {
+			eventType = liquidstakeibctypes.EventStakingDepositTransferReceived
+		} else {
+			eventType = liquidstakeibctypes.EventLSMDepositTransferReceived
+		}
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				eventType,
+				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+			),
+		)
 	}
 
 	return nil
@@ -413,15 +435,33 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 	// just take action when the transfer has been, send from the deposit module account
 	if data.GetSender() == authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() {
 		// revert the state of the deposits that timed out
-		k.RevertDepositsState(
-			ctx,
-			k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
-		)
+		deposits := k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
+		k.RevertDepositsState(ctx, deposits)
 
 		// revert the state of the LSM deposits that timed out
-		k.RevertLSMDepositsState(
-			ctx,
-			k.GetLSMDepositsFromIbcDenom(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+		lsmDeposits := k.GetLSMDepositsFromIbcDenom(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
+		k.RevertLSMDepositsState(ctx, lsmDeposits)
+
+		// emit the deposit transfer timeout event
+		denom := data.GetDenom()
+		hc, found := k.GetHostChainFromHostDenom(ctx, denom)
+		if !found {
+			return nil
+		}
+
+		eventType := ""
+		if len(deposits) > 0 {
+			eventType = liquidstakeibctypes.EventStakingDepositTransferTimeout
+		} else {
+			eventType = liquidstakeibctypes.EventLSMDepositTransferTimeout
+		}
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				eventType,
+				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+			),
 		)
 	}
 

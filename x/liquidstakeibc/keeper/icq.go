@@ -105,7 +105,7 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 		validator.DelegatedAmount = delegatedAmount.TruncateInt()
 		k.SetHostChainValidator(ctx, hc, validator)
 
-		ctx.EventManager().EmitEvents(sdk.Events{
+		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeSlashing,
 				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
@@ -114,7 +114,7 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 				sdk.NewAttribute(types.AttributeUpdatedDelegation, delegatedAmount.String()),
 				sdk.NewAttribute(types.AttributeSlashedAmount, slashedAmount.String()),
 			),
-		})
+		)
 	}
 
 	return nil
