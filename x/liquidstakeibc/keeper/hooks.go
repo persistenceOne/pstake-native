@@ -385,33 +385,36 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 				"channel",
 				packet.SourceChannel,
 			)
+
+			// emit events for the deposits received
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventStakingDepositTransferReceived,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+				),
+			)
 		}
 
 		// mark tokenized LSM token delegations as received and add the IBC sequence
 		lsmDeposits := k.GetLSMDepositsFromIbcSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
 		k.UpdateLSMDepositsStateAndSequence(ctx, lsmDeposits, liquidstakeibctypes.LSMDeposit_DEPOSIT_RECEIVED, "")
 
-		// emit the deposit transfer received event
-		denom := data.GetDenom()
-		hc, found := k.GetHostChainFromHostDenom(ctx, denom)
-		if !found {
-			return nil
-		}
+		// emit events for the lsm deposits received
+		for _, lsmDeposit := range lsmDeposits {
+			hc, found := k.GetHostChain(ctx, lsmDeposit.ChainId)
+			if !found {
+				return fmt.Errorf("host chain with id %s is not registered", lsmDeposit.ChainId)
+			}
 
-		eventType := ""
-		if len(deposits) > 0 {
-			eventType = liquidstakeibctypes.EventStakingDepositTransferReceived
-		} else {
-			eventType = liquidstakeibctypes.EventLSMDepositTransferReceived
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventLSMDepositTransferReceived,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+				),
+			)
 		}
-
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				eventType,
-				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
-				sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
-			),
-		)
 	}
 
 	return nil
@@ -438,31 +441,41 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 		deposits := k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
 		k.RevertDepositsState(ctx, deposits)
 
+		// emit events for the deposits that timed out
+		for _, deposit := range deposits {
+			hc, found := k.GetHostChain(ctx, deposit.ChainId)
+			if !found {
+				return fmt.Errorf("host chain with id %s is not registered", deposit.ChainId)
+			}
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventStakingDepositTransferTimeout,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+				),
+			)
+		}
+
 		// revert the state of the LSM deposits that timed out
 		lsmDeposits := k.GetLSMDepositsFromIbcDenom(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
 		k.RevertLSMDepositsState(ctx, lsmDeposits)
 
-		// emit the deposit transfer timeout event
-		denom := data.GetDenom()
-		hc, found := k.GetHostChainFromHostDenom(ctx, denom)
-		if !found {
-			return nil
-		}
+		// emit events for the lsm deposits that timed out
+		for _, lsmDeposit := range lsmDeposits {
+			hc, found := k.GetHostChain(ctx, lsmDeposit.ChainId)
+			if !found {
+				return fmt.Errorf("host chain with id %s is not registered", lsmDeposit.ChainId)
+			}
 
-		eventType := ""
-		if len(deposits) > 0 {
-			eventType = liquidstakeibctypes.EventStakingDepositTransferTimeout
-		} else {
-			eventType = liquidstakeibctypes.EventLSMDepositTransferTimeout
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventLSMDepositTransferTimeout,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+				),
+			)
 		}
-
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				eventType,
-				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
-				sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
-			),
-		)
 	}
 
 	k.Logger(ctx).Info(
@@ -514,7 +527,7 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 
 		timeoutHeight := clienttypes.NewHeight(
 			clientState.GetLatestHeight().GetRevisionNumber(),
-			clientState.GetLatestHeight().GetRevisionHeight()+liquidstakeibctypes.IBCTimeoutHeightIncrement,
+			clientState.GetLatestHeight().GetRevisionHeight()+1,
 		)
 
 		msg := ibctransfertypes.NewMsgTransfer(
@@ -814,7 +827,7 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 
 			timeoutHeight := clienttypes.NewHeight(
 				clientState.GetLatestHeight().GetRevisionNumber(),
-				clientState.GetLatestHeight().GetRevisionHeight()+liquidstakeibctypes.IBCTimeoutHeightIncrement,
+				clientState.GetLatestHeight().GetRevisionHeight()+1,
 			)
 
 			// craft the IBC message
