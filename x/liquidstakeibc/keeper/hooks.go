@@ -182,6 +182,16 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 			unbonding.IbcSequenceId = ""
 			unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_CLAIMABLE
 			k.SetUnbonding(ctx, unbonding)
+
+			// emit event for the received transfer
+			ctx.EventManager().EmitEvents(sdk.Events{
+				sdk.NewEvent(
+					liquidstakeibctypes.EventTypeUnbondingMaturedReceived,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(unbonding.EpochNumber, 10)),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeUnbondingMaturedAmount, sdk.NewCoin(hc.HostDenom, unbonding.UnbondAmount.Amount).String()),
+				),
+			})
 		}
 	}
 
@@ -224,6 +234,14 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 
 		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount)
 		k.SetDeposit(ctx, deposit)
+
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				liquidstakeibctypes.EventTypeValidatorUnbondingMaturedReceived,
+				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeValidatorUnbondingMaturedAmount, sdk.NewCoin(hc.HostDenom, transferAmount).String()),
+			),
+		})
 	}
 
 	// the transfer is part of the autocompounding process
@@ -287,6 +305,16 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		// update the deposit
 		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount.Sub(feeAmount.TruncateInt()))
 		k.SetDeposit(ctx, deposit)
+
+		// emit autocompound received event
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				liquidstakeibctypes.EventAutocompoundRewardsReceived,
+				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeValidatorUnbondingMaturedAmount, sdk.NewCoin(hc.HostDenom, transferAmount).String()),
+				sdk.NewAttribute(liquidstakeibctypes.AttributePstakeAutocompoundFee, sdk.NewCoin(hc.HostDenom, feeAmount.TruncateInt()).String()),
+			),
+		})
 	}
 
 	return nil

@@ -108,11 +108,13 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
 				types.EventTypeSlashing,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
 				sdk.NewAttribute(types.AttributeValidatorAddress, validator.OperatorAddress),
 				sdk.NewAttribute(types.AttributeExistingDelegation, validator.DelegatedAmount.String()),
 				sdk.NewAttribute(types.AttributeUpdatedDelegation, delegatedAmount.String()),
 				sdk.NewAttribute(types.AttributeSlashedAmount, slashedAmount.String()),
-			)})
+			),
+		})
 	}
 
 	return nil
