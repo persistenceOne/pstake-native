@@ -1,10 +1,14 @@
 package keeper
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -474,6 +478,16 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 		deposit.State = liquidstakeibctypes.Deposit_DEPOSIT_SENT
 		deposit.IbcSequenceId = k.GetTransactionSequenceID(hc.ChannelId, msgTransferResponse.Sequence)
 		k.SetDeposit(ctx, deposit)
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				liquidstakeibctypes.EventTypeDelegationWorkflow,
+				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(deposit.Epoch, 10)),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeTotalEpochDepositAmount, sdk.NewCoin(hc.HostDenom, deposit.Amount.Amount).String()),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, deposit.IbcSequenceId),
+			),
+		)
 	}
 }
 
@@ -545,6 +559,20 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 		unbonding.IbcSequenceId = sequenceID
 		unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_INITIATED
 		k.SetUnbonding(ctx, unbonding)
+
+		// emit the unbonding event
+		encMsgs, _ := json.Marshal(&messages)
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				liquidstakeibctypes.EventTypeUndelegationWorkflow,
+				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(epoch, 10)),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeTotalEpochUnbondingAmount, sdk.NewCoin(hc.HostDenom, unbonding.UnbondAmount.Amount).String()),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeTotalEpochBurnAmount, sdk.NewCoin(hc.HostDenom, unbonding.BurnAmount.Amount).String()),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeICAMessages, base64.StdEncoding.EncodeToString(encMsgs)),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, sequenceID),
+			),
+		)
 	}
 }
 
@@ -619,6 +647,18 @@ func (k *Keeper) ValidatorUndelegationWorkflow(ctx sdk.Context, epoch int64) {
 					"epoch",
 					epoch,
 				)
+
+				// emit the validator unbonding event
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						liquidstakeibctypes.EventTypeValidatorUndelegationWorkflow,
+						sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+						sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(epoch, 10)),
+						sdk.NewAttribute(liquidstakeibctypes.AttributeValidatorAddress, validatorUnbonding.ValidatorAddress),
+						sdk.NewAttribute(liquidstakeibctypes.AttributeValidatorUnbondingAmount, sdk.NewCoin(hc.HostDenom, validatorUnbonding.Amount.Amount).String()),
+						sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, sequenceID),
+					),
+				)
 			}
 		}
 	}
@@ -661,6 +701,17 @@ func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
 				)
 				continue
 			}
+
+			// emit the rewards event
+			encMsgs, _ := json.Marshal(&messages)
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventTypeRewardsWorkflow,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(epoch, 10)),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeICAMessages, base64.StdEncoding.EncodeToString(encMsgs)),
+				),
+			)
 		}
 
 		if hc.RewardsAccount != nil &&
@@ -685,6 +736,7 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 		}
 
 		// attempt to transfer all available LSM deposits
+		totalLSMDepositsSharesAmount := math.LegacyZeroDec()
 		for _, deposit := range k.GetTransferableLSMDeposits(ctx, hc.ChainId) {
 			clientState, err := k.GetClientState(ctx, hc.ConnectionId)
 			if err != nil {
@@ -732,6 +784,17 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 				liquidstakeibctypes.LSMDeposit_DEPOSIT_SENT,
 				k.GetTransactionSequenceID(hc.ChannelId, msgTransferResponse.Sequence),
 			)
+
+			totalLSMDepositsSharesAmount = totalLSMDepositsSharesAmount.Add(deposit.Shares)
 		}
+
+		// emit the validator unbonding event
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				liquidstakeibctypes.EventTypeLSMWorkflow,
+				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeLSMDepositsSharesAmount, totalLSMDepositsSharesAmount.String()),
+			),
+		)
 	}
 }

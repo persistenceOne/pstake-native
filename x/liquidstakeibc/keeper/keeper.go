@@ -303,6 +303,21 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		hc.CValue = cValue
 		k.SetHostChain(ctx, hc)
 
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeCValueUpdate,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(types.AttributeModuleMintedAmount, sdk.NewCoin(hc.MintDenom(), mintedAmount).String()),
+				sdk.NewAttribute(types.AttributeModuleLSMTokenizedAmount, sdk.NewCoin(hc.HostDenom, tokenizedStakedAmount).String()),
+				sdk.NewAttribute(types.AttributeModuleStakedAmount, sdk.NewCoin(hc.HostDenom, stakedAmount).String()),
+				sdk.NewAttribute(types.AttributeModuleAmountOnPersistence, sdk.NewCoin(hc.HostDenom, amountOnPersistence).String()),
+				sdk.NewAttribute(types.AttributeModuleAmountOnHostChain, sdk.NewCoin(hc.HostDenom, amountOnHostChain).String()),
+				sdk.NewAttribute(types.AttributeModuleUnbondingAmount, sdk.NewCoin(hc.HostDenom, totalUnbondingAmount).String()),
+				sdk.NewAttribute(types.AttributeOldCValue, hc.LastCValue.String()),
+				sdk.NewAttribute(types.AttributeNewCValue, hc.CValue.String()),
+			),
+		)
+
 		defer func() {
 			cValueFloat, _ := hc.CValue.Float64()
 			telemetry.ModuleSetGauge(types.ModuleName, float32(cValueFloat), hc.ChainId, "c_value")
