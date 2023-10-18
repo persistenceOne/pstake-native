@@ -389,7 +389,7 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 		// revert the state of the LSM deposits that timed out
 		k.RevertLSMDepositsState(
 			ctx,
-			k.GetLSMDepositsFromIbcDenom(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+			k.GetLSMDepositsFromIbcSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
 		)
 	}
 
