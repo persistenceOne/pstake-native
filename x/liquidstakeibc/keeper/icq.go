@@ -171,6 +171,15 @@ func RewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, data []byte, query
 		if err != nil {
 			return fmt.Errorf("could not send ICA rewards transfer: %w", err)
 		}
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeRewardsTransfer,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(types.AttributeRewardsTransferAmount, sdk.NewCoin(hc.HostDenom, autocompoundRewards.Amount).String()),
+				sdk.NewAttribute(types.AttributeRewardsBalanceAmount, sdk.NewCoin(hc.HostDenom, hc.RewardsAccount.Balance.Amount.Sub(autocompoundRewards.Amount)).String()),
+			),
+		)
 	}
 
 	k.SetHostChain(ctx, hc)

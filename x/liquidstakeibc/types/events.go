@@ -7,7 +7,7 @@ const (
 	EventTypeRedeem                        = "redeem"
 	EventTypePacket                        = "ics27_packet"
 	EventTypeTimeout                       = "timeout"
-	EventTypeSlashing                      = "slashing"
+	EventTypeSlashing                      = "validator_slash"
 	EventTypeUpdateParams                  = "update_params"
 	EventTypeChainDisabled                 = "chain_disabled"
 	EventTypeValidatorStatusUpdate         = "validator_status_update"
@@ -22,6 +22,8 @@ const (
 	EventTypeValidatorUndelegationWorkflow = "validator_undelegation_workflow"
 	EventTypeRewardsWorkflow               = "rewards_workflow"
 	EventTypeLSMWorkflow                   = "lsm_workflow"
+	EventTypeRewardsTransfer               = "rewards_transfer"
+	EventTypeValidatorSlash                = "validator_slash"
 
 	AttributeInputAmount                 = "input_amount"
 	AttributeOutputAmount                = "output_amount"
@@ -63,5 +65,9 @@ const (
 	AttributeTotalEpochBurnAmount        = "burn_amount"
 	AttributeValidatorUnbondingAmount    = "validator_unbonding_amount"
 	AttributeLSMDepositsSharesAmount     = "lsm_deposits_shares_amount"
+	AttributeRewardsTransferAmount       = "rewards_transfer_amount"
+	AttributeRewardsBalanceAmount        = "rewards_balance_amount"
+	AttributeSlashAmount                 = "slash_amount"
+	AttributeNewDelegatedAmount          = "new_delegated_amount"
 	AttributeValueCategory               = ModuleName
 )
