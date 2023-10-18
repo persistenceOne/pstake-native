@@ -15,6 +15,7 @@ const (
 	EventTypeValidatorDelegableStateUpdate = "validator_delegable_state_update"
 	EventTypeDoDelegation                  = "send_delegation"
 	EventTypeClaimedUnbondings             = "claimed_unbondings"
+	EventTypeRedeemTokensForShares         = "redeem_lsm_tokens_shares"
 
 	AttributeInputAmount                 = "input_amount"
 	AttributeOutputAmount                = "output_amount"

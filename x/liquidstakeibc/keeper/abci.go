@@ -338,4 +338,15 @@ func (k *Keeper) DoRedeemLSMTokens(ctx sdk.Context, hc *types.HostChain) {
 		"sequence-id",
 		sequenceID,
 	)
+
+	// emit the untokenize event
+	encMsgs, _ := json.Marshal(&messages)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRedeemTokensForShares,
+			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdk.NewAttribute(types.AttributeICAMessages, base64.StdEncoding.EncodeToString(encMsgs)),
+			sdk.NewAttribute(types.AttributeIBCSequenceID, sequenceID),
+		),
+	)
 }
