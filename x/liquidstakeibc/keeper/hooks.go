@@ -527,7 +527,7 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 
 		timeoutHeight := clienttypes.NewHeight(
 			clientState.GetLatestHeight().GetRevisionNumber(),
-			clientState.GetLatestHeight().GetRevisionHeight()+1,
+			clientState.GetLatestHeight().GetRevisionHeight()+liquidstakeibctypes.IBCTimeoutHeightIncrement,
 		)
 
 		msg := ibctransfertypes.NewMsgTransfer(
@@ -827,7 +827,7 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 
 			timeoutHeight := clienttypes.NewHeight(
 				clientState.GetLatestHeight().GetRevisionNumber(),
-				clientState.GetLatestHeight().GetRevisionHeight()+1,
+				clientState.GetLatestHeight().GetRevisionHeight()+liquidstakeibctypes.IBCTimeoutHeightIncrement,
 			)
 
 			// craft the IBC message

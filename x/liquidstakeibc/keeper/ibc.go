@@ -226,11 +226,83 @@ func (k *Keeper) handleUnsuccessfulAck(
 		case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 			// revert all the deposits for that sequence back to the previous state
 			k.RevertDepositsState(ctx, k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence)))
+
+			// parse the delegate message to emit the delegate error event
+			parsedMsg, ok := msg.(*stakingtypes.MsgDelegate)
+			if !ok {
+				k.Logger(ctx).Error(
+					"Could not parse MsgDelegate while handling unsuccessful ack.",
+					"sequence-id",
+					k.GetTransactionSequenceID(channel, sequence),
+				)
+				continue
+			}
+
+			// get the host chain using the delegator address
+			hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.DelegatorAddress)
+			if !found {
+				k.Logger(ctx).Error(
+					"Could not find host chain for ICA delegator address.",
+					"delegator-address",
+					parsedMsg.DelegatorAddress,
+					"sequence-id",
+					k.GetTransactionSequenceID(channel, sequence),
+				)
+				continue
+			}
+
+			// emit an event for the delegation confirmation
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventUnsuccessfulDelegation,
+					sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(types.AttributeDelegatorAddress, parsedMsg.DelegatorAddress),
+					sdk.NewAttribute(types.AttributeValidatorAddress, parsedMsg.ValidatorAddress),
+					sdk.NewAttribute(types.AttributeDelegatedAmount, sdk.NewCoin(hc.HostDenom, parsedMsg.Amount.Amount).String()),
+					sdk.NewAttribute(types.AttributeIBCSequenceID, k.GetTransactionSequenceID(channel, sequence)),
+				),
+			)
 		case sdk.MsgTypeURL(&stakingtypes.MsgUndelegate{}):
 			// mark all the unbondings for the previous epoch as failed
 			k.FailAllUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence))
 			// delete all validator unbondings so they can be picked up again
 			k.DeleteValidatorUnbondingsForSequenceID(ctx, k.GetTransactionSequenceID(channel, sequence))
+
+			// parse the undelegate message to emit the undelegate error event
+			parsedMsg, ok := msg.(*stakingtypes.MsgUndelegate)
+			if !ok {
+				k.Logger(ctx).Error(
+					"Could not parse MsgUndelegate while handling unsuccessful ack.",
+					"sequence-id",
+					k.GetTransactionSequenceID(channel, sequence),
+				)
+				continue
+			}
+
+			// get the host chain using the delegator address
+			hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.DelegatorAddress)
+			if !found {
+				k.Logger(ctx).Error(
+					"Could not find host chain for ICA delegator address.",
+					"delegator-address",
+					parsedMsg.DelegatorAddress,
+					"sequence-id",
+					k.GetTransactionSequenceID(channel, sequence),
+				)
+				continue
+			}
+
+			// emit an event for the undelegation confirmation
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventUnsuccessfulUndelegation,
+					sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(types.AttributeDelegatorAddress, parsedMsg.DelegatorAddress),
+					sdk.NewAttribute(types.AttributeValidatorAddress, parsedMsg.ValidatorAddress),
+					sdk.NewAttribute(types.AttributeUndelegatedAmount, sdk.NewCoin(hc.HostDenom, parsedMsg.Amount.Amount).String()),
+					sdk.NewAttribute(types.AttributeIBCSequenceID, k.GetTransactionSequenceID(channel, sequence)),
+				),
+			)
 		case sdk.MsgTypeURL(&ibctransfertypes.MsgTransfer{}):
 			unbondings := k.FilterUnbondings(
 				ctx,
@@ -254,6 +326,52 @@ func (k *Keeper) handleUnsuccessfulAck(
 				validatorUnbonding.IbcSequenceId = ""
 				k.SetValidatorUnbonding(ctx, validatorUnbonding)
 			}
+
+			// parse the transfer message to emit the transfer error event
+			parsedMsg, ok := msg.(*ibctransfertypes.MsgTransfer)
+			if !ok {
+				k.Logger(ctx).Error(
+					"Could not parse MsgTransfer while handling unsuccessful ack.",
+					"sequence-id",
+					k.GetTransactionSequenceID(channel, sequence),
+				)
+				continue
+			}
+
+			// get the host chain using the delegator address
+			hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.Sender)
+			if !found {
+				k.Logger(ctx).Error(
+					"Could not find host chain for ICA delegator address.",
+					"delegator-address",
+					parsedMsg.Sender,
+					"sequence-id",
+					k.GetTransactionSequenceID(channel, sequence),
+				)
+				continue
+			}
+
+			// if the response is for an unbonding transfer, emit the unbonding transfer error event
+			if len(unbondings) > 0 {
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EventUnsuccessfulUndelegationTransfer,
+						sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+						sdk.NewAttribute(types.AttributeIBCSequenceID, k.GetTransactionSequenceID(channel, sequence)),
+					),
+				)
+			}
+
+			// if the response is from a validator unbonding transfer, emit the validator unbonding transfer error event
+			if len(validatorUnbondings) > 0 {
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EventUnsuccessfulValidatorUndelegationTransfer,
+						sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+						sdk.NewAttribute(types.AttributeIBCSequenceID, k.GetTransactionSequenceID(channel, sequence)),
+					),
+				)
+			}
 		case sdk.MsgTypeURL(&stakingtypes.MsgRedeemTokensForShares{}):
 			deposits := k.FilterLSMDeposits(
 				ctx,
@@ -264,6 +382,41 @@ func (k *Keeper) handleUnsuccessfulAck(
 
 			// revert the state of the deposit, so it will be retried
 			k.RevertLSMDepositsState(ctx, deposits)
+
+			// parse the transfer message to emit the redeem error event
+			parsedMsg, ok := msg.(*stakingtypes.MsgRedeemTokensForShares)
+			if !ok {
+				k.Logger(ctx).Error(
+					"Could not parse MsgRedeemTokensForShares while handling unsuccessful ack.",
+					"sequence-id",
+					k.GetTransactionSequenceID(channel, sequence),
+				)
+				continue
+			}
+
+			// get the host chain using the delegator address
+			hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.DelegatorAddress)
+			if !found {
+				k.Logger(ctx).Error(
+					"Could not find host chain for ICA delegator address.",
+					"delegator-address",
+					parsedMsg.DelegatorAddress,
+					"sequence-id",
+					k.GetTransactionSequenceID(channel, sequence),
+				)
+				continue
+			}
+
+			// emit an event for the redeem error
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventUnsuccessfulLSMRedeem,
+					sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(types.AttributeDelegatorAddress, parsedMsg.DelegatorAddress),
+					sdk.NewAttribute(types.AttributeRedeemedAmount, sdk.NewCoin(hc.HostDenom, parsedMsg.Amount.Amount).String()),
+					sdk.NewAttribute(types.AttributeIBCSequenceID, k.GetTransactionSequenceID(channel, sequence)),
+				),
+			)
 		}
 	}
 
