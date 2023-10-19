@@ -833,6 +833,11 @@ func (k msgServer) Redeem(
 				sdktypes.NewCoin(hc.MintDenom(), fee.Amount).String()),
 		),
 		sdktypes.NewEvent(
+			types.EventBurn,
+			sdktypes.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdktypes.NewAttribute(types.AttributeTotalEpochBurnAmount, sdktypes.NewCoin(hc.MintDenom(), stkAmount.Amount).String()),
+		),
+		sdktypes.NewEvent(
 			sdktypes.EventTypeMessage,
 			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
 			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
