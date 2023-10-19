@@ -45,7 +45,7 @@ const (
 
 	IBCTimeoutHeightIncrement uint64 = 1000
 
-	ICATimeoutTimestamp = 15 * time.Minute
+	ICATimeoutTimestamp = 120 * time.Minute
 
 	IBCPrefix = transfertypes.DenomPrefix + "/"
 
