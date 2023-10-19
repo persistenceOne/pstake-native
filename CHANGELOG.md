@@ -36,7 +36,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-- [#665](https://github.com/persistenceOne/pstake-native/pull/665) Register MsgLiquidStakeLSM into amino codec.
+- [#665](https://github.com/persistenceOne/pstake-native/pull/665) LSM deposit timeout fix.
 
 ## [v2.4.0] - 2023-09-13
 
