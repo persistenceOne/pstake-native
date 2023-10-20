@@ -57,6 +57,18 @@ func (k *Keeper) HandleDelegateResponse(ctx sdk.Context, msg sdk.Msg, channel st
 
 	k.SetHostChain(ctx, hc)
 
+	// emit an event for the delegation confirmation
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventSuccessfulDelegation,
+			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdk.NewAttribute(types.AttributeDelegatorAddress, parsedMsg.DelegatorAddress),
+			sdk.NewAttribute(types.AttributeValidatorAddress, parsedMsg.ValidatorAddress),
+			sdk.NewAttribute(types.AttributeDelegatedAmount, sdk.NewCoin(hc.HostDenom, parsedMsg.Amount.Amount).String()),
+			sdk.NewAttribute(types.AttributeIBCSequenceID, k.GetTransactionSequenceID(channel, sequence)),
+		),
+	)
+
 	k.Logger(ctx).Info(
 		"Received delegation acknowledgement",
 		"delegator",
@@ -133,6 +145,15 @@ func (k *Keeper) HandleUndelegateResponse(
 		unbonding.State = types.Unbonding_UNBONDING_MATURING
 		k.SetUnbonding(ctx, unbonding)
 
+		// emit an event for the burned coins
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventBurn,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(types.AttributeTotalEpochBurnAmount, sdk.NewCoin(hc.MintDenom(), unbonding.BurnAmount.Amount).String()),
+			),
+		)
+
 		k.Logger(ctx).Info(
 			"Received unbonding acknowledgement",
 			"delegator",
@@ -168,6 +189,18 @@ func (k *Keeper) HandleUndelegateResponse(
 			parsedMsg.Amount.String(),
 		)
 	}
+
+	// emit an event for the undelegation confirmation
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventSuccessfulUndelegation,
+			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdk.NewAttribute(types.AttributeDelegatorAddress, parsedMsg.DelegatorAddress),
+			sdk.NewAttribute(types.AttributeValidatorAddress, parsedMsg.ValidatorAddress),
+			sdk.NewAttribute(types.AttributeUndelegatedAmount, sdk.NewCoin(hc.HostDenom, parsedMsg.Amount.Amount).String()),
+			sdk.NewAttribute(types.AttributeIBCSequenceID, k.GetTransactionSequenceID(channel, sequence)),
+		),
+	)
 
 	return nil
 }
@@ -214,6 +247,15 @@ func (k *Keeper) HandleMsgTransfer(
 			unbonding.IbcSequenceId = k.GetTransactionSequenceID(hc.ChannelId, resp.Sequence)
 			k.SetUnbonding(ctx, unbonding)
 		}
+
+		// emit the transfer ack event
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventSuccessfulUndelegationTransfer,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(types.AttributeIBCSequenceID, k.GetTransactionSequenceID(hc.ChannelId, resp.Sequence)),
+			),
+		)
 	}
 
 	if parsedMsg.Sender == hc.DelegationAccount.Address &&
@@ -229,6 +271,15 @@ func (k *Keeper) HandleMsgTransfer(
 		for _, validatorUnbonding := range validatorUnbondings {
 			k.DeleteValidatorUnbonding(ctx, validatorUnbonding)
 		}
+
+		// emit the transfer ack event
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventSuccessfulValidatorUndelegationTransfer,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(types.AttributeIBCSequenceID, k.GetTransactionSequenceID(hc.ChannelId, resp.Sequence)),
+			),
+		)
 	}
 
 	return nil
@@ -291,6 +342,17 @@ func (k *Keeper) HandleMsgRedeemTokensForShares(
 	k.SetHostChainValidator(ctx, hc, validator)
 
 	k.SetHostChain(ctx, hc)
+
+	// emit an event for the redeem confirmation
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventSuccessfulLSMRedeem,
+			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdk.NewAttribute(types.AttributeDelegatorAddress, parsedMsg.DelegatorAddress),
+			sdk.NewAttribute(types.AttributeRedeemedAmount, sdk.NewCoin(hc.HostDenom, parsedMsg.Amount.Amount).String()),
+			sdk.NewAttribute(types.AttributeIBCSequenceID, k.GetTransactionSequenceID(channel, sequence)),
+		),
+	)
 
 	k.Logger(ctx).Info(
 		"Received lsm token redeem acknowledgement",

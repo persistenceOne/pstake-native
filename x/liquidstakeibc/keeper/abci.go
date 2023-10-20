@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -86,7 +89,29 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 		deposit.IbcSequenceId = sequenceID
 		deposit.State = types.Deposit_DEPOSIT_DELEGATING
 		k.SetDeposit(ctx, deposit)
+
+		// emit the delegation event for every deposit
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeDoDelegationDeposit,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(types.AttributeEpoch, strconv.FormatInt(deposit.Epoch, 10)),
+				sdk.NewAttribute(types.AttributeDelegatedAmount, sdk.NewCoin(hc.HostDenom, deposit.Amount.Amount).String()),
+				sdk.NewAttribute(types.AttributeIBCSequenceID, sequenceID),
+			),
+		)
 	}
+
+	// emit the delegation event
+	encMsgs, _ := json.Marshal(&messages)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeDoDelegation,
+			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdk.NewAttribute(types.AttributeTotalDelegatedAmount, sdk.NewCoin(hc.HostDenom, totalDepositDelegation).String()),
+			sdk.NewAttribute(types.AttributeICAMessages, base64.StdEncoding.EncodeToString(encMsgs)),
+		),
+	)
 }
 
 func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
@@ -114,12 +139,15 @@ func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
 			}
 
 			var claimableCoins sdk.Coins
+			var eventAmount sdk.Coin // used for claim events
 			switch unbonding.State {
 			case types.Unbonding_UNBONDING_CLAIMABLE:
 				claimableCoins = sdk.NewCoins(sdk.NewCoin(hc.IBCDenom(), userUnbonding.UnbondAmount.Amount))
+				eventAmount = sdk.NewCoin(hc.HostDenom, userUnbonding.UnbondAmount.Amount)
 				unbonding.UnbondAmount = unbonding.UnbondAmount.Sub(userUnbonding.UnbondAmount)
 			case types.Unbonding_UNBONDING_FAILED:
 				claimableCoins = sdk.NewCoins(sdk.NewCoin(hc.MintDenom(), userUnbonding.StkAmount.Amount))
+				eventAmount = sdk.NewCoin(hc.MintDenom(), userUnbonding.StkAmount.Amount)
 				unbonding.BurnAmount = unbonding.BurnAmount.Sub(userUnbonding.StkAmount)
 			}
 
@@ -148,6 +176,16 @@ func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
 			}
 
 			k.DeleteUserUnbonding(ctx, userUnbonding)
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeClaimedUnbondings,
+					sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(types.AttributeEpoch, strconv.FormatInt(epochNumber, 10)),
+					sdk.NewAttribute(types.AttributeClaimAmount, eventAmount.String()),
+					sdk.NewAttribute(types.AttributeClaimAddress, userUnbonding.Address),
+				),
+			)
 		}
 	}
 }
@@ -305,5 +343,16 @@ func (k *Keeper) DoRedeemLSMTokens(ctx sdk.Context, hc *types.HostChain) {
 		hc.ChainId,
 		"sequence-id",
 		sequenceID,
+	)
+
+	// emit the untokenize event
+	encMsgs, _ := json.Marshal(&messages)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRedeemTokensForShares,
+			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdk.NewAttribute(types.AttributeICAMessages, base64.StdEncoding.EncodeToString(encMsgs)),
+			sdk.NewAttribute(types.AttributeIBCSequenceID, sequenceID),
+		),
 	)
 }

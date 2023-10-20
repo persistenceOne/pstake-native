@@ -1,10 +1,14 @@
 package keeper
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -178,6 +182,16 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 			unbonding.IbcSequenceId = ""
 			unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_CLAIMABLE
 			k.SetUnbonding(ctx, unbonding)
+
+			// emit event for the received transfer
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventTypeUnbondingMaturedReceived,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(unbonding.EpochNumber, 10)),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeUnbondingMaturedAmount, sdk.NewCoin(hc.HostDenom, unbonding.UnbondAmount.Amount).String()),
+				),
+			)
 		}
 	}
 
@@ -220,6 +234,14 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 
 		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount)
 		k.SetDeposit(ctx, deposit)
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				liquidstakeibctypes.EventTypeValidatorUnbondingMaturedReceived,
+				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeValidatorUnbondingMaturedAmount, sdk.NewCoin(hc.HostDenom, transferAmount).String()),
+			),
+		)
 	}
 
 	// the transfer is part of the autocompounding process
@@ -283,6 +305,16 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		// update the deposit
 		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount.Sub(feeAmount.TruncateInt()))
 		k.SetDeposit(ctx, deposit)
+
+		// emit autocompound received event
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				liquidstakeibctypes.EventAutocompoundRewardsReceived,
+				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeAutocompoundTransfer, sdk.NewCoin(hc.HostDenom, transferAmount).String()),
+				sdk.NewAttribute(liquidstakeibctypes.AttributePstakeAutocompoundFee, sdk.NewCoin(hc.HostDenom, feeAmount.TruncateInt()).String()),
+			),
+		)
 	}
 
 	return nil
@@ -353,11 +385,36 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 				"channel",
 				packet.SourceChannel,
 			)
+
+			// emit events for the deposits received
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventStakingDepositTransferReceived,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+				),
+			)
 		}
 
 		// mark tokenized LSM token delegations as received and add the IBC sequence
 		lsmDeposits := k.GetLSMDepositsFromIbcSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
 		k.UpdateLSMDepositsStateAndSequence(ctx, lsmDeposits, liquidstakeibctypes.LSMDeposit_DEPOSIT_RECEIVED, "")
+
+		// emit events for the lsm deposits received
+		for _, lsmDeposit := range lsmDeposits {
+			hc, found := k.GetHostChain(ctx, lsmDeposit.ChainId)
+			if !found {
+				return fmt.Errorf("host chain with id %s is not registered", lsmDeposit.ChainId)
+			}
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventLSMDepositTransferReceived,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+				),
+			)
+		}
 	}
 
 	return nil
@@ -381,16 +438,44 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 	// just take action when the transfer has been, send from the deposit module account
 	if data.GetSender() == authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String() {
 		// revert the state of the deposits that timed out
-		k.RevertDepositsState(
-			ctx,
-			k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
-		)
+		deposits := k.GetDepositsWithSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
+		k.RevertDepositsState(ctx, deposits)
+
+		// emit events for the deposits that timed out
+		for _, deposit := range deposits {
+			hc, found := k.GetHostChain(ctx, deposit.ChainId)
+			if !found {
+				return fmt.Errorf("host chain with id %s is not registered", deposit.ChainId)
+			}
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventStakingDepositTransferTimeout,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+				),
+			)
+		}
 
 		// revert the state of the LSM deposits that timed out
-		k.RevertLSMDepositsState(
-			ctx,
-			k.GetLSMDepositsFromIbcSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
-		)
+		lsmDeposits := k.GetLSMDepositsFromIbcSequenceID(ctx, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence))
+		k.RevertLSMDepositsState(ctx, lsmDeposits)
+
+		// emit events for the lsm deposits that timed out
+		for _, lsmDeposit := range lsmDeposits {
+			hc, found := k.GetHostChain(ctx, lsmDeposit.ChainId)
+			if !found {
+				return fmt.Errorf("host chain with id %s is not registered", lsmDeposit.ChainId)
+			}
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventLSMDepositTransferTimeout,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, k.GetTransactionSequenceID(packet.SourceChannel, packet.Sequence)),
+				),
+			)
+		}
 	}
 
 	k.Logger(ctx).Info(
@@ -474,6 +559,16 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 		deposit.State = liquidstakeibctypes.Deposit_DEPOSIT_SENT
 		deposit.IbcSequenceId = k.GetTransactionSequenceID(hc.ChannelId, msgTransferResponse.Sequence)
 		k.SetDeposit(ctx, deposit)
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				liquidstakeibctypes.EventTypeDelegationWorkflow,
+				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(deposit.Epoch, 10)),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeTotalEpochDepositAmount, sdk.NewCoin(hc.HostDenom, deposit.Amount.Amount).String()),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, deposit.IbcSequenceId),
+			),
+		)
 	}
 }
 
@@ -545,6 +640,20 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 		unbonding.IbcSequenceId = sequenceID
 		unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_INITIATED
 		k.SetUnbonding(ctx, unbonding)
+
+		// emit the unbonding event
+		encMsgs, _ := json.Marshal(&messages)
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				liquidstakeibctypes.EventTypeUndelegationWorkflow,
+				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(epoch, 10)),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeTotalEpochUnbondingAmount, sdk.NewCoin(hc.HostDenom, unbonding.UnbondAmount.Amount).String()),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeTotalEpochBurnAmount, sdk.NewCoin(hc.HostDenom, unbonding.BurnAmount.Amount).String()),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeICAMessages, base64.StdEncoding.EncodeToString(encMsgs)),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, sequenceID),
+			),
+		)
 	}
 }
 
@@ -619,6 +728,18 @@ func (k *Keeper) ValidatorUndelegationWorkflow(ctx sdk.Context, epoch int64) {
 					"epoch",
 					epoch,
 				)
+
+				// emit the validator unbonding event
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						liquidstakeibctypes.EventTypeValidatorUndelegationWorkflow,
+						sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+						sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(epoch, 10)),
+						sdk.NewAttribute(liquidstakeibctypes.AttributeValidatorAddress, validatorUnbonding.ValidatorAddress),
+						sdk.NewAttribute(liquidstakeibctypes.AttributeValidatorUnbondingAmount, sdk.NewCoin(hc.HostDenom, validatorUnbonding.Amount.Amount).String()),
+						sdk.NewAttribute(liquidstakeibctypes.AttributeIBCSequenceID, sequenceID),
+					),
+				)
 			}
 		}
 	}
@@ -661,6 +782,17 @@ func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
 				)
 				continue
 			}
+
+			// emit the rewards event
+			encMsgs, _ := json.Marshal(&messages)
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventTypeRewardsWorkflow,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(epoch, 10)),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeICAMessages, base64.StdEncoding.EncodeToString(encMsgs)),
+				),
+			)
 		}
 
 		if hc.RewardsAccount != nil &&
@@ -685,6 +817,7 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 		}
 
 		// attempt to transfer all available LSM deposits
+		totalLSMDepositsSharesAmount := math.LegacyZeroDec()
 		for _, deposit := range k.GetTransferableLSMDeposits(ctx, hc.ChainId) {
 			clientState, err := k.GetClientState(ctx, hc.ConnectionId)
 			if err != nil {
@@ -732,6 +865,17 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 				liquidstakeibctypes.LSMDeposit_DEPOSIT_SENT,
 				k.GetTransactionSequenceID(hc.ChannelId, msgTransferResponse.Sequence),
 			)
+
+			totalLSMDepositsSharesAmount = totalLSMDepositsSharesAmount.Add(deposit.Shares)
 		}
+
+		// emit the validator unbonding event
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				liquidstakeibctypes.EventTypeLSMWorkflow,
+				sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(liquidstakeibctypes.AttributeLSMDepositsSharesAmount, totalLSMDepositsSharesAmount.String()),
+			),
+		)
 	}
 }

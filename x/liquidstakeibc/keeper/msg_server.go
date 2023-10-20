@@ -402,10 +402,14 @@ func (k msgServer) LiquidStake(
 	ctx.EventManager().EmitEvents(sdktypes.Events{
 		sdktypes.NewEvent(
 			types.EventTypeLiquidStake,
+			sdktypes.NewAttribute(types.AttributeChainID, hostChain.ChainId),
 			sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegatorAddress.String()),
-			sdktypes.NewAttribute(types.AttributeAmount, depositAmount.String()),
-			sdktypes.NewAttribute(types.AttributeAmountReceived, mintToken.Sub(protocolFee).String()),
-			sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolFee.String()),
+			sdktypes.NewAttribute(types.AttributeInputAmount,
+				sdktypes.NewCoin(hostChain.HostDenom, msg.Amount.Amount).String()),
+			sdktypes.NewAttribute(types.AttributeOutputAmount,
+				sdktypes.NewCoin(hostChain.MintDenom(), mintToken.Sub(protocolFee).Amount).String()),
+			sdktypes.NewAttribute(types.AttributePstakeDepositFee,
+				sdktypes.NewCoin(hostChain.MintDenom(), protocolFee.Amount).String()),
 		),
 		sdktypes.NewEvent(
 			sdktypes.EventTypeMessage,
@@ -532,10 +536,14 @@ func (k msgServer) LiquidStakeLSM(
 		ctx.EventManager().EmitEvents(sdktypes.Events{
 			sdktypes.NewEvent(
 				types.EventTypeLiquidStakeLSM,
+				sdktypes.NewAttribute(types.AttributeChainID, hc.ChainId),
 				sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegator.String()),
-				sdktypes.NewAttribute(types.AttributeAmount, depositAmount.String()),
-				sdktypes.NewAttribute(types.AttributeAmountReceived, mintToken.Sub(protocolFee).String()),
-				sdktypes.NewAttribute(types.AttributePstakeDepositFee, protocolFee.String()),
+				sdktypes.NewAttribute(types.AttributeInputAmount,
+					sdktypes.NewCoin(hc.HostDenom, delegation.Amount).String()),
+				sdktypes.NewAttribute(types.AttributeOutputAmount,
+					sdktypes.NewCoin(hc.MintDenom(), mintToken.Sub(protocolFee).Amount).String()),
+				sdktypes.NewAttribute(types.AttributePstakeDepositFee,
+					sdktypes.NewCoin(hc.MintDenom(), protocolFee.Amount).String()),
 			),
 			sdktypes.NewEvent(
 				sdktypes.EventTypeMessage,
@@ -649,11 +657,15 @@ func (k msgServer) LiquidUnstake(
 	ctx.EventManager().EmitEvents(sdktypes.Events{
 		sdktypes.NewEvent(
 			types.EventTypeLiquidUnstake,
+			sdktypes.NewAttribute(types.AttributeChainID, hc.ChainId),
 			sdktypes.NewAttribute(types.AttributeDelegatorAddress, msg.GetDelegatorAddress()),
-			sdktypes.NewAttribute(types.AttributeAmountReceived, msg.Amount.String()),
-			sdktypes.NewAttribute(types.AttributePstakeUnstakeFee, feeAmount.String()),
-			sdktypes.NewAttribute(types.AttributeUnstakeAmount, unbondAmount.String()),
-			sdktypes.NewAttribute(types.AttributeUnstakeEpoch, strconv.FormatInt(unbondingEpoch, 10)),
+			sdktypes.NewAttribute(types.AttributeInputAmount,
+				sdktypes.NewCoin(hc.MintDenom(), msg.Amount.Amount).String()),
+			sdktypes.NewAttribute(types.AttributeOutputAmount,
+				sdktypes.NewCoin(hc.HostDenom, unbondAmount.Amount).String()),
+			sdktypes.NewAttribute(types.AttributePstakeUnstakeFee,
+				sdktypes.NewCoin(hc.MintDenom(), feeAmount).String()),
+			sdktypes.NewAttribute(types.AttributeEpoch, strconv.FormatInt(unbondingEpoch, 10)),
 		),
 		sdktypes.NewEvent(
 			sdktypes.EventTypeMessage,
@@ -811,10 +823,19 @@ func (k msgServer) Redeem(
 	ctx.EventManager().EmitEvents(sdktypes.Events{
 		sdktypes.NewEvent(
 			types.EventTypeRedeem,
+			sdktypes.NewAttribute(types.AttributeChainID, hc.ChainId),
 			sdktypes.NewAttribute(types.AttributeDelegatorAddress, redeemAddress.String()),
-			sdktypes.NewAttribute(types.AttributeAmount, msg.Amount.String()),
-			sdktypes.NewAttribute(types.AttributeAmountReceived, redeemToken.String()),
-			sdktypes.NewAttribute(types.AttributePstakeRedeemFee, fee.String()),
+			sdktypes.NewAttribute(types.AttributeInputAmount,
+				sdktypes.NewCoin(hc.MintDenom(), msg.Amount.Amount).String()),
+			sdktypes.NewAttribute(types.AttributeOutputAmount,
+				sdktypes.NewCoin(hc.HostDenom, redeemToken.Amount).String()),
+			sdktypes.NewAttribute(types.AttributePstakeRedeemFee,
+				sdktypes.NewCoin(hc.MintDenom(), fee.Amount).String()),
+		),
+		sdktypes.NewEvent(
+			types.EventBurn,
+			sdktypes.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdktypes.NewAttribute(types.AttributeTotalEpochBurnAmount, sdktypes.NewCoin(hc.MintDenom(), stkAmount.Amount).String()),
 		),
 		sdktypes.NewEvent(
 			sdktypes.EventTypeMessage,

@@ -557,33 +557,48 @@ List of the events emitted by the module.
 |:-------------|:-------------------|:--------------------|
 | message      | module             | liquidstakeibc      |
 | message      | sender             | {delegator_address} |
+| liquid-stake | chain-id           | {chain_id}          |
 | liquid-stake | address            | {delegator_address} |
-| liquid-stake | amount             | {staked_amount}     |
-| liquid-stake | received           | {amount_received}   |
+| liquid-stake | input-amount       | {staked_amount}     |
+| liquid-stake | output-amount      | {amount_received}   |
 | liquid-stake | pstake-deposit-fee | {deposit_fee}       |
+
+### LiquidStakeLSM
+
+| Type             | Attribute Key      | Attribute Value     |
+|:-----------------|:-------------------|:--------------------|
+| message          | module             | liquidstakeibc      |
+| message          | sender             | {delegator_address} |
+| liquid-stake-lsm | chain-id           | {chain_id}          |
+| liquid-stake-lsm | address            | {delegator_address} |
+| liquid-stake-lsm | input-amount       | {staked_amount}     |
+| liquid-stake-lsm | output-amount      | {amount_received}   |
+| liquid-stake-lsm | pstake-deposit-fee | {deposit_fee}       |
 
 ### LiquidUnstake
 
-| Type            | Attribute Key       | Attribute Value      |
-|:----------------|:--------------------|:---------------------|
-| message         | module              | liquidstakeibc       |
-| message         | sender              | {delegator_address}  |
-| liquid-unstake  | address             | {delegator_address}  |
-| liquid-unstake  | pstake-unstake-fee  | {unstake_fee}        |
-| liquid-unstake  | received            | {amount_received}    |
-| liquid-unstake  | undelegation-amount | {undelegated_amount} |
-| liquid-unstake  | undelegation-epoch  | {undelegation_epoch} |
+| Type           | Attribute Key      | Attribute Value      |
+|:---------------|:-------------------|:---------------------|
+| message        | module             | liquidstakeibc       |
+| message        | sender             | {delegator_address}  |
+| liquid-unstake | chain-id           | {chain_id}           |
+| liquid-unstake | address            | {delegator_address}  |
+| liquid-unstake | input-amount       | {amount_received}    |
+| liquid-unstake | output-amount      | {undelegated_amount} |
+| liquid-unstake | pstake-unstake-fee | {unstake_fee}        |
+| liquid-unstake | undelegation-epoch | {undelegation_epoch} |
 
 ### Redeem
 
-| Type            | Attribute Key      | Attribute Value     |
-|:----------------|:-------------------|:--------------------|
-| message         | module             | liquidstakeibc      |
-| message         | sender             | {delegator_address} |
-| liquid-unstake  | address            | {delegator_address} |
-| liquid-unstake  | amount             | {redeem_amount}     |
-| liquid-unstake  | received           | {amount_received}   |
-| liquid-unstake  | pstake-redeem-fee  | {redeem_fee}        |
+| Type    | Attribute Key     | Attribute Value     |
+|:--------|:------------------|:--------------------|
+| message | module            | liquidstakeibc      |
+| message | sender            | {delegator_address} |
+| redeem  | chain-id          | {chain_id}          |
+| redeem  | address           | {delegator_address} |
+| redeem  | input-amount      | {redeem_amount}     |
+| redeem  | output-amount     | {amount_received}   |
+| redeem  | pstake-redeem-fee | {redeem_fee}        |
 
 ### UpdateParams
 

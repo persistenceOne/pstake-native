@@ -105,14 +105,16 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 		validator.DelegatedAmount = delegatedAmount.TruncateInt()
 		k.SetHostChainValidator(ctx, hc, validator)
 
-		ctx.EventManager().EmitEvents(sdk.Events{
+		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeSlashing,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
 				sdk.NewAttribute(types.AttributeValidatorAddress, validator.OperatorAddress),
 				sdk.NewAttribute(types.AttributeExistingDelegation, validator.DelegatedAmount.String()),
 				sdk.NewAttribute(types.AttributeUpdatedDelegation, delegatedAmount.String()),
 				sdk.NewAttribute(types.AttributeSlashedAmount, slashedAmount.String()),
-			)})
+			),
+		)
 	}
 
 	return nil
@@ -171,6 +173,15 @@ func RewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, data []byte, query
 		if err != nil {
 			return fmt.Errorf("could not send ICA rewards transfer: %w", err)
 		}
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeRewardsTransfer,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(types.AttributeRewardsTransferAmount, sdk.NewCoin(hc.HostDenom, autocompoundRewards.Amount).String()),
+				sdk.NewAttribute(types.AttributeRewardsBalanceAmount, sdk.NewCoin(hc.HostDenom, hc.RewardsAccount.Balance.Amount.Sub(autocompoundRewards.Amount)).String()),
+			),
+		)
 	}
 
 	k.SetHostChain(ctx, hc)
