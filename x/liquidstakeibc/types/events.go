@@ -14,6 +14,7 @@ const (
 	EventTypeValidatorExchangeRateUpdate           = "validator_exchange_rate_update"
 	EventTypeValidatorDelegableStateUpdate         = "validator_delegable_state_update"
 	EventTypeDoDelegation                          = "send_delegation"
+	EventTypeDoDelegationDeposit                   = "send_individual_delegation"
 	EventTypeClaimedUnbondings                     = "claimed_unbondings"
 	EventTypeRedeemTokensForShares                 = "redeem_lsm_tokens_shares" //nolint:gosec
 	EventTypeCValueUpdate                          = "c_value_update"

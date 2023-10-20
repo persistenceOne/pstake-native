@@ -85,13 +85,21 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 	}
 
 	// if everything went well, update the deposit states and set the sequence id
-	lastEpoch := int64(0) // highest epoch among deposits, used for event emission
 	for _, deposit := range deposits {
 		deposit.IbcSequenceId = sequenceID
 		deposit.State = types.Deposit_DEPOSIT_DELEGATING
 		k.SetDeposit(ctx, deposit)
 
-		lastEpoch = deposit.Epoch
+		// emit the delegation event for every deposit
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeDoDelegationDeposit,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(types.AttributeEpoch, strconv.FormatInt(deposit.Epoch, 10)),
+				sdk.NewAttribute(types.AttributeDelegatedAmount, sdk.NewCoin(hc.HostDenom, deposit.Amount.Amount).String()),
+				sdk.NewAttribute(types.AttributeIBCSequenceID, sequenceID),
+			),
+		)
 	}
 
 	// emit the delegation event
@@ -100,10 +108,8 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 		sdk.NewEvent(
 			types.EventTypeDoDelegation,
 			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
-			sdk.NewAttribute(types.AttributeEpoch, strconv.FormatInt(lastEpoch, 10)),
 			sdk.NewAttribute(types.AttributeTotalDelegatedAmount, sdk.NewCoin(hc.HostDenom, totalDepositDelegation).String()),
 			sdk.NewAttribute(types.AttributeICAMessages, base64.StdEncoding.EncodeToString(encMsgs)),
-			sdk.NewAttribute(types.AttributeIBCSequenceID, sequenceID),
 		),
 	)
 }
