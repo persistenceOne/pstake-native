@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/migrations/stkosmo"
 	v2 "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/migrations/v2"
 )
 
@@ -19,4 +20,9 @@ func NewMigrator(keeper Keeper) Migrator {
 // Migrate1to2 migrates from version 1 to 2.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	return v2.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc)
+}
+
+// Migrate2toStkOSMO migrates from version 1 to stkOSMO fix.
+func (m Migrator) Migrate2toStkOSMO(ctx sdk.Context) error {
+	return stkosmo.MigrateStore(ctx, m.keeper.storeKey, m.keeper.bankKeeper)
 }

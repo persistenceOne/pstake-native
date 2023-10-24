@@ -128,6 +128,7 @@ import (
 	pstakeappparams "github.com/persistenceOne/pstake-native/v2/app/params"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc"
 	liquidstakeibckeeper "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
+	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/migrations/stkosmo"
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos"
 	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
@@ -997,4 +998,18 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 	}
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		StkOSMOUpgradeName,
+		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			ctx.Logger().Info("running 2.3.0-stkosmo upgrade handler")
+
+			err = stkosmo.MigrateStore(ctx, sdk.NewKVStoreKey(liquidstakeibctypes.StoreKey), app.BankKeeper)
+			if err != nil {
+				return nil, err
+			}
+
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		},
+	)
 }
