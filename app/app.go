@@ -1002,9 +1002,14 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		StkOSMOUpgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			ctx.Logger().Info("running 2.3.0-stkosmo upgrade handler")
+			ctx.Logger().Info("running 2.5.0-stkosmo upgrade handler")
 
-			err = stkosmo.MigrateStore(ctx, sdk.NewKVStoreKey(liquidstakeibctypes.StoreKey), app.BankKeeper)
+			err = stkosmo.MigrateStore(
+				ctx,
+				sdk.NewKVStoreKey(liquidstakeibctypes.StoreKey),
+				app.appCodec,
+				app.BankKeeper,
+			)
 			if err != nil {
 				return nil, err
 			}
