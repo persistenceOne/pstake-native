@@ -1006,7 +1006,7 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 
 			err = stkosmo.MigrateStore(
 				ctx,
-				sdk.NewKVStoreKey(liquidstakeibctypes.StoreKey),
+				app.keys[liquidstakeibctypes.StoreKey],
 				app.appCodec,
 				app.BankKeeper,
 			)
