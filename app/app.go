@@ -27,6 +27,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -128,7 +129,6 @@ import (
 	pstakeappparams "github.com/persistenceOne/pstake-native/v2/app/params"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc"
 	liquidstakeibckeeper "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/migrations/stkosmo"
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos"
 	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
@@ -1004,15 +1004,111 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			ctx.Logger().Info("running 2.5.0-stkosmo upgrade handler")
 
-			err = stkosmo.MigrateStore(
+			const HostChainID = "osmo-test-5"
+			const HostChainMintDenom = "stk/uosmo"
+
+			// Burn all coins on other addresses.
+			app.BankKeeper.IterateAllBalances(
 				ctx,
-				app.keys[liquidstakeibctypes.StoreKey],
-				app.appCodec,
-				app.BankKeeper,
+				func(address sdk.AccAddress, coin sdk.Coin) (stop bool) {
+
+					if coin.Denom == HostChainMintDenom {
+						// Send the whole address balance to the module account.
+						if err := app.BankKeeper.SendCoinsFromAccountToModule(
+							ctx, address,
+							liquidstakeibctypes.ModuleName,
+							sdk.NewCoins(coin),
+						); err != nil {
+							return false
+						}
+					}
+
+					return false
+				},
 			)
-			if err != nil {
+
+			// Burn all the coins present in the module account.
+			if err = app.BankKeeper.BurnCoins(
+				ctx,
+				liquidstakeibctypes.ModuleName,
+				sdk.NewCoins(app.BankKeeper.GetBalance(ctx, authtypes.NewModuleAddress(liquidstakeibctypes.ModuleName), HostChainMintDenom)),
+			); err != nil {
 				return nil, err
 			}
+
+			// Remove the associated deposits from the store.
+			mStore := prefix.NewStore(ctx.KVStore(app.keys[liquidstakeibctypes.StoreKey]), liquidstakeibctypes.DepositKey)
+			iterator := sdk.KVStorePrefixIterator(mStore, nil)
+			defer iterator.Close()
+
+			for ; iterator.Valid(); iterator.Next() {
+				deposit := liquidstakeibctypes.Deposit{}
+				app.appCodec.MustUnmarshal(iterator.Value(), &deposit)
+
+				if deposit.ChainId == HostChainID {
+					mStore.Delete(liquidstakeibctypes.GetDepositStoreKey(deposit.ChainId, deposit.Epoch))
+				}
+			}
+
+			// Remove the associated LSM deposits from the store.
+			mStore = prefix.NewStore(ctx.KVStore(app.keys[liquidstakeibctypes.StoreKey]), liquidstakeibctypes.LSMDepositKey)
+			iterator = sdk.KVStorePrefixIterator(mStore, nil)
+			defer iterator.Close()
+
+			for ; iterator.Valid(); iterator.Next() {
+				deposit := liquidstakeibctypes.LSMDeposit{}
+				app.appCodec.MustUnmarshal(iterator.Value(), &deposit)
+
+				if deposit.ChainId == HostChainID {
+					mStore.Delete(liquidstakeibctypes.GetLSMDepositStoreKey(deposit.ChainId, deposit.DelegatorAddress, deposit.Denom))
+				}
+			}
+
+			// Remove the associated unbondings from the store.
+			mStore = prefix.NewStore(ctx.KVStore(app.keys[liquidstakeibctypes.StoreKey]), liquidstakeibctypes.UnbondingKey)
+			iterator = sdk.KVStorePrefixIterator(mStore, nil)
+			defer iterator.Close()
+
+			for ; iterator.Valid(); iterator.Next() {
+				ub := liquidstakeibctypes.Unbonding{}
+				app.appCodec.MustUnmarshal(iterator.Value(), &ub)
+
+				if ub.ChainId == HostChainID {
+					mStore.Delete(liquidstakeibctypes.GetUnbondingStoreKey(ub.ChainId, ub.EpochNumber))
+				}
+			}
+
+			// Remove the associated user unbondings from the store.
+			mStore = prefix.NewStore(ctx.KVStore(app.keys[liquidstakeibctypes.StoreKey]), liquidstakeibctypes.UserUnbondingKey)
+			iterator = sdk.KVStorePrefixIterator(mStore, nil)
+			defer iterator.Close()
+
+			for ; iterator.Valid(); iterator.Next() {
+				ub := liquidstakeibctypes.UserUnbonding{}
+				app.appCodec.MustUnmarshal(iterator.Value(), &ub)
+
+				if ub.ChainId == HostChainID {
+					mStore.Delete(liquidstakeibctypes.GetUserUnbondingStoreKey(ub.ChainId, ub.Address, ub.EpochNumber))
+				}
+			}
+
+			// Remove the associated validator unbondings from the store.
+			mStore = prefix.NewStore(ctx.KVStore(app.keys[liquidstakeibctypes.StoreKey]), liquidstakeibctypes.ValidatorUnbondingKey)
+			iterator = sdk.KVStorePrefixIterator(mStore, nil)
+			defer iterator.Close()
+
+			for ; iterator.Valid(); iterator.Next() {
+				ub := liquidstakeibctypes.ValidatorUnbonding{}
+				app.appCodec.MustUnmarshal(iterator.Value(), &ub)
+
+				if ub.ChainId == HostChainID {
+					mStore.Delete(liquidstakeibctypes.GetValidatorUnbondingStoreKey(ub.ChainId, ub.ValidatorAddress, ub.EpochNumber))
+				}
+			}
+
+			// Remove the host chain from the store.
+			lsStore := prefix.NewStore(ctx.KVStore(app.keys[liquidstakeibctypes.StoreKey]), liquidstakeibctypes.HostChainKey)
+			lsStore.Delete([]byte(HostChainID))
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
