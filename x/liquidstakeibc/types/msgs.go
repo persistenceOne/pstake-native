@@ -308,7 +308,7 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 				return err
 			}
 			if entries <= 0 {
-				return fmt.Errorf("Max entries undelegation/redelegation cannot be zero or lesser, found %v", entries)
+				return fmt.Errorf("max entries undelegation/redelegation cannot be zero or lesser, found %v", entries)
 			}
 		case KeyRedelegationAcceptableDelta:
 			redelegationAcceptableDelta, ok := sdk.NewIntFromString(update.Value)
@@ -316,7 +316,7 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 				return fmt.Errorf("unable to parse redeleagtion acceptable delta string %v to sdk.Int", update.Value)
 			}
 			if redelegationAcceptableDelta.LTE(math.ZeroInt()) {
-				return fmt.Errorf("Acceptable skew in validator delegations cannot be less that equal to zero, found %v", redelegationAcceptableDelta.String())
+				return fmt.Errorf("acceptable skew in validator delegations cannot be less that equal to zero, found %v", redelegationAcceptableDelta.String())
 			}
 		case KeyMinimumDeposit:
 			minimumDeposit, ok := sdk.NewIntFromString(update.Value)
