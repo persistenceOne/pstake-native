@@ -13,7 +13,8 @@ const (
 	RouterKey = ModuleName
 
 	// StoreKey is the default store key for the liquidstake module
-	StoreKey = ModuleName
+	// To avoid collision with liquidstakeibc we make it xprtliquidstake
+	StoreKey = "xprt" + ModuleName
 
 	// QuerierRoute is the querier route for the liquidstake module
 	QuerierRoute = ModuleName

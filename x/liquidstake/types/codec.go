@@ -12,6 +12,7 @@ import (
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgLiquidStake{}, "liquidstake/MsgLiquidStake", nil)
 	cdc.RegisterConcrete(&MsgLiquidUnstake{}, "liquidstake/MsgLiquidUnstake", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "liquidstake/MsgUpdateParams", nil)
 }
 
 // RegisterInterfaces registers the x/liquidstake interfaces types with the interface registry.
@@ -20,6 +21,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		(*sdk.Msg)(nil),
 		&MsgLiquidStake{},
 		&MsgLiquidUnstake{},
+		&MsgUpdateParams{},
 	)
 }
 
