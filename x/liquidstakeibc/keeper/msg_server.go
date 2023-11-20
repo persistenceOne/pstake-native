@@ -231,6 +231,18 @@ func (k msgServer) UpdateHostChain(
 			}
 			//factor limits validated in msg.ValidateBasic()
 			hc.Params.LsmBondFactor = bondFactor
+		case types.KeyMaxEntries:
+			entries, err := strconv.ParseUint(update.Value, 10, 32)
+			if err != nil {
+				return nil, err
+			}
+			hc.Params.MaxEntries = uint32(entries)
+		case types.KeyRedelegationAcceptableDelta:
+			redelegationAcceptableDelta, ok := sdktypes.NewIntFromString(update.Value)
+			if !ok {
+				return nil, fmt.Errorf("unable to parse redeleagtion acceptable delta string %v to sdk.Int", update.Value)
+			}
+			hc.Params.RedelegationAcceptableDelta = redelegationAcceptableDelta
 		case types.KeyMinimumDeposit:
 			minimumDeposit, ok := sdktypes.NewIntFromString(update.Value)
 			if !ok {

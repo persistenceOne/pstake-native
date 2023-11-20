@@ -366,3 +366,91 @@ func (k *Keeper) HandleMsgRedeemTokensForShares(
 
 	return nil
 }
+
+func (k *Keeper) HandleMsgBeginRedelegate(
+	ctx sdk.Context,
+	msg sdk.Msg,
+	resp stakingtypes.MsgBeginRedelegateResponse,
+	channel string,
+	sequence uint64,
+) error {
+	parsedMsg, ok := msg.(*stakingtypes.MsgBeginRedelegate)
+	if !ok {
+		return errorsmod.Wrapf(
+			sdkerrors.ErrInvalidType,
+			"unable to cast msg of type %s to MsgRedeemTokensForShares",
+			sdk.MsgTypeURL(msg),
+		)
+	}
+	hc, found := k.GetHostChainFromHostDenom(ctx, parsedMsg.Amount.Denom)
+	if !found {
+		return errorsmod.Wrapf(
+			types.ErrInvalidHostChain,
+			"host chain with host denom %s not registered",
+			parsedMsg.Amount.Denom,
+		)
+	}
+	// remove LSM deposits for this sequence (if any)
+	tx, ok := k.GetRedelegationTx(ctx, hc.ChainId, k.GetTransactionSequenceID(channel, sequence))
+	if !ok {
+		k.Logger(ctx).Error("Unidentified ica tx acked")
+		return nil
+	}
+	tx.State = types.RedelegateTx_REDELEGATE_ACKED
+	k.SetRedelegationTx(ctx, tx)
+
+	// add dst validator tokens
+	toValidator, found := hc.GetValidator(parsedMsg.ValidatorDstAddress)
+	if !found {
+		return errorsmod.Wrapf(
+			types.ErrValidatorNotFound,
+			"validator with operator address %s not found",
+			parsedMsg.ValidatorDstAddress,
+		)
+	}
+
+	toValidator.DelegatedAmount = toValidator.DelegatedAmount.Add(parsedMsg.Amount.Amount)
+	k.SetHostChainValidator(ctx, hc, toValidator)
+
+	// remove src validator tokens
+	fromValidator, found := hc.GetValidator(parsedMsg.ValidatorSrcAddress)
+	if !found {
+		return errorsmod.Wrapf(
+			types.ErrValidatorNotFound,
+			"validator with operator address %s not found",
+			parsedMsg.ValidatorSrcAddress,
+		)
+	}
+
+	fromValidator.DelegatedAmount = fromValidator.DelegatedAmount.Add(parsedMsg.Amount.Amount)
+	k.SetHostChainValidator(ctx, hc, fromValidator)
+
+	// add redelegation entry.
+	k.AddRedelegationEntry(ctx, hc.ChainId, *parsedMsg, resp)
+
+	// emit an event for the redelegation confirmation
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventSuccessfulRedelegation,
+			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdk.NewAttribute(types.AttributeDelegatorAddress, parsedMsg.DelegatorAddress),
+			sdk.NewAttribute(types.AttributeValidatorSrcAddress, parsedMsg.ValidatorSrcAddress),
+			sdk.NewAttribute(types.AttributeValidatorDstAddress, parsedMsg.ValidatorDstAddress),
+			sdk.NewAttribute(types.AttributeRedelegatedAmount, sdk.NewCoin(hc.HostDenom, parsedMsg.Amount.Amount).String()),
+			sdk.NewAttribute(types.AttributeIBCSequenceID, k.GetTransactionSequenceID(channel, sequence)),
+		),
+	)
+	k.Logger(ctx).Info(
+		"Received redelegate tx acknowledgement",
+		"delegator",
+		parsedMsg.DelegatorAddress,
+		"from-validator",
+		parsedMsg.ValidatorSrcAddress,
+		"to-validator",
+		parsedMsg.ValidatorDstAddress,
+		"amount",
+		parsedMsg.Amount.String(),
+	)
+
+	return nil
+}

@@ -417,6 +417,44 @@ func (k *Keeper) handleUnsuccessfulAck(
 					sdk.NewAttribute(types.AttributeIBCSequenceID, k.GetTransactionSequenceID(channel, sequence)),
 				),
 			)
+
+		case sdk.MsgTypeURL(&stakingtypes.MsgBeginRedelegate{}):
+			parsedMsg, ok := msg.(*stakingtypes.MsgBeginRedelegate)
+			if !ok {
+				return errorsmod.Wrapf(
+					sdkerrors.ErrInvalidType,
+					"unable to cast msg of type %s to MsgRedeemTokensForShares",
+					sdk.MsgTypeURL(msg),
+				)
+			}
+			hc, found := k.GetHostChainFromHostDenom(ctx, parsedMsg.Amount.Denom)
+			if !found {
+				return errorsmod.Wrapf(
+					types.ErrInvalidHostChain,
+					"host chain with host denom %s not registered",
+					parsedMsg.Amount.Denom,
+				)
+			}
+			// remove LSM deposits for this sequence (if any)
+			tx, ok := k.GetRedelegationTx(ctx, hc.ChainId, k.GetTransactionSequenceID(channel, sequence))
+			if !ok {
+				k.Logger(ctx).Error("Unidentified ica tx acked")
+				return nil
+			}
+			tx.State = types.RedelegateTx_REDELEGATE_ACKED
+			k.SetRedelegationTx(ctx, tx)
+			// emit an event for the redelegate error
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventUnsuccessfulRedelegate,
+					sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(types.AttributeDelegatorAddress, parsedMsg.DelegatorAddress),
+					sdk.NewAttribute(types.AttributeValidatorSrcAddress, parsedMsg.ValidatorSrcAddress),
+					sdk.NewAttribute(types.AttributeValidatorDstAddress, parsedMsg.ValidatorDstAddress),
+					sdk.NewAttribute(types.AttributeRedelegatedAmount, sdk.NewCoin(hc.HostDenom, parsedMsg.Amount.Amount).String()),
+					sdk.NewAttribute(types.AttributeIBCSequenceID, k.GetTransactionSequenceID(channel, sequence)),
+				),
+			)
 		}
 	}
 
@@ -503,6 +541,25 @@ func (k *Keeper) handleSuccessfulAck(
 			if err = k.HandleMsgRedeemTokensForShares(ctx, msg, msgResponse, channel, sequence); err != nil {
 				return err
 			}
+
+		case sdk.MsgTypeURL(&stakingtypes.MsgBeginRedelegate{}):
+			var data []byte
+			if len(txMsgData.Data) == 0 {
+				data = txMsgData.GetMsgResponses()[i].Value
+			} else {
+				data = txMsgData.Data[i].Data
+			}
+			var msgResponse stakingtypes.MsgBeginRedelegateResponse
+			if err := k.cdc.Unmarshal(data, &msgResponse); err != nil {
+				return errorsmod.Wrapf(
+					sdkerrors.ErrJSONUnmarshal, "cannot unmarshal redelegate response message: %s",
+					err.Error(),
+				)
+			}
+			if err = k.HandleMsgBeginRedelegate(ctx, msg, msgResponse, channel, sequence); err != nil {
+				return err
+			}
+
 		}
 	}
 

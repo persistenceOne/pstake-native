@@ -54,21 +54,23 @@ const (
 
 // Consts for KV updates, update host chain
 const (
-	KeyAddValidator       string = "add_validator"
-	KeyRemoveValidator    string = "remove_validator"
-	KeyValidatorUpdate    string = "validator_update"
-	KeyValidatorWeight    string = "validator_weight"
-	KeyDepositFee         string = "deposit_fee"
-	KeyRestakeFee         string = "restake_fee"
-	KeyUnstakeFee         string = "unstake_fee"
-	KeyRedemptionFee      string = "redemption_fee"
-	KeyLSMValidatorCap    string = "lsm_validator_cap"
-	KeyLSMBondFactor      string = "lsm_bond_factor"
-	KeyMinimumDeposit     string = "min_deposit"
-	KeyActive             string = "active"
-	KeySetWithdrawAddress string = "set_withdraw_address"
-	KeyAutocompoundFactor string = "autocompound_factor"
-	KeyFlags              string = "flags"
+	KeyAddValidator                string = "add_validator"
+	KeyRemoveValidator             string = "remove_validator"
+	KeyValidatorUpdate             string = "validator_update"
+	KeyValidatorWeight             string = "validator_weight"
+	KeyDepositFee                  string = "deposit_fee"
+	KeyRestakeFee                  string = "restake_fee"
+	KeyUnstakeFee                  string = "unstake_fee"
+	KeyRedemptionFee               string = "redemption_fee"
+	KeyLSMValidatorCap             string = "lsm_validator_cap"
+	KeyLSMBondFactor               string = "lsm_bond_factor"
+	KeyMaxEntries                  string = "max_entries"
+	KeyRedelegationAcceptableDelta string = "redelegation_acceptable_delta"
+	KeyMinimumDeposit              string = "min_deposit"
+	KeyActive                      string = "active"
+	KeySetWithdrawAddress          string = "set_withdraw_address"
+	KeyAutocompoundFactor          string = "autocompound_factor"
+	KeyFlags                       string = "flags"
 )
 
 var (
@@ -79,6 +81,8 @@ var (
 	ValidatorUnbondingKey = []byte{0x05}
 	ParamsKey             = []byte{0x06}
 	LSMDepositKey         = []byte{0x07}
+	RedelegationsKey      = []byte{0x08}
+	RedelegationTxKey     = []byte{0x09}
 )
 
 func GetUnbondingStoreKey(chainID string, epochNumber int64) []byte {
@@ -99,4 +103,12 @@ func GetDepositStoreKey(chainID string, epochNumber int64) []byte {
 
 func GetLSMDepositStoreKey(chainID, delegatorAddress, denom string) []byte {
 	return append(append([]byte(chainID), []byte(delegatorAddress)...), []byte(denom)...)
+}
+
+func GetRedelegationsStoreKey(chainID string) []byte {
+	return []byte(chainID)
+}
+
+func GetRedelegationTxStoreKey(chainID string, ibcSequenceID string) []byte {
+	return append([]byte(chainID), []byte(ibcSequenceID)...)
 }
