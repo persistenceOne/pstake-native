@@ -24,10 +24,11 @@ const (
 	UndelegationModuleAccount = ModuleName + "_undelegation_account"
 
 	// Epoch identifiers
-	DelegationEpoch        = "day"
-	UndelegationEpoch      = "day"
-	RewardsEpochIdentifier = "day"
-	CValueEpoch            = "hour"
+	DelegationEpoch            = "day"
+	UndelegationEpoch          = "day"
+	RewardsEpochIdentifier     = "day"
+	RedelegationEpochIdentifer = "day"
+	CValueEpoch                = "hour"
 
 	// ICA types
 	DelegateICAType = "delegate"

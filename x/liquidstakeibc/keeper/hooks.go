@@ -116,6 +116,10 @@ func (k *Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNum
 		k.RewardsWorkflow(ctx, epochNumber)
 	}
 
+	if epochIdentifier == liquidstakeibctypes.RedelegationEpochIdentifer {
+		k.Rebalance(ctx)
+	}
+
 	return nil
 }
 
