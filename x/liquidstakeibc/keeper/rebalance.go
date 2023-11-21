@@ -18,10 +18,16 @@ type delegation struct {
 	validatorDetails types.Validator
 }
 
-func (k Keeper) Rebalance(ctx sdk.Context) []proto.Message {
+func (k Keeper) Rebalance(ctx sdk.Context, epoch int64) []proto.Message {
 
 	hcs := k.GetAllHostChains(ctx)
 	for _, hc := range hcs {
+		// skip unbonding epoch, as we do not want to redelegate tokens that might be going through unbond txn in same epoch.
+		// nothing bad will happen even if we do as long as unbonding txns are triggered before redelegations.
+		if !types.IsUnbondingEpoch(hc.UnbondingFactor, epoch) {
+			k.Logger(ctx).Info("redelegation epoch co-incides with unbonding epoch, skipping it")
+			continue
+		}
 		var AcceptableDelta = hc.Params.RedelegationAcceptableDelta
 		var MaxRedelegationEntries = hc.Params.MaxEntries
 		sum := math.ZeroInt()

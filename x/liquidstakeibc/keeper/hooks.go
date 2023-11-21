@@ -117,7 +117,7 @@ func (k *Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNum
 	}
 
 	if epochIdentifier == liquidstakeibctypes.RedelegationEpochIdentifer {
-		k.Rebalance(ctx)
+		k.Rebalance(ctx, epochNumber)
 	}
 
 	return nil
