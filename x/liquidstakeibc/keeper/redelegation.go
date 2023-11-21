@@ -28,11 +28,6 @@ func (k *Keeper) GetRedelegations(ctx sdk.Context, chainID string) (*types.Redel
 	return &redelegations, true
 }
 
-func (k *Keeper) DeleteRedelegations(ctx sdk.Context, chainID string) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.RedelegationsKey)
-	store.Delete(types.GetRedelegationsStoreKey(chainID))
-}
-
 func (k *Keeper) AddRedelegationEntry(ctx sdk.Context, chainID string, redelegationMsg stakingtypes.MsgBeginRedelegate, response stakingtypes.MsgBeginRedelegateResponse) {
 	redelegations, ok := k.GetRedelegations(ctx, chainID)
 	if !ok {
