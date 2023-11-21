@@ -390,10 +390,10 @@ func (k *Keeper) HandleMsgBeginRedelegate(
 			parsedMsg.Amount.Denom,
 		)
 	}
-	// remove LSM deposits for this sequence (if any)
+	// remove redebelgation tx for this sequence (if any)
 	tx, ok := k.GetRedelegationTx(ctx, hc.ChainId, k.GetTransactionSequenceID(channel, sequence))
 	if !ok {
-		k.Logger(ctx).Error("Unidentified ica tx acked")
+		k.Logger(ctx).Error("unidentified ica tx acked")
 		return nil
 	}
 	tx.State = types.RedelegateTx_REDELEGATE_ACKED

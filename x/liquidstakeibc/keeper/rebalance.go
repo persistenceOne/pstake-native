@@ -54,7 +54,7 @@ func (k Keeper) Rebalance(ctx sdk.Context, epoch int64) []proto.Message {
 				})
 
 		}
-		// postive diffs first, so descending
+		// negative diffs first, so descending
 		idealDelegationList = k.SortDelegationListAsc(idealDelegationList)
 		revIdealList := idealDelegationList
 		// positive diffs first (descending)
