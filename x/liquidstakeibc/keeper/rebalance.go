@@ -56,7 +56,7 @@ func (k Keeper) Rebalance(ctx sdk.Context, epoch int64) []proto.Message {
 
 		}
 		// negative diffs first, so descending
-		idealDelegationList = k.SortDelegationListAsc(idealDelegationList)
+		idealDelegationList = sortDelegationListAsc(idealDelegationList)
 		revIdealList := idealDelegationList
 		// positive diffs first (descending)
 		Reverse(revIdealList)
@@ -64,15 +64,15 @@ func (k Keeper) Rebalance(ctx sdk.Context, epoch int64) []proto.Message {
 
 		var msgs []proto.Message
 	L1:
-		for i, _ := range revIdealList {
+		for i := range revIdealList {
 			if revIdealList[i].diff.LT(AcceptableDelta) {
 				break L1
 			}
 			if !k.RedelegationExistsToValidator(redelegations.Redelegations, revIdealList[i].validator) {
 				//re-sort idealDelegationAsc
-				idealDelegationList = k.SortDelegationListAsc(idealDelegationList)
+				idealDelegationList = sortDelegationListAsc(idealDelegationList)
 			L2:
-				for j, _ := range idealDelegationList {
+				for j := range idealDelegationList {
 					if revIdealList[i].validator == idealDelegationList[j].validator {
 						break L1
 					}
@@ -134,23 +134,21 @@ func (k Keeper) RedelegationFromAToB(redelegations []*stakingtypes.Redelegation,
 	return false, 0
 }
 
-func (k Keeper) SortDelegationListAsc(idealDelegationList []delegation) []delegation {
+func sortDelegationListAsc(idealDelegationList []delegation) []delegation {
 	sort.SliceStable(idealDelegationList, func(i, j int) bool {
-		if idealDelegationList[i].diff.LT(idealDelegationList[j].diff) {
+		switch {
+		case idealDelegationList[i].diff.LT(idealDelegationList[j].diff):
 			return true
-		} else if idealDelegationList[i].diff.GT(idealDelegationList[j].diff) {
+		case idealDelegationList[i].diff.GT(idealDelegationList[j].diff):
 			return false
-		} else {
-			if idealDelegationList[i].validator < idealDelegationList[j].validator {
-				return true
-			} else {
-				return false
-			}
+		default:
+			return idealDelegationList[i].validator < idealDelegationList[j].validator
 		}
 	})
 	return idealDelegationList
 }
 
+// remove when go updates to 1.21, and use slices package.
 // Reverse reverses the elements of the slice in place.
 func Reverse[S ~[]E, E any](s S) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {

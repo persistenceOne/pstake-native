@@ -375,9 +375,9 @@ func (k *Keeper) DoDeleteMaturedRedelegation(ctx sdk.Context, hc *types.HostChai
 		// no redelegations, return early
 		return
 	}
-	for i, _ := range redelegations.Redelegations {
+	for i := range redelegations.Redelegations {
 		var entries []stakingtypes.RedelegationEntry
-		for j, _ := range redelegations.Redelegations[i].Entries {
+		for j := range redelegations.Redelegations[i].Entries {
 			if !redelegations.Redelegations[i].Entries[j].IsMature(ctx.BlockTime()) {
 				entries = append(entries, redelegations.Redelegations[i].Entries[j])
 			}
