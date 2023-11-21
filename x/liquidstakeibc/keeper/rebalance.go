@@ -1,13 +1,14 @@
 package keeper
 
 import (
+	"sort"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
+
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	"slices"
-	"sort"
 )
 
 type delegation struct {
@@ -58,7 +59,7 @@ func (k Keeper) Rebalance(ctx sdk.Context, epoch int64) []proto.Message {
 		idealDelegationList = k.SortDelegationListAsc(idealDelegationList)
 		revIdealList := idealDelegationList
 		// positive diffs first (descending)
-		slices.Reverse(revIdealList)
+		Reverse(revIdealList)
 		redelegations, _ := k.GetRedelegations(ctx, hc.ChainId)
 
 		var msgs []proto.Message
@@ -148,4 +149,11 @@ func (k Keeper) SortDelegationListAsc(idealDelegationList []delegation) []delega
 		}
 	})
 	return idealDelegationList
+}
+
+// Reverse reverses the elements of the slice in place.
+func Reverse[S ~[]E, E any](s S) {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
 }
