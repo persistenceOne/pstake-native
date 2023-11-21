@@ -60,7 +60,13 @@ func (k Keeper) Rebalance(ctx sdk.Context, epoch int64) []proto.Message {
 		revIdealList := idealDelegationList
 		// positive diffs first (descending)
 		Reverse(revIdealList)
-		redelegations, _ := k.GetRedelegations(ctx, hc.ChainId)
+		redelegations, ok := k.GetRedelegations(ctx, hc.ChainId)
+		if !ok {
+			redelegations = &types.Redelegations{
+				ChainID:       hc.ChainId,
+				Redelegations: []*stakingtypes.Redelegation{},
+			}
+		}
 
 		var msgs []proto.Message
 	L1:
