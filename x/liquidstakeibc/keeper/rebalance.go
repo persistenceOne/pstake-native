@@ -64,14 +64,13 @@ func (k Keeper) GenerateRedelegateMsgs(ctx sdk.Context, hc types.HostChain) []pr
 			idealAmt = sum.Sub(sum2)
 		}
 		sum2 = sum2.Add(idealAmt)
-		idealDelegationList = append(idealDelegationList,
-			delegation{
-				validator:        validator.OperatorAddress,
-				ideal:            idealAmt,
-				delegation:       validator.DelegatedAmount,
-				diff:             validator.DelegatedAmount.Sub(idealAmt),
-				validatorDetails: *validator,
-			})
+		idealDelegationList[i] = delegation{
+			validator:        validator.OperatorAddress,
+			ideal:            idealAmt,
+			delegation:       validator.DelegatedAmount,
+			diff:             validator.DelegatedAmount.Sub(idealAmt),
+			validatorDetails: *validator,
+		}
 	}
 	// negative diffs first, so ascending
 	idealDelegationList = sortDelegationListAsc(idealDelegationList)
