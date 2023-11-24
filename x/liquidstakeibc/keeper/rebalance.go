@@ -55,7 +55,7 @@ func (k Keeper) GenerateRedelegateMsgs(ctx sdk.Context, hc types.HostChain) []pr
 		sum = sum.Add(validator.DelegatedAmount)
 	}
 
-	var idealDelegationList []delegation
+	idealDelegationList := make([]delegation, len(hc.Validators))
 	sum2 := math.ZeroInt()
 	for i, validator := range hc.Validators {
 		idealAmt := validator.Weight.MulInt(sum).TruncateInt()
@@ -72,7 +72,6 @@ func (k Keeper) GenerateRedelegateMsgs(ctx sdk.Context, hc types.HostChain) []pr
 				diff:             validator.DelegatedAmount.Sub(idealAmt),
 				validatorDetails: *validator,
 			})
-
 	}
 	// negative diffs first, so ascending
 	idealDelegationList = sortDelegationListAsc(idealDelegationList)
