@@ -73,8 +73,8 @@ func (suite *IntegrationTestSuite) TestKeeper_Rebalance() {
 			if got := k.GenerateRedelegateMsgs(suite.ctx, *hc); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GenerateRedelegateMsgs() = %v, want %v", got, tt.want)
 			}
-			suite.NotPanics(func() { k.Rebalance(suite.ctx, hc.UnbondingFactor) })
-			suite.NotPanics(func() { k.Rebalance(suite.ctx, hc.UnbondingFactor+1) })
+			suite.NotPanics(func() { k.RebalanceWorkflow(suite.ctx, hc.UnbondingFactor) })
+			suite.NotPanics(func() { k.RebalanceWorkflow(suite.ctx, hc.UnbondingFactor+1) })
 		})
 	}
 }
