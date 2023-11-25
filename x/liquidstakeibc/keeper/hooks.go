@@ -910,5 +910,4 @@ func (k Keeper) RebalanceWorkflow(ctx sdk.Context, epoch int64) {
 			})
 		}
 	}
-	return
 }
