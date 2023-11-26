@@ -32,6 +32,7 @@ var (
 	_ sdk.Msg = &MsgLiquidStake{}
 	_ sdk.Msg = &MsgLiquidUnstake{}
 	_ sdk.Msg = &MsgRedeem{}
+	_ sdk.Msg = &MsgLiquidStakeLSM{}
 )
 
 func NewMsgRegisterHostChain(
@@ -300,6 +301,22 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			// -1 is the default bond factor value
 			if bondFactor.LT(sdk.ZeroDec()) && !bondFactor.Equal(sdk.NewDec(-1)) {
 				return sdkerrors.ErrInvalidRequest.Wrapf("invalid validator bond factor value should be bond_factor == -1 || bond_factor >= 0")
+			}
+		case KeyMaxEntries:
+			entries, err := strconv.ParseUint(update.Value, 10, 32)
+			if err != nil {
+				return err
+			}
+			if entries <= 0 {
+				return fmt.Errorf("max entries undelegation/redelegation cannot be zero or lesser, found %v", entries)
+			}
+		case KeyRedelegationAcceptableDelta:
+			redelegationAcceptableDelta, ok := sdk.NewIntFromString(update.Value)
+			if !ok {
+				return fmt.Errorf("unable to parse redeleagtion acceptable delta string %v to sdk.Int", update.Value)
+			}
+			if redelegationAcceptableDelta.LTE(math.ZeroInt()) {
+				return fmt.Errorf("acceptable skew in validator delegations cannot be less that equal to zero, found %v", redelegationAcceptableDelta.String())
 			}
 		case KeyMinimumDeposit:
 			minimumDeposit, ok := sdk.NewIntFromString(update.Value)

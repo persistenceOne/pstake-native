@@ -38,11 +38,13 @@ const (
 	EventSuccessfulUndelegationTransfer            = "successful_undelegation_transfer"
 	EventSuccessfulValidatorUndelegationTransfer   = "successful_validator_undelegation_transfer"
 	EventSuccessfulLSMRedeem                       = "successful_lsm_redeem"
+	EventSuccessfulRedelegation                    = "successful_redelegation"
 	EventUnsuccessfulDelegation                    = "unsuccessful_delegation"
 	EventUnsuccessfulUndelegation                  = "unsuccessful_undelegation"
 	EventUnsuccessfulUndelegationTransfer          = "unsuccessful_undelegation_transfer"
 	EventUnsuccessfulValidatorUndelegationTransfer = "unsuccessful_validator_undelegation_transfer"
 	EventUnsuccessfulLSMRedeem                     = "unsuccessful_lsm_redeem"
+	EventUnsuccessfulRedelegate                    = "unsuccessful_redelegate"
 
 	AttributeInputAmount                     = "input_amount"
 	AttributeOutputAmount                    = "output_amount"
@@ -96,5 +98,9 @@ const (
 	AttributeDelegatedAmount                 = "delegated_amount"
 	AttributeUndelegatedAmount               = "undelegated_amount"
 	AttributeRedeemedAmount                  = "redeemed_amount"
-	AttributeValueCategory                   = ModuleName
+	AttributeRedelegatedAmount               = "redelegated_amount"
+	AttributeValidatorSrcAddress             = "redelegation_validator_src-address"
+	AttributeValidatorDstAddress             = "redelegation_validator_dst-address"
+
+	AttributeValueCategory = ModuleName
 )

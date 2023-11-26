@@ -41,6 +41,9 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 			k.DoRedeemLSMTokens(ctx, hc)
 		}
 	}
+	// delete acked redelegations
+	k.DoDeleteRedelegationTxs(ctx)
+
 }
 
 func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
@@ -355,4 +358,31 @@ func (k *Keeper) DoRedeemLSMTokens(ctx sdk.Context, hc *types.HostChain) {
 			sdk.NewAttribute(types.AttributeIBCSequenceID, sequenceID),
 		),
 	)
+}
+
+func (k *Keeper) DoDeleteRedelegationTxs(ctx sdk.Context) {
+	redelegationTxs := k.GetAllRedelegationTx(ctx)
+	for _, redelegationTx := range redelegationTxs {
+		if redelegationTx.State == types.RedelegateTx_REDELEGATE_ACKED {
+			k.DeleteRedelegationTx(ctx, redelegationTx.ChainId, redelegationTx.IbcSequenceId)
+		}
+	}
+}
+
+func (k *Keeper) DoDeleteMaturedRedelegation(ctx sdk.Context, hc *types.HostChain) {
+	redelegations, ok := k.GetRedelegations(ctx, hc.ChainId)
+	if !ok {
+		// no redelegations, return early
+		return
+	}
+	for i := range redelegations.Redelegations {
+		var entries []stakingtypes.RedelegationEntry
+		for j := range redelegations.Redelegations[i].Entries {
+			if !redelegations.Redelegations[i].Entries[j].IsMature(ctx.BlockTime()) {
+				entries = append(entries, redelegations.Redelegations[i].Entries[j])
+			}
+		}
+		redelegations.Redelegations[i].Entries = entries
+	}
+	k.SetRedelegations(ctx, hc.ChainId, redelegations.Redelegations)
 }
