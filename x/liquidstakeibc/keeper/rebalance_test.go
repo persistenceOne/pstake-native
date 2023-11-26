@@ -6,7 +6,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	"reflect"
 	"testing"
 )
 
@@ -60,6 +59,33 @@ func (suite *IntegrationTestSuite) TestKeeper_Rebalance() {
 				ValidatorDstAddress: "valB",
 				Amount:              sdk.NewCoin(HostDenom, sdk.NewInt(500000)),
 			}},
+		}, {
+			name: "Success",
+			fields: fields{
+				validators: []*types.Validator{{
+					OperatorAddress: "valA",
+					Status:          stakingtypes.Bonded.String(),
+					Weight:          sdk.MustNewDecFromStr("0.5"),
+					DelegatedAmount: sdk.NewInt(1000000),
+					ExchangeRate:    sdk.OneDec(),
+					UnbondingEpoch:  0,
+					Delegable:       true,
+				}, {
+					OperatorAddress: "valB",
+					Status:          stakingtypes.Bonded.String(),
+					Weight:          sdk.MustNewDecFromStr("0.5"),
+					DelegatedAmount: sdk.NewInt(0),
+					ExchangeRate:    sdk.OneDec(),
+					UnbondingEpoch:  0,
+					Delegable:       true,
+				}},
+			},
+			args: args{
+				epoch:           int64(1),
+				acceptableDelta: sdk.NewInt(10000000),
+				maxEntries:      uint32(7),
+			},
+			want: []proto.Message(nil),
 		},
 	}
 	for _, tt := range tests {
@@ -70,9 +96,8 @@ func (suite *IntegrationTestSuite) TestKeeper_Rebalance() {
 			hc.Params.RedelegationAcceptableDelta = tt.args.acceptableDelta
 			hc.Validators = tt.fields.validators
 			k.SetHostChain(suite.ctx, hc)
-			if got := k.GenerateRedelegateMsgs(suite.ctx, *hc); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GenerateRedelegateMsgs() = %v, want %v", got, tt.want)
-			}
+			msgs := k.GenerateRedelegateMsgs(suite.ctx, *hc)
+			suite.Require().Equal(tt.want, msgs)
 			suite.NotPanics(func() { k.RebalanceWorkflow(suite.ctx, hc.UnbondingFactor) })
 			suite.NotPanics(func() { k.RebalanceWorkflow(suite.ctx, hc.UnbondingFactor+1) })
 		})
