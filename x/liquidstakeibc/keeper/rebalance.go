@@ -97,6 +97,9 @@ L1:
 			}
 		}
 	}
+	if len(msgs) == 0 {
+		k.Logger(ctx).Info("no msgs to redelegate for", "chainID", hc.ChainId)
+	}
 	return msgs
 }
 
