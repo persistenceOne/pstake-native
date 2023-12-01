@@ -897,6 +897,9 @@ func (k Keeper) RebalanceWorkflow(ctx sdk.Context, epoch int64) {
 			continue
 		}
 		msgs := k.GenerateRedelegateMsgs(ctx, *hc)
+		if len(msgs) == 0 {
+			k.Logger(ctx).Info("no msgs to redelegate for", "chainID", hc.ChainId)
+		}
 		// send one msg per ica
 		for _, msg := range msgs {
 			ibcSeq, err := k.GenerateAndExecuteICATx(ctx, hc.ConnectionId, hc.DelegationAccount.Owner, []proto.Message{msg})
