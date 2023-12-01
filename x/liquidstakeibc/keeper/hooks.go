@@ -886,13 +886,14 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 
 // RebalanceWorkflow tries to make redelegate transactions to host-chain to balance the delegations as per the weights.
 func (k Keeper) RebalanceWorkflow(ctx sdk.Context, epoch int64) {
+	k.Logger(ctx).Info("Running redelegation workflow.", "epoch", epoch)
 
 	hcs := k.GetAllHostChains(ctx)
 	for _, hc := range hcs {
 		// skip unbonding epoch, as we do not want to redelegate tokens that might be going through unbond txn in same epoch.
 		// nothing bad will happen even if we do as long as unbonding txns are triggered before redelegations.
-		if !liquidstakeibctypes.IsUnbondingEpoch(hc.UnbondingFactor, epoch) {
-			k.Logger(ctx).Info("redelegation epoch co-incides with unbonding epoch, skipping it")
+		if liquidstakeibctypes.IsUnbondingEpoch(hc.UnbondingFactor, epoch) {
+			k.Logger(ctx).Info("redelegation epoch co-incides with unbonding epoch, skipping it for", "chainID", hc.ChainId)
 			continue
 		}
 		msgs := k.GenerateRedelegateMsgs(ctx, *hc)
