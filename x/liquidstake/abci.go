@@ -13,5 +13,9 @@ import (
 // BeginBlocker updates liquid validator set changes for the current block
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
+
 	k.UpdateLiquidValidatorSet(ctx)
+
+	whitelistedValsMap := types.GetWhitelistedValsMap(k.GetParams(ctx).WhitelistedValidators)
+	k.AutocompoundStakingRewards(ctx, whitelistedValsMap)
 }

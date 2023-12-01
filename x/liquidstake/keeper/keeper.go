@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,6 +23,7 @@ type Keeper struct {
 	distrKeeper    types.DistrKeeper
 	slashingKeeper types.SlashingKeeper
 
+	router    *baseapp.MsgServiceRouter
 	authority string
 }
 
@@ -34,6 +36,7 @@ func NewKeeper(
 	stakingKeeper types.StakingKeeper,
 	distrKeeper types.DistrKeeper,
 	slashingKeeper types.SlashingKeeper,
+	router *baseapp.MsgServiceRouter,
 	authority string,
 ) Keeper {
 	// ensure liquidstake module account is set
@@ -49,6 +52,7 @@ func NewKeeper(
 		stakingKeeper:  stakingKeeper,
 		distrKeeper:    distrKeeper,
 		slashingKeeper: slashingKeeper,
+		router:         router,
 		authority:      authority,
 	}
 }
@@ -86,3 +90,8 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 
 // GetCodec return codec.Codec object used by the keeper
 func (k Keeper) GetCodec() codec.BinaryCodec { return k.cdc }
+
+// Router returns the keeper's msg router
+func (k Keeper) Router() *baseapp.MsgServiceRouter {
+	return k.router
+}

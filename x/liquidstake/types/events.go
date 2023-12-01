@@ -4,11 +4,12 @@ package types
 const (
 	EventTypeMsgLiquidStake             = MsgTypeLiquidStake
 	EventTypeMsgLiquidUnstake           = MsgTypeLiquidUnstake
+	EventTypeMsgStakeToLP               = MsgTypeStakeToLP
 	EventTypeMsgUpdateParams            = MsgTypeUpdateParams
 	EventTypeAddLiquidValidator         = "add_liquid_validator"
 	EventTypeRemoveLiquidValidator      = "remove_liquid_validator"
 	EventTypeBeginRebalancing           = "begin_rebalancing"
-	EventTypeReStake                    = "re_stake"
+	EventTypeAutocompound               = "autocompound"
 	EventTypeUnbondInactiveLiquidTokens = "unbond_inactive_liquid_tokens"
 
 	AttributeKeyDelegator             = "delegator"
@@ -20,6 +21,8 @@ const (
 	AttributeKeyLiquidValidator       = "liquid_validator"
 	AttributeKeyRedelegationCount     = "redelegation_count"
 	AttributeKeyRedelegationFailCount = "redelegation_fail_count"
+	AttributeKeyLiquidAmount          = "liquid_amount"
+	AttributeKeyStakedAmount          = "staked_amount"
 
 	AttributeKeyAuthority     = "authority"
 	AttributeKeyUpdatedParams = "updated_params"

@@ -131,53 +131,6 @@ func (k Keeper) Rebalance(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals t
 	return redelegations
 }
 
-// WithdrawRewardsAndReStake withdraw rewards and re-staking when over threshold
-func (k Keeper) WithdrawRewardsAndReStake(ctx sdk.Context, whitelistedValsMap types.WhitelistedValsMap) {
-	totalRemainingRewards, _, totalLiquidTokens := k.CheckDelegationStates(ctx, types.LiquidStakeProxyAcc)
-
-	// checking over types.RewardTrigger and execute GetRewards
-	proxyAccBalance := k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
-	rewardsThreshold := types.RewardTrigger.Mul(sdk.NewDecFromInt(totalLiquidTokens))
-
-	// skip If it doesn't exceed the rewards threshold
-	if !sdk.NewDecFromInt(proxyAccBalance.Amount).Add(totalRemainingRewards).GT(rewardsThreshold) {
-		return
-	}
-
-	// Withdraw rewards of LiquidStakeProxyAcc and re-staking
-	k.WithdrawLiquidRewards(ctx, types.LiquidStakeProxyAcc)
-
-	// re-staking with proxyAccBalance, due to auto-withdraw on add staking by f1
-	proxyAccBalance = k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
-
-	// skip when no active liquid validator
-	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValsMap)
-	if len(activeVals) == 0 {
-		return
-	}
-
-	// re-staking
-	cachedCtx, writeCache := ctx.CacheContext()
-	_, err := k.LiquidDelegate(cachedCtx, types.LiquidStakeProxyAcc, activeVals, proxyAccBalance.Amount, whitelistedValsMap)
-	if err != nil {
-		logger := k.Logger(ctx)
-		logger.Error("re-staking failed", "error", err)
-		return
-	}
-	writeCache()
-	logger := k.Logger(ctx)
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeReStake,
-			sdk.NewAttribute(types.AttributeKeyDelegator, types.LiquidStakeProxyAcc.String()),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, proxyAccBalance.String()),
-		),
-	})
-	logger.Info(types.EventTypeReStake,
-		types.AttributeKeyDelegator, types.LiquidStakeProxyAcc.String(),
-		sdk.AttributeKeyAmount, proxyAccBalance.String())
-}
-
 func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 	logger := k.Logger(ctx)
 	params := k.GetParams(ctx)
@@ -249,7 +202,52 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 		}
 	}
 
-	// withdraw rewards and re-staking when over threshold
-	k.WithdrawRewardsAndReStake(ctx, whitelistedValsMap)
 	return reds
+}
+
+// AutocompoundStakingRewards withdraws staking rewards and re-stakes when over threshold.
+func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap types.WhitelistedValsMap) {
+	totalRemainingRewards, _, totalLiquidTokens := k.CheckDelegationStates(ctx, types.LiquidStakeProxyAcc)
+
+	// checking over types.AutocompoundTrigger and execute GetRewards
+	proxyAccBalance := k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
+	rewardsThreshold := types.AutocompoundTrigger.Mul(sdk.NewDecFromInt(totalLiquidTokens))
+
+	// skip If it doesn't exceed the rewards threshold
+	if !sdk.NewDecFromInt(proxyAccBalance.Amount).Add(totalRemainingRewards).GT(rewardsThreshold) {
+		return
+	}
+
+	// Withdraw rewards of LiquidStakeProxyAcc and re-staking
+	k.WithdrawLiquidRewards(ctx, types.LiquidStakeProxyAcc)
+
+	// re-staking with proxyAccBalance, due to auto-withdraw on add staking by f1
+	proxyAccBalance = k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
+
+	// skip when no active liquid validator
+	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValsMap)
+	if len(activeVals) == 0 {
+		return
+	}
+
+	// re-staking
+	cachedCtx, writeCache := ctx.CacheContext()
+	_, err := k.LiquidDelegate(cachedCtx, types.LiquidStakeProxyAcc, activeVals, proxyAccBalance.Amount, whitelistedValsMap)
+	if err != nil {
+		logger := k.Logger(ctx)
+		logger.Error("re-staking failed", "error", err)
+		return
+	}
+	writeCache()
+	logger := k.Logger(ctx)
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeAutocompound,
+			sdk.NewAttribute(types.AttributeKeyDelegator, types.LiquidStakeProxyAcc.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, proxyAccBalance.String()),
+		),
+	})
+	logger.Info(types.EventTypeAutocompound,
+		types.AttributeKeyDelegator, types.LiquidStakeProxyAcc.String(),
+		sdk.AttributeKeyAmount, proxyAccBalance.String())
 }

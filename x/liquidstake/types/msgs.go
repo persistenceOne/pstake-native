@@ -16,6 +16,7 @@ var (
 const (
 	MsgTypeLiquidStake   = "liquid_stake"
 	MsgTypeLiquidUnstake = "liquid_unstake"
+	MsgTypeStakeToLP     = "stake_to_lp"
 	MsgTypeUpdateParams  = "update_params"
 )
 
@@ -60,6 +61,72 @@ func (m *MsgLiquidStake) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgLiquidStake) GetDelegator() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+// NewMsgStakeToLP creates a new MsgStakeToLP.
+func NewMsgStakeToLP(
+	liquidStaker sdk.AccAddress,
+	validator sdk.ValAddress,
+	stakedAmount,
+	liquidAmount sdk.Coin,
+) *MsgStakeToLP {
+	return &MsgStakeToLP{
+		DelegatorAddress: liquidStaker.String(),
+		ValidatorAddress: validator.String(),
+		StakedAmount:     stakedAmount,
+		LiquidAmount:     liquidAmount,
+	}
+}
+
+func (m *MsgStakeToLP) Route() string { return RouterKey }
+
+func (m *MsgStakeToLP) Type() string { return MsgTypeStakeToLP }
+
+func (m *MsgStakeToLP) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid delegator address %q: %v", m.DelegatorAddress, err)
+	}
+	if _, err := sdk.ValAddressFromBech32(m.ValidatorAddress); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address %q: %v", m.ValidatorAddress, err)
+	}
+	if ok := m.StakedAmount.IsZero(); ok {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "staking amount must not be zero")
+	}
+	if err := m.StakedAmount.Validate(); err != nil {
+		return err
+	}
+	if err := m.LiquidAmount.Validate(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *MsgStakeToLP) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+func (m *MsgStakeToLP) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr}
+}
+
+func (m *MsgStakeToLP) GetValidator() sdk.ValAddress {
+	addr, err := sdk.ValAddressFromBech32(m.ValidatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+func (m *MsgStakeToLP) GetDelegator() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
 	if err != nil {
 		panic(err)

@@ -25,8 +25,9 @@ var (
 	// RebalancingTrigger if the maximum difference and needed each redelegation amount exceeds it, asset rebalacing will be executed.
 	RebalancingTrigger = sdk.NewDecWithPrec(1, 3) // "0.001000000000000000"
 
-	// RewardTrigger If the sum of balance and the upcoming rewards of LiquidStakeProxyAcc exceeds it, the reward is automatically withdrawn and re-stake according to the weights.
-	RewardTrigger = sdk.NewDecWithPrec(1, 3) // "0.001000000000000000"
+	// AutocompoundTrigger If the sum of balance and the upcoming rewards of LiquidStakeProxyAcc exceeds it,
+	// the reward is automatically autocompounded, according to the weights.
+	AutocompoundTrigger = sdk.NewDecWithPrec(1, 3) // "0.001000000000000000"
 
 	// LiquidStakeProxyAcc is a proxy reserve account for delegation and undelegation.
 	LiquidStakeProxyAcc = authtypes.NewModuleAddress(ModuleName + "-LiquidStakingProxyAcc")
