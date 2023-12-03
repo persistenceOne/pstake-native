@@ -34,6 +34,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+### Bug Fixes
+
+- [685](https://github.com/persistenceOne/pstake-native/pull/685) Fix rebalancing to happen outside of unbonding epochs
+
 ## [v2.6.0] - 2023-11-26
 
 ### Features
