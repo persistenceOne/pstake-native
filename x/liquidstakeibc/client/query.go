@@ -37,6 +37,8 @@ func NewQueryCmd() *cobra.Command {
 		QueryDepositAccountBalanceCmd(),
 		QueryExchangeRateCmd(),
 		QueryUnbondingCmd(),
+		QueryRedelegationsCmd(),
+		QueryRedelegationTxCmd(),
 	)
 
 	return cmd
@@ -393,6 +395,74 @@ func QueryExchangeRateCmd() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.ExchangeRate(cmd.Context(), &types.QueryExchangeRateRequest{ChainId: args[0]})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryRedelegationsCmd returns the host chain redelegations
+func QueryRedelegationsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "redelegations [chain-id]",
+		Short: "Query the redelegations of a host chain",
+		Args:  cobra.ExactArgs(1),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query the exchange rate of a host chain: $ %s query liquidstakeibc exchange-rate [chain-id]`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Redelegations(cmd.Context(), &types.QueryRedelegationsRequest{ChainId: args[0]})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryRedelegationTxCmd returns the host chain redelegation txs.
+func QueryRedelegationTxCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "redelegation-tx [chain-id]",
+		Short: "Query the exchange rate of a host chain",
+		Args:  cobra.ExactArgs(1),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query the exchange rate of a host chain: $ %s query liquidstakeibc exchange-rate [chain-id]`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.RedelegationTx(cmd.Context(), &types.QueryRedelegationTxRequest{ChainId: args[0]})
 			if err != nil {
 				return err
 			}

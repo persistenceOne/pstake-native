@@ -474,3 +474,67 @@ func (suite *IntegrationTestSuite) TestQueryExchangeRate() {
 		})
 	}
 }
+
+func (suite *IntegrationTestSuite) TestQueryRedelegations() {
+
+	tc := []struct {
+		name string
+		req  *types.QueryRedelegationsRequest
+		resp *types.QueryRedelegationsResponse
+		err  error
+	}{{
+		name: "Valid",
+		req:  &types.QueryRedelegationsRequest{ChainId: suite.chainB.ChainID},
+		resp: &types.QueryRedelegationsResponse{Redelegations: nil},
+		err:  nil,
+	}, {
+		name: "NotFound",
+		req:  &types.QueryRedelegationsRequest{ChainId: "chain-1"},
+		err:  sdkerrors.ErrKeyNotFound,
+	}, {
+		name: "InvalidRequest",
+		err:  status.Error(codes.InvalidArgument, "empty request"),
+	}}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+
+			resp, err := suite.app.LiquidStakeIBCKeeper.Redelegations(suite.ctx, t.req)
+
+			suite.Require().Equal(err, t.err)
+			suite.Require().Equal(resp, t.resp)
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestQueryRedelegationTx() {
+
+	tc := []struct {
+		name string
+		req  *types.QueryRedelegationTxRequest
+		resp *types.QueryRedelegationTxResponse
+		err  error
+	}{{
+		name: "Valid",
+		req:  &types.QueryRedelegationTxRequest{ChainId: suite.chainB.ChainID},
+		resp: &types.QueryRedelegationTxResponse{RedelegationTx: []*types.RedelegateTx{}},
+		err:  nil,
+	}, {
+		name: "NotFound",
+		req:  &types.QueryRedelegationTxRequest{ChainId: "chain-1"},
+		err:  sdkerrors.ErrKeyNotFound,
+	}, {
+		name: "InvalidRequest",
+		err:  status.Error(codes.InvalidArgument, "empty request"),
+	}}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+
+			resp, err := suite.app.LiquidStakeIBCKeeper.RedelegationTx(suite.ctx, t.req)
+
+			suite.Require().Equal(err, t.err)
+			suite.Require().Equal(resp, t.resp)
+		})
+	}
+}
