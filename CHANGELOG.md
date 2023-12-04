@@ -34,6 +34,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+### Features
+
+- [687](https://github.com/persistenceOne/pstake-native/pull/687) add queries for redelegations and redelegation txs.
+
 ### Bug Fixes
 
 - [685](https://github.com/persistenceOne/pstake-native/pull/685) Fix rebalancing to happen outside of unbonding epochs
