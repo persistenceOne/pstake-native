@@ -28,6 +28,9 @@ func (suite *IntegrationTestSuite) TestSetGetDeleteRedelegationTx() {
 	txs := suite.app.LiquidStakeIBCKeeper.GetAllRedelegationTx(suite.ctx)
 	suite.Require().Equal(len(txs), 1)
 
+	filteredTxs := suite.app.LiquidStakeIBCKeeper.FilterRedelegationTx(suite.ctx, func(redel types.RedelegateTx) bool { return true })
+	suite.Require().Equal(len(filteredTxs), 1)
+
 	suite.app.LiquidStakeIBCKeeper.DeleteRedelegationTx(suite.ctx, suite.chainB.ChainID, "channel-100-sequence-1")
 	txs2 := suite.app.LiquidStakeIBCKeeper.GetAllRedelegationTx(suite.ctx)
 	suite.Require().Equal(len(txs2), 0)

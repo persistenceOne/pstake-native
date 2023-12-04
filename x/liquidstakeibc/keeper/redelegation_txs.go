@@ -39,6 +39,26 @@ func (k *Keeper) GetAllRedelegationTx(ctx sdk.Context) []*types.RedelegateTx {
 	return txs
 }
 
+func (k *Keeper) FilterRedelegationTx(
+	ctx sdk.Context,
+	filter func(d types.RedelegateTx) bool,
+) []*types.RedelegateTx {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.RedelegationTxKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	redelegationTxs := make([]*types.RedelegateTx, 0)
+	for ; iterator.Valid(); iterator.Next() {
+		deposit := types.RedelegateTx{}
+		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
+		if filter(deposit) {
+			redelegationTxs = append(redelegationTxs, &deposit)
+		}
+	}
+
+	return redelegationTxs
+}
+
 func (k *Keeper) DeleteRedelegationTx(ctx sdk.Context, chainID string, ibcSequenceID string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.RedelegationTxKey)
 	store.Delete(types.GetRedelegationTxStoreKey(chainID, ibcSequenceID))
