@@ -416,7 +416,7 @@ func QueryRedelegationsCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`Query the exchange rate of a host chain: $ %s query liquidstakeibc exchange-rate [chain-id]`,
+				`Query the redelegations of a host chain: $ %s query liquidstakeibc redelegations [chain-id]`,
 				version.AppName,
 			),
 		),
@@ -446,11 +446,11 @@ func QueryRedelegationsCmd() *cobra.Command {
 func QueryRedelegationTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "redelegation-tx [chain-id]",
-		Short: "Query the exchange rate of a host chain",
+		Short: "Query the redelegation txs of a host chain",
 		Args:  cobra.ExactArgs(1),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(
-				`Query the exchange rate of a host chain: $ %s query liquidstakeibc exchange-rate [chain-id]`,
+				`Query the redelegation txs of a host chain: $ %s query liquidstakeibc redelegation-tx [chain-id]`,
 				version.AppName,
 			),
 		),
