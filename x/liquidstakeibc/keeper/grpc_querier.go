@@ -238,3 +238,40 @@ func (k *Keeper) ExchangeRate(
 
 	return &types.QueryExchangeRateResponse{Rate: hc.CValue}, nil
 }
+
+func (k *Keeper) Redelegations(goCtx context.Context, request *types.QueryRedelegationsRequest) (*types.QueryRedelegationsResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.ChainId == "" {
+		return nil, status.Error(codes.InvalidArgument, "chain_id cannot be empty")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	hc, found := k.GetHostChain(ctx, request.ChainId)
+	if !found {
+		return nil, sdkerrors.ErrKeyNotFound
+	}
+	redels, _ := k.GetRedelegations(ctx, hc.ChainId)
+
+	return &types.QueryRedelegationsResponse{Redelegations: redels}, nil
+}
+
+func (k *Keeper) RedelegationTx(goCtx context.Context, request *types.QueryRedelegationTxRequest) (*types.QueryRedelegationTxResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.ChainId == "" {
+		return nil, status.Error(codes.InvalidArgument, "chain_id cannot be empty")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	hc, found := k.GetHostChain(ctx, request.ChainId)
+	if !found {
+		return nil, sdkerrors.ErrKeyNotFound
+	}
+	redelTxs := k.FilterRedelegationTx(ctx, func(d types.RedelegateTx) bool {
+		return d.ChainId == hc.ChainId
+	})
+	return &types.QueryRedelegationTxResponse{RedelegationTx: redelTxs}, nil
+}
