@@ -1312,7 +1312,8 @@ type QueryClient interface {
 	// Queries for a host chain exchange rate between the host token and the stk
 	// token.
 	ExchangeRate(ctx context.Context, in *QueryExchangeRateRequest, opts ...grpc.CallOption) (*QueryExchangeRateResponse, error)
-	// Queries for a host chain redelegation entries on the host token delegation acct.
+	// Queries for a host chain redelegation entries on the host token delegation
+	// acct.
 	Redelegations(ctx context.Context, in *QueryRedelegationsRequest, opts ...grpc.CallOption) (*QueryRedelegationsResponse, error)
 	// Queries for a host chain redelegation-txs for the host token.
 	RedelegationTx(ctx context.Context, in *QueryRedelegationTxRequest, opts ...grpc.CallOption) (*QueryRedelegationTxResponse, error)
@@ -1468,7 +1469,8 @@ type QueryServer interface {
 	// Queries for a host chain exchange rate between the host token and the stk
 	// token.
 	ExchangeRate(context.Context, *QueryExchangeRateRequest) (*QueryExchangeRateResponse, error)
-	// Queries for a host chain redelegation entries on the host token delegation acct.
+	// Queries for a host chain redelegation entries on the host token delegation
+	// acct.
 	Redelegations(context.Context, *QueryRedelegationsRequest) (*QueryRedelegationsResponse, error)
 	// Queries for a host chain redelegation-txs for the host token.
 	RedelegationTx(context.Context, *QueryRedelegationTxRequest) (*QueryRedelegationTxResponse, error)

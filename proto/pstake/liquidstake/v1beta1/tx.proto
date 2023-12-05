@@ -37,7 +37,7 @@ message MsgLiquidStake {
 
   string delegator_address = 1
       [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  ;
+
   cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
 }
 
@@ -53,7 +53,6 @@ message MsgStakeToLP {
 
   string delegator_address = 1
       [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  ;
 
   string validator_address = 2
       [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
@@ -74,7 +73,7 @@ message MsgLiquidUnstake {
 
   string delegator_address = 1
       [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  ;
+
   cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
 }
 

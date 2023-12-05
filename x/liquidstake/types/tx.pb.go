@@ -112,8 +112,8 @@ func (m *MsgLiquidStakeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgLiquidStakeResponse proto.InternalMessageInfo
 
-// MsgStakeToLP defines a SDK message for performing an LSM-transfer of staked XPRT
-// into stkXPRT with locking into an LP.
+// MsgStakeToLP defines a SDK message for performing an LSM-transfer of staked
+// XPRT into stkXPRT with locking into an LP.
 type MsgStakeToLP struct {
 	DelegatorAddress string     `protobuf:"bytes,1,opt,name=delegator_address,json=delegatorAddress,proto3" json:"delegator_address,omitempty"`
 	ValidatorAddress string     `protobuf:"bytes,2,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
