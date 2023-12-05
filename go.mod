@@ -7,7 +7,7 @@ require (
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/math v1.2.0
 	github.com/cometbft/cometbft v0.37.2
-	github.com/cometbft/cometbft-db v0.9.0
+	github.com/cometbft/cometbft-db v0.9.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.2
 	github.com/cosmos/cosmos-sdk v0.47.3
 	github.com/cosmos/gogoproto v1.4.10
