@@ -83,7 +83,7 @@ jobs:
     steps:
       - name: Get branch name
         id: branch-name
-        uses: tj-actions/branch-names@v7
+        uses: tj-actions/branch-names@v8
 
       - name: Build Docker image
         uses: strangelove-ventures/heighliner-build-action@v0.0.3
