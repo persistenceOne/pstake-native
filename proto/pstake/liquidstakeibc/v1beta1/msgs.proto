@@ -15,19 +15,23 @@ option go_package = "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc
 
 // Msg defines the liquidstakeibc services.
 service Msg {
-  rpc RegisterHostChain(MsgRegisterHostChain) returns (MsgRegisterHostChainResponse);
+  rpc RegisterHostChain(MsgRegisterHostChain)
+      returns (MsgRegisterHostChainResponse);
   rpc UpdateHostChain(MsgUpdateHostChain) returns (MsgUpdateHostChainResponse);
 
   rpc LiquidStake(MsgLiquidStake) returns (MsgLiquidStakeResponse) {
-    option (google.api.http).post = "/pstake/liquidstakeibc/v1beta1/LiquidStake";
+    option (google.api.http).post =
+        "/pstake/liquidstakeibc/v1beta1/LiquidStake";
   }
 
   rpc LiquidStakeLSM(MsgLiquidStakeLSM) returns (MsgLiquidStakeLSMResponse) {
-    option (google.api.http).post = "/pstake/liquidstakeibc/v1beta1/LiquidStakeLSM";
+    option (google.api.http).post =
+        "/pstake/liquidstakeibc/v1beta1/LiquidStakeLSM";
   }
 
   rpc LiquidUnstake(MsgLiquidUnstake) returns (MsgLiquidUnstakeResponse) {
-    option (google.api.http).post = "/pstake/liquidstakeibc/v1beta1/LiquidUnstake";
+    option (google.api.http).post =
+        "/pstake/liquidstakeibc/v1beta1/LiquidUnstake";
   }
 
   rpc Redeem(MsgRedeem) returns (MsgRedeemResponse) {
@@ -44,7 +48,7 @@ message MsgRegisterHostChain {
   option (amino.name) = "pstake/MsgRegisterHostChain";
 
   // authority is the address of the governance account
-  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   string connection_id = 2;
   string deposit_fee = 3 [
@@ -87,10 +91,10 @@ message MsgUpdateHostChain {
   option (cosmos.msg.v1.signer) = "authority";
   option (amino.name) = "pstake/MsgUpdateHostChain";
   // authority is the address of the governance account
-  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   string chain_id = 2;
-  repeated KVUpdate updates = 3 [(amino.dont_omitempty) = true];
+  repeated KVUpdate updates = 3 [ (amino.dont_omitempty) = true ];
 }
 
 message MsgUpdateHostChainResponse {}
@@ -99,8 +103,9 @@ message MsgLiquidStake {
   option (cosmos.msg.v1.signer) = "delegator_address";
   option (amino.name) = "pstake/MsgLiquidStake";
 
-  string delegator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  string delegator_address = 1
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
 }
 
 message MsgLiquidStakeResponse {}
@@ -109,8 +114,11 @@ message MsgLiquidStakeLSM {
   option (cosmos.msg.v1.signer) = "delegator_address";
   option (amino.name) = "pstake/MsgLiquidStakeLSM";
 
-  string delegator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  repeated cosmos.base.v1beta1.Coin delegations = 2 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  string delegator_address = 1
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  repeated cosmos.base.v1beta1.Coin delegations = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 }
 
@@ -120,8 +128,9 @@ message MsgLiquidUnstake {
   option (cosmos.msg.v1.signer) = "delegator_address";
   option (amino.name) = "pstake/MsgLiquidUnstake";
 
-  string delegator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  string delegator_address = 1
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
 }
 
 message MsgLiquidUnstakeResponse {}
@@ -130,8 +139,9 @@ message MsgRedeem {
   option (cosmos.msg.v1.signer) = "delegator_address";
   option (amino.name) = "pstake/MsgRedeem";
 
-  string delegator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  string delegator_address = 1
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
 }
 
 message MsgRedeemResponse {}
@@ -143,8 +153,9 @@ message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
   option (amino.name) = "pstake/MsgUpdateParams";
 
-  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  Params params = 2 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  Params params = 2
+      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
 }
 
 message MsgUpdateParamsResponse {}

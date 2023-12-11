@@ -6,6 +6,7 @@ require (
 	cosmossdk.io/api v0.3.1
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/math v1.2.0
+	github.com/CosmWasm/wasmd v0.40.2
 	github.com/cometbft/cometbft v0.37.2
 	github.com/cometbft/cometbft-db v0.9.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.2
@@ -25,6 +26,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -41,6 +43,7 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
+	github.com/CosmWasm/wasmvm v1.2.4 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/aws/aws-sdk-go v1.44.203 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -69,6 +72,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.4 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
+	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.5.0 // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
@@ -125,6 +129,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/onsi/gomega v1.27.6 // indirect
+	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/runc v1.1.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/petermattis/goid v0.0.0-20230317030725-371a4b8eda08 // indirect
@@ -166,7 +171,6 @@ require (
 	google.golang.org/genproto v0.0.0-20230822172742-b8732ec3820d // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
 	pgregory.net/rapid v0.5.5 // indirect
@@ -182,6 +186,7 @@ replace (
 
 // use persistence's forks with LSM implemented
 replace (
+	github.com/CosmWasm/wasmd => github.com/persistenceOne/wasmd v0.40.2-lsm3
 	github.com/cosmos/cosmos-sdk => github.com/persistenceOne/cosmos-sdk v0.47.3-lsm4
 	github.com/cosmos/ibc-go/v7 => github.com/persistenceOne/ibc-go/v7 v7.2.0-lsm3
 )
