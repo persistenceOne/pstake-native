@@ -361,10 +361,6 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			if err := sdk.ValidateDenom(params.Denom); err != nil {
 				return fmt.Errorf("invalid rewards denom: %s", err.Error())
 			}
-
-			if _, err := sdk.AccAddressFromBech32(params.Destination); err != nil {
-				return fmt.Errorf("invalid rewards destination address: %s", err.Error())
-			}
 		default:
 			return fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}

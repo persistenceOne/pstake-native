@@ -6,7 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/gogoproto/proto"
 	icqtypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -214,17 +216,33 @@ func NonCompoundableRewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, dat
 			autocompoundRewards = sdk.NewCoin(hc.RewardsAccount.Balance.Denom, maxAmountToTransfer)
 		}
 
-		// send all the rewards account balance to the deposit account, so it can be re-staked
-		_, err = k.SendICATransfer(
+		rewardsAccount, err := sdk.AccAddressFromBech32(hc.RewardsAccount.Address)
+		if err != nil {
+			return fmt.Errorf("could not parse rewards account address: %w", err)
+		}
+
+		destinationAccount, err := sdk.AccAddressFromBech32(hc.RewardParams.Destination)
+		if err != nil {
+			return fmt.Errorf("could not parse rewards destination address: %w", err)
+		}
+
+		// build the transfer message to send the rewards to the swapping address
+		msgTransfer := banktypes.NewMsgSend(rewardsAccount, destinationAccount, sdk.NewCoins(autocompoundRewards))
+
+		// execute the ICA transfer transaction
+		_, err = k.GenerateAndExecuteICATx(
 			ctx,
-			hc,
-			autocompoundRewards,
-			hc.RewardsAccount.Address,
-			hc.RewardParams.Destination,
-			hc.RewardsAccount.Owner,
+			hc.ConnectionId,
+			hc.DelegationAccount.Owner,
+			[]proto.Message{msgTransfer},
 		)
 		if err != nil {
-			return fmt.Errorf("could not send ICA rewards transfer: %w", err)
+			k.Logger(ctx).Error(
+				"could not send ICA non-compoundable rewards transfer tx",
+				"host_chain",
+				hc.ChainId,
+			)
+			return fmt.Errorf("could not send ICA non-compoundable rewards transfer tx: %w", err)
 		}
 
 		ctx.EventManager().EmitEvent(
