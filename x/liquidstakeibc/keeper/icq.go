@@ -13,10 +13,11 @@ import (
 )
 
 const (
-	Validator                 = "validator"
-	Delegation                = "validator-delegation"
-	RewardAccountBalances     = "reward-balances"
-	DelegationAccountBalances = "delegation-balances"
+	Validator                            = "validator"
+	Delegation                           = "validator-delegation"
+	RewardAccountBalances                = "reward-balances"
+	NonCompoundableRewardAccountBalances = "non-compoundable-reward-balances"
+	DelegationAccountBalances            = "delegation-balances"
 )
 
 type CallbackFn func(Keeper, sdk.Context, []byte, icqtypes.Query) error
@@ -49,6 +50,7 @@ func (c Callbacks) RegisterCallbacks() icqtypes.QueryCallbacks {
 	a := c.
 		AddCallback(Validator, CallbackFn(ValidatorCallback)).
 		AddCallback(RewardAccountBalances, CallbackFn(RewardsAccountBalanceCallback)).
+		AddCallback(NonCompoundableRewardAccountBalances, CallbackFn(NonCompoundableRewardsAccountBalanceCallback)).
 		AddCallback(DelegationAccountBalances, CallbackFn(DelegationAccountBalanceCallback)).
 		AddCallback(Delegation, CallbackFn(DelegationCallback))
 
@@ -180,6 +182,57 @@ func RewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, data []byte, query
 				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
 				sdk.NewAttribute(types.AttributeRewardsTransferAmount, sdk.NewCoin(hc.HostDenom, autocompoundRewards.Amount).String()),
 				sdk.NewAttribute(types.AttributeRewardsBalanceAmount, sdk.NewCoin(hc.HostDenom, hc.RewardsAccount.Balance.Amount.Sub(autocompoundRewards.Amount)).String()),
+			),
+		)
+	}
+
+	k.SetHostChain(ctx, hc)
+
+	return nil
+}
+
+func NonCompoundableRewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
+	hc, found := k.GetHostChain(ctx, query.ChainId)
+	if !found {
+		return fmt.Errorf("host chain with id %s is not registered", query.ChainId)
+	}
+
+	balance, err := bankkeeper.UnmarshalBalanceCompat(k.cdc, data, hc.RewardParams.Denom)
+	if err != nil {
+		return fmt.Errorf("could unmarshal balance from ICQ balances request: %w", err)
+	}
+
+	hc.RewardsAccount.Balance = balance
+	if !hc.RewardsAccount.Balance.IsZero() {
+
+		// limit the auto-compounded rewards to the host chain autocompound factor
+		var autocompoundRewards sdk.Coin
+		maxAmountToTransfer := sdk.NewDecFromInt(hc.GetHostChainTotalDelegations()).Mul(hc.AutoCompoundFactor).TruncateInt()
+		if maxAmountToTransfer.GT(hc.RewardsAccount.Balance.Amount) {
+			autocompoundRewards = hc.RewardsAccount.Balance
+		} else {
+			autocompoundRewards = sdk.NewCoin(hc.RewardsAccount.Balance.Denom, maxAmountToTransfer)
+		}
+
+		// send all the rewards account balance to the deposit account, so it can be re-staked
+		_, err = k.SendICATransfer(
+			ctx,
+			hc,
+			autocompoundRewards,
+			hc.RewardsAccount.Address,
+			hc.RewardParams.Destination,
+			hc.RewardsAccount.Owner,
+		)
+		if err != nil {
+			return fmt.Errorf("could not send ICA rewards transfer: %w", err)
+		}
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeRewardsTransfer,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(types.AttributeRewardsTransferAmount, sdk.NewCoin(hc.RewardParams.Denom, autocompoundRewards.Amount).String()),
+				sdk.NewAttribute(types.AttributeRewardsBalanceAmount, sdk.NewCoin(hc.RewardParams.Denom, hc.RewardsAccount.Balance.Amount.Sub(autocompoundRewards.Amount)).String()),
 			),
 		)
 	}

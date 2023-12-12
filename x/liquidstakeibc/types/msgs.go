@@ -351,6 +351,20 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			if err != nil {
 				return fmt.Errorf("unable to unmarshal flags update string")
 			}
+		case KeyRewardParams:
+			var params RewardParams
+			err := json.Unmarshal([]byte(update.Value), &params)
+			if err != nil {
+				return fmt.Errorf("unable to unmarshal reward params update string")
+			}
+
+			if err := sdk.ValidateDenom(params.Denom); err != nil {
+				return fmt.Errorf("invalid rewards denom: %s", err.Error())
+			}
+
+			if _, err := sdk.AccAddressFromBech32(params.Destination); err != nil {
+				return fmt.Errorf("invalid rewards destination address: %s", err.Error())
+			}
 		default:
 			return fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}

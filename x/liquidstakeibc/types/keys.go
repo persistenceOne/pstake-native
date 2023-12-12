@@ -72,6 +72,7 @@ const (
 	KeySetWithdrawAddress          string = "set_withdraw_address"
 	KeyAutocompoundFactor          string = "autocompound_factor"
 	KeyFlags                       string = "flags"
+	KeyRewardParams                string = "reward_params"
 )
 
 var (
