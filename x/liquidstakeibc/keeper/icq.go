@@ -216,24 +216,18 @@ func NonCompoundableRewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, dat
 			autocompoundRewards = sdk.NewCoin(hc.RewardsAccount.Balance.Denom, maxAmountToTransfer)
 		}
 
-		rewardsAccount, err := sdk.AccAddressFromBech32(hc.RewardsAccount.Address)
-		if err != nil {
-			return fmt.Errorf("could not parse rewards account address: %w", err)
-		}
-
-		destinationAccount, err := sdk.AccAddressFromBech32(hc.RewardParams.Destination)
-		if err != nil {
-			return fmt.Errorf("could not parse rewards destination address: %w", err)
-		}
-
 		// build the transfer message to send the rewards to the swapping address
-		msgTransfer := banktypes.NewMsgSend(rewardsAccount, destinationAccount, sdk.NewCoins(autocompoundRewards))
+		msgTransfer := &banktypes.MsgSend{
+			FromAddress: hc.RewardsAccount.Address,
+			ToAddress:   hc.RewardParams.Destination,
+			Amount:      sdk.NewCoins(autocompoundRewards),
+		}
 
 		// execute the ICA transfer transaction
 		_, err = k.GenerateAndExecuteICATx(
 			ctx,
 			hc.ConnectionId,
-			hc.DelegationAccount.Owner,
+			hc.RewardsAccount.Owner,
 			[]proto.Message{msgTransfer},
 		)
 		if err != nil {
