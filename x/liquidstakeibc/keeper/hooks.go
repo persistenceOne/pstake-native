@@ -808,17 +808,15 @@ func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
 						"host_chain",
 						hc.ChainId,
 					)
-					continue
 				}
-			} else {
-				if err := k.QueryRewardsHostChainAccountBalance(ctx, hc); err != nil {
-					k.Logger(ctx).Error(
-						"Could not send rewards account balance ICQ",
-						"host_chain",
-						hc.ChainId,
-					)
-					continue
-				}
+			}
+			if err := k.QueryRewardsHostChainAccountBalance(ctx, hc); err != nil {
+				k.Logger(ctx).Error(
+					"Could not send rewards account balance ICQ",
+					"host_chain",
+					hc.ChainId,
+				)
+				continue
 			}
 		}
 	}
