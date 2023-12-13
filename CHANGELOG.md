@@ -36,7 +36,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-- [687](https://github.com/persistenceOne/pstake-native/pull/687) add queries for redelegations and redelegation txs.
+- [687](https://github.com/persistenceOne/pstake-native/pull/687) Add queries for redelegations and redelegation txs.
+- [696](https://github.com/persistenceOne/pstake-native/pull/696) Add capability to swap rewards.
 
 ### Bug Fixes
 

@@ -279,6 +279,15 @@ func (k msgServer) UpdateHostChain(
 
 			hc.Flags = &flags
 			k.SetHostChain(ctx, hc)
+		case types.KeyRewardParams:
+			var params types.RewardParams
+			err := json.Unmarshal([]byte(update.Value), &params)
+			if err != nil {
+				return nil, fmt.Errorf("unable to unmarshal reward params update string")
+			}
+
+			hc.RewardParams = &params
+			k.SetHostChain(ctx, hc)
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}

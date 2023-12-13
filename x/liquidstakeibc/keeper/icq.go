@@ -6,17 +6,20 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/gogoproto/proto"
 	icqtypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
 const (
-	Validator                 = "validator"
-	Delegation                = "validator-delegation"
-	RewardAccountBalances     = "reward-balances"
-	DelegationAccountBalances = "delegation-balances"
+	Validator                            = "validator"
+	Delegation                           = "validator-delegation"
+	RewardAccountBalances                = "reward-balances"
+	NonCompoundableRewardAccountBalances = "non-compoundable-reward-balances"
+	DelegationAccountBalances            = "delegation-balances"
 )
 
 type CallbackFn func(Keeper, sdk.Context, []byte, icqtypes.Query) error
@@ -49,6 +52,7 @@ func (c Callbacks) RegisterCallbacks() icqtypes.QueryCallbacks {
 	a := c.
 		AddCallback(Validator, CallbackFn(ValidatorCallback)).
 		AddCallback(RewardAccountBalances, CallbackFn(RewardsAccountBalanceCallback)).
+		AddCallback(NonCompoundableRewardAccountBalances, CallbackFn(NonCompoundableRewardsAccountBalanceCallback)).
 		AddCallback(DelegationAccountBalances, CallbackFn(DelegationAccountBalanceCallback)).
 		AddCallback(Delegation, CallbackFn(DelegationCallback))
 
@@ -185,6 +189,46 @@ func RewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, data []byte, query
 	}
 
 	k.SetHostChain(ctx, hc)
+
+	return nil
+}
+
+func NonCompoundableRewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Query) error {
+	hc, found := k.GetHostChain(ctx, query.ChainId)
+	if !found {
+		return fmt.Errorf("host chain with id %s is not registered", query.ChainId)
+	}
+
+	balance, err := bankkeeper.UnmarshalBalanceCompat(k.cdc, data, hc.RewardParams.Denom)
+	if err != nil {
+		return fmt.Errorf("could unmarshal balance from ICQ balances request: %w", err)
+	}
+
+	if !balance.IsZero() {
+		// build the transfer message to send the rewards to the swapping address
+		msgTransfer := &banktypes.MsgSend{
+			FromAddress: hc.RewardsAccount.Address,
+			ToAddress:   hc.RewardParams.Destination,
+			Amount:      sdk.NewCoins(balance),
+		}
+
+		// execute the ICA msgSend transaction
+		_, err = k.GenerateAndExecuteICATx(
+			ctx,
+			hc.ConnectionId,
+			hc.RewardsAccount.Owner,
+			[]proto.Message{msgTransfer},
+		)
+		if err != nil {
+			k.Logger(ctx).Error(
+				"could not send ICA non-compoundable rewards transfer tx",
+				"host_chain",
+				hc.ChainId,
+			)
+			return fmt.Errorf("could not send ICA non-compoundable rewards transfer tx: %w", err)
+		}
+	}
+
 
 	return nil
 }

@@ -801,6 +801,15 @@ func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
 
 		if hc.RewardsAccount != nil &&
 			hc.RewardsAccount.ChannelState == liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED {
+			if hc.RewardParams != nil {
+				if err := k.QueryNonCompoundableRewardsHostChainAccountBalance(ctx, hc); err != nil {
+					k.Logger(ctx).Error(
+						"Could not send non-compoundable rewards account balance ICQ",
+						"host_chain",
+						hc.ChainId,
+					)
+				}
+			}
 			if err := k.QueryRewardsHostChainAccountBalance(ctx, hc); err != nil {
 				k.Logger(ctx).Error(
 					"Could not send rewards account balance ICQ",

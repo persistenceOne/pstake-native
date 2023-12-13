@@ -120,3 +120,30 @@ func (k *Keeper) QueryRewardsHostChainAccountBalance(
 
 	return nil
 }
+
+// QueryNonCompoundableRewardsHostChainAccountBalance sends an ICQ query to get the non-compoundable rewards host account balance
+func (k *Keeper) QueryNonCompoundableRewardsHostChainAccountBalance(
+	ctx sdk.Context,
+	hc *types.HostChain,
+) error {
+	_, byteAddress, err := bech32.DecodeAndConvert(hc.RewardsAccount.Address)
+	if err != nil {
+		return err
+	}
+
+	key := banktypes.CreatePrefixedAccountStoreKey(byteAddress, []byte(hc.RewardParams.Denom))
+
+	k.icqKeeper.MakeRequest(
+		ctx,
+		hc.ConnectionId,
+		hc.ChainId,
+		types.BankStoreQuery,
+		key,
+		sdk.NewInt(int64(-1)),
+		types.ModuleName,
+		NonCompoundableRewardAccountBalances,
+		0,
+	)
+
+	return nil
+}
