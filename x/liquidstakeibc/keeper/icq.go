@@ -229,7 +229,6 @@ func NonCompoundableRewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, dat
 		}
 	}
 
-	k.SetHostChain(ctx, hc)
 
 	return nil
 }
