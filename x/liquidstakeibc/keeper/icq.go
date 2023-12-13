@@ -204,23 +204,12 @@ func NonCompoundableRewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, dat
 		return fmt.Errorf("could unmarshal balance from ICQ balances request: %w", err)
 	}
 
-	hc.RewardsAccount.Balance = balance
-	if !hc.RewardsAccount.Balance.IsZero() {
-
-		// limit the auto-compounded rewards to the host chain autocompound factor
-		var autocompoundRewards sdk.Coin
-		maxAmountToTransfer := sdk.NewDecFromInt(hc.GetHostChainTotalDelegations()).Mul(hc.AutoCompoundFactor).TruncateInt()
-		if maxAmountToTransfer.GT(hc.RewardsAccount.Balance.Amount) {
-			autocompoundRewards = hc.RewardsAccount.Balance
-		} else {
-			autocompoundRewards = sdk.NewCoin(hc.RewardsAccount.Balance.Denom, maxAmountToTransfer)
-		}
-
+	if !balance.IsZero() {
 		// build the transfer message to send the rewards to the swapping address
 		msgTransfer := &banktypes.MsgSend{
 			FromAddress: hc.RewardsAccount.Address,
 			ToAddress:   hc.RewardParams.Destination,
-			Amount:      sdk.NewCoins(autocompoundRewards),
+			Amount:      sdk.NewCoins(balance),
 		}
 
 		// execute the ICA msgSend transaction
@@ -238,15 +227,6 @@ func NonCompoundableRewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, dat
 			)
 			return fmt.Errorf("could not send ICA non-compoundable rewards transfer tx: %w", err)
 		}
-
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeRewardsTransfer,
-				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
-				sdk.NewAttribute(types.AttributeRewardsTransferAmount, sdk.NewCoin(hc.RewardParams.Denom, autocompoundRewards.Amount).String()),
-				sdk.NewAttribute(types.AttributeRewardsBalanceAmount, sdk.NewCoin(hc.RewardParams.Denom, hc.RewardsAccount.Balance.Amount.Sub(autocompoundRewards.Amount)).String()),
-			),
-		)
 	}
 
 	k.SetHostChain(ctx, hc)
