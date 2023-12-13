@@ -223,7 +223,7 @@ func NonCompoundableRewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, dat
 			Amount:      sdk.NewCoins(autocompoundRewards),
 		}
 
-		// execute the ICA transfer transaction
+		// execute the ICA msgSend transaction
 		_, err = k.GenerateAndExecuteICATx(
 			ctx,
 			hc.ConnectionId,
