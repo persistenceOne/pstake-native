@@ -286,7 +286,7 @@ test-docker-push: test-docker
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=0.13.5
+protoVer=0.14.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 

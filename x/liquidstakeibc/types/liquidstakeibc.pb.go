@@ -594,11 +594,13 @@ type Validator struct {
 	Weight github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=weight,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"weight"`
 	// amount delegated by the module to the validator
 	DelegatedAmount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=delegated_amount,json=delegatedAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"delegated_amount"`
-	// the validator token exchange rate, total bonded tokens divided by total shares issued
+	// the validator token exchange rate, total bonded tokens divided by total
+	// shares issued
 	ExchangeRate github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,5,opt,name=exchange_rate,json=exchangeRate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"exchange_rate"`
 	// the unbonding epoch number when the validator transitioned into the state
 	UnbondingEpoch int64 `protobuf:"varint,6,opt,name=unbonding_epoch,json=unbondingEpoch,proto3" json:"unbonding_epoch,omitempty"`
-	// whether the validator can accept delegations or not, default true for non-lsm chains
+	// whether the validator can accept delegations or not, default true for
+	// non-lsm chains
 	Delegable bool `protobuf:"varint,7,opt,name=delegable,proto3" json:"delegable,omitempty"`
 }
 
@@ -746,10 +748,11 @@ func (m *Deposit) GetIbcSequenceId() string {
 type LSMDeposit struct {
 	// deposit target chain
 	ChainId string `protobuf:"bytes,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
-	// this is calculated when liquid staking [lsm_shares * validator_exchange_rate]
+	// this is calculated when liquid staking [lsm_shares *
+	// validator_exchange_rate]
 	Amount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount"`
-	// LSM token shares, they are mapped 1:1 with the delegator shares that are tokenized
-	// https://github.com/iqlusioninc/cosmos-sdk/pull/19
+	// LSM token shares, they are mapped 1:1 with the delegator shares that are
+	// tokenized https://github.com/iqlusioninc/cosmos-sdk/pull/19
 	Shares github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=shares,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"shares"`
 	// LSM token denom
 	Denom string `protobuf:"bytes,4,opt,name=denom,proto3" json:"denom,omitempty"`
