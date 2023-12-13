@@ -155,3 +155,42 @@ func (suite *IntegrationTestSuite) TestKeeper_QueryRewardsHostChainAccountBalanc
 		})
 	}
 }
+
+func (suite *IntegrationTestSuite) TestKeeper_QueryNonCompoundableRewardsHostChainAccountBalance() {
+	pstakeApp, ctx := suite.app, suite.ctx
+	k := pstakeApp.LiquidStakeIBCKeeper
+	hc, found := k.GetHostChain(ctx, suite.chainB.ChainID)
+	suite.Require().Equal(found, true)
+
+	hc.RewardParams = &types.RewardParams{Destination: "cosmos1g4sr6pcr68v8ng8hfg4pj852cg6kg4cwe40wuw8nxdxl67xp0vusjfs3n0", Denom: "uatom"}
+	k.SetHostChain(ctx, hc)
+
+	hc2 := types.HostChain{RewardsAccount: &types.ICAAccount{Address: "invalid"}}
+
+	type args struct {
+		hc *types.HostChain
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "Success",
+			args:    args{hc: hc},
+			wantErr: false,
+		}, {
+			name:    "invalid rewards addr",
+			args:    args{hc: &hc2},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+
+			if err := k.QueryRewardsHostChainAccountBalance(ctx, tt.args.hc); (err != nil) != tt.wantErr {
+				suite.T().Errorf("QueryRewardsHostChainAccountBalance() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
