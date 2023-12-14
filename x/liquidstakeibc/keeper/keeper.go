@@ -305,7 +305,9 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		hc.LastCValue = hc.CValue
 		hc.CValue = cValue
 		k.SetHostChain(ctx, hc)
-		k.PostCValueUpdate(ctx)
+		if err := k.Hooks().PostCValueUpdate(ctx); err != nil {
+			k.Logger(ctx).Error("PostCValueUpdate hook failed with ", "err:", err)
+		}
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeCValueUpdate,
@@ -356,6 +358,16 @@ func (k *Keeper) CalculateAutocompoundLimit(autocompoundFactor sdk.Dec) sdk.Dec 
 	return autocompoundFactor.Quo(sdk.NewDec(100)).Quo(sdk.NewDec(365))
 }
 
+// Hooks gets the hooks for liquidstakeibc *Keeper {
+func (k *Keeper) Hooks() types.LiquidStakeIBCHooks {
+	if k.hooks == nil {
+		// return a no-op implementation if no hooks are set
+		return types.MultiLiquidStakeIBCHooks{}
+	}
+
+	return k.hooks
+}
+
 // Set the liquidstakeibc hooks
 func (k *Keeper) SetHooks(hooks types.LiquidStakeIBCHooks) *Keeper {
 	if k.hooks != nil {
@@ -365,10 +377,4 @@ func (k *Keeper) SetHooks(hooks types.LiquidStakeIBCHooks) *Keeper {
 	k.hooks = hooks
 
 	return k
-}
-
-func (k Keeper) PostCValueUpdate(ctx sdk.Context) {
-	if k.hooks != nil {
-		_ = k.hooks.PostCValueUpdate(ctx)
-	}
 }
