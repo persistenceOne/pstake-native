@@ -40,6 +40,8 @@ type Keeper struct {
 
 	msgRouter *baseapp.MsgServiceRouter
 
+	hooks types.LiquidStakeIBCHooks
+
 	authority string
 }
 
@@ -73,6 +75,7 @@ func NewKeeper(
 		storeKey:            storeKey,
 		paramSpace:          paramSpace,
 		msgRouter:           msgRouter,
+		hooks:               nil,
 		authority:           authority,
 	}
 }
@@ -302,7 +305,7 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		hc.LastCValue = hc.CValue
 		hc.CValue = cValue
 		k.SetHostChain(ctx, hc)
-
+		k.PostCValueUpdate(ctx)
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeCValueUpdate,
@@ -351,4 +354,21 @@ func (k *Keeper) CValueWithinLimits(ctx sdk.Context, hc *types.HostChain) bool {
 
 func (k *Keeper) CalculateAutocompoundLimit(autocompoundFactor sdk.Dec) sdk.Dec {
 	return autocompoundFactor.Quo(sdk.NewDec(100)).Quo(sdk.NewDec(365))
+}
+
+// Set the liquidstakeibc hooks
+func (k *Keeper) SetHooks(hooks types.LiquidStakeIBCHooks) *Keeper {
+	if k.hooks != nil {
+		panic("cannot set hooks twice")
+	}
+
+	k.hooks = hooks
+
+	return k
+}
+
+func (k Keeper) PostCValueUpdate(ctx sdk.Context) {
+	if k.hooks != nil {
+		_ = k.hooks.PostCValueUpdate(ctx)
+	}
 }
