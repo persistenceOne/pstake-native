@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - [687](https://github.com/persistenceOne/pstake-native/pull/687) Add queries for redelegations and redelegation txs.
 - [696](https://github.com/persistenceOne/pstake-native/pull/696) Add capability to swap rewards.
+- [697](https://github.com/persistenceOne/pstake-native/pull/697) Add hooks for liquidstakeibc c_value updates.
 
 ### Bug Fixes
 
