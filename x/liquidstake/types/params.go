@@ -1,13 +1,13 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"gopkg.in/yaml.v2"
 )
 
 // Parameter store keys
@@ -17,20 +17,26 @@ var (
 	// DefaultUnstakeFeeRate is the default Unstake Fee Rate.
 	DefaultUnstakeFeeRate = sdk.ZeroDec()
 
-	// DefaultMinLiquidStakeAmount is the default minimum liquid staking amount.
-	DefaultMinLiquidStakeAmount = sdk.NewInt(1000)
+	// DefaultAutocompoundFeeRate is the default fee rate for auto redelegating the stake rewards.
+	DefaultAutocompoundFeeRate = sdk.MustNewDecFromStr("0.05")
+
+	// DefaultMinLiquidStakeAmount is the default minimum liquid stake amount.
+	DefaultMinLiquidStakeAmount = math.NewInt(1000)
 
 	// Const variables
 
 	// RebalancingTrigger if the maximum difference and needed each redelegation amount exceeds it, asset rebalacing will be executed.
-	RebalancingTrigger = sdk.NewDecWithPrec(1, 3) // "0.001000000000000000"
+	RebalancingTrigger = math.LegacyNewDecWithPrec(1, 3) // "0.001000000000000000"
 
 	// AutocompoundTrigger If the sum of balance and the upcoming rewards of LiquidStakeProxyAcc exceeds it,
 	// the reward is automatically autocompounded, according to the weights.
-	AutocompoundTrigger = sdk.NewDecWithPrec(1, 3) // "0.001000000000000000"
+	AutocompoundTrigger = math.LegacyNewDecWithPrec(1, 3) // "0.001000000000000000"
 
 	// LiquidStakeProxyAcc is a proxy reserve account for delegation and undelegation.
-	LiquidStakeProxyAcc = authtypes.NewModuleAddress(ModuleName + "-LiquidStakingProxyAcc")
+	LiquidStakeProxyAcc = authtypes.NewModuleAddress(ModuleName + "-LiquidStakeProxyAcc")
+
+	// DummyFeeAccountAcc is a dummy fee collection account that should be replaced via params.
+	DummyFeeAccountAcc = authtypes.NewModuleAddress(ModuleName + "-FeeAcc")
 )
 
 // DefaultParams returns the default liquidstake module parameters.
@@ -40,12 +46,14 @@ func DefaultParams() Params {
 		LiquidBondDenom:       DefaultLiquidBondDenom,
 		UnstakeFeeRate:        DefaultUnstakeFeeRate,
 		MinLiquidStakeAmount:  DefaultMinLiquidStakeAmount,
+		FeeAccountAddress:     DummyFeeAccountAcc.String(),
+		AutocompoundFeeRate:   DefaultAutocompoundFeeRate,
 	}
 }
 
 // String returns a human-readable string representation of the parameters.
 func (p Params) String() string {
-	out, _ := yaml.Marshal(p)
+	out, _ := json.MarshalIndent(p, "", "")
 	return string(out)
 }
 
@@ -63,6 +71,8 @@ func (p Params) Validate() error {
 		{p.WhitelistedValidators, validateWhitelistedValidators},
 		{p.UnstakeFeeRate, validateUnstakeFeeRate},
 		{p.MinLiquidStakeAmount, validateMinLiquidStakeAmount},
+		{p.AutocompoundFeeRate, validateAutocompoundFeeRate},
+		{p.FeeAccountAddress, validateFeeAccountAddress},
 	} {
 		if err := v.validator(v.value); err != nil {
 			return err
@@ -117,7 +127,7 @@ func validateWhitelistedValidators(i interface{}) error {
 }
 
 func validateUnstakeFeeRate(i interface{}) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(math.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -144,12 +154,45 @@ func validateMinLiquidStakeAmount(i interface{}) error {
 	}
 
 	if v.IsNil() {
-		return fmt.Errorf("min liquid staking amount must not be nil")
+		return fmt.Errorf("min liquid stake amount must not be nil")
 	}
 
 	if v.IsNegative() {
-		return fmt.Errorf("min liquid staking amount must not be negative: %s", v)
+		return fmt.Errorf("min liquid stake amount must not be negative: %s", v)
 	}
 
+	return nil
+}
+
+func validateAutocompoundFeeRate(i interface{}) error {
+	v, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.IsNil() {
+		return fmt.Errorf("autocompound fee rate must not be nil")
+	}
+
+	if v.IsNegative() {
+		return fmt.Errorf("autocompound fee rate must not be negative: %s", v)
+	}
+
+	if v.GT(sdk.OneDec()) {
+		return fmt.Errorf("autocompound fee rate too large: %s", v)
+	}
+
+	return nil
+}
+
+func validateFeeAccountAddress(i interface{}) error {
+	v, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	_, err := sdk.AccAddressFromBech32(v)
+	if err != nil {
+		return fmt.Errorf("cannot convert fee account address to bech32, invalid address: %s, err: %v", v, err)
+	}
 	return nil
 }
