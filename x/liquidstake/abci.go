@@ -14,8 +14,6 @@ import (
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
 
-	k.UpdateLiquidValidatorSet(ctx)
-
-	whitelistedValsMap := types.GetWhitelistedValsMap(k.GetParams(ctx).WhitelistedValidators)
-	k.AutocompoundStakingRewards(ctx, whitelistedValsMap)
+	// return value of UpdateLiquidValidatorSet is useful only in testing
+	_ = k.UpdateLiquidValidatorSet(ctx)
 }

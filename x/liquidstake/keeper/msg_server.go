@@ -9,7 +9,7 @@ import (
 	"context"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -153,7 +153,7 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if msg.Authority != k.authority {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
+		return nil, errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
 	}
 
 	err := k.SetParams(ctx, msg.Params)

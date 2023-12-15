@@ -23,7 +23,7 @@ func DivideByWeight(avs ActiveLiquidValidators, input math.Int, whitelistedValsM
 	}
 
 	totalOutput := sdk.ZeroInt()
-	unitInput := sdk.NewDecFromInt(input).QuoTruncate(sdk.NewDecFromInt(totalWeight))
+	unitInput := math.LegacyNewDecFromInt(input).QuoTruncate(math.LegacyNewDecFromInt(totalWeight))
 	for _, val := range avs {
 		output := unitInput.MulInt(val.GetWeight(whitelistedValsMap, true)).TruncateInt()
 		totalOutput = totalOutput.Add(output)
@@ -35,15 +35,15 @@ func DivideByWeight(avs ActiveLiquidValidators, input math.Int, whitelistedValsM
 
 // DivideByCurrentWeight divide the input value by the ratio of the weight of the liquid validator's liquid token and return it with crumb
 // which is may occur while dividing according to the weight of liquid validators by decimal error, outputs is truncated decimal.
-func DivideByCurrentWeight(lvs LiquidValidators, input sdk.Dec, totalLiquidTokens math.Int, liquidTokenMap map[string]math.Int) (outputs []sdk.Dec, crumb sdk.Dec) {
+func DivideByCurrentWeight(lvs LiquidValidators, input math.LegacyDec, totalLiquidTokens math.Int, liquidTokenMap map[string]math.Int) (outputs []math.LegacyDec, crumb math.LegacyDec) {
 	if !totalLiquidTokens.IsPositive() {
-		return []sdk.Dec{}, sdk.ZeroDec()
+		return []math.LegacyDec{}, sdk.ZeroDec()
 	}
 
 	totalOutput := sdk.ZeroDec()
-	unitInput := input.QuoTruncate(sdk.NewDecFromInt(totalLiquidTokens))
+	unitInput := input.QuoTruncate(math.LegacyNewDecFromInt(totalLiquidTokens))
 	for _, val := range lvs {
-		output := unitInput.MulTruncate(sdk.NewDecFromInt(liquidTokenMap[val.OperatorAddress])).TruncateDec()
+		output := unitInput.MulTruncate(math.LegacyNewDecFromInt(liquidTokenMap[val.OperatorAddress])).TruncateDec()
 		totalOutput = totalOutput.Add(output)
 		outputs = append(outputs, output)
 	}
