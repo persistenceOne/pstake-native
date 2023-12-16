@@ -585,7 +585,7 @@ func (k msgServer) LiquidUnstake(
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
 	// parse the chain host denom from the stk denom
-	_, hostDenom, found := strings.Cut(msg.Amount.Denom, "/")
+	hostDenom, found := types.MintDenomToHostDenom(msg.Amount.Denom)
 	if !found {
 		return nil, errorsmod.Wrapf(types.ErrInvalidHostChain,
 			"could not parse chain host denom from %s",
@@ -708,7 +708,7 @@ func (k msgServer) Redeem(
 	ctx := sdktypes.UnwrapSDKContext(goCtx)
 
 	// parse the chain host denom from the stk denom
-	_, hostDenom, found := strings.Cut(msg.Amount.Denom, "/")
+	hostDenom, found := types.MintDenomToHostDenom(msg.Amount.Denom)
 	if !found {
 		return nil, errorsmod.Wrapf(types.ErrInvalidHostChain,
 			"could not parse chain host denom from %s",

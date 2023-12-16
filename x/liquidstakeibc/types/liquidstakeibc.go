@@ -14,6 +14,14 @@ func IsLiquidStakingDenom(denom string) bool {
 	return strings.HasPrefix(denom, fmt.Sprintf("%s/", LiquidStakeDenomPrefix))
 }
 
+func MintDenomToHostDenom(mintDenom string) (string, bool) {
+	return strings.CutPrefix(mintDenom, fmt.Sprintf("%s/", LiquidStakeDenomPrefix))
+}
+
+func HostDenomToMintDenom(hostDenom string) string {
+	return fmt.Sprintf("%s/%s", LiquidStakeDenomPrefix, hostDenom)
+}
+
 func IsUnbondingEpoch(factor, epochNumber int64) bool {
 	return epochNumber%factor == 0
 }
