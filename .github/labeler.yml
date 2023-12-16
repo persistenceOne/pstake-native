@@ -2,52 +2,52 @@
 # until this file is merged into main. This is due to oddities of the labeller Github Action.
 "C:app-wiring":
   - changed-files:
-      - any-glob-to-any-file:
-          - app/*.go
-          - app/ante/**/*
-          - app/**/*
-          - cmd/**/**/*
-          - cmd/**/*
-          # Also match any module.go update
-          - x/**/module.go
+    - any-glob-to-any-file:
+      - app/*.go
+      - app/ante/**/*
+      - app/**/*
+      - cmd/**/**/*
+      - cmd/**/*
+      # Also match any module.go update
+      - x/**/module.go
 
 "C:x/liquidstakeibc":
   - changed-files:
-      - any-glob-to-any-file:
-          - x/liquidstakeibc/**/*
+    - any-glob-to-any-file:
+      - x/liquidstakeibc/**/*
 "C:x/liquidstake":
   - changed-files:
-      - any-glob-to-any-file:
-          - x/liquidstake/**/*
+    - any-glob-to-any-file:
+      - x/liquidstake/**/*
 "C:x/lscosmos":
   - changed-files:
-      - any-glob-to-any-file:
-          - x/lscosmos/**/*
+    - any-glob-to-any-file:
+      - x/lscosmos/**/*
 "T:build":
   - changed-files:
-      - any-glob-to-any-file:
-          - Makefile
-          - Dockerfile
-          - scripts/*
-          - docker/**
+    - any-glob-to-any-file:
+      - Makefile
+      - Dockerfile
+      - scripts/*
+      - docker/**
 "T:CI":
   - changed-files:
-      - any-glob-to-any-file:
-          - .github/**/*.yml
-          - .golangci.yml
-          - contrib/**
+    - any-glob-to-any-file:
+      - .github/**/*.yml
+      - .golangci.yml
+      - contrib/**
 "C:CLI":
   - changed-files:
-      - any-glob-to-any-file:
-          - x/*/client/**/*
+    - any-glob-to-any-file:
+      - x/*/client/**/*
 # Add "C:docs" label to documented related files and directories.
 "C:docs":
   - changed-files:
-      - any-glob-to-any-file:
-          - bug.md
-          - issue.md
-          - proto-docs.md
-          - README.md
-          - x/**/*.md
-          - x/**/*/*.md
-          - tests/**/*.md
+    - any-glob-to-any-file:
+      - bug.md
+      - issue.md
+      - proto-docs.md
+      - README.md
+      - x/**/*.md
+      - x/**/*/*.md
+      - tests/**/*.md
