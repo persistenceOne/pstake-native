@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctfrtypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -13,7 +11,7 @@ func (hc *HostChain) IBCDenom() string {
 }
 
 func (hc *HostChain) MintDenom() string {
-	return fmt.Sprintf("%s/%s", LiquidStakeDenomPrefix, hc.HostDenom)
+	return HostDenomToMintDenom(hc.HostDenom)
 }
 
 func (hc *HostChain) GetValidator(operatorAddress string) (*Validator, bool) {
