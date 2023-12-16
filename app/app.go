@@ -130,7 +130,9 @@ import (
 	liquidstakeibckeeper "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos"
-	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/x/ratesync"
+	ratesynckeeper "github.com/persistenceOne/pstake-native/v2/x/ratesync/keeper"
+	ratesynctypes "github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
 )
 
 var (
@@ -173,6 +175,7 @@ var (
 		interchainquery.AppModuleBasic{},
 		lscosmos.AppModuleBasic{},
 		liquidstakeibc.AppModuleBasic{},
+		ratesync.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 	)
 
@@ -246,6 +249,7 @@ type PstakeApp struct {
 	EpochsKeeper          *epochskeeper.Keeper
 	InterchainQueryKeeper interchainquerykeeper.Keeper
 	LiquidStakeIBCKeeper  liquidstakeibckeeper.Keeper
+	RatesyncKeeper        *ratesynckeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -298,7 +302,7 @@ func NewpStakeApp(
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, icahosttypes.StoreKey,
 		icacontrollertypes.StoreKey, epochstypes.StoreKey, interchainquerytypes.StoreKey,
-		ibcfeetypes.StoreKey, liquidstakeibctypes.StoreKey, consensusparamtypes.StoreKey,
+		ibcfeetypes.StoreKey, liquidstakeibctypes.StoreKey, consensusparamtypes.StoreKey, ratesynctypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -483,8 +487,14 @@ func NewpStakeApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	_ = app.InterchainQueryKeeper.SetCallbackHandler(liquidstakeibctypes.ModuleName, app.LiquidStakeIBCKeeper.CallbackHandler())
+	app.RatesyncKeeper = ratesynckeeper.NewKeeper(appCodec, keys[ratesynctypes.StoreKey],
+		app.EpochsKeeper, app.ICAControllerKeeper, app.IBCKeeper,
+		app.MsgServiceRouter(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
+	app.LiquidStakeIBCKeeper = *app.LiquidStakeIBCKeeper.SetHooks(liquidstakeibctypes.NewMultiLiquidStakeIBCHooks(
+		app.RatesyncKeeper.LiquidStakeIBCHooks()))
+
+	_ = app.InterchainQueryKeeper.SetCallbackHandler(liquidstakeibctypes.ModuleName, app.LiquidStakeIBCKeeper.CallbackHandler())
 	liquidStakeIBCModule := liquidstakeibc.NewIBCModule(app.LiquidStakeIBCKeeper)
 
 	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()
@@ -555,6 +565,7 @@ func NewpStakeApp(
 	app.EpochsKeeper.SetHooks(
 		epochstypes.NewMultiEpochHooks(
 			app.LiquidStakeIBCKeeper.NewEpochHooks(),
+			app.RatesyncKeeper.EpochHooks(),
 		),
 	)
 
@@ -592,6 +603,7 @@ func NewpStakeApp(
 		//ibchooker.NewAppModule(),
 		interchainQueryModule,
 		liquidstakeibc.NewAppModule(app.LiquidStakeIBCKeeper),
+		ratesync.NewAppModule(appCodec, *app.RatesyncKeeper, app.AccountKeeper, app.BankKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 	)
 
@@ -626,6 +638,7 @@ func NewpStakeApp(
 		ibchookertypes.ModuleName, //Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
+		ratesynctypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
@@ -653,6 +666,7 @@ func NewpStakeApp(
 		ibchookertypes.ModuleName, //Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
+		ratesynctypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -687,6 +701,7 @@ func NewpStakeApp(
 		ibchookertypes.ModuleName, //Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
+		ratesynctypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -987,11 +1002,8 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 
 	if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
-			Added: []string{},
-			Deleted: []string{
-				lscosmostypes.StoreKey,
-				"lspersistence", //if present
-			},
+			Added:   []string{ratesynctypes.StoreKey},
+			Deleted: []string{},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades

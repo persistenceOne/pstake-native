@@ -7,7 +7,7 @@ import (
 )
 
 type LiquidStakeIBCHooks interface {
-	PostCValueUpdate(ctx sdk.Context) error
+	PostCValueUpdate(ctx sdk.Context, mintDenom, hostDenom string, cValue sdk.Dec) error
 }
 
 var _ LiquidStakeIBCHooks = MultiLiquidStakeIBCHooks{}
@@ -19,11 +19,11 @@ func NewMultiLiquidStakeIBCHooks(hooks ...LiquidStakeIBCHooks) MultiLiquidStakeI
 	return hooks
 }
 
-func (h MultiLiquidStakeIBCHooks) PostCValueUpdate(ctx sdk.Context) error {
+func (h MultiLiquidStakeIBCHooks) PostCValueUpdate(ctx sdk.Context, mintDenom, hostDenom string, cValue sdk.Dec) error {
 	for i := range h {
 		wrappedHookFn := func(ctx sdk.Context) error {
 			//nolint:scopelint
-			return h[i].PostCValueUpdate(ctx)
+			return h[i].PostCValueUpdate(ctx, mintDenom, hostDenom, cValue)
 		}
 
 		err := utils.ApplyFuncIfNoError(ctx, wrappedHookFn)
