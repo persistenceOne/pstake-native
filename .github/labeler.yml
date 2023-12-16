@@ -4,25 +4,24 @@
   - changed-files:
     - any-glob-to-any-file:
       - app/*.go
-      - app/ante/**/*
-      - app/**/*
-      - cmd/**/**/*
-      - cmd/**/*
+      - app/ante/**
+      - app/**
+      - cmd/**
       # Also match any module.go update
       - x/**/module.go
 
 "C:x/liquidstakeibc":
   - changed-files:
     - any-glob-to-any-file:
-      - x/liquidstakeibc/**/*
+      - x/liquidstakeibc/**
 "C:x/liquidstake":
   - changed-files:
     - any-glob-to-any-file:
-      - x/liquidstake/**/*
+      - x/liquidstake/**
 "C:x/lscosmos":
   - changed-files:
     - any-glob-to-any-file:
-      - x/lscosmos/**/*
+      - x/lscosmos/**
 "T:build":
   - changed-files:
     - any-glob-to-any-file:
@@ -39,7 +38,7 @@
 "C:CLI":
   - changed-files:
     - any-glob-to-any-file:
-      - x/*/client/**/*
+      - x/*/client/**
 # Add "C:docs" label to documented related files and directories.
 "C:docs":
   - changed-files:
