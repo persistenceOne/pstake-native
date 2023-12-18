@@ -23,7 +23,7 @@ func (k Keeper) Params(goCtx context.Context, req *types.QueryParamsRequest) (*t
 	return &types.QueryParamsResponse{Params: k.GetParams(ctx)}, nil
 }
 
-func (k Keeper) HostChainAll(goCtx context.Context, req *types.QueryAllHostChainRequest) (*types.QueryAllHostChainResponse, error) {
+func (k Keeper) AllHostChains(goCtx context.Context, req *types.QueryAllHostChainsRequest) (*types.QueryAllHostChainsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -48,7 +48,7 @@ func (k Keeper) HostChainAll(goCtx context.Context, req *types.QueryAllHostChain
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryAllHostChainResponse{HostChains: chains, Pagination: pageRes}, nil
+	return &types.QueryAllHostChainsResponse{HostChains: chains, Pagination: pageRes}, nil
 }
 
 func (k Keeper) HostChain(goCtx context.Context, req *types.QueryGetHostChainRequest) (*types.QueryGetHostChainResponse, error) {

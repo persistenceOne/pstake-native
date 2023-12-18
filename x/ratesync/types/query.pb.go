@@ -201,22 +201,22 @@ func (m *QueryGetHostChainResponse) GetHostChain() HostChain {
 	return HostChain{}
 }
 
-type QueryAllHostChainRequest struct {
+type QueryAllHostChainsRequest struct {
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryAllHostChainRequest) Reset()         { *m = QueryAllHostChainRequest{} }
-func (m *QueryAllHostChainRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryAllHostChainRequest) ProtoMessage()    {}
-func (*QueryAllHostChainRequest) Descriptor() ([]byte, []int) {
+func (m *QueryAllHostChainsRequest) Reset()         { *m = QueryAllHostChainsRequest{} }
+func (m *QueryAllHostChainsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryAllHostChainsRequest) ProtoMessage()    {}
+func (*QueryAllHostChainsRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c98b0d6ed4c1c918, []int{4}
 }
-func (m *QueryAllHostChainRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryAllHostChainsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryAllHostChainRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryAllHostChainsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryAllHostChainRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryAllHostChainsRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -226,42 +226,42 @@ func (m *QueryAllHostChainRequest) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *QueryAllHostChainRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllHostChainRequest.Merge(m, src)
+func (m *QueryAllHostChainsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAllHostChainsRequest.Merge(m, src)
 }
-func (m *QueryAllHostChainRequest) XXX_Size() int {
+func (m *QueryAllHostChainsRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryAllHostChainRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllHostChainRequest.DiscardUnknown(m)
+func (m *QueryAllHostChainsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAllHostChainsRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryAllHostChainRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryAllHostChainsRequest proto.InternalMessageInfo
 
-func (m *QueryAllHostChainRequest) GetPagination() *query.PageRequest {
+func (m *QueryAllHostChainsRequest) GetPagination() *query.PageRequest {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-type QueryAllHostChainResponse struct {
+type QueryAllHostChainsResponse struct {
 	HostChains []HostChain         `protobuf:"bytes,1,rep,name=host_chains,json=hostChains,proto3" json:"host_chains"`
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryAllHostChainResponse) Reset()         { *m = QueryAllHostChainResponse{} }
-func (m *QueryAllHostChainResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryAllHostChainResponse) ProtoMessage()    {}
-func (*QueryAllHostChainResponse) Descriptor() ([]byte, []int) {
+func (m *QueryAllHostChainsResponse) Reset()         { *m = QueryAllHostChainsResponse{} }
+func (m *QueryAllHostChainsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryAllHostChainsResponse) ProtoMessage()    {}
+func (*QueryAllHostChainsResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c98b0d6ed4c1c918, []int{5}
 }
-func (m *QueryAllHostChainResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryAllHostChainsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryAllHostChainResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryAllHostChainsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryAllHostChainResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryAllHostChainsResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -271,26 +271,26 @@ func (m *QueryAllHostChainResponse) XXX_Marshal(b []byte, deterministic bool) ([
 		return b[:n], nil
 	}
 }
-func (m *QueryAllHostChainResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllHostChainResponse.Merge(m, src)
+func (m *QueryAllHostChainsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAllHostChainsResponse.Merge(m, src)
 }
-func (m *QueryAllHostChainResponse) XXX_Size() int {
+func (m *QueryAllHostChainsResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryAllHostChainResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllHostChainResponse.DiscardUnknown(m)
+func (m *QueryAllHostChainsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAllHostChainsResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryAllHostChainResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryAllHostChainsResponse proto.InternalMessageInfo
 
-func (m *QueryAllHostChainResponse) GetHostChains() []HostChain {
+func (m *QueryAllHostChainsResponse) GetHostChains() []HostChain {
 	if m != nil {
 		return m.HostChains
 	}
 	return nil
 }
 
-func (m *QueryAllHostChainResponse) GetPagination() *query.PageResponse {
+func (m *QueryAllHostChainsResponse) GetPagination() *query.PageResponse {
 	if m != nil {
 		return m.Pagination
 	}
@@ -302,8 +302,8 @@ func init() {
 	proto.RegisterType((*QueryParamsResponse)(nil), "pstake.ratesync.v1beta1.QueryParamsResponse")
 	proto.RegisterType((*QueryGetHostChainRequest)(nil), "pstake.ratesync.v1beta1.QueryGetHostChainRequest")
 	proto.RegisterType((*QueryGetHostChainResponse)(nil), "pstake.ratesync.v1beta1.QueryGetHostChainResponse")
-	proto.RegisterType((*QueryAllHostChainRequest)(nil), "pstake.ratesync.v1beta1.QueryAllHostChainRequest")
-	proto.RegisterType((*QueryAllHostChainResponse)(nil), "pstake.ratesync.v1beta1.QueryAllHostChainResponse")
+	proto.RegisterType((*QueryAllHostChainsRequest)(nil), "pstake.ratesync.v1beta1.QueryAllHostChainsRequest")
+	proto.RegisterType((*QueryAllHostChainsResponse)(nil), "pstake.ratesync.v1beta1.QueryAllHostChainsResponse")
 }
 
 func init() {
@@ -311,41 +311,41 @@ func init() {
 }
 
 var fileDescriptor_c98b0d6ed4c1c918 = []byte{
-	// 532 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x94, 0x4f, 0x6b, 0x13, 0x41,
-	0x18, 0xc6, 0xb3, 0x49, 0x0d, 0x74, 0x2a, 0x08, 0x63, 0xc1, 0x1a, 0x64, 0xa3, 0xa3, 0xa4, 0xc5,
-	0xd6, 0x19, 0x12, 0xbd, 0x89, 0x87, 0x56, 0xb1, 0x7a, 0x52, 0x83, 0x5e, 0xbc, 0x84, 0xc9, 0x66,
-	0xd8, 0x0c, 0x6e, 0x66, 0xb6, 0x3b, 0x93, 0x60, 0x10, 0x2f, 0x9e, 0x3d, 0x08, 0x7e, 0x06, 0xc1,
-	0x9b, 0x5f, 0xa3, 0xc7, 0x82, 0x17, 0x4f, 0x22, 0x89, 0x17, 0xbf, 0x85, 0xec, 0xcc, 0x64, 0x37,
-	0x25, 0xd9, 0xa6, 0xbd, 0x85, 0xc9, 0xf3, 0xbc, 0xcf, 0xef, 0xfd, 0xc3, 0x82, 0xdb, 0xb1, 0xd2,
-	0xf4, 0x1d, 0x23, 0x09, 0xd5, 0x4c, 0x8d, 0x45, 0x40, 0x46, 0xcd, 0x2e, 0xd3, 0xb4, 0x49, 0x8e,
-	0x86, 0x2c, 0x19, 0xe3, 0x38, 0x91, 0x5a, 0xc2, 0x6b, 0x56, 0x84, 0x67, 0x22, 0xec, 0x44, 0xb5,
-	0xcd, 0x50, 0x86, 0xd2, 0x68, 0x48, 0xfa, 0xcb, 0xca, 0x6b, 0x37, 0x42, 0x29, 0xc3, 0x88, 0x11,
-	0x1a, 0x73, 0x42, 0x85, 0x90, 0x9a, 0x6a, 0x2e, 0x85, 0x72, 0xff, 0xde, 0x0d, 0xa4, 0x1a, 0x48,
-	0x45, 0xba, 0x54, 0x31, 0x9b, 0x92, 0x65, 0xc6, 0x34, 0xe4, 0xc2, 0x88, 0x9d, 0xf6, 0x4e, 0x11,
-	0x5d, 0x4c, 0x13, 0x3a, 0x98, 0x55, 0x6c, 0x14, 0xa9, 0x32, 0x5e, 0xa3, 0x43, 0x9b, 0x00, 0xbe,
-	0x4a, 0xf3, 0x5e, 0x1a, 0x73, 0x9b, 0x1d, 0x0d, 0x99, 0xd2, 0xe8, 0x35, 0xb8, 0x7a, 0xea, 0x55,
-	0xc5, 0x52, 0x28, 0x06, 0x1f, 0x81, 0xaa, 0x0d, 0xd9, 0xf2, 0x6e, 0x7a, 0x3b, 0x1b, 0xad, 0x3a,
-	0x2e, 0x18, 0x02, 0xb6, 0xc6, 0x83, 0xb5, 0xe3, 0xdf, 0xf5, 0x52, 0xdb, 0x99, 0xd0, 0x2e, 0xd8,
-	0x32, 0x55, 0x0f, 0x99, 0x7e, 0x26, 0x95, 0x7e, 0xdc, 0xa7, 0x5c, 0xb8, 0x44, 0x78, 0x05, 0x54,
-	0x78, 0xa7, 0x67, 0xea, 0xae, 0xb5, 0xcb, 0xfc, 0x09, 0xea, 0x81, 0xeb, 0x4b, 0xc4, 0x0e, 0xe4,
-	0x10, 0x80, 0xbe, 0x54, 0xba, 0x13, 0xa4, 0xaf, 0x0e, 0x06, 0x15, 0xc2, 0x64, 0x7e, 0xc7, 0xb3,
-	0xde, 0x9f, 0x3d, 0xa0, 0xae, 0x43, 0xda, 0x8f, 0xa2, 0x05, 0xa4, 0xa7, 0x00, 0xe4, 0xc3, 0x77,
-	0x21, 0x0d, 0x6c, 0x37, 0x85, 0xd3, 0x4d, 0x61, 0x7b, 0x0f, 0x79, 0xcf, 0x21, 0x73, 0xde, 0xf6,
-	0x9c, 0x13, 0xfd, 0xf0, 0x5c, 0x2b, 0xa7, 0x43, 0x5c, 0x2b, 0xcf, 0xc1, 0x46, 0xde, 0x4a, 0x3a,
-	0xd8, 0xca, 0x85, 0x7a, 0x01, 0x59, 0x2f, 0x2a, 0x9d, 0xca, 0x1c, 0x70, 0xd9, 0x00, 0x6f, 0xaf,
-	0x04, 0xb6, 0x1c, 0xf3, 0xc4, 0xad, 0x7f, 0x15, 0x70, 0xc9, 0x10, 0xc3, 0xcf, 0x1e, 0xa8, 0xda,
-	0x5d, 0xc2, 0xdd, 0x42, 0xa6, 0xc5, 0x03, 0xaa, 0xed, 0x9d, 0x4f, 0x6c, 0xb3, 0xd1, 0xf6, 0xa7,
-	0x9f, 0x7f, 0xbf, 0x96, 0x6f, 0xc1, 0x3a, 0x39, 0xfb, 0xb6, 0xe1, 0x77, 0x0f, 0xac, 0x67, 0x13,
-	0x80, 0xcd, 0xb3, 0x43, 0x96, 0x9c, 0x59, 0xad, 0x75, 0x11, 0x8b, 0xa3, 0x7b, 0x60, 0xe8, 0x30,
-	0xdc, 0x73, 0x74, 0xf7, 0xd2, 0x29, 0x8d, 0x18, 0x19, 0xb5, 0x72, 0xce, 0xb9, 0x15, 0x92, 0x0f,
-	0xbc, 0xd3, 0xfb, 0x08, 0xbf, 0x79, 0xe0, 0x72, 0x56, 0x6b, 0x3f, 0x8a, 0x56, 0xd1, 0x2e, 0xb9,
-	0xc0, 0x55, 0xb4, 0xcb, 0xee, 0x09, 0x61, 0x43, 0xbb, 0x03, 0x1b, 0xe7, 0xa3, 0x3d, 0x78, 0x73,
-	0x3c, 0xf1, 0xbd, 0x93, 0x89, 0xef, 0xfd, 0x99, 0xf8, 0xde, 0x97, 0xa9, 0x5f, 0x3a, 0x99, 0xfa,
-	0xa5, 0x5f, 0x53, 0xbf, 0xf4, 0xf6, 0x61, 0xc8, 0x75, 0x7f, 0xd8, 0xc5, 0x81, 0x1c, 0x90, 0x98,
-	0x25, 0x8a, 0x2b, 0xcd, 0x44, 0xc0, 0x5e, 0x08, 0xb6, 0x58, 0xfa, 0x7d, 0x5e, 0x5c, 0x8f, 0x63,
-	0xa6, 0xba, 0x55, 0xf3, 0x79, 0xb9, 0xff, 0x3f, 0x00, 0x00, 0xff, 0xff, 0x5f, 0xdd, 0x07, 0x8f,
-	0x4c, 0x05, 0x00, 0x00,
+	// 534 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x94, 0x4f, 0x6b, 0x13, 0x4f,
+	0x18, 0xc7, 0xb3, 0x49, 0x7f, 0x81, 0x3e, 0xe5, 0x87, 0x30, 0x16, 0xac, 0x8b, 0x6c, 0x74, 0x95,
+	0xb4, 0x18, 0x3b, 0x43, 0x92, 0xa3, 0x78, 0xb0, 0x8a, 0xd5, 0x93, 0x1a, 0xf4, 0xe2, 0x25, 0x4c,
+	0x36, 0xc3, 0x66, 0x31, 0x99, 0xd9, 0xee, 0x4c, 0x82, 0x41, 0xbc, 0x78, 0xf6, 0x20, 0xf8, 0x22,
+	0xf4, 0xe8, 0xcb, 0xe8, 0xb1, 0xe0, 0xc5, 0x93, 0x48, 0xe2, 0xcd, 0x37, 0x21, 0x3b, 0x33, 0xd9,
+	0x4d, 0x69, 0xb6, 0x6d, 0x6e, 0x61, 0xf2, 0xfd, 0x3e, 0xdf, 0xcf, 0xf3, 0x87, 0x85, 0xdb, 0xb1,
+	0x54, 0xf4, 0x2d, 0x23, 0x09, 0x55, 0x4c, 0x4e, 0x79, 0x40, 0x26, 0xcd, 0x1e, 0x53, 0xb4, 0x49,
+	0x8e, 0xc6, 0x2c, 0x99, 0xe2, 0x38, 0x11, 0x4a, 0xa0, 0x6b, 0x46, 0x84, 0x17, 0x22, 0x6c, 0x45,
+	0xee, 0x76, 0x28, 0x42, 0xa1, 0x35, 0x24, 0xfd, 0x65, 0xe4, 0xee, 0x8d, 0x50, 0x88, 0x70, 0xc8,
+	0x08, 0x8d, 0x23, 0x42, 0x39, 0x17, 0x8a, 0xaa, 0x48, 0x70, 0x69, 0xff, 0xbd, 0x1b, 0x08, 0x39,
+	0x12, 0x92, 0xf4, 0xa8, 0x64, 0x26, 0x25, 0xcb, 0x8c, 0x69, 0x18, 0x71, 0x2d, 0xb6, 0xda, 0x3b,
+	0x45, 0x74, 0x31, 0x4d, 0xe8, 0x68, 0x51, 0xb1, 0x5e, 0xa4, 0xca, 0x78, 0xb5, 0xce, 0xdf, 0x06,
+	0xf4, 0x32, 0xcd, 0x7b, 0xa1, 0xcd, 0x1d, 0x76, 0x34, 0x66, 0x52, 0xf9, 0xaf, 0xe0, 0xea, 0xa9,
+	0x57, 0x19, 0x0b, 0x2e, 0x19, 0x7a, 0x00, 0x55, 0x13, 0xb2, 0xe3, 0xdc, 0x74, 0xf6, 0xb6, 0x5a,
+	0x35, 0x5c, 0x30, 0x04, 0x6c, 0x8c, 0x07, 0x1b, 0xc7, 0xbf, 0x6a, 0xa5, 0x8e, 0x35, 0xf9, 0x0d,
+	0xd8, 0xd1, 0x55, 0x0f, 0x99, 0x7a, 0x2a, 0xa4, 0x7a, 0x34, 0xa0, 0x11, 0xb7, 0x89, 0xe8, 0x0a,
+	0x54, 0xa2, 0x6e, 0x5f, 0xd7, 0xdd, 0xe8, 0x94, 0xa3, 0xc7, 0x7e, 0x1f, 0xae, 0xaf, 0x10, 0x5b,
+	0x90, 0x43, 0x80, 0x81, 0x90, 0xaa, 0x1b, 0xa4, 0xaf, 0x16, 0xc6, 0x2f, 0x84, 0xc9, 0xfc, 0x96,
+	0x67, 0x73, 0xb0, 0x78, 0xf0, 0x03, 0x9b, 0xf2, 0x70, 0x38, 0xcc, 0x54, 0x8b, 0x29, 0xa0, 0x27,
+	0x00, 0xf9, 0xf4, 0x6d, 0x4a, 0x1d, 0x9b, 0x55, 0xe1, 0x74, 0x55, 0xd8, 0x1c, 0x44, 0xde, 0x74,
+	0xc8, 0xac, 0xb7, 0xb3, 0xe4, 0xf4, 0xbf, 0x3b, 0xe0, 0xae, 0x4a, 0xb1, 0xcd, 0x3c, 0x83, 0xad,
+	0xbc, 0x99, 0x74, 0xb4, 0x95, 0xb5, 0xba, 0x81, 0xac, 0x1b, 0x99, 0xce, 0x65, 0x89, 0xb8, 0xac,
+	0x89, 0x77, 0x2f, 0x24, 0x36, 0x1c, 0xcb, 0xc8, 0xad, 0xbf, 0x15, 0xf8, 0x4f, 0x23, 0xa3, 0x4f,
+	0x0e, 0x54, 0xcd, 0x36, 0x51, 0xa3, 0x90, 0xe9, 0xec, 0x09, 0xb9, 0xf7, 0x2e, 0x27, 0x36, 0xd9,
+	0xfe, 0xee, 0xc7, 0x1f, 0x7f, 0xbe, 0x94, 0x6f, 0xa1, 0x1a, 0x39, 0xff, 0xba, 0xd1, 0x57, 0x07,
+	0x36, 0xb3, 0x09, 0xa0, 0xe6, 0xf9, 0x21, 0x2b, 0x0e, 0xcd, 0x6d, 0xad, 0x63, 0xb1, 0x74, 0x6d,
+	0x4d, 0xb7, 0x8f, 0x1a, 0x96, 0x6e, 0x3f, 0x9d, 0xd2, 0x84, 0x91, 0x49, 0x2b, 0xe7, 0xcc, 0x57,
+	0x48, 0xde, 0x47, 0xdd, 0xfe, 0x07, 0xf4, 0xcd, 0x81, 0xff, 0x4f, 0x2d, 0x1c, 0x5d, 0x10, 0xbd,
+	0xea, 0x06, 0xdd, 0xf6, 0x5a, 0x1e, 0xcb, 0x8b, 0x35, 0xef, 0x1e, 0xaa, 0x5f, 0x8a, 0x57, 0x1e,
+	0xbc, 0x3e, 0x9e, 0x79, 0xce, 0xc9, 0xcc, 0x73, 0x7e, 0xcf, 0x3c, 0xe7, 0xf3, 0xdc, 0x2b, 0x9d,
+	0xcc, 0xbd, 0xd2, 0xcf, 0xb9, 0x57, 0x7a, 0x73, 0x3f, 0x8c, 0xd4, 0x60, 0xdc, 0xc3, 0x81, 0x18,
+	0x91, 0x98, 0x25, 0x32, 0x92, 0x8a, 0xf1, 0x80, 0x3d, 0xe7, 0xec, 0x6c, 0xe9, 0x77, 0x79, 0x71,
+	0x35, 0x8d, 0x99, 0xec, 0x55, 0xf5, 0x27, 0xa6, 0xfd, 0x2f, 0x00, 0x00, 0xff, 0xff, 0x52, 0x72,
+	0xb9, 0x85, 0x50, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -364,7 +364,7 @@ type QueryClient interface {
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	// Queries a list of Chain items.
 	HostChain(ctx context.Context, in *QueryGetHostChainRequest, opts ...grpc.CallOption) (*QueryGetHostChainResponse, error)
-	HostChainAll(ctx context.Context, in *QueryAllHostChainRequest, opts ...grpc.CallOption) (*QueryAllHostChainResponse, error)
+	AllHostChains(ctx context.Context, in *QueryAllHostChainsRequest, opts ...grpc.CallOption) (*QueryAllHostChainsResponse, error)
 }
 
 type queryClient struct {
@@ -393,9 +393,9 @@ func (c *queryClient) HostChain(ctx context.Context, in *QueryGetHostChainReques
 	return out, nil
 }
 
-func (c *queryClient) HostChainAll(ctx context.Context, in *QueryAllHostChainRequest, opts ...grpc.CallOption) (*QueryAllHostChainResponse, error) {
-	out := new(QueryAllHostChainResponse)
-	err := c.cc.Invoke(ctx, "/pstake.ratesync.v1beta1.Query/HostChainAll", in, out, opts...)
+func (c *queryClient) AllHostChains(ctx context.Context, in *QueryAllHostChainsRequest, opts ...grpc.CallOption) (*QueryAllHostChainsResponse, error) {
+	out := new(QueryAllHostChainsResponse)
+	err := c.cc.Invoke(ctx, "/pstake.ratesync.v1beta1.Query/AllHostChains", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -408,7 +408,7 @@ type QueryServer interface {
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	// Queries a list of Chain items.
 	HostChain(context.Context, *QueryGetHostChainRequest) (*QueryGetHostChainResponse, error)
-	HostChainAll(context.Context, *QueryAllHostChainRequest) (*QueryAllHostChainResponse, error)
+	AllHostChains(context.Context, *QueryAllHostChainsRequest) (*QueryAllHostChainsResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -421,8 +421,8 @@ func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsReq
 func (*UnimplementedQueryServer) HostChain(ctx context.Context, req *QueryGetHostChainRequest) (*QueryGetHostChainResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HostChain not implemented")
 }
-func (*UnimplementedQueryServer) HostChainAll(ctx context.Context, req *QueryAllHostChainRequest) (*QueryAllHostChainResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HostChainAll not implemented")
+func (*UnimplementedQueryServer) AllHostChains(ctx context.Context, req *QueryAllHostChainsRequest) (*QueryAllHostChainsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AllHostChains not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -465,20 +465,20 @@ func _Query_HostChain_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_HostChainAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryAllHostChainRequest)
+func _Query_AllHostChains_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryAllHostChainsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).HostChainAll(ctx, in)
+		return srv.(QueryServer).AllHostChains(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pstake.ratesync.v1beta1.Query/HostChainAll",
+		FullMethod: "/pstake.ratesync.v1beta1.Query/AllHostChains",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).HostChainAll(ctx, req.(*QueryAllHostChainRequest))
+		return srv.(QueryServer).AllHostChains(ctx, req.(*QueryAllHostChainsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -496,8 +496,8 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_HostChain_Handler,
 		},
 		{
-			MethodName: "HostChainAll",
-			Handler:    _Query_HostChainAll_Handler,
+			MethodName: "AllHostChains",
+			Handler:    _Query_AllHostChains_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -621,7 +621,7 @@ func (m *QueryGetHostChainResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryAllHostChainRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryAllHostChainsRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -631,12 +631,12 @@ func (m *QueryAllHostChainRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryAllHostChainRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryAllHostChainsRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryAllHostChainRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryAllHostChainsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -656,7 +656,7 @@ func (m *QueryAllHostChainRequest) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryAllHostChainResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryAllHostChainsResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -666,12 +666,12 @@ func (m *QueryAllHostChainResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryAllHostChainResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryAllHostChainsResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryAllHostChainResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryAllHostChainsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -759,7 +759,7 @@ func (m *QueryGetHostChainResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryAllHostChainRequest) Size() (n int) {
+func (m *QueryAllHostChainsRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -772,7 +772,7 @@ func (m *QueryAllHostChainRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryAllHostChainResponse) Size() (n int) {
+func (m *QueryAllHostChainsResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1082,7 +1082,7 @@ func (m *QueryGetHostChainResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryAllHostChainRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryAllHostChainsRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1105,10 +1105,10 @@ func (m *QueryAllHostChainRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllHostChainRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryAllHostChainsRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllHostChainRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryAllHostChainsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1168,7 +1168,7 @@ func (m *QueryAllHostChainRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryAllHostChainResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryAllHostChainsResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1191,10 +1191,10 @@ func (m *QueryAllHostChainResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllHostChainResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryAllHostChainsResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllHostChainResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryAllHostChainsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

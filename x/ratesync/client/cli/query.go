@@ -74,11 +74,11 @@ func CmdListChain() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllHostChainRequest{
+			params := &types.QueryAllHostChainsRequest{
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.HostChainAll(cmd.Context(), params)
+			res, err := queryClient.AllHostChains(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
