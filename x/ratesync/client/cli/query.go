@@ -112,7 +112,7 @@ func CmdShowChain() *cobra.Command {
 				return err
 			}
 			params := &types.QueryGetHostChainRequest{
-				Id: argInt,
+				ID: argInt,
 			}
 
 			res, err := queryClient.HostChain(cmd.Context(), params)

@@ -15,7 +15,7 @@ var _ = strconv.IntSize
 func createNChain(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.HostChain {
 	items := make([]types.HostChain, n)
 	for i := range items {
-		items[i].Id = uint64(i)
+		items[i].ID = uint64(i)
 
 		keeper.SetHostChain(ctx, items[i])
 	}
@@ -27,7 +27,7 @@ func (suite *IntegrationTestSuite) TestHostChainGet() {
 	items := createNChain(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetHostChain(ctx,
-			item.Id,
+			item.ID,
 		)
 		suite.Require().True(found)
 		suite.Require().Equal(&item, &rst)
@@ -38,10 +38,10 @@ func (suite *IntegrationTestSuite) TestHostChainRemove() {
 	items := createNChain(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveHostChain(ctx,
-			item.Id,
+			item.ID,
 		)
 		_, found := keeper.GetHostChain(ctx,
-			item.Id,
+			item.ID,
 		)
 		suite.Require().False(found)
 	}

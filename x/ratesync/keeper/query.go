@@ -59,7 +59,7 @@ func (k Keeper) HostChain(goCtx context.Context, req *types.QueryGetHostChainReq
 
 	val, found := k.GetHostChain(
 		ctx,
-		req.Id,
+		req.ID,
 	)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")

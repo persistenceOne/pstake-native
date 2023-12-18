@@ -32,12 +32,12 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc types.HostChain) {
 
 	// if the channel is closed, and it is not being recreated, recreate it
 	portID := types.MustICAPortIDFromOwner(hc.IcaAccount.Owner)
-	_, isActive := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ConnectionId, portID)
+	_, isActive := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ConnectionID, portID)
 	if !isActive {
-		if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hc.ConnectionId, portID, ""); err != nil {
-			k.Logger(ctx).Error("error recreating %s ratesync ica: %w", hc.ChainId, err)
+		if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hc.ConnectionID, portID, ""); err != nil {
+			k.Logger(ctx).Error("error recreating %s ratesync ica: %w", hc.ChainID, err)
 		} else {
-			k.Logger(ctx).Info("Recreating ratesync ICA.", "chain", hc.ChainId)
+			k.Logger(ctx).Info("Recreating ratesync ICA.", "chain", hc.ChainID)
 
 			hc.IcaAccount.ChannelState = liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATING
 			k.SetHostChain(ctx, hc)

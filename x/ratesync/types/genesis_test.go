@@ -24,10 +24,10 @@ func TestGenesisState_Validate(t *testing.T) {
 				Params: types.DefaultParams(),
 				HostChains: []types.HostChain{
 					{
-						Id: 0,
+						ID: 0,
 					},
 					{
-						Id: 1,
+						ID: 1,
 					},
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
@@ -40,10 +40,10 @@ func TestGenesisState_Validate(t *testing.T) {
 				Params: types.DefaultParams(),
 				HostChains: []types.HostChain{
 					{
-						Id: 0,
+						ID: 0,
 					},
 					{
-						Id: 0,
+						ID: 0,
 					},
 				},
 			},

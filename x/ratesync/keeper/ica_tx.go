@@ -123,7 +123,7 @@ func (k *Keeper) ExecuteLiquidStakeRateTx(ctx sdk.Context, feature types.LiquidS
 		}
 		memo := types.ICAMemo{
 			FeatureType: feature.FeatureType,
-			HostChainId: hostchainId,
+			HostChainID: hostchainId,
 		}
 		memoBz, err := json.Marshal(memo)
 		if err != nil {
@@ -159,7 +159,7 @@ func (k *Keeper) InstantiateLiquidStakeContract(ctx sdk.Context, icaAccount liqu
 	}
 	memo := types.ICAMemo{
 		FeatureType: feature.FeatureType,
-		HostChainId: id,
+		HostChainID: id,
 	}
 	memobz, err := json.Marshal(memo)
 	if err != nil {

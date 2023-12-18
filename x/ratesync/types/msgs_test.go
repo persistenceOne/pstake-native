@@ -11,9 +11,9 @@ import (
 )
 
 var ValidHostChainInMsg = HostChain{
-	Id:           1,
-	ChainId:      "test-1",
-	ConnectionId: ibcexported.LocalhostConnectionID,
+	ID:           1,
+	ChainID:      "test-1",
+	ConnectionID: ibcexported.LocalhostConnectionID,
 	IcaAccount:   types.ICAAccount{},
 	Features: Feature{LiquidStakeIBC: LiquidStake{
 		FeatureType:     0,
@@ -134,7 +134,7 @@ func TestMsgDeleteHostChain_ValidateBasic(t *testing.T) {
 			name: "valid address",
 			msg: MsgDeleteHostChain{
 				Authority: authtypes.NewModuleAddress("addr1").String(),
-				Id:        1,
+				ID:        1,
 			},
 		},
 	}

@@ -96,7 +96,7 @@ func (msg *MsgCreateHostChain) ValidateBasic() error {
 		return err
 	}
 
-	if msg.HostChain.Id != 0 {
+	if msg.HostChain.ID != 0 {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "hostchain ID for create msg should be 0")
 	}
 	if msg.HostChain.IcaAccount.Owner != "" {
@@ -153,7 +153,7 @@ func (msg *MsgUpdateHostChain) ValidateBasic() error {
 		return err
 	}
 
-	if msg.HostChain.Id == 0 {
+	if msg.HostChain.ID == 0 {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "hostchain ID for update msg should not be 0")
 	}
 
@@ -169,7 +169,7 @@ func NewMsgDeleteHostChain(
 ) *MsgDeleteHostChain {
 	return &MsgDeleteHostChain{
 		Authority: creator,
-		Id:        id,
+		ID:        id,
 	}
 }
 func (msg *MsgDeleteHostChain) Route() string {
@@ -198,7 +198,7 @@ func (msg *MsgDeleteHostChain) ValidateBasic() error {
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
-	if msg.Id == 0 {
+	if msg.ID == 0 {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "hostchain ID for delete msg should not be 0")
 	}
 

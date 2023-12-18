@@ -33,7 +33,7 @@ func (k Keeper) SetHostChain(ctx sdk.Context, chain types.HostChain) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.HostChainKeyPrefix))
 	b := k.cdc.MustMarshal(&chain)
 	store.Set(types.HostChainKey(
-		chain.Id,
+		chain.ID,
 	), b)
 }
 
@@ -69,7 +69,7 @@ func (k Keeper) GetHostChainsByChainID(
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.HostChain
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if val.ChainId == chainID {
+		if val.ChainID == chainID {
 			vals = append(vals, val)
 		}
 	}

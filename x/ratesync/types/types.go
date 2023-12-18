@@ -16,8 +16,8 @@ import (
 )
 
 func (hc HostChain) ValidateBasic() error {
-	err := host.ConnectionIdentifierValidator(hc.ConnectionId)
-	if !(err == nil || hc.ConnectionId == ibcexported.LocalhostConnectionID) {
+	err := host.ConnectionIdentifierValidator(hc.ConnectionID)
+	if !(err == nil || hc.ConnectionID == ibcexported.LocalhostConnectionID) {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "hostchain connectionID invalid")
 	}
 

@@ -23,7 +23,7 @@ func (gs GenesisState) Validate() error {
 	chainIndexMap := make(map[string]struct{})
 
 	for _, elem := range gs.HostChains {
-		index := string(HostChainKey(elem.Id))
+		index := string(HostChainKey(elem.ID))
 		if _, ok := chainIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for chain")
 		}

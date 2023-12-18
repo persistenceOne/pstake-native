@@ -73,8 +73,8 @@ func (k *Keeper) OnChanOpenAck(
 
 	k.Logger(ctx).Info(
 		"Created new ICA.",
-		//"host chain",
-		//ChainId,
+		"host chain",
+		chainID,
 		"channel",
 		channelID,
 		"owner",
@@ -86,7 +86,7 @@ func (k *Keeper) OnChanOpenAck(
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventICAChannelCreated,
-			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdk.NewAttribute(types.AttributeChainID, hc.ChainID),
 			sdk.NewAttribute(types.AttributeICAChannelID, channelID),
 			sdk.NewAttribute(types.AttributeICAPortOwner, portOwner),
 			sdk.NewAttribute(types.AttributeICAAddress, address),
@@ -129,7 +129,7 @@ func (k *Keeper) OnAcknowledgementPacket(
 	if err != nil {
 		return err
 	}
-	if hc.Id != icaMemo.HostChainId {
+	if hc.ID != icaMemo.HostChainID {
 		return errorsmod.Wrapf(types.ErrInvalid, "host chain ID should match ID in memo")
 	}
 	switch resp := ack.Response.(type) {
@@ -200,7 +200,7 @@ func (k *Keeper) OnTimeoutPacket(
 		return err
 	}
 
-	if hc.Id != icaMemo.HostChainId {
+	if hc.ID != icaMemo.HostChainID {
 		return errorsmod.Wrapf(types.ErrInvalid, "host chain ID should match ID in memo")
 	}
 	if err := k.handleUnsuccessfulAck(ctx, icaPacket, packet, icaMemo); err != nil {
@@ -236,9 +236,9 @@ func (k *Keeper) handleUnsuccessfulAck(
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot deserialize ica packet data: %v", err)
 	}
-	hc, found := k.GetHostChain(ctx, icaMemo.HostChainId)
+	hc, found := k.GetHostChain(ctx, icaMemo.HostChainID)
 	if !found {
-		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "hostchain not found for id %v", icaMemo.HostChainId)
+		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "hostchain not found for id %v", icaMemo.HostChainID)
 	}
 	for _, msg := range messages {
 		switch sdk.MsgTypeURL(msg) {
@@ -264,7 +264,7 @@ func (k *Keeper) handleUnsuccessfulAck(
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					types.EventTypeUnsuccessfulInstantiateContract,
-					sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(types.AttributeChainID, hc.ChainID),
 					sdk.NewAttribute(types.AttributeSender, parsedMsg.Sender),
 					sdk.NewAttribute(channeltypes.AttributeKeySequence, strconv.FormatUint(packet.Sequence, 10)),
 					sdk.NewAttribute(channeltypes.AttributeKeySrcChannel, packet.SourceChannel),
@@ -288,7 +288,7 @@ func (k *Keeper) handleUnsuccessfulAck(
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					types.EventTypeUnsuccessfulExecuteContract,
-					sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(types.AttributeChainID, hc.ChainID),
 					sdk.NewAttribute(types.AttributeSender, parsedMsg.Sender),
 					sdk.NewAttribute(channeltypes.AttributeKeySequence, strconv.FormatUint(packet.Sequence, 10)),
 					sdk.NewAttribute(channeltypes.AttributeKeySrcChannel, packet.SourceChannel),
@@ -395,9 +395,9 @@ func (k Keeper) HandleInstantiateContractResponse(ctx sdk.Context,
 	resp wasmtypes.MsgInstantiateContractResponse,
 	icaMemo types.ICAMemo,
 ) error {
-	hc, found := k.GetHostChain(ctx, icaMemo.HostChainId)
+	hc, found := k.GetHostChain(ctx, icaMemo.HostChainID)
 	if !found {
-		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "hostchain not found for id %v", icaMemo.HostChainId)
+		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "hostchain not found for id %v", icaMemo.HostChainID)
 	}
 	switch icaMemo.FeatureType {
 	case types.FeatureType_LIQUID_STAKE_IBC:

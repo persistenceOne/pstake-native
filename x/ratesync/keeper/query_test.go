@@ -33,21 +33,21 @@ func (suite *IntegrationTestSuite) TestChainQuerySingle() {
 		{
 			desc: "First",
 			request: &types.QueryGetHostChainRequest{
-				Id: msgs[0].Id,
+				ID: msgs[0].ID,
 			},
 			response: &types.QueryGetHostChainResponse{HostChain: msgs[0]},
 		},
 		{
 			desc: "Second",
 			request: &types.QueryGetHostChainRequest{
-				Id: msgs[1].Id,
+				ID: msgs[1].ID,
 			},
 			response: &types.QueryGetHostChainResponse{HostChain: msgs[1]},
 		},
 		{
 			desc: "KeyNotFound",
 			request: &types.QueryGetHostChainRequest{
-				Id: uint64(100000),
+				ID: uint64(100000),
 			},
 			err: status.Error(codes.NotFound, "not found"),
 		},

@@ -19,7 +19,7 @@ service Query {
 
   // Queries a list of Chain items.
   rpc HostChain (QueryGetHostChainRequest) returns (QueryGetHostChainResponse) {
-    option (google.api.http).get = "/pstake-native/v2/ratesync/host_chains/{id}";
+    option (google.api.http).get = "/pstake-native/v2/ratesync/host_chains/{i_d}";
 
   }
   rpc HostChainAll (QueryAllHostChainRequest) returns (QueryAllHostChainResponse) {
@@ -38,7 +38,7 @@ message QueryParamsResponse {
 }
 
 message QueryGetHostChainRequest {
-  uint64 id = 1;
+  uint64 i_d = 1;
 }
 
 message QueryGetHostChainResponse {

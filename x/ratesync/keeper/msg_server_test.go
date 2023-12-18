@@ -29,12 +29,12 @@ func (suite *IntegrationTestSuite) TestChainMsgServerCreate() {
 
 	for i := 0; i < 5; i++ {
 		expected := &types.MsgCreateHostChain{Authority: GovAddress.String(),
-			HostChain: types.HostChain{Id: uint64(i + 1)},
+			HostChain: types.HostChain{ID: uint64(i + 1)},
 		}
 		_, err := srv.CreateHostChain(wctx, expected)
 		suite.Require().NoError(err)
 		_, found := k.GetHostChain(ctx,
-			expected.HostChain.Id,
+			expected.HostChain.ID,
 		)
 		suite.Require().True(found)
 	}
@@ -43,7 +43,7 @@ func (suite *IntegrationTestSuite) TestChainMsgServerCreate() {
 func (suite *IntegrationTestSuite) TestChainMsgServerUpdate() {
 	k, ctx := suite.app.RatesyncKeeper, suite.ctx
 	hc := createNChain(k, ctx, 1)[0]
-	hc2 := types.HostChain{Id: 1}
+	hc2 := types.HostChain{ID: 1}
 	tests := []struct {
 		desc    string
 		request *types.MsgUpdateHostChain
@@ -84,7 +84,7 @@ func (suite *IntegrationTestSuite) TestChainMsgServerUpdate() {
 			} else {
 				suite.Require().NoError(err)
 				_, found := k.GetHostChain(ctx,
-					expected.HostChain.Id,
+					expected.HostChain.ID,
 				)
 				suite.Require().True(found)
 			}
@@ -104,20 +104,20 @@ func (suite *IntegrationTestSuite) TestChainMsgServerDelete() {
 		{
 			desc: "Completed",
 			request: &types.MsgDeleteHostChain{Authority: GovAddress.String(),
-				Id: 0,
+				ID: 0,
 			},
 		},
 		{
 			desc: "Unauthorized",
 			request: &types.MsgDeleteHostChain{Authority: "B",
-				Id: 0,
+				ID: 0,
 			},
 			err: sdkerrors.ErrorInvalidSigner,
 		},
 		{
 			desc: "KeyNotFound",
 			request: &types.MsgDeleteHostChain{Authority: GovAddress.String(),
-				Id: 10,
+				ID: 10,
 			},
 			err: sdkerrors.ErrKeyNotFound,
 		},
@@ -133,7 +133,7 @@ func (suite *IntegrationTestSuite) TestChainMsgServerDelete() {
 			} else {
 				suite.Require().NoError(err)
 				_, found := k.GetHostChain(ctx,
-					tc.request.Id,
+					tc.request.ID,
 				)
 				suite.Require().False(found)
 			}

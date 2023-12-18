@@ -10,9 +10,9 @@ option go_package = "github.com/persistenceOne/pstake-native/v2/x/ratesync/types
 // HostChain defines the ratesync module's HostChain state.
 message HostChain{
   // unique id
-  uint64 id = 1;
-  string chain_id = 2; //not really required, just easier readability
-  string connection_id = 3;
+  uint64 i_d = 1;
+  string chain_i_d = 2; //not really required, just easier readability
+  string connection_i_d = 3;
   pstake.liquidstakeibc.v1beta1.ICAAccount icaAccount = 4 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
   Feature features = 5 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
@@ -54,7 +54,7 @@ message LiquidStake{
 // aim to keep this smaller than 256 MaxCharLen in ICA memo.
 message ICAMemo {
   FeatureType feature_type = 1;
-  uint64 host_chain_id = 2;
+  uint64 host_chain_i_d = 2;
 }
 
 enum FeatureType {
