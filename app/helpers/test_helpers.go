@@ -442,3 +442,8 @@ func PP(data interface{}) {
 	}
 	fmt.Printf("%s \n", p)
 }
+
+// NoInflationCalculationFn is the function with disabled inflation.
+func NoInflationCalculationFn(_ sdk.Context, minter minttypes.Minter, params minttypes.Params, bondedRatio math.LegacyDec) math.LegacyDec {
+	return math.LegacyNewDec(1)
+}

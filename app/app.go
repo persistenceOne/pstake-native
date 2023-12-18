@@ -126,6 +126,9 @@ import (
 
 	pstakeante "github.com/persistenceOne/pstake-native/v2/ante"
 	pstakeappparams "github.com/persistenceOne/pstake-native/v2/app/params"
+	"github.com/persistenceOne/pstake-native/v2/x/liquidstake"
+	liquidstakekeeper "github.com/persistenceOne/pstake-native/v2/x/liquidstake/keeper"
+	liquidstaketypes "github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc"
 	liquidstakeibckeeper "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -175,6 +178,7 @@ var (
 		interchainquery.AppModuleBasic{},
 		lscosmos.AppModuleBasic{},
 		liquidstakeibc.AppModuleBasic{},
+		liquidstake.AppModuleBasic{},
 		ratesync.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 	)
@@ -191,6 +195,7 @@ var (
 		ibctransfertypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
 		ibcfeetypes.ModuleName:                        nil,
 		liquidstakeibctypes.ModuleName:                {authtypes.Minter, authtypes.Burner},
+		liquidstaketypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
 		liquidstakeibctypes.DepositModuleAccount:      nil,
 		liquidstakeibctypes.UndelegationModuleAccount: {authtypes.Burner},
 	}
@@ -249,6 +254,7 @@ type PstakeApp struct {
 	EpochsKeeper          *epochskeeper.Keeper
 	InterchainQueryKeeper interchainquerykeeper.Keeper
 	LiquidStakeIBCKeeper  liquidstakeibckeeper.Keeper
+	LiquidStakeKeeper     liquidstakekeeper.Keeper
 	RatesyncKeeper        *ratesynckeeper.Keeper
 
 	// make scoped keepers public for test purposes
@@ -302,7 +308,8 @@ func NewpStakeApp(
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, icahosttypes.StoreKey,
 		icacontrollertypes.StoreKey, epochstypes.StoreKey, interchainquerytypes.StoreKey,
-		ibcfeetypes.StoreKey, liquidstakeibctypes.StoreKey, consensusparamtypes.StoreKey, ratesynctypes.StoreKey,
+		ibcfeetypes.StoreKey, liquidstakeibctypes.StoreKey, liquidstaketypes.StoreKey, consensusparamtypes.StoreKey,
+		ratesynctypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -418,6 +425,17 @@ func NewpStakeApp(
 		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
 	)
 
+	app.LiquidStakeKeeper = liquidstakekeeper.NewKeeper(
+		appCodec,
+		keys[liquidstaketypes.StoreKey],
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.StakingKeeper,
+		app.DistrKeeper,
+		app.SlashingKeeper,
+		app.MsgServiceRouter(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
 		keys[ibcexported.StoreKey],
@@ -495,6 +513,7 @@ func NewpStakeApp(
 		app.RatesyncKeeper.LiquidStakeIBCHooks()))
 
 	_ = app.InterchainQueryKeeper.SetCallbackHandler(liquidstakeibctypes.ModuleName, app.LiquidStakeIBCKeeper.CallbackHandler())
+
 	liquidStakeIBCModule := liquidstakeibc.NewIBCModule(app.LiquidStakeIBCKeeper)
 
 	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()
@@ -519,9 +538,9 @@ func NewpStakeApp(
 	ibcRouter.
 		AddRoute(ibctransfertypes.ModuleName, transferStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostStack).
-		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
-	//AddRoute(liquidstakeibctypes.ModuleName, icaControllerStack).
-	//AddRoute(ratesynctypes.ModuleName, icaControllerStack)
+		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
+		AddRoute(liquidstakeibctypes.ModuleName, icaControllerStack).
+		AddRoute(ratesynctypes.ModuleName, icaControllerStack)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -605,6 +624,7 @@ func NewpStakeApp(
 		//ibchooker.NewAppModule(),
 		interchainQueryModule,
 		liquidstakeibc.NewAppModule(app.LiquidStakeIBCKeeper),
+		liquidstake.NewAppModule(app.LiquidStakeKeeper),
 		ratesync.NewAppModule(appCodec, *app.RatesyncKeeper, app.AccountKeeper, app.BankKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 	)
@@ -640,6 +660,7 @@ func NewpStakeApp(
 		ibchookertypes.ModuleName, //Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
+		liquidstaketypes.ModuleName,
 		ratesynctypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
@@ -668,6 +689,7 @@ func NewpStakeApp(
 		ibchookertypes.ModuleName, //Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
+		liquidstaketypes.ModuleName,
 		ratesynctypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
@@ -703,6 +725,7 @@ func NewpStakeApp(
 		ibchookertypes.ModuleName, //Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
+		liquidstaketypes.ModuleName,
 		ratesynctypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
@@ -1004,7 +1027,7 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 
 	if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
-			Added:   []string{ratesynctypes.StoreKey},
+			Added:   []string{ratesynctypes.StoreKey, liquidstaketypes.StoreKey},
 			Deleted: []string{},
 		}
 
