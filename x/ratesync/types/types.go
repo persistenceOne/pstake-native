@@ -21,8 +21,8 @@ func (hc HostChain) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "hostchain connectionID invalid")
 	}
 
-	if hc.IcaAccount.Owner != "" {
-		portID, err := icatypes.NewControllerPortID(hc.IcaAccount.Owner)
+	if hc.ICAAccount.Owner != "" {
+		portID, err := icatypes.NewControllerPortID(hc.ICAAccount.Owner)
 		if err != nil {
 			return err
 		}
@@ -37,9 +37,9 @@ func (hc HostChain) ValidateBasic() error {
 		}
 	}
 
-	switch hc.IcaAccount.ChannelState {
+	switch hc.ICAAccount.ChannelState {
 	case liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATING:
-		if hc.IcaAccount.Address != "" {
+		if hc.ICAAccount.Address != "" {
 			return fmt.Errorf("ica account address for ICAAccount_ICA_CHANNEL_CREATING should be empty")
 		}
 		// No features allowed without ICA account.
@@ -47,10 +47,10 @@ func (hc HostChain) ValidateBasic() error {
 			return fmt.Errorf("no features should be enabled without a valid ICA account")
 		}
 	case liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED:
-		if hc.IcaAccount.Address == "" {
+		if hc.ICAAccount.Address == "" {
 			return fmt.Errorf("ica account address for ICAAccount_ICA_CHANNEL_CREATED should not be empty")
 		}
-		_, _, err = bech32.DecodeAndConvert(hc.IcaAccount.Address)
+		_, _, err = bech32.DecodeAndConvert(hc.ICAAccount.Address)
 		if err != nil {
 			return err
 		}

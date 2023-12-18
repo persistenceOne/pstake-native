@@ -55,14 +55,14 @@ func (k *Keeper) OnChanOpenAck(
 	// get host chain
 	hc, found := k.GetHostChain(ctx, id)
 	if !found {
-		k.Logger(ctx).Info(fmt.Sprintf("host chain with id %s is not registered", id))
+		k.Logger(ctx).Info(fmt.Sprintf("host chain with id %v is not registered", id))
 		return nil
 	}
 
 	switch {
-	case portOwner == hc.IcaAccount.Owner:
-		hc.IcaAccount.Address = address
-		hc.IcaAccount.ChannelState = liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED
+	case portOwner == hc.ICAAccount.Owner:
+		hc.ICAAccount.Address = address
+		hc.ICAAccount.ChannelState = liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED
 	default:
 		k.Logger(ctx).Error("Unrecognised ICA account type for the module", "port-id:", portID, "chain-id", chainID)
 		return nil
@@ -111,7 +111,7 @@ func (k *Keeper) OnAcknowledgementPacket(
 	// get host chain
 	hc, found := k.GetHostChain(ctx, id)
 	if !found {
-		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "host chain with id %s is not present", id)
+		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "host chain with id %v is not present", id)
 	}
 
 	var ack channeltypes.Acknowledgement
@@ -187,7 +187,7 @@ func (k *Keeper) OnTimeoutPacket(
 	// get host chain
 	hc, found := k.GetHostChain(ctx, id)
 	if !found {
-		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "host chain with id %s is not present", id)
+		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "host chain with id %v is not present", id)
 	}
 	var icaPacket icatypes.InterchainAccountPacketData
 	if err := icatypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &icaPacket); err != nil {

@@ -9,7 +9,7 @@ import (
 // GetParams gets the  parameters.
 func (k *Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.KeyPrefix(types.ParamsKeyPrefix))
+	bz := store.Get(types.ParamsKeyPrefix)
 	if bz == nil {
 		return params
 	}
@@ -22,5 +22,5 @@ func (k *Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 func (k *Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bytes := k.cdc.MustMarshal(&params)
-	store.Set(types.KeyPrefix(types.ParamsKeyPrefix), bytes)
+	store.Set(types.ParamsKeyPrefix, bytes)
 }

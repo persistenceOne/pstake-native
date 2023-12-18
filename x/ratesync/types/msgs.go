@@ -99,10 +99,10 @@ func (msg *MsgCreateHostChain) ValidateBasic() error {
 	if msg.HostChain.ID != 0 {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "hostchain ID for create msg should be 0")
 	}
-	if msg.HostChain.IcaAccount.Owner != "" {
+	if msg.HostChain.ICAAccount.Owner != "" {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "owner should not be specified as app uses default")
 	}
-	if msg.HostChain.IcaAccount.ChannelState != liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATING {
+	if msg.HostChain.ICAAccount.ChannelState != liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATING {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "channel state should be creating")
 	}
 	return nil

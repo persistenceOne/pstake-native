@@ -15,22 +15,16 @@ const (
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_ratesync"
 
-	HostChainIDKeyPrefix = "host_chain_id"
-	HostChainKeyPrefix   = "host_chain"
-	ParamsKeyPrefix      = "params"
-
 	LiquidStakeAllowAllDenoms = "*"
 	LiquidStakeEpoch          = "day"
 	DefaultPortOwnerPrefix    = "pstake_ratesync_"
 )
 
-func KeyPrefix(p string) []byte {
-	return []byte(p)
-}
-
-func HostChainIDKey() []byte {
-	return KeyPrefix(HostChainIDKeyPrefix)
-}
+var (
+	HostChainIDKeyPrefix = []byte{0x01}
+	HostChainKeyPrefix   = []byte{0x02}
+	ParamsKeyPrefix      = []byte{0x00}
+)
 
 // HostChainKey returns the store key to retrieve a Chain from the index fields
 func HostChainKey(
@@ -38,5 +32,5 @@ func HostChainKey(
 ) []byte {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, id)
-	return append(KeyPrefix(HostChainKeyPrefix), bz...)
+	return bz
 }

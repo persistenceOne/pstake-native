@@ -69,13 +69,13 @@ func (suite *IntegrationTestSuite) TestChainQuerySingle() {
 	}
 }
 
-func (suite *IntegrationTestSuite) TestHostChainAllQueryPaginated() {
+func (suite *IntegrationTestSuite) TestAllHostChainsQueryPaginated() {
 	keeper, ctx := suite.app.RatesyncKeeper, suite.ctx
 	wctx := sdk.WrapSDKContext(ctx)
 	msgs := createNChain(keeper, ctx, 5)
 
-	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllHostChainRequest {
-		return &types.QueryAllHostChainRequest{
+	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllHostChainsRequest {
+		return &types.QueryAllHostChainsRequest{
 			Pagination: &query.PageRequest{
 				Key:        next,
 				Offset:     offset,
@@ -87,7 +87,7 @@ func (suite *IntegrationTestSuite) TestHostChainAllQueryPaginated() {
 	suite.T().Run("ByOffset", func(t *testing.T) {
 		step := 2
 		for i := 0; i < len(msgs); i += step {
-			resp, err := keeper.HostChainAll(wctx, request(nil, uint64(i), uint64(step), false))
+			resp, err := keeper.AllHostChains(wctx, request(nil, uint64(i), uint64(step), false))
 			suite.Require().NoError(err)
 			suite.Require().LessOrEqual(len(resp.HostChains), step)
 			suite.Require().Subset(msgs, resp.HostChains)
@@ -97,7 +97,7 @@ func (suite *IntegrationTestSuite) TestHostChainAllQueryPaginated() {
 		step := 2
 		var next []byte
 		for i := 0; i < len(msgs); i += step {
-			resp, err := keeper.HostChainAll(wctx, request(next, 0, uint64(step), false))
+			resp, err := keeper.AllHostChains(wctx, request(next, 0, uint64(step), false))
 			suite.Require().NoError(err)
 			suite.Require().LessOrEqual(len(resp.HostChains), step)
 			suite.Require().Subset(msgs, resp.HostChains)
@@ -105,13 +105,13 @@ func (suite *IntegrationTestSuite) TestHostChainAllQueryPaginated() {
 		}
 	})
 	suite.T().Run("Total", func(t *testing.T) {
-		resp, err := keeper.HostChainAll(wctx, request(nil, 0, 0, true))
+		resp, err := keeper.AllHostChains(wctx, request(nil, 0, 0, true))
 		suite.Require().NoError(err)
 		suite.Require().Equal(len(msgs), int(resp.Pagination.Total))
 		suite.Require().ElementsMatch(msgs, resp.HostChains)
 	})
 	suite.T().Run("InvalidRequest", func(t *testing.T) {
-		_, err := keeper.HostChainAll(wctx, nil)
+		_, err := keeper.AllHostChains(wctx, nil)
 		suite.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "invalid request"))
 	})
 }

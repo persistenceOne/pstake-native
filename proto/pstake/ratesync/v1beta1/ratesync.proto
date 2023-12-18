@@ -13,7 +13,7 @@ message HostChain{
   uint64 i_d = 1;
   string chain_i_d = 2; //not really required, just easier readability
   string connection_i_d = 3;
-  pstake.liquidstakeibc.v1beta1.ICAAccount icaAccount = 4 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  pstake.liquidstakeibc.v1beta1.ICAAccount i_c_a_account = 4 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
   Feature features = 5 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 message Feature{
@@ -35,6 +35,11 @@ enum InstantiationState{
   INSTANTIATION_COMPLETED = 2;
 }
 
+enum FeatureType {
+  LIQUID_STAKE_IBC = 0;
+  LIQUID_STAKE = 1;
+}
+
 message LiquidStake{
   FeatureType feature_type = 1;
 
@@ -48,7 +53,6 @@ message LiquidStake{
   repeated string denoms = 5;
 
   bool enabled = 6;
-
 }
 
 // aim to keep this smaller than 256 MaxCharLen in ICA memo.
@@ -57,7 +61,3 @@ message ICAMemo {
   uint64 host_chain_i_d = 2;
 }
 
-enum FeatureType {
-  LIQUID_STAKE_IBC = 0;
-  LIQUID_STAKE = 1;
-}

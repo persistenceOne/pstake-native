@@ -14,7 +14,7 @@ var ValidHostChainInMsg = HostChain{
 	ID:           1,
 	ChainID:      "test-1",
 	ConnectionID: ibcexported.LocalhostConnectionID,
-	IcaAccount:   types.ICAAccount{},
+	ICAAccount:   types.ICAAccount{},
 	Features: Feature{LiquidStakeIBC: LiquidStake{
 		FeatureType:     0,
 		CodeID:          0,

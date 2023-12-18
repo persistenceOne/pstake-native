@@ -32,7 +32,7 @@ func (k Keeper) AllHostChains(goCtx context.Context, req *types.QueryAllHostChai
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	store := ctx.KVStore(k.storeKey)
-	chainStore := prefix.NewStore(store, types.KeyPrefix(types.HostChainKeyPrefix))
+	chainStore := prefix.NewStore(store, types.HostChainKeyPrefix)
 
 	pageRes, err := query.Paginate(chainStore, req.Pagination, func(key []byte, value []byte) error {
 		var chain types.HostChain

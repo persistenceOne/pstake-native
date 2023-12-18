@@ -50,17 +50,17 @@ func (k msgServer) CreateHostChain(goCtx context.Context, msg *types.MsgCreateHo
 	id := k.IncrementHostChainID(ctx)
 	msg.HostChain.ID = id
 
-	if msg.HostChain.IcaAccount.Owner == "" {
-		msg.HostChain.IcaAccount.Owner = types.DefaultPortOwner(id)
+	if msg.HostChain.ICAAccount.Owner == "" {
+		msg.HostChain.ICAAccount.Owner = types.DefaultPortOwner(id)
 	} // else handled in msg.ValidateBasic()
 	// register ratesyn ICA
-	if msg.HostChain.IcaAccount.ChannelState == liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATING {
-		err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.HostChain.ConnectionID, msg.HostChain.IcaAccount.Owner, "")
+	if msg.HostChain.ICAAccount.ChannelState == liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATING {
+		err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.HostChain.ConnectionID, msg.HostChain.ICAAccount.Owner, "")
 		if err != nil {
 			return nil, errorsmod.Wrapf(
 				types.ErrRegisterFailed,
 				"error registering %s ratesync ica with owner: %s, err:%s",
-				chainID, msg.HostChain.IcaAccount.Owner,
+				chainID, msg.HostChain.ICAAccount.Owner,
 				err.Error(),
 			)
 		}
@@ -108,15 +108,15 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 			"connectionID mismatch got %s, found %s", msg.HostChain.ConnectionID, oldHC.ConnectionID)
 	}
 
-	if oldHC.IcaAccount.ChannelState != liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED {
+	if oldHC.ICAAccount.ChannelState != liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED {
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid ICAAccount state, should already be active")
 	}
-	if msg.HostChain.IcaAccount.ChannelState != oldHC.IcaAccount.ChannelState ||
-		msg.HostChain.IcaAccount.Address != oldHC.IcaAccount.Address ||
-		msg.HostChain.IcaAccount.Owner != oldHC.IcaAccount.Owner ||
-		!msg.HostChain.IcaAccount.Balance.IsEqual(oldHC.IcaAccount.Balance) {
+	if msg.HostChain.ICAAccount.ChannelState != oldHC.ICAAccount.ChannelState ||
+		msg.HostChain.ICAAccount.Address != oldHC.ICAAccount.Address ||
+		msg.HostChain.ICAAccount.Owner != oldHC.ICAAccount.Owner ||
+		!msg.HostChain.ICAAccount.Balance.IsEqual(oldHC.ICAAccount.Balance) {
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid ICAAccount, ICA account cannot be updated, "+
-			"ICAAccount mismatch got %s, found %s", msg.HostChain.IcaAccount, oldHC.IcaAccount)
+			"ICAAccount mismatch got %s, found %s", msg.HostChain.ICAAccount, oldHC.ICAAccount)
 	}
 
 	updateStr := ""
@@ -151,7 +151,7 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 
 				// generate contract msg{msg}
 				contractMsg := types.InstantiateLiquidStakeRateContract{
-					Admin: oldHC.IcaAccount.Address,
+					Admin: oldHC.ICAAccount.Address,
 				}
 				contractMsgBz, err := json.Marshal(contractMsg)
 				if err != nil {
@@ -159,8 +159,8 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 				}
 
 				msg := &wasmtypes.MsgInstantiateContract{
-					Sender: oldHC.IcaAccount.Address,
-					Admin:  oldHC.IcaAccount.Address,
+					Sender: oldHC.ICAAccount.Address,
+					Admin:  oldHC.ICAAccount.Address,
 					CodeID: oldHC.Features.LiquidStakeIBC.CodeID,
 					Label:  fmt.Sprintf("PSTAKE ratesync, ID-%v", oldHC.ID),
 					Msg:    contractMsgBz,
@@ -174,7 +174,7 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 				if err != nil {
 					return nil, err
 				}
-				_, err = k.GenerateAndExecuteICATx(ctx, oldHC.ConnectionID, oldHC.IcaAccount.Owner, []proto.Message{msg}, string(memobz))
+				_, err = k.GenerateAndExecuteICATx(ctx, oldHC.ConnectionID, oldHC.ICAAccount.Owner, []proto.Message{msg}, string(memobz))
 				if err != nil {
 					return nil, err
 				}
@@ -202,7 +202,7 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 
 				// generate contract msg{msg}
 				contractMsg := types.InstantiateLiquidStakeRateContract{
-					Admin: oldHC.IcaAccount.Address,
+					Admin: oldHC.ICAAccount.Address,
 				}
 				contractMsgBz, err := json.Marshal(contractMsg)
 				if err != nil {
@@ -210,8 +210,8 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 				}
 
 				msg := &wasmtypes.MsgInstantiateContract{
-					Sender: oldHC.IcaAccount.Address,
-					Admin:  oldHC.IcaAccount.Address,
+					Sender: oldHC.ICAAccount.Address,
+					Admin:  oldHC.ICAAccount.Address,
 					CodeID: oldHC.Features.LiquidStake.CodeID,
 					Label:  fmt.Sprintf("PSTAKE ratesync, ID-%v", oldHC.ID),
 					Msg:    contractMsgBz,
@@ -225,7 +225,7 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 				if err != nil {
 					return nil, err
 				}
-				_, err = k.GenerateAndExecuteICATx(ctx, oldHC.ConnectionID, oldHC.IcaAccount.Owner, []proto.Message{msg}, string(memobz))
+				_, err = k.GenerateAndExecuteICATx(ctx, oldHC.ConnectionID, oldHC.ICAAccount.Owner, []proto.Message{msg}, string(memobz))
 				if err != nil {
 					return nil, err
 				}
@@ -279,7 +279,7 @@ func (k msgServer) DeleteHostChain(goCtx context.Context, msg *types.MsgDeleteHo
 	}
 
 	// check pending packets, do not allow to delete if packets are pending.
-	portID := types.MustICAPortIDFromOwner(hc.IcaAccount.Owner)
+	portID := types.MustICAPortIDFromOwner(hc.ICAAccount.Owner)
 	channelID, ok := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ChainID, portID)
 	if !ok {
 		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "PortID: %s, connectionID: %s", portID, hc.ConnectionID)

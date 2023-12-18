@@ -63,7 +63,9 @@ func (k *Keeper) OnChanOpenAck(
 	// get host chain
 	hc, found := k.GetHostChain(ctx, chainID)
 	if !found {
-		return fmt.Errorf("host chain with id %s is not registered", chainID)
+		// probably for non chain ica stack.
+		k.Logger(ctx).Info(fmt.Sprintf("liquidstakeibc host chain with id %s is not registered", chainID))
+		return nil
 	}
 
 	switch {

@@ -29,7 +29,7 @@ func (k Keeper) PostCValueUpdate(ctx sdk.Context, mintDenom, hostDenom string, c
 	hcs := k.GetAllHostChain(ctx)
 	for _, hc := range hcs {
 		if hc.Features.LiquidStakeIBC.Enabled {
-			err := k.ExecuteLiquidStakeRateTx(ctx, hc.Features.LiquidStakeIBC, mintDenom, hostDenom, cValue, hc.ID, hc.ConnectionID, hc.IcaAccount)
+			err := k.ExecuteLiquidStakeRateTx(ctx, hc.Features.LiquidStakeIBC, mintDenom, hostDenom, cValue, hc.ID, hc.ConnectionID, hc.ICAAccount)
 			if err != nil {
 				k.Logger(ctx).Error("cannot ExecuteLiquidStakeRateTx for host chain ",
 					"id", hc.ID,
@@ -69,7 +69,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	for _, hc := range hcs {
 		if hc.Features.LiquidStake.Enabled && epochIdentifier == types.LiquidStakeEpoch {
 			// Add liquidstakekeeper and do stuff
-			err := k.ExecuteLiquidStakeRateTx(ctx, hc.Features.LiquidStakeIBC, liquidBondDenom, bondDenom, nas.MintRate, hc.ID, hc.ConnectionID, hc.IcaAccount)
+			err := k.ExecuteLiquidStakeRateTx(ctx, hc.Features.LiquidStakeIBC, liquidBondDenom, bondDenom, nas.MintRate, hc.ID, hc.ConnectionID, hc.ICAAccount)
 			if err != nil {
 				k.Logger(ctx).Error("cannot ExecuteLiquidStakeRateTx for host chain ",
 					"id", hc.ID,
