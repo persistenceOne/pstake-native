@@ -4,6 +4,7 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
 const TypeMsgUpdateParams = "msg_update_params"
@@ -98,7 +99,12 @@ func (msg *MsgCreateHostChain) ValidateBasic() error {
 	if msg.HostChain.Id != 0 {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "hostchain ID for create msg should be 0")
 	}
-
+	if msg.HostChain.IcaAccount.Owner != "" {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "owner should not be specified as app uses default")
+	}
+	if msg.HostChain.IcaAccount.ChannelState != liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATING {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "channel state should be creating")
+	}
 	return nil
 }
 

@@ -30,6 +30,11 @@ func (hc HostChain) ValidateBasic() error {
 		if err != nil {
 			return err
 		}
+		//Make sure it matches default.
+		_, err = IDFromPortID(portID)
+		if err != nil {
+			return err
+		}
 	}
 
 	switch hc.IcaAccount.ChannelState {
@@ -162,7 +167,7 @@ func (lsConfig LiquidStake) Equals(l2 LiquidStake) bool {
 	return true
 }
 
-func MustICAPortIDfromOwner(owner string) string {
+func MustICAPortIDFromOwner(owner string) string {
 	id, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
 		panic(err)
@@ -174,7 +179,7 @@ func MustICAPortIDfromOwner(owner string) string {
 func DefaultPortOwner(id uint64) string {
 	return fmt.Sprintf("%s%v", DefaultPortOwnerPrefix, id)
 }
-func OwnerfromPortID(portID string) (string, error) {
+func OwnerFromPortID(portID string) (string, error) {
 	prefix := fmt.Sprintf("%s", icatypes.ControllerPortPrefix)
 	idStr, found := strings.CutPrefix(portID, prefix)
 	if !found {
@@ -184,7 +189,7 @@ func OwnerfromPortID(portID string) (string, error) {
 	return idStr, nil
 }
 
-func IDfromPortID(portID string) (uint64, error) {
+func IDFromPortID(portID string) (uint64, error) {
 	prefix := fmt.Sprintf("%s%s", icatypes.ControllerPortPrefix, DefaultPortOwnerPrefix)
 	idStr, found := strings.CutPrefix(portID, prefix)
 	if !found {

@@ -31,7 +31,7 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc types.HostChain) {
 	}
 
 	// if the channel is closed, and it is not being recreated, recreate it
-	portID := types.MustICAPortIDfromOwner(hc.IcaAccount.Owner)
+	portID := types.MustICAPortIDFromOwner(hc.IcaAccount.Owner)
 	_, isActive := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ConnectionId, portID)
 	if !isActive {
 		if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hc.ConnectionId, portID, ""); err != nil {

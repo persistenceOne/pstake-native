@@ -7,7 +7,6 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -16,19 +15,6 @@ import (
 
 	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
 )
-
-func (k *Keeper) OnChanOpenInit(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID string,
-	channelID string,
-	channelCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
-	version string,
-) (string, error) {
-	return version, nil
-}
 
 func (k *Keeper) OnChanOpenAck(
 	ctx sdk.Context,
@@ -49,8 +35,8 @@ func (k *Keeper) OnChanOpenAck(
 		return fmt.Errorf("couldn't find address for %s/%s", connID, portID)
 	}
 
-	// get the port owner from the port id
-	portOwner, err := types.OwnerfromPortID(portID)
+	// get the port owner from the port id, duplicated check as of ibc-go controller stack
+	portOwner, err := types.OwnerFromPortID(portID)
 	if err != nil {
 		return fmt.Errorf("unable to parse port id %s, err: %v", portID, err)
 	}
@@ -61,14 +47,16 @@ func (k *Keeper) OnChanOpenAck(
 		return fmt.Errorf("unable to get chain id for connection %s: %w", connID, err)
 	}
 
-	id, err := types.IDfromPortID(portID)
+	id, err := types.IDFromPortID(portID)
 	if err != nil {
-		return err
+		// Port is not related to this module
+		return nil
 	}
 	// get host chain
 	hc, found := k.GetHostChain(ctx, id)
 	if !found {
-		return fmt.Errorf("host chain with id %s is not registered", chainID)
+		k.Logger(ctx).Info(fmt.Sprintf("host chain with id %s is not registered", id))
+		return nil
 	}
 
 	switch {
@@ -114,6 +102,18 @@ func (k *Keeper) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+
+	id, err := types.IDFromPortID(packet.SourcePort)
+	if err != nil {
+		// Port is not related to this module
+		return nil
+	}
+	// get host chain
+	hc, found := k.GetHostChain(ctx, id)
+	if !found {
+		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "host chain with id %s is not present", id)
+	}
+
 	var ack channeltypes.Acknowledgement
 	if err := ibctransfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet acknowledgement: %v", err)
@@ -125,9 +125,12 @@ func (k *Keeper) OnAcknowledgementPacket(
 	}
 
 	var icaMemo types.ICAMemo
-	err := json.Unmarshal([]byte(icaPacket.Memo), &icaMemo)
+	err = json.Unmarshal([]byte(icaPacket.Memo), &icaMemo)
 	if err != nil {
 		return err
+	}
+	if hc.Id != icaMemo.HostChainId {
+		return errorsmod.Wrapf(types.ErrInvalid, "host chain ID should match ID in memo")
 	}
 	switch resp := ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Error:
@@ -175,17 +178,31 @@ func (k *Keeper) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+
+	id, err := types.IDFromPortID(packet.SourcePort)
+	if err != nil {
+		// Port is not related to this module
+		return nil
+	}
+	// get host chain
+	hc, found := k.GetHostChain(ctx, id)
+	if !found {
+		return errorsmod.Wrapf(sdkerrors.ErrNotFound, "host chain with id %s is not present", id)
+	}
 	var icaPacket icatypes.InterchainAccountPacketData
 	if err := icatypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &icaPacket); err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
 	}
 
 	var icaMemo types.ICAMemo
-	err := json.Unmarshal([]byte(icaPacket.Memo), &icaMemo)
+	err = json.Unmarshal([]byte(icaPacket.Memo), &icaMemo)
 	if err != nil {
 		return err
 	}
 
+	if hc.Id != icaMemo.HostChainId {
+		return errorsmod.Wrapf(types.ErrInvalid, "host chain ID should match ID in memo")
+	}
 	if err := k.handleUnsuccessfulAck(ctx, icaPacket, packet, icaMemo); err != nil {
 		return err
 	}
