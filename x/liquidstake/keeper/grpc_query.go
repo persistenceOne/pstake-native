@@ -38,7 +38,7 @@ func (k Querier) LiquidValidators(c context.Context, req *types.QueryLiquidValid
 	return &types.QueryLiquidValidatorsResponse{LiquidValidators: k.GetAllLiquidValidatorStates(ctx)}, nil
 }
 
-// States queries states of liquid staking module.
+// States queries states of liquid stake module.
 func (k Querier) States(c context.Context, req *types.QueryStatesRequest) (*types.QueryStatesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")

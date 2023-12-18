@@ -28,7 +28,6 @@ var (
 
 // AppModuleBasic defines the basic application module used by the liquidstake module.
 type AppModuleBasic struct {
-	cdc codec.Codec
 }
 
 // Name returns the liquidstake module's name.
