@@ -1,12 +1,29 @@
 package types
 
 import (
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"testing"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/require"
 )
+
+var ValidHostChainInMsg = HostChain{
+	Id:           1,
+	ChainId:      "test-1",
+	ConnectionId: ibcexported.LocalhostConnectionID,
+	IcaAccount:   types.ICAAccount{},
+	Features: Feature{LiquidStakeIBC: LiquidStake{
+		FeatureType:     0,
+		CodeID:          0,
+		Instantiation:   0,
+		ContractAddress: "",
+		Denoms:          []string{},
+		Enabled:         false,
+	}},
+}
 
 func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 	tests := []struct {
@@ -117,6 +134,7 @@ func TestMsgDeleteHostChain_ValidateBasic(t *testing.T) {
 			name: "valid address",
 			msg: MsgDeleteHostChain{
 				Authority: authtypes.NewModuleAddress("addr1").String(),
+				Id:        1,
 			},
 		},
 	}

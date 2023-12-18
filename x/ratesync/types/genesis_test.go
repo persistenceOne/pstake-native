@@ -21,7 +21,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
-
+				Params: types.DefaultParams(),
 				HostChains: []types.HostChain{
 					{
 						Id: 0,
@@ -37,6 +37,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated chain",
 			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
 				HostChains: []types.HostChain{
 					{
 						Id: 0,

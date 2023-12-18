@@ -6,12 +6,12 @@ import (
 	"fmt"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/gogoproto/proto"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
@@ -52,7 +52,7 @@ func (k msgServer) CreateHostChain(goCtx context.Context, msg *types.MsgCreateHo
 
 	if msg.HostChain.IcaAccount.Owner == "" {
 		msg.HostChain.IcaAccount.Owner = types.DefaultPortOwner(id)
-	}
+	} // else handled in msg.ValidateBasic()
 	// register ratesyn ICA
 	if msg.HostChain.IcaAccount.ChannelState == liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATING {
 		err = k.icaControllerKeeper.RegisterInterchainAccount(ctx, msg.HostChain.ConnectionId, msg.HostChain.IcaAccount.Owner, "")
@@ -64,16 +64,7 @@ func (k msgServer) CreateHostChain(goCtx context.Context, msg *types.MsgCreateHo
 				err.Error(),
 			)
 		}
-	} else {
-		//check for proper address
-		addr, found := k.icaControllerKeeper.GetInterchainAccountAddress(ctx, msg.HostChain.ConnectionId, types.MustICAPortIDfromOwner(msg.HostChain.IcaAccount.Owner))
-		if !found {
-			return nil, errorsmod.Wrapf(icatypes.ErrInterchainAccountNotFound, "no address found for given port, expected %s", msg.HostChain.IcaAccount.Address)
-		}
-		if addr != msg.HostChain.IcaAccount.Address {
-			return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "ica address mismatch, expected %s, found %s", msg.HostChain.IcaAccount.Address, addr)
-		}
-	}
+	} // else handled in validate basic (not allowed to create new host chain with previous ICA as portID is default and suffixed by ID
 
 	k.SetHostChain(
 		ctx,
@@ -112,14 +103,11 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 
 	// only allow enable disable feature && instantiate.
 	// to change chain-id etc, add delete and create new hostchain with same details
-	if msg.HostChain.ChainId != oldHC.ChainId {
-		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid chainID, chainID cannot be updated, "+
-			"chainID mismatch got %s, found %s", msg.HostChain.ChainId, oldHC.ChainId)
-	}
 	if msg.HostChain.ConnectionId != oldHC.ConnectionId {
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid connectionID, connectionID cannot be updated, "+
 			"connectionID mismatch got %s, found %s", msg.HostChain.ConnectionId, oldHC.ConnectionId)
 	}
+
 	if oldHC.IcaAccount.ChannelState != liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED {
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid ICAAccount state, should already be active")
 	}
@@ -136,8 +124,21 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 	saveUpdate := func(updates string) (bool, string) {
 		return true, updates
 	}
+
+	chainID, err := k.GetChainID(ctx, msg.HostChain.ConnectionId)
+	if err != nil {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrNotFound, "chain id not found for connection \"%s\": \"%s\"", msg.HostChain.ConnectionId, err)
+	}
+	if chainID != msg.HostChain.ChainId {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidChainID, "chain id does not match connection-chainID input \"%s\": found\"%s\"", msg.HostChain.ChainId, chainID)
+	}
+	if msg.HostChain.ChainId != oldHC.ChainId {
+		oldHC.ChainId = msg.HostChain.ChainId
+		isOneUpdated, updateStr = saveUpdate(fmt.Sprintf("updates host chain chainID %v to %v \n", oldHC.ChainId, msg.HostChain.ChainId))
+	}
+
 	//allow only one feature update per tx.
-	if !msg.HostChain.Features.LiquidStakeIBC.Equals(oldHC.Features.LiquidStakeIBC) {
+	if !isOneUpdated && !msg.HostChain.Features.LiquidStakeIBC.Equals(oldHC.Features.LiquidStakeIBC) {
 		if oldHC.Features.LiquidStakeIBC.Instantiation == types.InstantiationState_INSTANTIATION_NOT_INITIATED {
 			// allow to add details and instantiate or just save if trying to recover.
 			switch msg.HostChain.Features.LiquidStakeIBC.Instantiation {
@@ -188,7 +189,7 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 		}
 		isOneUpdated, updateStr = saveUpdate(fmt.Sprintf("updates LiquidStakeIBC feature from %v to %v \n", oldHC.Features.LiquidStakeIBC, msg.HostChain.Features.LiquidStakeIBC))
 	}
-	if isOneUpdated && !msg.HostChain.Features.LiquidStake.Equals(oldHC.Features.LiquidStake) {
+	if !isOneUpdated && !msg.HostChain.Features.LiquidStake.Equals(oldHC.Features.LiquidStake) {
 		if oldHC.Features.LiquidStake.Instantiation == types.InstantiationState_INSTANTIATION_NOT_INITIATED {
 			// allow to add details and instantiate or just save if trying to recover.
 			switch msg.HostChain.Features.LiquidStake.Instantiation {
@@ -239,7 +240,7 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 		}
 		isOneUpdated, updateStr = saveUpdate(fmt.Sprintf("updates LiquidStake feature from %v to %v", oldHC.Features.LiquidStake, msg.HostChain.Features.LiquidStake))
 	}
-	err := oldHC.Features.ValdidateBasic()
+	err = oldHC.Features.ValdidateBasic()
 	if err != nil {
 		return nil, err
 	}
@@ -275,6 +276,24 @@ func (k msgServer) DeleteHostChain(goCtx context.Context, msg *types.MsgDeleteHo
 	)
 	if !isFound {
 		return nil, errorsmod.Wrap(sdkerrors.ErrKeyNotFound, "id not set")
+	}
+
+	// check pending packets, do not allow to delete if packets are pending.
+	portID := types.MustICAPortIDFromOwner(hc.IcaAccount.Owner)
+	channelID, ok := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ChainId, portID)
+	if !ok {
+		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "PortID: %s, connectionID: %s", portID, hc.ConnectionId)
+	}
+	nextSendSeq, ok := k.ibcKeeper.ChannelKeeper.GetNextSequenceSend(ctx, portID, channelID)
+	if !ok {
+		return nil, errorsmod.Wrapf(channeltypes.ErrSequenceSendNotFound, "PortID: %s, channelID: %s", portID, channelID)
+	}
+	nextAckSeq, ok := k.ibcKeeper.ChannelKeeper.GetNextSequenceAck(ctx, portID, channelID)
+	if !ok {
+		return nil, errorsmod.Wrapf(channeltypes.ErrSequenceAckNotFound, "PortID: %s, channelID: %s", portID, channelID)
+	}
+	if nextSendSeq != nextAckSeq {
+		return nil, errorsmod.Wrapf(channeltypes.ErrPacketSequenceOutOfOrder, "PortID: %s, channelID: %s, NextSendSequence: %v, NextAckSequence: %v", portID, channelID, nextSendSeq, nextAckSeq)
 	}
 
 	k.RemoveHostChain(
