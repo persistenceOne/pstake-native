@@ -512,16 +512,16 @@ func NewpStakeApp(
 	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
 
 	var icaControllerStack porttypes.IBCModule = liquidStakeIBCModule
-	icaControllerStack = ratesync.NewIBCModule(*app.RatesyncKeeper, icaHostStack)
+	icaControllerStack = ratesync.NewIBCModule(icaControllerStack, *app.RatesyncKeeper)
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.
 		AddRoute(ibctransfertypes.ModuleName, transferStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostStack).
-		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-		AddRoute(liquidstakeibctypes.ModuleName, icaControllerStack).
-		AddRoute(ratesynctypes.ModuleName, icaControllerStack)
+		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	//AddRoute(liquidstakeibctypes.ModuleName, icaControllerStack).
+	//AddRoute(ratesynctypes.ModuleName, icaControllerStack)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
 

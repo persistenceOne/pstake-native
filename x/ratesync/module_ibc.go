@@ -19,7 +19,7 @@ type IBCModule struct {
 	keeper   keeper.Keeper
 }
 
-func NewIBCModule(keeper keeper.Keeper, appStack porttypes.IBCModule) IBCModule {
+func NewIBCModule(appStack porttypes.IBCModule, keeper keeper.Keeper) IBCModule {
 	return IBCModule{
 		appStack: appStack,
 		keeper:   keeper,
