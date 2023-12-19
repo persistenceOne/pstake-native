@@ -19,7 +19,7 @@ const (
 	MemStoreKey = "mem_ratesync"
 
 	LiquidStakeAllowAllDenoms = "*"
-	LiquidStakeEpoch          = "day"
+	LiquidStakeEpoch          = "hour"
 	DefaultPortOwnerPrefix    = "pstake_ratesync_"
 
 	ICATimeoutTimestamp = 60 * time.Minute
