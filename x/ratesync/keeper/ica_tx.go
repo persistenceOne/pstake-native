@@ -107,7 +107,7 @@ func (k *Keeper) ExecuteLiquidStakeRateTx(ctx sdk.Context, feature types.LiquidS
 				DefaultBondDenom:    hostDenom,
 				StkDenom:            mintDenom,
 				CValue:              cValue,
-				ControllerChainTime: ctx.BlockTime(),
+				ControllerChainTime: ctx.BlockTime().Unix(),
 			},
 		}
 		contractBz, err := json.Marshal(contractMsg)
