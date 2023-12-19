@@ -40,10 +40,23 @@ message Params {
     (gogoproto.nullable) = false
   ];
 
-  // cw_locked_pool_address defines the bech32-encoded address of
+  // CwLockedPoolAddress defines the bech32-encoded address of
   // a CW smart-contract representing a time locked LP (e.g. Superfluid LP).
   string cw_locked_pool_address = 6
       [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // FeeAccountAddress defines the bech32-encoded address of
+  // a an account responsible for accumulating protocol fees.
+  string fee_account_address = 7
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // AutocompoundFeeRate specifies the fee rate for auto redelegating the stake
+  // rewards. The fee is taken in favour of the fee account (see
+  // FeeAccountAddress).
+  string autocompound_fee_rate = 8 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // ValidatorStatus enumerates the status of a liquid validator.

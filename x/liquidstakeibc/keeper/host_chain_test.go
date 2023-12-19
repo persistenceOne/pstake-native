@@ -933,7 +933,7 @@ func (suite *IntegrationTestSuite) TestProcessHostChainValidatorUpdates() {
 			if t.err == nil {
 				suite.Require().Equal(len(t.validators), len(t.hc.Validators))
 
-				for i, _ := range t.validators {
+				for i := range t.validators {
 					// get back the HC validator using the shuffled order
 					validator, _ := t.hc.GetValidator(t.validators[i].OperatorAddress)
 

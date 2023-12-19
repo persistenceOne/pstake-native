@@ -49,18 +49,24 @@ func (k Keeper) TryRedelegation(ctx sdk.Context, re types.Redelegation) (complet
 }
 
 // Rebalance argument liquidVals containing ValidatorStatusActive which is containing just added on whitelist(liquidToken 0) and ValidatorStatusInactive to delist
-func (k Keeper) Rebalance(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals types.LiquidValidators, whitelistedValsMap types.WhitelistedValsMap, rebalancingTrigger sdk.Dec) (redelegations []types.Redelegation) {
+func (k Keeper) Rebalance(
+	ctx sdk.Context,
+	proxyAcc sdk.AccAddress,
+	liquidVals types.LiquidValidators,
+	whitelistedValsMap types.WhitelistedValsMap,
+	rebalancingTrigger math.LegacyDec,
+) (redelegations []types.Redelegation) {
 	logger := k.Logger(ctx)
 	totalLiquidTokens, liquidTokenMap := liquidVals.TotalLiquidTokens(ctx, k.stakingKeeper, false)
 	if !totalLiquidTokens.IsPositive() {
-		return []types.Redelegation{}
+		return redelegations
 	}
 
 	weightMap, totalWeight := k.GetWeightMap(ctx, liquidVals, whitelistedValsMap)
 
 	// no active liquid validators
 	if !totalWeight.IsPositive() {
-		return []types.Redelegation{}
+		return redelegations
 	}
 
 	// calculate rebalancing target map
@@ -72,7 +78,7 @@ func (k Keeper) Rebalance(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals t
 	}
 	crumb := totalLiquidTokens.Sub(totalTargetMap)
 	if !totalTargetMap.IsPositive() {
-		return []types.Redelegation{}
+		return redelegations
 	}
 	// crumb to first non zero liquid validator
 	for _, val := range liquidVals {
@@ -83,7 +89,8 @@ func (k Keeper) Rebalance(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals t
 	}
 
 	failCount := 0
-	rebalancingThresholdAmt := rebalancingTrigger.Mul(sdk.NewDecFromInt(totalLiquidTokens)).TruncateInt()
+	rebalancingThresholdAmt := rebalancingTrigger.Mul(math.LegacyNewDecFromInt(totalLiquidTokens)).TruncateInt()
+	redelegations = make([]types.Redelegation, 0, liquidVals.Len())
 
 	for i := 0; i < liquidVals.Len(); i++ {
 		// get min, max of liquid token gap
@@ -104,16 +111,20 @@ func (k Keeper) Rebalance(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals t
 			Amount:       amountNeeded,
 			Last:         last,
 		}
+
 		_, err := k.TryRedelegation(ctx, redelegation)
 		if err != nil {
 			redelegation.Error = err
 			failCount++
 		}
+
 		redelegations = append(redelegations, redelegation)
 	}
+
 	if failCount > 0 {
 		logger.Error("rebalancing failed due to redelegation hopping", "redelegations", redelegations)
 	}
+
 	if len(redelegations) != 0 {
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
@@ -128,10 +139,11 @@ func (k Keeper) Rebalance(ctx sdk.Context, proxyAcc sdk.AccAddress, liquidVals t
 			types.AttributeKeyRedelegationCount, strconv.Itoa(len(redelegations)),
 			types.AttributeKeyRedelegationFailCount, strconv.Itoa(failCount))
 	}
+
 	return redelegations
 }
 
-func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
+func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) (redelegations []types.Redelegation) {
 	logger := k.Logger(ctx)
 	params := k.GetParams(ctx)
 	liquidValidators := k.GetAllLiquidValidators(ctx)
@@ -160,7 +172,13 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 
 	// rebalancing based updated liquid validators status with threshold, try by cachedCtx
 	// tombstone status also handled on Rebalance
-	reds := k.Rebalance(ctx, types.LiquidStakeProxyAcc, liquidValidators, whitelistedValsMap, types.RebalancingTrigger)
+	redelegations = k.Rebalance(
+		ctx,
+		types.LiquidStakeProxyAcc,
+		liquidValidators,
+		whitelistedValsMap,
+		types.RebalancingTrigger,
+	)
 
 	// unbond all delShares to proxyAcc if delShares exist on inactive liquid validators
 	for _, lv := range liquidValidators {
@@ -202,7 +220,9 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) []types.Redelegation {
 		}
 	}
 
-	return reds
+	k.AutocompoundStakingRewards(ctx, whitelistedValsMap)
+
+	return redelegations
 }
 
 // AutocompoundStakingRewards withdraws staking rewards and re-stakes when over threshold.
@@ -211,18 +231,36 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 
 	// checking over types.AutocompoundTrigger and execute GetRewards
 	proxyAccBalance := k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
-	rewardsThreshold := types.AutocompoundTrigger.Mul(sdk.NewDecFromInt(totalLiquidTokens))
+	rewardsThreshold := types.AutocompoundTrigger.Mul(math.LegacyNewDecFromInt(totalLiquidTokens))
 
 	// skip If it doesn't exceed the rewards threshold
-	if !sdk.NewDecFromInt(proxyAccBalance.Amount).Add(totalRemainingRewards).GT(rewardsThreshold) {
+	if !math.LegacyNewDecFromInt(proxyAccBalance.Amount).Add(totalRemainingRewards).GT(rewardsThreshold) {
 		return
 	}
 
 	// Withdraw rewards of LiquidStakeProxyAcc and re-staking
 	k.WithdrawLiquidRewards(ctx, types.LiquidStakeProxyAcc)
 
-	// re-staking with proxyAccBalance, due to auto-withdraw on add staking by f1
+	// prepare to re-staking with proxyAccBalance
 	proxyAccBalance = k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
+
+	// move autocompounding fee from the balance to fee account
+	params := k.GetParams(ctx)
+	autocompoundFee := sdk.NewCoin(proxyAccBalance.Denom, math.ZeroInt())
+
+	if !params.AutocompoundFeeRate.IsZero() {
+		autocompoundFee = sdk.NewCoin(proxyAccBalance.Denom, params.AutocompoundFeeRate.MulInt(proxyAccBalance.Amount).TruncateInt())
+		feeAccountAddr := sdk.MustAccAddressFromBech32(params.FeeAccountAddress)
+
+		err := k.bankKeeper.SendCoins(ctx, types.LiquidStakeProxyAcc, feeAccountAddr, sdk.NewCoins(autocompoundFee))
+		if err != nil {
+			k.Logger(ctx).Error("re-staking failed upon fee collection", "error", err)
+			return
+		}
+
+		// reset proxyAccBalance
+		proxyAccBalance = k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
+	}
 
 	// skip when no active liquid validator
 	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValsMap)
@@ -230,7 +268,7 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 		return
 	}
 
-	// re-staking
+	// re-staking of the accumulated rewards
 	cachedCtx, writeCache := ctx.CacheContext()
 	_, err := k.LiquidDelegate(cachedCtx, types.LiquidStakeProxyAcc, activeVals, proxyAccBalance.Amount, whitelistedValsMap)
 	if err != nil {
@@ -245,9 +283,11 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 			types.EventTypeAutocompound,
 			sdk.NewAttribute(types.AttributeKeyDelegator, types.LiquidStakeProxyAcc.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, proxyAccBalance.String()),
+			sdk.NewAttribute(types.AttributeKeyPstakeAutocompoundFee, autocompoundFee.String()),
 		),
 	})
 	logger.Info(types.EventTypeAutocompound,
 		types.AttributeKeyDelegator, types.LiquidStakeProxyAcc.String(),
-		sdk.AttributeKeyAmount, proxyAccBalance.String())
+		sdk.AttributeKeyAmount, proxyAccBalance.String(),
+		types.AttributeKeyPstakeAutocompoundFee, autocompoundFee.String())
 }

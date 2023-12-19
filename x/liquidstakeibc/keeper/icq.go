@@ -229,6 +229,5 @@ func NonCompoundableRewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, dat
 		}
 	}
 
-
 	return nil
 }
