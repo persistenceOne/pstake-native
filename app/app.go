@@ -506,7 +506,7 @@ func NewpStakeApp(
 	)
 
 	app.RatesyncKeeper = ratesynckeeper.NewKeeper(appCodec, keys[ratesynctypes.StoreKey],
-		app.EpochsKeeper, app.ICAControllerKeeper, app.IBCKeeper,
+		app.EpochsKeeper, app.LiquidStakeKeeper, app.ICAControllerKeeper, app.IBCKeeper,
 		app.MsgServiceRouter(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	app.LiquidStakeIBCKeeper = *app.LiquidStakeIBCKeeper.SetHooks(liquidstakeibctypes.NewMultiLiquidStakeIBCHooks(

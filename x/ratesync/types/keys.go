@@ -1,6 +1,9 @@
 package types
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"time"
+)
 
 const (
 	// ModuleName defines the module name
@@ -18,6 +21,8 @@ const (
 	LiquidStakeAllowAllDenoms = "*"
 	LiquidStakeEpoch          = "day"
 	DefaultPortOwnerPrefix    = "pstake_ratesync_"
+
+	ICATimeoutTimestamp = 60 * time.Minute
 )
 
 var (

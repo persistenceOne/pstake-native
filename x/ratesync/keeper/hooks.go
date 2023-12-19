@@ -55,9 +55,9 @@ func (k Keeper) EpochHooks() EpochHooks {
 
 func (e EpochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	e.k.Logger(ctx).Info("called ratesync hook for AfterEpochEnd")
-	//return e.k.AfterEpochEnd(ctx, epochIdentifier, epochNumber) //TODO uncomment after wiring liquidstakekeeper to keeper and app
-	return nil
+	return e.k.AfterEpochEnd(ctx, epochIdentifier, epochNumber)
 }
+
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	nas := k.liquidStakeKeeper.GetNetAmountState(ctx)
 	liquidBondDenom := k.liquidStakeKeeper.LiquidBondDenom(ctx)

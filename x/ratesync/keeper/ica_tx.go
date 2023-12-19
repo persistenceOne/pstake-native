@@ -3,10 +3,9 @@ package keeper
 import (
 	"encoding/json"
 	"fmt"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
 
 	errorsmod "cosmossdk.io/errors"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
@@ -14,7 +13,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	//"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
+	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
 )
 
 func (k *Keeper) GenerateAndExecuteICATx(
@@ -41,21 +40,21 @@ func (k *Keeper) GenerateAndExecuteICATx(
 		Owner:           ownerID,
 		ConnectionId:    connectionID,
 		PacketData:      icaPacketData,
-		RelativeTimeout: uint64(liquidstakeibctypes.ICATimeoutTimestamp.Nanoseconds()),
+		RelativeTimeout: uint64(types.ICATimeoutTimestamp.Nanoseconds()),
 	}
 
 	handler := k.msgRouter.Handler(msgSendTx)
 	res, err := handler(ctx, msgSendTx)
 	if err != nil {
 		k.Logger(ctx).Error(fmt.Sprintf("sending ica tx with msg: %s failed with err: %v", msgData, err))
-		return icacontrollertypes.MsgSendTxResponse{}, errorsmod.Wrapf(liquidstakeibctypes.ErrICATxFailure, "failed to send ica msg with err: %v", err)
+		return icacontrollertypes.MsgSendTxResponse{}, errorsmod.Wrapf(types.ErrICATxFailure, "failed to send ica msg with err: %v", err)
 	}
 	ctx.EventManager().EmitEvents(res.GetEvents())
 
 	portID, err := icatypes.NewControllerPortID(ownerID)
 	if err != nil {
 		return icacontrollertypes.MsgSendTxResponse{}, errorsmod.Wrapf(
-			liquidstakeibctypes.ErrICATxFailure,
+			types.ErrICATxFailure,
 			"failed to create portID from ownerID: %v",
 			err,
 		)
@@ -63,7 +62,7 @@ func (k *Keeper) GenerateAndExecuteICATx(
 	_, found := k.icaControllerKeeper.GetOpenActiveChannel(ctx, connectionID, portID)
 	if !found {
 		return icacontrollertypes.MsgSendTxResponse{}, errorsmod.Wrapf(
-			liquidstakeibctypes.ErrICATxFailure,
+			types.ErrICATxFailure,
 			"failed to get ica active channel: %v",
 			err,
 		)
@@ -72,7 +71,7 @@ func (k *Keeper) GenerateAndExecuteICATx(
 	// responses length should always be 1 since we are just sending one MsgSendTx at a time
 	if len(res.MsgResponses) != 1 {
 		return icacontrollertypes.MsgSendTxResponse{}, errorsmod.Wrapf(
-			liquidstakeibctypes.ErrInvalidResponses,
+			types.ErrInvalidResponses,
 			"not enough message responses for ica tx: %v",
 			err,
 		)
