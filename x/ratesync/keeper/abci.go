@@ -34,7 +34,7 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc types.HostChain) {
 	portID := types.MustICAPortIDFromOwner(hc.ICAAccount.Owner)
 	_, isActive := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ConnectionID, portID)
 	if !isActive {
-		if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hc.ConnectionID, portID, ""); err != nil {
+		if err := k.icaControllerKeeper.RegisterInterchainAccount(ctx, hc.ConnectionID, hc.ICAAccount.Owner, ""); err != nil {
 			k.Logger(ctx).Error("error recreating %s ratesync ica: %w", hc.ChainID, err)
 		} else {
 			k.Logger(ctx).Info("Recreating ratesync ICA.", "chain", hc.ChainID)
