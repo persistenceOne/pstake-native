@@ -1,7 +1,7 @@
 package types
 
 import (
-	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -37,10 +37,10 @@ func (m *MsgLiquidStake) Type() string { return MsgTypeLiquidStake }
 
 func (m *MsgLiquidStake) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid delegator address %q: %v", m.DelegatorAddress, err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid delegator address %q: %v", m.DelegatorAddress, err)
 	}
 	if ok := m.Amount.IsZero(); ok {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "staking amount must not be zero")
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "staking amount must not be zero")
 	}
 	if err := m.Amount.Validate(); err != nil {
 		return err
@@ -89,13 +89,13 @@ func (m *MsgStakeToLP) Type() string { return MsgTypeStakeToLP }
 
 func (m *MsgStakeToLP) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid delegator address %q: %v", m.DelegatorAddress, err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid delegator address %q: %v", m.DelegatorAddress, err)
 	}
 	if _, err := sdk.ValAddressFromBech32(m.ValidatorAddress); err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address %q: %v", m.ValidatorAddress, err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address %q: %v", m.ValidatorAddress, err)
 	}
 	if ok := m.StakedAmount.IsZero(); ok {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "staking amount must not be zero")
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "staking amount must not be zero")
 	}
 	if err := m.StakedAmount.Validate(); err != nil {
 		return err
@@ -151,10 +151,10 @@ func (m *MsgLiquidUnstake) Type() string { return MsgTypeLiquidUnstake }
 
 func (m *MsgLiquidUnstake) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid delegator address %q: %v", m.DelegatorAddress, err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid delegator address %q: %v", m.DelegatorAddress, err)
 	}
 	if ok := m.Amount.IsZero(); ok {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "unstaking amount must not be zero")
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "unstaking amount must not be zero")
 	}
 	if err := m.Amount.Validate(); err != nil {
 		return err
@@ -215,7 +215,7 @@ func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 
 func (m *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address %q: %v", m.Authority, err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address %q: %v", m.Authority, err)
 	}
 
 	err := m.Params.Validate()

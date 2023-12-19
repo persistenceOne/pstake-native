@@ -12,9 +12,9 @@ type WhitelistedValsMap map[string]WhitelistedValidator
 func (whitelistedValsMap WhitelistedValsMap) IsListed(operatorAddr string) bool {
 	if _, ok := whitelistedValsMap[operatorAddr]; ok {
 		return true
-	} else {
-		return false
 	}
+
+	return false
 }
 
 func GetWhitelistedValsMap(whitelistedValidators []WhitelistedValidator) WhitelistedValsMap {
@@ -45,7 +45,7 @@ func (v LiquidValidator) GetOperator() sdk.ValAddress {
 	return addr
 }
 
-func (v LiquidValidator) GetDelShares(ctx sdk.Context, sk StakingKeeper) sdk.Dec {
+func (v LiquidValidator) GetDelShares(ctx sdk.Context, sk StakingKeeper) math.LegacyDec {
 	del, found := sk.GetDelegation(ctx, LiquidStakeProxyAcc, v.GetOperator())
 	if !found {
 		return sdk.ZeroDec()
@@ -68,17 +68,17 @@ func (v LiquidValidator) GetLiquidTokens(ctx sdk.Context, sk StakingKeeper, only
 func (v LiquidValidator) GetWeight(whitelistedValsMap WhitelistedValsMap, active bool) math.Int {
 	if wv, ok := whitelistedValsMap[v.OperatorAddress]; ok && active {
 		return wv.TargetWeight
-	} else {
-		return sdk.ZeroInt()
 	}
+
+	return sdk.ZeroInt()
 }
 
 func (v LiquidValidator) GetStatus(activeCondition bool) ValidatorStatus {
 	if activeCondition {
 		return ValidatorStatusActive
-	} else {
-		return ValidatorStatusInactive
 	}
+
+	return ValidatorStatusInactive
 }
 
 // ActiveCondition checks the liquid validator could be active by below cases
@@ -165,29 +165,29 @@ func (avs ActiveLiquidValidators) TotalWeight(whitelistedValsMap WhitelistedVals
 }
 
 // NativeTokenToStkXPRT returns StkxprtTotalSupply * nativeTokenAmount / netAmount
-func NativeTokenToStkXPRT(nativeTokenAmount, StkxprtTotalSupplyAmount math.Int, netAmount sdk.Dec) (stkXPRTAmount math.Int) {
-	return sdk.NewDecFromInt(StkxprtTotalSupplyAmount).MulTruncate(sdk.NewDecFromInt(nativeTokenAmount)).QuoTruncate(netAmount.TruncateDec()).TruncateInt()
+func NativeTokenToStkXPRT(nativeTokenAmount, stkXPRTTotalSupplyAmount math.Int, netAmount math.LegacyDec) (stkXPRTAmount math.Int) {
+	return math.LegacyNewDecFromInt(stkXPRTTotalSupplyAmount).MulTruncate(math.LegacyNewDecFromInt(nativeTokenAmount)).QuoTruncate(netAmount.TruncateDec()).TruncateInt()
 }
 
 // StkXPRTToNativeToken returns stkXPRTAmount * netAmount / StkxprtTotalSupply with truncations
-func StkXPRTToNativeToken(stkXPRTAmount, StkxprtTotalSupplyAmount math.Int, netAmount sdk.Dec) (nativeTokenAmount sdk.Dec) {
-	return sdk.NewDecFromInt(stkXPRTAmount).MulTruncate(netAmount).Quo(sdk.NewDecFromInt(StkxprtTotalSupplyAmount)).TruncateDec()
+func StkXPRTToNativeToken(stkXPRTAmount, stkXPRTTotalSupplyAmount math.Int, netAmount math.LegacyDec) (nativeTokenAmount math.LegacyDec) {
+	return math.LegacyNewDecFromInt(stkXPRTAmount).MulTruncate(netAmount).Quo(math.LegacyNewDecFromInt(stkXPRTTotalSupplyAmount)).TruncateDec()
 }
 
 // DeductFeeRate returns Input * (1-FeeRate) with truncations
-func DeductFeeRate(input sdk.Dec, feeRate sdk.Dec) (feeDeductedOutput sdk.Dec) {
+func DeductFeeRate(input math.LegacyDec, feeRate math.LegacyDec) (feeDeductedOutput math.LegacyDec) {
 	return input.MulTruncate(sdk.OneDec().Sub(feeRate)).TruncateDec()
 }
 
-func (nas NetAmountState) CalcNetAmount() sdk.Dec {
-	return sdk.NewDecFromInt(nas.ProxyAccBalance.Add(nas.TotalLiquidTokens).Add(nas.TotalUnbondingBalance)).Add(nas.TotalRemainingRewards)
+func (nas NetAmountState) CalcNetAmount() math.LegacyDec {
+	return math.LegacyNewDecFromInt(nas.ProxyAccBalance.Add(nas.TotalLiquidTokens).Add(nas.TotalUnbondingBalance)).Add(nas.TotalRemainingRewards)
 }
 
-func (nas NetAmountState) CalcMintRate() sdk.Dec {
+func (nas NetAmountState) CalcMintRate() math.LegacyDec {
 	if nas.NetAmount.IsNil() || !nas.NetAmount.IsPositive() {
 		return sdk.ZeroDec()
 	}
-	return sdk.NewDecFromInt(nas.StkxprtTotalSupply).QuoTruncate(nas.NetAmount)
+	return math.LegacyNewDecFromInt(nas.StkxprtTotalSupply).QuoTruncate(nas.NetAmount)
 }
 
 type LiquidValidatorStates []LiquidValidatorState
