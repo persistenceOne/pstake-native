@@ -1,7 +1,9 @@
 package ratesync_test
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/pstake-native/v2/app/helpers"
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -18,10 +20,12 @@ func TestGenesis(t *testing.T) {
 
 		HostChains: []types.HostChain{
 			{
-				ID: 0,
+				ID:         1,
+				ICAAccount: liquidstakeibctypes.ICAAccount{Balance: sdk.Coin{Amount: sdk.OneInt()}},
 			},
 			{
-				ID: 1,
+				ID:         2,
+				ICAAccount: liquidstakeibctypes.ICAAccount{Balance: sdk.Coin{Amount: sdk.OneInt()}},
 			},
 		},
 		// this line is used by starport scaffolding # genesis/test/state
