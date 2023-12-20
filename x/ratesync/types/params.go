@@ -10,15 +10,15 @@ import (
 var DefaultAdmin = authtypes.NewModuleAddress(govtypes.ModuleName)
 
 // NewParams creates a new Params instance
-func NewParams() Params {
+func NewParams(admin sdk.AccAddress) Params {
 	return Params{
-		Admin: DefaultAdmin.String(),
+		Admin: admin.String(),
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams()
+	return NewParams(DefaultAdmin)
 }
 
 // Validate validates the set of params

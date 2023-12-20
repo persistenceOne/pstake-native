@@ -90,7 +90,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	suite.app = suite.chainA.App.(*app.PstakeApp)
 
 	//suite.SetupHostChainAB()
-	//suite.SetupICAChannelsAB()
+	suite.SetupICAChannelsAB()
 
 	suite.Transfer(suite.transferPathAB, sdk.NewCoin("uatom", sdk.NewInt(1000000000000)))
 	suite.Transfer(suite.transferPathAC, sdk.NewCoin("uosmo", sdk.NewInt(1000000000000)))

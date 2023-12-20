@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"testing"
@@ -10,19 +11,35 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var ValidHostChainInMsg = HostChain{
-	ID:           1,
-	ChainID:      "test-1",
-	ConnectionID: ibcexported.LocalhostConnectionID,
-	ICAAccount:   types.ICAAccount{},
-	Features: Feature{LiquidStakeIBC: LiquidStake{
-		FeatureType:     0,
-		CodeID:          0,
-		Instantiation:   0,
-		ContractAddress: "",
-		Denoms:          []string{},
-		Enabled:         false,
-	}},
+var ValidHostChainInMsg = func(id uint64) HostChain {
+	return HostChain{
+		ID:           id,
+		ChainID:      "test-1",
+		ConnectionID: ibcexported.LocalhostConnectionID,
+		ICAAccount: types.ICAAccount{
+			Address:      "",
+			Balance:      sdk.Coin{},
+			Owner:        "",
+			ChannelState: 0,
+		},
+		Features: Feature{
+			LiquidStakeIBC: LiquidStake{
+				FeatureType:     0,
+				CodeID:          0,
+				Instantiation:   0,
+				ContractAddress: "",
+				Denoms:          []string{},
+				Enabled:         false,
+			},
+			LiquidStake: LiquidStake{
+				FeatureType:     1,
+				CodeID:          0,
+				Instantiation:   0,
+				ContractAddress: "",
+				Denoms:          nil,
+				Enabled:         false,
+			}},
+	}
 }
 
 func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
@@ -40,7 +57,8 @@ func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 		}, {
 			name: "valid address",
 			msg: MsgUpdateParams{
-				Authority: authtypes.NewModuleAddress("addr1").String(),
+				Authority: authtypes.NewModuleAddress("addr").String(),
+				Params:    DefaultParams(),
 			},
 		},
 	}
@@ -66,12 +84,14 @@ func TestMsgCreateHostChain_ValidateBasic(t *testing.T) {
 			name: "invalid address",
 			msg: MsgCreateHostChain{
 				Authority: "invalid_address",
+				HostChain: ValidHostChainInMsg(0),
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgCreateHostChain{
 				Authority: authtypes.NewModuleAddress("addr1").String(),
+				HostChain: ValidHostChainInMsg(0),
 			},
 		},
 	}
@@ -97,12 +117,14 @@ func TestMsgUpdateHostChain_ValidateBasic(t *testing.T) {
 			name: "invalid address",
 			msg: MsgUpdateHostChain{
 				Authority: "invalid_address",
+				HostChain: ValidHostChainInMsg(1),
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgUpdateHostChain{
 				Authority: authtypes.NewModuleAddress("addr1").String(),
+				HostChain: ValidHostChainInMsg(1),
 			},
 		},
 	}

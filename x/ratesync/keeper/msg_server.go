@@ -280,7 +280,7 @@ func (k msgServer) DeleteHostChain(goCtx context.Context, msg *types.MsgDeleteHo
 
 	// check pending packets, do not allow to delete if packets are pending.
 	portID := types.MustICAPortIDFromOwner(hc.ICAAccount.Owner)
-	channelID, ok := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ChainID, portID)
+	channelID, ok := k.icaControllerKeeper.GetOpenActiveChannel(ctx, hc.ConnectionID, portID)
 	if !ok {
 		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "PortID: %s, connectionID: %s", portID, hc.ConnectionID)
 	}
