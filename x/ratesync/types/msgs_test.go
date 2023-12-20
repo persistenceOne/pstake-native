@@ -64,12 +64,16 @@ func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.msg.Type(), TypeMsgUpdateParams)
+			require.Equal(t, tt.msg.Route(), RouterKey)
 			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 				return
 			}
 			require.NoError(t, err)
+			require.Equal(t, tt.msg.GetSigners()[0], sdk.MustAccAddressFromBech32(tt.msg.Authority))
+			require.NotNil(t, tt.msg.GetSignBytes())
 		})
 	}
 }
@@ -97,12 +101,16 @@ func TestMsgCreateHostChain_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.msg.Type(), TypeMsgCreateHostChain)
+			require.Equal(t, tt.msg.Route(), RouterKey)
 			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 				return
 			}
 			require.NoError(t, err)
+			require.Equal(t, tt.msg.GetSigners()[0], sdk.MustAccAddressFromBech32(tt.msg.Authority))
+			require.NotNil(t, tt.msg.GetSignBytes())
 		})
 	}
 }
@@ -130,12 +138,16 @@ func TestMsgUpdateHostChain_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.msg.Type(), TypeMsgUpdateHostChain)
+			require.Equal(t, tt.msg.Route(), RouterKey)
 			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 				return
 			}
 			require.NoError(t, err)
+			require.Equal(t, tt.msg.GetSigners()[0], sdk.MustAccAddressFromBech32(tt.msg.Authority))
+			require.NotNil(t, tt.msg.GetSignBytes())
 		})
 	}
 }
@@ -162,12 +174,16 @@ func TestMsgDeleteHostChain_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.msg.Type(), TypeMsgDeleteHostChain)
+			require.Equal(t, tt.msg.Route(), RouterKey)
 			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 				return
 			}
 			require.NoError(t, err)
+			require.Equal(t, tt.msg.GetSigners()[0], sdk.MustAccAddressFromBech32(tt.msg.Authority))
+			require.NotNil(t, tt.msg.GetSignBytes())
 		})
 	}
 }
