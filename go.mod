@@ -2,6 +2,8 @@ module github.com/persistenceOne/pstake-native/v2
 
 go 1.19
 
+retract v2.5.0 // contains redeem bug
+
 require (
 	cosmossdk.io/api v0.3.1
 	cosmossdk.io/errors v1.0.0
