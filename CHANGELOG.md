@@ -34,6 +34,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## Unreleased
+
+### Bug Fixes
+
+- [707](https://github.com/persistenceOne/pstake-native/pull/707) Fix liquidstakeibc redeem edge case for protecting cValue  
+
 ## [v2.8.0] - 2023-12-20
 
 ### Features

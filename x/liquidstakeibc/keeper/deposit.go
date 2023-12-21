@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"strconv"
 
 	"cosmossdk.io/math"
@@ -77,7 +78,7 @@ func (k *Keeper) AdjustDepositsForRedemption(
 ) error {
 	redeemableDeposits, depositsAmount := k.GetRedeemableDepositsForHostChain(ctx, hc)
 	if depositsAmount.LT(redeemableAmount.Amount) {
-		return nil
+		return errorsmod.Wrapf(liquidstakeibctypes.ErrInsufficientDeposits, "deposits are lesser than amount to be redeemed, deposits present %s, required %s", depositsAmount.String(), redeemableAmount.Amount.String())
 	}
 
 	for _, deposit := range redeemableDeposits {
