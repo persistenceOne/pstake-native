@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -770,20 +769,6 @@ func (k msgServer) Redeem(
 	redeemToken, _ := sdktypes.NewDecCoinFromDec(hc.IBCDenom(), redeemAmount).TruncateDecimal()
 
 	// check if there is enough deposits to fulfill the instant redemption request
-	depositAccountBalance := k.bankKeeper.GetBalance(
-		ctx,
-		authtypes.NewModuleAddress(types.DepositModuleAccount),
-		hc.IBCDenom(),
-	)
-	if redeemToken.IsGTE(depositAccountBalance) {
-		return nil, errorsmod.Wrapf(
-			sdkerrors.ErrInsufficientFunds,
-			"can't instant redeem %s tokens, only %s is available",
-			redeemToken.String(),
-			depositAccountBalance.Amount.String(),
-		)
-	}
-
 	// subtract the redemption amount from the deposits
 	if err := k.AdjustDepositsForRedemption(ctx, hc, redeemToken); err != nil {
 		return nil, errorsmod.Wrapf(
@@ -792,7 +777,8 @@ func (k msgServer) Redeem(
 		)
 	}
 
-	// send the instant redeemed token from module to the account
+	// send the instant redeemed token from module to the account,
+	//this will error out if there are insufficient redeemTokens
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx,
 		types.DepositModuleAccount,
