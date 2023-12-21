@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"strconv"
 
 	"cosmossdk.io/math"
@@ -73,23 +74,23 @@ func (k *Keeper) GetTransactionSequenceID(channelID string, sequence uint64) str
 func (k *Keeper) AdjustDepositsForRedemption(
 	ctx sdk.Context,
 	hc *liquidstakeibctypes.HostChain,
-	redeemableAmount sdk.Coin,
+	redeemAmount sdk.Coin,
 ) error {
 	redeemableDeposits, depositsAmount := k.GetRedeemableDepositsForHostChain(ctx, hc)
-	if depositsAmount.LT(redeemableAmount.Amount) {
-		return nil
+	if depositsAmount.LT(redeemAmount.Amount) {
+		return errorsmod.Wrapf(liquidstakeibctypes.ErrInsufficientDeposits, "deposits are lesser than amount to be redeemed, deposits present %s, required %s", depositsAmount.String(), redeemAmount.Amount.String())
 	}
 
 	for _, deposit := range redeemableDeposits {
 		// there is enough tokens in this deposit to fulfill the redeem request
-		if deposit.Amount.Amount.GT(redeemableAmount.Amount) || redeemableAmount.IsZero() {
-			deposit.Amount = deposit.Amount.Sub(redeemableAmount)
+		if deposit.Amount.Amount.GT(redeemAmount.Amount) || redeemAmount.IsZero() {
+			deposit.Amount = deposit.Amount.Sub(redeemAmount)
 			k.SetDeposit(ctx, deposit)
 			return nil
 		}
 
 		// the deposit is not enough to fulfill the redeem request, use it and remove it
-		redeemableAmount = redeemableAmount.Sub(deposit.Amount)
+		redeemAmount = redeemAmount.Sub(deposit.Amount)
 		k.DeleteDeposit(ctx, deposit)
 	}
 

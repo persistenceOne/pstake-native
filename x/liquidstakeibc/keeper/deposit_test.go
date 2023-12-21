@@ -106,7 +106,7 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 			redemptionAmount: sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(5000)},
 		},
 		{
-			name: "Case 2",
+			name: "try partial redeem",
 			deposits: []*types.Deposit{
 				{
 					ChainId: suite.chainB.ChainID,
@@ -119,6 +119,7 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 				epoch: {Denom: HostDenom, Amount: sdk.NewInt(3500)},
 			},
 			redemptionAmount: sdk.Coin{Denom: HostDenom, Amount: sdk.NewInt(5000)},
+			err:              types.ErrInsufficientDeposits,
 		},
 		{
 			name: "Case 3",
@@ -210,7 +211,11 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 				t.redemptionAmount,
 			)
 
-			suite.Require().Equal(t.err, err)
+			if t.err == nil {
+				suite.Require().Equal(t.err, err)
+			} else {
+				suite.Require().ErrorContains(err, t.err.Error())
+			}
 
 			for epoch, deposit := range t.expected {
 				depositState, ok := suite.app.LiquidStakeIBCKeeper.GetDepositForChainAndEpoch(suite.ctx, suite.chainB.ChainID, epoch)
