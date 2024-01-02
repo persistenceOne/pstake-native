@@ -63,7 +63,9 @@ func (k *Keeper) OnChanOpenAck(
 	// get host chain
 	hc, found := k.GetHostChain(ctx, chainID)
 	if !found {
-		return fmt.Errorf("host chain with id %s is not registered", chainID)
+		// probably for non chain ica stack.
+		k.Logger(ctx).Info(fmt.Sprintf("liquidstakeibc host chain with id %s is not registered", chainID))
+		return nil
 	}
 
 	switch {
@@ -76,7 +78,7 @@ func (k *Keeper) OnChanOpenAck(
 		hc.RewardsAccount.Owner = portOwner
 		hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATED
 	default:
-		k.Logger(ctx).Error("Unrecognised ICA account type for the module", "port-id:", portID, "chain-id", chainID)
+		k.Logger(ctx).Info("Unrecognised ICA account type for the module", "port-id:", portID, "chain-id", chainID)
 		return nil
 	}
 

@@ -34,6 +34,22 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## Unreleased
+
+## [v2.8.1] - 2023-12-21
+
+### Bug Fixes
+
+- [707](https://github.com/persistenceOne/pstake-native/pull/707) Fix liquidstakeibc redeem edge case for protecting cValue  
+
+## [v2.8.0] - 2023-12-20
+
+### Features
+
+- [703](https://github.com/persistenceOne/pstake-native/pull/703) Add ratesync module.
+
+## [v2.7.x] - 2023-12-15
+
 ### Features
 
 - [687](https://github.com/persistenceOne/pstake-native/pull/687) Add queries for redelegations and redelegation txs.
