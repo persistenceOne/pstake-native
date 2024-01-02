@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
 )
 
 func TestGenesisState_Validate(t *testing.T) {

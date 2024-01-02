@@ -1,12 +1,14 @@
 package keeper_test
 
 import (
+	"testing"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
+
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	"testing"
 )
 
 func (suite *IntegrationTestSuite) TestKeeper_Rebalance() {

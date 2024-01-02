@@ -2,6 +2,7 @@ package ratesync
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/persistenceOne/pstake-native/v2/x/ratesync/keeper"
 	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
 )

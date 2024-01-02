@@ -1,13 +1,13 @@
 package ratesync_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/pstake-native/v2/app/helpers"
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/persistenceOne/pstake-native/v2/app/helpers"
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"github.com/persistenceOne/pstake-native/v2/x/ratesync"
 	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
 )

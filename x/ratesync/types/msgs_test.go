@@ -1,14 +1,15 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
 var ValidHostChainInMsg = func(id uint64) HostChain {

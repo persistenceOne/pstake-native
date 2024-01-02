@@ -1,12 +1,14 @@
 package keeper_test
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"testing"
+
+	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
 )
 
 func (suite *IntegrationTestSuite) TestParamsQuery() {
