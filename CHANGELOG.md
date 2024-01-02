@@ -192,7 +192,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Removed
 
 - [#516](https://github.com/persistenceOne/pstake-native/pull/516),[#517](https://github.com/persistenceOne/pstake-native/pull/517),[#515](https://github.com/persistenceOne/pstake-native/pull/515)
-  lscosmos: depracate, remove functional code
+  lscosmos: deprecate, remove functional code
 
 ## [v2.1.0-rc0] - 2023-04-20
 
@@ -200,7 +200,7 @@ Never released.
 
 ### Improvements
 
-- [#411](https://github.com/persistenceOne/pstake-native/pull/411) add admin functionality to disable module incase of
+- [#411](https://github.com/persistenceOne/pstake-native/pull/411) add admin functionality to disable module in case of
   failure.
 - [#410](https://github.com/persistenceOne/pstake-native/pull/410) reset IBC state instead of retrying IBC.
 - [#422](https://github.com/persistenceOne/pstake-native/pull/422) sdkv46
@@ -224,8 +224,8 @@ Never released.
 
 - [#545](https://github.com/persistenceOne/pstake-native/pull/545) fix failed unbondings on mainnet
 - [#549](https://github.com/persistenceOne/pstake-native/pull/549) add test for GetUnstakingEpochForPacket
-- [#550](https://github.com/persistenceOne/pstake-native/pull/550) udpate height
-- [#551](https://github.com/persistenceOne/pstake-native/pull/551) add undelegations json as embeded file
+- [#550](https://github.com/persistenceOne/pstake-native/pull/550) update height
+- [#551](https://github.com/persistenceOne/pstake-native/pull/551) add undelegations json as embedded file
 
 ## [v2.0.0] - 2023-02-18
 
@@ -278,7 +278,7 @@ Never released.
 
 ### Improvements
 
-- [#372](https://github.com/persistenceOne/pstake-native/pull/372) increase ICA timeout to 15mins, so it doesnt timeout
+- [#372](https://github.com/persistenceOne/pstake-native/pull/372) increase ICA timeout to 15mins, so it doesn't timeout
   during upgrades
 
 ## [v1.1.0] -2022-10-24

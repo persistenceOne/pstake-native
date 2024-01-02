@@ -52,7 +52,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: false,
 		},
 		{
-			desc: "deposits of non existant chain-id",
+			desc: "deposits of non existent chain-id",
 			genState: func() *types.GenesisState {
 				genesis := ValidGenesis()
 				genesis.Deposits = append(genesis.Deposits, &types.Deposit{
@@ -93,7 +93,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: false,
 		},
 		{
-			desc: "unbondings of non existant chain-id",
+			desc: "unbondings of non existent chain-id",
 			genState: func() *types.GenesisState {
 				genesis := ValidGenesis()
 				genesis.Unbondings = append(genesis.Unbondings, &types.Unbonding{ChainId: "nonExistent-1"})

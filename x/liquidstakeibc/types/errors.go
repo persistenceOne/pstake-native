@@ -27,5 +27,5 @@ var (
 	ErrLSMNotEnabled            = errorsmod.Register(ModuleName, 2019, "host chain has LSM staking disabled")
 	ErrLSMDepositProcessing     = errorsmod.Register(ModuleName, 2020, "already processing LSM deposit")
 	ErrLSMValidatorInvalidState = errorsmod.Register(ModuleName, 2021, "validator invalid state")
-	ErrInsufficientDeposits     = errorsmod.Register(ModuleName, 2022, "insufficent deposits")
+	ErrInsufficientDeposits     = errorsmod.Register(ModuleName, 2022, "insufficient deposits")
 )

@@ -29,11 +29,11 @@ func (gs *GenesisState) Validate() error {
 		}
 		hc, ok := hostChainMap[deposit.ChainId]
 		if !ok {
-			return fmt.Errorf("deposit for chain %s doesnt have a valid chain id", deposit.ChainId)
+			return fmt.Errorf("deposit for chain %s doesn't have a valid chain id", deposit.ChainId)
 		}
 		if hc.IBCDenom() != deposit.Amount.Denom {
 			return fmt.Errorf(
-				"deposit for chain %s doesnt have the correct host chain denom: %s, should be %s",
+				"deposit for chain %s doesn't have the correct host chain denom: %s, should be %s",
 				deposit.ChainId,
 				deposit.Amount.Denom,
 				hc.IBCDenom(),
@@ -43,11 +43,11 @@ func (gs *GenesisState) Validate() error {
 	for _, unbonding := range gs.Unbondings {
 		hc, ok := hostChainMap[unbonding.ChainId]
 		if !ok {
-			return fmt.Errorf("unbonding for chain %s doesnt have a valid chain id", unbonding.ChainId)
+			return fmt.Errorf("unbonding for chain %s doesn't have a valid chain id", unbonding.ChainId)
 		}
 		if hc.MintDenom() != unbonding.BurnAmount.Denom {
 			return fmt.Errorf(
-				"unbonding for chain %s doesnt have the correct burn amount denom: %s, should be %s",
+				"unbonding for chain %s doesn't have the correct burn amount denom: %s, should be %s",
 				hc.ChainId,
 				unbonding.BurnAmount.Denom,
 				hc.MintDenom(),
@@ -55,7 +55,7 @@ func (gs *GenesisState) Validate() error {
 		}
 		if hc.HostDenom != unbonding.UnbondAmount.Denom {
 			return fmt.Errorf(
-				"unbonding for chain %s doesnt have the correct host chain denom: %s, should be %s",
+				"unbonding for chain %s doesn't have the correct host chain denom: %s, should be %s",
 				hc.ChainId,
 				unbonding.UnbondAmount.Denom,
 				hc.HostDenom,
@@ -68,11 +68,11 @@ func (gs *GenesisState) Validate() error {
 	for _, userUnbonding := range gs.UserUnbondings {
 		hc, ok := hostChainMap[userUnbonding.ChainId]
 		if !ok {
-			return fmt.Errorf("user unbonding for chain %s doesnt have a valid chain id", userUnbonding.ChainId)
+			return fmt.Errorf("user unbonding for chain %s doesn't have a valid chain id", userUnbonding.ChainId)
 		}
 		if hc.MintDenom() != userUnbonding.StkAmount.Denom {
 			return fmt.Errorf(
-				"user unbonding for chain %s doesnt have the correct mint amount denom: %s, should be %s",
+				"user unbonding for chain %s doesn't have the correct mint amount denom: %s, should be %s",
 				hc.ChainId,
 				userUnbonding.StkAmount.Denom,
 				hc.MintDenom(),
@@ -80,7 +80,7 @@ func (gs *GenesisState) Validate() error {
 		}
 		if hc.HostDenom != userUnbonding.UnbondAmount.Denom {
 			return fmt.Errorf(
-				"user unbonding for chain %s doesnt have the correct host chain denom: %s, should be %s",
+				"user unbonding for chain %s doesn't have the correct host chain denom: %s, should be %s",
 				hc.ChainId,
 				userUnbonding.UnbondAmount.Denom,
 				hc.HostDenom,
@@ -93,11 +93,11 @@ func (gs *GenesisState) Validate() error {
 	for _, valUnbonding := range gs.ValidatorUnbondings {
 		hc, ok := hostChainMap[valUnbonding.ChainId]
 		if !ok {
-			return fmt.Errorf("validator unbonding for chain %s doesnt have a valid chain id", valUnbonding.ChainId)
+			return fmt.Errorf("validator unbonding for chain %s doesn't have a valid chain id", valUnbonding.ChainId)
 		}
 		if hc.HostDenom != valUnbonding.Amount.Denom {
 			return fmt.Errorf(
-				"validator unbonding for chain %s doesnt have the correct host chain denom: %s, should be %s",
+				"validator unbonding for chain %s doesn't have the correct host chain denom: %s, should be %s",
 				hc.ChainId,
 				valUnbonding.Amount.Denom,
 				hc.HostDenom,
