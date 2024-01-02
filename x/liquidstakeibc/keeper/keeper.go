@@ -305,7 +305,7 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		hc.LastCValue = hc.CValue
 		hc.CValue = cValue
 		k.SetHostChain(ctx, hc)
-		if err := k.Hooks().PostCValueUpdate(ctx); err != nil {
+		if err := k.Hooks().PostCValueUpdate(ctx, hc.MintDenom(), hc.HostDenom, hc.CValue); err != nil {
 			k.Logger(ctx).Error("PostCValueUpdate hook failed with ", "err:", err)
 		}
 		ctx.EventManager().EmitEvent(

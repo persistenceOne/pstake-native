@@ -10,6 +10,7 @@ import (
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+	"github.com/CosmWasm/wasmd/x/wasm"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmjson "github.com/cometbft/cometbft/libs/json"
@@ -133,7 +134,9 @@ import (
 	liquidstakeibckeeper "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"github.com/persistenceOne/pstake-native/v2/x/lscosmos"
-	lscosmostypes "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v2/x/ratesync"
+	ratesynckeeper "github.com/persistenceOne/pstake-native/v2/x/ratesync/keeper"
+	ratesynctypes "github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
 )
 
 var (
@@ -177,7 +180,9 @@ var (
 		lscosmos.AppModuleBasic{},
 		liquidstakeibc.AppModuleBasic{},
 		liquidstake.AppModuleBasic{},
+		ratesync.AppModuleBasic{},
 		consensus.AppModuleBasic{},
+		wasm.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -252,6 +257,7 @@ type PstakeApp struct {
 	InterchainQueryKeeper interchainquerykeeper.Keeper
 	LiquidStakeIBCKeeper  liquidstakeibckeeper.Keeper
 	LiquidStakeKeeper     liquidstakekeeper.Keeper
+	RatesyncKeeper        *ratesynckeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -305,6 +311,7 @@ func NewpStakeApp(
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, icahosttypes.StoreKey,
 		icacontrollertypes.StoreKey, epochstypes.StoreKey, interchainquerytypes.StoreKey,
 		ibcfeetypes.StoreKey, liquidstakeibctypes.StoreKey, liquidstaketypes.StoreKey, consensusparamtypes.StoreKey,
+		ratesynctypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -420,6 +427,17 @@ func NewpStakeApp(
 		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
 	)
 
+	app.LiquidStakeKeeper = liquidstakekeeper.NewKeeper(
+		appCodec,
+		keys[liquidstaketypes.StoreKey],
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.StakingKeeper,
+		app.DistrKeeper,
+		app.SlashingKeeper,
+		app.MsgServiceRouter(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
 		keys[ibcexported.StoreKey],
@@ -489,6 +507,13 @@ func NewpStakeApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	app.RatesyncKeeper = ratesynckeeper.NewKeeper(appCodec, keys[ratesynctypes.StoreKey],
+		app.EpochsKeeper, app.LiquidStakeKeeper, app.ICAControllerKeeper, app.IBCKeeper,
+		app.MsgServiceRouter(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
+
+	app.LiquidStakeIBCKeeper = *app.LiquidStakeIBCKeeper.SetHooks(liquidstakeibctypes.NewMultiLiquidStakeIBCHooks(
+		app.RatesyncKeeper.LiquidStakeIBCHooks()))
+
 	_ = app.InterchainQueryKeeper.SetCallbackHandler(liquidstakeibctypes.ModuleName, app.LiquidStakeIBCKeeper.CallbackHandler())
 
 	liquidStakeIBCModule := liquidstakeibc.NewIBCModule(app.LiquidStakeIBCKeeper)
@@ -508,6 +533,7 @@ func NewpStakeApp(
 	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
 
 	var icaControllerStack porttypes.IBCModule = liquidStakeIBCModule
+	icaControllerStack = ratesync.NewIBCModule(icaControllerStack, *app.RatesyncKeeper)
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 
 	ibcRouter := porttypes.NewRouter()
@@ -515,21 +541,10 @@ func NewpStakeApp(
 		AddRoute(ibctransfertypes.ModuleName, transferStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostStack).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-		AddRoute(liquidstakeibctypes.ModuleName, icaControllerStack)
+		AddRoute(liquidstakeibctypes.ModuleName, icaControllerStack).
+		AddRoute(ratesynctypes.ModuleName, icaControllerStack)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
-
-	app.LiquidStakeKeeper = liquidstakekeeper.NewKeeper(
-		appCodec,
-		keys[liquidstaketypes.StoreKey],
-		app.AccountKeeper,
-		app.BankKeeper,
-		app.StakingKeeper,
-		app.DistrKeeper,
-		app.SlashingKeeper,
-		app.MsgServiceRouter(),
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
 
 	// register the proposal types
 
@@ -573,6 +588,7 @@ func NewpStakeApp(
 	app.EpochsKeeper.SetHooks(
 		epochstypes.NewMultiEpochHooks(
 			app.LiquidStakeIBCKeeper.NewEpochHooks(),
+			app.RatesyncKeeper.EpochHooks(),
 		),
 	)
 
@@ -611,6 +627,7 @@ func NewpStakeApp(
 		interchainQueryModule,
 		liquidstakeibc.NewAppModule(app.LiquidStakeIBCKeeper),
 		liquidstake.NewAppModule(app.LiquidStakeKeeper),
+		ratesync.NewAppModule(appCodec, *app.RatesyncKeeper, app.AccountKeeper, app.BankKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 	)
 
@@ -646,6 +663,7 @@ func NewpStakeApp(
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
 		liquidstaketypes.ModuleName,
+		ratesynctypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
@@ -674,6 +692,7 @@ func NewpStakeApp(
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
 		liquidstaketypes.ModuleName,
+		ratesynctypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -709,6 +728,7 @@ func NewpStakeApp(
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
 		liquidstaketypes.ModuleName,
+		ratesynctypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -1009,11 +1029,8 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 
 	if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
-			Added: []string{},
-			Deleted: []string{
-				lscosmostypes.StoreKey,
-				"lspersistence", //if present
-			},
+			Added:   []string{ratesynctypes.StoreKey, liquidstaketypes.StoreKey},
+			Deleted: []string{},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
