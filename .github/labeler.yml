@@ -20,8 +20,8 @@
       - x/liquidstake/**
 "C:x/ratesync":
   - changed-files:
-      - any-glob-to-any-file:
-          - x/ratesync/**
+    - any-glob-to-any-file:
+      - x/ratesync/**
 "C:x/lscosmos":
   - changed-files:
     - any-glob-to-any-file:
