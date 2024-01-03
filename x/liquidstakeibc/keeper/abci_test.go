@@ -1,12 +1,14 @@
 package keeper_test
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	"time"
 )
 
 func (suite *IntegrationTestSuite) TestKeeper_BeginBlockCode() {

@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+
 	ratesyncsimulation "github.com/persistenceOne/pstake-native/v2/x/ratesync/simulation"
 	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
 )

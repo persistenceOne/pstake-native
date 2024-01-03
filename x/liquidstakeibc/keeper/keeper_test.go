@@ -9,6 +9,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 

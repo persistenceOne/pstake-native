@@ -1,14 +1,14 @@
 package keeper_test
 
 import (
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"strconv"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 	"github.com/persistenceOne/pstake-native/v2/x/ratesync/keeper"
 	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Prevent strconv unused error
