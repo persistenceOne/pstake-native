@@ -9,7 +9,7 @@ The Persistence chain module `x/liquidstakeibc`, is the main implementation of t
 1. [Concepts](#Concepts)
 2. [State](#State)
 3. [Proposals](#Proposals)
-4. [Mesages](#Messages)
+4. [Messages](#Messages)
 5. [Events](#Events)
 6. [Queries](#Queries)
 7. [Keepers](#Keepers)

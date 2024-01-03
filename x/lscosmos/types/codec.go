@@ -39,7 +39,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	) // add the structs that implements sdk.Msg interface
 
 	registry.RegisterImplementations((*govtypes.Content)(nil),
-		// add the stucts that implements govTypes.Content interface
+		// add the structs that implements govTypes.Content interface
 		&MinDepositAndFeeChangeProposal{},
 		&PstakeFeeAddressChangeProposal{},
 		&AllowListedValidatorSetChangeProposal{},

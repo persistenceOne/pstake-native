@@ -45,7 +45,7 @@ message LiquidStake{
 
   // needs to be uploaded before hand
   uint64 code_i_d = 2;
-  // state of instantiation, do not support gov based instantiation. (need ICA to be atleast admin)
+  // state of instantiation, do not support gov based instantiation. (need ICA to be at least admin)
   InstantiationState instantiation = 3;
   // address of instantiated contract.
   string contract_address = 4;
