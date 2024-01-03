@@ -81,7 +81,7 @@ func (k msgServer) StakeToLP(goCtx context.Context, msg *types.MsgStakeToLP) (*t
 		sdk.NewEvent(
 			types.EventTypeMsgStakeToLP,
 			sdk.NewAttribute(types.AttributeKeyDelegator, msg.DelegatorAddress),
-			sdk.NewAttribute(types.AttributeKeyStakedAmount, msg.LiquidAmount.String()),
+			sdk.NewAttribute(types.AttributeKeyStakedAmount, msg.StakedAmount.String()),
 			sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
 			sdk.NewAttribute(types.AttributeKeyStkXPRTMintedAmount, stkXPRTMinted.String()),
 		),
