@@ -40,6 +40,7 @@ const (
 	EventSuccessfulLSMRedeem                       = "successful_lsm_redeem"
 	EventUnsuccessfulDelegation                    = "unsuccessful_delegation"
 	EventUnsuccessfulUndelegation                  = "unsuccessful_undelegation"
+	EventUnsuccessfulUndelegationInitiation        = "unsuccessful_undelegation_initiation"
 	EventUnsuccessfulUndelegationTransfer          = "unsuccessful_undelegation_transfer"
 	EventUnsuccessfulValidatorUndelegationTransfer = "unsuccessful_validator_undelegation_transfer"
 	EventUnsuccessfulLSMRedeem                     = "unsuccessful_lsm_redeem"
