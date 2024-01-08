@@ -638,7 +638,7 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 			unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_FAILED
 			k.SetUnbonding(ctx, unbonding)
 
-			return
+			continue
 		}
 
 		// execute the ICA transactions
@@ -659,7 +659,7 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 			unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_FAILED
 			k.SetUnbonding(ctx, unbonding)
 
-			return
+			continue
 		}
 
 		// update the unbonding ibc sequence id and state
