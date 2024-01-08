@@ -1021,19 +1021,4 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
-
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(err)
-	}
-
-	if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := store.StoreUpgrades{
-			Added:   []string{ratesynctypes.StoreKey, liquidstaketypes.StoreKey},
-			Deleted: []string{},
-		}
-
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-	}
 }
