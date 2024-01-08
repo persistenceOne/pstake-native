@@ -626,6 +626,15 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 			unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_FAILED
 			k.SetUnbonding(ctx, unbonding)
 
+			// emit an event for the undelegation confirmation
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventUnsuccessfulUndelegationInitiation,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(epoch, 10)),
+				),
+			)
+
 			continue
 		}
 
@@ -646,6 +655,15 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 			// mark the unbonding as failed
 			unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_FAILED
 			k.SetUnbonding(ctx, unbonding)
+
+			// emit an event for the undelegation confirmation
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventUnsuccessfulUndelegationInitiation,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(epoch, 10)),
+				),
+			)
 
 			continue
 		}
