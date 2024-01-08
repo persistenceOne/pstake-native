@@ -585,18 +585,6 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 			continue
 		}
 
-		// fail all unbondings that might be stuck before the current unbonding epoch
-		pastUnbondings := k.FilterUnbondings(
-			ctx,
-			func(u liquidstakeibctypes.Unbonding) bool {
-				return u.EpochNumber < epoch
-			},
-		)
-		for _, pastUnbonding := range pastUnbondings {
-			pastUnbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_FAILED
-			k.SetUnbonding(ctx, pastUnbonding)
-		}
-
 		// not an unbonding epoch for the host chain, continue
 		if !liquidstakeibctypes.IsUnbondingEpoch(hc.UnbondingFactor, epoch) {
 			continue
