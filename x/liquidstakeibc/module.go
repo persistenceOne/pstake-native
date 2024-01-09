@@ -134,14 +134,10 @@ func (a AppModule) RegisterServices(configurator module.Configurator) {
 	if err != nil {
 		panic(fmt.Sprintf("failed to migrate x/%s from version 2 to 3: %v", types.ModuleName, err))
 	}
-	err = configurator.RegisterMigration(types.ModuleName, 3, keeper.NewMigrator(a.keeper).Migrate3to4)
-	if err != nil {
-		panic(fmt.Sprintf("failed to migrate x/%s from version 3 to 4: %v", types.ModuleName, err))
-	}
 }
 
 func (a AppModule) ConsensusVersion() uint64 {
-	return 4
+	return 3
 }
 
 // TODO simulations
