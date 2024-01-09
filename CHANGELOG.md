@@ -36,6 +36,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+## [v2.8.2] - 2024-01-09
+
 ### Bug Fixes
 
 - [715](https://github.com/persistenceOne/pstake-native/pull/715) Fix stuck unbondings.
