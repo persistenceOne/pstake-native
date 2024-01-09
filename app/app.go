@@ -1018,6 +1018,31 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		UpgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+
+			// stuck unbonding epoch numbers
+			RemovableUnbondings := map[string]map[int64]any{"cosmoshub-4": {312: nil}, "osmosis-1": {429: nil, 432: nil}}
+
+			// get the stuck unbondings from the store
+			unbondings := app.LiquidStakeIBCKeeper.FilterUnbondings(
+				ctx,
+				func(u liquidstakeibctypes.Unbonding) bool {
+					_, chain := RemovableUnbondings[u.ChainId]
+					if chain {
+						_, epoch := RemovableUnbondings[u.ChainId][u.EpochNumber]
+						if epoch {
+							return true
+						}
+					}
+					return false
+				},
+			)
+
+			// mark the stuck unbondings as failed, so they can be processed
+			for _, unbonding := range unbondings {
+				unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_FAILED
+				app.LiquidStakeIBCKeeper.SetUnbonding(ctx, unbonding)
+			}
+
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
@@ -1029,7 +1054,7 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 
 	if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
-			Added:   []string{ratesynctypes.StoreKey, liquidstaketypes.StoreKey},
+			Added:   []string{},
 			Deleted: []string{},
 		}
 
