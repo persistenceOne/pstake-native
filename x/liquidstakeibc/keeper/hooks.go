@@ -621,7 +621,21 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 				"host_chain",
 				hc.ChainId,
 			)
-			return
+
+			// mark the unbonding as failed
+			unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_FAILED
+			k.SetUnbonding(ctx, unbonding)
+
+			// emit an event for the undelegation confirmation
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventUnsuccessfulUndelegationInitiation,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(epoch, 10)),
+				),
+			)
+
+			continue
 		}
 
 		// execute the ICA transactions
@@ -637,7 +651,21 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 				"host_chain",
 				hc.ChainId,
 			)
-			return
+
+			// mark the unbonding as failed
+			unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_FAILED
+			k.SetUnbonding(ctx, unbonding)
+
+			// emit an event for the undelegation confirmation
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					liquidstakeibctypes.EventUnsuccessfulUndelegationInitiation,
+					sdk.NewAttribute(liquidstakeibctypes.AttributeChainID, hc.ChainId),
+					sdk.NewAttribute(liquidstakeibctypes.AttributeEpoch, strconv.FormatInt(epoch, 10)),
+				),
+			)
+
+			continue
 		}
 
 		// update the unbonding ibc sequence id and state
