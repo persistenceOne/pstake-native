@@ -79,6 +79,14 @@ func (suite *IntegrationTestSuite) TestHostChainRemove() {
 	}
 }
 
+func (suite *IntegrationTestSuite) TestGetHostChainsByChainID() {
+	keeper, ctx := suite.app.RatesyncKeeper, suite.ctx
+	items := createNChain(keeper, ctx, 10)
+	suite.Require().ElementsMatch(items, keeper.GetAllHostChain(ctx))
+	suite.Require().ElementsMatch(items, keeper.GetHostChainsByChainID(ctx, "test-1"))
+
+}
+
 func (suite *IntegrationTestSuite) TestHostChainGetAll() {
 	keeper, ctx := suite.app.RatesyncKeeper, suite.ctx
 	items := createNChain(keeper, ctx, 10)
