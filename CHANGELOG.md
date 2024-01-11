@@ -38,8 +38,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-- [719](https://github.com/persistenceOne/pstake-native/pull/719) Fix afterEpoch hooks to take LiquidStakeIBC feature instead of LiquidStake
-
+- [719](https://github.com/persistenceOne/pstake-native/pull/719) Fix afterEpoch hooks to take LiquidStakeIBC feature
+  instead of LiquidStake
 
 ## [v2.8.2] - 2024-01-09
 
@@ -51,7 +51,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-- [707](https://github.com/persistenceOne/pstake-native/pull/707) Fix liquidstakeibc redeem edge case for protecting cValue  
+- [707](https://github.com/persistenceOne/pstake-native/pull/707) Fix liquidstakeibc redeem edge case for protecting
+  cValue
 
 ## [v2.8.0] - 2023-12-20
 
