@@ -177,6 +177,29 @@ func (k *Keeper) UserUnbondings(
 	return &types.QueryUserUnbondingsResponse{UserUnbondings: userUnbondings}, nil
 }
 
+func (k *Keeper) HostChainUserUnbondings(
+	goCtx context.Context,
+	request *types.QueryHostChainUserUnbondingsRequest,
+) (*types.QueryHostChainUserUnbondingsResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.ChainId == "" {
+		return nil, status.Error(codes.InvalidArgument, "chain id cannot be empty")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	userUnbondings := k.FilterUserUnbondings(
+		ctx,
+		func(u types.UserUnbonding) bool {
+			return u.ChainId == request.ChainId
+		},
+	)
+
+	return &types.QueryHostChainUserUnbondingsResponse{UserUnbondings: userUnbondings}, nil
+}
+
 func (k *Keeper) ValidatorUnbondings(
 	goCtx context.Context,
 	request *types.QueryValidatorUnbondingRequest,

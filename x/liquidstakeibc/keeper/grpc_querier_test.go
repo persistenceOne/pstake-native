@@ -315,6 +315,56 @@ func (suite *IntegrationTestSuite) TestQueryUserUnbondings() {
 	}
 }
 
+func (suite *IntegrationTestSuite) TestQueryHostChainUserUnbondings() {
+	userUnbondings := make([]*types.UserUnbonding, 0)
+	for i := 0; i < MultipleTestSize; i += 1 {
+		userUnbonding := &types.UserUnbonding{
+			ChainId:     suite.chainB.ChainID,
+			Address:     TestAddress,
+			EpochNumber: int64(i),
+		}
+		suite.app.LiquidStakeIBCKeeper.SetUserUnbonding(suite.ctx, userUnbonding)
+		userUnbondings = append(userUnbondings, userUnbonding)
+	}
+
+	tc := []struct {
+		name string
+		req  *types.QueryHostChainUserUnbondingsRequest
+		resp *types.QueryHostChainUserUnbondingsResponse
+		err  error
+	}{
+		{
+			name: "Success",
+			req:  &types.QueryHostChainUserUnbondingsRequest{ChainId: suite.chainB.ChainID},
+			resp: &types.QueryHostChainUserUnbondingsResponse{UserUnbondings: userUnbondings},
+		},
+		{
+			name: "NotFound",
+			req:  &types.QueryHostChainUserUnbondingsRequest{ChainId: "non-existing-chain"},
+			resp: &types.QueryHostChainUserUnbondingsResponse{UserUnbondings: make([]*types.UserUnbonding, 0)},
+		},
+		{
+			name: "InvalidRequest",
+			req:  &types.QueryHostChainUserUnbondingsRequest{ChainId: ""},
+			err:  status.Error(codes.InvalidArgument, "chain id cannot be empty"),
+		},
+		{
+			name: "InvalidRequest",
+			err:  status.Error(codes.InvalidArgument, "empty request"),
+		},
+	}
+
+	for _, t := range tc {
+		suite.Run(t.name, func() {
+
+			resp, err := suite.app.LiquidStakeIBCKeeper.HostChainUserUnbondings(suite.ctx, t.req)
+
+			suite.Require().Equal(err, t.err)
+			suite.Require().Equal(resp, t.resp)
+		})
+	}
+}
+
 func (suite *IntegrationTestSuite) TestQueryValidatorUnbondings() {
 	validatorUnbondings := make([]*types.ValidatorUnbonding, 0)
 	for i := 0; i < MultipleTestSize; i += 1 {
