@@ -138,6 +138,16 @@ func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
 		for _, userUnbonding := range userUnbondings {
 			address, err := sdk.AccAddressFromBech32(userUnbonding.Address)
 			if err != nil {
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EventFailedClaimUnbondings,
+						sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+						sdk.NewAttribute(types.AttributeEpoch, strconv.FormatInt(epochNumber, 10)),
+						sdk.NewAttribute(types.AttributeClaimAddress, userUnbonding.Address),
+						sdk.NewAttribute(types.AttributeClaimStatus, unbonding.State.String()),
+					),
+				)
+
 				continue
 			}
 
@@ -168,6 +178,18 @@ func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
 					"epoch",
 					userUnbonding.EpochNumber,
 				)
+
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EventFailedClaimUnbondings,
+						sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+						sdk.NewAttribute(types.AttributeEpoch, strconv.FormatInt(epochNumber, 10)),
+						sdk.NewAttribute(types.AttributeClaimAmount, eventAmount.String()),
+						sdk.NewAttribute(types.AttributeClaimAddress, userUnbonding.Address),
+						sdk.NewAttribute(types.AttributeClaimStatus, unbonding.State.String()),
+					),
+				)
+
 				continue
 			}
 
