@@ -57,11 +57,12 @@ func (suite *IntegrationTestSuite) TestChainMsgServerUpdate() {
 	hc3.ICAAccount.Owner = types.DefaultPortOwner(1)
 	k.SetHostChain(ctx, hc3)
 
-	hc3.Features.LiquidStakeIBC.Instantiation = types.InstantiationState_INSTANTIATION_INITIATED
-	hc3.Features.LiquidStakeIBC.CodeID = 1
+	hc3.Features.LiquidStake.Instantiation = types.InstantiationState_INSTANTIATION_INITIATED
+	hc3.Features.LiquidStake.CodeID = 1
 	hc4, _ := k.GetHostChain(ctx, hc3.ID)
-	hc4.Features.LiquidStake.Instantiation = types.InstantiationState_INSTANTIATION_INITIATED
-	hc4.Features.LiquidStake.CodeID = 1
+	hc4.Features.LiquidStakeIBC.Instantiation = types.InstantiationState_INSTANTIATION_INITIATED
+	hc4.Features.LiquidStakeIBC.CodeID = 1
+
 	tests := []struct {
 		desc    string
 		request *types.MsgUpdateHostChain
