@@ -36,6 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+### Features
+
+- [721](https://github.com/persistenceOne/pstake-native/pull/721) Query host chain unbondings.
+
 ## [v2.8.2] - 2024-01-09
 
 ### Bug Fixes
