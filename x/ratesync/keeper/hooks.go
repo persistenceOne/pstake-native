@@ -70,7 +70,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	for _, hc := range hcs {
 		if hc.Features.LiquidStake.Enabled && epochIdentifier == types.LiquidStakeEpoch {
 			// Add liquidstakekeeper and do stuff
-			err := k.ExecuteLiquidStakeRateTx(ctx, hc.Features.LiquidStakeIBC, liquidBondDenom, bondDenom, nas.MintRate, hc.ID, hc.ConnectionID, hc.ICAAccount)
+			err := k.ExecuteLiquidStakeRateTx(ctx, hc.Features.LiquidStake, liquidBondDenom, bondDenom, nas.MintRate, hc.ID, hc.ConnectionID, hc.ICAAccount)
 			if err != nil {
 				k.Logger(ctx).Error("cannot ExecuteLiquidStakeRateTx for host chain ",
 					"id", hc.ID,
