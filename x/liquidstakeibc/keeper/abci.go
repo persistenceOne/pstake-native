@@ -138,7 +138,7 @@ func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
 		for _, userUnbonding := range userUnbondings {
 			address, err := sdk.AccAddressFromBech32(userUnbonding.Address)
 			if err != nil {
-				return
+				continue
 			}
 
 			var claimableCoins sdk.Coins
@@ -168,7 +168,7 @@ func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
 					"epoch",
 					userUnbonding.EpochNumber,
 				)
-				return
+				continue
 			}
 
 			// update the unbonding remaining amount and delete it if it reaches zero
