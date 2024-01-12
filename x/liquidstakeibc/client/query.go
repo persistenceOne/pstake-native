@@ -317,12 +317,18 @@ func QueryHostChainUserUnbondingsCmd() *cobra.Command {
 				return err
 			}
 
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.HostChainUserUnbondings(
 				context.Background(),
 				&types.QueryHostChainUserUnbondingsRequest{
-					ChainId: args[0],
+					ChainId:    args[0],
+					Pagination: pageReq,
 				},
 			)
 			if err != nil {
@@ -333,6 +339,7 @@ func QueryHostChainUserUnbondingsCmd() *cobra.Command {
 		},
 	}
 
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd

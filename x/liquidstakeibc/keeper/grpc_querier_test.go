@@ -2,9 +2,11 @@ package keeper_test
 
 import (
 	"strconv"
+	"testing"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"google.golang.org/grpc/codes"
@@ -14,7 +16,9 @@ import (
 )
 
 const (
-	MultipleTestSize int = 10
+	MultipleTestSize  int = 10
+	PaginatedTestSize int = 98
+	PaginatedStep     int = 5
 
 	TestAddress string = "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld"
 )
@@ -316,53 +320,97 @@ func (suite *IntegrationTestSuite) TestQueryUserUnbondings() {
 }
 
 func (suite *IntegrationTestSuite) TestQueryHostChainUserUnbondings() {
-	userUnbondings := make([]*types.UserUnbonding, 0)
-	for i := 0; i < MultipleTestSize; i += 1 {
+	chainAUserUnbondings := make([]*types.UserUnbonding, 0)
+	for i := 0; i < PaginatedTestSize; i += 1 {
+		userUnbonding := &types.UserUnbonding{
+			ChainId:     suite.chainA.ChainID,
+			Address:     TestAddress,
+			EpochNumber: int64(i),
+		}
+		suite.app.LiquidStakeIBCKeeper.SetUserUnbonding(suite.ctx, userUnbonding)
+		chainAUserUnbondings = append(chainAUserUnbondings, userUnbonding)
+	}
+
+	chainBUserUnbondings := make([]*types.UserUnbonding, 0)
+	for i := 0; i < PaginatedTestSize; i += 1 {
 		userUnbonding := &types.UserUnbonding{
 			ChainId:     suite.chainB.ChainID,
 			Address:     TestAddress,
 			EpochNumber: int64(i),
 		}
 		suite.app.LiquidStakeIBCKeeper.SetUserUnbonding(suite.ctx, userUnbonding)
-		userUnbondings = append(userUnbondings, userUnbonding)
+		chainBUserUnbondings = append(chainBUserUnbondings, userUnbonding)
 	}
 
-	tc := []struct {
-		name string
-		req  *types.QueryHostChainUserUnbondingsRequest
-		resp *types.QueryHostChainUserUnbondingsResponse
-		err  error
-	}{
-		{
-			name: "Success",
-			req:  &types.QueryHostChainUserUnbondingsRequest{ChainId: suite.chainB.ChainID},
-			resp: &types.QueryHostChainUserUnbondingsResponse{UserUnbondings: userUnbondings},
-		},
-		{
-			name: "NotFound",
-			req:  &types.QueryHostChainUserUnbondingsRequest{ChainId: "non-existing-chain"},
-			resp: &types.QueryHostChainUserUnbondingsResponse{UserUnbondings: make([]*types.UserUnbonding, 0)},
-		},
-		{
-			name: "InvalidRequest",
-			req:  &types.QueryHostChainUserUnbondingsRequest{ChainId: ""},
-			err:  status.Error(codes.InvalidArgument, "chain id cannot be empty"),
-		},
-		{
-			name: "InvalidRequest",
-			err:  status.Error(codes.InvalidArgument, "empty request"),
-		},
+	request := func(
+		chainID string,
+		next []byte,
+		offset, limit uint64,
+		total bool,
+	) *types.QueryHostChainUserUnbondingsRequest {
+		return &types.QueryHostChainUserUnbondingsRequest{
+			ChainId:    chainID,
+			Pagination: &query.PageRequest{Key: next, Offset: offset, Limit: limit, CountTotal: total},
+		}
 	}
 
-	for _, t := range tc {
-		suite.Run(t.name, func() {
+	suite.T().Run("ByOffset", func(t *testing.T) {
+		for i := 0; i < PaginatedTestSize; i += PaginatedStep {
+			resp, err := suite.app.LiquidStakeIBCKeeper.HostChainUserUnbondings(
+				suite.ctx,
+				request(suite.chainB.ChainID, nil, uint64(i), uint64(PaginatedStep), false),
+			)
+			suite.Require().NoError(err)
+			suite.Require().LessOrEqual(len(resp.UserUnbondings), PaginatedStep)
+			suite.Require().Subset(chainBUserUnbondings, resp.UserUnbondings)
+		}
+	})
 
-			resp, err := suite.app.LiquidStakeIBCKeeper.HostChainUserUnbondings(suite.ctx, t.req)
+	suite.T().Run("ByKey", func(t *testing.T) {
+		var next []byte
+		for i := 0; i < PaginatedTestSize; i += PaginatedStep {
+			resp, err := suite.app.LiquidStakeIBCKeeper.HostChainUserUnbondings(
+				suite.ctx,
+				request(suite.chainA.ChainID, next, 0, uint64(PaginatedStep), false),
+			)
+			suite.Require().NoError(err)
+			suite.Require().LessOrEqual(len(resp.UserUnbondings), PaginatedStep)
+			suite.Require().Subset(chainAUserUnbondings, resp.UserUnbondings)
+			next = resp.Pagination.NextKey
+		}
+	})
 
-			suite.Require().Equal(err, t.err)
-			suite.Require().Equal(resp, t.resp)
-		})
-	}
+	suite.T().Run("Total", func(t *testing.T) {
+		resp, err := suite.app.LiquidStakeIBCKeeper.HostChainUserUnbondings(
+			suite.ctx,
+			request(suite.chainB.ChainID, nil, 0, 0, true),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Equal(len(chainBUserUnbondings), int(resp.Pagination.Total))
+		suite.Require().ElementsMatch(chainBUserUnbondings, resp.UserUnbondings)
+	})
+
+	suite.T().Run("Total Empty", func(t *testing.T) {
+		resp, err := suite.app.LiquidStakeIBCKeeper.HostChainUserUnbondings(
+			suite.ctx,
+			request("non-existing-chain", nil, 0, 0, true),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Equal(0, int(resp.Pagination.Total))
+	})
+
+	suite.T().Run("Invalid Request", func(t *testing.T) {
+		_, err := suite.app.LiquidStakeIBCKeeper.HostChainUserUnbondings(
+			suite.ctx,
+			request("", nil, 0, 0, true),
+		)
+		suite.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "chain id cannot be empty"))
+	})
+
+	suite.T().Run("Invalid Request", func(t *testing.T) {
+		_, err := suite.app.LiquidStakeIBCKeeper.HostChainUserUnbondings(suite.ctx, nil)
+		suite.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "empty request"))
+	})
 }
 
 func (suite *IntegrationTestSuite) TestQueryValidatorUnbondings() {
