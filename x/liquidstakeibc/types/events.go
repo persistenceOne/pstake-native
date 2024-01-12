@@ -46,6 +46,7 @@ const (
 	EventUnsuccessfulValidatorUndelegationTransfer = "unsuccessful_validator_undelegation_transfer"
 	EventUnsuccessfulLSMRedeem                     = "unsuccessful_lsm_redeem"
 	EventUnsuccessfulRedelegate                    = "unsuccessful_redelegate"
+	EventFailedClaimUnbondings                     = "failed_claim_unbondings"
 
 	AttributeInputAmount                     = "input_amount"
 	AttributeOutputAmount                    = "output_amount"
@@ -77,6 +78,7 @@ const (
 	AttributeICAMessages                     = "ica_messages"
 	AttributeClaimAmount                     = "claimed_amount"
 	AttributeClaimAddress                    = "claim_address"
+	AttributeClaimStatus                     = "claim_status"
 	AttributeModuleMintedAmount              = "minted_amount"
 	AttributeModuleLSMTokenizedAmount        = "lsm_tokenized_amount" //nolint:gosec
 	AttributeModuleStakedAmount              = "staked_amount"
