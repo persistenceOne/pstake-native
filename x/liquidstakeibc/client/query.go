@@ -33,6 +33,7 @@ func NewQueryCmd() *cobra.Command {
 		QueryLSMDepositsCmd(),
 		QueryUnbondingsCmd(),
 		QueryUserUnbondingsCmd(),
+		QueryHostChainUserUnbondingsCmd(),
 		QueryValidatorUnbondingsCmd(),
 		QueryDepositAccountBalanceCmd(),
 		QueryExchangeRateCmd(),
@@ -293,6 +294,52 @@ func QueryUserUnbondingsCmd() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryHostChainUserUnbondingsCmd returns all user unbondings for a host chain.
+func QueryHostChainUserUnbondingsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "host-chain-user-unbondings [chain-id]",
+		Short: "Query all user unbonding records for a host chain",
+		Args:  cobra.ExactArgs(1),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query all user unbonding records for a host chain: $ %s query liquidstakeibc host-chain-user-unbondings [chain-id]`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.HostChainUserUnbondings(
+				context.Background(),
+				&types.QueryHostChainUserUnbondingsRequest{
+					ChainId:    args[0],
+					Pagination: pageReq,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd

@@ -3,8 +3,10 @@ package keeper
 import (
 	"context"
 
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -175,6 +177,51 @@ func (k *Keeper) UserUnbondings(
 	)
 
 	return &types.QueryUserUnbondingsResponse{UserUnbondings: userUnbondings}, nil
+}
+
+func (k *Keeper) HostChainUserUnbondings(
+	goCtx context.Context,
+	request *types.QueryHostChainUserUnbondingsRequest,
+) (*types.QueryHostChainUserUnbondingsResponse, error) {
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.ChainId == "" {
+		return nil, status.Error(codes.InvalidArgument, "chain id cannot be empty")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	store := ctx.KVStore(k.storeKey)
+	userUnbondingStore := prefix.NewStore(store, types.UserUnbondingKey)
+
+	var userUnbondings []*types.UserUnbonding
+	pageRes, err := query.FilteredPaginate(
+		userUnbondingStore,
+		request.Pagination,
+		func(key []byte, value []byte, accumulate bool) (bool, error) {
+			if accumulate {
+				var uu types.UserUnbonding
+				if err := k.cdc.Unmarshal(value, &uu); err != nil {
+					return false, err
+				}
+
+				if uu.ChainId == request.ChainId {
+					userUnbondings = append(userUnbondings, &uu)
+					return true, nil
+				}
+
+				return false, nil
+			}
+
+			return true, nil
+		})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryHostChainUserUnbondingsResponse{UserUnbondings: userUnbondings, Pagination: pageRes}, nil
 }
 
 func (k *Keeper) ValidatorUnbondings(
