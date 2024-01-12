@@ -155,5 +155,4 @@ func (suite *IntegrationTestSuite) TestKeeper_BeginBlockCode() {
 	valubd, found := k.GetValidatorUnbonding(ctx, hc.ChainId, "val1", 0)
 	suite.Require().True(found)
 	suite.Require().NotEqual("", valubd.IbcSequenceId)
-
 }

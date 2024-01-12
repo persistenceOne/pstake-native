@@ -37,7 +37,6 @@ func (suite *IntegrationTestSuite) TestKeeper_QueryHostChainValidator() {
 	}
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-
 			if err := k.QueryHostChainValidator(ctx, tt.args.hc, tt.args.validatorAddress); (err != nil) != tt.wantErr {
 				suite.T().Errorf("QueryHostChainValidator() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -76,7 +75,8 @@ func (suite *IntegrationTestSuite) TestKeeper_QueryValidatorDelegation() {
 				validator: hc.Validators[0],
 			},
 			wantErr: true,
-		}}
+		},
+	}
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			if err := k.QueryValidatorDelegation(ctx, tt.args.hc, tt.args.validator); (err != nil) != tt.wantErr {
@@ -120,6 +120,7 @@ func (suite *IntegrationTestSuite) TestKeeper_QueryDelegationHostChainAccountBal
 		})
 	}
 }
+
 func (suite *IntegrationTestSuite) TestKeeper_QueryRewardsHostChainAccountBalance() {
 	pstakeApp, ctx := suite.app, suite.ctx
 	k := pstakeApp.LiquidStakeIBCKeeper
@@ -148,7 +149,6 @@ func (suite *IntegrationTestSuite) TestKeeper_QueryRewardsHostChainAccountBalanc
 	}
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-
 			if err := k.QueryRewardsHostChainAccountBalance(ctx, tt.args.hc); (err != nil) != tt.wantErr {
 				suite.T().Errorf("QueryRewardsHostChainAccountBalance() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -187,7 +187,6 @@ func (suite *IntegrationTestSuite) TestKeeper_QueryNonCompoundableRewardsHostCha
 	}
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-
 			if err := k.QueryRewardsHostChainAccountBalance(ctx, tt.args.hc); (err != nil) != tt.wantErr {
 				suite.T().Errorf("QueryRewardsHostChainAccountBalance() error = %v, wantErr %v", err, tt.wantErr)
 			}

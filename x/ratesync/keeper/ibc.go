@@ -103,7 +103,6 @@ func (k *Keeper) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-
 	id, err := types.IDFromPortID(packet.SourcePort)
 	if err != nil {
 		// Port is not related to this module
@@ -179,7 +178,6 @@ func (k *Keeper) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-
 	id, err := types.IDFromPortID(packet.SourcePort)
 	if err != nil {
 		// Port is not related to this module
@@ -253,7 +251,7 @@ func (k *Keeper) handleUnsuccessfulAck(
 				)
 				continue
 			}
-			//reset instantiation state so can be retried.
+			// reset instantiation state so can be retried.
 			switch icaMemo.FeatureType {
 			case types.FeatureType_LIQUID_STAKE_IBC:
 				hc.Features.LiquidStakeIBC.Instantiation = types.InstantiationState_INSTANTIATION_NOT_INITIATED
@@ -283,7 +281,7 @@ func (k *Keeper) handleUnsuccessfulAck(
 				)
 				continue
 			}
-			//Do nothing, relay next epoch
+			// Do nothing, relay next epoch
 
 			// emit an event for the execution confirmation
 			ctx.EventManager().EmitEvent(

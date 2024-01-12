@@ -19,7 +19,6 @@ func (k *Keeper) GenerateAndExecuteICATx(
 	ownerID string,
 	messages []proto.Message,
 ) (string, error) {
-
 	msgData, err := icatypes.SerializeCosmosTx(k.cdc, messages)
 	if err != nil {
 		k.Logger(ctx).Error(fmt.Sprintf("could not serialize tx data: %v", err))

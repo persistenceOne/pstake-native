@@ -52,7 +52,8 @@ func (suite *IntegrationTestSuite) TestValidatorCallback() {
 				query: icqtypes.Query{ChainId: "invalid-1"},
 			},
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "Invalid Data",
 			args: args{
 				data:  []byte("invalid data"),
@@ -83,7 +84,6 @@ func (suite *IntegrationTestSuite) TestDelegationCallback() {
 
 	makeData := func(delegation stakingtypes.Delegation) []byte {
 		return stakingtypes.MustMarshalDelegation(pstakeApp.AppCodec(), delegation)
-
 	}
 	type args struct {
 		ctx   sdk.Context

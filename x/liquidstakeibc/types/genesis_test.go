@@ -60,7 +60,8 @@ func TestGenesisState_Validate(t *testing.T) {
 					Amount:        sdk.NewInt64Coin("ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9", 100),
 					Epoch:         0,
 					State:         0,
-					IbcSequenceId: ""})
+					IbcSequenceId: "",
+				})
 				return genesis
 			},
 			valid: false,
@@ -74,11 +75,13 @@ func TestGenesisState_Validate(t *testing.T) {
 					Amount:        sdk.NewInt64Coin("ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9", 100),
 					Epoch:         0,
 					State:         4,
-					IbcSequenceId: ""})
+					IbcSequenceId: "",
+				})
 				return genesis
 			},
 			valid: false,
-		}, {
+		},
+		{
 			desc: "invalid amount denom",
 			genState: func() *types.GenesisState {
 				genesis := ValidGenesis()
@@ -87,7 +90,8 @@ func TestGenesisState_Validate(t *testing.T) {
 					Amount:        sdk.NewInt64Coin("uatom", 100),
 					Epoch:         0,
 					State:         0,
-					IbcSequenceId: ""})
+					IbcSequenceId: "",
+				})
 				return genesis
 			},
 			valid: false,
@@ -117,7 +121,8 @@ func TestGenesisState_Validate(t *testing.T) {
 				return genesis
 			},
 			valid: false,
-		}, {
+		},
+		{
 			desc: "invalid unbound amount",
 			genState: func() *types.GenesisState {
 				genesis := ValidGenesis()
@@ -133,7 +138,8 @@ func TestGenesisState_Validate(t *testing.T) {
 				return genesis
 			},
 			valid: false,
-		}, {
+		},
+		{
 			desc: "invalid unbonding state",
 			genState: func() *types.GenesisState {
 				genesis := ValidGenesis()
@@ -174,7 +180,8 @@ func TestGenesisState_Validate(t *testing.T) {
 				return genesis
 			},
 			valid: false,
-		}, {
+		},
+		{
 			desc: "user unbondings incorrect unboundAmount denom",
 			genState: func() *types.GenesisState {
 				genesis := ValidGenesis()
@@ -189,7 +196,8 @@ func TestGenesisState_Validate(t *testing.T) {
 				return genesis
 			},
 			valid: false,
-		}, {
+		},
+		{
 			desc: "user unbondings invalid",
 			genState: func() *types.GenesisState {
 				genesis := ValidGenesis()

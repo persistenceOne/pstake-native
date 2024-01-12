@@ -1058,7 +1058,6 @@ func (suite *IntegrationTestSuite) TestGetHostChainFromIBCDenom() {
 			} else {
 				suite.Require().Equal("", hc.ChainId)
 			}
-
 		})
 	}
 }

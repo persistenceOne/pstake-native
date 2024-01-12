@@ -28,9 +28,7 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
 )
 
-var (
-	BlockTime = 10 * time.Second
-)
+var BlockTime = 10 * time.Second
 
 type KeeperTestSuite struct {
 	suite.Suite
@@ -246,7 +244,6 @@ func (s *KeeperTestSuite) RequireNetAmountStateZero() {
 	s.Require().EqualValues(nas.TotalRemainingRewards, sdk.ZeroDec())
 	s.Require().EqualValues(nas.TotalUnbondingBalance, sdk.ZeroDec())
 	s.Require().EqualValues(nas.ProxyAccBalance, sdk.ZeroInt())
-
 }
 
 // advance block time and height for complete redelegations and unbondings
@@ -396,8 +393,8 @@ func (s *KeeperTestSuite) doubleSign(valOper sdk.ValAddress, consAddr sdk.ConsAd
 
 	// make evidence
 	evidence := &evidencetypes.Equivocation{
-		//Height: 0,
-		//Time:   time.Unix(0, 0),
+		// Height: 0,
+		// Time:   time.Unix(0, 0),
 		Height:           s.ctx.BlockHeight(),
 		Time:             s.ctx.BlockTime(),
 		Power:            s.app.StakingKeeper.TokensToConsensusPower(s.ctx, tokens),
@@ -407,10 +404,10 @@ func (s *KeeperTestSuite) doubleSign(valOper sdk.ValAddress, consAddr sdk.ConsAd
 	// Double sign
 	s.app.EvidenceKeeper.HandleEquivocationEvidence(s.ctx, evidence)
 	// HandleEquivocationEvidence call below functions
-	//s.app.SlashingKeeper.Slash()
-	//s.app.SlashingKeeper.Jail(s.ctx, consAddr)
-	//s.app.SlashingKeeper.JailUntil(s.ctx, consAddr, evidencetypes.DoubleSignJailEndTime)
-	//s.app.SlashingKeeper.Tombstone(s.ctx, consAddr)
+	// s.app.SlashingKeeper.Slash()
+	// s.app.SlashingKeeper.Jail(s.ctx, consAddr)
+	// s.app.SlashingKeeper.JailUntil(s.ctx, consAddr, evidencetypes.DoubleSignJailEndTime)
+	// s.app.SlashingKeeper.Tombstone(s.ctx, consAddr)
 
 	// should be jailed and tombstoned
 	s.Require().True(s.app.StakingKeeper.Validator(s.ctx, liquidValidator.GetOperator()).IsJailed())

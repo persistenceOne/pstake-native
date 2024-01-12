@@ -5,7 +5,6 @@ import (
 )
 
 func (suite *IntegrationTestSuite) TestSetGetDeleteRedelegationTx() {
-
 	suite.app.LiquidStakeIBCKeeper.SetRedelegationTx(
 		suite.ctx,
 		&types.RedelegateTx{
@@ -40,5 +39,4 @@ func (suite *IntegrationTestSuite) TestSetGetDeleteRedelegationTx() {
 		suite.chainB.ChainID, "channel-100-sequence-1",
 	)
 	suite.Require().Equal(false, found)
-
 }

@@ -113,7 +113,6 @@ func (suite *IntegrationTestSuite) TestIncreaseUserUnbondingAmountForEpoch() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			suite.app.LiquidStakeIBCKeeper.IncreaseUserUnbondingAmountForEpoch(
 				suite.ctx,
 				t.unbonding.ChainId,

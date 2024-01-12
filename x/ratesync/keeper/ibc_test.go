@@ -24,7 +24,7 @@ func (suite *IntegrationTestSuite) TestOnAcknowledgementPacket() {
 	k, ctx := suite.app.RatesyncKeeper, suite.ctx
 	_ = createNChain(k, ctx, 2)
 	hc, _ := k.GetHostChain(ctx, 1)
-	//case 1, instantiate msg.
+	// case 1, instantiate msg.
 	{
 		msg, memo, err := keeper.GenerateInstantiateLiquidStakeContractMsg(hc.ICAAccount, hc.Features.LiquidStakeIBC, hc.ID)
 		suite.Require().NoError(err)
@@ -79,7 +79,7 @@ func (suite *IntegrationTestSuite) TestOnAcknowledgementPacket() {
 		suite.Require().NoError(k.OnAcknowledgementPacket(ctx, packet,
 			ackbz, authtypes.NewModuleAddress("test")))
 	}
-	//case 3, execute msg.
+	// case 3, execute msg.
 	{
 		msg, memo, err := keeper.GenerateExecuteLiquidStakeRateTxMsg(ctx.BlockTime().Unix(), hc.Features.LiquidStake,
 			"stk/uatom", "uatom", sdk.OneDec(), hc.ID, hc.ICAAccount)
@@ -139,7 +139,7 @@ func (suite *IntegrationTestSuite) TestOnTimeoutPacket() {
 	k, ctx := suite.app.RatesyncKeeper, suite.ctx
 	_ = createNChain(k, ctx, 2)
 	hc, _ := k.GetHostChain(ctx, 1)
-	//case 1, instantiate msg.
+	// case 1, instantiate msg.
 	{
 		msg, memo, err := keeper.GenerateInstantiateLiquidStakeContractMsg(hc.ICAAccount, hc.Features.LiquidStakeIBC, hc.ID)
 		suite.Require().NoError(err)
@@ -158,7 +158,7 @@ func (suite *IntegrationTestSuite) TestOnTimeoutPacket() {
 		}
 		suite.Require().NoError(k.OnTimeoutPacket(ctx, packet, authtypes.NewModuleAddress("test")))
 	}
-	//case 2, execute msg.
+	// case 2, execute msg.
 	{
 		msg, memo, err := keeper.GenerateExecuteLiquidStakeRateTxMsg(ctx.BlockTime().Unix(), hc.Features.LiquidStake,
 			"stk/uatom", "uatom", sdk.OneDec(), hc.ID, hc.ICAAccount)

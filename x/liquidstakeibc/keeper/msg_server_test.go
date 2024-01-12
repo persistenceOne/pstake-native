@@ -347,7 +347,8 @@ func (suite *IntegrationTestSuite) Test_msgServer_Redeem() {
 			},
 			want:    nil,
 			wantErr: true,
-		}}
+		},
+	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			k := keeper.NewMsgServerImpl(pstakeapp.LiquidStakeIBCKeeper)
@@ -398,7 +399,8 @@ func (suite *IntegrationTestSuite) Test_msgServer_RegisterHostChain() {
 			},
 			want:    &types.MsgRegisterHostChainResponse{},
 			wantErr: false,
-		}}
+		},
+	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			k := keeper.NewMsgServerImpl(pstakeapp.LiquidStakeIBCKeeper)
@@ -448,7 +450,8 @@ func (suite *IntegrationTestSuite) Test_msgServer_UpdateHostChain() {
 			},
 			want:    &types.MsgUpdateHostChainResponse{},
 			wantErr: false,
-		}}
+		},
+	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			k := keeper.NewMsgServerImpl(pstakeapp.LiquidStakeIBCKeeper)
@@ -494,7 +497,8 @@ func (suite *IntegrationTestSuite) Test_msgServer_UpdateParams() {
 			},
 			want:    &types.MsgUpdateParamsResponse{},
 			wantErr: false,
-		}}
+		},
+	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			k := keeper.NewMsgServerImpl(pstakeapp.LiquidStakeIBCKeeper)

@@ -43,7 +43,6 @@ func (k Keeper) AllHostChains(goCtx context.Context, req *types.QueryAllHostChai
 		chains = append(chains, chain)
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

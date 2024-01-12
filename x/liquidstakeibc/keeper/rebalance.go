@@ -20,8 +20,8 @@ type delegation struct {
 }
 
 func (k Keeper) GenerateRedelegateMsgs(ctx sdk.Context, hc types.HostChain) []proto.Message {
-	var AcceptableDelta = hc.Params.RedelegationAcceptableDelta
-	var MaxRedelegationEntries = hc.Params.MaxEntries
+	AcceptableDelta := hc.Params.RedelegationAcceptableDelta
+	MaxRedelegationEntries := hc.Params.MaxEntries
 	sum := math.ZeroInt()
 	for _, validator := range hc.Validators {
 		sum = sum.Add(validator.DelegatedAmount)
@@ -66,7 +66,7 @@ L1:
 		}
 		// RedelegationExistsToValidator: This is not updated inside the loop (with newer msgs), so some ICA redelegate txns might fail, and it is ok.
 		if !k.RedelegationExistsToValidator(redelegations.Redelegations, revIdealList[i].validator) {
-			//re-sort idealDelegationAsc
+			// re-sort idealDelegationAsc
 			idealDelegationList = sortDelegationListAsc(idealDelegationList)
 		L2:
 			for j := range idealDelegationList {

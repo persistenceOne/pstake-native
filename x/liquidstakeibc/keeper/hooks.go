@@ -106,7 +106,7 @@ func (k *Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNum
 
 	if epochIdentifier == liquidstakeibctypes.UndelegationEpoch {
 		// attempt to fully undelegate any validators that have been more than
-		//UnbondingStateEpochLimit epochs in UNBONDING state
+		// UnbondingStateEpochLimit epochs in UNBONDING state
 		k.ValidatorUndelegationWorkflow(ctx, epochNumber)
 
 		k.UndelegationWorkflow(ctx, epochNumber)

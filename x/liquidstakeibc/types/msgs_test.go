@@ -44,6 +44,7 @@ func TestMsgLiquidStake(t *testing.T) {
 	require.Error(t, invalidAddrMsg.ValidateBasic())
 	require.Panics(t, func() { invalidAddrMsg.GetSigners() })
 }
+
 func TestMsgLiquidStakeLSM(t *testing.T) {
 	msgLiquidStakeLSM := &types.MsgLiquidStakeLSM{
 		DelegatorAddress: addr1.String(),
@@ -72,6 +73,7 @@ func TestMsgLiquidStakeLSM(t *testing.T) {
 	require.Error(t, invalidAddrMsg.ValidateBasic())
 	require.Panics(t, func() { invalidAddrMsg.GetSigners() })
 }
+
 func TestMsgLiquidUnstake(t *testing.T) {
 	msgLiquidUnstake := &types.MsgLiquidUnstake{
 		DelegatorAddress: addr1.String(),
@@ -101,6 +103,7 @@ func TestMsgLiquidUnstake(t *testing.T) {
 	require.Error(t, invalidAddrMsg.ValidateBasic())
 	require.Panics(t, func() { invalidAddrMsg.GetSigners() })
 }
+
 func TestMsgRedeem(t *testing.T) {
 	msgRedeem := &types.MsgRedeem{
 		DelegatorAddress: addr1.String(),
@@ -392,5 +395,4 @@ func TestMsgUpdateParams(t *testing.T) {
 	invalidParamsMsg := *msgUpdateParams
 	invalidParamsMsg.Params.AdminAddress = "test"
 	require.Error(t, invalidParamsMsg.ValidateBasic())
-
 }

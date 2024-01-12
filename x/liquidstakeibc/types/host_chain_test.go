@@ -13,7 +13,6 @@ import (
 )
 
 func TestHostChain_GetHostChainTotalDelegations(t *testing.T) {
-
 	tests := []struct {
 		name      string
 		hostChain func() types.HostChain
@@ -121,8 +120,8 @@ func validHostChain() *types.HostChain {
 		Active:             false,
 		AutoCompoundFactor: sdk.Dec{},
 	}
-
 }
+
 func makeVal(valoperAddr string) *types.Validator {
 	return &types.Validator{
 		OperatorAddress: valoperAddr,

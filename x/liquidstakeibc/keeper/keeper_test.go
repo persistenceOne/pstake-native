@@ -158,7 +158,7 @@ func (suite *IntegrationTestSuite) TestGetClientState() {
 	suite.Require().NoError(err)
 	suite.Require().Equal(ibcexported.Localhost, state.ClientType())
 
-	//no connection found
+	// no connection found
 	_, err = pstakeApp.LiquidStakeIBCKeeper.GetClientState(ctx, "connection-2")
 	suite.Require().Error(err)
 
@@ -186,10 +186,9 @@ func (suite *IntegrationTestSuite) TestGetChainID() {
 	_, err = pstakeApp.LiquidStakeIBCKeeper.GetChainID(ctx, "connection-2")
 	suite.Require().Error(err)
 
-	//connection not found
+	// connection not found
 	_, err = pstakeApp.LiquidStakeIBCKeeper.GetChainID(ctx, "connection-3")
 	suite.Require().Error(err)
-
 }
 
 func (suite *IntegrationTestSuite) TestGetPortID() {
@@ -217,6 +216,7 @@ func (suite *IntegrationTestSuite) TestSetWithdrawAddress() {
 	err = pstakeApp.LiquidStakeIBCKeeper.SetWithdrawAddress(ctx, hc2)
 	suite.Require().Error(err)
 }
+
 func (suite *IntegrationTestSuite) TestIsICAChannelActive() {
 	pstakeApp, ctx := suite.app, suite.ctx
 	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
@@ -226,6 +226,7 @@ func (suite *IntegrationTestSuite) TestIsICAChannelActive() {
 	active := pstakeApp.LiquidStakeIBCKeeper.IsICAChannelActive(ctx, hc, pstakeApp.LiquidStakeIBCKeeper.GetPortID(hc.DelegationAccount.Owner))
 	suite.Require().Equal(true, active)
 }
+
 func (suite *IntegrationTestSuite) TestSendICATransfer() {
 	pstakeApp, ctx := suite.app, suite.ctx
 	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
@@ -248,6 +249,7 @@ func (suite *IntegrationTestSuite) TestSendICATransfer() {
 		hc.DelegationAccount.Owner)
 	suite.Require().Error(err)
 }
+
 func (suite *IntegrationTestSuite) TestUpdateCValues() {
 	pstakeApp, ctx := suite.app, suite.ctx
 	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
@@ -263,7 +265,7 @@ func (suite *IntegrationTestSuite) TestUpdateCValues() {
 		suite.Require().NoError(err)
 
 		senderAcc := suite.chainA.SenderAccount
-		//user liquidstakes
+		// user liquidstakes
 		msgLiquidStake := types.NewMsgLiquidStake(sdk.NewInt64Coin(hc.IBCDenom(), 1000000), senderAcc.GetAddress())
 		result, err := suite.app.MsgServiceRouter().Handler(msgLiquidStake)(suite.chainA.GetContext(), msgLiquidStake)
 		suite.NotNil(result)
@@ -271,7 +273,7 @@ func (suite *IntegrationTestSuite) TestUpdateCValues() {
 	}
 	suite.Require().NotPanics(func() { pstakeApp.LiquidStakeIBCKeeper.UpdateCValues(ctx) })
 
-	//lower limits so that chain goes out of limits
+	// lower limits so that chain goes out of limits
 	params := pstakeApp.LiquidStakeIBCKeeper.GetParams(ctx)
 	params.UpperCValueLimit = sdk.MustNewDecFromStr("0.5")
 	pstakeApp.LiquidStakeIBCKeeper.SetParams(ctx, params)

@@ -66,7 +66,6 @@ func (m IBCModule) OnChanOpenAck(
 		return err
 	}
 	return m.appStack.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
-
 }
 
 func (m IBCModule) OnAcknowledgementPacket(

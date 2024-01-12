@@ -28,5 +28,4 @@ func (suite *IntegrationTestSuite) TestDoRecreateICA() {
 	suite.Require().NotPanics(func() {
 		keeper.DoRecreateICA(ctx, hc)
 	})
-
 }

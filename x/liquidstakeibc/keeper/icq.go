@@ -34,6 +34,7 @@ var _ icqtypes.QueryCallbacks = Callbacks{}
 func (k *Keeper) CallbackHandler() Callbacks {
 	return Callbacks{*k, make(map[string]CallbackFn)}
 }
+
 func (c Callbacks) AddCallback(id string, fn interface{}) icqtypes.QueryCallbacks {
 	c.callbacks[id] = fn.(CallbackFn)
 	return c

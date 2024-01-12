@@ -20,26 +20,24 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
 )
 
-var (
-	whitelistedValidators = []types.WhitelistedValidator{
-		{
-			ValidatorAddress: "cosmosvaloper10e4vsut6suau8tk9m6dnrm0slgd6npe3jx5xpv",
-			TargetWeight:     math.NewInt(10),
-		},
-		{
-			ValidatorAddress: "cosmosvaloper18hfzxheyknesfgcrttr5dg50ffnfphtwtar9fz",
-			TargetWeight:     math.NewInt(1),
-		},
-		{
-			ValidatorAddress: "cosmosvaloper18hfzxheyknesfgcrttr5dg50ffnfphtwtar9fz",
-			TargetWeight:     math.NewInt(-1),
-		},
-		{
-			ValidatorAddress: "cosmosvaloper1ld6vlyy24906u3aqp5lj54f3nsg2592nm9nj5c",
-			TargetWeight:     math.NewInt(0),
-		},
-	}
-)
+var whitelistedValidators = []types.WhitelistedValidator{
+	{
+		ValidatorAddress: "cosmosvaloper10e4vsut6suau8tk9m6dnrm0slgd6npe3jx5xpv",
+		TargetWeight:     math.NewInt(10),
+	},
+	{
+		ValidatorAddress: "cosmosvaloper18hfzxheyknesfgcrttr5dg50ffnfphtwtar9fz",
+		TargetWeight:     math.NewInt(1),
+	},
+	{
+		ValidatorAddress: "cosmosvaloper18hfzxheyknesfgcrttr5dg50ffnfphtwtar9fz",
+		TargetWeight:     math.NewInt(-1),
+	},
+	{
+		ValidatorAddress: "cosmosvaloper1ld6vlyy24906u3aqp5lj54f3nsg2592nm9nj5c",
+		TargetWeight:     math.NewInt(0),
+	},
+}
 
 func TestStkXPRTToNativeTokenWithFee(t *testing.T) {
 	testCases := []struct {

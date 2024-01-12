@@ -26,6 +26,7 @@ func (h LiquidStakeIBCHooks) PostCValueUpdate(ctx sdk.Context, mintDenom, hostDe
 	h.k.Logger(ctx).Info("called ratesync hook for PostCValueUpdate")
 	return h.k.PostCValueUpdate(ctx, mintDenom, hostDenom, cValue)
 }
+
 func (k Keeper) PostCValueUpdate(ctx sdk.Context, mintDenom, hostDenom string, cValue sdk.Dec) error {
 	hcs := k.GetAllHostChain(ctx)
 	for _, hc := range hcs {
@@ -78,10 +79,10 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 					"err:", err)
 			}
 		}
-
 	}
 	return nil
 }
+
 func (e EpochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	e.k.Logger(ctx).Info("called ratesync hook for BeforeEpochStart")
 	return nil

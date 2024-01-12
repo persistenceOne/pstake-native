@@ -15,7 +15,6 @@ func (k *Keeper) QueryHostChainValidator(
 	hc *types.HostChain,
 	validatorAddress string,
 ) error {
-
 	_, byteAddress, err := bech32.DecodeAndConvert(validatorAddress)
 	if err != nil {
 		return err

@@ -22,7 +22,6 @@ var redelegation = &stakingtypes.Redelegation{
 }
 
 func (suite *IntegrationTestSuite) TestSetGetRedelegations() {
-
 	suite.app.LiquidStakeIBCKeeper.SetRedelegations(
 		suite.ctx, suite.chainB.ChainID,
 		[]*stakingtypes.Redelegation{redelegation},
@@ -40,7 +39,6 @@ func (suite *IntegrationTestSuite) TestSetGetRedelegations() {
 }
 
 func (suite *IntegrationTestSuite) TestAddRedelegationEntry() {
-
 	suite.app.LiquidStakeIBCKeeper.SetRedelegations(
 		suite.ctx, suite.chainB.ChainID,
 		[]*stakingtypes.Redelegation{redelegation},
@@ -78,7 +76,8 @@ func (suite *IntegrationTestSuite) TestAddRedelegationEntry() {
 			resp:       stakingtypes.MsgBeginRedelegateResponse{CompletionTime: time.Now().Add(time.Second)},
 			lenEntries: 3,
 			index:      0,
-		}, {
+		},
+		{
 			name:    "new chainid",
 			chainID: suite.chainC.ChainID,
 			msg: stakingtypes.MsgBeginRedelegate{
@@ -90,7 +89,8 @@ func (suite *IntegrationTestSuite) TestAddRedelegationEntry() {
 			resp:       stakingtypes.MsgBeginRedelegateResponse{CompletionTime: time.Now().Add(time.Second)},
 			lenEntries: 1,
 			index:      0,
-		}, {
+		},
+		{
 			name:    "new chainid",
 			chainID: suite.chainC.ChainID,
 			msg: stakingtypes.MsgBeginRedelegate{
@@ -107,7 +107,6 @@ func (suite *IntegrationTestSuite) TestAddRedelegationEntry() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			suite.app.LiquidStakeIBCKeeper.AddRedelegationEntry(
 				suite.ctx,
 				t.chainID,

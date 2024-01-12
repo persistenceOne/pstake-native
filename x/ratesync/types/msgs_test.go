@@ -39,7 +39,8 @@ var ValidHostChainInMsg = func(id uint64) HostChain {
 				ContractAddress: "",
 				Denoms:          nil,
 				Enabled:         false,
-			}},
+			},
+		},
 	}
 }
 

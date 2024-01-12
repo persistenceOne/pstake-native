@@ -31,7 +31,7 @@ func (hc HostChain) ValidateBasic() error {
 		if err != nil {
 			return err
 		}
-		//Make sure it matches default.
+		// Make sure it matches default.
 		_, err = IDFromPortID(portID)
 		if err != nil {
 			return err
@@ -134,18 +134,21 @@ func (lsConfig LiquidStake) ValdidateBasic() error {
 	}
 	return nil
 }
+
 func (lsConfig LiquidStake) AllowsAllDenoms() bool {
 	if len(lsConfig.Denoms) == 1 && lsConfig.Denoms[0] == LiquidStakeAllowAllDenoms {
 		return true
 	}
 	return false
 }
+
 func (lsConfig LiquidStake) AllowsDenom(denom string) bool {
 	if lsConfig.AllowsAllDenoms() {
 		return true
 	}
 	return slices.Contains(lsConfig.Denoms, denom)
 }
+
 func (lsConfig LiquidStake) Equals(l2 LiquidStake) bool {
 	if lsConfig.CodeID != l2.CodeID {
 		return false
@@ -174,12 +177,12 @@ func MustICAPortIDFromOwner(owner string) string {
 		panic(err)
 	}
 	return id
-
 }
 
 func DefaultPortOwner(id uint64) string {
 	return fmt.Sprintf("%s%v", DefaultPortOwnerPrefix, id)
 }
+
 func OwnerFromPortID(portID string) (string, error) {
 	prefix := fmt.Sprintf("%s", icatypes.ControllerPortPrefix)
 	idStr, found := strings.CutPrefix(portID, prefix)

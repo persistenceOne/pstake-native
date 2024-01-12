@@ -11,7 +11,6 @@ import (
 )
 
 func TestParams(t *testing.T) {
-
 	params := types.DefaultParams()
 
 	paramsStr := `{

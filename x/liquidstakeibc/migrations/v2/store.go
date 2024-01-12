@@ -16,7 +16,6 @@ import (
 // - Migrate host chain validators to include the delegable flag.
 // - Migrate host chain to include the LSM validator cap and the LSM bond factor.
 func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
-
 	for _, hc := range getAllHostChains(ctx, storeKey, cdc) {
 		hc.Flags = &types.HostChainFlags{Lsm: false}
 

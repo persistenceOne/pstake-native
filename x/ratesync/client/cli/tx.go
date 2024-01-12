@@ -15,9 +15,7 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
 )
 
-var (
-	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
-)
+var DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 
 const (
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
@@ -70,7 +68,6 @@ func CmdMsgUpdateParams() *cobra.Command {
 			msg := types.NewMsgUpdateParams(authority.String(), params)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-
 		},
 	}
 
@@ -124,7 +121,6 @@ func CmdUpdateChain() *cobra.Command {
 		Short: "Update a chain",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-
 			// Get value arguments
 
 			clientCtx, err := client.GetClientTxContext(cmd)

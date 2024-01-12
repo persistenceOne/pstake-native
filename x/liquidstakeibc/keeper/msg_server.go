@@ -193,42 +193,42 @@ func (k msgServer) UpdateHostChain(
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-			//fee limits validated in msg.ValidateBasic()
+			// fee limits validated in msg.ValidateBasic()
 			hc.Params.DepositFee = fee
 		case types.KeyRestakeFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-			//fee limits validated in msg.ValidateBasic()
+			// fee limits validated in msg.ValidateBasic()
 			hc.Params.RestakeFee = fee
 		case types.KeyRedemptionFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-			//fee limits validated in msg.ValidateBasic()
+			// fee limits validated in msg.ValidateBasic()
 			hc.Params.RedemptionFee = fee
 		case types.KeyUnstakeFee:
 			fee, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-			//fee limits validated in msg.ValidateBasic()
+			// fee limits validated in msg.ValidateBasic()
 			hc.Params.UnstakeFee = fee
 		case types.KeyLSMValidatorCap:
 			validatorCap, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-			//cap limits validated in msg.ValidateBasic()
+			// cap limits validated in msg.ValidateBasic()
 			hc.Params.LsmValidatorCap = validatorCap
 		case types.KeyLSMBondFactor:
 			bondFactor, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-			//factor limits validated in msg.ValidateBasic()
+			// factor limits validated in msg.ValidateBasic()
 			hc.Params.LsmBondFactor = bondFactor
 		case types.KeyMaxEntries:
 			entries, err := strconv.ParseUint(update.Value, 10, 32)
@@ -247,7 +247,7 @@ func (k msgServer) UpdateHostChain(
 			if !ok {
 				return nil, fmt.Errorf("unable to parse string to sdk.Int")
 			}
-			//min deposit limits validated in msg.ValidateBasic()
+			// min deposit limits validated in msg.ValidateBasic()
 			hc.MinimumDeposit = minimumDeposit
 		case types.KeyActive:
 			active, err := strconv.ParseBool(update.Value)
@@ -267,7 +267,7 @@ func (k msgServer) UpdateHostChain(
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec")
 			}
-			//autoCompoundFactor limits validated in msg.ValidateBasic()
+			// autoCompoundFactor limits validated in msg.ValidateBasic()
 			hc.AutoCompoundFactor = k.CalculateAutocompoundLimit(autocompoundFactor)
 		case types.KeyFlags:
 			var flags types.HostChainFlags
@@ -435,7 +435,8 @@ func (k msgServer) LiquidStake(
 			sdktypes.EventTypeMessage,
 			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
 			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
-		)},
+		),
+	},
 	)
 
 	telemetry.IncrCounter(float32(1), hostChain.ChainId, "liquid_stake")
@@ -569,7 +570,8 @@ func (k msgServer) LiquidStakeLSM(
 				sdktypes.EventTypeMessage,
 				sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
 				sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
-			)},
+			),
+		},
 		)
 	}
 
@@ -691,7 +693,8 @@ func (k msgServer) LiquidUnstake(
 			sdktypes.EventTypeMessage,
 			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
 			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.GetDelegatorAddress()),
-		)},
+		),
+	},
 	)
 
 	telemetry.IncrCounter(float32(1), hc.ChainId, "liquid_unstake")
@@ -799,7 +802,7 @@ func (k msgServer) Redeem(
 	}
 
 	// send the instant redeemed token from module to the account,
-	//this will error out if there are insufficient redeemTokens
+	// this will error out if there are insufficient redeemTokens
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx,
 		types.DepositModuleAccount,
@@ -848,7 +851,8 @@ func (k msgServer) Redeem(
 			sdktypes.EventTypeMessage,
 			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
 			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
-		)},
+		),
+	},
 	)
 
 	telemetry.IncrCounter(float32(1), hc.ChainId, "redeem")
@@ -893,7 +897,6 @@ func (k msgServer) validateLiquidStakeLSMDeposit(
 	delegatorAddress sdktypes.AccAddress,
 	delegation sdktypes.Coin,
 ) (*types.HostChain, *types.Validator, *transfertypes.DenomTrace, error) {
-
 	// check if the ibc denom is valid
 	if err := transfertypes.ValidateIBCDenom(delegation.Denom); err != nil {
 		return nil, nil, nil, errorsmod.Wrapf(types.ErrInvalidLSMDenom, "IBC denom %s doesn't belong to a LSM token", delegation.Denom)

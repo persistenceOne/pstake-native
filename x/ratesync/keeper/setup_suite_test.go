@@ -48,9 +48,9 @@ type IntegrationTestSuite struct {
 	govHandler govtypes.Handler
 
 	coordinator *ibctesting.Coordinator
-	chainA      *ibctesting.TestChain //pstake chain
-	chainB      *ibctesting.TestChain //host chain, run tests of active chains
-	chainC      *ibctesting.TestChain //host chain 2, run tests of to activate chains
+	chainA      *ibctesting.TestChain // pstake chain
+	chainB      *ibctesting.TestChain // host chain, run tests of active chains
+	chainC      *ibctesting.TestChain // host chain 2, run tests of to activate chains
 
 	transferPathAB *ibctesting.Path // chainA - chainB transfer path
 	transferPathAC *ibctesting.Path // chainA - chainC transfer path
@@ -63,7 +63,6 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *IntegrationTestSuite) SetupTest() {
-
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 0)
 
 	ibctesting.DefaultTestingAppInit = helpers.SetupTestingApp
@@ -90,13 +89,13 @@ func (suite *IntegrationTestSuite) SetupTest() {
 
 	suite.app = suite.chainA.App.(*app.PstakeApp)
 
-	//suite.SetupHostChainAB()
+	// suite.SetupHostChainAB()
 	suite.SetupICAChannelsAB()
 
 	suite.Transfer(suite.transferPathAB, sdk.NewCoin("uatom", sdk.NewInt(1000000000000)))
 	suite.Transfer(suite.transferPathAC, sdk.NewCoin("uosmo", sdk.NewInt(1000000000000)))
 
-	//suite.SetupLSM()
+	// suite.SetupLSM()
 
 	suite.CleanupSetup()
 	suite.ctx = suite.chainA.GetContext()
@@ -104,10 +103,11 @@ func (suite *IntegrationTestSuite) SetupTest() {
 
 func (suite *IntegrationTestSuite) CleanupSetup() {
 }
+
 func (suite *IntegrationTestSuite) ResetEpochs() {
 	ctx := suite.chainA.GetContext()
 
-	//ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
+	// ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
 	epochsKeeper := suite.chainA.App.(*app.PstakeApp).EpochsKeeper
 
 	for _, epoch := range epochsKeeper.AllEpochInfos(ctx) {
@@ -132,6 +132,7 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 
 	return path
 }
+
 func (suite *IntegrationTestSuite) Transfer(path *ibctesting.Path, coin sdk.Coin) {
 	transferMsg := ibctransfertypes.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID,
 		path.EndpointB.ChannelID, coin, path.EndpointB.Chain.SenderAccount.GetAddress().String(),
@@ -146,6 +147,7 @@ func (suite *IntegrationTestSuite) Transfer(path *ibctesting.Path, coin sdk.Coin
 	err = path.RelayPacket(packet)
 	suite.Require().NoError(err)
 }
+
 func (suite *IntegrationTestSuite) SetupICAChannelsAB() {
 	icapath := NewICAPath(suite.chainA, suite.chainB)
 	icapath.EndpointA.ClientID = suite.transferPathAB.EndpointA.ClientID
@@ -160,8 +162,8 @@ func (suite *IntegrationTestSuite) SetupICAChannelsAB() {
 
 	err := suite.SetupICAPath(suite.ratesyncPathAB, types.DefaultPortOwner(1))
 	suite.Require().NoError(err)
-
 }
+
 func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID

@@ -19,7 +19,6 @@ func NewParams(
 	upperCValueLimit sdktypes.Dec,
 	lowerCValueLimit sdktypes.Dec,
 ) Params {
-
 	return Params{
 		AdminAddress:     adminAddress,
 		FeeAddress:       feeAddress,

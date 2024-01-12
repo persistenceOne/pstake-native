@@ -263,7 +263,7 @@ func NewConfig(dbm *dbm.MemDB) network.Config {
 
 // NewAppConstructor returns a new network AppConstructor.
 //
-//nolint:interfacer
+//nolint:interfacer // only used for tests
 func NewAppConstructor(encodingCfg appparams.EncodingConfig, db *dbm.MemDB) network.AppConstructor {
 	return func(val network.ValidatorI) types.Application {
 		return app.NewpStakeApp(
