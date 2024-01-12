@@ -48,7 +48,21 @@ func (suite *IntegrationTestSuite) TestChainMsgServerUpdate() {
 	hc.ICAAccount.ChannelState = liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED
 	hc.ChainID = ctx.ChainID()
 	k.SetHostChain(ctx, hc)
-	hc2 := types.HostChain{ID: 1}
+	hc2 := types.HostChain{ID: 300}
+
+	hc3, _ := k.GetHostChain(ctx, 0)
+	hc3.ID = 1
+	hc3.ChainID = "testchain2-1"
+	hc3.ConnectionID = suite.ratesyncPathAB.EndpointA.ConnectionID
+	hc3.ICAAccount.Owner = types.DefaultPortOwner(1)
+	k.SetHostChain(ctx, hc3)
+
+	hc3.Features.LiquidStake.Instantiation = types.InstantiationState_INSTANTIATION_INITIATED
+	hc3.Features.LiquidStake.CodeID = 1
+	hc4, _ := k.GetHostChain(ctx, hc3.ID)
+	hc4.Features.LiquidStakeIBC.Instantiation = types.InstantiationState_INSTANTIATION_INITIATED
+	hc4.Features.LiquidStakeIBC.CodeID = 1
+
 	tests := []struct {
 		desc    string
 		request *types.MsgUpdateHostChain
@@ -73,6 +87,18 @@ func (suite *IntegrationTestSuite) TestChainMsgServerUpdate() {
 				HostChain: hc2,
 			},
 			err: sdkerrors.ErrKeyNotFound,
+		},
+		{
+			desc: "Update feature",
+			request: &types.MsgUpdateHostChain{Authority: GovAddress.String(),
+				HostChain: hc3,
+			},
+		},
+		{
+			desc: "Update feature2",
+			request: &types.MsgUpdateHostChain{Authority: GovAddress.String(),
+				HostChain: hc4,
+			},
 		},
 	}
 	for _, tc := range tests {
@@ -145,6 +171,39 @@ func (suite *IntegrationTestSuite) TestChainMsgServerDelete() {
 				)
 				suite.Require().False(found)
 			}
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestChainMsgServerUpdateParams() {
+	k, ctx := suite.app.RatesyncKeeper, suite.ctx
+
+	tests := []struct {
+		desc    string
+		request *types.MsgUpdateParams
+		err     error
+	}{
+		{
+			desc: "Completed",
+			request: &types.MsgUpdateParams{Authority: GovAddress.String(),
+				Params: types.Params{Admin: GovAddress.String()},
+			},
+		},
+		{
+			desc: "Unauthorized",
+			request: &types.MsgUpdateParams{Authority: "B",
+				Params: types.Params{Admin: GovAddress.String()},
+			},
+			err: sdkerrors.ErrorInvalidSigner,
+		},
+	}
+	for _, tc := range tests {
+		suite.T().Run(tc.desc, func(t *testing.T) {
+			srv := keeper.NewMsgServerImpl(*k)
+			wctx := sdk.WrapSDKContext(ctx)
+
+			_, err := srv.UpdateParams(wctx, tc.request)
+			suite.Require().ErrorIs(err, tc.err)
 		})
 	}
 }
