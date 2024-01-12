@@ -38,7 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-- [721](https://github.com/persistenceOne/pstake-native/pull/721) Query host chain unbondings.
+- [721](https://github.com/persistenceOne/pstake-native/pull/721) Add Query host chain user unbondings.
 
 ### Bug Fixes
 
