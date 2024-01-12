@@ -65,11 +65,13 @@ var DefaultConsensusParams = &tmproto.ConsensusParams{
 }
 
 func newTestApp(t *testing.T, isCheckTx, _ bool) app.PstakeApp {
+	t.Helper()
 	testApp := Setup(t, isCheckTx, 5)
 	return *testApp
 }
 
 func CreateTestApp(t *testing.T) (*codec.LegacyAmino, app.PstakeApp, sdk.Context) {
+	t.Helper()
 	testApp := newTestApp(t, false, false)
 	ctx := testApp.BaseApp.NewContext(false, tmproto.Header{})
 
@@ -148,6 +150,7 @@ func genesisStateWithValSet(t *testing.T,
 	valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
 	balances ...banktypes.Balance,
 ) app.GenesisState {
+	t.Helper()
 	// set genesis accounts
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
 	genesisState[authtypes.ModuleName] = app.AppCodec().MustMarshalJSON(authGenesis)
@@ -391,6 +394,7 @@ func TestAddr(addr, bech string) (sdk.AccAddress, error) {
 
 // CheckBalance checks the balance of an account.
 func CheckBalance(t *testing.T, app *app.PstakeApp, addr sdk.AccAddress, balances sdk.Coins) {
+	t.Helper()
 	ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
 	require.True(t, balances.IsEqual(app.BankKeeper.GetAllBalances(ctxCheck, addr)))
 }
