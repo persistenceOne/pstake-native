@@ -432,7 +432,7 @@ func (s *KeeperTestSuite) doubleSign(valOper sdk.ValAddress, consAddr sdk.ConsAd
 }
 
 func (s *KeeperTestSuite) createContinuousVestingAccount(
-	from sdk.AccAddress, to sdk.AccAddress, amt sdk.Coins,
+	from, to sdk.AccAddress, amt sdk.Coins,
 	startTime, endTime time.Time,
 ) vestingtypes.ContinuousVestingAccount {
 	baseAccount := s.app.AccountKeeper.NewAccountWithAddress(s.ctx, to)

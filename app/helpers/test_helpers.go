@@ -64,7 +64,7 @@ var DefaultConsensusParams = &tmproto.ConsensusParams{
 	},
 }
 
-func newTestApp(t *testing.T, isCheckTx bool, _ bool) app.PstakeApp {
+func newTestApp(t *testing.T, isCheckTx, _ bool) app.PstakeApp {
 	testApp := Setup(t, isCheckTx, 5)
 	return *testApp
 }
@@ -368,7 +368,7 @@ func ConvertAddrsToValAddrs(addrs []sdk.AccAddress) []sdk.ValAddress {
 	return valAddrs
 }
 
-func TestAddr(addr string, bech string) (sdk.AccAddress, error) {
+func TestAddr(addr, bech string) (sdk.AccAddress, error) {
 	res, err := sdk.AccAddressFromHexUnsafe(addr)
 	if err != nil {
 		return nil, err

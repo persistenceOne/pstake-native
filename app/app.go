@@ -966,8 +966,6 @@ func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
 }
 
 // initParamsKeeper init params keeper and its subspaces
-//
-//nolint:staticcheck
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey store.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 

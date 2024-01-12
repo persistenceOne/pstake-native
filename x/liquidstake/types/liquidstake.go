@@ -85,7 +85,7 @@ func (v LiquidValidator) GetStatus(activeCondition bool) ValidatorStatus {
 // - included on whitelist
 // - existed valid validator on staking module ( existed, not nil del shares and tokens, valid exchange rate)
 // - not tombstoned
-func ActiveCondition(validator stakingtypes.Validator, whitelisted bool, tombstoned bool) bool {
+func ActiveCondition(validator stakingtypes.Validator, whitelisted, tombstoned bool) bool {
 	return whitelisted &&
 		!tombstoned &&
 		// !Unspecified ==> Bonded, Unbonding, Unbonded
@@ -102,7 +102,7 @@ type (
 )
 
 // MinMaxGap Return the list of LiquidValidator with the maximum gap and minimum gap from the target weight of LiquidValidators, respectively.
-func (vs LiquidValidators) MinMaxGap(targetMap, liquidTokenMap map[string]math.Int) (minGapVal LiquidValidator, maxGapVal LiquidValidator, amountNeeded math.Int, lastRedelegation bool) {
+func (vs LiquidValidators) MinMaxGap(targetMap, liquidTokenMap map[string]math.Int) (minGapVal, maxGapVal LiquidValidator, amountNeeded math.Int, lastRedelegation bool) {
 	maxGap := sdk.ZeroInt()
 	minGap := sdk.ZeroInt()
 
@@ -177,7 +177,7 @@ func StkXPRTToNativeToken(stkXPRTAmount, stkXPRTTotalSupplyAmount math.Int, netA
 }
 
 // DeductFeeRate returns Input * (1-FeeRate) with truncations
-func DeductFeeRate(input math.LegacyDec, feeRate math.LegacyDec) (feeDeductedOutput math.LegacyDec) {
+func DeductFeeRate(input, feeRate math.LegacyDec) (feeDeductedOutput math.LegacyDec) {
 	return input.MulTruncate(sdk.OneDec().Sub(feeRate)).TruncateDec()
 }
 
