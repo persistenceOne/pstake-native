@@ -31,7 +31,7 @@ func (hc HostChain) ValidateBasic() error {
 		if err != nil {
 			return err
 		}
-		//Make sure it matches default.
+		// Make sure it matches default.
 		_, err = IDFromPortID(portID)
 		if err != nil {
 			return err
@@ -44,7 +44,7 @@ func (hc HostChain) ValidateBasic() error {
 			return fmt.Errorf("ica account address for ICAAccount_ICA_CHANNEL_CREATING should be empty")
 		}
 		// No features allowed without ICA account.
-		if hc.Features.LiquidStake.Enabled == true || hc.Features.LiquidStakeIBC.Enabled == true {
+		if hc.Features.LiquidStake.Enabled || hc.Features.LiquidStakeIBC.Enabled {
 			return fmt.Errorf("no features should be enabled without a valid ICA account")
 		}
 	case liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED:
@@ -66,8 +66,8 @@ func (hc HostChain) ValidateBasic() error {
 }
 
 func (hc HostChain) IsActive() bool {
-	if hc.Features.LiquidStakeIBC.Enabled == true ||
-		hc.Features.LiquidStake.Enabled == true {
+	if hc.Features.LiquidStakeIBC.Enabled ||
+		hc.Features.LiquidStake.Enabled {
 		return true
 	}
 	return false
@@ -103,7 +103,7 @@ func (lsConfig LiquidStake) ValdidateBasic() error {
 		if lsConfig.ContractAddress != "" {
 			return fmt.Errorf("InstantiationState_INSTANTIATION_NOT_INITIATED cannot have contract address")
 		}
-		if lsConfig.Enabled == true {
+		if lsConfig.Enabled {
 			return fmt.Errorf("feature cannot be turned on without instantiation complete")
 		}
 	case InstantiationState_INSTANTIATION_INITIATED:
@@ -113,7 +113,7 @@ func (lsConfig LiquidStake) ValdidateBasic() error {
 		if lsConfig.CodeID == 0 {
 			return fmt.Errorf("InstantiationState_INSTANTIATION_INITIATED cannot have 0 codeID")
 		}
-		if lsConfig.Enabled == true {
+		if lsConfig.Enabled {
 			return fmt.Errorf("feature cannot be turned on without instantiation complete")
 		}
 	case InstantiationState_INSTANTIATION_COMPLETED:
@@ -134,18 +134,21 @@ func (lsConfig LiquidStake) ValdidateBasic() error {
 	}
 	return nil
 }
+
 func (lsConfig LiquidStake) AllowsAllDenoms() bool {
 	if len(lsConfig.Denoms) == 1 && lsConfig.Denoms[0] == LiquidStakeAllowAllDenoms {
 		return true
 	}
 	return false
 }
+
 func (lsConfig LiquidStake) AllowsDenom(denom string) bool {
 	if lsConfig.AllowsAllDenoms() {
 		return true
 	}
 	return slices.Contains(lsConfig.Denoms, denom)
 }
+
 func (lsConfig LiquidStake) Equals(l2 LiquidStake) bool {
 	if lsConfig.CodeID != l2.CodeID {
 		return false
@@ -174,14 +177,14 @@ func MustICAPortIDFromOwner(owner string) string {
 		panic(err)
 	}
 	return id
-
 }
 
 func DefaultPortOwner(id uint64) string {
 	return fmt.Sprintf("%s%v", DefaultPortOwnerPrefix, id)
 }
+
 func OwnerFromPortID(portID string) (string, error) {
-	prefix := fmt.Sprintf("%s", icatypes.ControllerPortPrefix)
+	prefix := icatypes.ControllerPortPrefix
 	idStr, found := strings.CutPrefix(portID, prefix)
 	if !found {
 		return "", fmt.Errorf("invalid portID, expect prefix %s", prefix)

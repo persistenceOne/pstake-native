@@ -31,7 +31,8 @@ func (suite *IntegrationTestSuite) TestChainMsgServerCreate() {
 	for i := 0; i < 5; i++ {
 		hc := ValidHostChainInMsg(0)
 		hc.ChainID = ctx.ChainID()
-		expected := &types.MsgCreateHostChain{Authority: GovAddress.String(),
+		expected := &types.MsgCreateHostChain{
+			Authority: GovAddress.String(),
 			HostChain: hc,
 		}
 		_, err := srv.CreateHostChain(wctx, expected)
@@ -70,33 +71,38 @@ func (suite *IntegrationTestSuite) TestChainMsgServerUpdate() {
 	}{
 		{
 			desc: "Completed",
-			request: &types.MsgUpdateHostChain{Authority: GovAddress.String(),
+			request: &types.MsgUpdateHostChain{
+				Authority: GovAddress.String(),
 				HostChain: hc,
 			},
 		},
 		{
 			desc: "Unauthorized",
-			request: &types.MsgUpdateHostChain{Authority: "B",
+			request: &types.MsgUpdateHostChain{
+				Authority: "B",
 				HostChain: hc,
 			},
 			err: sdkerrors.ErrorInvalidSigner,
 		},
 		{
 			desc: "KeyNotFound",
-			request: &types.MsgUpdateHostChain{Authority: GovAddress.String(),
+			request: &types.MsgUpdateHostChain{
+				Authority: GovAddress.String(),
 				HostChain: hc2,
 			},
 			err: sdkerrors.ErrKeyNotFound,
 		},
 		{
 			desc: "Update feature",
-			request: &types.MsgUpdateHostChain{Authority: GovAddress.String(),
+			request: &types.MsgUpdateHostChain{
+				Authority: GovAddress.String(),
 				HostChain: hc3,
 			},
 		},
 		{
 			desc: "Update feature2",
-			request: &types.MsgUpdateHostChain{Authority: GovAddress.String(),
+			request: &types.MsgUpdateHostChain{
+				Authority: GovAddress.String(),
 				HostChain: hc4,
 			},
 		},
@@ -105,7 +111,8 @@ func (suite *IntegrationTestSuite) TestChainMsgServerUpdate() {
 		suite.T().Run(tc.desc, func(t *testing.T) {
 			srv := keeper.NewMsgServerImpl(*k)
 			wctx := sdk.WrapSDKContext(ctx)
-			expected := &types.MsgCreateHostChain{Authority: GovAddress.String(),
+			expected := &types.MsgCreateHostChain{
+				Authority: GovAddress.String(),
 				HostChain: hc,
 			}
 
@@ -137,21 +144,24 @@ func (suite *IntegrationTestSuite) TestChainMsgServerDelete() {
 	}{
 		{
 			desc: "Completed",
-			request: &types.MsgDeleteHostChain{Authority: GovAddress.String(),
-				ID: 1,
+			request: &types.MsgDeleteHostChain{
+				Authority: GovAddress.String(),
+				ID:        1,
 			},
 		},
 		{
 			desc: "Unauthorized",
-			request: &types.MsgDeleteHostChain{Authority: "B",
-				ID: 2,
+			request: &types.MsgDeleteHostChain{
+				Authority: "B",
+				ID:        2,
 			},
 			err: sdkerrors.ErrorInvalidSigner,
 		},
 		{
 			desc: "KeyNotFound",
-			request: &types.MsgDeleteHostChain{Authority: GovAddress.String(),
-				ID: 10,
+			request: &types.MsgDeleteHostChain{
+				Authority: GovAddress.String(),
+				ID:        10,
 			},
 			err: sdkerrors.ErrKeyNotFound,
 		},
@@ -185,14 +195,16 @@ func (suite *IntegrationTestSuite) TestChainMsgServerUpdateParams() {
 	}{
 		{
 			desc: "Completed",
-			request: &types.MsgUpdateParams{Authority: GovAddress.String(),
-				Params: types.Params{Admin: GovAddress.String()},
+			request: &types.MsgUpdateParams{
+				Authority: GovAddress.String(),
+				Params:    types.Params{Admin: GovAddress.String()},
 			},
 		},
 		{
 			desc: "Unauthorized",
-			request: &types.MsgUpdateParams{Authority: "B",
-				Params: types.Params{Admin: GovAddress.String()},
+			request: &types.MsgUpdateParams{
+				Authority: "B",
+				Params:    types.Params{Admin: GovAddress.String()},
 			},
 			err: sdkerrors.ErrorInvalidSigner,
 		},

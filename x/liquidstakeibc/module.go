@@ -29,8 +29,7 @@ var (
 	_ module.AppModuleSimulation = AppModule{}
 )
 
-type AppModuleBasic struct {
-}
+type AppModuleBasic struct{}
 
 func (a AppModuleBasic) Name() string {
 	return types.ModuleName
@@ -65,12 +64,10 @@ func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx sdkclient.Context, m
 
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 	return client.NewTxCmd()
-
 }
 
 func (a AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return client.NewQueryCmd()
-
 }
 
 type AppModule struct {

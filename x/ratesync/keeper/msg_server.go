@@ -137,7 +137,7 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 		isOneUpdated, updateStr = saveUpdate(fmt.Sprintf("updates host chain chainID %v to %v \n", oldHC.ChainID, msg.HostChain.ChainID))
 	}
 
-	//allow only one feature update per tx.
+	// allow only one feature update per tx.
 	if !isOneUpdated && !msg.HostChain.Features.LiquidStakeIBC.Equals(oldHC.Features.LiquidStakeIBC) {
 		if oldHC.Features.LiquidStakeIBC.Instantiation == types.InstantiationState_INSTANTIATION_NOT_INITIATED {
 			// allow to add details and instantiate or just save if trying to recover.
@@ -238,6 +238,7 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 		if !slices.Equal(oldHC.Features.LiquidStake.Denoms, msg.HostChain.Features.LiquidStake.Denoms) {
 			oldHC.Features.LiquidStake.Denoms = msg.HostChain.Features.LiquidStake.Denoms
 		}
+		//nolint: ineffassign,staticcheck // it will be required if more features are added.
 		isOneUpdated, updateStr = saveUpdate(fmt.Sprintf("updates LiquidStake feature from %v to %v", oldHC.Features.LiquidStake, msg.HostChain.Features.LiquidStake))
 	}
 	err = oldHC.Features.ValdidateBasic()

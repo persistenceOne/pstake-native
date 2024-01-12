@@ -58,7 +58,6 @@ var _ sdk.Msg = &MsgCreateHostChain{}
 func NewMsgCreateHostChain(
 	authority string,
 	hc HostChain,
-
 ) *MsgCreateHostChain {
 	return &MsgCreateHostChain{
 		Authority: authority,
@@ -114,7 +113,6 @@ var _ sdk.Msg = &MsgUpdateHostChain{}
 func NewMsgUpdateHostChain(
 	creator string,
 	hc HostChain,
-
 ) *MsgUpdateHostChain {
 	return &MsgUpdateHostChain{
 		Authority: creator,
@@ -166,13 +164,13 @@ var _ sdk.Msg = &MsgDeleteHostChain{}
 func NewMsgDeleteHostChain(
 	creator string,
 	id uint64,
-
 ) *MsgDeleteHostChain {
 	return &MsgDeleteHostChain{
 		Authority: creator,
 		ID:        id,
 	}
 }
+
 func (msg *MsgDeleteHostChain) Route() string {
 	return RouterKey
 }

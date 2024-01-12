@@ -238,6 +238,12 @@ rm-testcache:
 ###############################################################################
 ###                                Linting                                  ###
 ###############################################################################
+golangci_version=v1.55.0
+
+lint-install:
+	@echo "--> Installing golangci-lint $(golangci_version)"
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version)
+
 
 lint:
 	golangci-lint run

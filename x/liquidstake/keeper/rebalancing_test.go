@@ -81,7 +81,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	s.Require().EqualValues(stakingAmt, totalLiquidTokens)
 	s.printRedelegationsLiquidTokens()
 
-	//reds := s.app.StakingKeeper.GetRedelegations(s.ctx, types.LiquidStakeProxyAcc, 20)
+	// reds := s.app.StakingKeeper.GetRedelegations(s.ctx, types.LiquidStakeProxyAcc, 20)
 	s.Require().Len(reds, 3)
 
 	testhelpers.PP("before complete")
@@ -278,7 +278,8 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	_, valOpers, _ := s.CreateValidators([]int64{
 		1000000, 1000000, 1000000, 1000000, 1000000,
 		1000000, 1000000, 1000000, 1000000, 1000000,
-		1000000, 1000000, 1000000, 1000000, 1000000})
+		1000000, 1000000, 1000000, 1000000, 1000000,
+	})
 	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(testhelpers.ParseTime("2022-03-01T00:00:00Z"))
 	params := s.keeper.GetParams(s.ctx)
 	params.UnstakeFeeRate = sdk.ZeroDec()

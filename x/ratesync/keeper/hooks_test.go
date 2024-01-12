@@ -12,10 +12,9 @@ func (suite *IntegrationTestSuite) TestPostCValueUpdate() {
 	keeper.SetHostChain(ctx, hc)
 	suite.Require().NoError(keeper.PostCValueUpdate(ctx, "uatom", "stk/uatom", sdk.OneDec()))
 
-	hc.ICAAccount.Address = "InvalidAddr" //outer functions do not return errors
+	hc.ICAAccount.Address = "InvalidAddr" // outer functions do not return errors
 	keeper.SetHostChain(ctx, hc)
 	suite.Require().NoError(keeper.PostCValueUpdate(ctx, "uatom", "stk/uatom", sdk.OneDec()))
-
 }
 
 func (suite *IntegrationTestSuite) TestAfterEpochEnd() {

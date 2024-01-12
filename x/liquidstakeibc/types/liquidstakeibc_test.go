@@ -126,7 +126,8 @@ func TestDefaultRewardsAccountPortOwner(t *testing.T) {
 			name: "valid",
 			args: args{chainID: "chain-1"},
 			want: "chain-1.rewards",
-		}}
+		},
+	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := types.DefaultRewardsAccountPortOwner(tt.args.chainID); got != tt.want {
@@ -173,7 +174,8 @@ func TestDeposit_Validate(t *testing.T) {
 				IbcSequenceId: "",
 			},
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "invalid state",
 			fields: fields{
 				ChainId:       "chain-1",
@@ -450,7 +452,8 @@ func TestUserUnbonding_Validate(t *testing.T) {
 				UnbondAmount: invalidCoin,
 			},
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "invalid addr",
 			fields: fields{
 				ChainId:      "chain-1",
@@ -590,7 +593,8 @@ func TestHostChainLSParams_Validate(t *testing.T) {
 				RedemptionFee: sdk.ZeroDec(),
 			},
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "invalid unstake fee",
 			fields: fields{
 				DepositFee:    sdk.ZeroDec(),
@@ -599,7 +603,8 @@ func TestHostChainLSParams_Validate(t *testing.T) {
 				RedemptionFee: sdk.ZeroDec(),
 			},
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "invalid redemption fee",
 			fields: fields{
 				DepositFee:    sdk.ZeroDec(),
@@ -650,7 +655,8 @@ func TestValidator_Validate(t *testing.T) {
 				UnbondingEpoch:  0,
 			},
 			wantErr: false,
-		}, {
+		},
+		{
 			name: "invalid operatorAddr",
 			fields: fields{
 				OperatorAddress: "testval",
@@ -661,7 +667,8 @@ func TestValidator_Validate(t *testing.T) {
 				UnbondingEpoch:  0,
 			},
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "invalid status",
 			fields: fields{
 				OperatorAddress: authtypes.NewModuleAddressOrBech32Address("testval").String(),
@@ -672,7 +679,8 @@ func TestValidator_Validate(t *testing.T) {
 				UnbondingEpoch:  0,
 			},
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "invalid weight",
 			fields: fields{
 				OperatorAddress: authtypes.NewModuleAddressOrBech32Address("testval").String(),

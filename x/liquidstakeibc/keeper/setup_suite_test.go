@@ -51,9 +51,9 @@ type IntegrationTestSuite struct {
 	govHandler govtypes.Handler
 
 	coordinator *ibctesting.Coordinator
-	chainA      *ibctesting.TestChain //pstake chain
-	chainB      *ibctesting.TestChain //host chain, run tests of active chains
-	chainC      *ibctesting.TestChain //host chain 2, run tests of to activate chains
+	chainA      *ibctesting.TestChain // pstake chain
+	chainB      *ibctesting.TestChain // host chain, run tests of active chains
+	chainC      *ibctesting.TestChain // host chain 2, run tests of to activate chains
 
 	transferPathAB *ibctesting.Path // chainA - chainB transfer path
 	transferPathAC *ibctesting.Path // chainA - chainC transfer path
@@ -67,7 +67,6 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *IntegrationTestSuite) SetupTest() {
-
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 0)
 
 	ibctesting.DefaultTestingAppInit = helpers.SetupTestingApp
@@ -116,10 +115,11 @@ func (suite *IntegrationTestSuite) CleanupSetup() {
 	epoch := suite.app.EpochsKeeper.GetEpochInfo(suite.chainA.GetContext(), types.DelegationEpoch).CurrentEpoch
 	pstakeApp.LiquidStakeIBCKeeper.DepositWorkflow(suite.chainA.GetContext(), epoch)
 }
+
 func (suite *IntegrationTestSuite) ResetEpochs() {
 	ctx := suite.chainA.GetContext()
 
-	//ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
+	// ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
 	epochsKeeper := suite.chainA.App.(*app.PstakeApp).EpochsKeeper
 
 	for _, epoch := range epochsKeeper.AllEpochInfos(ctx) {
@@ -182,16 +182,16 @@ func (suite *IntegrationTestSuite) SetupHostChainAB() {
 		ConnectionId: suite.transferPathAB.EndpointA.ConnectionID,
 		Params:       hostChainLSParams,
 		HostDenom:    HostDenom,
-		ChannelId:    "channel-0", //suite.transferPathAB.EndpointA.ChannelID,
+		ChannelId:    "channel-0", // suite.transferPathAB.EndpointA.ChannelID,
 		PortId:       suite.transferPathAB.EndpointA.ChannelConfig.PortID,
 		DelegationAccount: &types.ICAAccount{
-			Address:      "cosmos1mykw6u6dq4z7qhw9aztpk5yp8j8y5n0c6usg9faqepw83y2u4nzq2qxaxc", //gets replaced
+			Address:      "cosmos1mykw6u6dq4z7qhw9aztpk5yp8j8y5n0c6usg9faqepw83y2u4nzq2qxaxc", // gets replaced
 			Balance:      sdk.Coin{Denom: HostDenom, Amount: sdk.ZeroInt()},
 			Owner:        types.DefaultDelegateAccountPortOwner(suite.chainB.ChainID),
 			ChannelState: types.ICAAccount_ICA_CHANNEL_CREATED,
 		},
 		RewardsAccount: &types.ICAAccount{
-			Address:      "cosmos19dade3sxq2wqvy6fenytxmn0y3njw8r2p88cn27pj4naxcyzzs8qgxrun3", //gets replaced
+			Address:      "cosmos19dade3sxq2wqvy6fenytxmn0y3njw8r2p88cn27pj4naxcyzzs8qgxrun3", // gets replaced
 			Balance:      sdk.Coin{Denom: HostDenom, Amount: sdk.ZeroInt()},
 			Owner:        types.DefaultRewardsAccountPortOwner(suite.chainB.ChainID),
 			ChannelState: types.ICAAccount_ICA_CHANNEL_CREATED,
@@ -249,6 +249,7 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 
 	return path
 }
+
 func (suite *IntegrationTestSuite) Transfer(path *ibctesting.Path, coin sdk.Coin) {
 	transferMsg := ibctransfertypes.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID,
 		path.EndpointB.ChannelID, coin, path.EndpointB.Chain.SenderAccount.GetAddress().String(),
@@ -263,6 +264,7 @@ func (suite *IntegrationTestSuite) Transfer(path *ibctesting.Path, coin sdk.Coin
 	err = path.RelayPacket(packet)
 	suite.Require().NoError(err)
 }
+
 func (suite *IntegrationTestSuite) SetupICAChannelsAB() {
 	icapath := NewICAPath(suite.chainA, suite.chainB)
 	icapath.EndpointA.ClientID = suite.transferPathAB.EndpointA.ClientID
@@ -292,6 +294,7 @@ func (suite *IntegrationTestSuite) SetupICAChannelsAB() {
 	err = suite.SetupICAPath(suite.rewardsPathAB, types.DefaultRewardsAccountPortOwner(suite.chainB.ChainID))
 	suite.Require().NoError(err)
 }
+
 func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
@@ -360,7 +363,7 @@ func (suite *IntegrationTestSuite) TestOneFullFlow() {
 	suite.Require().NoError(err)
 
 	senderAcc := suite.chainA.SenderAccount
-	//user liquidstakes
+	// user liquidstakes
 	msgLiquidStake := types.NewMsgLiquidStake(sdk.NewInt64Coin(hc.IBCDenom(), 1000000), senderAcc.GetAddress())
 	result, err := suite.app.MsgServiceRouter().Handler(msgLiquidStake)(suite.chainA.GetContext(), msgLiquidStake)
 	suite.NotNil(result)
@@ -380,7 +383,7 @@ func (suite *IntegrationTestSuite) TestOneFullFlow() {
 	suite.Require().True(found)
 	suite.Require().Equal(types.Deposit_DEPOSIT_PENDING, deposit.State)
 
-	ctx := suite.chainA.GetContext() //use separate context so we can fetch events out of it
+	ctx := suite.chainA.GetContext() // use separate context so we can fetch events out of it
 	err = k.AfterEpochEnd(ctx, epoch.Identifier, epoch.CurrentEpoch)
 	suite.NoError(err)
 	packets, err := ParsePacketsFromEvents(ctx.EventManager().Events())
@@ -390,22 +393,22 @@ func (suite *IntegrationTestSuite) TestOneFullFlow() {
 	suite.Require().True(found)
 	suite.Require().Equal(types.Deposit_DEPOSIT_SENT, deposit.State)
 
-	suite.chainA.NextBlock() //commit the packets and their commitments so its available in context
+	suite.chainA.NextBlock() // commit the packets and their commitments so its available in context
 
-	suite.RelayAllPacketsAB(packets) //also calls for Next Block causing Deposit_DEPOSIT_RECEIVED to just pass
+	suite.RelayAllPacketsAB(packets) // also calls for Next Block causing Deposit_DEPOSIT_RECEIVED to just pass
 
 	deposit, found = k.GetDepositForChainAndEpoch(suite.chainA.GetContext(), hc.ChainId, epoch.CurrentEpoch)
 	suite.Require().True(found)
 	suite.Require().Equal(types.Deposit_DEPOSIT_DELEGATING, deposit.State)
 
-	timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().UnixNano()) + uint64(types.ICATimeoutTimestamp.Nanoseconds()) - uint64(time.Second*5) //sub one b
+	timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().UnixNano()) + uint64(types.ICATimeoutTimestamp.Nanoseconds()) - uint64(time.Second*5) // sub one b
 	data, err := suite.CreateICAData(deposit.Amount.Amount, hc, 0)
 	suite.NoError(err)
 
 	packet, err := CreateICADelegatePacketHardcoded(data,
 		"1", "0-0", fmt.Sprintf("%d", timeoutTimestamp))
 	suite.NoError(err)
-	suite.chainA.NextBlock() //commit the packets and their commitments so its available in context
+	suite.chainA.NextBlock() // commit the packets and their commitments so its available in context
 	suite.RelayAllPacketsAB([]channeltypes.Packet{packet})
 	deposit, found = k.GetDepositForChainAndEpoch(suite.chainA.GetContext(), hc.ChainId, epoch.CurrentEpoch)
 	suite.Require().False(found)
@@ -429,7 +432,7 @@ func (suite *IntegrationTestSuite) TestOneFullFlow() {
 	unbonding, found := k.GetUnbonding(suite.chainA.GetContext(), hc.ChainId, types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch))
 	suite.Require().True(found)
 	suite.Require().Equal(types.Unbonding_UNBONDING_PENDING, unbonding.State)
-	//Force undelegation by manipulating epoch number
+	// Force undelegation by manipulating epoch number
 	ctx = suite.chainA.GetContext()
 	err = k.AfterEpochEnd(ctx, epoch.Identifier, types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch))
 	packets, err = ParsePacketsFromEvents(ctx.EventManager().Events())
@@ -438,7 +441,7 @@ func (suite *IntegrationTestSuite) TestOneFullFlow() {
 	suite.Require().True(found)
 	suite.Require().Equal(types.Unbonding_UNBONDING_INITIATED, unbonding.State)
 
-	suite.chainA.NextBlock() //commit the packets and their commitments so its available in context
+	suite.chainA.NextBlock() // commit the packets and their commitments so its available in context
 
 	suite.RelayAllPacketsAB(packets)
 	unbonding, found = k.GetUnbonding(suite.chainA.GetContext(), hc.ChainId, types.CurrentUnbondingEpoch(hc.UnbondingFactor, epoch.CurrentEpoch))
@@ -526,7 +529,6 @@ func ParsePacketsFromEvents(events sdk.Events) ([]channeltypes.Packet, error) {
 }
 
 func (suite *IntegrationTestSuite) CreateICAData(amount math.Int, hc *types.HostChain, txtype int) (string, error) {
-
 	messages := make([]proto.Message, 0)
 	for _, vals := range hc.Validators {
 		var message proto.Message
@@ -586,6 +588,7 @@ func CreateICADelegatePacketHardcoded(data, sequence, timeoutHeight, timeoutTime
 	}
 	return packet, nil
 }
+
 func CreateICARewardsPacketHardcoded(data, sequence, timeoutHeight, timeoutTimestamp string) (channeltypes.Packet, error) {
 	seq, err := strconv.ParseUint(sequence, 10, 64)
 	if err != nil {

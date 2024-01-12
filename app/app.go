@@ -466,8 +466,8 @@ func NewpStakeApp(
 		app.BankKeeper,
 		scopedTransferKeeper,
 	)
-	//transferModule := transfer.NewAppModule(app.TransferKeeper)
-	//transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
+	// transferModule := transfer.NewAppModule(app.TransferKeeper)
+	// transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 		appCodec, keys[icacontrollertypes.StoreKey],
@@ -487,7 +487,7 @@ func NewpStakeApp(
 		app.MsgServiceRouter(),
 	)
 
-	//icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
+	// icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
 
 	app.InterchainQueryKeeper = interchainquerykeeper.NewKeeper(appCodec, keys[interchainquerytypes.StoreKey], app.IBCKeeper)
 	interchainQueryModule := interchainquery.NewAppModule(appCodec, app.InterchainQueryKeeper)
@@ -623,7 +623,7 @@ func NewpStakeApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
-		//ibchooker.NewAppModule(),
+		// ibchooker.NewAppModule(),
 		interchainQueryModule,
 		liquidstakeibc.NewAppModule(app.LiquidStakeIBCKeeper),
 		liquidstake.NewAppModule(app.LiquidStakeKeeper),
@@ -659,7 +659,7 @@ func NewpStakeApp(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
-		ibchookertypes.ModuleName, //Noop
+		ibchookertypes.ModuleName, // Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
 		liquidstaketypes.ModuleName,
@@ -688,7 +688,7 @@ func NewpStakeApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-		ibchookertypes.ModuleName, //Noop
+		ibchookertypes.ModuleName, // Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
 		liquidstaketypes.ModuleName,
@@ -724,7 +724,7 @@ func NewpStakeApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-		ibchookertypes.ModuleName, //Noop
+		ibchookertypes.ModuleName, // Noop
 		interchainquerytypes.ModuleName,
 		liquidstakeibctypes.ModuleName,
 		liquidstaketypes.ModuleName,
@@ -849,6 +849,7 @@ func (app *PstakeApp) ModuleAccountAddrs() map[string]bool {
 
 	return modAccAddrs
 }
+
 func (app *PstakeApp) SendCoinBlockedAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
@@ -966,11 +967,11 @@ func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
 
 // initParamsKeeper init params keeper and its subspaces
 //
-//nolint:staticcheck
+//nolint:staticcheck // SA1019: deprecated will be removed later
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey store.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
-	paramsKeeper.Subspace(authtypes.ModuleName).WithKeyTable(authtypes.ParamKeyTable())
+	paramsKeeper.Subspace(authtypes.ModuleName).WithKeyTable(authtypes.ParamKeyTable()) //
 	paramsKeeper.Subspace(banktypes.ModuleName).WithKeyTable(banktypes.ParamKeyTable())
 	paramsKeeper.Subspace(stakingtypes.ModuleName).WithKeyTable(stakingtypes.ParamKeyTable())
 	paramsKeeper.Subspace(minttypes.ModuleName).WithKeyTable(minttypes.ParamKeyTable())
@@ -1018,7 +1019,6 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		UpgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-
 			// stuck unbonding epoch numbers
 			RemovableUnbondings := map[string]map[int64]any{"cosmoshub-4": {312: nil}, "osmosis-1": {429: nil, 432: nil}}
 

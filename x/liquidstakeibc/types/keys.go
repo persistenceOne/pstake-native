@@ -111,6 +111,6 @@ func GetRedelegationsStoreKey(chainID string) []byte {
 	return []byte(chainID)
 }
 
-func GetRedelegationTxStoreKey(chainID string, ibcSequenceID string) []byte {
+func GetRedelegationTxStoreKey(chainID, ibcSequenceID string) []byte {
 	return append([]byte(chainID), []byte(ibcSequenceID)...)
 }

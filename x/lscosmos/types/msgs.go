@@ -54,7 +54,6 @@ func (m *MsgLiquidUnstake) ValidateBasic() error {
 // GetSignBytes encodes the message for signing
 func (m *MsgLiquidUnstake) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(m))
-
 }
 
 // GetSigners defines whose signature is required
@@ -80,7 +79,6 @@ func (m *MsgRedeem) ValidateBasic() error {
 // GetSignBytes encodes the message for signing
 func (m *MsgRedeem) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(m))
-
 }
 
 // GetSigners defines whose signature is required

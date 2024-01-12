@@ -49,7 +49,8 @@ func (k Keeper) GetNetAmountState(ctx sdk.Context) (nas types.NetAmountState) {
 
 // LiquidStake mints stkXPRT worth of staking coin value according to NetAmount and performs LiquidDelegate.
 func (k Keeper) LiquidStake(
-	ctx sdk.Context, proxyAcc, liquidStaker sdk.AccAddress, stakingCoin sdk.Coin) (newShares math.LegacyDec, stkXPRTMintAmount math.Int, err error) {
+	ctx sdk.Context, proxyAcc, liquidStaker sdk.AccAddress, stakingCoin sdk.Coin,
+) (newShares math.LegacyDec, stkXPRTMintAmount math.Int, err error) {
 	params := k.GetParams(ctx)
 
 	// check minimum liquid stake amount
@@ -343,7 +344,6 @@ func (k Keeper) LiquidDelegate(ctx sdk.Context, proxyAcc sdk.AccAddress, activeV
 func (k Keeper) LiquidUnstake(
 	ctx sdk.Context, proxyAcc, liquidStaker sdk.AccAddress, unstakingStkXPRT sdk.Coin,
 ) (time.Time, math.Int, []stakingtypes.UnbondingDelegation, math.Int, error) {
-
 	// check bond denomination
 	params := k.GetParams(ctx)
 	liquidBondDenom := k.LiquidBondDenom(ctx)

@@ -64,12 +64,14 @@ var DefaultConsensusParams = &tmproto.ConsensusParams{
 	},
 }
 
-func newTestApp(t *testing.T, isCheckTx bool, _ bool) app.PstakeApp {
+func newTestApp(t *testing.T, isCheckTx, _ bool) app.PstakeApp {
+	t.Helper()
 	testApp := Setup(t, isCheckTx, 5)
 	return *testApp
 }
 
 func CreateTestApp(t *testing.T) (*codec.LegacyAmino, app.PstakeApp, sdk.Context) {
+	t.Helper()
 	testApp := newTestApp(t, false, false)
 	ctx := testApp.BaseApp.NewContext(false, tmproto.Header{})
 
@@ -148,6 +150,7 @@ func genesisStateWithValSet(t *testing.T,
 	valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
 	balances ...banktypes.Balance,
 ) app.GenesisState {
+	t.Helper()
 	// set genesis accounts
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
 	genesisState[authtypes.ModuleName] = app.AppCodec().MustMarshalJSON(authGenesis)
@@ -263,7 +266,7 @@ func NewConfig(dbm *dbm.MemDB) network.Config {
 
 // NewAppConstructor returns a new network AppConstructor.
 //
-//nolint:interfacer
+//nolint:interfacer // only used for tests
 func NewAppConstructor(encodingCfg appparams.EncodingConfig, db *dbm.MemDB) network.AppConstructor {
 	return func(val network.ValidatorI) types.Application {
 		return app.NewpStakeApp(
@@ -368,7 +371,7 @@ func ConvertAddrsToValAddrs(addrs []sdk.AccAddress) []sdk.ValAddress {
 	return valAddrs
 }
 
-func TestAddr(addr string, bech string) (sdk.AccAddress, error) {
+func TestAddr(addr, bech string) (sdk.AccAddress, error) {
 	res, err := sdk.AccAddressFromHexUnsafe(addr)
 	if err != nil {
 		return nil, err
@@ -391,6 +394,7 @@ func TestAddr(addr string, bech string) (sdk.AccAddress, error) {
 
 // CheckBalance checks the balance of an account.
 func CheckBalance(t *testing.T, app *app.PstakeApp, addr sdk.AccAddress, balances sdk.Coins) {
+	t.Helper()
 	ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
 	require.True(t, balances.IsEqual(app.BankKeeper.GetAllBalances(ctxCheck, addr)))
 }

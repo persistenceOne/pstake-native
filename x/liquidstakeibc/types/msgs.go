@@ -369,7 +369,6 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 	return nil
 }
 
-//nolint:interfacer
 func NewMsgLiquidStake(amount sdk.Coin, address sdk.AccAddress) *MsgLiquidStake {
 	return &MsgLiquidStake{
 		DelegatorAddress: address.String(),
@@ -417,7 +416,6 @@ func (m *MsgLiquidStake) ValidateBasic() error {
 	return ibctransfertypes.ValidateIBCDenom(m.Amount.Denom)
 }
 
-//nolint:interfacer
 func NewMsgLiquidStakeLSM(delegations sdk.Coins, address sdk.AccAddress) *MsgLiquidStakeLSM {
 	return &MsgLiquidStakeLSM{
 		DelegatorAddress: address.String(),
@@ -470,7 +468,6 @@ func (m *MsgLiquidStakeLSM) ValidateBasic() error {
 	return nil
 }
 
-//nolint:interfacer
 func NewMsgLiquidUnstake(amount sdk.Coin, address sdk.AccAddress) *MsgLiquidUnstake {
 	return &MsgLiquidUnstake{
 		DelegatorAddress: address.String(),
@@ -522,7 +519,6 @@ func (m *MsgLiquidUnstake) ValidateBasic() error {
 	return nil
 }
 
-//nolint:interfacer
 func NewMsgRedeem(amount sdk.Coin, address sdk.AccAddress) *MsgRedeem {
 	return &MsgRedeem{
 		DelegatorAddress: address.String(),
@@ -573,7 +569,6 @@ func (m *MsgRedeem) ValidateBasic() error {
 	return nil
 }
 
-//nolint:interfacer
 func NewMsgUpdateParams(authority sdk.AccAddress, amount Params) *MsgUpdateParams {
 	return &MsgUpdateParams{
 		Authority: authority.String(),

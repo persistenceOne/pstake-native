@@ -21,7 +21,7 @@ func NewMultiLiquidStakeIBCHooks(hooks ...LiquidStakeIBCHooks) MultiLiquidStakeI
 func (h MultiLiquidStakeIBCHooks) PostCValueUpdate(ctx sdk.Context, mintDenom, hostDenom string, cValue sdk.Dec) error {
 	for i := range h {
 		wrappedHookFn := func(ctx sdk.Context) error {
-			//nolint:scopelint
+			//nolint:scopelint // the variables will be same for each loop, ok to use global
 			return h[i].PostCValueUpdate(ctx, mintDenom, hostDenom, cValue)
 		}
 

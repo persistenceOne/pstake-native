@@ -23,7 +23,6 @@ func (k *Keeper) GenerateAndExecuteICATx(
 	messages []proto.Message,
 	memo string,
 ) (icacontrollertypes.MsgSendTxResponse, error) {
-
 	msgData, err := icatypes.SerializeCosmosTx(k.cdc, messages)
 	if err != nil {
 		k.Logger(ctx).Error(fmt.Sprintf("could not serialize tx data: %v", err))
@@ -100,7 +99,8 @@ func (k *Keeper) GenerateAndExecuteICATx(
 
 func (k *Keeper) ExecuteLiquidStakeRateTx(ctx sdk.Context, feature types.LiquidStake,
 	mintDenom, hostDenom string, cValue sdk.Dec, hostchainId uint64,
-	connectionID string, icaAccount liquidstakeibctypes.ICAAccount) error {
+	connectionID string, icaAccount liquidstakeibctypes.ICAAccount,
+) error {
 	if feature.AllowsDenom(mintDenom) {
 		msg, memoBz, err := GenerateExecuteLiquidStakeRateTxMsg(ctx.BlockTime().Unix(), feature, mintDenom, hostDenom, cValue, hostchainId, icaAccount)
 		if err != nil {
@@ -116,7 +116,8 @@ func (k *Keeper) ExecuteLiquidStakeRateTx(ctx sdk.Context, feature types.LiquidS
 
 func GenerateExecuteLiquidStakeRateTxMsg(blockTime int64, feature types.LiquidStake,
 	mintDenom, hostDenom string, cValue sdk.Dec, hostchainId uint64,
-	icaAccount liquidstakeibctypes.ICAAccount) (sdk.Msg, []byte, error) {
+	icaAccount liquidstakeibctypes.ICAAccount,
+) (sdk.Msg, []byte, error) {
 	contractMsg := types.ExecuteLiquidStakeRate{
 		LiquidStakeRate: types.LiquidStakeRate{
 			DefaultBondDenom:    hostDenom,
@@ -142,15 +143,18 @@ func GenerateExecuteLiquidStakeRateTxMsg(blockTime int64, feature types.LiquidSt
 	memoBz, err := json.Marshal(memo)
 	if err != nil {
 		return nil, nil, err
-
 	}
 	return msg, memoBz, nil
 }
 
 func (k *Keeper) InstantiateLiquidStakeContract(ctx sdk.Context, icaAccount liquidstakeibctypes.ICAAccount,
-	feature types.LiquidStake, id uint64, connectionID string) error {
+	feature types.LiquidStake, id uint64, connectionID string,
+) error {
 	// generate contract msg{msg}
 	msg, memoBz, err := GenerateInstantiateLiquidStakeContractMsg(icaAccount, feature, id)
+	if err != nil {
+		return err
+	}
 	_, err = k.GenerateAndExecuteICATx(ctx, connectionID, icaAccount.Owner, []proto.Message{msg}, string(memoBz))
 	if err != nil {
 		return err
@@ -159,7 +163,8 @@ func (k *Keeper) InstantiateLiquidStakeContract(ctx sdk.Context, icaAccount liqu
 }
 
 func GenerateInstantiateLiquidStakeContractMsg(icaAccount liquidstakeibctypes.ICAAccount,
-	feature types.LiquidStake, id uint64) (sdk.Msg, []byte, error) {
+	feature types.LiquidStake, id uint64,
+) (sdk.Msg, []byte, error) {
 	contractMsg := types.InstantiateLiquidStakeRateContract{
 		Admin: icaAccount.Address,
 	}

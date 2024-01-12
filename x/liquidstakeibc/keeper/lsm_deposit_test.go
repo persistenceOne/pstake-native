@@ -125,7 +125,6 @@ func (suite *IntegrationTestSuite) TestGetLSMDepositsFromIbcDenom() {
 					TestLSMDenom, deposits[0].Denom,
 				)
 			}
-
 		})
 	}
 }
@@ -173,7 +172,6 @@ func (suite *IntegrationTestSuite) TestGetLSMDepositsFromIbcSequenceID() {
 					TestLSMDenom, deposits[0].Denom,
 				)
 			}
-
 		})
 	}
 }
@@ -221,7 +219,6 @@ func (suite *IntegrationTestSuite) TestGetTransferableLSMDeposits() {
 					TestLSMDenom, deposits[0].Denom,
 				)
 			}
-
 		})
 	}
 }
@@ -269,7 +266,6 @@ func (suite *IntegrationTestSuite) TestGetRedeemableLSMDeposits() {
 					TestLSMDenom, deposits[0].Denom,
 				)
 			}
-
 		})
 	}
 }

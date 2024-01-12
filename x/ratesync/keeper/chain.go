@@ -41,7 +41,6 @@ func (k Keeper) SetHostChain(ctx sdk.Context, chain types.HostChain) {
 func (k Keeper) GetHostChain(
 	ctx sdk.Context,
 	id uint64,
-
 ) (val types.HostChain, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HostChainKeyPrefix)
 

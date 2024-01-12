@@ -200,7 +200,6 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			for _, deposit := range t.deposits {
 				suite.app.LiquidStakeIBCKeeper.SetDeposit(suite.ctx, deposit)
 			}
@@ -222,7 +221,6 @@ func (suite *IntegrationTestSuite) TestAdjustDepositsForRedemption() {
 				suite.True(ok)
 				suite.Require().Equal(depositState.Amount, deposit)
 			}
-
 		})
 	}
 }
@@ -499,7 +497,6 @@ func (suite *IntegrationTestSuite) TestGetDelegatingDepositsForChain() {
 }
 
 func (suite *IntegrationTestSuite) TestGetDepositAmountOnPersistence() {
-
 	tc := []struct {
 		name     string
 		deposits []types.Deposit
@@ -517,7 +514,8 @@ func (suite *IntegrationTestSuite) TestGetDepositAmountOnPersistence() {
 			},
 			chainID:  suite.chainB.ChainID,
 			expected: sdk.NewInt(3),
-		}}
+		},
+	}
 	for _, t := range tc {
 		suite.Run(t.name, func() {
 			for _, deposit := range t.deposits {
@@ -526,10 +524,10 @@ func (suite *IntegrationTestSuite) TestGetDepositAmountOnPersistence() {
 
 			amt := suite.app.LiquidStakeIBCKeeper.GetDepositAmountOnPersistence(suite.ctx, t.chainID)
 			suite.Require().Equal(t.expected, amt)
-
 		})
 	}
 }
+
 func (suite *IntegrationTestSuite) TestGetDepositAmountOnHostChain() {
 	tc := []struct {
 		name     string
@@ -548,7 +546,8 @@ func (suite *IntegrationTestSuite) TestGetDepositAmountOnHostChain() {
 			},
 			chainID:  suite.chainB.ChainID,
 			expected: sdk.NewInt(9),
-		}}
+		},
+	}
 	for _, t := range tc {
 		suite.Run(t.name, func() {
 			for _, deposit := range t.deposits {
@@ -557,7 +556,6 @@ func (suite *IntegrationTestSuite) TestGetDepositAmountOnHostChain() {
 
 			amt := suite.app.LiquidStakeIBCKeeper.GetDepositAmountOnHostChain(suite.ctx, t.chainID)
 			suite.Require().Equal(t.expected, amt)
-
 		})
 	}
 }

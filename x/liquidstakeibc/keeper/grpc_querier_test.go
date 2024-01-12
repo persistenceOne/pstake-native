@@ -48,7 +48,6 @@ func (suite *IntegrationTestSuite) TestQueryParams() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			resp, err := suite.app.LiquidStakeIBCKeeper.Params(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)
@@ -58,7 +57,6 @@ func (suite *IntegrationTestSuite) TestQueryParams() {
 }
 
 func (suite *IntegrationTestSuite) TestQueryHostChain() {
-
 	hostChains := suite.app.LiquidStakeIBCKeeper.GetAllHostChains(suite.ctx)
 
 	tc := []struct {
@@ -85,7 +83,6 @@ func (suite *IntegrationTestSuite) TestQueryHostChain() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			resp, err := suite.app.LiquidStakeIBCKeeper.HostChain(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)
@@ -116,7 +113,6 @@ func (suite *IntegrationTestSuite) TestQueryHostChains() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			resp, err := suite.app.LiquidStakeIBCKeeper.HostChains(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)
@@ -164,7 +160,6 @@ func (suite *IntegrationTestSuite) TestQueryDeposits() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			resp, err := suite.app.LiquidStakeIBCKeeper.Deposits(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)
@@ -210,7 +205,6 @@ func (suite *IntegrationTestSuite) TestQueryLSMDeposits() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			resp, err := suite.app.LiquidStakeIBCKeeper.LSMDeposits(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)
@@ -256,7 +250,6 @@ func (suite *IntegrationTestSuite) TestQueryUnbondings() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			resp, err := suite.app.LiquidStakeIBCKeeper.Unbondings(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)
@@ -306,7 +299,6 @@ func (suite *IntegrationTestSuite) TestQueryUserUnbondings() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			resp, err := suite.app.LiquidStakeIBCKeeper.UserUnbondings(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)
@@ -356,7 +348,6 @@ func (suite *IntegrationTestSuite) TestQueryValidatorUnbondings() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			resp, err := suite.app.LiquidStakeIBCKeeper.ValidatorUnbondings(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)
@@ -374,31 +365,31 @@ func (suite *IntegrationTestSuite) TestQueryUnbonding() {
 		req  *types.QueryUnbondingRequest
 		resp *types.QueryUnbondingResponse
 		err  error
-	}{{
-		name: "Valid",
-		req: &types.QueryUnbondingRequest{
-			ChainId: suite.chainB.ChainID,
-			Epoch:   1,
+	}{
+		{
+			name: "Valid",
+			req: &types.QueryUnbondingRequest{
+				ChainId: suite.chainB.ChainID,
+				Epoch:   1,
+			},
+			resp: &types.QueryUnbondingResponse{Unbonding: unbonding},
+			err:  nil,
+		}, {
+			name: "NotFound",
+			req:  &types.QueryUnbondingRequest{ChainId: "chain-1"},
+			resp: nil,
+			err:  sdkerrors.ErrKeyNotFound,
+		}, {
+			name: "InvalidRequest",
+			req:  &types.QueryUnbondingRequest{ChainId: ""},
+			err:  status.Error(codes.InvalidArgument, "chain_id cannot be empty"),
+		}, {
+			name: "InvalidRequest",
+			err:  status.Error(codes.InvalidArgument, "empty request"),
 		},
-		resp: &types.QueryUnbondingResponse{Unbonding: unbonding},
-		err:  nil,
-	}, {
-		name: "NotFound",
-		req:  &types.QueryUnbondingRequest{ChainId: "chain-1"},
-		resp: nil,
-		err:  sdkerrors.ErrKeyNotFound,
-	}, {
-		name: "InvalidRequest",
-		req:  &types.QueryUnbondingRequest{ChainId: ""},
-		err:  status.Error(codes.InvalidArgument, "chain_id cannot be empty"),
-	}, {
-		name: "InvalidRequest",
-		err:  status.Error(codes.InvalidArgument, "empty request"),
-	},
 	}
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			resp, err := suite.app.LiquidStakeIBCKeeper.Unbonding(suite.ctx, t.req)
 
 			suite.Require().Equal(t.err, err)
@@ -408,7 +399,6 @@ func (suite *IntegrationTestSuite) TestQueryUnbonding() {
 }
 
 func (suite *IntegrationTestSuite) TestQueryDepositAccountBalance() {
-
 	err := testutil.FundAccount(suite.app.BankKeeper, suite.ctx,
 		authtypes.NewModuleAddress(types.DepositModuleAccount),
 		sdktypes.NewCoins(sdktypes.NewInt64Coin("ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2", 1000)))
@@ -435,7 +425,6 @@ func (suite *IntegrationTestSuite) TestQueryDepositAccountBalance() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			resp, err := suite.app.LiquidStakeIBCKeeper.DepositAccountBalance(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)
@@ -443,8 +432,8 @@ func (suite *IntegrationTestSuite) TestQueryDepositAccountBalance() {
 		})
 	}
 }
-func (suite *IntegrationTestSuite) TestQueryExchangeRate() {
 
+func (suite *IntegrationTestSuite) TestQueryExchangeRate() {
 	tc := []struct {
 		name string
 		req  *types.QueryExchangeRateRequest
@@ -466,7 +455,6 @@ func (suite *IntegrationTestSuite) TestQueryExchangeRate() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			resp, err := suite.app.LiquidStakeIBCKeeper.ExchangeRate(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)
@@ -476,7 +464,6 @@ func (suite *IntegrationTestSuite) TestQueryExchangeRate() {
 }
 
 func (suite *IntegrationTestSuite) TestQueryRedelegations() {
-
 	tc := []struct {
 		name string
 		req  *types.QueryRedelegationsRequest
@@ -498,7 +485,6 @@ func (suite *IntegrationTestSuite) TestQueryRedelegations() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			resp, err := suite.app.LiquidStakeIBCKeeper.Redelegations(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)
@@ -508,7 +494,6 @@ func (suite *IntegrationTestSuite) TestQueryRedelegations() {
 }
 
 func (suite *IntegrationTestSuite) TestQueryRedelegationTx() {
-
 	tc := []struct {
 		name string
 		req  *types.QueryRedelegationTxRequest
@@ -530,7 +515,6 @@ func (suite *IntegrationTestSuite) TestQueryRedelegationTx() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			resp, err := suite.app.LiquidStakeIBCKeeper.RedelegationTx(suite.ctx, t.req)
 
 			suite.Require().Equal(err, t.err)

@@ -14,7 +14,6 @@ import (
 //
 // - Migrate host chains to include the MaxEntries and AcceptableDelta attribute.
 func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
-
 	for _, hc := range getAllHostChains(ctx, storeKey, cdc) {
 		hc.Params.MaxEntries = 7
 		hc.Params.RedelegationAcceptableDelta = sdk.NewInt(1000000000)

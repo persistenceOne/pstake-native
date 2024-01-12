@@ -16,7 +16,7 @@ const (
 	EventTypeDoDelegation                          = "send_delegation"
 	EventTypeDoDelegationDeposit                   = "send_individual_delegation"
 	EventTypeClaimedUnbondings                     = "claimed_unbondings"
-	EventTypeRedeemTokensForShares                 = "redeem_lsm_tokens_shares" //nolint:gosec
+	EventTypeRedeemTokensForShares                 = "redeem_lsm_tokens_shares"
 	EventTypeCValueUpdate                          = "c_value_update"
 	EventTypeDelegationWorkflow                    = "delegation_workflow"
 	EventTypeUndelegationWorkflow                  = "undelegation_workflow"
@@ -80,7 +80,7 @@ const (
 	AttributeClaimAddress                    = "claim_address"
 	AttributeClaimStatus                     = "claim_status"
 	AttributeModuleMintedAmount              = "minted_amount"
-	AttributeModuleLSMTokenizedAmount        = "lsm_tokenized_amount" //nolint:gosec
+	AttributeModuleLSMTokenizedAmount        = "lsm_tokenized_amount"
 	AttributeModuleStakedAmount              = "staked_amount"
 	AttributeModuleAmountOnPersistence       = "amount_on_persistence"
 	AttributeModuleAmountOnHostChain         = "amount_on_host_chain"

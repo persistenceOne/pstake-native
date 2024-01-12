@@ -35,13 +35,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState *types.GenesisState)
 
 // ExportGenesis returns the liquidstakeibc module's genesis state.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
-
 	return &types.GenesisState{
 		Params:              k.GetParams(ctx),
 		HostChains:          k.GetAllHostChains(ctx),
 		Deposits:            k.GetAllDeposits(ctx),
-		Unbondings:          k.FilterUnbondings(ctx, func(u types.Unbonding) bool { return true }),         //GetAll
-		UserUnbondings:      k.FilterUserUnbondings(ctx, func(u types.UserUnbonding) bool { return true }), //GetAll
+		Unbondings:          k.FilterUnbondings(ctx, func(u types.Unbonding) bool { return true }),         // GetAll
+		UserUnbondings:      k.FilterUserUnbondings(ctx, func(u types.UserUnbonding) bool { return true }), // GetAll
 		ValidatorUnbondings: k.FilterValidatorUnbondings(ctx, func(u types.ValidatorUnbonding) bool { return true }),
 	}
 }

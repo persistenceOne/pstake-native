@@ -174,7 +174,6 @@ func NewLiquidStakeCmd() *cobra.Command {
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			clientctx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -215,7 +214,6 @@ $ %s tx liquidstakeibc liquid-stake-lsm '[
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			clientctx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -250,7 +248,6 @@ func NewLiquidUnstakeCmd() *cobra.Command {
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			clientctx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -285,7 +282,6 @@ func NewRedeemCmd() *cobra.Command {
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			clientctx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err

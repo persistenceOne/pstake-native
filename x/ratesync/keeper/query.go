@@ -34,7 +34,7 @@ func (k Keeper) AllHostChains(goCtx context.Context, req *types.QueryAllHostChai
 	store := ctx.KVStore(k.storeKey)
 	chainStore := prefix.NewStore(store, types.HostChainKeyPrefix)
 
-	pageRes, err := query.Paginate(chainStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(chainStore, req.Pagination, func(key, value []byte) error {
 		var chain types.HostChain
 		if err := k.cdc.Unmarshal(value, &chain); err != nil {
 			return err
@@ -43,7 +43,6 @@ func (k Keeper) AllHostChains(goCtx context.Context, req *types.QueryAllHostChai
 		chains = append(chains, chain)
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

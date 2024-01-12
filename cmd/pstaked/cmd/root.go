@@ -90,6 +90,7 @@ func initTendermintConfig() *tmcfg.Config {
 
 	return cfg
 }
+
 func initAppConfig() (string, interface{}) {
 	srvCfg := serverconfig.DefaultConfig()
 	srvCfg.StateSync.SnapshotInterval = 1000
@@ -245,5 +246,4 @@ func (ac appCreator) appExport(
 	}
 
 	return pStakeApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
-
 }

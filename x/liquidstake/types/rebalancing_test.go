@@ -10,22 +10,20 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
 )
 
-var (
-	liquidValidators = []types.LiquidValidator{
-		{
-			OperatorAddress: "persistencevaloper15kdfwczhpmccprekhlzrvkhzw92940l3w37qqj",
-		},
-		{
-			OperatorAddress: "persistencevaloper1x73gyvh74ahs2rt9cqrpjkkk74nczwfpnskv3rczmsf0m6aj5dksqr58m3",
-		},
-		{
-			OperatorAddress: "persistencevaloper10ngyx42lfpylpllm4k3g7fz4gufnt3ptyhm5pn",
-		},
-		{
-			OperatorAddress: "persistencevaloper10fcwju2n8vvffkp8judj3skqpvnphasxjar5yx",
-		},
-	}
-)
+var liquidValidators = []types.LiquidValidator{
+	{
+		OperatorAddress: "persistencevaloper15kdfwczhpmccprekhlzrvkhzw92940l3w37qqj",
+	},
+	{
+		OperatorAddress: "persistencevaloper1x73gyvh74ahs2rt9cqrpjkkk74nczwfpnskv3rczmsf0m6aj5dksqr58m3",
+	},
+	{
+		OperatorAddress: "persistencevaloper10ngyx42lfpylpllm4k3g7fz4gufnt3ptyhm5pn",
+	},
+	{
+		OperatorAddress: "persistencevaloper10fcwju2n8vvffkp8judj3skqpvnphasxjar5yx",
+	},
+}
 
 func TestDivideByWeight(t *testing.T) {
 	testCases := []struct {
@@ -417,7 +415,8 @@ func TestDivideByCurrentWeight(t *testing.T) {
 			totalLiquidTokens = totalLiquidTokens.Add(v.LiquidTokens)
 			liquidTokenMap[v.OperatorAddress] = v.LiquidTokens
 			lvs = append(lvs, types.LiquidValidator{
-				OperatorAddress: v.OperatorAddress})
+				OperatorAddress: v.OperatorAddress,
+			})
 		}
 		outputs, crumb := types.DivideByCurrentWeight(lvs, tc.addStakingAmt, totalLiquidTokens, liquidTokenMap)
 		for _, v := range outputs {

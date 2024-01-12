@@ -16,7 +16,6 @@ import (
 )
 
 func (k *Keeper) BeginBlock(ctx sdk.Context) {
-
 	// perform BeginBlocker tasks for each chain
 	for _, hc := range k.GetAllHostChains(ctx) {
 		if !hc.Active {
@@ -43,7 +42,6 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 	}
 	// delete acked redelegations
 	k.DoDeleteRedelegationTxs(ctx)
-
 }
 
 func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {

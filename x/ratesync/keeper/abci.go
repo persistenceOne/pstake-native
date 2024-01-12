@@ -8,7 +8,6 @@ import (
 )
 
 func (k *Keeper) BeginBlock(ctx sdk.Context) {
-
 	// perform BeginBlocker tasks for each chain
 	for _, hc := range k.GetAllHostChain(ctx) {
 		if !hc.IsActive() {
@@ -21,7 +20,6 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 		// reset hc before going into next function, as it might have changed in earlier function
 		// as we do not want to re-write and omit the last write.
 	}
-
 }
 
 func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc types.HostChain) {

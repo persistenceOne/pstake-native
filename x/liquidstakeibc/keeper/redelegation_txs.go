@@ -13,7 +13,7 @@ func (k *Keeper) SetRedelegationTx(ctx sdk.Context, redelegationTx *types.Redele
 	store.Set(types.GetRedelegationTxStoreKey(redelegationTx.ChainId, redelegationTx.IbcSequenceId), bytes)
 }
 
-func (k *Keeper) GetRedelegationTx(ctx sdk.Context, chainID string, ibcSequenceID string) (*types.RedelegateTx, bool) {
+func (k *Keeper) GetRedelegationTx(ctx sdk.Context, chainID, ibcSequenceID string) (*types.RedelegateTx, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.RedelegationTxKey)
 	bz := store.Get(types.GetRedelegationTxStoreKey(chainID, ibcSequenceID))
 	if bz == nil {
@@ -60,7 +60,7 @@ func (k *Keeper) FilterRedelegationTx(
 	return redelegationTxs
 }
 
-func (k *Keeper) DeleteRedelegationTx(ctx sdk.Context, chainID string, ibcSequenceID string) {
+func (k *Keeper) DeleteRedelegationTx(ctx sdk.Context, chainID, ibcSequenceID string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.RedelegationTxKey)
 	store.Delete(types.GetRedelegationTxStoreKey(chainID, ibcSequenceID))
 }

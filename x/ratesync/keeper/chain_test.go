@@ -41,7 +41,8 @@ var ValidHostChainInMsg = func(id uint64) types.HostChain {
 				ContractAddress: "",
 				Denoms:          nil,
 				Enabled:         false,
-			}},
+			},
+		},
 	}
 }
 
@@ -65,6 +66,7 @@ func (suite *IntegrationTestSuite) TestHostChainGet() {
 		suite.Require().Equal(&item, &rst)
 	}
 }
+
 func (suite *IntegrationTestSuite) TestHostChainRemove() {
 	keeper, ctx := suite.app.RatesyncKeeper, suite.ctx
 	items := createNChain(keeper, ctx, 10)
@@ -84,7 +86,6 @@ func (suite *IntegrationTestSuite) TestGetHostChainsByChainID() {
 	items := createNChain(keeper, ctx, 10)
 	suite.Require().ElementsMatch(items, keeper.GetAllHostChain(ctx))
 	suite.Require().ElementsMatch(items, keeper.GetHostChainsByChainID(ctx, "test-1"))
-
 }
 
 func (suite *IntegrationTestSuite) TestHostChainGetAll() {

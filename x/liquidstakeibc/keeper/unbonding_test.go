@@ -107,7 +107,6 @@ func (suite *IntegrationTestSuite) TestIncreaseUndelegatingAmountForEpoch() {
 
 	for _, t := range tc {
 		suite.Run(t.name, func() {
-
 			suite.app.LiquidStakeIBCKeeper.IncreaseUndelegatingAmountForEpoch(
 				suite.ctx,
 				t.unbonding.ChainId,

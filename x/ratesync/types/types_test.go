@@ -1,9 +1,10 @@
 package types
 
 import (
+	"testing"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/require"
-	"testing"
 
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
@@ -61,7 +62,7 @@ func TestTypes(t *testing.T) {
 	features.LiquidStake.Enabled = true
 	require.Error(t, features.ValdidateBasic())
 
-	//liquidstakeFeature
+	// liquidstakeFeature
 	lsfeature := ValidHostChainInMsg(0).Features.LiquidStake
 	require.NoError(t, lsfeature.ValdidateBasic())
 	lsfeature.Instantiation = InstantiationState_INSTANTIATION_INITIATED
@@ -74,7 +75,7 @@ func TestTypes(t *testing.T) {
 	require.Error(t, lsfeature.ValdidateBasic())
 
 	lsfeature = ValidHostChainInMsg(0).Features.LiquidStake
-	lsfeature.CodeID = 1 //non zero
+	lsfeature.CodeID = 1 // non zero
 	lsfeature.Instantiation = InstantiationState_INSTANTIATION_INITIATED
 	require.NoError(t, lsfeature.ValdidateBasic())
 	lsfeature.Enabled = true
@@ -83,7 +84,7 @@ func TestTypes(t *testing.T) {
 	require.Error(t, lsfeature.ValdidateBasic())
 
 	lsfeature = ValidHostChainInMsg(0).Features.LiquidStake
-	lsfeature.CodeID = 1 //non zero
+	lsfeature.CodeID = 1 // non zero
 	lsfeature.Instantiation = InstantiationState_INSTANTIATION_COMPLETED
 	require.Error(t, lsfeature.ValdidateBasic())
 	lsfeature.ContractAddress = authtypes.NewModuleAddress("contract").String()
