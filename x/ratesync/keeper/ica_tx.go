@@ -152,6 +152,9 @@ func (k *Keeper) InstantiateLiquidStakeContract(ctx sdk.Context, icaAccount liqu
 ) error {
 	// generate contract msg{msg}
 	msg, memoBz, err := GenerateInstantiateLiquidStakeContractMsg(icaAccount, feature, id)
+	if err != nil {
+		return err
+	}
 	_, err = k.GenerateAndExecuteICATx(ctx, connectionID, icaAccount.Owner, []proto.Message{msg}, string(memoBz))
 	if err != nil {
 		return err

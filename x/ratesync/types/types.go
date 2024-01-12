@@ -184,7 +184,7 @@ func DefaultPortOwner(id uint64) string {
 }
 
 func OwnerFromPortID(portID string) (string, error) {
-	prefix := fmt.Sprintf("%s", icatypes.ControllerPortPrefix)
+	prefix := icatypes.ControllerPortPrefix
 	idStr, found := strings.CutPrefix(portID, prefix)
 	if !found {
 		return "", fmt.Errorf("invalid portID, expect prefix %s", prefix)

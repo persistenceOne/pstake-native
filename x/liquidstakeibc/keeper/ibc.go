@@ -78,7 +78,7 @@ func (k *Keeper) OnChanOpenAck(
 		hc.RewardsAccount.Owner = portOwner
 		hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATED
 	default:
-		k.Logger(ctx).Info("Unrecognised ICA account type for the module", "port-id:", portID, "chain-id", chainID)
+		k.Logger(ctx).Info("Unrecognized ICA account type for the module", "port-id:", portID, "chain-id", chainID)
 		return nil
 	}
 

@@ -65,7 +65,7 @@ func (k *Keeper) OnChanOpenAck(
 		hc.ICAAccount.Address = address
 		hc.ICAAccount.ChannelState = liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED
 	default:
-		k.Logger(ctx).Error("Unrecognised ICA account type for the module", "port-id:", portID, "chain-id", chainID)
+		k.Logger(ctx).Error("Unrecognized ICA account type for the module", "port-id:", portID, "chain-id", chainID)
 		return nil
 	}
 
