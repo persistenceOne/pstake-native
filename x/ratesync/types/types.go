@@ -44,7 +44,7 @@ func (hc HostChain) ValidateBasic() error {
 			return fmt.Errorf("ica account address for ICAAccount_ICA_CHANNEL_CREATING should be empty")
 		}
 		// No features allowed without ICA account.
-		if hc.Features.LiquidStake.Enabled == true || hc.Features.LiquidStakeIBC.Enabled == true {
+		if hc.Features.LiquidStake.Enabled || hc.Features.LiquidStakeIBC.Enabled {
 			return fmt.Errorf("no features should be enabled without a valid ICA account")
 		}
 	case liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED:
@@ -66,8 +66,8 @@ func (hc HostChain) ValidateBasic() error {
 }
 
 func (hc HostChain) IsActive() bool {
-	if hc.Features.LiquidStakeIBC.Enabled == true ||
-		hc.Features.LiquidStake.Enabled == true {
+	if hc.Features.LiquidStakeIBC.Enabled ||
+		hc.Features.LiquidStake.Enabled {
 		return true
 	}
 	return false
@@ -103,7 +103,7 @@ func (lsConfig LiquidStake) ValdidateBasic() error {
 		if lsConfig.ContractAddress != "" {
 			return fmt.Errorf("InstantiationState_INSTANTIATION_NOT_INITIATED cannot have contract address")
 		}
-		if lsConfig.Enabled == true {
+		if lsConfig.Enabled {
 			return fmt.Errorf("feature cannot be turned on without instantiation complete")
 		}
 	case InstantiationState_INSTANTIATION_INITIATED:
@@ -113,7 +113,7 @@ func (lsConfig LiquidStake) ValdidateBasic() error {
 		if lsConfig.CodeID == 0 {
 			return fmt.Errorf("InstantiationState_INSTANTIATION_INITIATED cannot have 0 codeID")
 		}
-		if lsConfig.Enabled == true {
+		if lsConfig.Enabled {
 			return fmt.Errorf("feature cannot be turned on without instantiation complete")
 		}
 	case InstantiationState_INSTANTIATION_COMPLETED:
