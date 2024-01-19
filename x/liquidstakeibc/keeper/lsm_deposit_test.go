@@ -1,14 +1,18 @@
 package keeper_test
 
 import (
+	"strconv"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
 const (
-	TestDelegatorAddress = "persistence1234"
-	TestLSMDenom         = "cosmosvaloper1234/1"
+	TestDelegatorAddress   = "persistence1234"
+	TestLSMDenom           = "cosmosvaloper1234/1"
+	TestLSMDenomIncomplete = "cosmosvaloper1234/"
+	LSMDepositsTestAmount  = 15000
 )
 
 func (suite *IntegrationTestSuite) TestGetSetLSMDeposit() {
@@ -140,6 +144,18 @@ func (suite *IntegrationTestSuite) TestGetLSMDepositsFromIbcSequenceID() {
 		},
 	)
 
+	for i := 2; i < LSMDepositsTestAmount; i++ {
+		suite.app.LiquidStakeIBCKeeper.SetLSMDeposit(
+			suite.ctx,
+			&types.LSMDeposit{
+				ChainId:          suite.chainB.ChainID,
+				DelegatorAddress: TestDelegatorAddress,
+				Denom:            TestLSMDenomIncomplete + strconv.Itoa(i),
+				IbcSequenceId:    "2",
+			},
+		)
+	}
+
 	tc := []struct {
 		name        string
 		ibcSequence string
@@ -147,14 +163,20 @@ func (suite *IntegrationTestSuite) TestGetLSMDepositsFromIbcSequenceID() {
 		found       bool
 	}{
 		{
-			name:        "Success",
+			name:        "Success Limit Not Hit",
 			ibcSequence: "1",
 			expectedLen: 1,
 			found:       true,
 		},
 		{
-			name:        "NotFound",
+			name:        "Success Limit Hit",
 			ibcSequence: "2",
+			expectedLen: types.LSMDepositFilterLimit,
+			found:       true,
+		},
+		{
+			name:        "NotFound",
+			ibcSequence: "3",
 			expectedLen: 0,
 			found:       false,
 		},
@@ -187,6 +209,18 @@ func (suite *IntegrationTestSuite) TestGetTransferableLSMDeposits() {
 		},
 	)
 
+	for i := 2; i < LSMDepositsTestAmount; i++ {
+		suite.app.LiquidStakeIBCKeeper.SetLSMDeposit(
+			suite.ctx,
+			&types.LSMDeposit{
+				ChainId:          suite.chainA.ChainID,
+				DelegatorAddress: TestDelegatorAddress,
+				Denom:            TestLSMDenomIncomplete + strconv.Itoa(i),
+				State:            types.LSMDeposit_DEPOSIT_PENDING,
+			},
+		)
+	}
+
 	tc := []struct {
 		name        string
 		chainID     string
@@ -194,14 +228,20 @@ func (suite *IntegrationTestSuite) TestGetTransferableLSMDeposits() {
 		found       bool
 	}{
 		{
-			name:        "Success",
+			name:        "Success Limit Not Hit",
 			chainID:     suite.chainB.ChainID,
 			expectedLen: 1,
 			found:       true,
 		},
 		{
-			name:        "NotFound",
+			name:        "Success Limit Not Hit",
 			chainID:     suite.chainA.ChainID,
+			expectedLen: types.LSMDepositFilterLimit,
+			found:       true,
+		},
+		{
+			name:        "NotFound",
+			chainID:     "non-valid-chain-id",
 			expectedLen: 0,
 			found:       false,
 		},
@@ -214,7 +254,7 @@ func (suite *IntegrationTestSuite) TestGetTransferableLSMDeposits() {
 			suite.Require().Equal(t.expectedLen, len(deposits))
 			if t.found {
 				suite.Require().Equal(
-					suite.chainB.ChainID, deposits[0].ChainId,
+					t.chainID, deposits[0].ChainId,
 					TestDelegatorAddress, deposits[0].DelegatorAddress,
 					TestLSMDenom, deposits[0].Denom,
 				)
@@ -234,6 +274,18 @@ func (suite *IntegrationTestSuite) TestGetRedeemableLSMDeposits() {
 		},
 	)
 
+	for i := 2; i < LSMDepositsTestAmount; i++ {
+		suite.app.LiquidStakeIBCKeeper.SetLSMDeposit(
+			suite.ctx,
+			&types.LSMDeposit{
+				ChainId:          suite.chainA.ChainID,
+				DelegatorAddress: TestDelegatorAddress,
+				Denom:            TestLSMDenomIncomplete + strconv.Itoa(i),
+				State:            types.LSMDeposit_DEPOSIT_RECEIVED,
+			},
+		)
+	}
+
 	tc := []struct {
 		name        string
 		chainID     string
@@ -241,14 +293,20 @@ func (suite *IntegrationTestSuite) TestGetRedeemableLSMDeposits() {
 		found       bool
 	}{
 		{
-			name:        "Success",
+			name:        "Success Limit Not Hit",
 			chainID:     suite.chainB.ChainID,
 			expectedLen: 1,
 			found:       true,
 		},
 		{
-			name:        "NotFound",
+			name:        "Success Limit Hit",
 			chainID:     suite.chainA.ChainID,
+			expectedLen: types.LSMDepositFilterLimit,
+			found:       true,
+		},
+		{
+			name:        "NotFound",
+			chainID:     "non-valid-chain-id",
 			expectedLen: 0,
 			found:       false,
 		},
@@ -261,7 +319,7 @@ func (suite *IntegrationTestSuite) TestGetRedeemableLSMDeposits() {
 			suite.Require().Equal(t.expectedLen, len(deposits))
 			if t.found {
 				suite.Require().Equal(
-					suite.chainB.ChainID, deposits[0].ChainId,
+					t.chainID, deposits[0].ChainId,
 					TestDelegatorAddress, deposits[0].DelegatorAddress,
 					TestLSMDenom, deposits[0].Denom,
 				)
@@ -394,6 +452,28 @@ func (suite *IntegrationTestSuite) TestFilterLSMDeposits() {
 	suite.Require().Equal(suite.chainB.ChainID, deposits[0].ChainId)
 	suite.Require().Equal("cosmos1234", deposits[0].DelegatorAddress)
 	suite.Require().Equal("cosmosvaloper1234/1", deposits[0].Denom)
+}
+
+func (suite *IntegrationTestSuite) TestFilterLSMDepositsWithLimit() {
+	for i := 2; i < LSMDepositsTestAmount; i++ {
+		suite.app.LiquidStakeIBCKeeper.SetLSMDeposit(
+			suite.ctx,
+			&types.LSMDeposit{
+				ChainId:          suite.chainB.ChainID,
+				DelegatorAddress: TestDelegatorAddress,
+				Denom:            TestLSMDenomIncomplete + strconv.Itoa(i),
+			},
+		)
+	}
+
+	deposits := suite.app.LiquidStakeIBCKeeper.FilterLSMDepositsWithLimit(
+		suite.ctx,
+		func(d types.LSMDeposit) bool {
+			return d.ChainId == suite.chainB.ChainID
+		},
+	)
+
+	suite.Require().Equal(types.LSMDepositFilterLimit, len(deposits))
 }
 
 func (suite *IntegrationTestSuite) TestGetLSMDepositAmountUntokenized() {

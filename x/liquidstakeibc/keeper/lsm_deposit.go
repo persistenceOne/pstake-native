@@ -36,7 +36,7 @@ func (k *Keeper) GetLSMDepositsFromIbcDenom(ctx sdk.Context, ibcDenom string) []
 }
 
 func (k *Keeper) GetLSMDepositsFromIbcSequenceID(ctx sdk.Context, ibcSequenceID string) []*liquidstakeibctypes.LSMDeposit {
-	return k.FilterLSMDeposits(
+	return k.FilterLSMDepositsWithLimit(
 		ctx,
 		func(d liquidstakeibctypes.LSMDeposit) bool {
 			return d.IbcSequenceId == ibcSequenceID
@@ -45,7 +45,7 @@ func (k *Keeper) GetLSMDepositsFromIbcSequenceID(ctx sdk.Context, ibcSequenceID 
 }
 
 func (k *Keeper) GetTransferableLSMDeposits(ctx sdk.Context, chainID string) []*liquidstakeibctypes.LSMDeposit {
-	return k.FilterLSMDeposits(
+	return k.FilterLSMDepositsWithLimit(
 		ctx,
 		func(d liquidstakeibctypes.LSMDeposit) bool {
 			return d.ChainId == chainID && d.State == liquidstakeibctypes.LSMDeposit_DEPOSIT_PENDING
@@ -54,7 +54,7 @@ func (k *Keeper) GetTransferableLSMDeposits(ctx sdk.Context, chainID string) []*
 }
 
 func (k *Keeper) GetRedeemableLSMDeposits(ctx sdk.Context, chainID string) []*liquidstakeibctypes.LSMDeposit {
-	return k.FilterLSMDeposits(
+	return k.FilterLSMDepositsWithLimit(
 		ctx,
 		func(d liquidstakeibctypes.LSMDeposit) bool {
 			return d.ChainId == chainID && d.State == liquidstakeibctypes.LSMDeposit_DEPOSIT_RECEIVED
@@ -106,6 +106,29 @@ func (k *Keeper) FilterLSMDeposits(
 		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
 		if filter(deposit) {
 			deposits = append(deposits, &deposit)
+		}
+	}
+
+	return deposits
+}
+
+func (k *Keeper) FilterLSMDepositsWithLimit(
+	ctx sdk.Context,
+	filter func(d liquidstakeibctypes.LSMDeposit) bool,
+) []*liquidstakeibctypes.LSMDeposit {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), liquidstakeibctypes.LSMDepositKey)
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	deposits := make([]*liquidstakeibctypes.LSMDeposit, 0)
+	for ; iterator.Valid(); iterator.Next() {
+		deposit := liquidstakeibctypes.LSMDeposit{}
+		k.cdc.MustUnmarshal(iterator.Value(), &deposit)
+		if filter(deposit) {
+			deposits = append(deposits, &deposit)
+		}
+		if len(deposits) == liquidstakeibctypes.LSMDepositFilterLimit {
+			return deposits
 		}
 	}
 

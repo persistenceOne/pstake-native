@@ -53,6 +53,8 @@ const (
 	IBCPrefix = transfertypes.DenomPrefix + "/"
 
 	UnbondingStateEpochLimit = 4
+
+	LSMDepositFilterLimit = 10000
 )
 
 // Consts for KV updates, update host chain
