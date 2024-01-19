@@ -49,6 +49,7 @@ func DefaultRewardsAccountPortOwner(chainID string) string {
 
 func (deposit *Deposit) Validate() error {
 	if deposit.State != Deposit_DEPOSIT_PENDING &&
+		deposit.State != Deposit_DEPOSIT_SENT &&
 		deposit.State != Deposit_DEPOSIT_RECEIVED &&
 		deposit.State != Deposit_DEPOSIT_DELEGATING {
 		return fmt.Errorf(
@@ -57,9 +58,10 @@ func (deposit *Deposit) Validate() error {
 			deposit.State,
 		)
 	}
-	if deposit.Amount.Amount.LT(sdk.ZeroInt()) {
-		return fmt.Errorf("deposit for chain %s has negative amount", deposit.ChainId)
+	if err := deposit.Amount.Validate(); err != nil {
+		return fmt.Errorf("deposit amount is invalid, err: %v", err)
 	}
+
 	return nil
 }
 
