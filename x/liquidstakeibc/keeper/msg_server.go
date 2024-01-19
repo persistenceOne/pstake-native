@@ -607,6 +607,16 @@ func (k msgServer) LiquidUnstake(
 		return nil, types.ErrHostChainInactive
 	}
 
+	// check for minimum unbonding amount
+	if msg.Amount.Amount.LT(hc.MinimumDeposit) {
+		return nil, errorsmod.Wrapf(
+			types.ErrMinDeposit,
+			"expected amount more than %s, got %s",
+			hc.MinimumDeposit,
+			msg.Amount.Amount,
+		)
+	}
+
 	// check if the message amount has the correct denom
 	if msg.Amount.Denom != hc.MintDenom() {
 		return nil, errorsmod.Wrapf(types.ErrInvalidDenom,
