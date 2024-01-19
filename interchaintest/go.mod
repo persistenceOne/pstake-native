@@ -1,6 +1,6 @@
 module github.com/persistenceOne/pstake-native/v2/interchaintest
 
-go 1.20
+go 1.21
 
 require (
 	github.com/CosmWasm/wasmd v0.40.2

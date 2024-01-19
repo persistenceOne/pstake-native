@@ -199,7 +199,7 @@ func (k *Keeper) HostChainUserUnbondings(
 	pageRes, err := query.FilteredPaginate(
 		userUnbondingStore,
 		request.Pagination,
-		func(key []byte, value []byte, accumulate bool) (bool, error) {
+		func(key, value []byte, accumulate bool) (bool, error) {
 			if accumulate {
 				var uu types.UserUnbonding
 				if err := k.cdc.Unmarshal(value, &uu); err != nil {
@@ -216,7 +216,6 @@ func (k *Keeper) HostChainUserUnbondings(
 
 			return true, nil
 		})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
