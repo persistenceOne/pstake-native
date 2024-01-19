@@ -46,6 +46,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - [720](https://github.com/persistenceOne/pstake-native/pull/720) Fix unbondings loop.
 - [719](https://github.com/persistenceOne/pstake-native/pull/719) Fix afterEpoch hooks to take LiquidStake feature
   instead of LiquidStakeIBC
+- [725](https://github.com/persistenceOne/pstake-native/pull/725) Fix Incorrect bookkeeping of validator’s delegated
+  amount upon redelegation
 
 ## [v2.8.2] - 2024-01-09
 

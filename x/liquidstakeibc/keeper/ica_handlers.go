@@ -422,7 +422,7 @@ func (k *Keeper) HandleMsgBeginRedelegate(
 		)
 	}
 
-	fromValidator.DelegatedAmount = fromValidator.DelegatedAmount.Add(parsedMsg.Amount.Amount)
+	fromValidator.DelegatedAmount = fromValidator.DelegatedAmount.Sub(parsedMsg.Amount.Amount)
 	k.SetHostChainValidator(ctx, hc, fromValidator)
 
 	// add redelegation entry.
