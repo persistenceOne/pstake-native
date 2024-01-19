@@ -298,7 +298,55 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidUnstake() {
 				goCtx: ctx,
 				msg: &types.MsgLiquidUnstake{
 					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
-					Amount:           sdk.NewInt64Coin(hc.MintDenom(), 100),
+					Amount:           sdk.NewInt64Coin(hc.MintDenom(), 1000000),
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "amount less than minimum amount",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidUnstake{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Amount:           sdk.NewInt64Coin(hc.MintDenom(), 0),
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "mint denom not parseable",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidUnstake{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Amount:           sdk.NewInt64Coin(hc.HostDenom, 1000000),
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "host chain not found",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidUnstake{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Amount:           sdk.NewInt64Coin("stk/uosmo", 1000000),
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "invalid delegator address",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidUnstake{
+					DelegatorAddress: "invalidaddr",
+					Amount:           sdk.NewInt64Coin(hc.MintDenom(), 1000000),
 				},
 			},
 			want:    nil,
