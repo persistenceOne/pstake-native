@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - [721](https://github.com/persistenceOne/pstake-native/pull/721) Add Query host chain user unbondings.
 
 ### Bug Fixes
+- [730](https://github.com/persistenceOne/pstake-native/pull/730) Fix deposit validate.  
 - [728](https://github.com/persistenceOne/pstake-native/pull/728) Fix prevent users from liquid-staking funds by removing the Deposit entry.
 - [727](https://github.com/persistenceOne/pstake-native/pull/727) Send LSM redeem messages in chunks.
 - [726](https://github.com/persistenceOne/pstake-native/pull/726) Fix minimal unbondings.
