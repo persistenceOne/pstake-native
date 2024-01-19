@@ -83,7 +83,10 @@ func (k *Keeper) AdjustDepositsForRedemption(
 
 	for _, deposit := range redeemableDeposits {
 		// there is enough tokens in this deposit to fulfill the redeem request
-		if deposit.Amount.Amount.GT(redeemAmount.Amount) || redeemAmount.IsZero() {
+		if redeemAmount.IsZero() {
+			return nil
+		}
+		if deposit.Amount.Amount.GT(redeemAmount.Amount) {
 			deposit.Amount = deposit.Amount.Sub(redeemAmount)
 			k.SetDeposit(ctx, deposit)
 			return nil
@@ -91,7 +94,8 @@ func (k *Keeper) AdjustDepositsForRedemption(
 
 		// the deposit is not enough to fulfill the redeem request, use it and remove it
 		redeemAmount = redeemAmount.Sub(deposit.Amount)
-		k.DeleteDeposit(ctx, deposit)
+		deposit.Amount = deposit.Amount.Sub(deposit.Amount) // zero coin, let the epoch delete these entries.
+		k.SetDeposit(ctx, deposit)
 	}
 
 	return nil
