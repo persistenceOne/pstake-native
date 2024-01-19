@@ -95,7 +95,7 @@ func (k *Keeper) OnChanOpenAck(
 			)
 		}
 	}
-	// send an ICQ query to get the delegator account balance
+	// send an ICQ query to get the rewards account balance
 	if hc.RewardsAccount != nil && hc.RewardsAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATED {
 		if err := k.QueryRewardsHostChainAccountBalance(ctx, hc); err != nil {
 			return fmt.Errorf(
