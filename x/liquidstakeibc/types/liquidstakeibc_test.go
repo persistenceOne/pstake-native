@@ -186,6 +186,16 @@ func TestDeposit_Validate(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid state",
+			fields: fields{
+				ChainId:       "chain-1",
+				Amount:        validCoin,
+				Epoch:         0,
+				State:         1,
+				IbcSequenceId: "",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
