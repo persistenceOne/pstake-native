@@ -385,7 +385,7 @@ func (k *Keeper) handleUnsuccessfulAck(
 				)
 			}
 		case sdk.MsgTypeURL(&stakingtypes.MsgRedeemTokensForShares{}):
-			deposits := k.FilterLSMDeposits(
+			deposits := k.FilterLSMDepositsWithLimit(
 				ctx,
 				func(d types.LSMDeposit) bool {
 					return d.IbcSequenceId == k.GetTransactionSequenceID(channel, sequence)
