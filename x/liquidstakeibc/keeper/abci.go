@@ -331,61 +331,81 @@ func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostCh
 }
 
 func (k *Keeper) DoRedeemLSMTokens(ctx sdk.Context, hc *types.HostChain) {
-	// generate the ICA messages
-	messages := make([]proto.Message, 0)
 	deposits := k.GetRedeemableLSMDeposits(ctx, hc.ChainId)
-	for _, deposit := range deposits {
-		messages = append(
-			messages,
-			&stakingtypes.MsgRedeemTokensForShares{
-				DelegatorAddress: hc.DelegationAccount.Address,
-				Amount:           sdk.NewCoin(deposit.Denom, deposit.Shares.TruncateInt()),
-			},
+
+	// generate the ICA messages
+	messagesChunks := make([][]proto.Message, 0)
+	depositsChunks := make([][]*types.LSMDeposit, 0)
+	for i := 0; i < len(deposits); i += types.ICAMessagesChunkSize {
+		end := i + types.ICAMessagesChunkSize
+
+		// avoid slicing past the deposits length
+		if end > len(deposits) {
+			end = len(deposits)
+		}
+
+		// create a redeem message for each deposit in the current chunk
+		depositsChunk := deposits[i:end]
+		messagesChunk := make([]proto.Message, 0)
+		for _, deposit := range depositsChunk {
+			messagesChunk = append(
+				messagesChunk,
+				&stakingtypes.MsgRedeemTokensForShares{
+					DelegatorAddress: hc.DelegationAccount.Address,
+					Amount:           sdk.NewCoin(deposit.Denom, deposit.Shares.TruncateInt()),
+				},
+			)
+		}
+
+		// save both chunks in the respective arrays
+		messagesChunks = append(messagesChunks, messagesChunk)
+		depositsChunks = append(depositsChunks, depositsChunk)
+	}
+
+	for i, messagesChunk := range messagesChunks {
+		if len(messagesChunk) == 0 {
+			continue
+		}
+
+		// execute the ICA transaction
+		sequenceID, err := k.GenerateAndExecuteICATx(
+			ctx,
+			hc.ConnectionId,
+			hc.DelegationAccount.Owner,
+			messagesChunk,
+		)
+		if err != nil {
+			k.Logger(ctx).Error("could not send ICA untokenize tx", "host_chain", hc.ChainId)
+			return
+		}
+
+		// update the deposits state and add the IBC sequence
+		k.UpdateLSMDepositsStateAndSequence(
+			ctx,
+			depositsChunks[i],
+			types.LSMDeposit_DEPOSIT_UNTOKENIZING,
+			sequenceID,
+		)
+
+		k.Logger(ctx).Info(
+			fmt.Sprintf("Redeeming %v deposits.", len(depositsChunks[i])),
+			"host chain",
+			hc.ChainId,
+			"sequence-id",
+			sequenceID,
+		)
+
+		// emit the untokenize event
+		encMsgs, _ := json.Marshal(&messagesChunks[i])
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeRedeemTokensForShares,
+				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+				sdk.NewAttribute(types.AttributeICAMessages, base64.StdEncoding.EncodeToString(encMsgs)),
+				sdk.NewAttribute(types.AttributeIBCSequenceID, sequenceID),
+			),
 		)
 	}
-
-	if len(messages) == 0 {
-		return
-	}
-
-	// execute the ICA transaction
-	sequenceID, err := k.GenerateAndExecuteICATx(
-		ctx,
-		hc.ConnectionId,
-		hc.DelegationAccount.Owner,
-		messages,
-	)
-	if err != nil {
-		k.Logger(ctx).Error("could not send ICA untokenize tx", "host_chain", hc.ChainId)
-		return
-	}
-
-	// update the deposits state and add the IBC sequence
-	k.UpdateLSMDepositsStateAndSequence(
-		ctx,
-		deposits,
-		types.LSMDeposit_DEPOSIT_UNTOKENIZING,
-		sequenceID,
-	)
-
-	k.Logger(ctx).Info(
-		fmt.Sprintf("Redeeming %v deposits.", len(deposits)),
-		"host chain",
-		hc.ChainId,
-		"sequence-id",
-		sequenceID,
-	)
-
-	// emit the untokenize event
-	encMsgs, _ := json.Marshal(&messages)
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeRedeemTokensForShares,
-			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
-			sdk.NewAttribute(types.AttributeICAMessages, base64.StdEncoding.EncodeToString(encMsgs)),
-			sdk.NewAttribute(types.AttributeIBCSequenceID, sequenceID),
-		),
-	)
 }
 
 func (k *Keeper) DoDeleteRedelegationTxs(ctx sdk.Context) {
