@@ -396,7 +396,7 @@ func (k *Keeper) DoRedeemLSMTokens(ctx sdk.Context, hc *types.HostChain) {
 		)
 
 		// emit the untokenize event
-		encMsgs, _ := json.Marshal(&messagesChunk)
+		encMsgs, _ := json.Marshal(&messagesChunks[i])
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeRedeemTokensForShares,
