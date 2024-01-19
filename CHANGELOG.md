@@ -42,6 +42,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+- [727](https://github.com/persistenceOne/pstake-native/pull/727) Send LSM redeem messages in chunks.
 - [726](https://github.com/persistenceOne/pstake-native/pull/726) Fix minimal unbondings.
 - [720](https://github.com/persistenceOne/pstake-native/pull/720) Fix unbondings loop.
 - [719](https://github.com/persistenceOne/pstake-native/pull/719) Fix afterEpoch hooks to take LiquidStake feature
