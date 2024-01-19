@@ -48,6 +48,8 @@ const (
 
 	ICATimeoutTimestamp = 120 * time.Minute
 
+	ICAMessagesChunkSize = 10
+
 	IBCPrefix = transfertypes.DenomPrefix + "/"
 
 	UnbondingStateEpochLimit = 4
