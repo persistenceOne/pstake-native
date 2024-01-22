@@ -241,14 +241,22 @@ func (k msgServer) UpdateHostChain(
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-			// limit validated in msg.ValidateBasic()
+
+			if limit.LTE(hc.Params.LowerCValueLimit) {
+				return nil, fmt.Errorf("upper c value limit can't be less than lower c value limit: %w", err)
+			}
+
 			hc.Params.UpperCValueLimit = limit
 		case types.KeyLowerCValueLimit:
 			limit, err := sdktypes.NewDecFromStr(update.Value)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
-			// limit validated in msg.ValidateBasic()
+
+			if limit.GTE(hc.Params.UpperCValueLimit) {
+				return nil, fmt.Errorf("lower c value limit can't be higher than upper c value limit: %w", err)
+			}
+
 			hc.Params.LowerCValueLimit = limit
 		case types.KeyRedelegationAcceptableDelta:
 			redelegationAcceptableDelta, ok := sdktypes.NewIntFromString(update.Value)

@@ -231,6 +231,13 @@ func TestMsgUpdateHostChain(t *testing.T) {
 		}, {
 			Key:   types.KeyUnstakeFee,
 			Value: "0",
+		},
+		{
+			Key:   types.KeyUpperCValueLimit,
+			Value: "1.1",
+		}, {
+			Key:   types.KeyLowerCValueLimit,
+			Value: "0.9",
 		}, {
 			Key:   types.KeyMinimumDeposit,
 			Value: "1",
@@ -328,6 +335,12 @@ func TestMsgUpdateHostChain(t *testing.T) {
 		}, {
 			Key:   types.KeyRedemptionFee,
 			Value: "invalidDec",
+		}, {
+			Key:   types.KeyUpperCValueLimit,
+			Value: "-1",
+		}, {
+			Key:   types.KeyLowerCValueLimit,
+			Value: "-1",
 		}, {
 			Key:   types.KeyLSMValidatorCap,
 			Value: "-0.5",
