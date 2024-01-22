@@ -238,10 +238,11 @@ func TestHostChain_Validate(t *testing.T) {
 			ChainId:      "chain-1",
 			ConnectionId: "connection-1",
 			Params: &types.HostChainLSParams{
-				DepositFee:    sdk.ZeroDec(),
-				RestakeFee:    sdk.ZeroDec(),
-				UnstakeFee:    sdk.ZeroDec(),
-				RedemptionFee: sdk.ZeroDec(),
+				DepositFee:                  sdk.ZeroDec(),
+				RestakeFee:                  sdk.ZeroDec(),
+				UnstakeFee:                  sdk.ZeroDec(),
+				RedemptionFee:               sdk.ZeroDec(),
+				RedelegationAcceptableDelta: sdk.OneInt(),
 			},
 			HostDenom: "uatom",
 			ChannelId: "channel-1",
@@ -635,10 +636,11 @@ func TestValidatorUnbonding_Validate(t *testing.T) {
 
 func TestHostChainLSParams_Validate(t *testing.T) {
 	type fields struct {
-		DepositFee    sdk.Dec
-		RestakeFee    sdk.Dec
-		UnstakeFee    sdk.Dec
-		RedemptionFee sdk.Dec
+		DepositFee        sdk.Dec
+		RestakeFee        sdk.Dec
+		UnstakeFee        sdk.Dec
+		RedemptionFee     sdk.Dec
+		RedelegationDelta math.Int
 	}
 	tests := []struct {
 		name    string
@@ -648,50 +650,66 @@ func TestHostChainLSParams_Validate(t *testing.T) {
 		{
 			name: "valid",
 			fields: fields{
-				DepositFee:    sdk.ZeroDec(),
-				RestakeFee:    sdk.ZeroDec(),
-				UnstakeFee:    sdk.ZeroDec(),
-				RedemptionFee: sdk.ZeroDec(),
+				DepositFee:        sdk.ZeroDec(),
+				RestakeFee:        sdk.ZeroDec(),
+				UnstakeFee:        sdk.ZeroDec(),
+				RedemptionFee:     sdk.ZeroDec(),
+				RedelegationDelta: sdk.OneInt(),
 			},
 			wantErr: false,
 		},
 		{
 			name: "invalid deposit fee",
 			fields: fields{
-				DepositFee:    sdk.MustNewDecFromStr("-1"),
-				RestakeFee:    sdk.ZeroDec(),
-				UnstakeFee:    sdk.ZeroDec(),
-				RedemptionFee: sdk.ZeroDec(),
+				DepositFee:        sdk.MustNewDecFromStr("-1"),
+				RestakeFee:        sdk.ZeroDec(),
+				UnstakeFee:        sdk.ZeroDec(),
+				RedemptionFee:     sdk.ZeroDec(),
+				RedelegationDelta: sdk.OneInt(),
 			},
 			wantErr: true,
 		},
 		{
 			name: "invalid restake fee",
 			fields: fields{
-				DepositFee:    sdk.ZeroDec(),
-				RestakeFee:    sdk.MustNewDecFromStr("1.1"),
-				UnstakeFee:    sdk.ZeroDec(),
-				RedemptionFee: sdk.ZeroDec(),
+				DepositFee:        sdk.ZeroDec(),
+				RestakeFee:        sdk.MustNewDecFromStr("1.1"),
+				UnstakeFee:        sdk.ZeroDec(),
+				RedemptionFee:     sdk.ZeroDec(),
+				RedelegationDelta: sdk.OneInt(),
 			},
 			wantErr: true,
 		},
 		{
 			name: "invalid unstake fee",
 			fields: fields{
-				DepositFee:    sdk.ZeroDec(),
-				RestakeFee:    sdk.ZeroDec(),
-				UnstakeFee:    sdk.MustNewDecFromStr("-1"),
-				RedemptionFee: sdk.ZeroDec(),
+				DepositFee:        sdk.ZeroDec(),
+				RestakeFee:        sdk.ZeroDec(),
+				UnstakeFee:        sdk.MustNewDecFromStr("-1"),
+				RedemptionFee:     sdk.ZeroDec(),
+				RedelegationDelta: sdk.OneInt(),
 			},
 			wantErr: true,
 		},
 		{
 			name: "invalid redemption fee",
 			fields: fields{
-				DepositFee:    sdk.ZeroDec(),
-				RestakeFee:    sdk.ZeroDec(),
-				UnstakeFee:    sdk.ZeroDec(),
-				RedemptionFee: sdk.MustNewDecFromStr("1.2"),
+				DepositFee:        sdk.ZeroDec(),
+				RestakeFee:        sdk.ZeroDec(),
+				UnstakeFee:        sdk.ZeroDec(),
+				RedemptionFee:     sdk.MustNewDecFromStr("1.2"),
+				RedelegationDelta: sdk.OneInt(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid redelegation delta",
+			fields: fields{
+				DepositFee:        sdk.ZeroDec(),
+				RestakeFee:        sdk.ZeroDec(),
+				UnstakeFee:        sdk.ZeroDec(),
+				RedemptionFee:     sdk.ZeroDec(),
+				RedelegationDelta: sdk.NewInt(-1),
 			},
 			wantErr: true,
 		},
@@ -699,10 +717,11 @@ func TestHostChainLSParams_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			params := &types.HostChainLSParams{
-				DepositFee:    tt.fields.DepositFee,
-				RestakeFee:    tt.fields.RestakeFee,
-				UnstakeFee:    tt.fields.UnstakeFee,
-				RedemptionFee: tt.fields.RedemptionFee,
+				DepositFee:                  tt.fields.DepositFee,
+				RestakeFee:                  tt.fields.RestakeFee,
+				UnstakeFee:                  tt.fields.UnstakeFee,
+				RedemptionFee:               tt.fields.RedemptionFee,
+				RedelegationAcceptableDelta: tt.fields.RedelegationDelta,
 			}
 			if err := params.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
