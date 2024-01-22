@@ -269,18 +269,23 @@ func TestGenesisState_Validate(t *testing.T) {
 }
 
 func ValidGenesis() *types.GenesisState {
+	upperCValueLimit, _ := sdk.NewDecFromStr("1.05")
+	lowerCValueLimit, _ := sdk.NewDecFromStr("0.95")
+
 	return &types.GenesisState{
 		Params: types.DefaultParams(),
 		HostChains: []*types.HostChain{{
 			ChainId:      "chainA-1",
 			ConnectionId: "connection-1",
 			Params: &types.HostChainLSParams{
-				DepositFee:                  sdk.ZeroDec(),
-				RestakeFee:                  sdk.ZeroDec(),
-				UnstakeFee:                  sdk.ZeroDec(),
-				RedemptionFee:               sdk.ZeroDec(),
-				LsmValidatorCap:             sdk.NewDec(1),
-				LsmBondFactor:               sdk.NewDec(-1),
+				DepositFee:       sdk.ZeroDec(),
+				RestakeFee:       sdk.ZeroDec(),
+				UnstakeFee:       sdk.ZeroDec(),
+				RedemptionFee:    sdk.ZeroDec(),
+				LsmValidatorCap:  sdk.NewDec(1),
+				LsmBondFactor:    sdk.NewDec(-1),
+				UpperCValueLimit: upperCValueLimit,
+				LowerCValueLimit: lowerCValueLimit,
 				RedelegationAcceptableDelta: sdk.OneInt(),
 			},
 			HostDenom: "uatom",

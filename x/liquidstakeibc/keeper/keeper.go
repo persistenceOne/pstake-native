@@ -329,7 +329,7 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		}()
 
 		// if the c value is out of bounds, disable the chain
-		if !k.CValueWithinLimits(ctx, hc) {
+		if !k.CValueWithinLimits(hc) {
 			hc.Active = false
 			k.SetHostChain(ctx, hc)
 
@@ -350,8 +350,8 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 	}
 }
 
-func (k *Keeper) CValueWithinLimits(ctx sdk.Context, hc *types.HostChain) bool {
-	return hc.CValue.LT(k.GetParams(ctx).UpperCValueLimit) && hc.CValue.GT(k.GetParams(ctx).LowerCValueLimit)
+func (k *Keeper) CValueWithinLimits(hc *types.HostChain) bool {
+	return hc.CValue.LT(hc.Params.UpperCValueLimit) && hc.CValue.GT(hc.Params.LowerCValueLimit)
 }
 
 func (k *Keeper) CalculateAutocompoundLimit(autocompoundFactor sdk.Dec) sdk.Dec {

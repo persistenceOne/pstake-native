@@ -37,10 +37,8 @@ func (suite *IntegrationTestSuite) TestQueryParams() {
 			req:  &types.QueryParamsRequest{},
 			resp: &types.QueryParamsResponse{
 				Params: types.Params{
-					AdminAddress:     "persistence1gztc3y3k52hjds5nqvl7h9jvfnc33spz47zcjy",
-					FeeAddress:       "persistence1gztc3y3k52hjds5nqvl7h9jvfnc33spz47zcjy",
-					UpperCValueLimit: decFromStr("1.1"),
-					LowerCValueLimit: decFromStr("0.85"),
+					AdminAddress: "persistence1gztc3y3k52hjds5nqvl7h9jvfnc33spz47zcjy",
+					FeeAddress:   "persistence1gztc3y3k52hjds5nqvl7h9jvfnc33spz47zcjy",
 				},
 			},
 		},
