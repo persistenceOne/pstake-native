@@ -11,7 +11,7 @@ var (
 )
 
 // NewParams creates a new Params object
-func NewParams(adminAddress string, feeAddress string) Params {
+func NewParams(adminAddress, feeAddress string) Params {
 	return Params{
 		AdminAddress: adminAddress,
 		FeeAddress:   feeAddress,
