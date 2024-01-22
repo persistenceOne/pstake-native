@@ -1034,7 +1034,7 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 					hc.Params.UpperCValueLimit = upperLimit
 					hc.Params.LowerCValueLimit = lowerLimit
 					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-					break
+				
 				case "theta-testnet-001":
 					upperLimit, _ := sdk.NewDecFromStr("1.01")
 					lowerLimit, _ := sdk.NewDecFromStr("0.9")
