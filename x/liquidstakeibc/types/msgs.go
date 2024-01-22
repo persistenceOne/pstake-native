@@ -325,8 +325,8 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
 
-			if limit.GT(sdk.OneDec()) {
-				return sdkerrors.ErrInvalidRequest.Wrapf("invalid c_value upper limit value, should be limit <= 1")
+			if limit.GT(sdk.OneDec()) || limit.IsNegative() {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid c_value upper limit value, should be 0 <= limit <= 1")
 			}
 		case KeyRedelegationAcceptableDelta:
 			redelegationAcceptableDelta, ok := sdk.NewIntFromString(update.Value)
