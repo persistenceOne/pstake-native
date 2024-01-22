@@ -1062,7 +1062,7 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 					hc.Params.UpperCValueLimit = upperLimit
 					hc.Params.LowerCValueLimit = lowerLimit
 					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-					break
+				
 				}
 			}
 
