@@ -2,15 +2,15 @@ package types
 
 import (
 	"fmt"
-	"github.com/cometbft/cometbft/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"strings"
 
+	"github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
 func IsLiquidStakingDenom(denom string) bool {
@@ -157,8 +157,8 @@ func (rewardParams *RewardParams) Validate() error {
 		return err
 	}
 	return sdk.ValidateDenom(rewardParams.Denom)
-
 }
+
 func (params *HostChainLSParams) Validate() error {
 	if params.DepositFee.LT(sdk.ZeroDec()) || params.DepositFee.GT(sdk.OneDec()) {
 		return fmt.Errorf("host chain lsparams has invalid deposit fee, should be 0<=fee<=1")
