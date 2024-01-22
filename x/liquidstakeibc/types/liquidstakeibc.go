@@ -172,6 +172,9 @@ func (params *HostChainLSParams) Validate() error {
 	if params.UnstakeFee.LT(sdk.ZeroDec()) || params.UnstakeFee.GT(sdk.OneDec()) {
 		return fmt.Errorf("host chain lsparams has invalid unstake fee, should be 0<=fee<=1\"")
 	}
+	if params.RedelegationAcceptableDelta.LT(sdk.ZeroInt()) {
+		return fmt.Errorf("host chain has invalid redelegation acceptable delta expected >= 0")
+	}
 	return nil
 }
 

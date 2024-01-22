@@ -56,10 +56,11 @@ func (k msgServer) RegisterHostChain(
 
 	// build the host chain params
 	hostChainParams := &types.HostChainLSParams{
-		DepositFee:    msg.DepositFee,
-		RestakeFee:    msg.RestakeFee,
-		UnstakeFee:    msg.UnstakeFee,
-		RedemptionFee: msg.RedemptionFee,
+		DepositFee:                  msg.DepositFee,
+		RestakeFee:                  msg.RestakeFee,
+		UnstakeFee:                  msg.UnstakeFee,
+		RedemptionFee:               msg.RedemptionFee,
+		RedelegationAcceptableDelta: sdktypes.ZeroInt(),
 	}
 
 	hc := &types.HostChain{
