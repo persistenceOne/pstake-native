@@ -54,6 +54,11 @@ func (k msgServer) RegisterHostChain(
 		return nil, fmt.Errorf("host chain with id \"%s\" already exists", chainID)
 	}
 
+	_, found = k.GetHostChainFromHostDenom(ctx, msg.HostDenom)
+	if found {
+		return nil, fmt.Errorf("host chain with host denom \"%s\" already exists", msg.HostDenom)
+	}
+
 	// build the host chain params
 	hostChainParams := &types.HostChainLSParams{
 		DepositFee:                  msg.DepositFee,
