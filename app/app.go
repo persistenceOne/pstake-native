@@ -1023,7 +1023,7 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 				switch hc.ChainId {
 				case "cosmoshub-4":
 					upperLimit, _ := sdk.NewDecFromStr("1.01")
-					lowerLimit, _ := sdk.NewDecFromStr("0.85")
+					lowerLimit, _ := sdk.NewDecFromStr("0.80")
 					hc.Params.UpperCValueLimit = upperLimit
 					hc.Params.LowerCValueLimit = lowerLimit
 					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
