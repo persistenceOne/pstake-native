@@ -44,6 +44,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+- [734](https://github.com/persistenceOne/pstake-native/pull/734) Host chain duplication check.
 - [731](https://github.com/persistenceOne/pstake-native/pull/731) Set limit to LSM deposit filtering.
 - [730](https://github.com/persistenceOne/pstake-native/pull/730) Fix deposit validate.  
 - [728](https://github.com/persistenceOne/pstake-native/pull/728) Fix prevent users from liquid-staking funds by
