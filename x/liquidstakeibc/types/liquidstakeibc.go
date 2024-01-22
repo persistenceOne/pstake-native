@@ -2,6 +2,9 @@ package types
 
 import (
 	"fmt"
+	"github.com/cometbft/cometbft/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -76,16 +79,86 @@ func (hc *HostChain) Validate() error {
 	if hc.CValue.LT(sdk.ZeroDec()) { // GT limits should be checked by module level params, invariants.
 		return fmt.Errorf("host chain %s has c value out of bounds: %d", hc.ChainId, hc.CValue)
 	}
-
+	if strings.TrimSpace(hc.ChainId) == "" {
+		return fmt.Errorf("chain_id must be non-empty")
+	}
+	if len(hc.ChainId) > types.MaxChainIDLen {
+		return fmt.Errorf("chain_id is too long (max: %d)", types.MaxChainIDLen)
+	}
+	err = host.ConnectionIdentifierValidator(hc.ConnectionId)
+	if err != nil {
+		return fmt.Errorf("hostchain connectionID invalid err: %v", err)
+	}
+	err = host.PortIdentifierValidator(hc.PortId)
+	if err != nil {
+		return err
+	}
+	err = host.ChannelIdentifierValidator(hc.ChannelId)
+	if err != nil {
+		return err
+	}
+	if hc.DelegationAccount != nil {
+		err = hc.DelegationAccount.Validate()
+		if err != nil {
+			return err
+		}
+	}
+	if hc.RewardsAccount != nil {
+		err = hc.RewardsAccount.Validate()
+		if err != nil {
+			return err
+		}
+	}
 	for _, validator := range hc.Validators {
 		err := validator.Validate()
 		if err != nil {
 			return fmt.Errorf("host chain %s validator is invalid, err: %s", hc.ChainId, err)
 		}
 	}
+	if hc.RewardParams != nil {
+		err = hc.RewardParams.Validate()
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
+func (icaAccount *ICAAccount) Validate() error {
+	if icaAccount.ChannelState != ICAAccount_ICA_CHANNEL_CREATING &&
+		icaAccount.ChannelState != ICAAccount_ICA_CHANNEL_CREATED {
+		return fmt.Errorf("invalid channel state")
+	}
+	portID, err := icatypes.NewControllerPortID(icaAccount.Owner)
+	if err != nil {
+		return err
+	}
+	err = host.PortIdentifierValidator(portID)
+	if err != nil {
+		return err
+	}
+	err = icaAccount.Balance.Validate()
+	if err != nil {
+		return err
+	}
+	if icaAccount.Address != "" {
+		_, _, err = bech32.DecodeAndConvert(icaAccount.Address)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (rewardParams *RewardParams) Validate() error {
+	_, _, err := bech32.DecodeAndConvert(rewardParams.Destination)
+	if err != nil {
+		return err
+	}
+	return sdk.ValidateDenom(rewardParams.Denom)
+
+}
 func (params *HostChainLSParams) Validate() error {
 	if params.DepositFee.LT(sdk.ZeroDec()) || params.DepositFee.GT(sdk.OneDec()) {
 		return fmt.Errorf("host chain lsparams has invalid deposit fee, should be 0<=fee<=1")

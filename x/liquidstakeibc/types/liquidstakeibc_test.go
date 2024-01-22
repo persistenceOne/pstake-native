@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/pstake-native/v2/app"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -244,18 +245,6 @@ func TestHostChain_Validate(t *testing.T) {
 			HostDenom: "uatom",
 			ChannelId: "channel-1",
 			PortId:    "transfer",
-			DelegationAccount: &types.ICAAccount{
-				Address:      "",
-				Balance:      sdk.Coin{},
-				Owner:        "",
-				ChannelState: 0,
-			},
-			RewardsAccount: &types.ICAAccount{
-				Address:      "",
-				Balance:      sdk.Coin{},
-				Owner:        "",
-				ChannelState: 0,
-			},
 			Validators: []*types.Validator{{
 				OperatorAddress: authtypes.NewModuleAddressOrBech32Address("testval").String(),
 				Status:          stakingtypes.BondStatusBonded,
@@ -730,4 +719,18 @@ func TestValidator_Validate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMintDenomToHostDenom(t *testing.T) {
+	hostDenom, found := types.MintDenomToHostDenom("stk/uatom")
+	require.Equal(t, "uatom", hostDenom)
+	require.Equal(t, true, found)
+
+	hostDenom, found = types.MintDenomToHostDenom("stkuatom")
+	require.Equal(t, "stkuatom", hostDenom)
+	require.Equal(t, false, found)
+
+	hostDenom, found = types.MintDenomToHostDenom("tk/uatom")
+	require.Equal(t, "tk/uatom", hostDenom)
+	require.Equal(t, false, found)
 }
