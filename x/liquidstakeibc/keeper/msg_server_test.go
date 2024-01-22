@@ -588,10 +588,8 @@ func (suite *IntegrationTestSuite) Test_msgServer_UpdateParams() {
 				msg: &types.MsgUpdateParams{
 					Authority: suite.chainA.SenderAccount.GetAddress().String(),
 					Params: types.Params{
-						AdminAddress:     suite.chainA.SenderAccount.GetAddress().String(),
-						FeeAddress:       suite.chainA.SenderAccount.GetAddress().String(),
-						UpperCValueLimit: sdk.OneDec(),
-						LowerCValueLimit: sdk.ZeroDec(),
+						AdminAddress: suite.chainA.SenderAccount.GetAddress().String(),
+						FeeAddress:   suite.chainA.SenderAccount.GetAddress().String(),
 					},
 				},
 			},

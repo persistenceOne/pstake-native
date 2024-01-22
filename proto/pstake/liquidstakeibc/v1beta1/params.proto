@@ -18,15 +18,8 @@ message Params {
   string fee_address = 2 [ (cosmos_proto.scalar) =
                                "cosmos.AddressString" ]; // protocol fee address
 
-  string upper_c_value_limit = 3 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable) = false
-  ]; // upper limit for the c value of a host chain
-
-  string lower_c_value_limit = 4 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable) = false
-  ]; // lower limit for the c value of a host chain
+  // fields 3 and 4 were migrated to on-chain params.
+  // check https://github.com/persistenceOne/pstake-native/pull/732.
+  reserved 3; // upper_c_value_limit
+  reserved 4; // lower_c_value_limit
 }
