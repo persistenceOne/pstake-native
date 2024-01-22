@@ -1019,28 +1019,51 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		UpgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			// stuck unbonding epoch numbers
-			RemovableUnbondings := map[string]map[int64]any{"cosmoshub-4": {312: nil}, "osmosis-1": {429: nil, 432: nil}}
-
-			// get the stuck unbondings from the store
-			unbondings := app.LiquidStakeIBCKeeper.FilterUnbondings(
-				ctx,
-				func(u liquidstakeibctypes.Unbonding) bool {
-					_, chain := RemovableUnbondings[u.ChainId]
-					if chain {
-						_, epoch := RemovableUnbondings[u.ChainId][u.EpochNumber]
-						if epoch {
-							return true
-						}
-					}
-					return false
-				},
-			)
-
-			// mark the stuck unbondings as failed, so they can be processed
-			for _, unbonding := range unbondings {
-				unbonding.State = liquidstakeibctypes.Unbonding_UNBONDING_FAILED
-				app.LiquidStakeIBCKeeper.SetUnbonding(ctx, unbonding)
+			for _, hc := range app.LiquidStakeIBCKeeper.GetAllHostChains(ctx) {
+				switch hc.ChainId {
+				case "cosmoshub-4":
+					upperLimit, _ := sdk.NewDecFromStr("1.01")
+					lowerLimit, _ := sdk.NewDecFromStr("0.85")
+					hc.Params.UpperCValueLimit = upperLimit
+					hc.Params.LowerCValueLimit = lowerLimit
+					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
+					break
+				case "osmosis-1":
+					upperLimit, _ := sdk.NewDecFromStr("1.01")
+					lowerLimit, _ := sdk.NewDecFromStr("0.97")
+					hc.Params.UpperCValueLimit = upperLimit
+					hc.Params.LowerCValueLimit = lowerLimit
+					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
+					break
+				case "theta-testnet-001":
+					upperLimit, _ := sdk.NewDecFromStr("1.01")
+					lowerLimit, _ := sdk.NewDecFromStr("0.9")
+					hc.Params.UpperCValueLimit = upperLimit
+					hc.Params.LowerCValueLimit = lowerLimit
+					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
+					break
+				case "osmo-test-5":
+					upperLimit, _ := sdk.NewDecFromStr("1.01")
+					lowerLimit, _ := sdk.NewDecFromStr("0.95")
+					hc.Params.UpperCValueLimit = upperLimit
+					hc.Params.LowerCValueLimit = lowerLimit
+					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
+					break
+				case "dydx-test-4":
+					upperLimit, _ := sdk.NewDecFromStr("1.01")
+					lowerLimit, _ := sdk.NewDecFromStr("0.95")
+					hc.Params.UpperCValueLimit = upperLimit
+					hc.Params.LowerCValueLimit = lowerLimit
+					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
+					break
+				case "gaia-1":
+					upperLimit, _ := sdk.NewDecFromStr("1.01")
+					lowerLimit, _ := sdk.NewDecFromStr("0.95")
+					hc.Params.UpperCValueLimit = upperLimit
+					hc.Params.LowerCValueLimit = lowerLimit
+					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
+					break
+				}
 			}
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
