@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+- [732](https://github.com/persistenceOne/pstake-native/pull/732) Move c value bounds to per-chain params.
 - [729](https://github.com/persistenceOne/pstake-native/pull/729) Add rewards account query (hence autocompound) OnChanOpenAck.
 - [727](https://github.com/persistenceOne/pstake-native/pull/727) Send LSM redeem messages in chunks.
 - [721](https://github.com/persistenceOne/pstake-native/pull/721) Add Query host chain user unbondings.
