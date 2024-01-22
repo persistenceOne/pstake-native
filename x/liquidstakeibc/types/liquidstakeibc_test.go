@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/pstake-native/v2/app"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -230,32 +231,22 @@ func TestHostChain_Validate(t *testing.T) {
 		UnbondingFactor    int64
 		Active             bool
 		AutoCompoundFactor sdk.Dec
+		RewardParam        *types.RewardParams
 	}
 	validFields := func() fields {
 		return fields{
 			ChainId:      "chain-1",
 			ConnectionId: "connection-1",
 			Params: &types.HostChainLSParams{
-				DepositFee:    sdk.ZeroDec(),
-				RestakeFee:    sdk.ZeroDec(),
-				UnstakeFee:    sdk.ZeroDec(),
-				RedemptionFee: sdk.ZeroDec(),
+				DepositFee:                  sdk.ZeroDec(),
+				RestakeFee:                  sdk.ZeroDec(),
+				UnstakeFee:                  sdk.ZeroDec(),
+				RedemptionFee:               sdk.ZeroDec(),
+				RedelegationAcceptableDelta: sdk.OneInt(),
 			},
 			HostDenom: "uatom",
 			ChannelId: "channel-1",
 			PortId:    "transfer",
-			DelegationAccount: &types.ICAAccount{
-				Address:      "",
-				Balance:      sdk.Coin{},
-				Owner:        "",
-				ChannelState: 0,
-			},
-			RewardsAccount: &types.ICAAccount{
-				Address:      "",
-				Balance:      sdk.Coin{},
-				Owner:        "",
-				ChannelState: 0,
-			},
 			Validators: []*types.Validator{{
 				OperatorAddress: authtypes.NewModuleAddressOrBech32Address("testval").String(),
 				Status:          stakingtypes.BondStatusBonded,
@@ -319,6 +310,86 @@ func TestHostChain_Validate(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid empty chain-id",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.ChainId = ""
+				return newfields
+			},
+			wantErr: true,
+		}, {
+			name: "invalid too long chain-id",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.ChainId = "chainA-11111111111111111111111111111111111111111111111111111111111111111111111"
+				return newfields
+			},
+			wantErr: true,
+		}, {
+			name: "invalid connection",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.ConnectionId = "c"
+				return newfields
+			},
+			wantErr: true,
+		}, {
+			name: "invalid port",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.PortId = ""
+				return newfields
+			},
+			wantErr: true,
+		}, {
+			name: "invalid channel",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.ChannelId = ""
+				return newfields
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid delegationAcc",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.DelegationAccount = &types.ICAAccount{
+					Address:      "",
+					Balance:      sdk.Coin{},
+					Owner:        "",
+					ChannelState: 0,
+				}
+				return newfields
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid rewards Acc",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.RewardsAccount = &types.ICAAccount{
+					Address:      "",
+					Balance:      sdk.Coin{},
+					Owner:        "",
+					ChannelState: 0,
+				}
+				return newfields
+			},
+			wantErr: true,
+		}, {
+			name: "invalid rewards autocompound param",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.RewardParam = &types.RewardParams{
+					Denom:       "",
+					Destination: "",
+				}
+				return newfields
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -339,6 +410,7 @@ func TestHostChain_Validate(t *testing.T) {
 				UnbondingFactor:    ttfields.UnbondingFactor,
 				Active:             ttfields.Active,
 				AutoCompoundFactor: ttfields.AutoCompoundFactor,
+				RewardParams:       ttfields.RewardParam,
 			}
 			if err := hc.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
@@ -564,10 +636,11 @@ func TestValidatorUnbonding_Validate(t *testing.T) {
 
 func TestHostChainLSParams_Validate(t *testing.T) {
 	type fields struct {
-		DepositFee    sdk.Dec
-		RestakeFee    sdk.Dec
-		UnstakeFee    sdk.Dec
-		RedemptionFee sdk.Dec
+		DepositFee        sdk.Dec
+		RestakeFee        sdk.Dec
+		UnstakeFee        sdk.Dec
+		RedemptionFee     sdk.Dec
+		RedelegationDelta math.Int
 	}
 	tests := []struct {
 		name    string
@@ -577,50 +650,66 @@ func TestHostChainLSParams_Validate(t *testing.T) {
 		{
 			name: "valid",
 			fields: fields{
-				DepositFee:    sdk.ZeroDec(),
-				RestakeFee:    sdk.ZeroDec(),
-				UnstakeFee:    sdk.ZeroDec(),
-				RedemptionFee: sdk.ZeroDec(),
+				DepositFee:        sdk.ZeroDec(),
+				RestakeFee:        sdk.ZeroDec(),
+				UnstakeFee:        sdk.ZeroDec(),
+				RedemptionFee:     sdk.ZeroDec(),
+				RedelegationDelta: sdk.OneInt(),
 			},
 			wantErr: false,
 		},
 		{
 			name: "invalid deposit fee",
 			fields: fields{
-				DepositFee:    sdk.MustNewDecFromStr("-1"),
-				RestakeFee:    sdk.ZeroDec(),
-				UnstakeFee:    sdk.ZeroDec(),
-				RedemptionFee: sdk.ZeroDec(),
+				DepositFee:        sdk.MustNewDecFromStr("-1"),
+				RestakeFee:        sdk.ZeroDec(),
+				UnstakeFee:        sdk.ZeroDec(),
+				RedemptionFee:     sdk.ZeroDec(),
+				RedelegationDelta: sdk.OneInt(),
 			},
 			wantErr: true,
 		},
 		{
 			name: "invalid restake fee",
 			fields: fields{
-				DepositFee:    sdk.ZeroDec(),
-				RestakeFee:    sdk.MustNewDecFromStr("1.1"),
-				UnstakeFee:    sdk.ZeroDec(),
-				RedemptionFee: sdk.ZeroDec(),
+				DepositFee:        sdk.ZeroDec(),
+				RestakeFee:        sdk.MustNewDecFromStr("1.1"),
+				UnstakeFee:        sdk.ZeroDec(),
+				RedemptionFee:     sdk.ZeroDec(),
+				RedelegationDelta: sdk.OneInt(),
 			},
 			wantErr: true,
 		},
 		{
 			name: "invalid unstake fee",
 			fields: fields{
-				DepositFee:    sdk.ZeroDec(),
-				RestakeFee:    sdk.ZeroDec(),
-				UnstakeFee:    sdk.MustNewDecFromStr("-1"),
-				RedemptionFee: sdk.ZeroDec(),
+				DepositFee:        sdk.ZeroDec(),
+				RestakeFee:        sdk.ZeroDec(),
+				UnstakeFee:        sdk.MustNewDecFromStr("-1"),
+				RedemptionFee:     sdk.ZeroDec(),
+				RedelegationDelta: sdk.OneInt(),
 			},
 			wantErr: true,
 		},
 		{
 			name: "invalid redemption fee",
 			fields: fields{
-				DepositFee:    sdk.ZeroDec(),
-				RestakeFee:    sdk.ZeroDec(),
-				UnstakeFee:    sdk.ZeroDec(),
-				RedemptionFee: sdk.MustNewDecFromStr("1.2"),
+				DepositFee:        sdk.ZeroDec(),
+				RestakeFee:        sdk.ZeroDec(),
+				UnstakeFee:        sdk.ZeroDec(),
+				RedemptionFee:     sdk.MustNewDecFromStr("1.2"),
+				RedelegationDelta: sdk.OneInt(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid redelegation delta",
+			fields: fields{
+				DepositFee:        sdk.ZeroDec(),
+				RestakeFee:        sdk.ZeroDec(),
+				UnstakeFee:        sdk.ZeroDec(),
+				RedemptionFee:     sdk.ZeroDec(),
+				RedelegationDelta: sdk.NewInt(-1),
 			},
 			wantErr: true,
 		},
@@ -628,10 +717,11 @@ func TestHostChainLSParams_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			params := &types.HostChainLSParams{
-				DepositFee:    tt.fields.DepositFee,
-				RestakeFee:    tt.fields.RestakeFee,
-				UnstakeFee:    tt.fields.UnstakeFee,
-				RedemptionFee: tt.fields.RedemptionFee,
+				DepositFee:                  tt.fields.DepositFee,
+				RestakeFee:                  tt.fields.RestakeFee,
+				UnstakeFee:                  tt.fields.UnstakeFee,
+				RedemptionFee:               tt.fields.RedemptionFee,
+				RedelegationAcceptableDelta: tt.fields.RedelegationDelta,
 			}
 			if err := params.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
@@ -726,6 +816,155 @@ func TestValidator_Validate(t *testing.T) {
 				UnbondingEpoch:  tt.fields.UnbondingEpoch,
 			}
 			if err := validator.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMintDenomToHostDenom(t *testing.T) {
+	hostDenom, found := types.MintDenomToHostDenom("stk/uatom")
+	require.Equal(t, "uatom", hostDenom)
+	require.Equal(t, true, found)
+
+	hostDenom, found = types.MintDenomToHostDenom("stkuatom")
+	require.Equal(t, "stkuatom", hostDenom)
+	require.Equal(t, false, found)
+
+	hostDenom, found = types.MintDenomToHostDenom("tk/uatom")
+	require.Equal(t, "tk/uatom", hostDenom)
+	require.Equal(t, false, found)
+}
+
+func TestICAAccount_Validate(t *testing.T) {
+	type fields struct {
+		Address      string
+		Balance      sdk.Coin
+		Owner        string
+		ChannelState types.ICAAccount_ChannelState
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "Valid",
+			fields: fields{
+				Address:      authtypes.NewModuleAddress("test").String(),
+				Balance:      sdk.NewInt64Coin(ibcDenom, 100),
+				Owner:        types.DefaultDelegateAccountPortOwner("chainA-1"),
+				ChannelState: 0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Invalid channel state",
+			fields: fields{
+				Address:      authtypes.NewModuleAddress("test").String(),
+				Balance:      sdk.NewInt64Coin(ibcDenom, 100),
+				Owner:        types.DefaultDelegateAccountPortOwner("chainA-1"),
+				ChannelState: 3,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Invalid owner",
+			fields: fields{
+				Address:      authtypes.NewModuleAddress("test").String(),
+				Balance:      sdk.NewInt64Coin(ibcDenom, 100),
+				Owner:        "",
+				ChannelState: 1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Invalid port invalid",
+			fields: fields{
+				Address:      authtypes.NewModuleAddress("test").String(),
+				Balance:      sdk.NewInt64Coin(ibcDenom, 100),
+				Owner:        "//",
+				ChannelState: 1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Invalid address",
+			fields: fields{
+				Address:      "cosmos1x",
+				Balance:      sdk.NewInt64Coin(ibcDenom, 100),
+				Owner:        types.DefaultDelegateAccountPortOwner("chainA-1"),
+				ChannelState: 1,
+			},
+			wantErr: true,
+		}, {
+			name: "Invalid coin",
+			fields: fields{
+				Address:      authtypes.NewModuleAddress("test").String(),
+				Balance:      sdk.Coin{Denom: ibcDenom, Amount: sdk.NewInt(-1)},
+				Owner:        types.DefaultDelegateAccountPortOwner("chainA-1"),
+				ChannelState: 1,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			icaAccount := &types.ICAAccount{
+				Address:      tt.fields.Address,
+				Balance:      tt.fields.Balance,
+				Owner:        tt.fields.Owner,
+				ChannelState: tt.fields.ChannelState,
+			}
+			if err := icaAccount.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestRewardParams_Validate(t *testing.T) {
+	type fields struct {
+		Denom       string
+		Destination string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "valid",
+			fields: fields{
+				Denom:       "uatom",
+				Destination: authtypes.NewModuleAddressOrBech32Address("addr").String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid denom",
+			fields: fields{
+				Denom:       "",
+				Destination: authtypes.NewModuleAddressOrBech32Address("addr").String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid address",
+			fields: fields{
+				Denom:       "uatom",
+				Destination: "addr",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rewardParams := &types.RewardParams{
+				Denom:       tt.fields.Denom,
+				Destination: tt.fields.Destination,
+			}
+			if err := rewardParams.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

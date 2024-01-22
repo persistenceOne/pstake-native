@@ -32,6 +32,8 @@ func TestGenesis(t *testing.T) {
 				LsmBondFactor:    sdk.NewDec(-1),
 				UpperCValueLimit: upperCValueLimit,
 				LowerCValueLimit: lowerCValueLimit,
+				RedelegationAcceptableDelta: sdk.ZeroInt(),
+				MaxEntries:                  7,
 			},
 			HostDenom: "uatom",
 			ChannelId: "channel-1",

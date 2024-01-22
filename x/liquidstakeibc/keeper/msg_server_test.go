@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -448,12 +449,38 @@ func (suite *IntegrationTestSuite) Test_msgServer_RegisterHostChain() {
 			want:    &types.MsgRegisterHostChainResponse{},
 			wantErr: false,
 		},
+		{
+			name: "already exists",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgRegisterHostChain{
+					Authority:          suite.chainA.SenderAccount.GetAddress().String(),
+					ConnectionId:       suite.transferPathAB.EndpointA.ConnectionID,
+					DepositFee:         sdk.ZeroDec(),
+					RestakeFee:         sdk.ZeroDec(),
+					UnstakeFee:         sdk.ZeroDec(),
+					RedemptionFee:      sdk.ZeroDec(),
+					ChannelId:          suite.transferPathAB.EndpointA.ChannelID,
+					PortId:             suite.transferPathAB.EndpointA.ChannelConfig.PortID,
+					HostDenom:          "uosmo",
+					MinimumDeposit:     sdk.OneInt(),
+					UnbondingFactor:    4,
+					AutoCompoundFactor: 2,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			k := keeper.NewMsgServerImpl(pstakeapp.LiquidStakeIBCKeeper)
 
 			got, err := k.RegisterHostChain(tt.args.goCtx, tt.args.msg)
+			if err != nil {
+				suite.Require().NotNil(err)
+				suite.Require().Equal(fmt.Errorf("host chain with id \"%s\" already exists", suite.transferPathAB.EndpointB.Chain.ChainID), err)
+			}
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RegisterHostChain() error = %v, wantErr %v", err, tt.wantErr)
 				return

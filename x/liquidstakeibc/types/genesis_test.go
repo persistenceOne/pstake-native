@@ -286,22 +286,11 @@ func ValidGenesis() *types.GenesisState {
 				LsmBondFactor:    sdk.NewDec(-1),
 				UpperCValueLimit: upperCValueLimit,
 				LowerCValueLimit: lowerCValueLimit,
+				RedelegationAcceptableDelta: sdk.OneInt(),
 			},
 			HostDenom: "uatom",
 			ChannelId: "channel-1",
 			PortId:    "transfer",
-			DelegationAccount: &types.ICAAccount{
-				Address:      "",
-				Balance:      sdk.Coin{},
-				Owner:        "",
-				ChannelState: 0,
-			},
-			RewardsAccount: &types.ICAAccount{
-				Address:      "",
-				Balance:      sdk.Coin{},
-				Owner:        "",
-				ChannelState: 0,
-			},
 			Validators: []*types.Validator{{
 				OperatorAddress: authtypes.NewModuleAddressOrBech32Address("testval").String(),
 				Status:          stakingtypes.BondStatusBonded,

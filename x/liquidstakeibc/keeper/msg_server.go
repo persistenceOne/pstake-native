@@ -49,12 +49,18 @@ func (k msgServer) RegisterHostChain(
 		return nil, fmt.Errorf("chain id not found for connection \"%s\": \"%w\"", msg.ConnectionId, err)
 	}
 
+	_, found := k.GetHostChain(ctx, chainID)
+	if found {
+		return nil, fmt.Errorf("host chain with id \"%s\" already exists", chainID)
+	}
+
 	// build the host chain params
 	hostChainParams := &types.HostChainLSParams{
-		DepositFee:    msg.DepositFee,
-		RestakeFee:    msg.RestakeFee,
-		UnstakeFee:    msg.UnstakeFee,
-		RedemptionFee: msg.RedemptionFee,
+		DepositFee:                  msg.DepositFee,
+		RestakeFee:                  msg.RestakeFee,
+		UnstakeFee:                  msg.UnstakeFee,
+		RedemptionFee:               msg.RedemptionFee,
+		RedelegationAcceptableDelta: sdktypes.ZeroInt(),
 	}
 
 	hc := &types.HostChain{

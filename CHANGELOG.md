@@ -38,15 +38,18 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+- [733](https://github.com/persistenceOne/pstake-native/pull/733) Add more validation for host-chain.
 - [732](https://github.com/persistenceOne/pstake-native/pull/732) Move c value bounds to per-chain params.
-- [729](https://github.com/persistenceOne/pstake-native/pull/729) Add rewards account query (hence autocompound) OnChanOpenAck.
+- [729](https://github.com/persistenceOne/pstake-native/pull/729) Add rewards account query (hence autocompound)
+  OnChanOpenAck.
 - [727](https://github.com/persistenceOne/pstake-native/pull/727) Send LSM redeem messages in chunks.
 - [721](https://github.com/persistenceOne/pstake-native/pull/721) Add Query host chain user unbondings.
 
 ### Bug Fixes
 
+- [734](https://github.com/persistenceOne/pstake-native/pull/734) Host chain duplication check.
 - [731](https://github.com/persistenceOne/pstake-native/pull/731) Set limit to LSM deposit filtering.
-- [730](https://github.com/persistenceOne/pstake-native/pull/730) Fix deposit validate.  
+- [730](https://github.com/persistenceOne/pstake-native/pull/730) Fix deposit validate.
 - [728](https://github.com/persistenceOne/pstake-native/pull/728) Fix prevent users from liquid-staking funds by
   removing the Deposit entry.
 - [726](https://github.com/persistenceOne/pstake-native/pull/726) Fix minimal unbondings.
