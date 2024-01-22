@@ -104,7 +104,11 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 	}
 
 	// emit the delegation event
-	encMsgs, _ := json.Marshal(&messages)
+	encMsgs, err := json.Marshal(&messages)
+	if err != nil {
+		encMsgs = make([]byte, 0)
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDoDelegation,
@@ -396,7 +400,11 @@ func (k *Keeper) DoRedeemLSMTokens(ctx sdk.Context, hc *types.HostChain) {
 		)
 
 		// emit the untokenize event
-		encMsgs, _ := json.Marshal(&messagesChunks[i])
+		encMsgs, err := json.Marshal(&messagesChunks[i])
+		if err != nil {
+			encMsgs = make([]byte, 0)
+		}
+
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeRedeemTokensForShares,

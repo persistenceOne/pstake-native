@@ -200,6 +200,11 @@ func TestMsgRegisterHostChain(t *testing.T) {
 	invalidMsg = *msgRegisterHostChain
 	invalidMsg.MinimumDeposit = sdk.ZeroInt()
 	require.Error(t, invalidMsg.ValidateBasic())
+
+	invalidFeeMsg := types.NewMsgRegisterHostChain("connection-localhost", "channel-1", "transfer",
+		"hey", "hello", "bad", "number", "uatom", sdk.OneInt(), 4,
+		addr1.String(), 2)
+	require.Error(t, invalidFeeMsg.ValidateBasic())
 }
 
 func TestMsgUpdateHostChain(t *testing.T) {

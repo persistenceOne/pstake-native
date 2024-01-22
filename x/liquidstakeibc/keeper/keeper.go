@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -323,19 +322,10 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 			),
 		)
 
-		defer func() {
-			cValueFloat, _ := hc.CValue.Float64()
-			telemetry.ModuleSetGauge(types.ModuleName, float32(cValueFloat), hc.ChainId, "c_value")
-		}()
-
 		// if the c value is out of bounds, disable the chain
 		if !k.CValueWithinLimits(ctx, hc) {
 			hc.Active = false
 			k.SetHostChain(ctx, hc)
-
-			defer func() {
-				telemetry.ModuleSetGauge(types.ModuleName, float32(0), hc.ChainId, "active")
-			}()
 
 			k.Logger(ctx).Error(fmt.Sprintf("C value out of limits !!! Disabling chain %s with c value %v.", hc.ChainId, hc.CValue))
 			ctx.EventManager().EmitEvent(

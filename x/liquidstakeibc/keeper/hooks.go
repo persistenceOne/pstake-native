@@ -674,7 +674,11 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 		k.SetUnbonding(ctx, unbonding)
 
 		// emit the unbonding event
-		encMsgs, _ := json.Marshal(&messages)
+		encMsgs, err := json.Marshal(&messages)
+		if err != nil {
+			encMsgs = make([]byte, 0)
+		}
+
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				liquidstakeibctypes.EventTypeUndelegationWorkflow,
@@ -816,7 +820,11 @@ func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
 			}
 
 			// emit the rewards event
-			encMsgs, _ := json.Marshal(&messages)
+			encMsgs, err := json.Marshal(&messages)
+			if err != nil {
+				encMsgs = make([]byte, 0)
+			}
+
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					liquidstakeibctypes.EventTypeRewardsWorkflow,
