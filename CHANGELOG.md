@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+- [737](https://github.com/persistenceOne/pstake-native/pull/737) Unhandled errors.
 - [733](https://github.com/persistenceOne/pstake-native/pull/733) Add more validation for host-chain
 - [729](https://github.com/persistenceOne/pstake-native/pull/729) Add rewards account query (hence autocompound)
   OnChanOpenAck.
