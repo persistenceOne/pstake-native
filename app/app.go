@@ -1055,7 +1055,7 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 					hc.Params.UpperCValueLimit = upperLimit
 					hc.Params.LowerCValueLimit = lowerLimit
 					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-					break
+				
 				case "gaia-1":
 					upperLimit, _ := sdk.NewDecFromStr("1.01")
 					lowerLimit, _ := sdk.NewDecFromStr("0.95")
