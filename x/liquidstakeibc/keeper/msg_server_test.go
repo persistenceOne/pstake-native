@@ -426,7 +426,31 @@ func (suite *IntegrationTestSuite) Test_msgServer_RegisterHostChain() {
 		args    args
 		want    *types.MsgRegisterHostChainResponse
 		wantErr bool
+		err     error
 	}{
+		{
+			name: "host denom already exists",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgRegisterHostChain{
+					Authority:          suite.chainA.SenderAccount.GetAddress().String(),
+					ConnectionId:       suite.transferPathAC.EndpointA.ConnectionID,
+					DepositFee:         sdk.ZeroDec(),
+					RestakeFee:         sdk.ZeroDec(),
+					UnstakeFee:         sdk.ZeroDec(),
+					RedemptionFee:      sdk.ZeroDec(),
+					ChannelId:          suite.transferPathAC.EndpointA.ChannelID,
+					PortId:             suite.transferPathAC.EndpointA.ChannelConfig.PortID,
+					HostDenom:          "uatom",
+					MinimumDeposit:     sdk.OneInt(),
+					UnbondingFactor:    4,
+					AutoCompoundFactor: 2,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+			err:     fmt.Errorf("host chain with host denom \"%s\" already exists", "uatom"),
+		},
 		{
 			name: "success",
 			args: args{
@@ -450,7 +474,7 @@ func (suite *IntegrationTestSuite) Test_msgServer_RegisterHostChain() {
 			wantErr: false,
 		},
 		{
-			name: "already exists",
+			name: "host chain already exists",
 			args: args{
 				goCtx: ctx,
 				msg: &types.MsgRegisterHostChain{
@@ -470,6 +494,7 @@ func (suite *IntegrationTestSuite) Test_msgServer_RegisterHostChain() {
 			},
 			want:    nil,
 			wantErr: true,
+			err:     fmt.Errorf("host chain with id \"%s\" already exists", suite.transferPathAB.EndpointB.Chain.ChainID),
 		},
 	}
 	for _, tt := range tests {
@@ -479,7 +504,7 @@ func (suite *IntegrationTestSuite) Test_msgServer_RegisterHostChain() {
 			got, err := k.RegisterHostChain(tt.args.goCtx, tt.args.msg)
 			if err != nil {
 				suite.Require().NotNil(err)
-				suite.Require().Equal(fmt.Errorf("host chain with id \"%s\" already exists", suite.transferPathAB.EndpointB.Chain.ChainID), err)
+				suite.Require().Equal(tt.err, err)
 			}
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RegisterHostChain() error = %v, wantErr %v", err, tt.wantErr)
