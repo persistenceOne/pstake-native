@@ -22,16 +22,12 @@ func (suite *IntegrationTestSuite) TestGetSetParams() {
 		{
 			name: "normal params",
 			params: types.Params{
-				AdminAddress:     "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr",
-				FeeAddress:       "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld",
-				UpperCValueLimit: decFromStr("1.1"),
-				LowerCValueLimit: decFromStr("0.9"),
+				AdminAddress: "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr",
+				FeeAddress:   "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld",
 			},
 			expected: types.Params{
-				AdminAddress:     "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr",
-				FeeAddress:       "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld",
-				UpperCValueLimit: decFromStr("1.1"),
-				LowerCValueLimit: decFromStr("0.9"),
+				AdminAddress: "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr",
+				FeeAddress:   "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld",
 			},
 		},
 	}
@@ -274,9 +270,8 @@ func (suite *IntegrationTestSuite) TestUpdateCValues() {
 	suite.Require().NotPanics(func() { pstakeApp.LiquidStakeIBCKeeper.UpdateCValues(ctx) })
 
 	// lower limits so that chain goes out of limits
-	params := pstakeApp.LiquidStakeIBCKeeper.GetParams(ctx)
-	params.UpperCValueLimit = sdk.MustNewDecFromStr("0.5")
-	pstakeApp.LiquidStakeIBCKeeper.SetParams(ctx, params)
+	hc.Params.UpperCValueLimit = sdk.MustNewDecFromStr("0.5")
+	pstakeApp.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
 	suite.Require().NotPanics(func() { pstakeApp.LiquidStakeIBCKeeper.UpdateCValues(ctx) })
 	hc, _ = pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
 	suite.Require().Equal(false, hc.Active)

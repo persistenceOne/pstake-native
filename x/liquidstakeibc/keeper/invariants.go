@@ -19,7 +19,7 @@ func CValueLimits(k Keeper) sdk.Invariant {
 		str := ""
 		broken := false
 		for _, hc := range hostChains {
-			if !k.CValueWithinLimits(ctx, hc) {
+			if !k.CValueWithinLimits(hc) {
 				str = fmt.Sprintf("chainID: %s, cValue: %s \n", hc.ChainId, hc.CValue)
 			}
 		}

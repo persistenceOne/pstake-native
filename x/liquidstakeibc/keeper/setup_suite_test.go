@@ -155,13 +155,21 @@ func (suite *IntegrationTestSuite) SetupHostChainAB() {
 	lsmBondFactor, err := sdk.NewDecFromStr("50")
 	suite.NoError(err)
 
+	upperCValueLimit, err := sdk.NewDecFromStr("1.05")
+	suite.NoError(err)
+
+	lowerCValueLimit, err := sdk.NewDecFromStr("0.95")
+	suite.NoError(err)
+
 	hostChainLSParams := &types.HostChainLSParams{
-		DepositFee:      depositFee,
-		RestakeFee:      restakeFee,
-		UnstakeFee:      unstakeFee,
-		RedemptionFee:   redemptionFee,
-		LsmValidatorCap: lsmValidatorCap,
-		LsmBondFactor:   lsmBondFactor,
+		DepositFee:       depositFee,
+		RestakeFee:       restakeFee,
+		UnstakeFee:       unstakeFee,
+		RedemptionFee:    redemptionFee,
+		LsmValidatorCap:  lsmValidatorCap,
+		LsmBondFactor:    lsmBondFactor,
+		UpperCValueLimit: upperCValueLimit,
+		LowerCValueLimit: lowerCValueLimit,
 	}
 
 	validators := make([]*types.Validator, 0)

@@ -236,6 +236,20 @@ func (k msgServer) UpdateHostChain(
 				return nil, err
 			}
 			hc.Params.MaxEntries = uint32(entries)
+		case types.KeyUpperCValueLimit:
+			limit, err := sdktypes.NewDecFromStr(update.Value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+			// limit validated in msg.ValidateBasic()
+			hc.Params.UpperCValueLimit = limit
+		case types.KeyLowerCValueLimit:
+			limit, err := sdktypes.NewDecFromStr(update.Value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+			// limit validated in msg.ValidateBasic()
+			hc.Params.LowerCValueLimit = limit
 		case types.KeyRedelegationAcceptableDelta:
 			redelegationAcceptableDelta, ok := sdktypes.NewIntFromString(update.Value)
 			if !ok {

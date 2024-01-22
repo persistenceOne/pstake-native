@@ -384,10 +384,8 @@ func TestMsgUpdateParams(t *testing.T) {
 	require.Equal(t, nil, msgUpdateParams.ValidateBasic())
 
 	invalidAddrMsg := types.NewMsgUpdateParams(sdk.AccAddress("test"), types.Params{
-		AdminAddress:     addr1.String(),
-		FeeAddress:       addr1.String(),
-		UpperCValueLimit: sdk.OneDec(),
-		LowerCValueLimit: sdk.ZeroDec(),
+		AdminAddress: addr1.String(),
+		FeeAddress:   addr1.String(),
 	})
 	require.Error(t, invalidAddrMsg.ValidateBasic())
 	require.Panics(t, func() { invalidAddrMsg.GetSigners() })

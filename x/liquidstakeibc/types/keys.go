@@ -70,6 +70,8 @@ const (
 	KeyLSMValidatorCap             string = "lsm_validator_cap"
 	KeyLSMBondFactor               string = "lsm_bond_factor"
 	KeyMaxEntries                  string = "max_entries"
+	KeyUpperCValueLimit            string = "upper_c_value_limit"
+	KeyLowerCValueLimit            string = "lower_c_value_limit"
 	KeyRedelegationAcceptableDelta string = "redelegation_acceptable_delta"
 	KeyMinimumDeposit              string = "min_deposit"
 	KeyActive                      string = "active"

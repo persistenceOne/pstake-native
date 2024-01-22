@@ -310,6 +310,24 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			if entries <= 0 {
 				return fmt.Errorf("max entries undelegation/redelegation cannot be zero or lesser, found %v", entries)
 			}
+		case KeyUpperCValueLimit:
+			limit, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if limit.LT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid c_value upper limit value, should be 1 <= limit")
+			}
+		case KeyLowerCValueLimit:
+			limit, err := sdk.NewDecFromStr(update.Value)
+			if err != nil {
+				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
+			}
+
+			if limit.GT(sdk.OneDec()) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid c_value upper limit value, should be limit <= 1")
+			}
 		case KeyRedelegationAcceptableDelta:
 			redelegationAcceptableDelta, ok := sdk.NewIntFromString(update.Value)
 			if !ok {
