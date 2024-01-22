@@ -231,6 +231,7 @@ func TestHostChain_Validate(t *testing.T) {
 		UnbondingFactor    int64
 		Active             bool
 		AutoCompoundFactor sdk.Dec
+		RewardParam        *types.RewardParams
 	}
 	validFields := func() fields {
 		return fields{
@@ -308,6 +309,86 @@ func TestHostChain_Validate(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid empty chain-id",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.ChainId = ""
+				return newfields
+			},
+			wantErr: true,
+		}, {
+			name: "invalid too long chain-id",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.ChainId = "chainA-11111111111111111111111111111111111111111111111111111111111111111111111"
+				return newfields
+			},
+			wantErr: true,
+		}, {
+			name: "invalid connection",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.ConnectionId = "c"
+				return newfields
+			},
+			wantErr: true,
+		}, {
+			name: "invalid port",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.PortId = ""
+				return newfields
+			},
+			wantErr: true,
+		}, {
+			name: "invalid channel",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.ChannelId = ""
+				return newfields
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid delegationAcc",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.DelegationAccount = &types.ICAAccount{
+					Address:      "",
+					Balance:      sdk.Coin{},
+					Owner:        "",
+					ChannelState: 0,
+				}
+				return newfields
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid rewards Acc",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.RewardsAccount = &types.ICAAccount{
+					Address:      "",
+					Balance:      sdk.Coin{},
+					Owner:        "",
+					ChannelState: 0,
+				}
+				return newfields
+			},
+			wantErr: true,
+		}, {
+			name: "invalid rewards autocompound param",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.RewardParam = &types.RewardParams{
+					Denom:       "",
+					Destination: "",
+				}
+				return newfields
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -328,6 +409,7 @@ func TestHostChain_Validate(t *testing.T) {
 				UnbondingFactor:    ttfields.UnbondingFactor,
 				Active:             ttfields.Active,
 				AutoCompoundFactor: ttfields.AutoCompoundFactor,
+				RewardParams:       ttfields.RewardParam,
 			}
 			if err := hc.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
@@ -733,4 +815,139 @@ func TestMintDenomToHostDenom(t *testing.T) {
 	hostDenom, found = types.MintDenomToHostDenom("tk/uatom")
 	require.Equal(t, "tk/uatom", hostDenom)
 	require.Equal(t, false, found)
+}
+
+func TestICAAccount_Validate(t *testing.T) {
+	type fields struct {
+		Address      string
+		Balance      sdk.Coin
+		Owner        string
+		ChannelState types.ICAAccount_ChannelState
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "Valid",
+			fields: fields{
+				Address:      authtypes.NewModuleAddress("test").String(),
+				Balance:      sdk.NewInt64Coin(ibcDenom, 100),
+				Owner:        types.DefaultDelegateAccountPortOwner("chainA-1"),
+				ChannelState: 0,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Invalid channel state",
+			fields: fields{
+				Address:      authtypes.NewModuleAddress("test").String(),
+				Balance:      sdk.NewInt64Coin(ibcDenom, 100),
+				Owner:        types.DefaultDelegateAccountPortOwner("chainA-1"),
+				ChannelState: 3,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Invalid owner",
+			fields: fields{
+				Address:      authtypes.NewModuleAddress("test").String(),
+				Balance:      sdk.NewInt64Coin(ibcDenom, 100),
+				Owner:        "",
+				ChannelState: 1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Invalid port invalid",
+			fields: fields{
+				Address:      authtypes.NewModuleAddress("test").String(),
+				Balance:      sdk.NewInt64Coin(ibcDenom, 100),
+				Owner:        "//",
+				ChannelState: 1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Invalid address",
+			fields: fields{
+				Address:      "cosmos1x",
+				Balance:      sdk.NewInt64Coin(ibcDenom, 100),
+				Owner:        types.DefaultDelegateAccountPortOwner("chainA-1"),
+				ChannelState: 1,
+			},
+			wantErr: true,
+		}, {
+			name: "Invalid coin",
+			fields: fields{
+				Address:      authtypes.NewModuleAddress("test").String(),
+				Balance:      sdk.Coin{Denom: ibcDenom, Amount: sdk.NewInt(-1)},
+				Owner:        types.DefaultDelegateAccountPortOwner("chainA-1"),
+				ChannelState: 1,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			icaAccount := &types.ICAAccount{
+				Address:      tt.fields.Address,
+				Balance:      tt.fields.Balance,
+				Owner:        tt.fields.Owner,
+				ChannelState: tt.fields.ChannelState,
+			}
+			if err := icaAccount.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestRewardParams_Validate(t *testing.T) {
+	type fields struct {
+		Denom       string
+		Destination string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "valid",
+			fields: fields{
+				Denom:       "uatom",
+				Destination: authtypes.NewModuleAddressOrBech32Address("addr").String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid denom",
+			fields: fields{
+				Denom:       "",
+				Destination: authtypes.NewModuleAddressOrBech32Address("addr").String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid address",
+			fields: fields{
+				Denom:       "uatom",
+				Destination: "addr",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rewardParams := &types.RewardParams{
+				Denom:       tt.fields.Denom,
+				Destination: tt.fields.Destination,
+			}
+			if err := rewardParams.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
 }
