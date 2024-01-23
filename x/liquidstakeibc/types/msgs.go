@@ -51,19 +51,19 @@ func NewMsgRegisterHostChain(
 ) *MsgRegisterHostChain {
 	depositFeeDec, err := sdk.NewDecFromStr(depositFee)
 	if err != nil {
-		depositFeeDec = sdk.NewDec(-1) // set it as -1, it will be picked up in msg validation
+		panic("Not used in core logic.")
 	}
 	restakeFeeDec, err := sdk.NewDecFromStr(restakeFee)
 	if err != nil {
-		restakeFeeDec = sdk.NewDec(-1) // set it as -1, it will be picked up in msg validation
+		panic("Not used in core logic.")
 	}
 	unstakeFeeDec, err := sdk.NewDecFromStr(unstakeFee)
 	if err != nil {
-		unstakeFeeDec = sdk.NewDec(-1) // set it as -1, it will be picked up in msg validation
+		panic("Not used in core logic.")
 	}
 	redemptionFeeDec, err := sdk.NewDecFromStr(redemptionFee)
 	if err != nil {
-		redemptionFeeDec = sdk.NewDec(-1) // set it as -1, it will be picked up in msg validation
+		panic("Not used in core logic.")
 	}
 
 	return &MsgRegisterHostChain{
