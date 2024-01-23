@@ -71,11 +71,9 @@ func (k *Keeper) OnChanOpenAck(
 	switch {
 	case portOwner == hc.DelegationAccount.Owner:
 		hc.DelegationAccount.Address = address
-		hc.DelegationAccount.Owner = portOwner
 		hc.DelegationAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATED
 	case portOwner == hc.RewardsAccount.Owner:
 		hc.RewardsAccount.Address = address
-		hc.RewardsAccount.Owner = portOwner
 		hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATED
 	default:
 		k.Logger(ctx).Info("Unrecognized ICA account type for the module", "port-id:", portID, "chain-id", chainID)
