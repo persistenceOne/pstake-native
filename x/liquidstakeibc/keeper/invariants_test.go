@@ -19,5 +19,5 @@ func (suite *IntegrationTestSuite) TestCValueLimits() {
 	k.SetHostChain(ctx, hc)
 	str, broken = keeper.CValueLimits(k)(ctx)
 	suite.True(broken)
-	suite.Equal("liquidstakeibc: cvalue-limits invariant\ncvalue out of bounds: true, values as follows \n chainID: testchain2-1, cValue: 2.000000000000000000 \n \n", str)
+	suite.Equal("liquidstakeibc: cvalue-limits invariant\ncvalue out of bounds: true, values as follows \n chainID: testchain2-1, cValue: 2.000000000000000000 \n\n \n", str)
 }
