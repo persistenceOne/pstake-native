@@ -49,10 +49,22 @@ func NewMsgRegisterHostChain(
 	authority string,
 	autocompoundFactor int64,
 ) *MsgRegisterHostChain {
-	depositFeeDec, _ := sdk.NewDecFromStr(depositFee)
-	restakeFeeDec, _ := sdk.NewDecFromStr(restakeFee)
-	unstakeFeeDec, _ := sdk.NewDecFromStr(unstakeFee)
-	redemptionFeeDec, _ := sdk.NewDecFromStr(redemptionFee)
+	depositFeeDec, err := sdk.NewDecFromStr(depositFee)
+	if err != nil {
+		panic("Not used in core logic.")
+	}
+	restakeFeeDec, err := sdk.NewDecFromStr(restakeFee)
+	if err != nil {
+		panic("Not used in core logic.")
+	}
+	unstakeFeeDec, err := sdk.NewDecFromStr(unstakeFee)
+	if err != nil {
+		panic("Not used in core logic.")
+	}
+	redemptionFeeDec, err := sdk.NewDecFromStr(redemptionFee)
+	if err != nil {
+		panic("Not used in core logic.")
+	}
 
 	return &MsgRegisterHostChain{
 		ConnectionId:       connectionID,
