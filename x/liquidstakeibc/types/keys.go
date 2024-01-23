@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
@@ -92,6 +93,8 @@ var (
 	RedelegationsKey      = []byte{0x08}
 	RedelegationTxKey     = []byte{0x09}
 )
+
+var MaxFee = sdk.MustNewDecFromStr("0.5")
 
 func GetUnbondingStoreKey(chainID string, epochNumber int64) []byte {
 	return append([]byte(chainID), []byte(strconv.FormatInt(epochNumber, 10))...)

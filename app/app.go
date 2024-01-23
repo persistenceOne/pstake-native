@@ -1027,42 +1027,42 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 					hc.Params.UpperCValueLimit = upperLimit
 					hc.Params.LowerCValueLimit = lowerLimit
 					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-				
+
 				case "osmosis-1":
 					upperLimit, _ := sdk.NewDecFromStr("1.01")
 					lowerLimit, _ := sdk.NewDecFromStr("0.97")
 					hc.Params.UpperCValueLimit = upperLimit
 					hc.Params.LowerCValueLimit = lowerLimit
 					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-				
+
 				case "theta-testnet-001":
 					upperLimit, _ := sdk.NewDecFromStr("1.01")
 					lowerLimit, _ := sdk.NewDecFromStr("0.9")
 					hc.Params.UpperCValueLimit = upperLimit
 					hc.Params.LowerCValueLimit = lowerLimit
 					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-				
+
 				case "osmo-test-5":
 					upperLimit, _ := sdk.NewDecFromStr("1.01")
 					lowerLimit, _ := sdk.NewDecFromStr("0.95")
 					hc.Params.UpperCValueLimit = upperLimit
 					hc.Params.LowerCValueLimit = lowerLimit
 					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-				
+
 				case "dydx-test-4":
 					upperLimit, _ := sdk.NewDecFromStr("1.01")
 					lowerLimit, _ := sdk.NewDecFromStr("0.95")
 					hc.Params.UpperCValueLimit = upperLimit
 					hc.Params.LowerCValueLimit = lowerLimit
 					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-				
+
 				case "gaia-1":
 					upperLimit, _ := sdk.NewDecFromStr("1.01")
 					lowerLimit, _ := sdk.NewDecFromStr("0.95")
 					hc.Params.UpperCValueLimit = upperLimit
 					hc.Params.LowerCValueLimit = lowerLimit
 					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-				
+
 				}
 			}
 
