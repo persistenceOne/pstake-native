@@ -207,62 +207,80 @@ func TestMsgUpdateHostChain(t *testing.T) {
 		{
 			Key:   types.KeySetWithdrawAddress,
 			Value: "",
-		}, {
+		},
+		{
 			Key:   types.KeyAddValidator,
 			Value: "{\"operator_address\":\"cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt\",\"status\":\"BOND_STATUS_UNSPECIFIED\",\"weight\":\"0\",\"delegated_amount\":\"0\",\"exchange_rate\":\"1\"}",
-		}, {
+		},
+		{
 			Key:   types.KeyRemoveValidator,
 			Value: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
-		}, {
+		},
+		{
 			Key:   types.KeyValidatorUpdate,
 			Value: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt",
-		}, {
+		},
+		{
 			Key:   types.KeyValidatorWeight,
 			Value: "cosmosvaloper1hcqg5wj9t42zawqkqucs7la85ffyv08le09ljt,1",
-		}, {
+		},
+		{
 			Key:   types.KeyRedemptionFee,
 			Value: "0",
-		}, {
+		},
+		{
 			Key:   types.KeyDepositFee,
 			Value: "0",
-		}, {
+		},
+		{
 			Key:   types.KeyRestakeFee,
 			Value: "0",
-		}, {
+		},
+		{
 			Key:   types.KeyUnstakeFee,
 			Value: "0",
 		},
 		{
 			Key:   types.KeyUpperCValueLimit,
 			Value: "1.1",
-		}, {
+		},
+		{
 			Key:   types.KeyLowerCValueLimit,
 			Value: "0.9",
-		}, {
+		},
+		{
 			Key:   types.KeyMinimumDeposit,
 			Value: "1",
-		}, {
+		},
+		{
 			Key:   types.KeyLSMValidatorCap,
 			Value: "0",
-		}, {
+		},
+		{
 			Key:   types.KeyLSMValidatorCap,
 			Value: "1",
-		}, {
+		},
+		{
 			Key:   types.KeyLSMValidatorCap,
 			Value: "0.5",
-		}, {
+		},
+		{
 			Key:   types.KeyLSMBondFactor,
 			Value: "-1",
-		}, {
+		},
+		{
 			Key:   types.KeyLSMBondFactor,
 			Value: "250",
-		}, {
+		},
+		{
 			Key:   types.KeyLSMBondFactor,
 			Value: "0",
-		}, {
+		},
+		{
 			Key:   types.KeyActive,
 			Value: "true",
-		}, {
+		},
+		{
 			Key:   types.KeyAutocompoundFactor,
 			Value: "2",
 		},
