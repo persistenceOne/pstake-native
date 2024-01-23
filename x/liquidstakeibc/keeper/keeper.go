@@ -23,11 +23,6 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
-const (
-	Percentage int64 = 100
-	DaysInYear int64 = 365
-)
-
 type Keeper struct {
 	cdc      codec.BinaryCodec
 	storeKey storetypes.StoreKey
@@ -350,7 +345,7 @@ func (k *Keeper) CValueWithinLimits(hc *types.HostChain) bool {
 }
 
 func (k *Keeper) CalculateAutocompoundLimit(autocompoundFactor sdk.Dec) sdk.Dec {
-	return autocompoundFactor.Quo(sdk.NewDec(Percentage)).Quo(sdk.NewDec(DaysInYear))
+	return autocompoundFactor.Quo(sdk.NewDec(types.Percentage)).Quo(sdk.NewDec(types.DaysInYear))
 }
 
 // Hooks gets the hooks for liquidstakeibc *Keeper {

@@ -56,6 +56,10 @@ const (
 	UnbondingStateEpochLimit = 4
 
 	LSMDepositFilterLimit = 10000
+
+	Percentage int64 = 100
+
+	DaysInYear int64 = 365
 )
 
 // Consts for KV updates, update host chain
