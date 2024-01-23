@@ -345,7 +345,7 @@ func (k *Keeper) CValueWithinLimits(hc *types.HostChain) bool {
 }
 
 func (k *Keeper) CalculateAutocompoundLimit(autocompoundFactor sdk.Dec) sdk.Dec {
-	return autocompoundFactor.Quo(sdk.NewDec(100)).Quo(sdk.NewDec(365))
+	return autocompoundFactor.Quo(sdk.NewDec(types.Percentage)).Quo(sdk.NewDec(types.DaysInYear))
 }
 
 // Hooks gets the hooks for liquidstakeibc *Keeper {
