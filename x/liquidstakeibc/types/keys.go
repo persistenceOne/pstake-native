@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strconv"
 	"time"
 
@@ -91,6 +92,9 @@ var (
 	LSMDepositKey         = []byte{0x07}
 	RedelegationsKey      = []byte{0x08}
 	RedelegationTxKey     = []byte{0x09}
+)
+var (
+	MaxFee = sdk.MustNewDecFromStr("0.5")
 )
 
 func GetUnbondingStoreKey(chainID string, epochNumber int64) []byte {

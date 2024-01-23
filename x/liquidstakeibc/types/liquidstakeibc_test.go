@@ -318,7 +318,8 @@ func TestHostChain_Validate(t *testing.T) {
 				return newfields
 			},
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "invalid too long chain-id",
 			fields: func() fields {
 				newfields := validFields()
@@ -326,7 +327,8 @@ func TestHostChain_Validate(t *testing.T) {
 				return newfields
 			},
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "invalid connection",
 			fields: func() fields {
 				newfields := validFields()
@@ -334,7 +336,8 @@ func TestHostChain_Validate(t *testing.T) {
 				return newfields
 			},
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "invalid port",
 			fields: func() fields {
 				newfields := validFields()
@@ -342,7 +345,8 @@ func TestHostChain_Validate(t *testing.T) {
 				return newfields
 			},
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "invalid channel",
 			fields: func() fields {
 				newfields := validFields()
@@ -378,7 +382,8 @@ func TestHostChain_Validate(t *testing.T) {
 				return newfields
 			},
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "invalid rewards autocompound param",
 			fields: func() fields {
 				newfields := validFields()
@@ -897,7 +902,8 @@ func TestICAAccount_Validate(t *testing.T) {
 				ChannelState: 1,
 			},
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "Invalid coin",
 			fields: fields{
 				Address:      authtypes.NewModuleAddress("test").String(),

@@ -160,17 +160,17 @@ func (rewardParams *RewardParams) Validate() error {
 }
 
 func (params *HostChainLSParams) Validate() error {
-	if params.DepositFee.LT(sdk.ZeroDec()) || params.DepositFee.GT(sdk.OneDec()) {
-		return fmt.Errorf("host chain lsparams has invalid deposit fee, should be 0<=fee<=1")
+	if params.DepositFee.LT(sdk.ZeroDec()) || params.DepositFee.GT(MaxFee) {
+		return fmt.Errorf("host chain lsparams has invalid deposit fee, should be 0<=fee<= %s", MaxFee)
 	}
-	if params.RestakeFee.LT(sdk.ZeroDec()) || params.RestakeFee.GT(sdk.OneDec()) {
-		return fmt.Errorf("host chain lsparams has invalid restake fee, should be 0<=fee<=1\"")
+	if params.RestakeFee.LT(sdk.ZeroDec()) || params.RestakeFee.GT(MaxFee) {
+		return fmt.Errorf("host chain lsparams has invalid restake fee, should be 0<=fee<= %s", MaxFee)
 	}
-	if params.RedemptionFee.LT(sdk.ZeroDec()) || params.RedemptionFee.GT(sdk.OneDec()) {
-		return fmt.Errorf("host chain lsparams has invalid redemption fee, should be 0<=fee<=1\"")
+	if params.RedemptionFee.LT(sdk.ZeroDec()) || params.RedemptionFee.GT(MaxFee) {
+		return fmt.Errorf("host chain lsparams has invalid redemption fee, should be 0<=fee<= %s", MaxFee)
 	}
-	if params.UnstakeFee.LT(sdk.ZeroDec()) || params.UnstakeFee.GT(sdk.OneDec()) {
-		return fmt.Errorf("host chain lsparams has invalid unstake fee, should be 0<=fee<=1\"")
+	if params.UnstakeFee.LT(sdk.ZeroDec()) || params.UnstakeFee.GT(MaxFee) {
+		return fmt.Errorf("host chain lsparams has invalid unstake fee, should be 0<=fee<= %s", MaxFee)
 	}
 	if params.RedelegationAcceptableDelta.LT(sdk.ZeroInt()) {
 		return fmt.Errorf("host chain has invalid redelegation acceptable delta expected >= 0")

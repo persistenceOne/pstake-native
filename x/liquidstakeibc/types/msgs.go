@@ -120,34 +120,34 @@ func (m *MsgRegisterHostChain) ValidateBasic() error {
 	}
 
 	// deposit fee must be positive or zero
-	if m.DepositFee.LT(sdk.ZeroDec()) || m.DepositFee.GT(sdk.OneDec()) {
+	if m.DepositFee.LT(sdk.ZeroDec()) || m.DepositFee.GT(MaxFee) {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			"deposit fee quantity must be greater or equal than zero and less than equal one",
+			"deposit fee quantity must be greater or equal than zero and less than equal %s", MaxFee,
 		)
 	}
 
 	// restake fee must be positive or zero
-	if m.RestakeFee.LT(sdk.ZeroDec()) || m.RestakeFee.GT(sdk.OneDec()) {
+	if m.RestakeFee.LT(sdk.ZeroDec()) || m.RestakeFee.GT(MaxFee) {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			"restake fee quantity must be greater or equal than zero and less than equal one",
+			"restake fee quantity must be greater or equal than zero and less than equal %s", MaxFee,
 		)
 	}
 
 	// unstake fee must be positive or zero
-	if m.UnstakeFee.LT(sdk.ZeroDec()) || m.UnstakeFee.GT(sdk.OneDec()) {
+	if m.UnstakeFee.LT(sdk.ZeroDec()) || m.UnstakeFee.GT(MaxFee) {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			"unstake fee quantity must be greater or equal than zero and less than equal one",
+			"unstake fee quantity must be greater or equal than zero and less than equal %s", MaxFee,
 		)
 	}
 
 	// redemption deposit must be positive or zero
-	if m.RedemptionFee.LT(sdk.ZeroDec()) || m.RedemptionFee.GT(sdk.OneDec()) {
+	if m.RedemptionFee.LT(sdk.ZeroDec()) || m.RedemptionFee.GT(MaxFee) {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
-			"redemption fee quantity must be greater or equal than zero and less than equal one",
+			"redemption fee quantity must be greater or equal than zero and less than equal %s", MaxFee,
 		)
 	}
 
@@ -253,8 +253,8 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
 
-			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
-				return sdkerrors.ErrInvalidRequest.Wrapf("invalid deposit fee value should be 0 <= fee <= 1")
+			if fee.LT(sdk.ZeroDec()) || fee.GT(MaxFee) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid deposit fee value should be 0 <= fee <= %s", MaxFee)
 			}
 		case KeyRestakeFee:
 			fee, err := sdk.NewDecFromStr(update.Value)
@@ -262,8 +262,8 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
 
-			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
-				return sdkerrors.ErrInvalidRequest.Wrapf("invalid restake fee value should be 0 <= fee <= 1")
+			if fee.LT(sdk.ZeroDec()) || fee.GT(MaxFee) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid restake fee value should be 0 <= fee <= %s", MaxFee)
 			}
 		case KeyRedemptionFee:
 			fee, err := sdk.NewDecFromStr(update.Value)
@@ -271,8 +271,8 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
 
-			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
-				return sdkerrors.ErrInvalidRequest.Wrapf("invalid redemption fee value should be 0 <= fee <= 1")
+			if fee.LT(sdk.ZeroDec()) || fee.GT(MaxFee) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid redemption fee value should be 0 <= fee <= %s", MaxFee)
 			}
 		case KeyUnstakeFee:
 			fee, err := sdk.NewDecFromStr(update.Value)
@@ -280,8 +280,8 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 				return fmt.Errorf("unable to parse string to sdk.Dec: %w", err)
 			}
 
-			if fee.LT(sdk.ZeroDec()) || fee.GT(sdk.OneDec()) {
-				return sdkerrors.ErrInvalidRequest.Wrapf("invalid unstake fee value should be 0 <= fee <= 1")
+			if fee.LT(sdk.ZeroDec()) || fee.GT(MaxFee) {
+				return sdkerrors.ErrInvalidRequest.Wrapf("invalid unstake fee value should be 0 <= fee <= %s", MaxFee)
 			}
 		case KeyLSMValidatorCap:
 			validatorCap, err := sdk.NewDecFromStr(update.Value)
