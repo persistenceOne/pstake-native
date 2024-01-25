@@ -97,6 +97,14 @@ func (hc *HostChain) Validate() error {
 	if err != nil {
 		return err
 	}
+	err = sdk.ValidateDenom(hc.HostDenom)
+	if err != nil {
+		return err
+	}
+	err = sdk.ValidateDenom(hc.MintDenom())
+	if err != nil {
+		return err
+	}
 	if hc.DelegationAccount != nil {
 		err = hc.DelegationAccount.Validate()
 		if err != nil {

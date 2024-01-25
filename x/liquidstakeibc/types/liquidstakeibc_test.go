@@ -395,6 +395,24 @@ func TestHostChain_Validate(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid host denom",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.HostDenom = "@@@"
+				return newfields
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid mint_denom",
+			fields: func() fields {
+				newfields := validFields()
+				newfields.HostDenom = "denomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenomdenom"
+				return newfields
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
