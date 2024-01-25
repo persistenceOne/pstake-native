@@ -272,3 +272,12 @@ func (m *MsgUpdateWhitelistedValidators) ValidateBasic() error {
 
 	return nil
 }
+
+func (w *WhitelistedValidator) GetValidatorAddress() sdk.ValAddress {
+	valAddr, err := sdk.ValAddressFromBech32(w.ValidatorAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return valAddr
+}

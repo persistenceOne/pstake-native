@@ -25,6 +25,9 @@ var (
 
 	// Const variables
 
+	// TotalValidatorWeight specifies the target sum of validator weights in the whitelist.
+	TotalValidatorWeight = math.NewInt(10000)
+
 	// RebalancingTrigger if the maximum difference and needed each redelegation amount exceeds it, asset rebalacing will be executed.
 	RebalancingTrigger = math.LegacyNewDecWithPrec(1, 3) // "0.001000000000000000"
 
