@@ -49,6 +49,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+- [751](https://github.com/persistenceOne/pstake-native/pull/751) Set LSM bond factor as -1 by default.
 - [750](https://github.com/persistenceOne/pstake-native/pull/750) Shares to tokens.
 - [734](https://github.com/persistenceOne/pstake-native/pull/734) Host chain duplication check.
 - [731](https://github.com/persistenceOne/pstake-native/pull/731) Set limit to LSM deposit filtering.
