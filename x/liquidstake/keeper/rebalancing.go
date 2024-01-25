@@ -239,7 +239,7 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 	}
 
 	// Withdraw rewards of LiquidStakeProxyAcc and re-staking
-	k.WithdrawLiquidRewards(ctx, types.LiquidStakeProxyAcc)
+	totalRewardsWithdrawn := k.WithdrawLiquidRewards(ctx, types.LiquidStakeProxyAcc)
 
 	// prepare to re-staking with proxyAccBalance
 	proxyAccBalance = k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
@@ -248,8 +248,8 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 	params := k.GetParams(ctx)
 
 	autocompoundFee := sdk.NewCoin(proxyAccBalance.Denom, math.ZeroInt())
-	if !params.AutocompoundFeeRate.IsZero() {
-		autocompoundFee = sdk.NewCoin(proxyAccBalance.Denom, params.AutocompoundFeeRate.MulInt(proxyAccBalance.Amount).TruncateInt())
+	if !params.AutocompoundFeeRate.IsZero() && totalRewardsWithdrawn.IsPositive() {
+		autocompoundFee = sdk.NewCoin(proxyAccBalance.Denom, params.AutocompoundFeeRate.MulInt(totalRewardsWithdrawn).TruncateInt())
 	}
 
 	// skip when no active liquid validator
