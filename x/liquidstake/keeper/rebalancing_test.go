@@ -24,9 +24,9 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	stakingAmt := math.NewInt(49998)
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(10)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(3000)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(3000)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(3000)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	reds := s.keeper.UpdateLiquidValidatorSet(s.ctx)
@@ -46,19 +46,19 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	proxyAccDel3, found := s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[2])
 	s.Require().True(found)
 
-	s.Require().EqualValues(proxyAccDel1.Shares.TruncateInt(), math.NewInt(16666))
-	s.Require().EqualValues(proxyAccDel2.Shares.TruncateInt(), math.NewInt(16666))
-	s.Require().EqualValues(proxyAccDel3.Shares.TruncateInt(), math.NewInt(16666))
+	s.Require().EqualValues(proxyAccDel1.Shares.TruncateInt(), math.NewInt(16668))
+	s.Require().EqualValues(proxyAccDel2.Shares.TruncateInt(), math.NewInt(16665))
+	s.Require().EqualValues(proxyAccDel3.Shares.TruncateInt(), math.NewInt(16665))
 	totalLiquidTokens, _ := s.keeper.GetAllLiquidValidators(s.ctx).TotalLiquidTokens(s.ctx, s.app.StakingKeeper, false)
 	s.Require().EqualValues(stakingAmt, totalLiquidTokens)
 	s.printRedelegationsLiquidTokens()
 
 	// update whitelist validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(10)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(2500)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(2500)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(2500)},
+		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(2500)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
@@ -97,11 +97,11 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 
 	// update whitelist validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(10)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(2000)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(2000)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(2000)},
+		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(2000)},
+		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(2000)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
@@ -132,10 +132,10 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 
 	// remove whitelist validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(10)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(2500)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(2500)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(2500)},
+		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(2500)},
 	}
 
 	testhelpers.PP(s.keeper.GetAllLiquidValidatorStates(s.ctx))
@@ -168,8 +168,8 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 
 	// remove whitelist validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(10)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(5000)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(5000)},
 	}
 
 	s.keeper.SetParams(s.ctx, params)
@@ -291,14 +291,14 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	s.fundAddr(s.delAddrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt)))
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[5].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[6].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[7].String(), TargetWeight: math.NewInt(1)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[5].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[6].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[7].String(), TargetWeight: math.NewInt(500)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	reds := s.keeper.UpdateLiquidValidatorSet(s.ctx)
@@ -316,15 +316,15 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[5].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[6].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[7].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[8].String(), TargetWeight: math.NewInt(5)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[5].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[6].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[7].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[8].String(), TargetWeight: math.NewInt(50)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24))
@@ -338,16 +338,16 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[5].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[6].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[7].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[8].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[9].String(), TargetWeight: math.NewInt(1)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[5].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[6].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[7].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[8].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[9].String(), TargetWeight: math.NewInt(500)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24))
@@ -370,15 +370,15 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 
 	// remove active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[5].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[6].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[7].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[8].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[9].String(), TargetWeight: math.NewInt(1)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[5].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[6].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[7].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[8].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[9].String(), TargetWeight: math.NewInt(500)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24))
@@ -392,18 +392,18 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[5].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[6].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[7].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[8].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[9].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[10].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[11].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[12].String(), TargetWeight: math.NewInt(1)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[5].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[6].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[7].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[8].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[9].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[10].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[11].String(), TargetWeight: math.NewInt(500)},
+		{ValidatorAddress: valOpers[12].String(), TargetWeight: math.NewInt(500)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24))
@@ -426,18 +426,18 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 
 	// modify weight
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[5].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[6].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[7].String(), TargetWeight: math.NewInt(5)},
-		{ValidatorAddress: valOpers[8].String(), TargetWeight: math.NewInt(5)},
-		{ValidatorAddress: valOpers[9].String(), TargetWeight: math.NewInt(5)},
-		{ValidatorAddress: valOpers[10].String(), TargetWeight: math.NewInt(5)},
-		{ValidatorAddress: valOpers[11].String(), TargetWeight: math.NewInt(5)},
-		{ValidatorAddress: valOpers[12].String(), TargetWeight: math.NewInt(5)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(600)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(600)},
+		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(600)},
+		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(600)},
+		{ValidatorAddress: valOpers[5].String(), TargetWeight: math.NewInt(600)},
+		{ValidatorAddress: valOpers[6].String(), TargetWeight: math.NewInt(600)},
+		{ValidatorAddress: valOpers[7].String(), TargetWeight: math.NewInt(300)},
+		{ValidatorAddress: valOpers[8].String(), TargetWeight: math.NewInt(300)},
+		{ValidatorAddress: valOpers[9].String(), TargetWeight: math.NewInt(300)},
+		{ValidatorAddress: valOpers[10].String(), TargetWeight: math.NewInt(300)},
+		{ValidatorAddress: valOpers[11].String(), TargetWeight: math.NewInt(300)},
+		{ValidatorAddress: valOpers[12].String(), TargetWeight: math.NewInt(300)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24))
@@ -474,8 +474,8 @@ func (s *KeeperTestSuite) TestAutocompoundStakingRewards() {
 	params := s.keeper.GetParams(s.ctx)
 
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(10)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(5000)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(5000)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
@@ -517,9 +517,9 @@ func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
 	params := s.keeper.GetParams(s.ctx)
 
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(10)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(2000)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(2000)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(2000)},
 	}
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
@@ -545,26 +545,69 @@ func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
 	lvs := s.keeper.GetAllLiquidValidators(s.ctx)
 	s.Require().Len(lvs, 0)
 
-	autocompoundFee := params.AutocompoundFeeRate.Mul(nasBefore.TotalRemainingRewards)
-
 	nasAfter := s.keeper.GetNetAmountState(s.ctx)
 	s.Require().EqualValues(sdk.ZeroDec(), nasAfter.TotalRemainingRewards)
-	s.Require().EqualValues(nasBefore.TotalRemainingRewards.Sub(autocompoundFee).TruncateInt(), nasAfter.ProxyAccBalance)
+	s.Require().EqualValues(nasBefore.TotalRemainingRewards.TruncateInt(), nasAfter.ProxyAccBalance)
 	s.Require().EqualValues(sdk.ZeroDec(), nasAfter.TotalDelShares)
 	s.Require().EqualValues(sdk.ZeroInt(), nasAfter.TotalLiquidTokens)
-	s.Require().EqualValues(nasBefore.NetAmount.TruncateInt(), nasAfter.NetAmount.Add(autocompoundFee).TruncateInt())
+	s.Require().EqualValues(nasBefore.NetAmount.TruncateInt(), nasAfter.NetAmount.TruncateInt())
 
 	s.completeRedelegationUnbonding()
 	nasAfter2 := s.keeper.GetNetAmountState(s.ctx)
 	s.Require().EqualValues(nasAfter.ProxyAccBalance.Add(nasBefore.TotalLiquidTokens), nasAfter2.ProxyAccBalance)
-	s.Require().EqualValues(nasBefore.NetAmount.TruncateInt(), nasAfter2.NetAmount.Add(autocompoundFee).TruncateInt())
+	s.Require().EqualValues(nasBefore.NetAmount.TruncateInt(), nasAfter2.NetAmount.TruncateInt())
+}
 
+func (s *KeeperTestSuite) TestUndelegatedFundsNotBecomeFees() {
+	_, valOpers, _ := s.CreateValidators([]int64{2000000, 2000000, 2000000, 2000000})
+	params := s.keeper.GetParams(s.ctx)
+
+	// configure validators
+	params.WhitelistedValidators = []types.WhitelistedValidator{
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(2000)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(2000)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(2000)},
+		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(2000)},
+	}
+	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
+	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+
+	// stake funds
+	stakingAmt := math.NewInt(100000000)
+	s.Require().NoError(s.liquidStaking(s.delAddrs[0], stakingAmt))
+
+	// remove one validator
+	params.WhitelistedValidators = []types.WhitelistedValidator{
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(3000)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(3000)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(3000)},
+	}
+	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
+	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+
+	// unbonding should occur
+	nas := s.keeper.GetNetAmountState(s.ctx)
+	s.Require().NotEqual(nas.TotalUnbondingBalance, 0)
+
+	// query fee account balance before unbonding finishes
 	stakingParams := s.app.StakingKeeper.GetParams(s.ctx)
 	feeAccountBalance := s.app.BankKeeper.GetBalance(
 		s.ctx,
 		sdk.MustAccAddressFromBech32(params.FeeAccountAddress),
 		stakingParams.BondDenom,
 	)
+	s.Require().Equal(math.ZeroInt(), feeAccountBalance.Amount)
 
-	s.EqualValues(autocompoundFee.TruncateInt(), feeAccountBalance.Amount)
+	// complete unbondings
+	s.completeRedelegationUnbonding()
+	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+
+	// fee account has funds, but its from undelegated tokens
+	feeAccountBalanceAfterUndelegation := s.app.BankKeeper.GetBalance(
+		s.ctx,
+		sdk.MustAccAddressFromBech32(params.FeeAccountAddress),
+		stakingParams.BondDenom,
+	)
+
+	s.Require().Equal(math.ZeroInt(), feeAccountBalanceAfterUndelegation.Amount)
 }

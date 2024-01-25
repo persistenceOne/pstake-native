@@ -23,7 +23,7 @@ import (
 var whitelistedValidators = []types.WhitelistedValidator{
 	{
 		ValidatorAddress: "cosmosvaloper10e4vsut6suau8tk9m6dnrm0slgd6npe3jx5xpv",
-		TargetWeight:     math.NewInt(10),
+		TargetWeight:     math.NewInt(10000),
 	},
 	{
 		ValidatorAddress: "cosmosvaloper18hfzxheyknesfgcrttr5dg50ffnfphtwtar9fz",
