@@ -23,6 +23,7 @@ const (
 	AttributeKeyRedelegationFailCount = "redelegation_fail_count"
 	AttributeKeyLiquidAmount          = "liquid_amount"
 	AttributeKeyStakedAmount          = "staked_amount"
+	AttributeKeyUnstakeAmount         = "unstake_amount"
 	AttributeKeyPstakeAutocompoundFee = "pstake_autocompound_fee"
 
 	AttributeKeyAuthority     = "authority"
