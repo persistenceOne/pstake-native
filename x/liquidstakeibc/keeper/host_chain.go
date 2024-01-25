@@ -197,6 +197,12 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 				// shares * validator_lsm_cap - liquid_shares
 				capRoom := validator.DelegatorShares.Mul(hc.Params.LsmValidatorCap).Sub(validator.LiquidShares)
 
+				// if the bond factor functionality is disabled, calculate available room based only on the cap
+				if hc.Params.LsmBondFactor.Equal(sdk.NewDecFromInt(sdk.NewInt(-1))) {
+					validatorHasEnoughRoom = msgDelegate.Amount.Amount.LT(capRoom.TruncateInt())
+					continue
+				}
+
 				// calculate the amount of shares left to reach the validator bond cap
 				// bond_shares * bond_factor - liquid_shares
 				bondRoom := validator.ValidatorBondShares.Mul(hc.Params.LsmBondFactor).Sub(validator.LiquidShares)
