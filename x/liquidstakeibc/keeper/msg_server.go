@@ -66,6 +66,7 @@ func (k msgServer) RegisterHostChain(
 		UnstakeFee:                  msg.UnstakeFee,
 		RedemptionFee:               msg.RedemptionFee,
 		RedelegationAcceptableDelta: sdktypes.ZeroInt(),
+		LsmBondFactor:               sdktypes.NewDec(-1),
 	}
 
 	hc := &types.HostChain{
