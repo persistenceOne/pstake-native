@@ -48,6 +48,7 @@ func DefaultParams() Params {
 		MinLiquidStakeAmount:  DefaultMinLiquidStakeAmount,
 		FeeAccountAddress:     DummyFeeAccountAcc.String(),
 		AutocompoundFeeRate:   DefaultAutocompoundFeeRate,
+		CwLockedPoolAddress:   "",
 	}
 }
 
@@ -73,6 +74,7 @@ func (p Params) Validate() error {
 		{p.MinLiquidStakeAmount, validateMinLiquidStakeAmount},
 		{p.AutocompoundFeeRate, validateAutocompoundFeeRate},
 		{p.FeeAccountAddress, validateFeeAccountAddress},
+		{p.CwLockedPoolAddress, validateCwLockedPoolAddress},
 	} {
 		if err := v.validator(v.value); err != nil {
 			return err
@@ -193,6 +195,24 @@ func validateFeeAccountAddress(i interface{}) error {
 	_, err := sdk.AccAddressFromBech32(v)
 	if err != nil {
 		return fmt.Errorf("cannot convert fee account address to bech32, invalid address: %s, err: %v", v, err)
+	}
+	return nil
+}
+
+func validateCwLockedPoolAddress(i interface{}) error {
+	v, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	// allow empty address
+	if len(v) == 0 {
+		return nil
+	}
+
+	_, err := sdk.AccAddressFromBech32(v)
+	if err != nil {
+		return fmt.Errorf("cannot convert cw contract address to bech32, invalid address: %s, err: %v", v, err)
 	}
 	return nil
 }
