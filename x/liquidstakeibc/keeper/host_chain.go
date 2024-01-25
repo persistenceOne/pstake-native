@@ -199,7 +199,7 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 
 				// if the bond factor functionality is disabled, calculate available room based only on the cap
 				if hc.Params.LsmBondFactor.Equal(sdk.NewDecFromInt(sdk.NewInt(-1))) {
-					validatorHasEnoughRoom = msgDelegate.Amount.Amount.LT(capRoom.TruncateInt())
+					validatorHasEnoughRoom = sdk.NewDecFromInt(msgDelegate.Amount.Amount).Quo(val.ExchangeRate).LT(capRoom)
 					continue
 				}
 
@@ -209,8 +209,8 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 
 				// if there is room on both caps, the validator can accept the delegation we will send on the next
 				// delegation workflow (next block).
-				validatorHasEnoughRoom = msgDelegate.Amount.Amount.LT(capRoom.TruncateInt()) &&
-					msgDelegate.Amount.Amount.LT(bondRoom.TruncateInt())
+				validatorHasEnoughRoom = sdk.NewDecFromInt(msgDelegate.Amount.Amount).Quo(val.ExchangeRate).LT(capRoom) &&
+					sdk.NewDecFromInt(msgDelegate.Amount.Amount).Quo(val.ExchangeRate).LT(bondRoom)
 			}
 		}
 
