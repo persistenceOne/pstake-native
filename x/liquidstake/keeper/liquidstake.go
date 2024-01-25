@@ -195,7 +195,7 @@ func (k Keeper) LSMDelegate(
 	delegator sdk.AccAddress,
 	validator sdk.ValAddress,
 	proxyAcc sdk.AccAddress,
-	stakingCoin sdk.Coin,
+	preLsmStake sdk.Coin,
 ) (newShares math.LegacyDec, stkXPRTMintAmount math.Int, err error) {
 	params := k.GetParams(ctx)
 
@@ -204,15 +204,15 @@ func (k Keeper) LSMDelegate(
 	}
 
 	// check minimum liquid stake amount
-	if stakingCoin.Amount.LT(params.MinLiquidStakeAmount) {
+	if preLsmStake.Amount.LT(params.MinLiquidStakeAmount) {
 		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrLessThanMinLiquidStakeAmount
 	}
 
 	// check bond denomination
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
-	if stakingCoin.Denom != bondDenom {
+	if preLsmStake.Denom != bondDenom {
 		return sdk.ZeroDec(), sdk.ZeroInt(), errors.Wrapf(
-			types.ErrInvalidBondDenom, "invalid coin denomination: got %s, expected %s", stakingCoin.Denom, bondDenom,
+			types.ErrInvalidBondDenom, "invalid coin denomination: got %s, expected %s", preLsmStake.Denom, bondDenom,
 		)
 	}
 
@@ -234,7 +234,7 @@ func (k Keeper) LSMDelegate(
 	lsmTokenizeMsg := &stakingtypes.MsgTokenizeShares{
 		DelegatorAddress:    delegator.String(),
 		ValidatorAddress:    validator.String(),
-		Amount:              stakingCoin,
+		Amount:              preLsmStake,
 		TokenizedShareOwner: proxyAcc.String(),
 	}
 
@@ -281,14 +281,16 @@ func (k Keeper) LSMDelegate(
 		panic("wrong data type: " + err.Error())
 	}
 
-	// obtained newShares from LSM
-	newShares = lsmRedeemResp.Amount.Amount.ToLegacyDec()
-
 	// mint stkxprt, MintAmount = TotalSupply * StakeAmount/NetAmount
 	liquidBondDenom := k.LiquidBondDenom(ctx)
-	stkXPRTMintAmount = stakingCoin.Amount
+	stkXPRTMintAmount = lsmRedeemResp.Amount.Amount
+
 	if nas.StkxprtTotalSupply.IsPositive() {
-		stkXPRTMintAmount = types.NativeTokenToStkXPRT(stakingCoin.Amount, nas.StkxprtTotalSupply, nas.NetAmount)
+		stkXPRTMintAmount = types.NativeTokenToStkXPRT(
+			stkXPRTMintAmount,
+			nas.StkxprtTotalSupply,
+			nas.NetAmount,
+		)
 	}
 
 	if !stkXPRTMintAmount.IsPositive() {
@@ -314,6 +316,7 @@ func (k Keeper) LSMDelegate(
 		return sdk.ZeroDec(), stkXPRTMintAmount, err
 	}
 
+	newShares = stkXPRTMintAmount.ToLegacyDec()
 	return newShares, stkXPRTMintAmount, err
 }
 
