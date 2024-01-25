@@ -242,6 +242,20 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 			},
 			want:    nil,
 			wantErr: true,
+		}, {
+			name: "Less than min amount",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStakeLSM{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Delegations:      sdk.NewCoins(sdk.NewCoin(lsmIbcDenom, sdk.NewInt(4))),
+				},
+				chainActive:         true,
+				lsmActive:           true,
+				createSecondDeposit: true,
+			},
+			want:    nil,
+			wantErr: true,
 		},
 	}
 

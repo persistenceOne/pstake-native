@@ -496,7 +496,8 @@ func (k msgServer) LiquidStakeLSM(
 		}
 
 		// check for minimum deposit amount
-		if delegation.Amount.LT(hc.MinimumDeposit) {
+		if sdktypes.NewDecFromInt(delegation.Amount).Mul(validator.ExchangeRate).
+			LT(sdktypes.NewDecFromInt(hc.MinimumDeposit)) {
 			return nil, errorsmod.Wrapf(
 				types.ErrMinDeposit,
 				"expected amount for delegation %s more than %s, got %s",
@@ -594,7 +595,7 @@ func (k msgServer) LiquidStakeLSM(
 				sdktypes.NewAttribute(types.AttributeChainID, hc.ChainId),
 				sdktypes.NewAttribute(types.AttributeDelegatorAddress, delegator.String()),
 				sdktypes.NewAttribute(types.AttributeInputAmount,
-					sdktypes.NewCoin(hc.HostDenom, delegation.Amount).String()),
+					sdktypes.NewCoin(hc.HostDenom, deposit.Amount).String()),
 				sdktypes.NewAttribute(types.AttributeOutputAmount,
 					sdktypes.NewCoin(hc.MintDenom(), mintToken.Sub(protocolFee).Amount).String()),
 				sdktypes.NewAttribute(types.AttributePstakeDepositFee,
