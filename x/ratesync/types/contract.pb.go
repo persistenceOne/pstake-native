@@ -71,7 +71,8 @@ func (m *InstantiateLiquidStakeRateContract) GetAdmin() string {
 	return ""
 }
 
-// wrapper for liquidstakerate as wasm msg should be marshalled as encodedMsg = { wasmMsg: { wasm MsgDetails } }
+// wrapper for liquidstakerate as wasm msg should be marshalled as encodedMsg =
+// { wasmMsg: { wasm MsgDetails } }
 type ExecuteLiquidStakeRate struct {
 	LiquidStakeRate LiquidStakeRate `protobuf:"bytes,1,opt,name=liquid_stake_rate,json=liquidStakeRate,proto3" json:"liquid_stake_rate"`
 }

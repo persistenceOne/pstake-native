@@ -217,11 +217,13 @@ type LiquidStake struct {
 	FeatureType FeatureType `protobuf:"varint,1,opt,name=feature_type,json=featureType,proto3,enum=pstake.ratesync.v1beta1.FeatureType" json:"feature_type,omitempty"`
 	// needs to be uploaded before hand
 	CodeID uint64 `protobuf:"varint,2,opt,name=code_i_d,json=codeID,proto3" json:"code_i_d,omitempty"`
-	// state of instantiation, do not support gov based instantiation. (need ICA to be at least admin)
+	// state of instantiation, do not support gov based instantiation. (need ICA
+	// to be at least admin)
 	Instantiation InstantiationState `protobuf:"varint,3,opt,name=instantiation,proto3,enum=pstake.ratesync.v1beta1.InstantiationState" json:"instantiation,omitempty"`
 	// address of instantiated contract.
 	ContractAddress string `protobuf:"bytes,4,opt,name=contract_address,json=contractAddress,proto3" json:"contract_address,omitempty"`
-	// allow * as default for all denoms in case of lsibc, or default bond denom in case of ls.
+	// allow * as default for all denoms in case of lsibc, or default bond denom
+	// in case of ls.
 	Denoms  []string `protobuf:"bytes,5,rep,name=denoms,proto3" json:"denoms,omitempty"`
 	Enabled bool     `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
 }
