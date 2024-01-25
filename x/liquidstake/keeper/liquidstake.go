@@ -316,7 +316,7 @@ func (k Keeper) LSMDelegate(
 		return sdk.ZeroDec(), stkXPRTMintAmount, err
 	}
 
-	newShares = stkXPRTMintAmount.ToLegacyDec()
+	newShares = lsmTokenizeResp.Amount.Amount.ToLegacyDec()
 	return newShares, stkXPRTMintAmount, err
 }
 
