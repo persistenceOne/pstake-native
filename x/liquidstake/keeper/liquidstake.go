@@ -68,8 +68,20 @@ func (k Keeper) LiquidStake(
 
 	whitelistedValsMap := types.GetWhitelistedValsMap(params.WhitelistedValidators)
 	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValsMap)
-	if activeVals.Len() == 0 || !activeVals.TotalWeight(whitelistedValsMap).IsPositive() {
+
+	if activeVals.Len() == 0 {
 		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrActiveLiquidValidatorsNotExists
+	}
+
+	totalActiveWeight := activeVals.TotalWeight(whitelistedValsMap)
+	activeWeightQuorum := math.LegacyNewDecFromInt(totalActiveWeight).Quo(
+		math.LegacyNewDecFromInt(types.TotalValidatorWeight),
+	)
+	if activeWeightQuorum.LT(types.ActiveLiquidValidatorsWeightQuorum) {
+		return sdk.ZeroDec(), sdk.ZeroInt(), errors.Wrapf(
+			types.ErrActiveLiquidValidatorsWeightQuorumNotReached, "%s < %s",
+			activeWeightQuorum.String(), types.ActiveLiquidValidatorsWeightQuorum.String(),
+		)
 	}
 
 	// NetAmount must be calculated before send
@@ -218,8 +230,20 @@ func (k Keeper) LSMDelegate(
 
 	whitelistedValsMap := types.GetWhitelistedValsMap(params.WhitelistedValidators)
 	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValsMap)
-	if activeVals.Len() == 0 || !activeVals.TotalWeight(whitelistedValsMap).IsPositive() {
+
+	if activeVals.Len() == 0 {
 		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrActiveLiquidValidatorsNotExists
+	}
+
+	totalActiveWeight := activeVals.TotalWeight(whitelistedValsMap)
+	activeWeightQuorum := math.LegacyNewDecFromInt(totalActiveWeight).Quo(
+		math.LegacyNewDecFromInt(types.TotalValidatorWeight),
+	)
+	if activeWeightQuorum.LT(types.ActiveLiquidValidatorsWeightQuorum) {
+		return sdk.ZeroDec(), sdk.ZeroInt(), errors.Wrapf(
+			types.ErrActiveLiquidValidatorsWeightQuorumNotReached, "%s < %s",
+			activeWeightQuorum.String(), types.ActiveLiquidValidatorsWeightQuorum.String(),
+		)
 	}
 
 	if !whitelistedValsMap.IsListed(validator.String()) {

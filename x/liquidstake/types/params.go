@@ -28,6 +28,9 @@ var (
 	// TotalValidatorWeight specifies the target sum of validator weights in the whitelist.
 	TotalValidatorWeight = math.NewInt(10000)
 
+	// ActiveLiquidValidatorsWeightQuorum is the minium required weight quorum for liquid validators set
+	ActiveLiquidValidatorsWeightQuorum = math.LegacyNewDecWithPrec(3333, 4) // "0.333300000000000000"
+
 	// RebalancingTrigger if the maximum difference and needed each redelegation amount exceeds it, asset rebalacing will be executed.
 	RebalancingTrigger = math.LegacyNewDecWithPrec(1, 3) // "0.001000000000000000"
 
