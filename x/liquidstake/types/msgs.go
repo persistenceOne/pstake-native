@@ -94,18 +94,23 @@ func (m *MsgStakeToLP) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid delegator address %q: %v", m.DelegatorAddress, err)
 	}
+
 	if _, err := sdk.ValAddressFromBech32(m.ValidatorAddress); err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address %q: %v", m.ValidatorAddress, err)
 	}
-	if ok := m.StakedAmount.IsZero(); ok {
-		return errors.Wrap(sdkerrors.ErrInvalidRequest, "staking amount must not be zero")
-	}
-	if err := m.StakedAmount.Validate(); err != nil {
+
+	if (m.StakedAmount == sdk.Coin{}) || m.StakedAmount.IsZero() {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "staked amount must not be zero")
+	} else if err := m.StakedAmount.Validate(); err != nil {
 		return err
 	}
-	if err := m.LiquidAmount.Validate(); err != nil {
-		return err
+
+	if (m.LiquidAmount != sdk.Coin{}) && !m.LiquidAmount.IsZero() {
+		if err := m.LiquidAmount.Validate(); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
