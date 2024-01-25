@@ -90,7 +90,7 @@ func (k msgServer) StakeToLP(goCtx context.Context, msg *types.MsgStakeToLP) (*t
 		),
 	})
 
-	if msg.LiquidAmount.Amount.IsPositive() {
+	if (msg.LiquidAmount != sdk.Coin{}) && (msg.LiquidAmount.Amount != math.Int{}) && msg.LiquidAmount.Amount.IsPositive() {
 		newShares, stkXPRTMintAmount, err := k.Keeper.LiquidStake(ctx, types.LiquidStakeProxyAcc, msg.GetDelegator(), msg.LiquidAmount)
 		if err != nil {
 			return nil, err
