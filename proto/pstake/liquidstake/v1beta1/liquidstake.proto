@@ -57,6 +57,12 @@ message Params {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
+
+  // WhitelistAdminAddress the bech32-encoded address of an admin authority
+  // that is allowed to update whitelisted validator. The key is controlled
+  // by the offchain process that is selecting validators based on a criteria.
+  string whitelist_admin_address = 9
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 }
 
 // ValidatorStatus enumerates the status of a liquid validator.
