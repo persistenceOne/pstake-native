@@ -21,4 +21,5 @@ var (
 	ErrLSMTokenizeFailed               = errors.Register(ModuleName, 16, "LSM tokenization failed")
 	ErrLSMRedeemFailed                 = errors.Register(ModuleName, 17, "LSM redemption failed")
 	ErrLPContract                      = errors.Register(ModuleName, 18, "CW contract execution failed")
+	ErrWhitelistedValidatorsList       = errors.Register(ModuleName, 19, "whitelisted validators list incorrect")
 )

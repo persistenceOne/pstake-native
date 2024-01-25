@@ -11,8 +11,10 @@ import (
 	"time"
 
 	"cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
 )
@@ -202,7 +204,33 @@ func (k msgServer) UpdateWhitelistedValidators(goCtx context.Context, msg *types
 		return nil, errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid authority; expected %s, got %s", params.WhitelistAdminAddress, msg.Authority)
 	}
 
-	// TODO: validate weights
+	totalWeight := math.NewInt(0)
+	for _, val := range msg.WhitelistedValidators {
+		totalWeight = totalWeight.Add(val.TargetWeight)
+
+		valAddr := val.GetValidatorAddress()
+		fullVal, ok := k.stakingKeeper.GetValidator(ctx, valAddr)
+		if !ok {
+			return nil, errors.Wrapf(
+				types.ErrWhitelistedValidatorsList,
+				"validator not found: %s", valAddr,
+			)
+		}
+
+		if fullVal.Status != stakingtypes.Bonded {
+			return nil, errors.Wrapf(
+				types.ErrWhitelistedValidatorsList,
+				"validator status %s: expected %s; got %s", valAddr, stakingtypes.Bonded.String(), fullVal.Status.String(),
+			)
+		}
+	}
+
+	if !totalWeight.Equal(types.TotalValidatorWeight) {
+		return nil, errors.Wrapf(
+			types.ErrWhitelistedValidatorsList,
+			"weights don't add up; expected %s, got %s", types.TotalValidatorWeight.String(), totalWeight.String(),
+		)
+	}
 
 	params.WhitelistedValidators = msg.WhitelistedValidators
 
