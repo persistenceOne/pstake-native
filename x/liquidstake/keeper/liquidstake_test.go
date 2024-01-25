@@ -33,9 +33,9 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(1)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(2000)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(2000)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(2000)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
@@ -267,9 +267,9 @@ func (s *KeeperTestSuite) TestLiquidStakeFromVestingAccount() {
 
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(1)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(3334)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(3333)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(3333)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
@@ -317,9 +317,9 @@ func (s *KeeperTestSuite) TestLiquidStakeEdgeCases() {
 
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(10)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(3334)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(3333)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(3333)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
@@ -355,9 +355,9 @@ func (s *KeeperTestSuite) TestLiquidUnstakeEdgeCases() {
 
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(10)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(3334)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(3333)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(3333)},
 	}
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
