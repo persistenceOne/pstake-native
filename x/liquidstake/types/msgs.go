@@ -10,14 +10,17 @@ var (
 	_ sdk.Msg = (*MsgLiquidStake)(nil)
 	_ sdk.Msg = (*MsgLiquidUnstake)(nil)
 	_ sdk.Msg = (*MsgUpdateParams)(nil)
+	_ sdk.Msg = (*MsgStakeToLP)(nil)
+	_ sdk.Msg = (*MsgUpdateWhitelistedValidators)(nil)
 )
 
 // Message types for the liquidstake module
 const (
-	MsgTypeLiquidStake   = "liquid_stake"
-	MsgTypeLiquidUnstake = "liquid_unstake"
-	MsgTypeStakeToLP     = "stake_to_lp"
-	MsgTypeUpdateParams  = "update_params"
+	MsgTypeLiquidStake                 = "liquid_stake"
+	MsgTypeLiquidUnstake               = "liquid_unstake"
+	MsgTypeStakeToLP                   = "stake_to_lp"
+	MsgTypeUpdateParams                = "update_params"
+	MsgTypeUpdateWhitelistedValidators = "update_whitelisted_validators"
 )
 
 // NewMsgLiquidStake creates a new MsgLiquidStake.
@@ -222,5 +225,50 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+// NewMsgUpdateWhitelistedValidators creates a new MsgUpdateWhitelistedValidators.
+func NewMsgUpdateWhitelistedValidators(authority sdk.AccAddress, list []WhitelistedValidator) *MsgUpdateWhitelistedValidators {
+	return &MsgUpdateWhitelistedValidators{
+		Authority:             authority.String(),
+		WhitelistedValidators: list,
+	}
+}
+
+func (m *MsgUpdateWhitelistedValidators) Route() string {
+	return RouterKey
+}
+
+// Type should return the action
+func (m *MsgUpdateWhitelistedValidators) Type() string {
+	return MsgTypeUpdateWhitelistedValidators
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgUpdateWhitelistedValidators) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgUpdateWhitelistedValidators) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(m.Authority)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{addr}
+}
+
+func (m *MsgUpdateWhitelistedValidators) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address %q: %v", m.Authority, err)
+	}
+
+	err := validateWhitelistedValidators(m.WhitelistedValidators)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

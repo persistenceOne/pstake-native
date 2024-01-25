@@ -7,6 +7,7 @@ package keeper
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"cosmossdk.io/errors"
@@ -166,6 +167,7 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 	paramsToSet.CwLockedPoolAddress = msg.Params.CwLockedPoolAddress
 	paramsToSet.FeeAccountAddress = msg.Params.FeeAccountAddress
 	paramsToSet.AutocompoundFeeRate = msg.Params.AutocompoundFeeRate
+	paramsToSet.WhitelistAdminAddress = msg.Params.WhitelistAdminAddress
 
 	// These to updated elsewhere
 	// * LiquidBondDenom
@@ -189,4 +191,39 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 	})
 
 	return &types.MsgUpdateParamsResponse{}, nil
+}
+
+func (k msgServer) UpdateWhitelistedValidators(goCtx context.Context, msg *types.MsgUpdateWhitelistedValidators) (*types.MsgUpdateWhitelistedValidatorsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	params := k.GetParams(ctx)
+
+	if msg.Authority != params.WhitelistAdminAddress {
+		return nil, errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid authority; expected %s, got %s", params.WhitelistAdminAddress, msg.Authority)
+	}
+
+	// TODO: validate weights
+
+	params.WhitelistedValidators = msg.WhitelistedValidators
+
+	err := k.SetParams(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	updatedValidatorsListJSON, _ := json.Marshal(msg.WhitelistedValidators)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+		sdk.NewEvent(
+			types.EventTypeMsgUpdateWhitelistedValidators,
+			sdk.NewAttribute(types.AttributeKeyAuthority, msg.Authority),
+			sdk.NewAttribute(types.AttributeKeyUpdatedWhitelistedValidators, string(updatedValidatorsListJSON)),
+		),
+	})
+
+	return &types.MsgUpdateWhitelistedValidatorsResponse{}, nil
 }
