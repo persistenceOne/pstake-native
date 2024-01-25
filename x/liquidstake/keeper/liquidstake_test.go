@@ -410,3 +410,66 @@ func (s *KeeperTestSuite) TestLiquidUnstakeEdgeCases() {
 	s.Require().EqualValues(ubdTime, time.Time{})
 	s.Require().Len(ubds, 0)
 }
+
+func (s *KeeperTestSuite) TestShareInflation() {
+	_, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000, 4000000})
+	params := s.keeper.GetParams(s.ctx)
+
+	// set minimum amount and unstake fee to 0 for testing
+	params.MinLiquidStakeAmount = math.NewInt(0)
+	params.UnstakeFeeRate = sdk.NewDec(0)
+	s.keeper.SetParams(s.ctx, params)
+
+	params.WhitelistedValidators = []types.WhitelistedValidator{
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(2500)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(2500)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(2500)},
+		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(2500)},
+	}
+
+	s.keeper.SetParams(s.ctx, params)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+
+	initialStakingAmt := math.NewInt(1)          // little amount
+	initializingStakingAmt := math.NewInt(10000) // normal amount
+	attacker := s.delAddrs[0]
+	user := s.delAddrs[1]
+	protocol := s.delAddrs[3]
+
+	// 0. [a solution?] be first depositor
+	_, mintAmount0, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc,
+		protocol, sdk.NewCoin(sdk.DefaultBondDenom, initializingStakingAmt))
+	s.Require().NoError(err)
+	s.Require().Equal(mintAmount0, initializingStakingAmt)
+
+	// 1. attacker becomes first depositor and liquid stake
+	_, mintAmount, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc,
+		attacker, sdk.NewCoin(sdk.DefaultBondDenom, initialStakingAmt))
+	s.Require().NoError(err)
+	s.Require().Equal(mintAmount, initialStakingAmt)
+
+	// 2. The user sends a liquid stake message, but their tx got front-run by the attacker
+	// ideally, the user should get 1000 stkXPRT (1 * 1000 / 1)
+	// stkXPRT to mint = stkXPRT supply * sent XPRT / total XPRT
+	userStakeAmount := math.NewInt(1_000)
+
+	// 3. attacker's tx got accepted first which sends funds directly to proxy account
+	attackerTransferAmount := userStakeAmount.Quo(sdk.NewInt(2))
+	s.app.BankKeeper.SendCoins(s.ctx, attacker, types.LiquidStakeProxyAcc,
+		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, attackerTransferAmount)))
+
+	// 4. user tx went through but receives fewer shares than intended
+	// stkXPRT to mint = 1 * 1000 / (1+500) = 1.99 = 1
+	_, mintAmount, err = s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, user, sdk.NewCoin(sdk.DefaultBondDenom, userStakeAmount))
+	s.Require().NoError(err)
+	s.Require().Equal(mintAmount, math.NewInt(952))
+
+	// 5. attacker unstakes the shares immediately
+	liquidBondDenom := s.keeper.LiquidBondDenom(s.ctx)
+	_, unbondingAmt, _, _, err := s.keeper.LiquidUnstake(s.ctx, types.LiquidStakeProxyAcc, attacker, sdk.NewCoin(liquidBondDenom, sdk.NewInt(1)))
+	// s.Require().NoError(err)
+	s.Require().ErrorContains(err, "liquid unstaking amount is too small")
+
+	attackerProfit := unbondingAmt.Sub(initialStakingAmt).Sub(attackerTransferAmount)
+	s.Require().LessOrEqual(attackerProfit.Int64(), math.ZeroInt().Int64())
+}
