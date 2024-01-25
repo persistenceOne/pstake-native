@@ -189,6 +189,13 @@ func TestValidateWhitelistedValidators(t *testing.T) {
 			},
 			"min liquid stake amount must not be negative: -1",
 		},
+		{
+			"invalid CwLockedPoolAddress address",
+			func(params *types.Params) {
+				params.CwLockedPoolAddress = "cw192340924"
+			},
+			"cannot convert cw contract address to bech32, invalid address: cw192340924, err: decoding bech32 failed: invalid checksum (expected hn8nlx got 340924)",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			params := types.DefaultParams()
