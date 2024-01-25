@@ -156,7 +156,22 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 		return nil, errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
 	}
 
-	err := k.SetParams(ctx, msg.Params)
+	paramsToSet := k.GetParams(ctx)
+
+	// List of all updateable params
+	//
+	paramsToSet.UnstakeFeeRate = msg.Params.UnstakeFeeRate
+	paramsToSet.LsmDisabled = msg.Params.LsmDisabled
+	paramsToSet.MinLiquidStakeAmount = msg.Params.MinLiquidStakeAmount
+	paramsToSet.CwLockedPoolAddress = msg.Params.CwLockedPoolAddress
+	paramsToSet.FeeAccountAddress = msg.Params.FeeAccountAddress
+	paramsToSet.AutocompoundFeeRate = msg.Params.AutocompoundFeeRate
+
+	// These to updated elsewhere
+	// * LiquidBondDenom
+	// * WhitelistedValidators
+
+	err := k.SetParams(ctx, paramsToSet)
 	if err != nil {
 		return nil, err
 	}
