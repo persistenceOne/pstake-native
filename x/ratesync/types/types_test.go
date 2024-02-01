@@ -46,6 +46,13 @@ func TestTypes(t *testing.T) {
 	hc2.Features.LiquidStake.Enabled = true
 	require.True(t, hc2.IsActive())
 
+	hc2 = ValidHostChainInMsg(0)
+	hc2.TransferChannelID = "@"
+	require.Error(t, hc2.ValidateBasic())
+
+	hc2 = ValidHostChainInMsg(0)
+	hc2.TransferPortID = "/@"
+	require.Error(t, hc2.ValidateBasic())
 	// features
 	features := ValidHostChainInMsg(0).Features
 	require.NoError(t, features.ValdidateBasic())
