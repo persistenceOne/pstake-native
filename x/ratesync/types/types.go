@@ -67,7 +67,7 @@ func (hc HostChain) ValidateBasic() error {
 		return err
 	}
 
-	err = host.PortIdentifierValidator(hc.TransferPort)
+	err = host.PortIdentifierValidator(hc.TransferPortID)
 	if err != nil {
 		return err
 	}
