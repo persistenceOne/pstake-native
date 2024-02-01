@@ -62,6 +62,15 @@ func (hc HostChain) ValidateBasic() error {
 		return err
 	}
 
+	err = host.ChannelIdentifierValidator(hc.TransferChannelID)
+	if err != nil {
+		return err
+	}
+
+	err = host.PortIdentifierValidator(hc.TransferPort)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
