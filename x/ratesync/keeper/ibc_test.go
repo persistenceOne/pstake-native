@@ -27,7 +27,7 @@ func (suite *IntegrationTestSuite) TestOnAcknowledgementPacket() {
 	hc, _ := k.GetHostChain(ctx, 1)
 	// case 1, instantiate msg.
 	{
-		msg, memo, err := keeper.GenerateInstantiateLiquidStakeContractMsg(hc.ICAAccount, hc.Features.LiquidStakeIBC, hc.ID)
+		msg, memo, err := keeper.GenerateInstantiateLiquidStakeContractMsg(hc.ICAAccount, hc.Features.LiquidStakeIBC, hc.ID, hc.TransferChannelID, hc.TransferPortID)
 		suite.Require().NoError(err)
 		msgData, err := icatypes.SerializeCosmosTx(suite.app.AppCodec(), []proto.Message{msg})
 		suite.Require().NoError(err)
@@ -59,7 +59,7 @@ func (suite *IntegrationTestSuite) TestOnAcknowledgementPacket() {
 	}
 	// case 2 instantiate failure
 	{
-		msg, memo, err := keeper.GenerateInstantiateLiquidStakeContractMsg(hc.ICAAccount, hc.Features.LiquidStakeIBC, hc.ID)
+		msg, memo, err := keeper.GenerateInstantiateLiquidStakeContractMsg(hc.ICAAccount, hc.Features.LiquidStakeIBC, hc.ID, hc.TransferChannelID, hc.TransferPortID)
 		suite.Require().NoError(err)
 		msgData, err := icatypes.SerializeCosmosTx(suite.app.AppCodec(), []proto.Message{msg})
 		suite.Require().NoError(err)
@@ -142,7 +142,7 @@ func (suite *IntegrationTestSuite) TestOnTimeoutPacket() {
 	hc, _ := k.GetHostChain(ctx, 1)
 	// case 1, instantiate msg.
 	{
-		msg, memo, err := keeper.GenerateInstantiateLiquidStakeContractMsg(hc.ICAAccount, hc.Features.LiquidStakeIBC, hc.ID)
+		msg, memo, err := keeper.GenerateInstantiateLiquidStakeContractMsg(hc.ICAAccount, hc.Features.LiquidStakeIBC, hc.ID, hc.TransferChannelID, hc.TransferPortID)
 		suite.Require().NoError(err)
 		msgData, err := icatypes.SerializeCosmosTx(suite.app.AppCodec(), []proto.Message{msg})
 		suite.Require().NoError(err)
