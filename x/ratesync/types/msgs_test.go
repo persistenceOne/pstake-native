@@ -41,6 +41,8 @@ var ValidHostChainInMsg = func(id uint64) HostChain {
 				Enabled:         false,
 			},
 		},
+		TransferChannelID: "channel-0",
+		TransferPortID:    "transfer",
 	}
 }
 

@@ -148,10 +148,10 @@ func GenerateExecuteLiquidStakeRateTxMsg(blockTime int64, feature types.LiquidSt
 }
 
 func (k *Keeper) InstantiateLiquidStakeContract(ctx sdk.Context, icaAccount liquidstakeibctypes.ICAAccount,
-	feature types.LiquidStake, id uint64, connectionID string,
+	feature types.LiquidStake, id uint64, connectionID, transferChannelID, transferPort string,
 ) error {
 	// generate contract msg{msg}
-	msg, memoBz, err := GenerateInstantiateLiquidStakeContractMsg(icaAccount, feature, id)
+	msg, memoBz, err := GenerateInstantiateLiquidStakeContractMsg(icaAccount, feature, id, transferChannelID, transferPort)
 	if err != nil {
 		return err
 	}
@@ -163,10 +163,12 @@ func (k *Keeper) InstantiateLiquidStakeContract(ctx sdk.Context, icaAccount liqu
 }
 
 func GenerateInstantiateLiquidStakeContractMsg(icaAccount liquidstakeibctypes.ICAAccount,
-	feature types.LiquidStake, id uint64,
+	feature types.LiquidStake, id uint64, transferChannelID, transferPort string,
 ) (sdk.Msg, []byte, error) {
 	contractMsg := types.InstantiateLiquidStakeRateContract{
-		Admin: icaAccount.Address,
+		Admin:             icaAccount.Address,
+		TransferChannelID: transferChannelID,
+		TransferPortID:    transferPort,
 	}
 	contractMsgBz, err := json.Marshal(contractMsg)
 	if err != nil {

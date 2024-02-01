@@ -2,15 +2,12 @@ package keeper
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"slices"
 
 	errorsmod "cosmossdk.io/errors"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/gogoproto/proto"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -66,6 +63,18 @@ func (k msgServer) CreateHostChain(goCtx context.Context, msg *types.MsgCreateHo
 		}
 	} // else handled in validate basic (not allowed to create new host chain with previous ICA as portID is default and suffixed by ID
 
+	channel, found := k.ibcKeeper.ChannelKeeper.GetChannel(ctx, msg.HostChain.TransferPortID, msg.HostChain.TransferChannelID)
+	if !found || channel.State != channeltypes.OPEN {
+		if err != nil {
+			return nil, errorsmod.Wrapf(
+				sdkerrors.ErrNotFound,
+				"error creating %s ratesync with channel: %s, port: %s, err:%s",
+				chainID, msg.HostChain.TransferChannelID, msg.HostChain.TransferPortID,
+				err.Error(),
+			)
+		}
+	}
+
 	k.SetHostChain(
 		ctx,
 		msg.HostChain,
@@ -106,6 +115,15 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 	if msg.HostChain.ConnectionID != oldHC.ConnectionID {
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid connectionID, connectionID cannot be updated, "+
 			"connectionID mismatch got %s, found %s", msg.HostChain.ConnectionID, oldHC.ConnectionID)
+	}
+
+	if msg.HostChain.TransferChannelID != oldHC.TransferChannelID {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid channelID, channelID cannot be updated, "+
+			"channelID mismatch got %s, found %s", msg.HostChain.TransferChannelID, oldHC.TransferChannelID)
+	}
+	if msg.HostChain.TransferPortID != oldHC.TransferPortID {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid portID, portID cannot be updated, "+
+			"portID mismatch got %s, found %s", msg.HostChain.TransferPortID, oldHC.TransferPortID)
 	}
 
 	if oldHC.ICAAccount.ChannelState != liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED {
@@ -149,36 +167,10 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 				// update oldhc, generate and execute wasm instantiate
 				oldHC.Features.LiquidStakeIBC = msg.HostChain.Features.LiquidStakeIBC
 
-				// generate contract msg{msg}
-				contractMsg := types.InstantiateLiquidStakeRateContract{
-					Admin: oldHC.ICAAccount.Address,
-				}
-				contractMsgBz, err := json.Marshal(contractMsg)
-				if err != nil {
-					return nil, errorsmod.Wrapf(err, "unable to marshal InstantiateLiquidStakeRateContract")
-				}
-
-				msg := &wasmtypes.MsgInstantiateContract{
-					Sender: oldHC.ICAAccount.Address,
-					Admin:  oldHC.ICAAccount.Address,
-					CodeID: oldHC.Features.LiquidStakeIBC.CodeID,
-					Label:  fmt.Sprintf("PSTAKE ratesync, ID-%v", oldHC.ID),
-					Msg:    contractMsgBz,
-					Funds:  sdk.Coins{},
-				}
-				memo := types.ICAMemo{
-					FeatureType: types.FeatureType_LIQUID_STAKE_IBC,
-					HostChainID: oldHC.ID,
-				}
-				memobz, err := json.Marshal(memo)
+				err := k.InstantiateLiquidStakeContract(ctx, oldHC.ICAAccount, oldHC.Features.LiquidStakeIBC, oldHC.ID, oldHC.ConnectionID, oldHC.TransferChannelID, oldHC.TransferPortID)
 				if err != nil {
 					return nil, err
 				}
-				_, err = k.GenerateAndExecuteICATx(ctx, oldHC.ConnectionID, oldHC.ICAAccount.Owner, []proto.Message{msg}, string(memobz))
-				if err != nil {
-					return nil, err
-				}
-
 			case types.InstantiationState_INSTANTIATION_COMPLETED:
 				// just update oldhc, validate basic will take care of mismatch states.
 				oldHC.Features.LiquidStakeIBC = msg.HostChain.Features.LiquidStakeIBC
@@ -200,36 +192,10 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 				// update oldhc, generate and execute wasm instantiate
 				oldHC.Features.LiquidStake = msg.HostChain.Features.LiquidStake
 
-				// generate contract msg{msg}
-				contractMsg := types.InstantiateLiquidStakeRateContract{
-					Admin: oldHC.ICAAccount.Address,
-				}
-				contractMsgBz, err := json.Marshal(contractMsg)
-				if err != nil {
-					return nil, errorsmod.Wrapf(err, "unable to marshal InstantiateLiquidStakeRateContract")
-				}
-
-				msg := &wasmtypes.MsgInstantiateContract{
-					Sender: oldHC.ICAAccount.Address,
-					Admin:  oldHC.ICAAccount.Address,
-					CodeID: oldHC.Features.LiquidStake.CodeID,
-					Label:  fmt.Sprintf("PSTAKE ratesync, ID-%v", oldHC.ID),
-					Msg:    contractMsgBz,
-					Funds:  sdk.Coins{},
-				}
-				memo := types.ICAMemo{
-					FeatureType: types.FeatureType_LIQUID_STAKE,
-					HostChainID: oldHC.ID,
-				}
-				memobz, err := json.Marshal(memo)
+				err := k.InstantiateLiquidStakeContract(ctx, oldHC.ICAAccount, oldHC.Features.LiquidStake, oldHC.ID, oldHC.ConnectionID, oldHC.TransferChannelID, oldHC.TransferPortID)
 				if err != nil {
 					return nil, err
 				}
-				_, err = k.GenerateAndExecuteICATx(ctx, oldHC.ConnectionID, oldHC.ICAAccount.Owner, []proto.Message{msg}, string(memobz))
-				if err != nil {
-					return nil, err
-				}
-
 			case types.InstantiationState_INSTANTIATION_COMPLETED:
 				// just update oldhc, validate basic will take care of mismatch states.
 				oldHC.Features.LiquidStake = msg.HostChain.Features.LiquidStake
