@@ -15,6 +15,8 @@ message HostChain{
   string connection_i_d = 3;
   pstake.liquidstakeibc.v1beta1.ICAAccount i_c_a_account = 4 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
   Feature features = 5 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  string transfer_channel_i_d = 6;
+  string transfer_port = 7;
 }
 message Feature{
   // triggers on hooks

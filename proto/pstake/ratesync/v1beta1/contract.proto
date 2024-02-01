@@ -10,6 +10,8 @@ option go_package = "github.com/persistenceOne/pstake-native/v2/x/ratesync/types
 // msg blob for instantiate contract.
 message InstantiateLiquidStakeRateContract {
   string admin = 1[(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string transfer_channel_i_d = 2;
+  string transfer_port = 3;
 }
 
 // wrapper for liquidstakerate as wasm msg should be marshalled as encodedMsg = { wasmMsg: { wasm MsgDetails } }
