@@ -29,6 +29,7 @@ func NewQueryCmd() *cobra.Command {
 	cmd.AddCommand(
 		QueryParamsCmd(),
 		QueryHostChainsCmd(),
+		QueryHostChainCmd(),
 		QueryDepositsCmd(),
 		QueryLSMDepositsCmd(),
 		QueryUnbondingsCmd(),
@@ -99,6 +100,41 @@ func QueryHostChainsCmd() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.HostChains(cmd.Context(), &types.QueryHostChainsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// QueryHostChainCmd returns the registered host chain.
+func QueryHostChainCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "host-chain [chain-id]",
+		Aliases: []string{"hc"},
+		Short:   "Query registered host chain with chain-id ",
+		Args:    cobra.ExactArgs(1),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(
+				`Query the current registered host chains: $ %s query liquidstakeibc host-chains`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.HostChain(cmd.Context(), &types.QueryHostChainRequest{ChainId: args[0]})
 			if err != nil {
 				return err
 			}
