@@ -36,6 +36,7 @@ func GetTxCmd() *cobra.Command {
 		NewLiquidUnstakeCmd(),
 		NewUpdateParamsCmd(),
 		NewUpdateWhitelistedValidatorsCmd(),
+		NewSetModulePausedCmd(),
 	)
 
 	return liquidstakeTxCmd
@@ -280,6 +281,47 @@ Example validators_list.json
 			authority := clientCtx.GetFromAddress()
 
 			msg := types.NewMsgUpdateWhitelistedValidators(authority, validatorsList)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// NewSetModulePausedCmd implements the  command handler for updating of safety toggle that disables the module.
+func NewSetModulePausedCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pause-module [flag]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Pause or unpause the liquidstake module for an emergency updates.",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`pause-module [true/false]
+
+Example:
+$ %s tx %s pause-module true --from mykey
+`,
+				version.AppName, types.ModuleName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			isPaused := false
+			if strings.ToLower(args[0]) == "true" {
+				isPaused = true
+			} else if strings.ToLower(args[0]) != "false" {
+				err := fmt.Errorf("expected flag to be true or false – where 'true' means the module is paused")
+				return err
+			}
+
+			authority := clientCtx.GetFromAddress()
+			msg := types.NewMsgSetModulePaused(authority, isPaused)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

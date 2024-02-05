@@ -23,4 +23,5 @@ var (
 	ErrLPContract                                   = errors.Register(ModuleName, 18, "CW contract execution failed")
 	ErrWhitelistedValidatorsList                    = errors.Register(ModuleName, 19, "whitelisted validators list incorrect")
 	ErrActiveLiquidValidatorsWeightQuorumNotReached = errors.Register(ModuleName, 20, "active liquid validators weight quorum not reached")
+	ErrModulePaused                                 = errors.Register(ModuleName, 21, "module functions have been paused")
 )

@@ -14,6 +14,8 @@ import (
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
 
-	// return value of UpdateLiquidValidatorSet is useful only in testing
-	_ = k.UpdateLiquidValidatorSet(ctx)
+	if !k.GetParams(ctx).ModulePaused {
+		// return value of UpdateLiquidValidatorSet is useful only in testing
+		_ = k.UpdateLiquidValidatorSet(ctx)
+	}
 }

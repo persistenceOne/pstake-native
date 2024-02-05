@@ -59,10 +59,16 @@ message Params {
   ];
 
   // WhitelistAdminAddress the bech32-encoded address of an admin authority
-  // that is allowed to update whitelisted validator. The key is controlled
-  // by the offchain process that is selecting validators based on a criteria.
+  // that is allowed to update whitelisted validators or pause liquidstaking
+  // module entirely. The key is controlled by an offchain process that is
+  // selecting validators based on a criteria. Pausing of the module can be
+  // required during important migrations or failures.
   string whitelist_admin_address = 9
       [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // ModulePaused is a safety toggle that allows to stop main module functions
+  // such as stake/unstake/stake-to-lp and the BeginBlocker logic.
+  bool module_paused = 10;
 }
 
 // ValidatorStatus enumerates the status of a liquid validator.
