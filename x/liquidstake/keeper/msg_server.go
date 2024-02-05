@@ -8,6 +8,7 @@ package keeper
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"cosmossdk.io/errors"
@@ -189,9 +190,10 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 	paramsToSet.AutocompoundFeeRate = msg.Params.AutocompoundFeeRate
 	paramsToSet.WhitelistAdminAddress = msg.Params.WhitelistAdminAddress
 
-	// These to updated elsewhere
+	// These to be updated elsewhere
 	// * LiquidBondDenom
 	// * WhitelistedValidators
+	// * ModulePaused
 
 	err := k.SetParams(ctx, paramsToSet)
 	if err != nil {
@@ -272,4 +274,35 @@ func (k msgServer) UpdateWhitelistedValidators(goCtx context.Context, msg *types
 	})
 
 	return &types.MsgUpdateWhitelistedValidatorsResponse{}, nil
+}
+
+func (k msgServer) SetModulePaused(goCtx context.Context, msg *types.MsgSetModulePaused) (*types.MsgSetModulePausedResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	params := k.GetParams(ctx)
+
+	if msg.Authority != params.WhitelistAdminAddress {
+		return nil, errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid authority; expected %s, got %s", params.WhitelistAdminAddress, msg.Authority)
+	}
+
+	params.ModulePaused = msg.IsPaused
+
+	err := k.SetParams(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+		sdk.NewEvent(
+			types.EventTypeMsgSetModulePaused,
+			sdk.NewAttribute(types.AttributeKeyAuthority, msg.Authority),
+			sdk.NewAttribute(types.AttributeKeyModulePaused, fmt.Sprintf("%t", msg.IsPaused)),
+		),
+	})
+
+	return &types.MsgSetModulePausedResponse{}, nil
 }

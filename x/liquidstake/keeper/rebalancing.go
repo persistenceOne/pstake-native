@@ -283,11 +283,11 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 			types.EventTypeAutocompound,
 			sdk.NewAttribute(types.AttributeKeyDelegator, types.LiquidStakeProxyAcc.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, delegableAmount.String()),
-			sdk.NewAttribute(types.AttributeKeyPstakeAutocompoundFee, autocompoundFee.String()),
+			sdk.NewAttribute(types.AttributeKeyAutocompoundFee, autocompoundFee.String()),
 		),
 	})
 	logger.Info(types.EventTypeAutocompound,
 		types.AttributeKeyDelegator, types.LiquidStakeProxyAcc.String(),
 		sdk.AttributeKeyAmount, delegableAmount.String(),
-		types.AttributeKeyPstakeAutocompoundFee, autocompoundFee.String())
+		types.AttributeKeyAutocompoundFee, autocompoundFee.String())
 }
