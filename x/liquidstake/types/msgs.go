@@ -12,6 +12,7 @@ var (
 	_ sdk.Msg = (*MsgUpdateParams)(nil)
 	_ sdk.Msg = (*MsgStakeToLP)(nil)
 	_ sdk.Msg = (*MsgUpdateWhitelistedValidators)(nil)
+	_ sdk.Msg = (*MsgSetModulePaused)(nil)
 )
 
 // Message types for the liquidstake module
@@ -21,6 +22,7 @@ const (
 	MsgTypeStakeToLP                   = "stake_to_lp"
 	MsgTypeUpdateParams                = "update_params"
 	MsgTypeUpdateWhitelistedValidators = "update_whitelisted_validators"
+	MsgTypeSetModulePaused             = "set_module_paused"
 )
 
 // NewMsgLiquidStake creates a new MsgLiquidStake.
@@ -285,4 +287,44 @@ func (w *WhitelistedValidator) GetValidatorAddress() sdk.ValAddress {
 	}
 
 	return valAddr
+}
+
+// NewMsgSetModulePaused creates a new MsgSetModulePaused.
+func NewMsgSetModulePaused(authority sdk.AccAddress, isPaused bool) *MsgSetModulePaused {
+	return &MsgSetModulePaused{
+		Authority: authority.String(),
+		IsPaused:  isPaused,
+	}
+}
+
+func (m *MsgSetModulePaused) Route() string {
+	return RouterKey
+}
+
+// Type should return the action
+func (m *MsgSetModulePaused) Type() string {
+	return MsgTypeSetModulePaused
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgSetModulePaused) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgSetModulePaused) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(m.Authority)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{addr}
+}
+
+func (m *MsgSetModulePaused) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address %q: %v", m.Authority, err)
+	}
+
+	return nil
 }
