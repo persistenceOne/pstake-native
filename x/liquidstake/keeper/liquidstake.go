@@ -96,7 +96,14 @@ func (k Keeper) LiquidStake(
 	// mint stkxprt, MintAmount = TotalSupply * StakeAmount/NetAmount
 	liquidBondDenom := k.LiquidBondDenom(ctx)
 	stkXPRTMintAmount = stakingCoin.Amount
+
 	if nas.StkxprtTotalSupply.IsPositive() {
+		if nas.NetAmount.IsZero() {
+			// this case must not be reachable, consider stopping module for investigation
+			// c_value -> inf
+			return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrInsufficientProxyAccBalance
+		}
+
 		stkXPRTMintAmount = types.NativeTokenToStkXPRT(stakingCoin.Amount, nas.StkxprtTotalSupply, nas.NetAmount)
 	}
 
@@ -383,7 +390,7 @@ func (k Keeper) LiquidUnstake(
 	// Get NetAmount states
 	nas := k.GetNetAmountState(ctx)
 
-	if unstakingStkXPRT.Amount.GT(nas.StkxprtTotalSupply) {
+	if unstakingStkXPRT.Amount.GT(nas.StkxprtTotalSupply) || nas.StkxprtTotalSupply.IsZero() {
 		return time.Time{}, sdk.ZeroInt(), []stakingtypes.UnbondingDelegation{}, sdk.ZeroInt(), types.ErrInvalidStkXPRTSupply
 	}
 
