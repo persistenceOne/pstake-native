@@ -15,6 +15,7 @@ const (
 
 	AttributeKeyDelegator             = "delegator"
 	AttributeKeyNewShares             = "new_shares"
+	AttributeKeyCValue                = "c_value"
 	AttributeKeyStkXPRTMintedAmount   = "stkxprt_minted_amount"
 	AttributeKeyCompletionTime        = "completion_time"
 	AttributeKeyUnbondingAmount       = "unbonding_amount"
