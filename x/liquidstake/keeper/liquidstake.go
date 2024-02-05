@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/json"
+	"sort"
 	"time"
 
 	"cosmossdk.io/errors"
@@ -444,6 +445,9 @@ func (k Keeper) LiquidUnstake(
 		return time.Time{}, sdk.ZeroInt(), []stakingtypes.UnbondingDelegation{}, sdk.ZeroInt(), types.ErrLiquidValidatorsNotExists
 	}
 
+	// prioritise inactive liquid validators in the list to be used in DivideByCurrentWeight
+	liquidVals = k.PrioritiseInactiveLiquidValidators(ctx, liquidVals)
+
 	// crumb may occur due to a decimal error in dividing the unstaking stkXPRT into the weight of liquid validators, it will remain in the NetAmount
 	unbondingAmounts, crumb := types.DivideByCurrentWeight(liquidVals, unbondingAmount, totalLiquidTokens, liquidTokenMap)
 	if !unbondingAmount.Sub(crumb).IsPositive() {
@@ -523,6 +527,33 @@ func (k Keeper) LiquidUnbond(
 	return completionTime, returnAmount, ubd, nil
 }
 
+// PrioritiseInactiveLiquidValidators sorts LiquidValidators array to have inactive validators first. Used for the case when
+// unbonding should begin from the inactive validators first.
+func (k Keeper) PrioritiseInactiveLiquidValidators(
+	ctx sdk.Context,
+	vs types.LiquidValidators,
+) types.LiquidValidators {
+	sort.Slice(vs, func(i, j int) bool {
+		vs1, ok := k.stakingKeeper.GetValidator(ctx, vs[i].GetOperator())
+		if !ok {
+			return true
+		}
+
+		vs1Active := vs[i].GetStatus(types.ActiveCondition(
+			vs1,
+			true,
+			k.IsTombstoned(ctx, vs1),
+		))
+		if vs1Active != types.ValidatorStatusActive {
+			return true
+		}
+
+		return false
+	})
+
+	return vs
+}
+
 // CheckDelegationStates returns total remaining rewards, delshares, liquid tokens of delegations by proxy account
 func (k Keeper) CheckDelegationStates(ctx sdk.Context, proxyAcc sdk.AccAddress) (math.LegacyDec, math.LegacyDec, math.Int) {
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
@@ -597,7 +628,7 @@ func (k Keeper) RemoveLiquidValidator(ctx sdk.Context, val types.LiquidValidator
 	store.Delete(types.GetLiquidValidatorKey(val.GetOperator()))
 }
 
-// GetAllLiquidValidators get the set of all liquid validators with no limits, used during genesis dump
+// GetAllLiquidValidators gets the set of all liquid validators, with no pagination limits.
 func (k Keeper) GetAllLiquidValidators(ctx sdk.Context) (vals types.LiquidValidators) {
 	store := ctx.KVStore(k.storeKey)
 	vals = types.LiquidValidators{}
