@@ -7,6 +7,7 @@ const (
 	EventTypeMsgStakeToLP                   = MsgTypeStakeToLP
 	EventTypeMsgUpdateParams                = MsgTypeUpdateParams
 	EventTypeMsgUpdateWhitelistedValidators = MsgTypeUpdateWhitelistedValidators
+	EventTypeMsgSetModulePaused             = MsgTypeSetModulePaused
 	EventTypeAddLiquidValidator             = "add_liquid_validator"
 	EventTypeRemoveLiquidValidator          = "remove_liquid_validator"
 	EventTypeBeginRebalancing               = "begin_rebalancing"
@@ -26,7 +27,8 @@ const (
 	AttributeKeyLiquidAmount          = "liquid_amount"
 	AttributeKeyStakedAmount          = "staked_amount"
 	AttributeKeyUnstakeAmount         = "unstake_amount"
-	AttributeKeyPstakeAutocompoundFee = "pstake_autocompound_fee"
+	AttributeKeyAutocompoundFee       = "autocompound_fee"
+	AttributeKeyModulePaused          = "module_paused"
 
 	AttributeKeyAuthority                    = "authority"
 	AttributeKeyUpdatedParams                = "updated_params"

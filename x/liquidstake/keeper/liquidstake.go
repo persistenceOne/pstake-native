@@ -54,6 +54,10 @@ func (k Keeper) LiquidStake(
 ) (newShares math.LegacyDec, stkXPRTMintAmount math.Int, err error) {
 	params := k.GetParams(ctx)
 
+	if params.ModulePaused {
+		return sdk.ZeroDec(), math.ZeroInt(), types.ErrModulePaused
+	}
+
 	// check minimum liquid stake amount
 	if stakingCoin.Amount.LT(params.MinLiquidStakeAmount) {
 		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrLessThanMinLiquidStakeAmount
@@ -219,7 +223,9 @@ func (k Keeper) LSMDelegate(
 ) (newShares math.LegacyDec, stkXPRTMintAmount math.Int, err error) {
 	params := k.GetParams(ctx)
 
-	if params.LsmDisabled {
+	if params.ModulePaused {
+		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrModulePaused
+	} else if params.LsmDisabled {
 		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrDisabledLSM
 	}
 
@@ -379,8 +385,13 @@ func (k Keeper) LiquidDelegate(ctx sdk.Context, proxyAcc sdk.AccAddress, activeV
 func (k Keeper) LiquidUnstake(
 	ctx sdk.Context, proxyAcc, liquidStaker sdk.AccAddress, unstakingStkXPRT sdk.Coin,
 ) (time.Time, math.Int, []stakingtypes.UnbondingDelegation, math.Int, error) {
-	// check bond denomination
 	params := k.GetParams(ctx)
+
+	if params.ModulePaused {
+		return time.Time{}, sdk.ZeroInt(), []stakingtypes.UnbondingDelegation{}, sdk.ZeroInt(), types.ErrModulePaused
+	}
+
+	// check bond denomination
 	liquidBondDenom := k.LiquidBondDenom(ctx)
 	if unstakingStkXPRT.Denom != liquidBondDenom {
 		return time.Time{}, sdk.ZeroInt(), []stakingtypes.UnbondingDelegation{}, sdk.ZeroInt(), errors.Wrapf(
