@@ -125,8 +125,7 @@ var xxx_messageInfo_Params proto.InternalMessageInfo
 
 // WhitelistedValidator consists of the validator operator address and the
 // target weight, which is a value for calculating the real weight to be derived
-// according to the active status. In the case of inactive, it is calculated as
-// zero.
+// according to the active status.
 type WhitelistedValidator struct {
 	// validator_address defines the bech32-encoded address that whitelisted
 	// validator
