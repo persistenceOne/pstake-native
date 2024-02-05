@@ -39,6 +39,11 @@ func (k msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 		return nil, err
 	}
 
+	var cValue math.LegacyDec
+	if stkXPRTMintAmount.IsPositive() {
+		cValue = stkXPRTMintAmount.ToLegacyDec().Quo(msg.Amount.Amount.ToLegacyDec())
+	}
+
 	liquidBondDenom := k.LiquidBondDenom(ctx)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -51,6 +56,7 @@ func (k msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 			sdk.NewAttribute(types.AttributeKeyLiquidAmount, msg.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
 			sdk.NewAttribute(types.AttributeKeyStkXPRTMintedAmount, sdk.Coin{Denom: liquidBondDenom, Amount: stkXPRTMintAmount}.String()),
+			sdk.NewAttribute(types.AttributeKeyCValue, cValue.String()),
 		),
 	})
 	return &types.MsgLiquidStakeResponse{}, nil
@@ -76,6 +82,11 @@ func (k msgServer) StakeToLP(goCtx context.Context, msg *types.MsgStakeToLP) (*t
 		Amount: stkXPRTMintAmount,
 	}
 
+	var cValue math.LegacyDec
+	if stkXPRTMintAmount.IsPositive() {
+		cValue = stkXPRTMintAmount.ToLegacyDec().Quo(msg.StakedAmount.Amount.ToLegacyDec())
+	}
+
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -87,6 +98,7 @@ func (k msgServer) StakeToLP(goCtx context.Context, msg *types.MsgStakeToLP) (*t
 			sdk.NewAttribute(types.AttributeKeyStakedAmount, msg.StakedAmount.String()),
 			sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
 			sdk.NewAttribute(types.AttributeKeyStkXPRTMintedAmount, stkXPRTMinted.String()),
+			sdk.NewAttribute(types.AttributeKeyCValue, cValue.String()),
 		),
 	})
 
@@ -101,6 +113,11 @@ func (k msgServer) StakeToLP(goCtx context.Context, msg *types.MsgStakeToLP) (*t
 			Amount: stkXPRTMintAmount,
 		}
 
+		var cValue math.LegacyDec
+		if stkXPRTMintAmount.IsPositive() {
+			cValue = stkXPRTMintAmount.ToLegacyDec().Quo(msg.LiquidAmount.Amount.ToLegacyDec())
+		}
+
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
 				sdk.EventTypeMessage,
@@ -112,6 +129,7 @@ func (k msgServer) StakeToLP(goCtx context.Context, msg *types.MsgStakeToLP) (*t
 				sdk.NewAttribute(types.AttributeKeyLiquidAmount, msg.LiquidAmount.String()),
 				sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
 				sdk.NewAttribute(types.AttributeKeyStkXPRTMintedAmount, stkXPRTMinted.String()),
+				sdk.NewAttribute(types.AttributeKeyCValue, cValue.String()),
 			),
 		})
 
