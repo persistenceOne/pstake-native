@@ -219,7 +219,6 @@ func (k *Keeper) SendICATransfer(
 		)
 	}
 
-	timeoutHeight := clienttypes.NewHeight(0, 0)
 	timeoutTimestamp := uint64(ctx.BlockTime().UnixNano() + (types.IBCTimeoutTimestamp).Nanoseconds())
 
 	// prepare the msg transfer to bring the undelegation back
@@ -229,7 +228,7 @@ func (k *Keeper) SendICATransfer(
 		amount,
 		sender,
 		receiver,
-		timeoutHeight,
+		clienttypes.ZeroHeight(),
 		timeoutTimestamp,
 		"",
 	)

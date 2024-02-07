@@ -523,7 +523,6 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 			continue
 		}
 
-		timeoutHeight := clienttypes.NewHeight(0, 0)
 		timeoutTimestamp := uint64(ctx.BlockTime().UnixNano() + (liquidstakeibctypes.IBCTimeoutTimestamp).Nanoseconds())
 		msg := ibctransfertypes.NewMsgTransfer(
 			ibctransfertypes.PortID,
@@ -531,7 +530,7 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 			deposit.Amount,
 			authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String(),
 			hc.DelegationAccount.Address,
-			timeoutHeight,
+			clienttypes.ZeroHeight(),
 			timeoutTimestamp,
 			"",
 		)
@@ -860,7 +859,6 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 		totalLSMDepositsSharesAmount := math.LegacyZeroDec()
 		for _, deposit := range k.GetTransferableLSMDeposits(ctx, hc.ChainId) {
 
-			timeoutHeight := clienttypes.NewHeight(0, 0)
 			timeoutTimestamp := uint64(ctx.BlockTime().UnixNano() + (liquidstakeibctypes.IBCTimeoutTimestamp).Nanoseconds())
 
 			// craft the IBC message
@@ -870,7 +868,7 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 				sdk.NewCoin(deposit.IbcDenom, deposit.Shares.TruncateInt()),
 				authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String(),
 				hc.DelegationAccount.Address,
-				timeoutHeight,
+				clienttypes.ZeroHeight(),
 				timeoutTimestamp,
 				"",
 			)
