@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -304,9 +305,11 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 		hc.LastCValue = hc.CValue
 		hc.CValue = cValue
 		k.SetHostChain(ctx, hc)
+
 		if err := k.Hooks().PostCValueUpdate(ctx, hc.MintDenom(), hc.HostDenom, hc.CValue); err != nil {
 			k.Logger(ctx).Error("PostCValueUpdate hook failed with ", "err:", err)
 		}
+
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeCValueUpdate,
@@ -336,12 +339,31 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 					sdk.NewAttribute(types.AttributeNewCValue, hc.CValue.String()),
 				),
 			)
+
+			continue
 		}
+
+		k.RecalculateCValueLimits(ctx, hc, mintedAmount, liquidStakedAmount)
 	}
 }
 
 func (k *Keeper) CValueWithinLimits(hc *types.HostChain) bool {
 	return hc.CValue.LT(hc.Params.UpperCValueLimit) && hc.CValue.GT(hc.Params.LowerCValueLimit)
+}
+
+func (k *Keeper) RecalculateCValueLimits(ctx sdk.Context, hc *types.HostChain, mintedAmount, lsAmount math.Int) {
+	// calculate twice the amount of rewards which will be transferred next rewards epoch
+	diff := sdk.NewDecFromInt(hc.GetHostChainTotalDelegations()).Mul(hc.AutoCompoundFactor).Mul(sdk.NewDec(2))
+
+	// calculate the new lower and upper limit
+	newLowerLimit := sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(lsAmount).Add(diff))
+	newUpperLimit := hc.CValue.Add(hc.CValue.Sub(newLowerLimit).Mul(sdk.NewDec(10)))
+
+	hc.Params.LowerCValueLimit = newLowerLimit
+	hc.Params.UpperCValueLimit = newUpperLimit
+	k.SetHostChain(ctx, hc)
+
+	// TODO: Log and emit event
 }
 
 func (k *Keeper) CalculateAutocompoundLimit(autocompoundFactor sdk.Dec) sdk.Dec {
