@@ -523,25 +523,15 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 			continue
 		}
 
-		clientState, err := k.GetClientState(ctx, hc.ConnectionId)
-		if err != nil {
-			// we can't error out here as all the deposits need to be executed
-			continue
-		}
-
-		timeoutHeight := clienttypes.NewHeight(
-			clientState.GetLatestHeight().GetRevisionNumber(),
-			clientState.GetLatestHeight().GetRevisionHeight()+liquidstakeibctypes.IBCTimeoutHeightIncrement,
-		)
-
+		timeoutTimestamp := uint64(ctx.BlockTime().UnixNano() + (liquidstakeibctypes.IBCTimeoutTimestamp).Nanoseconds())
 		msg := ibctransfertypes.NewMsgTransfer(
 			ibctransfertypes.PortID,
 			hc.ChannelId,
 			deposit.Amount,
 			authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String(),
 			hc.DelegationAccount.Address,
-			timeoutHeight,
-			0,
+			clienttypes.ZeroHeight(),
+			timeoutTimestamp,
 			"",
 		)
 
@@ -868,16 +858,8 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 		// attempt to transfer all available LSM deposits
 		totalLSMDepositsSharesAmount := math.LegacyZeroDec()
 		for _, deposit := range k.GetTransferableLSMDeposits(ctx, hc.ChainId) {
-			clientState, err := k.GetClientState(ctx, hc.ConnectionId)
-			if err != nil {
-				// we can't error out here as all the deposits need to be executed
-				continue
-			}
 
-			timeoutHeight := clienttypes.NewHeight(
-				clientState.GetLatestHeight().GetRevisionNumber(),
-				clientState.GetLatestHeight().GetRevisionHeight()+liquidstakeibctypes.IBCTimeoutHeightIncrement,
-			)
+			timeoutTimestamp := uint64(ctx.BlockTime().UnixNano() + (liquidstakeibctypes.IBCTimeoutTimestamp).Nanoseconds())
 
 			// craft the IBC message
 			msg := ibctransfertypes.NewMsgTransfer(
@@ -886,8 +868,8 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 				sdk.NewCoin(deposit.IbcDenom, deposit.Shares.TruncateInt()),
 				authtypes.NewModuleAddress(liquidstakeibctypes.DepositModuleAccount).String(),
 				hc.DelegationAccount.Address,
-				timeoutHeight,
-				0,
+				clienttypes.ZeroHeight(),
+				timeoutTimestamp,
 				"",
 			)
 
