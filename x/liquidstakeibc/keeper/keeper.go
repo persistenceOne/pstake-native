@@ -352,18 +352,40 @@ func (k *Keeper) CValueWithinLimits(hc *types.HostChain) bool {
 }
 
 func (k *Keeper) RecalculateCValueLimits(ctx sdk.Context, hc *types.HostChain, mintedAmount, lsAmount math.Int) {
+	// if there has been no activity on the chain yet, leave the limits as they are
+	if mintedAmount.IsZero() || lsAmount.IsZero() {
+		return
+	}
+
 	// calculate twice the amount of rewards which will be transferred next rewards epoch
-	diff := sdk.NewDecFromInt(hc.GetHostChainTotalDelegations()).Mul(hc.AutoCompoundFactor).Mul(sdk.NewDec(2))
+	diff := sdk.NewDecFromInt(hc.GetHostChainTotalDelegations()).
+		Mul(hc.AutoCompoundFactor).Mul(sdk.NewDec(types.CValueDynamicLowerDiff))
 
 	// calculate the new lower and upper limit
 	newLowerLimit := sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(lsAmount).Add(diff))
-	newUpperLimit := hc.CValue.Add(hc.CValue.Sub(newLowerLimit).Mul(sdk.NewDec(10)))
+	newUpperLimit := hc.CValue.Add(hc.CValue.Sub(newLowerLimit).Mul(sdk.NewDec(types.CValueDynamicUpperDiff)))
 
+	// update the limits on the host chain
 	hc.Params.LowerCValueLimit = newLowerLimit
 	hc.Params.UpperCValueLimit = newUpperLimit
 	k.SetHostChain(ctx, hc)
 
-	// TODO: Log and emit event
+	k.Logger(ctx).Error(
+		fmt.Sprintf("Updated C Value limits for %s. Current C Value %s, new lower limit %s, new upper limit %s",
+			hc.ChainId,
+			hc.CValue,
+			hc.Params.LowerCValueLimit,
+			hc.Params.UpperCValueLimit,
+		),
+	)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeCValueLimitsUpdated,
+			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdk.NewAttribute(types.AttributeLowerLimit, hc.Params.LowerCValueLimit.String()),
+			sdk.NewAttribute(types.AttributeUpperLimit, hc.Params.UpperCValueLimit.String()),
+		),
+	)
 }
 
 func (k *Keeper) CalculateAutocompoundLimit(autocompoundFactor sdk.Dec) sdk.Dec {
