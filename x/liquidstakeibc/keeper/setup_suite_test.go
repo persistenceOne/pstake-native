@@ -409,7 +409,7 @@ func (suite *IntegrationTestSuite) TestOneFullFlow() {
 	suite.Require().True(found)
 	suite.Require().Equal(types.Deposit_DEPOSIT_DELEGATING, deposit.State)
 
-	timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().UnixNano()) + uint64(types.ICATimeoutTimestamp.Nanoseconds()) - uint64(time.Second*5) // sub one b
+	timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().UnixNano()) + uint64(types.IBCTimeoutTimestamp.Nanoseconds()) - uint64(time.Second*5) // sub one b
 	data, err := suite.CreateICAData(deposit.Amount.Amount, hc, 0)
 	suite.NoError(err)
 
