@@ -39,7 +39,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 - [758](https://github.com/persistenceOne/pstake-native/pull/758) Dynamic C Value limit updates.
-- [755](https://github.com/persistenceOne/pstake-native/pull/755) Add channel-id, port to ratesync host-chains and liquidstake instantiate.
+- [757](https://github.com/persistenceOne/pstake-native/pull/757) Change ibc transfer to use timeoutTimestamp instead of
+  timeoutHeight
+- [755](https://github.com/persistenceOne/pstake-native/pull/755) Add channel-id, port to ratesync host-chains and
+  liquidstake instantiate.
 - [737](https://github.com/persistenceOne/pstake-native/pull/737) Unhandled errors.
 - [736](https://github.com/persistenceOne/pstake-native/pull/736) Check for host denom duplicates.
 - [733](https://github.com/persistenceOne/pstake-native/pull/733) Add more validation for host-chain.

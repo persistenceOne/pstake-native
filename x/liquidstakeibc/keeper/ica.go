@@ -34,7 +34,7 @@ func (k *Keeper) GenerateAndExecuteICATx(
 		Owner:           ownerID,
 		ConnectionId:    connectionID,
 		PacketData:      icaPacketData,
-		RelativeTimeout: uint64(liquidstakeibctypes.ICATimeoutTimestamp.Nanoseconds()),
+		RelativeTimeout: uint64(liquidstakeibctypes.IBCTimeoutTimestamp.Nanoseconds()),
 	}
 
 	handler := k.msgRouter.Handler(msgSendTx)

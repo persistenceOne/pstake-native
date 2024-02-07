@@ -45,9 +45,7 @@ const (
 
 	LiquidStakeDenomPrefix = "stk"
 
-	IBCTimeoutHeightIncrement uint64 = 1000
-
-	ICATimeoutTimestamp = 120 * time.Minute
+	IBCTimeoutTimestamp = 120 * time.Minute
 
 	ICAMessagesChunkSize = 10
 
