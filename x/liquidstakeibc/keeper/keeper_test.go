@@ -276,3 +276,29 @@ func (suite *IntegrationTestSuite) TestUpdateCValues() {
 	hc, _ = pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
 	suite.Require().Equal(false, hc.Active)
 }
+
+func (suite *IntegrationTestSuite) TestRecalculateCValueLimits() {
+	pstakeApp, ctx := suite.app, suite.ctx
+	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
+	suite.Require().Equal(true, found)
+	suite.Require().NotNil(hc)
+	suite.Require().Equal(sdk.NewDec(1), hc.CValue)
+
+	pstakeApp.LiquidStakeIBCKeeper.RecalculateCValueLimits(ctx, hc, sdk.NewInt(0), sdk.NewInt(0))
+	suite.Require().Equal("0.950000000000000000", hc.Params.LowerCValueLimit.String())
+	suite.Require().Equal("1.050000000000000000", hc.Params.UpperCValueLimit.String())
+
+	hc.Validators[0].DelegatedAmount = sdk.NewInt(1000)
+	pstakeApp.LiquidStakeIBCKeeper.SetHostChainValidator(ctx, hc, hc.Validators[0])
+
+	pstakeApp.LiquidStakeIBCKeeper.RecalculateCValueLimits(ctx, hc, sdk.NewInt(1000), sdk.NewInt(1000))
+
+	expectedLower := sdk.NewDec(1000).Quo(sdk.NewDec(1000).
+		Add(sdk.NewDec(1000).Mul(hc.AutoCompoundFactor).Mul(sdk.NewDec(types.CValueDynamicLowerDiff))))
+
+	suite.Require().Equal(expectedLower, hc.Params.LowerCValueLimit)
+
+	expectedUpper := hc.CValue.Add(hc.CValue.Sub(hc.Params.LowerCValueLimit).Mul(sdk.NewDec(types.CValueDynamicUpperDiff)))
+
+	suite.Require().Equal(expectedUpper, hc.Params.UpperCValueLimit)
+}

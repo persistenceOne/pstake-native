@@ -58,6 +58,10 @@ const (
 	Percentage int64 = 100
 
 	DaysInYear int64 = 365
+
+	CValueDynamicLowerDiff int64 = 2
+
+	CValueDynamicUpperDiff int64 = 10
 )
 
 // Consts for KV updates, update host chain
