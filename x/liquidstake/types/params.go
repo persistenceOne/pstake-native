@@ -75,8 +75,6 @@ func (p Params) Validate() error {
 		value     interface{}
 		validator func(interface{}) error
 	}{
-		{p.LiquidBondDenom, validateLiquidBondDenom},
-		{p.WhitelistedValidators, validateWhitelistedValidators},
 		{p.UnstakeFeeRate, validateUnstakeFeeRate},
 		{p.MinLiquidStakeAmount, validateMinLiquidStakeAmount},
 		{p.AutocompoundFeeRate, validateAutocompoundFeeRate},
