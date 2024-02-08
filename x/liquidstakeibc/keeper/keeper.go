@@ -336,11 +336,9 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 					sdk.NewAttribute(types.AttributeNewCValue, hc.CValue.String()),
 				),
 			)
-
-			continue
+		} else {
+			k.RecalculateCValueLimits(ctx, hc, mintedAmount, liquidStakedAmount)
 		}
-
-		k.RecalculateCValueLimits(ctx, hc, mintedAmount, liquidStakedAmount)
 	}
 }
 
