@@ -367,7 +367,7 @@ func (k *Keeper) RecalculateCValueLimits(ctx sdk.Context, hc *types.HostChain, m
 	hc.Params.UpperCValueLimit = newUpperLimit
 	k.SetHostChain(ctx, hc)
 
-	k.Logger(ctx).Error(
+	k.Logger(ctx).Info(
 		fmt.Sprintf("Updated C Value limits for %s. Current C Value %s, new lower limit %s, new upper limit %s",
 			hc.ChainId,
 			hc.CValue,
