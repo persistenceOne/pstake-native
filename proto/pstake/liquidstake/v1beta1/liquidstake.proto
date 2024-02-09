@@ -96,7 +96,6 @@ message WhitelistedValidator {
   // validator
   string validator_address = 1
       [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  ;
 
   // target_weight specifies the target weight for liquid staking, unstaking
   // amount, which is a value for calculating the real weight to be derived
