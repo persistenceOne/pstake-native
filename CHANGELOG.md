@@ -53,7 +53,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - [721](https://github.com/persistenceOne/pstake-native/pull/721) Add Query host chain user unbondings.
 
 ### Bug Fixes
-
+- [761](https://github.com/persistenceOne/pstake-native/pull/761) Use counterparty channels instead of self chain for ratesync-instantiate
 - [752](https://github.com/persistenceOne/pstake-native/pull/752) Use correct existing delegation amount.
 - [751](https://github.com/persistenceOne/pstake-native/pull/751) Set LSM bond factor as -1 by default.
 - [750](https://github.com/persistenceOne/pstake-native/pull/750) Shares to tokens.
