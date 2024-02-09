@@ -246,13 +246,13 @@ func (suite *IntegrationTestSuite) TestSendICATransfer() {
 	suite.Require().Error(err)
 }
 
-func (suite *IntegrationTestSuite) TestUpdateCValues() {
+func (suite *IntegrationTestSuite) TestUpdateCValue() {
 	pstakeApp, ctx := suite.app, suite.ctx
 	hc, found := pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
 	suite.Require().Equal(true, found)
 	suite.Require().NotNil(hc)
 
-	suite.Require().NotPanics(func() { pstakeApp.LiquidStakeIBCKeeper.UpdateCValues(ctx) })
+	suite.Require().NotPanics(func() { pstakeApp.LiquidStakeIBCKeeper.UpdateCValue(ctx, hc) })
 
 	{
 		epoch := pstakeApp.EpochsKeeper.GetEpochInfo(suite.chainA.GetContext(), types.DelegationEpoch)
@@ -267,12 +267,12 @@ func (suite *IntegrationTestSuite) TestUpdateCValues() {
 		suite.NotNil(result)
 		suite.NoError(err)
 	}
-	suite.Require().NotPanics(func() { pstakeApp.LiquidStakeIBCKeeper.UpdateCValues(ctx) })
+	suite.Require().NotPanics(func() { pstakeApp.LiquidStakeIBCKeeper.UpdateCValue(ctx, hc) })
 
 	// lower limits so that chain goes out of limits
 	hc.Params.UpperCValueLimit = sdk.MustNewDecFromStr("0.5")
 	pstakeApp.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-	suite.Require().NotPanics(func() { pstakeApp.LiquidStakeIBCKeeper.UpdateCValues(ctx) })
+	suite.Require().NotPanics(func() { pstakeApp.LiquidStakeIBCKeeper.UpdateCValue(ctx, hc) })
 	hc, _ = pstakeApp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
 	suite.Require().Equal(false, hc.Active)
 }
