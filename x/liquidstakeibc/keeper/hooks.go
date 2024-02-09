@@ -89,11 +89,6 @@ func (k *Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epoch
 		k.CreateDeposits(ctx, epochNumber)
 	}
 
-	// update the c value for each registered host chain
-	if epochIdentifier == liquidstakeibctypes.CValueEpoch {
-		k.UpdateCValues(ctx)
-	}
-
 	return nil
 }
 
@@ -309,6 +304,9 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		// update the deposit
 		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount.Sub(feeAmount.TruncateInt()))
 		k.SetDeposit(ctx, deposit)
+
+		// update the c value for the auto compounding chain
+		k.UpdateCValue(ctx, hc)
 
 		// emit autocompound received event
 		ctx.EventManager().EmitEvent(

@@ -251,94 +251,89 @@ func (k *Keeper) SendICATransfer(
 	return sequenceID, nil
 }
 
-func (k *Keeper) UpdateCValues(ctx sdk.Context) {
-	hostChains := k.GetAllHostChains(ctx)
+func (k *Keeper) UpdateCValue(ctx sdk.Context, hc *types.HostChain) {
+	// total stk tokens minted
+	mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
 
-	for _, hc := range hostChains {
+	// total tokenized staked amount
+	tokenizedStakedAmount := k.GetLSMDepositAmountUntokenized(ctx, hc.ChainId)
 
-		// total stk tokens minted
-		mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
+	// amount staked by the module in any of the validators of the host chain
+	stakedAmount := hc.GetHostChainTotalDelegations()
 
-		// total tokenized staked amount
-		tokenizedStakedAmount := k.GetLSMDepositAmountUntokenized(ctx, hc.ChainId)
+	// amount that is in the staking flow and hasn't left Persistence yet
+	amountOnPersistence := k.GetDepositAmountOnPersistence(ctx, hc.ChainId)
 
-		// amount staked by the module in any of the validators of the host chain
-		stakedAmount := hc.GetHostChainTotalDelegations()
+	// amount that is in the staking flow and has arrived to the host chain, but hasn't been staked yet
+	amountOnHostChain := k.GetDepositAmountOnHostChain(ctx, hc.ChainId)
 
-		// amount that is in the staking flow and hasn't left Persistence yet
-		amountOnPersistence := k.GetDepositAmountOnPersistence(ctx, hc.ChainId)
+	// amount unbonded from a validator that has been in the Unbonding state for more than 4 unbonding epochs
+	totalUnbondingAmount := k.GetAllValidatorUnbondedAmount(ctx, hc)
 
-		// amount that is in the staking flow and has arrived to the host chain, but hasn't been staked yet
-		amountOnHostChain := k.GetDepositAmountOnHostChain(ctx, hc.ChainId)
+	// total amount staked
+	liquidStakedAmount := tokenizedStakedAmount.Add(stakedAmount).Add(amountOnPersistence).Add(amountOnHostChain).Add(totalUnbondingAmount)
 
-		// amount unbonded from a validator that has been in the Unbonding state for more than 4 unbonding epochs
-		totalUnbondingAmount := k.GetAllValidatorUnbondedAmount(ctx, hc)
+	var cValue sdk.Dec
+	if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {
+		cValue = sdk.OneDec()
+	} else {
+		cValue = sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(liquidStakedAmount))
+	}
 
-		// total amount staked
-		liquidStakedAmount := tokenizedStakedAmount.Add(stakedAmount).Add(amountOnPersistence).Add(amountOnHostChain).Add(totalUnbondingAmount)
+	k.Logger(ctx).Info(
+		fmt.Sprintf(
+			"Updated CValue for %s. Total minted amount: %v. Total liquid staked amount: %v. Composed of %v staked tokens, %v tokens on Persistence, %v tokens on the host chain, %v tokens from a validator total unbonding. New c_value: %v - Old c_value: %v",
+			hc.ChainId,
+			mintedAmount,
+			liquidStakedAmount,
+			stakedAmount,
+			amountOnPersistence,
+			amountOnHostChain,
+			totalUnbondingAmount,
+			cValue,
+			hc.CValue,
+		),
+	)
 
-		var cValue sdk.Dec
-		if mintedAmount.IsZero() || liquidStakedAmount.IsZero() {
-			cValue = sdk.OneDec()
-		} else {
-			cValue = sdk.NewDecFromInt(mintedAmount).Quo(sdk.NewDecFromInt(liquidStakedAmount))
-		}
+	hc.LastCValue = hc.CValue
+	hc.CValue = cValue
+	k.SetHostChain(ctx, hc)
 
-		k.Logger(ctx).Info(
-			fmt.Sprintf(
-				"Updated CValue for %s. Total minted amount: %v. Total liquid staked amount: %v. Composed of %v staked tokens, %v tokens on Persistence, %v tokens on the host chain, %v tokens from a validator total unbonding. New c_value: %v - Old c_value: %v",
-				hc.ChainId,
-				mintedAmount,
-				liquidStakedAmount,
-				stakedAmount,
-				amountOnPersistence,
-				amountOnHostChain,
-				totalUnbondingAmount,
-				cValue,
-				hc.CValue,
-			),
-		)
+	if err := k.Hooks().PostCValueUpdate(ctx, hc.MintDenom(), hc.HostDenom, hc.CValue); err != nil {
+		k.Logger(ctx).Error("PostCValueUpdate hook failed with ", "err:", err)
+	}
 
-		hc.LastCValue = hc.CValue
-		hc.CValue = cValue
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeCValueUpdate,
+			sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdk.NewAttribute(types.AttributeModuleMintedAmount, sdk.NewCoin(hc.MintDenom(), mintedAmount).String()),
+			sdk.NewAttribute(types.AttributeModuleLSMTokenizedAmount, sdk.NewCoin(hc.HostDenom, tokenizedStakedAmount).String()),
+			sdk.NewAttribute(types.AttributeModuleStakedAmount, sdk.NewCoin(hc.HostDenom, stakedAmount).String()),
+			sdk.NewAttribute(types.AttributeModuleAmountOnPersistence, sdk.NewCoin(hc.HostDenom, amountOnPersistence).String()),
+			sdk.NewAttribute(types.AttributeModuleAmountOnHostChain, sdk.NewCoin(hc.HostDenom, amountOnHostChain).String()),
+			sdk.NewAttribute(types.AttributeModuleUnbondingAmount, sdk.NewCoin(hc.HostDenom, totalUnbondingAmount).String()),
+			sdk.NewAttribute(types.AttributeOldCValue, hc.LastCValue.String()),
+			sdk.NewAttribute(types.AttributeNewCValue, hc.CValue.String()),
+		),
+	)
+
+	// if the c value is out of bounds, disable the chain
+	if !k.CValueWithinLimits(hc) {
+		hc.Active = false
 		k.SetHostChain(ctx, hc)
 
-		if err := k.Hooks().PostCValueUpdate(ctx, hc.MintDenom(), hc.HostDenom, hc.CValue); err != nil {
-			k.Logger(ctx).Error("PostCValueUpdate hook failed with ", "err:", err)
-		}
-
+		k.Logger(ctx).Error(fmt.Sprintf("C value out of limits !!! Disabling chain %s with c value %v.", hc.ChainId, hc.CValue))
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypeCValueUpdate,
+				types.EventTypeChainDisabled,
 				sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
-				sdk.NewAttribute(types.AttributeModuleMintedAmount, sdk.NewCoin(hc.MintDenom(), mintedAmount).String()),
-				sdk.NewAttribute(types.AttributeModuleLSMTokenizedAmount, sdk.NewCoin(hc.HostDenom, tokenizedStakedAmount).String()),
-				sdk.NewAttribute(types.AttributeModuleStakedAmount, sdk.NewCoin(hc.HostDenom, stakedAmount).String()),
-				sdk.NewAttribute(types.AttributeModuleAmountOnPersistence, sdk.NewCoin(hc.HostDenom, amountOnPersistence).String()),
-				sdk.NewAttribute(types.AttributeModuleAmountOnHostChain, sdk.NewCoin(hc.HostDenom, amountOnHostChain).String()),
-				sdk.NewAttribute(types.AttributeModuleUnbondingAmount, sdk.NewCoin(hc.HostDenom, totalUnbondingAmount).String()),
 				sdk.NewAttribute(types.AttributeOldCValue, hc.LastCValue.String()),
 				sdk.NewAttribute(types.AttributeNewCValue, hc.CValue.String()),
 			),
 		)
-
-		// if the c value is out of bounds, disable the chain
-		if !k.CValueWithinLimits(hc) {
-			hc.Active = false
-			k.SetHostChain(ctx, hc)
-
-			k.Logger(ctx).Error(fmt.Sprintf("C value out of limits !!! Disabling chain %s with c value %v.", hc.ChainId, hc.CValue))
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeChainDisabled,
-					sdk.NewAttribute(types.AttributeChainID, hc.ChainId),
-					sdk.NewAttribute(types.AttributeOldCValue, hc.LastCValue.String()),
-					sdk.NewAttribute(types.AttributeNewCValue, hc.CValue.String()),
-				),
-			)
-		} else {
-			k.RecalculateCValueLimits(ctx, hc, mintedAmount, liquidStakedAmount)
-		}
+	} else {
+		k.RecalculateCValueLimits(ctx, hc, mintedAmount, liquidStakedAmount)
 	}
 }
 
