@@ -65,14 +65,11 @@ func (k msgServer) CreateHostChain(goCtx context.Context, msg *types.MsgCreateHo
 
 	channel, found := k.ibcKeeper.ChannelKeeper.GetChannel(ctx, msg.HostChain.TransferPortID, msg.HostChain.TransferChannelID)
 	if !found || channel.State != channeltypes.OPEN {
-		if err != nil {
-			return nil, errorsmod.Wrapf(
-				sdkerrors.ErrNotFound,
-				"error creating %s ratesync with channel: %s, port: %s, err:%s",
-				chainID, msg.HostChain.TransferChannelID, msg.HostChain.TransferPortID,
-				err.Error(),
-			)
-		}
+		return nil, errorsmod.Wrapf(
+			sdkerrors.ErrNotFound,
+			"error creating %s ratesync with channel: %s, port: %s",
+			chainID, msg.HostChain.TransferChannelID, msg.HostChain.TransferPortID,
+		)
 	}
 
 	k.SetHostChain(
@@ -121,11 +118,19 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid channelID, channelID cannot be updated, "+
 			"channelID mismatch got %s, found %s", msg.HostChain.TransferChannelID, oldHC.TransferChannelID)
 	}
+
 	if msg.HostChain.TransferPortID != oldHC.TransferPortID {
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid portID, portID cannot be updated, "+
 			"portID mismatch got %s, found %s", msg.HostChain.TransferPortID, oldHC.TransferPortID)
 	}
-
+	channel, found := k.ibcKeeper.ChannelKeeper.GetChannel(ctx, oldHC.TransferPortID, oldHC.TransferChannelID)
+	if !found || channel.State != channeltypes.OPEN {
+		return nil, errorsmod.Wrapf(
+			sdkerrors.ErrNotFound,
+			"error creating %s ratesync with channel: %s, port: %s",
+			oldHC.ChainID, msg.HostChain.TransferChannelID, msg.HostChain.TransferPortID,
+		)
+	}
 	if oldHC.ICAAccount.ChannelState != liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATED {
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid ICAAccount state, should already be active")
 	}
@@ -167,7 +172,7 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 				// update oldhc, generate and execute wasm instantiate
 				oldHC.Features.LiquidStakeIBC = msg.HostChain.Features.LiquidStakeIBC
 
-				err := k.InstantiateLiquidStakeContract(ctx, oldHC.ICAAccount, oldHC.Features.LiquidStakeIBC, oldHC.ID, oldHC.ConnectionID, oldHC.TransferChannelID, oldHC.TransferPortID)
+				err := k.InstantiateLiquidStakeContract(ctx, oldHC.ICAAccount, oldHC.Features.LiquidStakeIBC, oldHC.ID, oldHC.ConnectionID, channel.Counterparty.ChannelId, channel.Counterparty.PortId)
 				if err != nil {
 					return nil, err
 				}
@@ -192,7 +197,7 @@ func (k msgServer) UpdateHostChain(goCtx context.Context, msg *types.MsgUpdateHo
 				// update oldhc, generate and execute wasm instantiate
 				oldHC.Features.LiquidStake = msg.HostChain.Features.LiquidStake
 
-				err := k.InstantiateLiquidStakeContract(ctx, oldHC.ICAAccount, oldHC.Features.LiquidStake, oldHC.ID, oldHC.ConnectionID, oldHC.TransferChannelID, oldHC.TransferPortID)
+				err := k.InstantiateLiquidStakeContract(ctx, oldHC.ICAAccount, oldHC.Features.LiquidStake, oldHC.ID, oldHC.ConnectionID, channel.Counterparty.ChannelId, channel.Counterparty.PortId)
 				if err != nil {
 					return nil, err
 				}
