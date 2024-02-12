@@ -351,7 +351,7 @@ func (k *Keeper) CValueWithinLimits(hc *types.HostChain) bool {
 
 func (k *Keeper) RecalculateCValueLimits(ctx sdk.Context, hc *types.HostChain, mintedAmount, lsAmount math.Int) {
 	// if there has been no activity on the chain yet, leave the limits as they are
-	if mintedAmount.IsZero() || lsAmount.IsZero() {
+	if hc.GetHostChainTotalDelegations().IsZero() {
 		return
 	}
 
