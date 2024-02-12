@@ -89,6 +89,11 @@ func (k *Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epoch
 		k.CreateDeposits(ctx, epochNumber)
 	}
 
+	// update the c value for each registered host chain
+	if epochIdentifier == liquidstakeibctypes.CValueEpoch {
+		k.UpdateCValues(ctx)
+	}
+
 	return nil
 }
 

@@ -251,6 +251,14 @@ func (k *Keeper) SendICATransfer(
 	return sequenceID, nil
 }
 
+func (k *Keeper) UpdateCValues(ctx sdk.Context) {
+	hostChains := k.GetAllHostChains(ctx)
+
+	for _, hc := range hostChains {
+		k.UpdateCValue(ctx, hc)
+	}
+}
+
 func (k *Keeper) UpdateCValue(ctx sdk.Context, hc *types.HostChain) {
 	// total stk tokens minted
 	mintedAmount := k.bankKeeper.GetSupply(ctx, hc.MintDenom()).Amount
