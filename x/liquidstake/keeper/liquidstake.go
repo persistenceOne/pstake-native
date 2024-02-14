@@ -544,21 +544,38 @@ func (k Keeper) PrioritiseInactiveLiquidValidators(
 	ctx sdk.Context,
 	vs types.LiquidValidators,
 ) types.LiquidValidators {
-	sort.Slice(vs, func(i, j int) bool {
-		vs1, ok := k.stakingKeeper.GetValidator(ctx, vs[i].GetOperator())
-		if !ok {
+	sort.SliceStable(vs, func(i, j int) bool {
+		vs1, vs1ok := k.stakingKeeper.GetValidator(ctx, vs[i].GetOperator())
+		vs2, vs2ok := k.stakingKeeper.GetValidator(ctx, vs[j].GetOperator())
+
+		if vs1ok == false && vs2ok == true {
+			// only one case when less
 			return true
+		} else if vs1ok == true && vs2ok == true {
+			// both exist, compare status
+
+			vs1Active := vs[i].GetStatus(types.ActiveCondition(
+				vs1,
+				true,
+				k.IsTombstoned(ctx, vs1),
+			))
+			vs2Active := vs[j].GetStatus(types.ActiveCondition(
+				vs2,
+				true,
+				k.IsTombstoned(ctx, vs2),
+			))
+
+			if vs1Active != types.ValidatorStatusActive &&
+				vs2Active == types.ValidatorStatusActive {
+				// only one case when is less
+				return true
+			}
+
+			// not less, or are equal
+			return false
 		}
 
-		vs1Active := vs[i].GetStatus(types.ActiveCondition(
-			vs1,
-			true,
-			k.IsTombstoned(ctx, vs1),
-		))
-		if vs1Active != types.ValidatorStatusActive {
-			return true
-		}
-
+		// not less, or are equal
 		return false
 	})
 
