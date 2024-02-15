@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+- [760](https://github.com/persistenceOne/pstake-native/pull/760) Calculate C Value after autocompounding / slashing.
 - [758](https://github.com/persistenceOne/pstake-native/pull/758) Dynamic C Value limit updates.
 - [757](https://github.com/persistenceOne/pstake-native/pull/757) Change ibc transfer to use timeoutTimestamp instead of
   timeoutHeight

@@ -310,6 +310,9 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		deposit.Amount.Amount = deposit.Amount.Amount.Add(transferAmount.Sub(feeAmount.TruncateInt()))
 		k.SetDeposit(ctx, deposit)
 
+		// update the c value for the auto compounding chain
+		k.UpdateCValue(ctx, hc)
+
 		// emit autocompound received event
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
