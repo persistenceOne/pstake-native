@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/json"
+	"sort"
 	"time"
 
 	"cosmossdk.io/errors"
@@ -53,6 +54,10 @@ func (k Keeper) LiquidStake(
 ) (newShares math.LegacyDec, stkXPRTMintAmount math.Int, err error) {
 	params := k.GetParams(ctx)
 
+	if params.ModulePaused {
+		return sdk.ZeroDec(), math.ZeroInt(), types.ErrModulePaused
+	}
+
 	// check minimum liquid stake amount
 	if stakingCoin.Amount.LT(params.MinLiquidStakeAmount) {
 		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrLessThanMinLiquidStakeAmount
@@ -68,8 +73,20 @@ func (k Keeper) LiquidStake(
 
 	whitelistedValsMap := types.GetWhitelistedValsMap(params.WhitelistedValidators)
 	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValsMap)
-	if activeVals.Len() == 0 || !activeVals.TotalWeight(whitelistedValsMap).IsPositive() {
+
+	if activeVals.Len() == 0 {
 		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrActiveLiquidValidatorsNotExists
+	}
+
+	totalActiveWeight := activeVals.TotalWeight(whitelistedValsMap)
+	activeWeightQuorum := math.LegacyNewDecFromInt(totalActiveWeight).Quo(
+		math.LegacyNewDecFromInt(types.TotalValidatorWeight),
+	)
+	if activeWeightQuorum.LT(types.ActiveLiquidValidatorsWeightQuorum) {
+		return sdk.ZeroDec(), sdk.ZeroInt(), errors.Wrapf(
+			types.ErrActiveLiquidValidatorsWeightQuorumNotReached, "%s < %s",
+			activeWeightQuorum.String(), types.ActiveLiquidValidatorsWeightQuorum.String(),
+		)
 	}
 
 	// NetAmount must be calculated before send
@@ -84,7 +101,14 @@ func (k Keeper) LiquidStake(
 	// mint stkxprt, MintAmount = TotalSupply * StakeAmount/NetAmount
 	liquidBondDenom := k.LiquidBondDenom(ctx)
 	stkXPRTMintAmount = stakingCoin.Amount
+
 	if nas.StkxprtTotalSupply.IsPositive() {
+		if nas.NetAmount.IsZero() {
+			// this case must not be reachable, consider stopping module for investigation
+			// c_value -> inf
+			return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrInsufficientProxyAccBalance
+		}
+
 		stkXPRTMintAmount = types.NativeTokenToStkXPRT(stakingCoin.Amount, nas.StkxprtTotalSupply, nas.NetAmount)
 	}
 
@@ -195,31 +219,45 @@ func (k Keeper) LSMDelegate(
 	delegator sdk.AccAddress,
 	validator sdk.ValAddress,
 	proxyAcc sdk.AccAddress,
-	stakingCoin sdk.Coin,
+	preLsmStake sdk.Coin,
 ) (newShares math.LegacyDec, stkXPRTMintAmount math.Int, err error) {
 	params := k.GetParams(ctx)
 
-	if params.LsmDisabled {
+	if params.ModulePaused {
+		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrModulePaused
+	} else if params.LsmDisabled {
 		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrDisabledLSM
 	}
 
 	// check minimum liquid stake amount
-	if stakingCoin.Amount.LT(params.MinLiquidStakeAmount) {
+	if preLsmStake.Amount.LT(params.MinLiquidStakeAmount) {
 		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrLessThanMinLiquidStakeAmount
 	}
 
 	// check bond denomination
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
-	if stakingCoin.Denom != bondDenom {
+	if preLsmStake.Denom != bondDenom {
 		return sdk.ZeroDec(), sdk.ZeroInt(), errors.Wrapf(
-			types.ErrInvalidBondDenom, "invalid coin denomination: got %s, expected %s", stakingCoin.Denom, bondDenom,
+			types.ErrInvalidBondDenom, "invalid coin denomination: got %s, expected %s", preLsmStake.Denom, bondDenom,
 		)
 	}
 
 	whitelistedValsMap := types.GetWhitelistedValsMap(params.WhitelistedValidators)
 	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValsMap)
-	if activeVals.Len() == 0 || !activeVals.TotalWeight(whitelistedValsMap).IsPositive() {
+
+	if activeVals.Len() == 0 {
 		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrActiveLiquidValidatorsNotExists
+	}
+
+	totalActiveWeight := activeVals.TotalWeight(whitelistedValsMap)
+	activeWeightQuorum := math.LegacyNewDecFromInt(totalActiveWeight).Quo(
+		math.LegacyNewDecFromInt(types.TotalValidatorWeight),
+	)
+	if activeWeightQuorum.LT(types.ActiveLiquidValidatorsWeightQuorum) {
+		return sdk.ZeroDec(), sdk.ZeroInt(), errors.Wrapf(
+			types.ErrActiveLiquidValidatorsWeightQuorumNotReached, "%s < %s",
+			activeWeightQuorum.String(), types.ActiveLiquidValidatorsWeightQuorum.String(),
+		)
 	}
 
 	if !whitelistedValsMap.IsListed(validator.String()) {
@@ -234,7 +272,7 @@ func (k Keeper) LSMDelegate(
 	lsmTokenizeMsg := &stakingtypes.MsgTokenizeShares{
 		DelegatorAddress:    delegator.String(),
 		ValidatorAddress:    validator.String(),
-		Amount:              stakingCoin,
+		Amount:              preLsmStake,
 		TokenizedShareOwner: proxyAcc.String(),
 	}
 
@@ -281,14 +319,16 @@ func (k Keeper) LSMDelegate(
 		panic("wrong data type: " + err.Error())
 	}
 
-	// obtained newShares from LSM
-	newShares = lsmRedeemResp.Amount.Amount.ToLegacyDec()
-
 	// mint stkxprt, MintAmount = TotalSupply * StakeAmount/NetAmount
 	liquidBondDenom := k.LiquidBondDenom(ctx)
-	stkXPRTMintAmount = stakingCoin.Amount
+	stkXPRTMintAmount = lsmRedeemResp.Amount.Amount
+
 	if nas.StkxprtTotalSupply.IsPositive() {
-		stkXPRTMintAmount = types.NativeTokenToStkXPRT(stakingCoin.Amount, nas.StkxprtTotalSupply, nas.NetAmount)
+		stkXPRTMintAmount = types.NativeTokenToStkXPRT(
+			stkXPRTMintAmount,
+			nas.StkxprtTotalSupply,
+			nas.NetAmount,
+		)
 	}
 
 	if !stkXPRTMintAmount.IsPositive() {
@@ -314,6 +354,7 @@ func (k Keeper) LSMDelegate(
 		return sdk.ZeroDec(), stkXPRTMintAmount, err
 	}
 
+	newShares = lsmTokenizeResp.Amount.Amount.ToLegacyDec()
 	return newShares, stkXPRTMintAmount, err
 }
 
@@ -344,8 +385,13 @@ func (k Keeper) LiquidDelegate(ctx sdk.Context, proxyAcc sdk.AccAddress, activeV
 func (k Keeper) LiquidUnstake(
 	ctx sdk.Context, proxyAcc, liquidStaker sdk.AccAddress, unstakingStkXPRT sdk.Coin,
 ) (time.Time, math.Int, []stakingtypes.UnbondingDelegation, math.Int, error) {
-	// check bond denomination
 	params := k.GetParams(ctx)
+
+	if params.ModulePaused {
+		return time.Time{}, sdk.ZeroInt(), []stakingtypes.UnbondingDelegation{}, sdk.ZeroInt(), types.ErrModulePaused
+	}
+
+	// check bond denomination
 	liquidBondDenom := k.LiquidBondDenom(ctx)
 	if unstakingStkXPRT.Denom != liquidBondDenom {
 		return time.Time{}, sdk.ZeroInt(), []stakingtypes.UnbondingDelegation{}, sdk.ZeroInt(), errors.Wrapf(
@@ -356,7 +402,7 @@ func (k Keeper) LiquidUnstake(
 	// Get NetAmount states
 	nas := k.GetNetAmountState(ctx)
 
-	if unstakingStkXPRT.Amount.GT(nas.StkxprtTotalSupply) {
+	if unstakingStkXPRT.Amount.GT(nas.StkxprtTotalSupply) || nas.StkxprtTotalSupply.IsZero() {
 		return time.Time{}, sdk.ZeroInt(), []stakingtypes.UnbondingDelegation{}, sdk.ZeroInt(), types.ErrInvalidStkXPRTSupply
 	}
 
@@ -409,6 +455,9 @@ func (k Keeper) LiquidUnstake(
 	if liquidVals.Len() == 0 {
 		return time.Time{}, sdk.ZeroInt(), []stakingtypes.UnbondingDelegation{}, sdk.ZeroInt(), types.ErrLiquidValidatorsNotExists
 	}
+
+	// prioritise inactive liquid validators in the list to be used in DivideByCurrentWeight
+	liquidVals = k.PrioritiseInactiveLiquidValidators(ctx, liquidVals)
 
 	// crumb may occur due to a decimal error in dividing the unstaking stkXPRT into the weight of liquid validators, it will remain in the NetAmount
 	unbondingAmounts, crumb := types.DivideByCurrentWeight(liquidVals, unbondingAmount, totalLiquidTokens, liquidTokenMap)
@@ -489,6 +538,50 @@ func (k Keeper) LiquidUnbond(
 	return completionTime, returnAmount, ubd, nil
 }
 
+// PrioritiseInactiveLiquidValidators sorts LiquidValidators array to have inactive validators first. Used for the case when
+// unbonding should begin from the inactive validators first.
+func (k Keeper) PrioritiseInactiveLiquidValidators(
+	ctx sdk.Context,
+	vs types.LiquidValidators,
+) types.LiquidValidators {
+	sort.SliceStable(vs, func(i, j int) bool {
+		vs1, vs1ok := k.stakingKeeper.GetValidator(ctx, vs[i].GetOperator())
+		vs2, vs2ok := k.stakingKeeper.GetValidator(ctx, vs[j].GetOperator())
+
+		if vs1ok == false && vs2ok == true {
+			// only one case when less
+			return true
+		} else if vs1ok == true && vs2ok == true {
+			// both exist, compare status
+
+			vs1Active := vs[i].GetStatus(types.ActiveCondition(
+				vs1,
+				true,
+				k.IsTombstoned(ctx, vs1),
+			))
+			vs2Active := vs[j].GetStatus(types.ActiveCondition(
+				vs2,
+				true,
+				k.IsTombstoned(ctx, vs2),
+			))
+
+			if vs1Active != types.ValidatorStatusActive &&
+				vs2Active == types.ValidatorStatusActive {
+				// only one case when is less
+				return true
+			}
+
+			// not less, or are equal
+			return false
+		}
+
+		// not less, or are equal
+		return false
+	})
+
+	return vs
+}
+
 // CheckDelegationStates returns total remaining rewards, delshares, liquid tokens of delegations by proxy account
 func (k Keeper) CheckDelegationStates(ctx sdk.Context, proxyAcc sdk.AccAddress) (math.LegacyDec, math.LegacyDec, math.Int) {
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
@@ -563,7 +656,7 @@ func (k Keeper) RemoveLiquidValidator(ctx sdk.Context, val types.LiquidValidator
 	store.Delete(types.GetLiquidValidatorKey(val.GetOperator()))
 }
 
-// GetAllLiquidValidators get the set of all liquid validators with no limits, used during genesis dump
+// GetAllLiquidValidators gets the set of all liquid validators, with no pagination limits.
 func (k Keeper) GetAllLiquidValidators(ctx sdk.Context) (vals types.LiquidValidators) {
 	store := ctx.KVStore(k.storeKey)
 	vals = types.LiquidValidators{}

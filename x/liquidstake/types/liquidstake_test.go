@@ -23,7 +23,7 @@ import (
 var whitelistedValidators = []types.WhitelistedValidator{
 	{
 		ValidatorAddress: "cosmosvaloper10e4vsut6suau8tk9m6dnrm0slgd6npe3jx5xpv",
-		TargetWeight:     math.NewInt(10),
+		TargetWeight:     math.NewInt(10000),
 	},
 	{
 		ValidatorAddress: "cosmosvaloper18hfzxheyknesfgcrttr5dg50ffnfphtwtar9fz",
@@ -322,9 +322,9 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(1)},
-		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(1)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(3333)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(3333)},
+		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(3333)},
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)

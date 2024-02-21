@@ -239,27 +239,17 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 	}
 
 	// Withdraw rewards of LiquidStakeProxyAcc and re-staking
-	k.WithdrawLiquidRewards(ctx, types.LiquidStakeProxyAcc)
+	totalRewardsWithdrawn := k.WithdrawLiquidRewards(ctx, types.LiquidStakeProxyAcc)
 
 	// prepare to re-staking with proxyAccBalance
 	proxyAccBalance = k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
 
-	// move autocompounding fee from the balance to fee account
+	// calculate autocompounding fee
 	params := k.GetParams(ctx)
+
 	autocompoundFee := sdk.NewCoin(proxyAccBalance.Denom, math.ZeroInt())
-
-	if !params.AutocompoundFeeRate.IsZero() {
-		autocompoundFee = sdk.NewCoin(proxyAccBalance.Denom, params.AutocompoundFeeRate.MulInt(proxyAccBalance.Amount).TruncateInt())
-		feeAccountAddr := sdk.MustAccAddressFromBech32(params.FeeAccountAddress)
-
-		err := k.bankKeeper.SendCoins(ctx, types.LiquidStakeProxyAcc, feeAccountAddr, sdk.NewCoins(autocompoundFee))
-		if err != nil {
-			k.Logger(ctx).Error("re-staking failed upon fee collection", "error", err)
-			return
-		}
-
-		// reset proxyAccBalance
-		proxyAccBalance = k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
+	if !params.AutocompoundFeeRate.IsZero() && totalRewardsWithdrawn.IsPositive() {
+		autocompoundFee = sdk.NewCoin(proxyAccBalance.Denom, params.AutocompoundFeeRate.MulInt(totalRewardsWithdrawn).TruncateInt())
 	}
 
 	// skip when no active liquid validator
@@ -270,24 +260,34 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 
 	// re-staking of the accumulated rewards
 	cachedCtx, writeCache := ctx.CacheContext()
-	_, err := k.LiquidDelegate(cachedCtx, types.LiquidStakeProxyAcc, activeVals, proxyAccBalance.Amount, whitelistedValsMap)
+	delegableAmount := proxyAccBalance.Amount.Sub(autocompoundFee.Amount)
+	_, err := k.LiquidDelegate(cachedCtx, types.LiquidStakeProxyAcc, activeVals, delegableAmount, whitelistedValsMap)
 	if err != nil {
 		logger := k.Logger(ctx)
 		logger.Error("re-staking failed", "error", err)
 		return
 	}
 	writeCache()
+
+	// move autocompounding fee from the balance to fee account
+	feeAccountAddr := sdk.MustAccAddressFromBech32(params.FeeAccountAddress)
+	err = k.bankKeeper.SendCoins(ctx, types.LiquidStakeProxyAcc, feeAccountAddr, sdk.NewCoins(autocompoundFee))
+	if err != nil {
+		k.Logger(ctx).Error("re-staking failed upon fee collection", "error", err)
+		return
+	}
+
 	logger := k.Logger(ctx)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAutocompound,
 			sdk.NewAttribute(types.AttributeKeyDelegator, types.LiquidStakeProxyAcc.String()),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, proxyAccBalance.String()),
-			sdk.NewAttribute(types.AttributeKeyPstakeAutocompoundFee, autocompoundFee.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, delegableAmount.String()),
+			sdk.NewAttribute(types.AttributeKeyAutocompoundFee, autocompoundFee.String()),
 		),
 	})
 	logger.Info(types.EventTypeAutocompound,
 		types.AttributeKeyDelegator, types.LiquidStakeProxyAcc.String(),
-		sdk.AttributeKeyAmount, proxyAccBalance.String(),
-		types.AttributeKeyPstakeAutocompoundFee, autocompoundFee.String())
+		sdk.AttributeKeyAmount, delegableAmount.String(),
+		types.AttributeKeyAutocompoundFee, autocompoundFee.String())
 }

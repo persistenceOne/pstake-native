@@ -282,7 +282,8 @@ type MsgUpdateParams struct {
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	// params defines the parameters to update.
 	//
-	// NOTE: All parameters must be supplied.
+	// NOTE: denom and whitelisted validators are not updated.
+	//
 	Params Params `protobuf:"bytes,2,opt,name=params,proto3" json:"params"`
 }
 
@@ -356,6 +357,167 @@ func (m *MsgUpdateParamsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
 
+type MsgUpdateWhitelistedValidators struct {
+	// Authority is the address that is allowed to update whitelisted validators,
+	// defined as admin address in params (WhitelistAdminAddress).
+	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	// WhitelistedValidators specifies the validators elected to become Active
+	// Liquid Validators.
+	WhitelistedValidators []WhitelistedValidator `protobuf:"bytes,2,rep,name=whitelisted_validators,json=whitelistedValidators,proto3" json:"whitelisted_validators"`
+}
+
+func (m *MsgUpdateWhitelistedValidators) Reset()         { *m = MsgUpdateWhitelistedValidators{} }
+func (m *MsgUpdateWhitelistedValidators) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateWhitelistedValidators) ProtoMessage()    {}
+func (*MsgUpdateWhitelistedValidators) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d90501ae6d9f0009, []int{8}
+}
+func (m *MsgUpdateWhitelistedValidators) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateWhitelistedValidators) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateWhitelistedValidators.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateWhitelistedValidators) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateWhitelistedValidators.Merge(m, src)
+}
+func (m *MsgUpdateWhitelistedValidators) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateWhitelistedValidators) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateWhitelistedValidators.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateWhitelistedValidators proto.InternalMessageInfo
+
+// MsgUpdateWhitelistedValidatorsResponse defines the response structure for
+// executing a
+type MsgUpdateWhitelistedValidatorsResponse struct {
+}
+
+func (m *MsgUpdateWhitelistedValidatorsResponse) Reset() {
+	*m = MsgUpdateWhitelistedValidatorsResponse{}
+}
+func (m *MsgUpdateWhitelistedValidatorsResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateWhitelistedValidatorsResponse) ProtoMessage()    {}
+func (*MsgUpdateWhitelistedValidatorsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d90501ae6d9f0009, []int{9}
+}
+func (m *MsgUpdateWhitelistedValidatorsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateWhitelistedValidatorsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateWhitelistedValidatorsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateWhitelistedValidatorsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateWhitelistedValidatorsResponse.Merge(m, src)
+}
+func (m *MsgUpdateWhitelistedValidatorsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateWhitelistedValidatorsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateWhitelistedValidatorsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateWhitelistedValidatorsResponse proto.InternalMessageInfo
+
+type MsgSetModulePaused struct {
+	// Authority is the address that is allowed to update module's paused state,
+	// defined as admin address in params (WhitelistAdminAddress).
+	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	// IsPaused represents the target state of the paused flag.
+	IsPaused bool `protobuf:"varint,2,opt,name=is_paused,json=isPaused,proto3" json:"is_paused,omitempty"`
+}
+
+func (m *MsgSetModulePaused) Reset()         { *m = MsgSetModulePaused{} }
+func (m *MsgSetModulePaused) String() string { return proto.CompactTextString(m) }
+func (*MsgSetModulePaused) ProtoMessage()    {}
+func (*MsgSetModulePaused) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d90501ae6d9f0009, []int{10}
+}
+func (m *MsgSetModulePaused) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSetModulePaused) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSetModulePaused.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSetModulePaused) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSetModulePaused.Merge(m, src)
+}
+func (m *MsgSetModulePaused) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSetModulePaused) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSetModulePaused.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSetModulePaused proto.InternalMessageInfo
+
+// MsgSetModulePausedResponse defines the response structure for
+// executing a
+type MsgSetModulePausedResponse struct {
+}
+
+func (m *MsgSetModulePausedResponse) Reset()         { *m = MsgSetModulePausedResponse{} }
+func (m *MsgSetModulePausedResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgSetModulePausedResponse) ProtoMessage()    {}
+func (*MsgSetModulePausedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d90501ae6d9f0009, []int{11}
+}
+func (m *MsgSetModulePausedResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSetModulePausedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSetModulePausedResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSetModulePausedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSetModulePausedResponse.Merge(m, src)
+}
+func (m *MsgSetModulePausedResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSetModulePausedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSetModulePausedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSetModulePausedResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgLiquidStake)(nil), "pstake.liquidstake.v1beta1.MsgLiquidStake")
 	proto.RegisterType((*MsgLiquidStakeResponse)(nil), "pstake.liquidstake.v1beta1.MsgLiquidStakeResponse")
@@ -365,6 +527,10 @@ func init() {
 	proto.RegisterType((*MsgLiquidUnstakeResponse)(nil), "pstake.liquidstake.v1beta1.MsgLiquidUnstakeResponse")
 	proto.RegisterType((*MsgUpdateParams)(nil), "pstake.liquidstake.v1beta1.MsgUpdateParams")
 	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "pstake.liquidstake.v1beta1.MsgUpdateParamsResponse")
+	proto.RegisterType((*MsgUpdateWhitelistedValidators)(nil), "pstake.liquidstake.v1beta1.MsgUpdateWhitelistedValidators")
+	proto.RegisterType((*MsgUpdateWhitelistedValidatorsResponse)(nil), "pstake.liquidstake.v1beta1.MsgUpdateWhitelistedValidatorsResponse")
+	proto.RegisterType((*MsgSetModulePaused)(nil), "pstake.liquidstake.v1beta1.MsgSetModulePaused")
+	proto.RegisterType((*MsgSetModulePausedResponse)(nil), "pstake.liquidstake.v1beta1.MsgSetModulePausedResponse")
 }
 
 func init() {
@@ -372,48 +538,57 @@ func init() {
 }
 
 var fileDescriptor_d90501ae6d9f0009 = []byte{
-	// 648 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x55, 0x3d, 0x6f, 0xd3, 0x4e,
-	0x18, 0xb7, 0xdb, 0xaa, 0xfa, 0xf7, 0xfa, 0x6e, 0x55, 0x6d, 0xe2, 0xc1, 0xa9, 0xfc, 0x5f, 0xa2,
-	0xd2, 0xda, 0x24, 0x45, 0x20, 0x75, 0x40, 0x24, 0xd0, 0xad, 0x11, 0x55, 0xda, 0x4a, 0x88, 0x25,
-	0xba, 0xc4, 0xc7, 0xf5, 0x44, 0xec, 0x33, 0xbe, 0x4b, 0xd4, 0xae, 0x4c, 0x8c, 0xfd, 0x08, 0x95,
-	0xf8, 0x02, 0x15, 0xe2, 0x23, 0x30, 0x64, 0xac, 0x98, 0x98, 0x00, 0x25, 0x03, 0x7c, 0x0c, 0x64,
-	0xdf, 0xd9, 0xb1, 0x8b, 0x68, 0x5c, 0x89, 0x85, 0x29, 0x3e, 0xff, 0x5e, 0x9e, 0xe7, 0x7e, 0xbe,
-	0xe7, 0x02, 0xfe, 0xf7, 0x19, 0x87, 0xaf, 0x91, 0xdd, 0x25, 0x6f, 0x7a, 0xc4, 0x11, 0xcf, 0xfd,
-	0x4a, 0x1b, 0x71, 0x58, 0xb1, 0xf9, 0x99, 0xe5, 0x07, 0x94, 0x53, 0x4d, 0x17, 0x24, 0x2b, 0x45,
-	0xb2, 0x24, 0x49, 0x5f, 0xc3, 0x14, 0xd3, 0x88, 0x66, 0x87, 0x4f, 0x42, 0xa1, 0x17, 0x3b, 0x94,
-	0xb9, 0x94, 0xb5, 0x04, 0x20, 0x16, 0x12, 0x32, 0xc4, 0xca, 0x6e, 0x43, 0x36, 0x2e, 0xd5, 0xa1,
-	0xc4, 0x93, 0xf8, 0x86, 0xc4, 0x5d, 0x86, 0xed, 0x7e, 0x25, 0xfc, 0x91, 0x40, 0x09, 0x53, 0x8a,
-	0xbb, 0xc8, 0x8e, 0x56, 0xed, 0xde, 0x2b, 0x9b, 0x13, 0x17, 0x31, 0x0e, 0x5d, 0x5f, 0x12, 0xb6,
-	0x6f, 0xd9, 0x4b, 0xba, 0xf5, 0x88, 0x6d, 0x5e, 0xa9, 0x60, 0xa9, 0xc1, 0xf0, 0x41, 0x04, 0x1c,
-	0x85, 0x80, 0xb6, 0x0f, 0x56, 0x1d, 0xd4, 0x45, 0x18, 0x72, 0x1a, 0xb4, 0xa0, 0xe3, 0x04, 0x88,
-	0xb1, 0x82, 0xba, 0xa9, 0x96, 0xe7, 0xea, 0x85, 0xcf, 0x1f, 0x77, 0xd6, 0xe4, 0x3e, 0x6a, 0x02,
-	0x39, 0xe2, 0x01, 0xf1, 0x70, 0x73, 0x25, 0x91, 0xc8, 0xf7, 0xda, 0x23, 0x30, 0x0b, 0x5d, 0xda,
-	0xf3, 0x78, 0x61, 0x6a, 0x53, 0x2d, 0xcf, 0x57, 0x8b, 0x96, 0x14, 0x86, 0x5b, 0x8e, 0x83, 0xb3,
-	0x9e, 0x52, 0xe2, 0xd5, 0x67, 0x06, 0x5f, 0x4b, 0x4a, 0x53, 0xd2, 0xf7, 0x8c, 0x77, 0x97, 0x25,
-	0xe5, 0xe7, 0x65, 0x49, 0x79, 0xfb, 0xe3, 0x6a, 0xeb, 0xf7, 0x56, 0xcc, 0x02, 0x58, 0xcf, 0x76,
-	0xdc, 0x44, 0xcc, 0xa7, 0x1e, 0x43, 0xe6, 0x60, 0x0a, 0x2c, 0x34, 0x18, 0x8e, 0x5e, 0x1e, 0xd3,
-	0x83, 0xc3, 0xbf, 0xb5, 0x95, 0x7d, 0xb0, 0xda, 0x87, 0x5d, 0xe2, 0x64, 0x6c, 0xa6, 0x26, 0xd9,
-	0x24, 0x92, 0xd8, 0xe6, 0x19, 0x58, 0x8c, 0xa2, 0x77, 0x5a, 0x32, 0x98, 0xe9, 0x7c, 0xc1, 0x2c,
-	0x08, 0x55, 0x2d, 0x12, 0x85, 0x2e, 0xe2, 0x33, 0xc6, 0x2e, 0x33, 0x39, 0x5d, 0x84, 0xaa, 0x96,
-	0x2f, 0xe4, 0x75, 0xb0, 0x96, 0x4e, 0x32, 0x89, 0xf8, 0x83, 0x0a, 0x56, 0x92, 0xf4, 0x4f, 0x3c,
-	0xf6, 0x4f, 0x9c, 0x18, 0x02, 0x0a, 0x37, 0x7b, 0x8e, 0x37, 0xa4, 0x35, 0xc0, 0x72, 0x87, 0xba,
-	0x7e, 0x17, 0x71, 0x42, 0xbd, 0x56, 0x38, 0x4c, 0x51, 0xe7, 0xf3, 0x55, 0xdd, 0x12, 0x93, 0x66,
-	0xc5, 0x93, 0x66, 0x1d, 0xc7, 0x93, 0x56, 0xff, 0x2f, 0x2c, 0x7f, 0xf1, 0xad, 0xa4, 0x36, 0x97,
-	0xc6, 0xe2, 0x10, 0x36, 0xdf, 0xab, 0x60, 0xb9, 0xc1, 0xf0, 0x89, 0xef, 0x40, 0x8e, 0x0e, 0x61,
-	0x00, 0x5d, 0xa6, 0x3d, 0x04, 0x73, 0xb0, 0xc7, 0x4f, 0x69, 0x40, 0xf8, 0xf9, 0xc4, 0x58, 0xc6,
-	0x54, 0xed, 0x09, 0x98, 0xf5, 0x23, 0x07, 0x99, 0x87, 0x69, 0xfd, 0xf9, 0x06, 0xb2, 0x44, 0xad,
-	0x38, 0x18, 0xa1, 0xdb, 0x5b, 0x4f, 0x07, 0x33, 0x76, 0x36, 0x8b, 0x60, 0xe3, 0x46, 0x93, 0x71,
-	0x1e, 0xd5, 0x4f, 0xd3, 0x60, 0xba, 0xc1, 0xb0, 0xe6, 0x82, 0xf9, 0xf4, 0xa5, 0xb0, 0x75, 0x5b,
-	0xed, 0xec, 0x38, 0xea, 0xd5, 0xfc, 0xdc, 0xe4, 0x33, 0x30, 0xb0, 0x98, 0x3d, 0x53, 0xdb, 0xb9,
-	0x4c, 0x24, 0x5b, 0x7f, 0x70, 0x17, 0x76, 0x52, 0x14, 0x83, 0xb9, 0xf1, 0x5d, 0x51, 0x9e, 0x60,
-	0x91, 0x30, 0xf5, 0xfb, 0x79, 0x99, 0x49, 0x21, 0x1f, 0x2c, 0x64, 0x4e, 0xc4, 0xbd, 0x09, 0x0e,
-	0x69, 0xb2, 0xbe, 0x7b, 0x07, 0x72, 0x5c, 0xb1, 0xfe, 0x62, 0x30, 0x34, 0xd4, 0xeb, 0xa1, 0xa1,
-	0x7e, 0x1f, 0x1a, 0xea, 0xc5, 0xc8, 0x50, 0xae, 0x47, 0x86, 0xf2, 0x65, 0x64, 0x28, 0x2f, 0x1f,
-	0x63, 0xc2, 0x4f, 0x7b, 0x6d, 0xab, 0x43, 0x5d, 0xdb, 0x47, 0x01, 0x23, 0x8c, 0x23, 0xaf, 0x83,
-	0x9e, 0x7b, 0xc8, 0x16, 0x75, 0x76, 0x3c, 0xc8, 0x49, 0x1f, 0xd9, 0xfd, 0xaa, 0x7d, 0x96, 0xf9,
-	0x17, 0xe1, 0xe7, 0x3e, 0x62, 0xed, 0xd9, 0x68, 0x1e, 0x76, 0x7f, 0x05, 0x00, 0x00, 0xff, 0xff,
-	0x69, 0xe1, 0x65, 0x0f, 0x34, 0x07, 0x00, 0x00,
+	// 785 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x56, 0xcd, 0x4e, 0xdb, 0x4c,
+	0x14, 0x8d, 0x81, 0x0f, 0x91, 0x1b, 0x7e, 0x2d, 0xbe, 0x10, 0xcc, 0x27, 0x07, 0xe5, 0x93, 0xaa,
+	0x88, 0x82, 0x0d, 0xa1, 0xa2, 0x12, 0x8b, 0xaa, 0xa4, 0x65, 0x47, 0x54, 0x14, 0xa0, 0xad, 0xba,
+	0x89, 0x9c, 0x78, 0x6a, 0x46, 0x8d, 0x3d, 0x6e, 0x66, 0x12, 0x60, 0xd9, 0xae, 0xba, 0xe4, 0x05,
+	0x2a, 0x21, 0xf5, 0x05, 0x50, 0xd5, 0x87, 0x60, 0x89, 0xba, 0xea, 0xaa, 0x54, 0xb0, 0x68, 0x1f,
+	0xa3, 0xb2, 0x67, 0x3c, 0x49, 0xf8, 0x49, 0x02, 0xea, 0xa6, 0xab, 0xd8, 0xbe, 0xe7, 0x9e, 0x7b,
+	0xce, 0xb1, 0xef, 0x28, 0xf0, 0xbf, 0x4f, 0x99, 0xf5, 0x06, 0x99, 0x55, 0xfc, 0xb6, 0x8e, 0x6d,
+	0x7e, 0xdd, 0x58, 0x2a, 0x23, 0x66, 0x2d, 0x99, 0x6c, 0xdf, 0xf0, 0x6b, 0x84, 0x11, 0x55, 0xe3,
+	0x20, 0xa3, 0x05, 0x64, 0x08, 0x90, 0x36, 0xe9, 0x10, 0x87, 0x84, 0x30, 0x33, 0xb8, 0xe2, 0x1d,
+	0xda, 0x74, 0x85, 0x50, 0x97, 0xd0, 0x12, 0x2f, 0xf0, 0x1b, 0x51, 0xd2, 0xf9, 0x9d, 0x59, 0xb6,
+	0x68, 0x73, 0x54, 0x85, 0x60, 0x4f, 0xd4, 0xa7, 0x44, 0xdd, 0xa5, 0x8e, 0xd9, 0x58, 0x0a, 0x7e,
+	0x44, 0x21, 0xed, 0x10, 0xe2, 0x54, 0x91, 0x19, 0xde, 0x95, 0xeb, 0xaf, 0x4d, 0x86, 0x5d, 0x44,
+	0x99, 0xe5, 0xfa, 0x02, 0x30, 0xdf, 0xc1, 0x4b, 0xab, 0xf4, 0x10, 0x9d, 0x39, 0x56, 0x60, 0xb4,
+	0x40, 0x9d, 0x8d, 0xb0, 0xb0, 0x15, 0x14, 0xd4, 0x75, 0x98, 0xb0, 0x51, 0x15, 0x39, 0x16, 0x23,
+	0xb5, 0x92, 0x65, 0xdb, 0x35, 0x44, 0x69, 0x4a, 0x99, 0x55, 0xb2, 0xf1, 0x7c, 0xea, 0xeb, 0x97,
+	0x85, 0x49, 0xe1, 0x63, 0x8d, 0x57, 0xb6, 0x58, 0x0d, 0x7b, 0x4e, 0x71, 0x5c, 0xb6, 0x88, 0xe7,
+	0xea, 0x43, 0x18, 0xb4, 0x5c, 0x52, 0xf7, 0x58, 0xaa, 0x6f, 0x56, 0xc9, 0x26, 0x72, 0xd3, 0x86,
+	0x68, 0x0c, 0x2c, 0x47, 0xc1, 0x19, 0x4f, 0x08, 0xf6, 0xf2, 0x03, 0x27, 0xdf, 0xd3, 0xb1, 0xa2,
+	0x80, 0xaf, 0xea, 0x1f, 0x8e, 0xd2, 0xb1, 0x5f, 0x47, 0xe9, 0xd8, 0xfb, 0x9f, 0xc7, 0x73, 0x57,
+	0xa5, 0x64, 0x52, 0x90, 0x6c, 0x57, 0x5c, 0x44, 0xd4, 0x27, 0x1e, 0x45, 0x99, 0x93, 0x3e, 0x18,
+	0x2e, 0x50, 0x27, 0x7c, 0xb8, 0x4d, 0x36, 0x36, 0xff, 0x94, 0x95, 0x75, 0x98, 0x68, 0x58, 0x55,
+	0x6c, 0xb7, 0xd1, 0xf4, 0x75, 0xa3, 0x91, 0x2d, 0x11, 0xcd, 0x53, 0x18, 0x09, 0xa3, 0xb7, 0x4b,
+	0x22, 0x98, 0xfe, 0xde, 0x82, 0x19, 0xe6, 0x5d, 0x6b, 0x61, 0x53, 0xc0, 0xc2, 0x5f, 0x63, 0xc4,
+	0x32, 0xd0, 0x23, 0x0b, 0xef, 0x5a, 0xeb, 0x2d, 0xe4, 0x24, 0x4c, 0xb6, 0x26, 0x29, 0x23, 0xfe,
+	0xac, 0xc0, 0xb8, 0x4c, 0x7f, 0xc7, 0xa3, 0x7f, 0xc5, 0x17, 0x83, 0x21, 0x75, 0x59, 0x73, 0x64,
+	0x48, 0x2d, 0xc0, 0x58, 0x85, 0xb8, 0x7e, 0x15, 0x31, 0x4c, 0xbc, 0x52, 0xb0, 0x4c, 0xa1, 0xf2,
+	0x44, 0x4e, 0x33, 0xf8, 0xa6, 0x19, 0xd1, 0xa6, 0x19, 0xdb, 0xd1, 0xa6, 0xe5, 0x87, 0x82, 0xf1,
+	0x87, 0x67, 0x69, 0xa5, 0x38, 0xda, 0x6c, 0x0e, 0xca, 0x99, 0x4f, 0x0a, 0x8c, 0x15, 0xa8, 0xb3,
+	0xe3, 0xdb, 0x16, 0x43, 0x9b, 0x56, 0xcd, 0x72, 0xa9, 0xba, 0x02, 0x71, 0xab, 0xce, 0x76, 0x49,
+	0x0d, 0xb3, 0x83, 0xae, 0xb1, 0x34, 0xa1, 0xea, 0x63, 0x18, 0xf4, 0x43, 0x06, 0x91, 0x47, 0xc6,
+	0xb8, 0xf9, 0x04, 0x32, 0xf8, 0xac, 0x28, 0x18, 0xde, 0xb7, 0x9a, 0x6c, 0x0d, 0xa6, 0xc9, 0x9c,
+	0x99, 0x86, 0xa9, 0x4b, 0x22, 0xe5, 0x0b, 0x3e, 0x53, 0x40, 0x97, 0xb5, 0x17, 0xbb, 0x98, 0xa1,
+	0x2a, 0xa6, 0x0c, 0xd9, 0xcf, 0xa3, 0xaf, 0xf9, 0xee, 0x7e, 0x5c, 0x48, 0xee, 0x35, 0x09, 0x4b,
+	0x72, 0x3f, 0x02, 0x7f, 0xfd, 0xd9, 0x44, 0x6e, 0xb1, 0x93, 0xbf, 0xeb, 0xa4, 0x08, 0xb7, 0xff,
+	0xee, 0x5d, 0x27, 0xf3, 0x46, 0xf3, 0x59, 0xb8, 0xd7, 0xd9, 0xa0, 0xcc, 0xe2, 0x9d, 0x02, 0x6a,
+	0xb0, 0x05, 0x88, 0x15, 0x88, 0x5d, 0xaf, 0xa2, 0x4d, 0xab, 0x4e, 0x91, 0x7d, 0x67, 0xff, 0x33,
+	0x10, 0xc7, 0xb4, 0xe4, 0x87, 0x24, 0xe1, 0x2b, 0x1d, 0x2a, 0x0e, 0x61, 0xca, 0x49, 0x6f, 0x54,
+	0xfb, 0x1f, 0x68, 0x57, 0x25, 0x44, 0x0a, 0x73, 0x67, 0xff, 0x40, 0x7f, 0x81, 0x3a, 0xaa, 0x0b,
+	0x89, 0xd6, 0x23, 0x7c, 0xae, 0x53, 0x92, 0xed, 0x87, 0xa7, 0x96, 0xeb, 0x1d, 0x2b, 0x97, 0x86,
+	0xc2, 0x48, 0xfb, 0x09, 0x30, 0xdf, 0x13, 0x89, 0x40, 0x6b, 0x0f, 0x6e, 0x83, 0x96, 0x43, 0x1d,
+	0x88, 0x37, 0x4f, 0xf6, 0x6c, 0x17, 0x0a, 0x89, 0xd4, 0x16, 0x7b, 0x45, 0xca, 0x41, 0x3e, 0x0c,
+	0xb7, 0xed, 0xef, 0xfd, 0x2e, 0x0c, 0xad, 0x60, 0x6d, 0xf9, 0x16, 0x60, 0x39, 0xf1, 0xa3, 0x02,
+	0x33, 0x9d, 0x36, 0x6e, 0xb5, 0x27, 0xd2, 0x6b, 0x7b, 0xb5, 0xfc, 0xdd, 0x7b, 0xa5, 0xbe, 0x03,
+	0x18, 0xbb, 0xbc, 0x04, 0x46, 0xb7, 0x58, 0xdb, 0xf1, 0xda, 0xca, 0xed, 0xf0, 0xd1, 0xe8, 0xfc,
+	0xcb, 0x93, 0x73, 0x5d, 0x39, 0x3d, 0xd7, 0x95, 0x1f, 0xe7, 0xba, 0x72, 0x78, 0xa1, 0xc7, 0x4e,
+	0x2f, 0xf4, 0xd8, 0xb7, 0x0b, 0x3d, 0xf6, 0xea, 0x91, 0x83, 0xd9, 0x6e, 0xbd, 0x6c, 0x54, 0x88,
+	0x6b, 0xfa, 0xa8, 0x46, 0x03, 0xf1, 0x5e, 0x05, 0x3d, 0xf3, 0x90, 0xc9, 0x47, 0x2d, 0x78, 0x16,
+	0xc3, 0x0d, 0x64, 0x36, 0x72, 0xe6, 0x7e, 0xdb, 0xdf, 0x21, 0x76, 0xe0, 0x23, 0x5a, 0x1e, 0x0c,
+	0x0f, 0xf6, 0xe5, 0xdf, 0x01, 0x00, 0x00, 0xff, 0xff, 0x4b, 0x94, 0x0e, 0x16, 0xfd, 0x09, 0x00,
+	0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -439,6 +614,12 @@ type MsgClient interface {
 	StakeToLP(ctx context.Context, in *MsgStakeToLP, opts ...grpc.CallOption) (*MsgStakeToLPResponse, error)
 	// UpdateParams defines a method to update the module params.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
+	// UpdateWhitelistedValidators defines a method to update the whitelisted
+	// validators list.
+	UpdateWhitelistedValidators(ctx context.Context, in *MsgUpdateWhitelistedValidators, opts ...grpc.CallOption) (*MsgUpdateWhitelistedValidatorsResponse, error)
+	// SetModulePaused  defines a method to update the module's pause status,
+	// setting value of the safety flag in params.
+	SetModulePaused(ctx context.Context, in *MsgSetModulePaused, opts ...grpc.CallOption) (*MsgSetModulePausedResponse, error)
 }
 
 type msgClient struct {
@@ -485,6 +666,24 @@ func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts 
 	return out, nil
 }
 
+func (c *msgClient) UpdateWhitelistedValidators(ctx context.Context, in *MsgUpdateWhitelistedValidators, opts ...grpc.CallOption) (*MsgUpdateWhitelistedValidatorsResponse, error) {
+	out := new(MsgUpdateWhitelistedValidatorsResponse)
+	err := c.cc.Invoke(ctx, "/pstake.liquidstake.v1beta1.Msg/UpdateWhitelistedValidators", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) SetModulePaused(ctx context.Context, in *MsgSetModulePaused, opts ...grpc.CallOption) (*MsgSetModulePausedResponse, error) {
+	out := new(MsgSetModulePausedResponse)
+	err := c.cc.Invoke(ctx, "/pstake.liquidstake.v1beta1.Msg/SetModulePaused", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// LiquidStake defines a method for performing a delegation of coins
@@ -498,6 +697,12 @@ type MsgServer interface {
 	StakeToLP(context.Context, *MsgStakeToLP) (*MsgStakeToLPResponse, error)
 	// UpdateParams defines a method to update the module params.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
+	// UpdateWhitelistedValidators defines a method to update the whitelisted
+	// validators list.
+	UpdateWhitelistedValidators(context.Context, *MsgUpdateWhitelistedValidators) (*MsgUpdateWhitelistedValidatorsResponse, error)
+	// SetModulePaused  defines a method to update the module's pause status,
+	// setting value of the safety flag in params.
+	SetModulePaused(context.Context, *MsgSetModulePaused) (*MsgSetModulePausedResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -515,6 +720,12 @@ func (*UnimplementedMsgServer) StakeToLP(ctx context.Context, req *MsgStakeToLP)
 }
 func (*UnimplementedMsgServer) UpdateParams(ctx context.Context, req *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
+}
+func (*UnimplementedMsgServer) UpdateWhitelistedValidators(ctx context.Context, req *MsgUpdateWhitelistedValidators) (*MsgUpdateWhitelistedValidatorsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateWhitelistedValidators not implemented")
+}
+func (*UnimplementedMsgServer) SetModulePaused(ctx context.Context, req *MsgSetModulePaused) (*MsgSetModulePausedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetModulePaused not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -593,6 +804,42 @@ func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_UpdateWhitelistedValidators_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateWhitelistedValidators)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateWhitelistedValidators(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pstake.liquidstake.v1beta1.Msg/UpdateWhitelistedValidators",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateWhitelistedValidators(ctx, req.(*MsgUpdateWhitelistedValidators))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_SetModulePaused_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgSetModulePaused)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).SetModulePaused(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pstake.liquidstake.v1beta1.Msg/SetModulePaused",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).SetModulePaused(ctx, req.(*MsgSetModulePaused))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "pstake.liquidstake.v1beta1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -612,6 +859,14 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateParams",
 			Handler:    _Msg_UpdateParams_Handler,
+		},
+		{
+			MethodName: "UpdateWhitelistedValidators",
+			Handler:    _Msg_UpdateWhitelistedValidators_Handler,
+		},
+		{
+			MethodName: "SetModulePaused",
+			Handler:    _Msg_SetModulePaused_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -895,6 +1150,136 @@ func (m *MsgUpdateParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgUpdateWhitelistedValidators) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateWhitelistedValidators) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateWhitelistedValidators) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.WhitelistedValidators) > 0 {
+		for iNdEx := len(m.WhitelistedValidators) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.WhitelistedValidators[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTx(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateWhitelistedValidatorsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateWhitelistedValidatorsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateWhitelistedValidatorsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgSetModulePaused) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSetModulePaused) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSetModulePaused) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.IsPaused {
+		i--
+		if m.IsPaused {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgSetModulePausedResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSetModulePausedResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSetModulePausedResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -1002,6 +1387,59 @@ func (m *MsgUpdateParams) Size() (n int) {
 }
 
 func (m *MsgUpdateParamsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateWhitelistedValidators) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.WhitelistedValidators) > 0 {
+		for _, e := range m.WhitelistedValidators {
+			l = e.Size()
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *MsgUpdateWhitelistedValidatorsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgSetModulePaused) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.IsPaused {
+		n += 2
+	}
+	return n
+}
+
+func (m *MsgSetModulePausedResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1751,6 +2189,324 @@ func (m *MsgUpdateParamsResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgUpdateParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateWhitelistedValidators) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateWhitelistedValidators: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateWhitelistedValidators: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field WhitelistedValidators", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.WhitelistedValidators = append(m.WhitelistedValidators, WhitelistedValidator{})
+			if err := m.WhitelistedValidators[len(m.WhitelistedValidators)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateWhitelistedValidatorsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateWhitelistedValidatorsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateWhitelistedValidatorsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSetModulePaused) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSetModulePaused: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSetModulePaused: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IsPaused", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.IsPaused = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSetModulePausedResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSetModulePausedResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSetModulePausedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

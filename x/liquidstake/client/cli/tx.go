@@ -35,6 +35,8 @@ func GetTxCmd() *cobra.Command {
 		NewStakeToLPCmd(),
 		NewLiquidUnstakeCmd(),
 		NewUpdateParamsCmd(),
+		NewUpdateWhitelistedValidatorsCmd(),
+		NewSetModulePausedCmd(),
 	)
 
 	return liquidstakeTxCmd
@@ -47,8 +49,8 @@ func NewLiquidStakeCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "Liquid-stake XPRT",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Liquid-stake XPRT. 
-			
+			fmt.Sprintf(`Liquid-stake XPRT.
+
 Example:
 $ %s tx %s liquid-stake 1000uxprt --from mykey
 `,
@@ -143,8 +145,8 @@ func NewLiquidUnstakeCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "Liquid-unstake stkXPRT",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Liquid-unstake stkXPRT. 
-			
+			fmt.Sprintf(`Liquid-unstake stkXPRT.
+
 Example:
 $ %s tx %s liquid-unstake 500stk/uxprt --from mykey
 `,
@@ -175,19 +177,19 @@ $ %s tx %s liquid-unstake 500stk/uxprt --from mykey
 	return cmd
 }
 
-// NewUpdateParamsCmd implements the liquid unstake coin command handler.
+// NewUpdateParamsCmd implements the params update command handler.
 func NewUpdateParamsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-params [params.json]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Update-params of liquidstake module.",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`update-params param-file. 
-			
+			fmt.Sprintf(`update-params param-file.
+
 Example:
 $ %s tx %s update-params ~/params.json --from mykey
 
-Example params.json 
+Example params.json
 {
   "liquid_bond_denom": "stk/uxprt",
   "whitelisted_validators": [
@@ -226,6 +228,100 @@ Example params.json
 			authority := clientCtx.GetFromAddress()
 
 			msg := types.NewMsgUpdateParams(authority, params)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// NewUpdateWhitelistedValidatorsCmd implements the update of whitelisted validators command handler.
+func NewUpdateWhitelistedValidatorsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-whitelisted-validators [validators_list.json]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Update whitelisted validators in params of liquidstake module.",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`update-whitelisted-validators validators_list.json
+
+Example:
+$ %s tx %s update-whitelisted-validators ~/validators_list.json --from mykey
+
+Example validators_list.json
+[
+  {
+    "validator_address": "persistencevaloper1hcqg5wj9t42zawqkqucs7la85ffyv08lmnhye9",
+    "target_weight": "10"
+  }
+]
+`,
+				version.AppName, types.ModuleName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			var validatorsList []types.WhitelistedValidator
+
+			validatorsListFile, err := os.ReadFile(args[0])
+			if err != nil {
+				return err
+			}
+
+			err = json.Unmarshal(validatorsListFile, &validatorsList)
+			if err != nil {
+				return err
+			}
+			authority := clientCtx.GetFromAddress()
+
+			msg := types.NewMsgUpdateWhitelistedValidators(authority, validatorsList)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// NewSetModulePausedCmd implements the  command handler for updating of safety toggle that disables the module.
+func NewSetModulePausedCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pause-module [flag]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Pause or unpause the liquidstake module for an emergency updates.",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`pause-module [true/false]
+
+Example:
+$ %s tx %s pause-module true --from mykey
+`,
+				version.AppName, types.ModuleName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			isPaused := false
+			if strings.ToLower(args[0]) == "true" {
+				isPaused = true
+			} else if strings.ToLower(args[0]) != "false" {
+				err := fmt.Errorf("expected flag to be true or false – where 'true' means the module is paused")
+				return err
+			}
+
+			authority := clientCtx.GetFromAddress()
+			msg := types.NewMsgSetModulePaused(authority, isPaused)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

@@ -25,6 +25,12 @@ var (
 
 	// Const variables
 
+	// TotalValidatorWeight specifies the target sum of validator weights in the whitelist.
+	TotalValidatorWeight = math.NewInt(10000)
+
+	// ActiveLiquidValidatorsWeightQuorum is the minium required weight quorum for liquid validators set
+	ActiveLiquidValidatorsWeightQuorum = math.LegacyNewDecWithPrec(3333, 4) // "0.333300000000000000"
+
 	// RebalancingTrigger if the maximum difference and needed each redelegation amount exceeds it, asset rebalacing will be executed.
 	RebalancingTrigger = math.LegacyNewDecWithPrec(1, 3) // "0.001000000000000000"
 
@@ -48,6 +54,8 @@ func DefaultParams() Params {
 		MinLiquidStakeAmount:  DefaultMinLiquidStakeAmount,
 		FeeAccountAddress:     DummyFeeAccountAcc.String(),
 		AutocompoundFeeRate:   DefaultAutocompoundFeeRate,
+		CwLockedPoolAddress:   "",
+		WhitelistAdminAddress: "",
 	}
 }
 
@@ -73,6 +81,8 @@ func (p Params) Validate() error {
 		{p.MinLiquidStakeAmount, validateMinLiquidStakeAmount},
 		{p.AutocompoundFeeRate, validateAutocompoundFeeRate},
 		{p.FeeAccountAddress, validateFeeAccountAddress},
+		{p.CwLockedPoolAddress, validateCwLockedPoolAddress},
+		{p.WhitelistAdminAddress, validateWhitelistAdminAddress},
 	} {
 		if err := v.validator(v.value); err != nil {
 			return err
@@ -193,6 +203,42 @@ func validateFeeAccountAddress(i interface{}) error {
 	_, err := sdk.AccAddressFromBech32(v)
 	if err != nil {
 		return fmt.Errorf("cannot convert fee account address to bech32, invalid address: %s, err: %v", v, err)
+	}
+	return nil
+}
+
+func validateCwLockedPoolAddress(i interface{}) error {
+	v, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	// allow empty address
+	if len(v) == 0 {
+		return nil
+	}
+
+	_, err := sdk.AccAddressFromBech32(v)
+	if err != nil {
+		return fmt.Errorf("cannot convert cw contract address to bech32, invalid address: %s, err: %v", v, err)
+	}
+	return nil
+}
+
+func validateWhitelistAdminAddress(i interface{}) error {
+	v, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	// allow empty address
+	if len(v) == 0 {
+		return nil
+	}
+
+	_, err := sdk.AccAddressFromBech32(v)
+	if err != nil {
+		return fmt.Errorf("cannot convert whitelist admin address to bech32, invalid address: %s, err: %v", v, err)
 	}
 	return nil
 }

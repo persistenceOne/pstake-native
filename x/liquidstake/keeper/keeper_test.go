@@ -145,15 +145,13 @@ func (s *KeeperTestSuite) liquidUnstaking(
 		sdk.DefaultBondDenom,
 	).Amount
 
-	ubdTime, unbondingAmt, dels, unbondedAmt, err := s.liquidUnstakingWithResult(
+	ubdTime, unbondingAmt, _, unbondedAmt, err := s.liquidUnstakingWithResult(
 		liquidStaker,
 		sdk.NewCoin(params.LiquidBondDenom, ubdStkXPRTAmt),
 	)
 	if err != nil {
 		return err
 	}
-
-	testhelpers.PP(fmt.Sprintf("GOT UBDS FROM liquidUnstakingWithResult: %d", len(dels)))
 
 	if ubdComplete {
 		alv := s.keeper.GetActiveLiquidValidators(ctx, params.WhitelistedValsMap())

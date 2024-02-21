@@ -57,6 +57,18 @@ message Params {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
+
+  // WhitelistAdminAddress the bech32-encoded address of an admin authority
+  // that is allowed to update whitelisted validators or pause liquidstaking
+  // module entirely. The key is controlled by an offchain process that is
+  // selecting validators based on a criteria. Pausing of the module can be
+  // required during important migrations or failures.
+  string whitelist_admin_address = 9
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // ModulePaused is a safety toggle that allows to stop main module functions
+  // such as stake/unstake/stake-to-lp and the BeginBlocker logic.
+  bool module_paused = 10;
 }
 
 // ValidatorStatus enumerates the status of a liquid validator.
@@ -76,8 +88,7 @@ enum ValidatorStatus {
 
 // WhitelistedValidator consists of the validator operator address and the
 // target weight, which is a value for calculating the real weight to be derived
-// according to the active status. In the case of inactive, it is calculated as
-// zero.
+// according to the active status.
 message WhitelistedValidator {
   option (gogoproto.goproto_getters) = false;
 

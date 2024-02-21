@@ -20,8 +20,8 @@ func (s *KeeperTestSuite) TestImportExportGenesis() {
 	params := k.GetParams(ctx)
 
 	params.WhitelistedValidators = []types.WhitelistedValidator{
-		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(10)},
-		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(10)},
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(5000)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(5000)},
 	}
 	k.SetParams(ctx, params)
 	k.UpdateLiquidValidatorSet(ctx)

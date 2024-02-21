@@ -20,6 +20,7 @@ message HostChain {
   string transfer_channel_i_d = 6;
   string transfer_port_i_d = 7;
 }
+
 message Feature {
   // triggers on hooks
   LiquidStake liquid_stake_i_b_c = 1
