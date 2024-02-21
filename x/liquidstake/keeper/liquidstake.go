@@ -456,7 +456,7 @@ func (k Keeper) LiquidUnstake(
 		return time.Time{}, sdk.ZeroInt(), []stakingtypes.UnbondingDelegation{}, sdk.ZeroInt(), types.ErrLiquidValidatorsNotExists
 	}
 
-	// prioritise inactive liquid validators in the list to be used in DivideByCurrentWeight
+	// prioritize inactive liquid validators in the list to be used in DivideByCurrentWeight
 	liquidVals = k.PrioritiseInactiveLiquidValidators(ctx, liquidVals)
 
 	// crumb may occur due to a decimal error in dividing the unstaking stkXPRT into the weight of liquid validators, it will remain in the NetAmount
@@ -548,10 +548,10 @@ func (k Keeper) PrioritiseInactiveLiquidValidators(
 		vs1, vs1ok := k.stakingKeeper.GetValidator(ctx, vs[i].GetOperator())
 		vs2, vs2ok := k.stakingKeeper.GetValidator(ctx, vs[j].GetOperator())
 
-		if vs1ok == false && vs2ok == true {
+		if !vs1ok && vs2ok {
 			// only one case when less
 			return true
-		} else if vs1ok == true && vs2ok == true {
+		} else if vs1ok && vs2ok {
 			// both exist, compare status
 
 			vs1Active := vs[i].GetStatus(types.ActiveCondition(
