@@ -36,14 +36,34 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+## [v2.10.0] - 2024-02-21
+
 ### Features
 
 - [760](https://github.com/persistenceOne/pstake-native/pull/760) Calculate C Value after autocompounding / slashing.
 - [758](https://github.com/persistenceOne/pstake-native/pull/758) Dynamic C Value limit updates.
 - [757](https://github.com/persistenceOne/pstake-native/pull/757) Change ibc transfer to use timeoutTimestamp instead of
   timeoutHeight
+- [756](https://github.com/persistenceOne/pstake-native/pull/756) Add query for singular host-chain in liquidstakeibc
 - [755](https://github.com/persistenceOne/pstake-native/pull/755) Add channel-id, port to ratesync host-chains and
   liquidstake instantiate.
+
+### Bug Fixes
+
+- [766](https://github.com/persistenceOne/pstake-native/pull/766) stkxprt audit fixes
+- [761](https://github.com/persistenceOne/pstake-native/pull/761) Use counterparty channels instead of self chain for
+  ratesync-instantiate
+
+## [v2.9.1] - 2024-01-26
+
+### Bug Fixes
+
+- [753](https://github.com/persistenceOne/pstake-native/pull/753) Set default bounds for c value
+
+## [v2.9.0] - 2024-01-26
+
+### Features
+
 - [737](https://github.com/persistenceOne/pstake-native/pull/737) Unhandled errors.
 - [736](https://github.com/persistenceOne/pstake-native/pull/736) Check for host denom duplicates.
 - [733](https://github.com/persistenceOne/pstake-native/pull/733) Add more validation for host-chain.
@@ -54,7 +74,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - [721](https://github.com/persistenceOne/pstake-native/pull/721) Add Query host chain user unbondings.
 
 ### Bug Fixes
-- [761](https://github.com/persistenceOne/pstake-native/pull/761) Use counterparty channels instead of self chain for ratesync-instantiate
+
 - [752](https://github.com/persistenceOne/pstake-native/pull/752) Use correct existing delegation amount.
 - [751](https://github.com/persistenceOne/pstake-native/pull/751) Set LSM bond factor as -1 by default.
 - [750](https://github.com/persistenceOne/pstake-native/pull/750) Shares to tokens.
