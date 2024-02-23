@@ -75,6 +75,8 @@ type StakingKeeper interface {
 	BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate
 	HasMaxUnbondingDelegationEntries(ctx sdk.Context,
 		delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress) bool
+	SafelyIncreaseTotalLiquidStakedTokens(ctx sdk.Context, amount math.Int, sharesAlreadyBonded bool) error
+	DecreaseTotalLiquidStakedTokens(ctx sdk.Context, amount math.Int) error
 }
 
 // DistrKeeper expected distribution keeper (noalias)

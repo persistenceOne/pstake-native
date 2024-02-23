@@ -24,4 +24,6 @@ var (
 	ErrWhitelistedValidatorsList                    = errors.Register(ModuleName, 19, "whitelisted validators list incorrect")
 	ErrActiveLiquidValidatorsWeightQuorumNotReached = errors.Register(ModuleName, 20, "active liquid validators weight quorum not reached")
 	ErrModulePaused                                 = errors.Register(ModuleName, 21, "module functions have been paused")
+	ErrDelegationFailed                             = errors.Register(ModuleName, 22, "delegation failed")
+	ErrUnbondFailed                                 = errors.Register(ModuleName, 23, "unbond failed")
 )

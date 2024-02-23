@@ -212,6 +212,46 @@ type NativeTokenInfo struct {
 	Denom string `json:"denom"`
 }
 
+// DelegateWithCap is a wrapper to invoke stakingKeeper.Delegate but account for
+// the amount of liquid staked shares and check against liquid staking cap.
+func (k Keeper) DelegateWithCap(
+	ctx sdk.Context,
+	delegatorAddress sdk.AccAddress,
+	validator stakingtypes.Validator,
+	bondAmt math.Int,
+) (math.LegacyDec, error) {
+	if err := k.stakingKeeper.SafelyIncreaseTotalLiquidStakedTokens(ctx, bondAmt, false); err != nil {
+		return math.LegacyZeroDec(), types.ErrDelegationFailed.Wrap(err.Error())
+	}
+
+	newShares, err := k.stakingKeeper.Delegate(ctx, delegatorAddress, bondAmt, stakingtypes.Unbonded, validator, true)
+	if err != nil {
+		return math.LegacyZeroDec(), err
+	}
+
+	return newShares, nil
+}
+
+// UnbondWithCap is a wrapper to invoke stakingKeeper.Unbond but updates
+// the total liquid staked tokens.
+func (k Keeper) UnbondWithCap(
+	ctx sdk.Context,
+	delegatorAddress sdk.AccAddress,
+	validatorAddress sdk.ValAddress,
+	shares sdk.Dec,
+) (math.Int, error) {
+	returnAmount, err := k.stakingKeeper.Unbond(ctx, delegatorAddress, validatorAddress, shares)
+	if err != nil {
+		return math.ZeroInt(), types.ErrUnbondFailed.Wrap(err.Error())
+	}
+
+	if err := k.stakingKeeper.DecreaseTotalLiquidStakedTokens(ctx, returnAmount); err != nil {
+		return math.ZeroInt(), types.ErrUnbondFailed.Wrap(err.Error())
+	}
+
+	return returnAmount, nil
+}
+
 // LSMDelegate captures a staked amount from existing delegation using LSM, re-stakes from proxyAcc and
 // mints stkXPRT worth of stk coin value according to NetAmount and performs LiquidDelegate.
 func (k Keeper) LSMDelegate(
@@ -372,7 +412,7 @@ func (k Keeper) LiquidDelegate(ctx sdk.Context, proxyAcc sdk.AccAddress, activeV
 			continue
 		}
 		validator, _ := k.stakingKeeper.GetValidator(ctx, val.GetOperator())
-		newShares, err = k.stakingKeeper.Delegate(ctx, proxyAcc, weightedAmt[i], stakingtypes.Unbonded, validator, true)
+		newShares, err = k.DelegateWithCap(ctx, proxyAcc, validator, weightedAmt[i])
 		if err != nil {
 			return sdk.ZeroDec(), err
 		}
@@ -517,7 +557,7 @@ func (k Keeper) LiquidUnbond(
 	}
 
 	// unbond from proxy account
-	returnAmount, err := k.stakingKeeper.Unbond(ctx, proxyAcc, valAddr, shares)
+	returnAmount, err := k.UnbondWithCap(ctx, proxyAcc, valAddr, shares)
 	if err != nil {
 		return time.Time{}, sdk.ZeroInt(), stakingtypes.UnbondingDelegation{}, err
 	}
