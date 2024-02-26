@@ -265,8 +265,10 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 	if err != nil {
 		logger := k.Logger(ctx)
 		logger.Error("re-staking failed", "error", err)
-		return
+
+		// skip errors as they might occur due to reaching global liquid cap
 	}
+
 	writeCache()
 
 	// move autocompounding fee from the balance to fee account
