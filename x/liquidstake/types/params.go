@@ -7,7 +7,7 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 )
 
 // Parameter store keys
@@ -39,10 +39,15 @@ var (
 	AutocompoundTrigger = math.LegacyNewDecWithPrec(1, 3) // "0.001000000000000000"
 
 	// LiquidStakeProxyAcc is a proxy reserve account for delegation and undelegation.
-	LiquidStakeProxyAcc = authtypes.NewModuleAddress(ModuleName + "-LiquidStakeProxyAcc")
+	//
+	// Important: derive this address using module.Address to obtain a 32-byte version distinguishable for LSM
+	// authtypes.NewModuleAddress returns 20-byte addresses.
+	LiquidStakeProxyAcc = sdk.AccAddress(address.Module(ModuleName, []byte("-LiquidStakeProxyAcc")))
 
 	// DummyFeeAccountAcc is a dummy fee collection account that should be replaced via params.
-	DummyFeeAccountAcc = authtypes.NewModuleAddress(ModuleName + "-FeeAcc")
+	//
+	// Note: it could be authtypes.NewModuleAddress, but made it derived as well, for consistency.
+	DummyFeeAccountAcc = sdk.AccAddress(address.Module(ModuleName, []byte("-FeeAcc")))
 )
 
 // DefaultParams returns the default liquidstake module parameters.
