@@ -375,12 +375,6 @@ func (k Keeper) LSMDelegate(
 		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrTooSmallLiquidStakeAmount
 	}
 
-	// after LSM redemption, accounted liquid shares are ignored,
-	// but we have to still account it because now delegation is owned by a LS protocol
-	if err := k.stakingKeeper.SafelyIncreaseTotalLiquidStakedTokens(ctx, stkXPRTMintAmount, false); err != nil {
-		return sdk.ZeroDec(), sdk.ZeroInt(), types.ErrDelegationFailed.Wrap(err.Error())
-	}
-
 	// mint stkXPRT on module acc
 	mintCoin := sdk.NewCoins(sdk.NewCoin(liquidBondDenom, stkXPRTMintAmount))
 	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, mintCoin)

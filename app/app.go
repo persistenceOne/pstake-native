@@ -187,26 +187,24 @@ var (
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		authtypes.FeeCollectorName:                           nil,
-		distrtypes.ModuleName:                                nil,
-		icatypes.ModuleName:                                  nil,
-		minttypes.ModuleName:                                 {authtypes.Minter},
-		stakingtypes.BondedPoolName:                          {authtypes.Burner, authtypes.Staking},
-		stakingtypes.NotBondedPoolName:                       {authtypes.Burner, authtypes.Staking},
-		govtypes.ModuleName:                                  {authtypes.Burner},
-		ibctransfertypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
-		ibcfeetypes.ModuleName:                               nil,
-		liquidstakeibctypes.ModuleName:                       {authtypes.Minter, authtypes.Burner},
-		liquidstaketypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
-		liquidstaketypes.ModuleName + "-LiquidStakeProxyAcc": {authtypes.Staking},
-		liquidstakeibctypes.DepositModuleAccount:             nil,
-		liquidstakeibctypes.UndelegationModuleAccount:        {authtypes.Burner},
+		authtypes.FeeCollectorName:                    nil,
+		distrtypes.ModuleName:                         nil,
+		icatypes.ModuleName:                           nil,
+		minttypes.ModuleName:                          {authtypes.Minter},
+		stakingtypes.BondedPoolName:                   {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName:                {authtypes.Burner, authtypes.Staking},
+		govtypes.ModuleName:                           {authtypes.Burner},
+		ibctransfertypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
+		ibcfeetypes.ModuleName:                        nil,
+		liquidstakeibctypes.ModuleName:                {authtypes.Minter, authtypes.Burner},
+		liquidstaketypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
+		liquidstakeibctypes.DepositModuleAccount:      nil,
+		liquidstakeibctypes.UndelegationModuleAccount: {authtypes.Burner},
 	}
 
 	receiveAllowedMAcc = map[string]bool{
-		liquidstakeibctypes.DepositModuleAccount:             true,
-		liquidstakeibctypes.UndelegationModuleAccount:        true,
-		liquidstaketypes.ModuleName + "-LiquidStakeProxyAcc": true,
+		liquidstakeibctypes.DepositModuleAccount:      true,
+		liquidstakeibctypes.UndelegationModuleAccount: true,
 	}
 )
 
