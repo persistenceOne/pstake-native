@@ -197,14 +197,15 @@ var (
 		ibctransfertypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
 		ibcfeetypes.ModuleName:                        nil,
 		liquidstakeibctypes.ModuleName:                {authtypes.Minter, authtypes.Burner},
-		liquidstaketypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
 		liquidstakeibctypes.DepositModuleAccount:      nil,
 		liquidstakeibctypes.UndelegationModuleAccount: {authtypes.Burner},
+		liquidstaketypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
 	}
 
 	receiveAllowedMAcc = map[string]bool{
 		liquidstakeibctypes.DepositModuleAccount:      true,
 		liquidstakeibctypes.UndelegationModuleAccount: true,
+		liquidstaketypes.ModuleName:                   true,
 	}
 )
 
