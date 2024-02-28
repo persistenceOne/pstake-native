@@ -127,7 +127,7 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 	)
 
 	k.Logger(ctx).Info(
-		fmt.Sprintf("Finished delegate workflow."),
+		"Finished delegate workflow.",
 		types.HostChainKeyVal,
 		hc.ChainId,
 		types.AttributeTotalDelegatedAmount,
@@ -249,7 +249,7 @@ func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
 			)
 
 			k.Logger(ctx).Info(
-				fmt.Sprintf("Claimed unbonding."),
+				"Claimed unbonding.",
 				types.HostChainKeyVal,
 				hc.ChainId,
 				types.AttributeClaimAmount,
@@ -365,7 +365,7 @@ func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostCh
 		k.SetUnbonding(ctx, unbonding)
 
 		k.Logger(ctx).Info(
-			fmt.Sprintf("Processed matured unbonding."),
+			"Processed matured unbonding.",
 			types.HostChainKeyVal,
 			hc.ChainId,
 			types.EpochKeyVal,
@@ -417,7 +417,7 @@ func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostCh
 		k.SetValidatorUnbonding(ctx, validatorUnbonding)
 
 		k.Logger(ctx).Info(
-			fmt.Sprintf("Processed matured validator unbonding."),
+			"Processed matured validator unbonding.",
 			types.HostChainKeyVal,
 			hc.ChainId,
 			types.EpochKeyVal,

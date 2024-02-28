@@ -12,6 +12,7 @@ const (
 	OwnerKeyVal         string = "owner"
 	AddressKeyVal       string = "address"
 	PortKeyVal          string = "port"
+	ConnectionKeyVal    string = "connection"
 	DelegatorKeyVal     string = "delegator"
 	HostDenomKeyVal     string = "host_denom"
 	MessagesKeyVal      string = "messages"

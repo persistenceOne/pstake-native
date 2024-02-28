@@ -491,7 +491,6 @@ func (k *Keeper) handleUnsuccessfulAck(
 				return errorsmod.Wrapf(
 					sdkerrors.ErrInvalidType,
 					"could not parse MsgBeginRedelegate",
-					sdk.MsgTypeURL(msg),
 				)
 			}
 			hc, found := k.GetHostChainFromHostDenom(ctx, parsedMsg.Amount.Denom)
@@ -649,8 +648,6 @@ func (k *Keeper) handleSuccessfulAck(
 		sequence,
 		types.ChannelKeyVal,
 		channel,
-		types.MessagesKeyVal,
-		messages,
 	)
 
 	return nil

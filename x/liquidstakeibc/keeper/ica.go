@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -70,13 +68,15 @@ func (k *Keeper) GenerateAndExecuteICATx(
 		)
 	}
 	k.Logger(ctx).Info(
-		fmt.Sprintf(
-			"Sent ICA transactions with seq: %v, connectionID: %s, ownerID: %s, msgs: %s",
-			msgSendTxResponse.Sequence,
-			connectionID,
-			ownerID,
-			messages,
-		),
+		"Sent ICA transactions",
+		liquidstakeibctypes.SequenceIDKeyVal,
+		msgSendTxResponse.Sequence,
+		liquidstakeibctypes.ConnectionKeyVal,
+		connectionID,
+		liquidstakeibctypes.PortKeyVal,
+		ownerID,
+		liquidstakeibctypes.MessagesKeyVal,
+		messages,
 	)
 
 	return k.GetTransactionSequenceID(channelID, msgSendTxResponse.Sequence), nil
