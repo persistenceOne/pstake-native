@@ -1,0 +1,13 @@
+{
+  "messages": [
+    {
+      "@type": "/ibc.core.client.v1.ClientUpdateProposal",
+      "title": "Upgrade client persistence-testnet osmosis-testnet",
+      "description": "Revive expired client",
+      "subject_client_id": "07-tendermint-3",
+      "substitute_client_id": "07-tendermint-4"
+    }
+  ],
+  "metadata": "",
+  "deposit": "128000000uxprt"
+}
