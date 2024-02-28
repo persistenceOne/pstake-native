@@ -3,8 +3,8 @@
     "@type": "/pstake.liquidstakeibc.v1beta1.MsgUpdateParams",
     "authority": "persistence10d07y265gmmuvt4z0w9aw880jnsr700j5w4kch",
     "params": {
-      "admin_address": "persistence1hcqg5wj9t42zawqkqucs7la85ffyv08ljhhesu",
-      "fee_address": "persistence1hcqg5wj9t42zawqkqucs7la85ffyv08ljhhesu"
+      "admin_address": "persistence10khgeppewe4rgfrcy809r9h00aquwxxxrk6glr",
+      "fee_address": "persistence1xruvjju28j0a5ud5325rfdak8f5a04h0s30mld"
     }
   }],
   "deposit": "10000000uxprt",
