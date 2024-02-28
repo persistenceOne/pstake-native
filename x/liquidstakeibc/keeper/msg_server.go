@@ -295,7 +295,6 @@ func (k msgServer) UpdateHostChain(
 		case types.KeySetWithdrawAddress:
 			err := k.SetWithdrawAddress(ctx, hc)
 			if err != nil {
-				k.Logger(ctx).Error("Could not set withdraw address.", "chain_id", hc.ChainId)
 				return nil, fmt.Errorf("could not set withdraw address for host chain %s", hc.ChainId)
 			}
 		case types.KeyAutocompoundFactor:

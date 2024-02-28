@@ -133,11 +133,11 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 ) error {
 	k.Logger(ctx).Info(
 		"Received incoming IBC transfer.",
-		"sequence",
+		liquidstakeibctypes.SequenceIDKeyVal,
 		packet.Sequence,
-		"port",
+		liquidstakeibctypes.PortKeyVal,
 		packet.DestinationPort,
-		"channel",
+		liquidstakeibctypes.ChannelKeyVal,
 		packet.DestinationChannel,
 	)
 
@@ -163,13 +163,13 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		data.Memo == "" {
 		k.Logger(ctx).Info(
 			"Received unbonding IBC transfer.",
-			"host chain",
+			liquidstakeibctypes.HostChainKeyVal,
 			hc.ChainId,
-			"sequence",
+			liquidstakeibctypes.SequenceIDKeyVal,
 			packet.Sequence,
-			"port",
+			liquidstakeibctypes.PortKeyVal,
 			packet.DestinationPort,
-			"channel",
+			liquidstakeibctypes.ChannelKeyVal,
 			packet.DestinationChannel,
 		)
 
@@ -205,13 +205,13 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		data.Memo == "" {
 		k.Logger(ctx).Info(
 			"Received total validator unbonding IBC transfer.",
-			"host chain",
+			liquidstakeibctypes.HostChainKeyVal,
 			hc.ChainId,
-			"sequence",
+			liquidstakeibctypes.SequenceIDKeyVal,
 			packet.Sequence,
-			"port",
+			liquidstakeibctypes.PortKeyVal,
 			packet.DestinationPort,
-			"channel",
+			liquidstakeibctypes.ChannelKeyVal,
 			packet.DestinationChannel,
 		)
 
@@ -254,13 +254,13 @@ func (k *Keeper) OnRecvIBCTransferPacket(
 		data.Memo == "" {
 		k.Logger(ctx).Info(
 			"Received autocompounding IBC transfer.",
-			"host chain",
+			liquidstakeibctypes.HostChainKeyVal,
 			hc.ChainId,
-			"sequence",
+			liquidstakeibctypes.SequenceIDKeyVal,
 			packet.Sequence,
-			"port",
+			liquidstakeibctypes.PortKeyVal,
 			packet.DestinationPort,
-			"channel",
+			liquidstakeibctypes.ChannelKeyVal,
 			packet.DestinationChannel,
 		)
 
@@ -383,13 +383,13 @@ func (k *Keeper) OnAcknowledgementIBCTransferPacket(
 
 			k.Logger(ctx).Info(
 				"Got delegation deposit received ACK.",
-				"host chain",
+				liquidstakeibctypes.HostChainKeyVal,
 				hc.ChainId,
-				"sequence",
+				liquidstakeibctypes.SequenceIDKeyVal,
 				packet.Sequence,
-				"port",
+				liquidstakeibctypes.PortKeyVal,
 				packet.SourceChannel,
-				"channel",
+				liquidstakeibctypes.ChannelKeyVal,
 				packet.SourceChannel,
 			)
 
@@ -486,12 +486,12 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 	}
 
 	k.Logger(ctx).Info(
-		"Deposit transfer timed out.",
-		"sequence",
+		"Deposit IBC transfer timed out.",
+		liquidstakeibctypes.SequenceIDKeyVal,
 		packet.Sequence,
-		"port",
+		liquidstakeibctypes.PortKeyVal,
 		packet.SourceChannel,
-		"channel",
+		liquidstakeibctypes.ChannelKeyVal,
 		packet.SourceChannel,
 	)
 
@@ -501,7 +501,7 @@ func (k *Keeper) OnTimeoutIBCTransferPacket(
 // Workflows
 
 func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
-	k.Logger(ctx).Info("Running deposit workflow.", "epoch", epoch)
+	k.Logger(ctx).Info("Running deposit workflow.", liquidstakeibctypes.EpochKeyVal, epoch)
 
 	deposits := k.GetPendingDepositsBeforeEpoch(ctx, epoch)
 	for _, deposit := range deposits {
@@ -541,7 +541,15 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 		handler := k.msgRouter.Handler(msg)
 		res, err := handler(ctx, msg)
 		if err != nil {
-			k.Logger(ctx).Error(fmt.Sprintf("could not send transfer msg via MsgServiceRouter, error: %s", err))
+			k.Logger(ctx).Error(
+				"could not send transfer deposit ibc transfer",
+				liquidstakeibctypes.HostChainKeyVal,
+				hc.ChainId,
+				liquidstakeibctypes.EpochKeyVal,
+				epoch,
+				liquidstakeibctypes.ErrorKeyVal,
+				err.Error(),
+			)
 			// we can't error out here as all the deposits need to be executed
 			continue
 		}
@@ -570,7 +578,7 @@ func (k *Keeper) DepositWorkflow(ctx sdk.Context, epoch int64) {
 }
 
 func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
-	k.Logger(ctx).Info("Running undelegation workflow.", "epoch", epoch)
+	k.Logger(ctx).Info("Running undelegation workflow.", liquidstakeibctypes.EpochKeyVal, epoch)
 
 	for _, hc := range k.GetAllHostChains(ctx) {
 		// don't do anything if the chain is not active
@@ -596,13 +604,6 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 
 		// check if there is anything to unbond
 		if !unbonding.UnbondAmount.Amount.GT(sdk.ZeroInt()) {
-			k.Logger(ctx).Info(
-				"No tokens to unbond.",
-				"host_chain",
-				hc.ChainId,
-				"epoch",
-				epoch,
-			)
 			continue
 		}
 
@@ -611,8 +612,12 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 		if err != nil {
 			k.Logger(ctx).Error(
 				"could not generate undelegate messages",
-				"host_chain",
+				liquidstakeibctypes.HostChainKeyVal,
 				hc.ChainId,
+				liquidstakeibctypes.EpochKeyVal,
+				epoch,
+				liquidstakeibctypes.ErrorKeyVal,
+				err.Error(),
 			)
 
 			// mark the unbonding as failed
@@ -640,9 +645,13 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 		)
 		if err != nil {
 			k.Logger(ctx).Error(
-				"could not send ICA undelegate txs",
-				"host_chain",
+				"could not send ica undelegate txs",
+				liquidstakeibctypes.HostChainKeyVal,
 				hc.ChainId,
+				liquidstakeibctypes.EpochKeyVal,
+				epoch,
+				liquidstakeibctypes.ErrorKeyVal,
+				err.Error(),
 			)
 
 			// mark the unbonding as failed
@@ -687,7 +696,7 @@ func (k *Keeper) UndelegationWorkflow(ctx sdk.Context, epoch int64) {
 }
 
 func (k *Keeper) ValidatorUndelegationWorkflow(ctx sdk.Context, epoch int64) {
-	k.Logger(ctx).Info("Running validator undelegation workflow.", "epoch", epoch)
+	k.Logger(ctx).Info("Running validator undelegation workflow.", liquidstakeibctypes.EpochKeyVal, epoch)
 
 	for _, hc := range k.GetAllHostChains(ctx) {
 		// don't do anything if the chain is not active
@@ -730,9 +739,13 @@ func (k *Keeper) ValidatorUndelegationWorkflow(ctx sdk.Context, epoch int64) {
 				)
 				if err != nil {
 					k.Logger(ctx).Error(
-						"could not send ICA undelegate txs",
-						"host_chain",
+						"could not send ica undelegate txs",
+						liquidstakeibctypes.HostChainKeyVal,
 						hc.ChainId,
+						liquidstakeibctypes.EpochKeyVal,
+						epoch,
+						liquidstakeibctypes.ErrorKeyVal,
+						err.Error(),
 					)
 					return
 				}
@@ -748,14 +761,14 @@ func (k *Keeper) ValidatorUndelegationWorkflow(ctx sdk.Context, epoch int64) {
 
 				k.Logger(ctx).Info(
 					"Started total validator unbonding.",
-					"host_chain",
+					liquidstakeibctypes.HostChainKeyVal,
 					hc.ChainId,
-					"validator",
-					validatorUnbonding.ValidatorAddress,
-					"amount",
-					validatorUnbonding.Amount,
-					"epoch",
+					liquidstakeibctypes.EpochKeyVal,
 					epoch,
+					liquidstakeibctypes.ValidatorKeyVal,
+					validatorUnbonding.ValidatorAddress,
+					liquidstakeibctypes.AmountKeyVal,
+					validatorUnbonding.Amount,
 				)
 
 				// emit the validator unbonding event
@@ -775,7 +788,7 @@ func (k *Keeper) ValidatorUndelegationWorkflow(ctx sdk.Context, epoch int64) {
 }
 
 func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
-	k.Logger(ctx).Info("Running rewards workflow.", "epoch", epoch)
+	k.Logger(ctx).Info("Running rewards workflow.", liquidstakeibctypes.EpochKeyVal, epoch)
 
 	for _, hc := range k.GetAllHostChains(ctx) {
 		// don't do anything if the chain is not active
@@ -805,9 +818,13 @@ func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
 			)
 			if err != nil {
 				k.Logger(ctx).Error(
-					"Could not send ICA withdraw delegator reward txs",
-					"host_chain",
+					"could not send ica withdraw delegator reward txs",
+					liquidstakeibctypes.HostChainKeyVal,
 					hc.ChainId,
+					liquidstakeibctypes.EpochKeyVal,
+					epoch,
+					liquidstakeibctypes.ErrorKeyVal,
+					err.Error(),
 				)
 				continue
 			}
@@ -833,17 +850,25 @@ func (k *Keeper) RewardsWorkflow(ctx sdk.Context, epoch int64) {
 			if hc.RewardParams != nil {
 				if err := k.QueryNonCompoundableRewardsHostChainAccountBalance(ctx, hc); err != nil {
 					k.Logger(ctx).Error(
-						"Could not send non-compoundable rewards account balance ICQ",
-						"host_chain",
+						"could not send non-compoundable rewards account balance icq",
+						liquidstakeibctypes.HostChainKeyVal,
 						hc.ChainId,
+						liquidstakeibctypes.EpochKeyVal,
+						epoch,
+						liquidstakeibctypes.ErrorKeyVal,
+						err.Error(),
 					)
 				}
 			}
 			if err := k.QueryRewardsHostChainAccountBalance(ctx, hc); err != nil {
 				k.Logger(ctx).Error(
-					"Could not send rewards account balance ICQ",
-					"host_chain",
+					"could not send rewards account balance icq",
+					liquidstakeibctypes.HostChainKeyVal,
 					hc.ChainId,
+					liquidstakeibctypes.EpochKeyVal,
+					epoch,
+					liquidstakeibctypes.ErrorKeyVal,
+					err.Error(),
 				)
 				continue
 			}
@@ -880,7 +905,13 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 			handler := k.msgRouter.Handler(msg)
 			res, err := handler(ctx, msg)
 			if err != nil {
-				k.Logger(ctx).Error(fmt.Sprintf("could not send transfer msg via MsgServiceRouter, error: %s", err))
+				k.Logger(ctx).Error(
+					"could not send lsm deposits transfer",
+					liquidstakeibctypes.HostChainKeyVal,
+					hc.ChainId,
+					liquidstakeibctypes.ErrorKeyVal,
+					err.Error(),
+				)
 				// we can't error out here as all the deposits need to be executed
 				continue
 			}
@@ -916,25 +947,41 @@ func (k *Keeper) LSMWorkflow(ctx sdk.Context) {
 
 // RebalanceWorkflow tries to make redelegate transactions to host-chain to balance the delegations as per the weights.
 func (k Keeper) RebalanceWorkflow(ctx sdk.Context, epoch int64) {
-	k.Logger(ctx).Info("Running redelegation workflow.", "epoch", epoch)
+	k.Logger(ctx).Info("Running redelegation workflow.", liquidstakeibctypes.EpochKeyVal, epoch)
 
 	hcs := k.GetAllHostChains(ctx)
 	for _, hc := range hcs {
 		// skip unbonding epoch, as we do not want to redelegate tokens that might be going through unbond txn in same epoch.
 		// nothing bad will happen even if we do as long as unbonding txns are triggered before redelegations.
 		if liquidstakeibctypes.IsUnbondingEpoch(hc.UnbondingFactor, epoch) {
-			k.Logger(ctx).Info("redelegation epoch co-incides with unbonding epoch, skipping it for", "chainID", hc.ChainId)
+			k.Logger(ctx).Info(
+				"Redelegation epoch co-incides with unbonding epoch, skipping it.",
+				liquidstakeibctypes.HostChainKeyVal,
+				hc.ChainId,
+			)
 			continue
 		}
 		msgs := k.GenerateRedelegateMsgs(ctx, *hc)
 		if len(msgs) == 0 {
-			k.Logger(ctx).Info("no msgs to redelegate for", "chainID", hc.ChainId)
+			k.Logger(ctx).Info(
+				"No msgs to redelegate.",
+				liquidstakeibctypes.HostChainKeyVal,
+				hc.ChainId,
+			)
 		}
 		// send one msg per ica
 		for _, msg := range msgs {
 			ibcSeq, err := k.GenerateAndExecuteICATx(ctx, hc.ConnectionId, hc.DelegationAccount.Owner, []proto.Message{msg})
 			if err != nil {
-				k.Logger(ctx).Error("Failed to submit ica redelegate txns with", "err:", err)
+				k.Logger(ctx).Error(
+					"could not send ica redelegate txs",
+					liquidstakeibctypes.HostChainKeyVal,
+					hc.ChainId,
+					liquidstakeibctypes.EpochKeyVal,
+					epoch,
+					liquidstakeibctypes.ErrorKeyVal,
+					err.Error(),
+				)
 				continue
 			}
 			k.SetRedelegationTx(ctx, &liquidstakeibctypes.RedelegateTx{

@@ -21,7 +21,6 @@ func (k *Keeper) GenerateAndExecuteICATx(
 ) (string, error) {
 	msgData, err := icatypes.SerializeCosmosTx(k.cdc, messages)
 	if err != nil {
-		k.Logger(ctx).Error(fmt.Sprintf("could not serialize tx data: %v", err))
 		return "", err
 	}
 
@@ -40,7 +39,6 @@ func (k *Keeper) GenerateAndExecuteICATx(
 	handler := k.msgRouter.Handler(msgSendTx)
 	res, err := handler(ctx, msgSendTx)
 	if err != nil {
-		k.Logger(ctx).Error(fmt.Sprintf("sending ica tx with msg: %s failed with err: %v", msgData, err))
 		return "", errorsmod.Wrapf(liquidstakeibctypes.ErrICATxFailure, "failed to send ica msg with err: %v", err)
 	}
 	ctx.EventManager().EmitEvents(res.GetEvents())
@@ -73,7 +71,7 @@ func (k *Keeper) GenerateAndExecuteICATx(
 	}
 	k.Logger(ctx).Info(
 		fmt.Sprintf(
-			"sent ICA transactions with seq: %v, connectionID: %s, ownerID: %s, msgs: %s",
+			"Sent ICA transactions with seq: %v, connectionID: %s, ownerID: %s, msgs: %s",
 			msgSendTxResponse.Sequence,
 			connectionID,
 			ownerID,

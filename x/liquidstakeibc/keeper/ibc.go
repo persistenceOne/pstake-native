@@ -64,7 +64,11 @@ func (k *Keeper) OnChanOpenAck(
 	hc, found := k.GetHostChain(ctx, chainID)
 	if !found {
 		// probably for non chain ica stack.
-		k.Logger(ctx).Info(fmt.Sprintf("liquidstakeibc host chain with id %s is not registered", chainID))
+		k.Logger(ctx).Error(
+			"host chain is not registered",
+			types.HostChainKeyVal,
+			chainID,
+		)
 		return nil
 	}
 
@@ -76,7 +80,13 @@ func (k *Keeper) OnChanOpenAck(
 		hc.RewardsAccount.Address = address
 		hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATED
 	default:
-		k.Logger(ctx).Info("Unrecognized ICA account type for the module", "port-id:", portID, "chain-id", chainID)
+		k.Logger(ctx).Error(
+			"unrecognized ica account type",
+			types.HostChainKeyVal,
+			chainID,
+			types.OwnerKeyVal,
+			portID,
+		)
 		return nil
 	}
 
@@ -86,6 +96,12 @@ func (k *Keeper) OnChanOpenAck(
 	// send an ICQ query to get the delegator account balance
 	if hc.DelegationAccount != nil && hc.DelegationAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATED {
 		if err := k.QueryDelegationHostChainAccountBalance(ctx, hc); err != nil {
+			k.Logger(ctx).Error(
+				"could not query host chain for delegation account balances",
+				types.HostChainKeyVal,
+				chainID,
+			)
+
 			return fmt.Errorf(
 				"error querying host chain %s for delegation account balances: %v",
 				hc.ChainId,
@@ -96,6 +112,12 @@ func (k *Keeper) OnChanOpenAck(
 	// send an ICQ query to get the rewards account balance
 	if hc.RewardsAccount != nil && hc.RewardsAccount.ChannelState == types.ICAAccount_ICA_CHANNEL_CREATED {
 		if err := k.QueryRewardsHostChainAccountBalance(ctx, hc); err != nil {
+			k.Logger(ctx).Error(
+				"could not query host chain for rewards account balances",
+				types.HostChainKeyVal,
+				chainID,
+			)
+
 			return fmt.Errorf(
 				"error querying host chain %s for rewards account balances: %v",
 				hc.ChainId,
@@ -106,13 +128,13 @@ func (k *Keeper) OnChanOpenAck(
 
 	k.Logger(ctx).Info(
 		"Created new ICA.",
-		"host chain",
+		types.HostChainKeyVal,
 		hc.ChainId,
-		"channel",
+		types.ChannelKeyVal,
 		channelID,
-		"owner",
+		types.OwnerKeyVal,
 		portOwner,
-		"address",
+		types.AddressKeyVal,
 		address,
 	)
 
@@ -149,9 +171,26 @@ func (k *Keeper) OnAcknowledgementPacket(
 	case *channeltypes.Acknowledgement_Error:
 		err := k.handleUnsuccessfulAck(ctx, icaPacket, packet.SourceChannel, packet.Sequence)
 		if err != nil {
+			k.Logger(ctx).Error(
+				"could not handle ics-27 unsuccessful ack",
+				types.ChannelKeyVal,
+				packet.SourceChannel,
+				types.SequenceIDKeyVal,
+				packet.Sequence,
+				types.ErrorKeyVal,
+				err.Error(),
+			)
 			return err
 		}
-		k.Logger(ctx).Info(fmt.Sprintln("ICS-27 tx failed with ack:", ack.String()))
+		k.Logger(ctx).Error(
+			"ics-27 tx failure",
+			types.ChannelKeyVal,
+			packet.SourceChannel,
+			types.SequenceIDKeyVal,
+			packet.Sequence,
+			types.ErrorKeyVal,
+			ack.String(),
+		)
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypePacket,
@@ -161,6 +200,15 @@ func (k *Keeper) OnAcknowledgementPacket(
 	case *channeltypes.Acknowledgement_Result:
 		err := k.handleSuccessfulAck(ctx, ack, icaPacket, packet.SourceChannel, packet.Sequence)
 		if err != nil {
+			k.Logger(ctx).Error(
+				"could not handle ics-27 successful ack",
+				types.ChannelKeyVal,
+				packet.SourceChannel,
+				types.SequenceIDKeyVal,
+				packet.Sequence,
+				types.ErrorKeyVal,
+				err.Error(),
+			)
 			return err
 		}
 		ctx.EventManager().EmitEvent(
@@ -197,6 +245,15 @@ func (k *Keeper) OnTimeoutPacket(
 	}
 
 	if err := k.handleUnsuccessfulAck(ctx, icaPacket, packet.SourceChannel, packet.Sequence); err != nil {
+		k.Logger(ctx).Error(
+			"could not handle ics-27 unsuccessful ack",
+			types.ChannelKeyVal,
+			packet.SourceChannel,
+			types.SequenceIDKeyVal,
+			packet.Sequence,
+			types.ErrorKeyVal,
+			err.Error(),
+		)
 		return err
 	}
 
@@ -209,11 +266,11 @@ func (k *Keeper) OnTimeoutPacket(
 
 	k.Logger(ctx).Info(
 		"ICA transaction timed out.",
-		"sequence",
+		types.SequenceIDKeyVal,
 		packet.Sequence,
-		"channel",
+		types.ChannelKeyVal,
 		packet.SourceChannel,
-		"port",
+		types.PortKeyVal,
 		packet.SourcePort,
 	)
 
@@ -241,8 +298,8 @@ func (k *Keeper) handleUnsuccessfulAck(
 			parsedMsg, ok := msg.(*stakingtypes.MsgDelegate)
 			if !ok {
 				k.Logger(ctx).Error(
-					"Could not parse MsgDelegate while handling unsuccessful ack.",
-					"sequence-id",
+					"could not parse MsgDelegate",
+					types.SequenceIDKeyVal,
 					k.GetTransactionSequenceID(channel, sequence),
 				)
 				continue
@@ -252,10 +309,10 @@ func (k *Keeper) handleUnsuccessfulAck(
 			hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.DelegatorAddress)
 			if !found {
 				k.Logger(ctx).Error(
-					"Could not find host chain for ICA delegator address.",
-					"delegator-address",
+					"could not find host chain from ica delegator address",
+					types.DelegatorKeyVal,
 					parsedMsg.DelegatorAddress,
-					"sequence-id",
+					types.SequenceIDKeyVal,
 					k.GetTransactionSequenceID(channel, sequence),
 				)
 				continue
@@ -282,8 +339,8 @@ func (k *Keeper) handleUnsuccessfulAck(
 			parsedMsg, ok := msg.(*stakingtypes.MsgUndelegate)
 			if !ok {
 				k.Logger(ctx).Error(
-					"Could not parse MsgUndelegate while handling unsuccessful ack.",
-					"sequence-id",
+					"could not parse MsgUndelegate",
+					types.SequenceIDKeyVal,
 					k.GetTransactionSequenceID(channel, sequence),
 				)
 				continue
@@ -293,10 +350,10 @@ func (k *Keeper) handleUnsuccessfulAck(
 			hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.DelegatorAddress)
 			if !found {
 				k.Logger(ctx).Error(
-					"Could not find host chain for ICA delegator address.",
-					"delegator-address",
+					"could not find host chain from ica delegator address",
+					types.DelegatorKeyVal,
 					parsedMsg.DelegatorAddress,
-					"sequence-id",
+					types.SequenceIDKeyVal,
 					k.GetTransactionSequenceID(channel, sequence),
 				)
 				continue
@@ -341,8 +398,8 @@ func (k *Keeper) handleUnsuccessfulAck(
 			parsedMsg, ok := msg.(*ibctransfertypes.MsgTransfer)
 			if !ok {
 				k.Logger(ctx).Error(
-					"Could not parse MsgTransfer while handling unsuccessful ack.",
-					"sequence-id",
+					"could not parse MsgTransfer",
+					types.SequenceIDKeyVal,
 					k.GetTransactionSequenceID(channel, sequence),
 				)
 				continue
@@ -352,10 +409,10 @@ func (k *Keeper) handleUnsuccessfulAck(
 			hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.Sender)
 			if !found {
 				k.Logger(ctx).Error(
-					"Could not find host chain for ICA delegator address.",
-					"delegator-address",
+					"could not find host chain from ica delegator address",
+					types.DelegatorKeyVal,
 					parsedMsg.Sender,
-					"sequence-id",
+					types.SequenceIDKeyVal,
 					k.GetTransactionSequenceID(channel, sequence),
 				)
 				continue
@@ -397,8 +454,8 @@ func (k *Keeper) handleUnsuccessfulAck(
 			parsedMsg, ok := msg.(*stakingtypes.MsgRedeemTokensForShares)
 			if !ok {
 				k.Logger(ctx).Error(
-					"Could not parse MsgRedeemTokensForShares while handling unsuccessful ack.",
-					"sequence-id",
+					"could not parse MsgRedeemTokensForShares",
+					types.SequenceIDKeyVal,
 					k.GetTransactionSequenceID(channel, sequence),
 				)
 				continue
@@ -408,10 +465,10 @@ func (k *Keeper) handleUnsuccessfulAck(
 			hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.DelegatorAddress)
 			if !found {
 				k.Logger(ctx).Error(
-					"Could not find host chain for ICA delegator address.",
-					"delegator-address",
+					"could not find host chain from ica delegator address",
+					types.DelegatorKeyVal,
 					parsedMsg.DelegatorAddress,
-					"sequence-id",
+					types.SequenceIDKeyVal,
 					k.GetTransactionSequenceID(channel, sequence),
 				)
 				continue
@@ -433,12 +490,20 @@ func (k *Keeper) handleUnsuccessfulAck(
 			if !ok {
 				return errorsmod.Wrapf(
 					sdkerrors.ErrInvalidType,
-					"unable to cast msg of type %s to MsgRedeemTokensForShares",
+					"could not parse MsgBeginRedelegate",
 					sdk.MsgTypeURL(msg),
 				)
 			}
 			hc, found := k.GetHostChainFromHostDenom(ctx, parsedMsg.Amount.Denom)
 			if !found {
+				k.Logger(ctx).Error(
+					"could not find host chain from host denom",
+					types.HostDenomKeyVal,
+					parsedMsg.Amount.Denom,
+					types.SequenceIDKeyVal,
+					k.GetTransactionSequenceID(channel, sequence),
+				)
+
 				return errorsmod.Wrapf(
 					types.ErrInvalidHostChain,
 					"host chain with host denom %s not registered",
@@ -448,7 +513,13 @@ func (k *Keeper) handleUnsuccessfulAck(
 			// remove redelegation tx for this sequence (if any)
 			tx, ok := k.GetRedelegationTx(ctx, hc.ChainId, k.GetTransactionSequenceID(channel, sequence))
 			if !ok {
-				k.Logger(ctx).Error("unidentified ica tx acked")
+				k.Logger(ctx).Error(
+					"unidentified ica tx acked",
+					types.HostChainKeyVal,
+					hc.ChainId,
+					types.SequenceIDKeyVal,
+					k.GetTransactionSequenceID(channel, sequence),
+				)
 				return nil
 			}
 			tx.State = types.RedelegateTx_REDELEGATE_ACKED
@@ -551,7 +622,6 @@ func (k *Keeper) handleSuccessfulAck(
 			if err = k.HandleMsgRedeemTokensForShares(ctx, msg, msgResponse, channel, sequence); err != nil {
 				return err
 			}
-
 		case sdk.MsgTypeURL(&stakingtypes.MsgBeginRedelegate{}):
 			var data []byte
 			if len(txMsgData.Data) == 0 {
@@ -575,11 +645,11 @@ func (k *Keeper) handleSuccessfulAck(
 
 	k.Logger(ctx).Info(
 		"ICA transaction ACK success.",
-		"sequence",
+		types.SequenceIDKeyVal,
 		sequence,
-		"channel",
+		types.ChannelKeyVal,
 		channel,
-		"messages",
+		types.MessagesKeyVal,
 		messages,
 	)
 

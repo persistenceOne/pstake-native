@@ -102,9 +102,9 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 
 	if slashedAmount.IsPositive() {
 		k.Logger(ctx).Info("Validator has been slashed !!!",
-			"host-chain:", hc.ChainId,
-			"validator:", validator.OperatorAddress,
-			"slashed-amount:", slashedAmount,
+			types.HostChainKeyVal, hc.ChainId,
+			types.ValidatorKeyVal, validator.OperatorAddress,
+			types.AmountKeyVal, slashedAmount,
 		)
 
 		// update the delegated amount to the slashed amount
@@ -226,9 +226,13 @@ func NonCompoundableRewardsAccountBalanceCallback(k Keeper, ctx sdk.Context, dat
 		)
 		if err != nil {
 			k.Logger(ctx).Error(
-				"could not send ICA non-compoundable rewards transfer tx",
-				"host_chain",
+				"could not send ica non-compoundable rewards transfer tx",
+				types.HostChainKeyVal,
 				hc.ChainId,
+				types.AmountKeyVal,
+				msgTransfer.Amount.String(),
+				types.ErrorKeyVal,
+				err.Error(),
 			)
 			return fmt.Errorf("could not send ICA non-compoundable rewards transfer tx: %w", err)
 		}
