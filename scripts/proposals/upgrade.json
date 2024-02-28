@@ -1,0 +1,17 @@
+{
+  "messages": [{
+    "@type": "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
+    "authority": "persistence10d07y265gmmuvt4z0w9aw880jnsr700j5w4kch",
+    "plan": {
+      "name": "v10.4.0",
+      "height": 20,
+      "info": "test upgrade",
+      "upgraded_client_state": null
+    }
+  }],
+  "deposit": "10000000uxprt",
+  "proposer": "persistence1hcqg5wj9t42zawqkqucs7la85ffyv08ljhhesu",
+  "title": "Upgrade Persistence",
+  "summary": "Upgrades the Persistence chain",
+  "metadata": ""
+}
