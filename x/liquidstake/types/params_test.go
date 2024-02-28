@@ -18,7 +18,7 @@ func TestParams(t *testing.T) {
 "whitelisted_validators": [],
 "unstake_fee_rate": "0.000000000000000000",
 "min_liquid_stake_amount": "1000",
-"fee_account_address": "persistence1f0lfxf7d4sxe7y4h8k9zp9d5f6avppsrv9uy8r",
+"fee_account_address": "persistence1w2q3mashs2k4wcpqzs5q5xewnhnnr7wslr34safzvwqzvuqh3gjqv4j6ev",
 "autocompound_fee_rate": "0.050000000000000000"
 }`
 	require.Equal(t, paramsStr, params.String())
@@ -39,7 +39,7 @@ func TestParams(t *testing.T) {
 ],
 "unstake_fee_rate": "0.000000000000000000",
 "min_liquid_stake_amount": "1000",
-"fee_account_address": "persistence1f0lfxf7d4sxe7y4h8k9zp9d5f6avppsrv9uy8r",
+"fee_account_address": "persistence1w2q3mashs2k4wcpqzs5q5xewnhnnr7wslr34safzvwqzvuqh3gjqv4j6ev",
 "autocompound_fee_rate": "0.050000000000000000"
 }`
 	require.Equal(t, paramsStr, params.String())
