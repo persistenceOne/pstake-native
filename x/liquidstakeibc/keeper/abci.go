@@ -63,8 +63,12 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 	if err != nil {
 		k.Logger(ctx).Error(
 			"could not generate delegate messages",
-			"host_chain",
+			types.HostChainKeyVal,
 			hc.ChainId,
+			types.WorkflowKeyVal,
+			types.DelegateWorkflow,
+			types.ErrorKeyVal,
+			err.Error(),
 		)
 		return
 	}
@@ -78,9 +82,13 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 	)
 	if err != nil {
 		k.Logger(ctx).Error(
-			"could not send ICA delegate txs",
-			"host_chain",
+			"could not send ica delegate txs",
+			types.HostChainKeyVal,
 			hc.ChainId,
+			types.WorkflowKeyVal,
+			types.DelegateWorkflow,
+			types.ErrorKeyVal,
+			err.Error(),
 		)
 		return
 	}
@@ -117,6 +125,16 @@ func (k *Keeper) DoDelegate(ctx sdk.Context, hc *types.HostChain) {
 			sdk.NewAttribute(types.AttributeICAMessages, base64.StdEncoding.EncodeToString(encMsgs)),
 		),
 	)
+
+	k.Logger(ctx).Info(
+		"Finished delegate workflow.",
+		types.HostChainKeyVal,
+		hc.ChainId,
+		types.AttributeTotalDelegatedAmount,
+		sdk.NewCoin(hc.HostDenom, totalDepositDelegation).String(),
+		types.WorkflowKeyVal,
+		types.DelegateWorkflow,
+	)
 }
 
 func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
@@ -141,11 +159,15 @@ func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
 			address, err := sdk.AccAddressFromBech32(userUnbonding.Address)
 			if err != nil {
 				k.Logger(ctx).Error(
-					"could not send unbonded tokens from module account to delegator",
-					"host_chain",
+					"could not parse user unbonding address",
+					types.HostChainKeyVal,
 					hc.ChainId,
-					"epoch",
+					types.EpochKeyVal,
 					userUnbonding.EpochNumber,
+					types.WorkflowKeyVal,
+					types.ClaimWorkflow,
+					types.ErrorKeyVal,
+					err.Error(),
 				)
 
 				ctx.EventManager().EmitEvent(
@@ -183,10 +205,14 @@ func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
 			); err != nil {
 				k.Logger(ctx).Error(
 					"could not send unbonded tokens from module account to delegator",
-					"host_chain",
+					types.HostChainKeyVal,
 					hc.ChainId,
-					"epoch",
+					types.EpochKeyVal,
 					userUnbonding.EpochNumber,
+					types.WorkflowKeyVal,
+					types.ClaimWorkflow,
+					types.ErrorKeyVal,
+					err.Error(),
 				)
 
 				ctx.EventManager().EmitEvent(
@@ -221,6 +247,16 @@ func (k *Keeper) DoClaim(ctx sdk.Context, hc *types.HostChain) {
 					sdk.NewAttribute(types.AttributeClaimAddress, userUnbonding.Address),
 				),
 			)
+
+			k.Logger(ctx).Info(
+				"Claimed unbonding.",
+				types.HostChainKeyVal,
+				hc.ChainId,
+				types.AttributeClaimAmount,
+				eventAmount.String(),
+				types.WorkflowKeyVal,
+				types.ClaimWorkflow,
+			)
 		}
 	}
 }
@@ -237,9 +273,23 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc *types.HostChain) {
 	if !k.IsICAChannelActive(ctx, hc, k.GetPortID(hc.DelegationAccount.Owner)) &&
 		hc.DelegationAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
 		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, hc.DelegationAccount.Owner); err != nil {
-			k.Logger(ctx).Error("error recreating %s delegate ica: %w", hc.ChainId, err)
+			k.Logger(ctx).Error(
+				"error recreating delegate ica",
+				types.HostChainKeyVal,
+				hc.ChainId,
+				types.WorkflowKeyVal,
+				types.RecreateICAWorkflow,
+				types.ErrorKeyVal,
+				err,
+			)
 		} else {
-			k.Logger(ctx).Info("Recreating delegate ICA.", "chain", hc.ChainId)
+			k.Logger(ctx).Info(
+				"Recreating delegate ICA.",
+				types.HostChainKeyVal,
+				hc.ChainId,
+				types.WorkflowKeyVal,
+				types.RecreateICAWorkflow,
+			)
 
 			hc.DelegationAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
 			k.SetHostChain(ctx, hc)
@@ -250,9 +300,23 @@ func (k *Keeper) DoRecreateICA(ctx sdk.Context, hc *types.HostChain) {
 	if !k.IsICAChannelActive(ctx, hc, k.GetPortID(hc.RewardsAccount.Owner)) &&
 		hc.RewardsAccount.ChannelState != types.ICAAccount_ICA_CHANNEL_CREATING {
 		if err := k.RegisterICAAccount(ctx, hc.ConnectionId, hc.RewardsAccount.Owner); err != nil {
-			k.Logger(ctx).Error("error recreating %s rewards ica: %w", hc.ChainId, err)
+			k.Logger(ctx).Error(
+				"error recreating rewards ica",
+				types.HostChainKeyVal,
+				hc.ChainId,
+				types.WorkflowKeyVal,
+				types.RecreateICAWorkflow,
+				types.ErrorKeyVal,
+				err,
+			)
 		} else {
-			k.Logger(ctx).Info("Recreating rewards ICA.", "chain", hc.ChainId)
+			k.Logger(ctx).Info(
+				"Recreating rewards ICA.",
+				types.HostChainKeyVal,
+				hc.ChainId,
+				types.WorkflowKeyVal,
+				types.RecreateICAWorkflow,
+			)
 
 			hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATING
 			k.SetHostChain(ctx, hc)
@@ -282,10 +346,14 @@ func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostCh
 		)
 		if err != nil {
 			k.Logger(ctx).Error(
-				"Could not process mature undelegations.",
-				"host_chain",
+				"could not send mature undelegation to undelegation module address",
+				types.HostChainKeyVal,
 				hc.ChainId,
-				"error",
+				types.EpochKeyVal,
+				unbonding.EpochNumber,
+				types.WorkflowKeyVal,
+				types.ProcessMatureUndelegationWorkflow,
+				types.ErrorKeyVal,
 				err.Error(),
 			)
 			continue
@@ -295,6 +363,18 @@ func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostCh
 		unbonding.IbcSequenceId = sequenceID
 		unbonding.State = types.Unbonding_UNBONDING_MATURED
 		k.SetUnbonding(ctx, unbonding)
+
+		k.Logger(ctx).Info(
+			"Processed matured unbonding.",
+			types.HostChainKeyVal,
+			hc.ChainId,
+			types.EpochKeyVal,
+			unbonding.EpochNumber,
+			types.AttributeModuleUnbondingAmount,
+			unbonding.UnbondAmount.String(),
+			types.WorkflowKeyVal,
+			types.ProcessMatureUndelegationWorkflow,
+		)
 	}
 
 	// get all the validator unbondings that are matured
@@ -317,12 +397,16 @@ func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostCh
 		)
 		if err != nil {
 			k.Logger(ctx).Error(
-				"Could not process mature validator undelegations.",
-				"host_chain",
+				"could not send mature validator undelegation to the deposit module address",
+				types.HostChainKeyVal,
 				hc.ChainId,
-				"validator",
+				types.EpochKeyVal,
+				validatorUnbonding.EpochNumber,
+				types.ValidatorKeyVal,
 				validatorUnbonding.ValidatorAddress,
-				"error",
+				types.WorkflowKeyVal,
+				types.ProcessMatureUndelegationWorkflow,
+				types.ErrorKeyVal,
 				err.Error(),
 			)
 			continue
@@ -331,6 +415,18 @@ func (k *Keeper) DoProcessMaturedUndelegations(ctx sdk.Context, hc *types.HostCh
 		// update the validator unbonding sequence id and state
 		validatorUnbonding.IbcSequenceId = sequenceID
 		k.SetValidatorUnbonding(ctx, validatorUnbonding)
+
+		k.Logger(ctx).Info(
+			"Processed matured validator unbonding.",
+			types.HostChainKeyVal,
+			hc.ChainId,
+			types.EpochKeyVal,
+			validatorUnbonding.EpochNumber,
+			types.AttributeModuleUnbondingAmount,
+			validatorUnbonding.Amount.String(),
+			types.WorkflowKeyVal,
+			types.ProcessMatureUndelegationWorkflow,
+		)
 	}
 }
 
@@ -379,7 +475,15 @@ func (k *Keeper) DoRedeemLSMTokens(ctx sdk.Context, hc *types.HostChain) {
 			messagesChunk,
 		)
 		if err != nil {
-			k.Logger(ctx).Error("could not send ICA untokenize tx", "host_chain", hc.ChainId)
+			k.Logger(ctx).Error(
+				"could not send ica tx",
+				types.HostChainKeyVal,
+				hc.ChainId,
+				types.WorkflowKeyVal,
+				types.RedeemLSMWorkflow,
+				types.ErrorKeyVal,
+				err.Error(),
+			)
 			return
 		}
 
@@ -393,10 +497,12 @@ func (k *Keeper) DoRedeemLSMTokens(ctx sdk.Context, hc *types.HostChain) {
 
 		k.Logger(ctx).Info(
 			fmt.Sprintf("Redeeming %v deposits.", len(depositsChunks[i])),
-			"host chain",
+			types.HostChainKeyVal,
 			hc.ChainId,
-			"sequence-id",
+			types.SequenceIDKeyVal,
 			sequenceID,
+			types.WorkflowKeyVal,
+			types.RedeemLSMWorkflow,
 		)
 
 		// emit the untokenize event

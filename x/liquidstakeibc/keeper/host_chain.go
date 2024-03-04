@@ -179,7 +179,7 @@ func (k *Keeper) ProcessHostChainValidatorUpdates(
 		if err != nil {
 			k.Logger(ctx).Error(
 				"could not simulate generating delegate messages after ICQ validator update",
-				"host_chain",
+				types.HostChainKeyVal,
 				hc.ChainId,
 			)
 		}

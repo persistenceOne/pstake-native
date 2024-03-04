@@ -331,7 +331,13 @@ func (k *Keeper) UpdateCValue(ctx sdk.Context, hc *types.HostChain) {
 		hc.Active = false
 		k.SetHostChain(ctx, hc)
 
-		k.Logger(ctx).Error(fmt.Sprintf("C value out of limits !!! Disabling chain %s with c value %v.", hc.ChainId, hc.CValue))
+		k.Logger(ctx).Error(
+			"C value out of limits !!!",
+			types.HostChainKeyVal,
+			hc.ChainId,
+			types.CValueKeyVal,
+			hc.CValue,
+		)
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeChainDisabled,
@@ -368,13 +374,15 @@ func (k *Keeper) RecalculateCValueLimits(ctx sdk.Context, hc *types.HostChain, m
 	hc.Params.UpperCValueLimit = newUpperLimit
 	k.SetHostChain(ctx, hc)
 
-	k.Logger(ctx).Info(
-		fmt.Sprintf("Updated C Value limits for %s. Current C Value %s, new lower limit %s, new upper limit %s",
-			hc.ChainId,
-			hc.CValue,
-			hc.Params.LowerCValueLimit,
-			hc.Params.UpperCValueLimit,
-		),
+	k.Logger(ctx).Info("Updated CValue limits.",
+		types.HostChainKeyVal,
+		hc.ChainId,
+		types.CValueKeyVal,
+		hc.CValue,
+		types.LowerLimitKeyVal,
+		hc.Params.LowerCValueLimit,
+		types.UpperLimitKeyVal,
+		hc.Params.UpperCValueLimit,
 	)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

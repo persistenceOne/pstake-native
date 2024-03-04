@@ -70,12 +70,12 @@ func (k *Keeper) HandleDelegateResponse(ctx sdk.Context, msg sdk.Msg, channel st
 	)
 
 	k.Logger(ctx).Info(
-		"Received delegation acknowledgement",
-		"delegator",
+		"Received delegation acknowledgement.",
+		types.DelegatorKeyVal,
 		parsedMsg.DelegatorAddress,
-		"validator",
+		types.ValidatorKeyVal,
 		parsedMsg.ValidatorAddress,
-		"amount",
+		types.AmountKeyVal,
 		parsedMsg.Amount.String(),
 	)
 
@@ -155,12 +155,12 @@ func (k *Keeper) HandleUndelegateResponse(
 		)
 
 		k.Logger(ctx).Info(
-			"Received unbonding acknowledgement",
-			"delegator",
+			"Received unbonding acknowledgement.",
+			types.DelegatorKeyVal,
 			parsedMsg.DelegatorAddress,
-			"validator",
+			types.ValidatorKeyVal,
 			parsedMsg.ValidatorAddress,
-			"amount",
+			types.AmountKeyVal,
 			parsedMsg.Amount.String(),
 		)
 	}
@@ -180,12 +180,12 @@ func (k *Keeper) HandleUndelegateResponse(
 		k.SetValidatorUnbonding(ctx, validatorUnbonding)
 
 		k.Logger(ctx).Info(
-			"Received validator unbonding acknowledgement",
-			"delegator",
+			"Received validator unbonding acknowledgement.",
+			types.DelegatorKeyVal,
 			parsedMsg.DelegatorAddress,
-			"validator",
+			types.ValidatorKeyVal,
 			parsedMsg.ValidatorAddress,
-			"amount",
+			types.AmountKeyVal,
 			parsedMsg.Amount.String(),
 		)
 	}
@@ -356,11 +356,11 @@ func (k *Keeper) HandleMsgRedeemTokensForShares(
 
 	k.Logger(ctx).Info(
 		"Received lsm token redeem acknowledgement",
-		"delegator",
+		types.DelegatorKeyVal,
 		parsedMsg.DelegatorAddress,
-		"validator",
+		types.ValidatorKeyVal,
 		operatorAddress,
-		"amount",
+		types.AmountKeyVal,
 		resp.Amount.String(),
 	)
 
@@ -378,7 +378,7 @@ func (k *Keeper) HandleMsgBeginRedelegate(
 	if !ok {
 		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidType,
-			"unable to cast msg of type %s to MsgRedeemTokensForShares",
+			"unable to cast msg of type %s to MsgBeginRedelegate",
 			sdk.MsgTypeURL(msg),
 		)
 	}
@@ -393,7 +393,11 @@ func (k *Keeper) HandleMsgBeginRedelegate(
 	// remove redebelgation tx for this sequence (if any)
 	tx, ok := k.GetRedelegationTx(ctx, hc.ChainId, k.GetTransactionSequenceID(channel, sequence))
 	if !ok {
-		k.Logger(ctx).Error("unidentified ica tx acked")
+		k.Logger(ctx).Error(
+			"unidentified ica tx acked",
+			types.HostChainKeyVal,
+			hc.ChainId,
+		)
 		return nil
 	}
 	tx.State = types.RedelegateTx_REDELEGATE_ACKED
@@ -442,13 +446,13 @@ func (k *Keeper) HandleMsgBeginRedelegate(
 	)
 	k.Logger(ctx).Info(
 		"Received redelegate tx acknowledgement",
-		"delegator",
+		types.DelegatorKeyVal,
 		parsedMsg.DelegatorAddress,
-		"from-validator",
+		types.FromValidatorKeyVal,
 		parsedMsg.ValidatorSrcAddress,
-		"to-validator",
+		types.ToValidatorKeyVal,
 		parsedMsg.ValidatorDstAddress,
-		"amount",
+		types.AmountKeyVal,
 		parsedMsg.Amount.String(),
 	)
 
