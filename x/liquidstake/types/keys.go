@@ -20,7 +20,7 @@ const (
 	QuerierRoute = ModuleName
 
 	// Epoch identifiers
-	ValidatorUpdateEpoch = "hour"
+	AutocompoundEpoch = "hour"
 )
 
 var (
