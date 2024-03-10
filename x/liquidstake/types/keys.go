@@ -18,6 +18,9 @@ const (
 
 	// QuerierRoute is the querier route for the liquidstake module
 	QuerierRoute = ModuleName
+
+	// Epoch identifiers
+	ValidatorUpdateEpoch = "hour"
 )
 
 var (

@@ -589,6 +589,7 @@ func NewpStakeApp(
 	app.EpochsKeeper.SetHooks(
 		epochstypes.NewMultiEpochHooks(
 			app.LiquidStakeIBCKeeper.NewEpochHooks(),
+			app.LiquidStakeKeeper.EpochHooks(),
 			app.RatesyncKeeper.EpochHooks(),
 		),
 	)
