@@ -90,7 +90,7 @@ jobs:
         uses: tj-actions/branch-names@v8
 
       - name: Build Docker image
-        uses: strangelove-ventures/heighliner-build-action@v0.0.3
+        uses: strangelove-ventures/heighliner-build-action@v1.0.0
         with:
           registry: # empty registry, image only shared for e2e testing
           tag: local # emulate local environment for consistency in interchaintest cases
@@ -116,7 +116,7 @@ jobs:
           path: ${{ env.TAR_PATH }}
 
       - name: Setup Go with cache
-        uses: magnetikonline/action-golang-cache@v4
+        uses: magnetikonline/action-golang-cache@v5
         with:
           go-version: "1.21.5"
         id: go
@@ -151,7 +151,7 @@ jobs:
         run: docker image load -i ${{ env.TAR_PATH }}
 
       - name: Setup Go with cache
-        uses: magnetikonline/action-golang-cache@v4
+        uses: magnetikonline/action-golang-cache@v5
         with:
           go-version: "1.21.5"
         id: go
