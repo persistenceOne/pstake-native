@@ -220,8 +220,6 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) (redelegations []types
 		}
 	}
 
-	k.AutocompoundStakingRewards(ctx, whitelistedValsMap)
-
 	return redelegations
 }
 
