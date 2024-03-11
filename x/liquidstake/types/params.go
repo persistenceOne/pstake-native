@@ -34,10 +34,6 @@ var (
 	// RebalancingTrigger if the maximum difference and needed each redelegation amount exceeds it, asset rebalacing will be executed.
 	RebalancingTrigger = math.LegacyNewDecWithPrec(1, 3) // "0.001000000000000000"
 
-	// AutocompoundTrigger If the sum of balance and the upcoming rewards of LiquidStakeProxyAcc exceeds it,
-	// the reward is automatically autocompounded, according to the weights.
-	AutocompoundTrigger = math.LegacyNewDecWithPrec(1, 3) // "0.001000000000000000"
-
 	// LiquidStakeProxyAcc is a proxy reserve account for delegation and undelegation.
 	//
 	// Important: derive this address using module.Address to obtain a 32-byte version distinguishable for LSM

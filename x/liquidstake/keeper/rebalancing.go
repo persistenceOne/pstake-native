@@ -225,16 +225,8 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) (redelegations []types
 
 // AutocompoundStakingRewards withdraws staking rewards and re-stakes when over threshold.
 func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap types.WhitelistedValsMap) {
-	totalRemainingRewards, _, totalLiquidTokens := k.CheckDelegationStates(ctx, types.LiquidStakeProxyAcc)
-
 	// checking over types.AutocompoundTrigger and execute GetRewards
 	proxyAccBalance := k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
-	rewardsThreshold := types.AutocompoundTrigger.Mul(math.LegacyNewDecFromInt(totalLiquidTokens))
-
-	// skip If it doesn't exceed the rewards threshold
-	if !math.LegacyNewDecFromInt(proxyAccBalance.Amount).Add(totalRemainingRewards).GT(rewardsThreshold) {
-		return
-	}
 
 	// Withdraw rewards of LiquidStakeProxyAcc and re-staking
 	totalRewardsWithdrawn := k.WithdrawLiquidRewards(ctx, types.LiquidStakeProxyAcc)
