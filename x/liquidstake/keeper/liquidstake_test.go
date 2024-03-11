@@ -208,35 +208,17 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	s.Require().Equal(types.ValidatorStatusActive, res[2].Status)
 	s.Require().Equal(math.LegacyNewDec(13333), res[2].DelShares)
 
-	// stack and withdraw liquid rewards and re-staking
+	// rewards are not autocompounded after validator set update and rebalancing
 	s.advanceHeight(10, true)
-	rewards, _, _ := s.keeper.CheckDelegationStates(
-		s.ctx, types.LiquidStakeProxyAcc,
-	)
-	s.Require().EqualValues(rewards, sdk.ZeroDec())
-
-	// stack rewards on net amount
-	s.advanceHeight(1, false)
-	rewards, _, _ = s.keeper.CheckDelegationStates(
+	rewards, totalLiquidShares, _ := s.keeper.CheckDelegationStates(
 		s.ctx, types.LiquidStakeProxyAcc,
 	)
 	s.Require().NotEqualValues(rewards, sdk.ZeroDec())
-
-	// failed requesting liquid unstaking stkXPRTTotalSupply when existing remaining rewards
-	stkXPRTTotalSupply = s.app.BankKeeper.GetSupply(
-		s.ctx, liquidBondDenom,
-	)
-	stkxprtBalanceBefore := s.app.BankKeeper.GetBalance(
-		s.ctx, s.delAddrs[0], params.LiquidBondDenom,
-	).Amount
-	s.Require().EqualValues(stkXPRTTotalSupply.Amount, stkxprtBalanceBefore)
-	s.Require().ErrorIs(
-		s.liquidUnstaking(s.delAddrs[0], stkxprtBalanceBefore, true),
-		sdkerrors.ErrInvalidRequest,
-	)
+	s.Require().EqualValues(totalLiquidShares, proxyAccDel1.Shares.Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
 
 	// all remaining rewards re-staked, request last unstaking, unbond all
-	s.advanceHeight(1, true)
+	s.keeper.AutocompoundStakingRewards(s.ctx, types.GetWhitelistedValsMap(s.keeper.GetParams(s.ctx).WhitelistedValidators))
+	stkxprtBalanceBefore := s.app.BankKeeper.GetBalance(s.ctx, s.delAddrs[0], params.LiquidBondDenom).Amount
 	rewards, _, _ = s.keeper.CheckDelegationStates(
 		s.ctx, types.LiquidStakeProxyAcc,
 	)

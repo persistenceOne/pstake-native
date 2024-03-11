@@ -550,12 +550,12 @@ func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
 	s.Require().EqualValues(nasBefore.TotalRemainingRewards.TruncateInt(), nasAfter.ProxyAccBalance)
 	s.Require().EqualValues(sdk.ZeroDec(), nasAfter.TotalDelShares)
 	s.Require().EqualValues(sdk.ZeroInt(), nasAfter.TotalLiquidTokens)
-	s.Require().EqualValues(nasBefore.NetAmount.TruncateInt(), nasAfter.NetAmount.TruncateInt())
+	s.Require().EqualValues(nasBefore.NetAmount.Add(nasBefore.TotalRemainingRewards).TruncateInt(), nasAfter.NetAmount.TruncateInt())
 
 	s.completeRedelegationUnbonding()
 	nasAfter2 := s.keeper.GetNetAmountState(s.ctx)
 	s.Require().EqualValues(nasAfter.ProxyAccBalance.Add(nasBefore.TotalLiquidTokens), nasAfter2.ProxyAccBalance)
-	s.Require().EqualValues(nasBefore.NetAmount.TruncateInt(), nasAfter2.NetAmount.TruncateInt())
+	s.Require().EqualValues(nasBefore.NetAmount.Add(nasBefore.TotalRemainingRewards).TruncateInt(), nasAfter2.NetAmount.TruncateInt())
 }
 
 func (s *KeeperTestSuite) TestUndelegatedFundsNotBecomeFees() {
