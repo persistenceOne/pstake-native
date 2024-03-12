@@ -27,9 +27,12 @@ func (h EpochHooks) AfterEpochEnd(_ sdk.Context, _ string, _ int64) error {
 }
 
 func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	// Update the liquid validator set at the start of each epoch
-	if epochIdentifier == liquidstake.AutocompoundEpoch {
-		k.AutocompoundStakingRewards(ctx, liquidstake.GetWhitelistedValsMap(k.GetParams(ctx).WhitelistedValidators))
+
+	if !k.GetParams(ctx).ModulePaused {
+		// Update the liquid validator set at the start of each epoch
+		if epochIdentifier == liquidstake.AutocompoundEpoch {
+			k.AutocompoundStakingRewards(ctx, liquidstake.GetWhitelistedValsMap(k.GetParams(ctx).WhitelistedValidators))
+		}
 	}
 
 	return nil
