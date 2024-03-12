@@ -36,6 +36,21 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+## [v2.11.0] - 2024-03-12
+
+### Features
+
+- [783](https://github.com/persistenceOne/pstake-native/pull/783) Move rewards autocompounding to hourly epoch.
+- [784](https://github.com/persistenceOne/pstake-native/pull/784) Allow admin address to update params.
+
+### Improvements
+
+- [773](https://github.com/persistenceOne/pstake-native/pull/773) Improve logging.
+ 
+### Bug Fixes
+
+- [774](https://github.com/persistenceOne/pstake-native/pull/774) Fix liquidstake params test.
+
 ## [v2.10.0] - 2024-02-21
 
 ### Features
