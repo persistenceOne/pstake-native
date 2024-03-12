@@ -366,8 +366,7 @@ func (s *KeeperTestSuite) advanceHeight(height int, withBeginBlock bool) {
 
 		s.app.DistrKeeper.SetFeePool(s.ctx, feePool)
 		if withBeginBlock {
-			// liquid validator set update, rebalancing, withdraw rewards,
-			// re-stake
+			// liquid validator set update and rebalancing
 			liquidstake.BeginBlocker(s.ctx, s.app.LiquidStakeKeeper)
 		}
 
