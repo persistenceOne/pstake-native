@@ -174,14 +174,13 @@ func (k msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if msg.Authority != k.authority {
+	if msg.Authority != k.authority && msg.Authority != k.GetParams(ctx).WhitelistAdminAddress {
 		return nil, errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
 	}
 
 	paramsToSet := k.GetParams(ctx)
 
-	// List of all updateable params
-	//
+	// List of all updateable param
 	paramsToSet.UnstakeFeeRate = msg.Params.UnstakeFeeRate
 	paramsToSet.LsmDisabled = msg.Params.LsmDisabled
 	paramsToSet.MinLiquidStakeAmount = msg.Params.MinLiquidStakeAmount
@@ -189,11 +188,6 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 	paramsToSet.FeeAccountAddress = msg.Params.FeeAccountAddress
 	paramsToSet.AutocompoundFeeRate = msg.Params.AutocompoundFeeRate
 	paramsToSet.WhitelistAdminAddress = msg.Params.WhitelistAdminAddress
-
-	// These to be updated elsewhere
-	// * LiquidBondDenom
-	// * WhitelistedValidators
-	// * ModulePaused
 
 	err := k.SetParams(ctx, paramsToSet)
 	if err != nil {
