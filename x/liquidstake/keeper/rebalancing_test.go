@@ -28,6 +28,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(3000)},
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(3000)},
 	}
+	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
 	reds := s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 0)
@@ -300,6 +301,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 		{ValidatorAddress: valOpers[6].String(), TargetWeight: math.NewInt(500)},
 		{ValidatorAddress: valOpers[7].String(), TargetWeight: math.NewInt(500)},
 	}
+	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
 	reds := s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 0)
@@ -477,6 +479,7 @@ func (s *KeeperTestSuite) TestAutocompoundStakingRewards() {
 		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(5000)},
 		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(5000)},
 	}
+	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
@@ -521,6 +524,7 @@ func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
 		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(2000)},
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(2000)},
 	}
+	params.ModulePaused = false
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
@@ -561,7 +565,6 @@ func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
 func (s *KeeperTestSuite) TestUndelegatedFundsNotBecomeFees() {
 	_, valOpers, _ := s.CreateValidators([]int64{2000000, 2000000, 2000000, 2000000})
 	params := s.keeper.GetParams(s.ctx)
-
 	// configure validators
 	params.WhitelistedValidators = []types.WhitelistedValidator{
 		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(2000)},
@@ -569,6 +572,7 @@ func (s *KeeperTestSuite) TestUndelegatedFundsNotBecomeFees() {
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(2000)},
 		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(2000)},
 	}
+	params.ModulePaused = false
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 

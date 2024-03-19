@@ -19,7 +19,8 @@ func TestParams(t *testing.T) {
 "unstake_fee_rate": "0.000000000000000000",
 "min_liquid_stake_amount": "1000",
 "fee_account_address": "persistence1w2q3mashs2k4wcpqzs5q5xewnhnnr7wslr34safzvwqzvuqh3gjqv4j6ev",
-"autocompound_fee_rate": "0.050000000000000000"
+"autocompound_fee_rate": "0.050000000000000000",
+"module_paused": true
 }`
 	require.Equal(t, paramsStr, params.String())
 
@@ -40,7 +41,8 @@ func TestParams(t *testing.T) {
 "unstake_fee_rate": "0.000000000000000000",
 "min_liquid_stake_amount": "1000",
 "fee_account_address": "persistence1w2q3mashs2k4wcpqzs5q5xewnhnnr7wslr34safzvwqzvuqh3gjqv4j6ev",
-"autocompound_fee_rate": "0.050000000000000000"
+"autocompound_fee_rate": "0.050000000000000000",
+"module_paused": true
 }`
 	require.Equal(t, paramsStr, params.String())
 }
