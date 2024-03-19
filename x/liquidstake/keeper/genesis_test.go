@@ -23,6 +23,7 @@ func (s *KeeperTestSuite) TestImportExportGenesis() {
 		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(5000)},
 		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(5000)},
 	}
+	params.ModulePaused = false
 	k.SetParams(ctx, params)
 	k.UpdateLiquidValidatorSet(ctx)
 

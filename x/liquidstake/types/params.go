@@ -57,6 +57,7 @@ func DefaultParams() Params {
 		AutocompoundFeeRate:   DefaultAutocompoundFeeRate,
 		CwLockedPoolAddress:   "",
 		WhitelistAdminAddress: "",
+		ModulePaused:          true,
 	}
 }
 

@@ -16,6 +16,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	_, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000})
 	params := s.keeper.GetParams(s.ctx)
 	params.MinLiquidStakeAmount = math.NewInt(50000)
+	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
@@ -253,6 +254,7 @@ func (s *KeeperTestSuite) TestLiquidStakeFromVestingAccount() {
 		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(3333)},
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(3333)},
 	}
+	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
@@ -303,6 +305,7 @@ func (s *KeeperTestSuite) TestLiquidStakeEdgeCases() {
 		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(3333)},
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(3333)},
 	}
+	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
@@ -341,6 +344,7 @@ func (s *KeeperTestSuite) TestLiquidUnstakeEdgeCases() {
 		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(3333)},
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(3333)},
 	}
+	params.ModulePaused = false
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
@@ -408,7 +412,7 @@ func (s *KeeperTestSuite) TestShareInflation() {
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(2500)},
 		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(2500)},
 	}
-
+	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 

@@ -308,6 +308,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	_, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000})
 	params := s.keeper.GetParams(s.ctx)
 	params.MinLiquidStakeAmount = math.NewInt(50000)
+	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
