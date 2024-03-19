@@ -214,7 +214,7 @@ func (k msgServer) UpdateWhitelistedValidators(goCtx context.Context, msg *types
 
 	params := k.GetParams(ctx)
 
-	if msg.Authority != params.WhitelistAdminAddress {
+	if msg.Authority != k.authority && msg.Authority != params.WhitelistAdminAddress {
 		return nil, errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid authority; expected %s, got %s", params.WhitelistAdminAddress, msg.Authority)
 	}
 
@@ -275,7 +275,7 @@ func (k msgServer) SetModulePaused(goCtx context.Context, msg *types.MsgSetModul
 
 	params := k.GetParams(ctx)
 
-	if msg.Authority != params.WhitelistAdminAddress {
+	if msg.Authority != k.authority && msg.Authority != params.WhitelistAdminAddress {
 		return nil, errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid authority; expected %s, got %s", params.WhitelistAdminAddress, msg.Authority)
 	}
 
