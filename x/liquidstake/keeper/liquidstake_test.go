@@ -388,12 +388,12 @@ func (s *KeeperTestSuite) TestLiquidUnstakeEdgeCases() {
 
 	// success after complete unbonding, Not applicable
 	s.completeRedelegationUnbonding()
-	//ubdTime, unbondingAmt, ubds, unbondedAmt, err := s.liquidUnstakingWithResult(s.delAddrs[0], sdk.NewCoin(params.LiquidBondDenom, math.NewInt(1000)))
-	//s.Require().NoError(err)
-	//s.Require().EqualValues(unbondedAmt, math.NewInt(1000))
-	//s.Require().EqualValues(unbondingAmt, sdk.ZeroInt())
-	//s.Require().EqualValues(ubdTime, time.Time{})
-	//s.Require().Len(ubds, 0)
+	// ubdTime, unbondingAmt, ubds, unbondedAmt, err := s.liquidUnstakingWithResult(s.delAddrs[0], sdk.NewCoin(params.LiquidBondDenom, math.NewInt(1000)))
+	// s.Require().NoError(err)
+	// s.Require().EqualValues(unbondedAmt, math.NewInt(1000))
+	// s.Require().EqualValues(unbondingAmt, sdk.ZeroInt())
+	// s.Require().EqualValues(ubdTime, time.Time{})
+	// s.Require().Len(ubds, 0)
 }
 
 func (s *KeeperTestSuite) TestShareInflation() {

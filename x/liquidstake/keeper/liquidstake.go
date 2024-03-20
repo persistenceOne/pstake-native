@@ -2,13 +2,13 @@ package keeper
 
 import (
 	"encoding/json"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"sort"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"

@@ -248,7 +248,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	nas := s.keeper.GetNetAmountState(s.ctx)
 	s.Require().EqualValues(nas.TotalRemainingRewards, sdk.ZeroDec())
 	s.Require().EqualValues(nas.TotalDelShares, nasBefore.TotalDelShares)
-	s.Require().LessOrEqual(nas.TotalLiquidTokens.Int64(), nasBefore.TotalLiquidTokens.Int64()) //slashing
+	s.Require().LessOrEqual(nas.TotalLiquidTokens.Int64(), nasBefore.TotalLiquidTokens.Int64()) // slashing
 
 	// mintRate over 1 due to slashing
 	s.Require().True(nas.MintRate.GT(sdk.OneDec()))
@@ -527,7 +527,7 @@ func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
 
 	// no liquid validator
 	lvs := s.keeper.GetAllLiquidValidators(s.ctx)
-	s.Require().Len(lvs, 3) //now we do not remove inactive validators
+	s.Require().Len(lvs, 3) // now we do not remove inactive validators
 
 	nasAfter := s.keeper.GetNetAmountState(s.ctx)
 
@@ -535,8 +535,8 @@ func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
 
 	s.completeRedelegationUnbonding()
 	nasAfter2 := s.keeper.GetNetAmountState(s.ctx)
-	s.Require().EqualValues(nasAfter.ProxyAccBalance, nasAfter2.ProxyAccBalance)                  //should be equal since no unbonding
-	s.Require().EqualValues(nasBefore.NetAmount.TruncateInt(), nasAfter2.NetAmount.TruncateInt()) //should be equal since no unbonding
+	s.Require().EqualValues(nasAfter.ProxyAccBalance, nasAfter2.ProxyAccBalance)                  // should be equal since no unbonding
+	s.Require().EqualValues(nasBefore.NetAmount.TruncateInt(), nasAfter2.NetAmount.TruncateInt()) // should be equal since no unbonding
 }
 
 func (s *KeeperTestSuite) TestUndelegatedFundsNotBecomeFees() {
