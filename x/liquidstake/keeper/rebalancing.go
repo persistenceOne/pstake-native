@@ -180,45 +180,8 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) (redelegations []types
 		types.RebalancingTrigger,
 	)
 
-	// unbond all delShares to proxyAcc if delShares exist on inactive liquid validators
-	for _, lv := range liquidValidators {
-		if !k.IsActiveLiquidValidator(ctx, lv, whitelistedValsMap) {
-			delShares := lv.GetDelShares(ctx, k.stakingKeeper)
-			if delShares.IsPositive() {
-				cachedCtx, writeCache := ctx.CacheContext()
-				completionTime, returnAmount, _, err := k.LiquidUnbond(cachedCtx, types.LiquidStakeProxyAcc, types.LiquidStakeProxyAcc, lv.GetOperator(), delShares, false)
-				if err != nil {
-					logger.Error("liquid unbonding of inactive liquid validator failed", "error", err)
-					continue
-				}
-				writeCache()
-				unbondingAmount := sdk.Coin{Denom: k.stakingKeeper.BondDenom(ctx), Amount: returnAmount}.String()
-				ctx.EventManager().EmitEvents(sdk.Events{
-					sdk.NewEvent(
-						types.EventTypeUnbondInactiveLiquidTokens,
-						sdk.NewAttribute(types.AttributeKeyLiquidValidator, lv.OperatorAddress),
-						sdk.NewAttribute(types.AttributeKeyUnbondingAmount, unbondingAmount),
-						sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
-					),
-				})
-				logger.Info(types.EventTypeUnbondInactiveLiquidTokens,
-					types.AttributeKeyLiquidValidator, lv.OperatorAddress,
-					types.AttributeKeyUnbondingAmount, unbondingAmount,
-					types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339))
-			}
-			_, found := k.stakingKeeper.GetDelegation(ctx, types.LiquidStakeProxyAcc, lv.GetOperator())
-			if !found {
-				k.RemoveLiquidValidator(ctx, lv)
-				ctx.EventManager().EmitEvents(sdk.Events{
-					sdk.NewEvent(
-						types.EventTypeRemoveLiquidValidator,
-						sdk.NewAttribute(types.AttributeKeyLiquidValidator, lv.OperatorAddress),
-					),
-				})
-				logger.Info(types.EventTypeRemoveLiquidValidator, types.AttributeKeyLiquidValidator, lv.OperatorAddress)
-			}
-		}
-	}
+	// if there are inactive liquid validators, do not unbond,
+	// instead let validator selection and rebalancing take care of it.
 
 	return redelegations
 }
