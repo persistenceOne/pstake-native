@@ -107,7 +107,7 @@ func (s *KeeperTestSuite) liquidStaking(liquidStaker sdk.AccAddress, stakingAmt 
 		ctx, liquidStaker, params.LiquidBondDenom,
 	).Amount
 
-	newShares, stkXPRTMintAmt, err := s.keeper.LiquidStake(
+	stkXPRTMintAmt, err := s.keeper.LiquidStake(
 		ctx,
 		types.LiquidStakeProxyAcc,
 		liquidStaker,
@@ -122,7 +122,6 @@ func (s *KeeperTestSuite) liquidStaking(liquidStaker sdk.AccAddress, stakingAmt 
 	).Amount
 
 	s.Require().NoError(err)
-	s.NotEqualValues(newShares, sdk.ZeroDec())
 	s.Require().EqualValues(
 		stkXPRTMintAmt, stkxprtBalanceAfter.Sub(stkxprtBalanceBefore),
 	)

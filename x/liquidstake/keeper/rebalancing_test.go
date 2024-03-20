@@ -33,9 +33,8 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	reds := s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 0)
 
-	newShares, stkXPRTMintAmt, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
+	stkXPRTMintAmt, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
 	s.Require().NoError(err)
-	s.Require().Equal(newShares, stakingAmt.ToLegacyDec())
 	s.Require().Equal(stkXPRTMintAmt, stakingAmt)
 	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 0)
@@ -306,9 +305,8 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	reds := s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 0)
 
-	newShares, stkXPRTMintAmt, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
+	stkXPRTMintAmt, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
 	s.Require().NoError(err)
-	s.Require().Equal(newShares, stakingAmt.ToLegacyDec())
 	s.Require().Equal(stkXPRTMintAmt, stakingAmt)
 	// assert rebalanced
 	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
@@ -450,7 +448,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	s.printRedelegationsLiquidTokens()
 
 	// additional liquid stake when not rebalanced
-	_, _, err = s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1000000000)))
+	_, err = s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1000000000)))
 	s.Require().NoError(err)
 	s.printRedelegationsLiquidTokens()
 

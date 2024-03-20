@@ -316,9 +316,8 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 
 	// fail, no active validator
 	cachedCtx, _ := s.ctx.CacheContext()
-	newShares, stkXPRTMintAmt, err := s.keeper.LiquidStake(cachedCtx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
+	stkXPRTMintAmt, err := s.keeper.LiquidStake(cachedCtx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
 	s.Require().ErrorIs(err, types.ErrActiveLiquidValidatorsNotExists)
-	s.Require().Equal(newShares, sdk.ZeroDec())
 	s.Require().Equal(stkXPRTMintAmt, sdk.ZeroInt())
 
 	// add active validator
@@ -350,9 +349,8 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	s.Require().Equal(sdk.ZeroInt(), res[2].LiquidTokens)
 
 	// liquid stake
-	newShares, stkXPRTMintAmt, err = s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
+	stkXPRTMintAmt, err = s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
 	s.Require().NoError(err)
-	s.Require().Equal(newShares, stakingAmt.ToLegacyDec())
 	s.Require().Equal(stkXPRTMintAmt, stakingAmt)
 
 	_, found := s.app.StakingKeeper.GetDelegation(s.ctx, s.delAddrs[0], valOpers[0])
