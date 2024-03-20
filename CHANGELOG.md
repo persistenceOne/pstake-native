@@ -36,6 +36,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+### Features
+
+### Improvements
+
+### Bug Fixes
+
+- [792](https://github.com/persistenceOne/pstake-native/pull/792) Use GetHostChainFromHostDenom in ICA Transfer
+  unsuccessfulAck instead of GetHostChainFromDelegatorAddress as Rewards account too uses ICA Transfer to autocompound
+
 ## [v2.11.0] - 2024-03-12
 
 ### Features
@@ -46,7 +55,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 - [773](https://github.com/persistenceOne/pstake-native/pull/773) Improve logging.
- 
+
 ### Bug Fixes
 
 - [774](https://github.com/persistenceOne/pstake-native/pull/774) Fix liquidstake params test.
