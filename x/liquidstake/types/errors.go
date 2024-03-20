@@ -26,4 +26,5 @@ var (
 	ErrModulePaused                                 = errors.Register(ModuleName, 21, "module functions have been paused")
 	ErrDelegationFailed                             = errors.Register(ModuleName, 22, "delegation failed")
 	ErrUnbondFailed                                 = errors.Register(ModuleName, 23, "unbond failed")
+	ErrInvalidResponse                              = errors.Register(ModuleName, 24, "invalid response")
 )
