@@ -406,7 +406,7 @@ func (k *Keeper) handleUnsuccessfulAck(
 			}
 
 			// get the host chain using the delegator address
-			hc, found := k.GetHostChainFromDelegatorAddress(ctx, parsedMsg.Sender)
+			hc, found := k.GetHostChainFromHostDenom(ctx, parsedMsg.Token.Denom)
 			if !found {
 				k.Logger(ctx).Error(
 					"could not find host chain from ica delegator address",
