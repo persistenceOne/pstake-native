@@ -276,9 +276,9 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 
 func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	_, valOpers, _ := s.CreateValidators([]int64{
-		1000000, 1000000, 1000000, 1000000, 1000000,
-		1000000, 1000000, 1000000, 1000000, 1000000,
-		1000000, 1000000, 1000000, 1000000, 1000000,
+		1000000000000, 1000000000000, 1000000000000, 1000000000000, 1000000000000,
+		1000000000000, 1000000000000, 1000000000000, 1000000000000, 1000000000000,
+		1000000000000, 1000000000000, 1000000000000, 1000000000000, 1000000000000,
 	})
 	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(testhelpers.ParseTime("2022-03-01T00:00:00Z"))
 	params := s.keeper.GetParams(s.ctx)
@@ -501,7 +501,7 @@ func (s *KeeperTestSuite) TestAutocompoundStakingRewards() {
 	totalRewardsAfter, totalDelSharesAfter, totalLiquidTokensAfter := s.keeper.CheckDelegationStates(s.ctx, types.LiquidStakeProxyAcc)
 	s.EqualValues(totalRewardsAfter, sdk.ZeroDec())
 
-	autocompoundFee := params.AutocompoundFeeRate.Mul(totalRewards)
+	autocompoundFee := params.AutocompoundFeeRate.Mul(totalRewards).TruncateDec()
 	s.EqualValues(totalDelSharesAfter, totalRewards.Sub(autocompoundFee).Add(totalDelShares).TruncateDec(), totalLiquidTokensAfter)
 
 	stakingParams := s.app.StakingKeeper.GetParams(s.ctx)

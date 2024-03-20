@@ -65,7 +65,7 @@ func (k msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 func (k msgServer) StakeToLP(goCtx context.Context, msg *types.MsgStakeToLP) (*types.MsgStakeToLPResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	newShares, stkXPRTMintAmount, err := k.LSMDelegate(
+	stkXPRTMintAmount, err := k.LSMDelegate(
 		ctx,
 		msg.GetDelegator(),
 		msg.GetValidator(),
@@ -96,7 +96,6 @@ func (k msgServer) StakeToLP(goCtx context.Context, msg *types.MsgStakeToLP) (*t
 			types.EventTypeMsgStakeToLP,
 			sdk.NewAttribute(types.AttributeKeyDelegator, msg.DelegatorAddress),
 			sdk.NewAttribute(types.AttributeKeyStakedAmount, msg.StakedAmount.String()),
-			sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
 			sdk.NewAttribute(types.AttributeKeyStkXPRTMintedAmount, stkXPRTMinted.String()),
 			sdk.NewAttribute(types.AttributeKeyCValue, cValue.String()),
 		),
