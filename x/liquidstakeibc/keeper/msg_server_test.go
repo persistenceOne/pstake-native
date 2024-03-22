@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"context"
 	"fmt"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"reflect"
 	"testing"
 
@@ -112,10 +113,31 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 	hc, found := pstakeapp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
 	suite.Require().True(found)
 
+	inactiveValoperAddr := "persistencevaloper1wrxz49hjmq434zg072kl2ka3kqnau0ejs0vqpm"
+	pstakeapp.LiquidStakeIBCKeeper.SetHostChainValidator(ctx, hc, &types.Validator{
+		OperatorAddress: inactiveValoperAddr,
+		Status:          stakingtypes.BondStatusBonded,
+		Weight:          sdk.ZeroDec(),
+		DelegatedAmount: sdk.OneInt(),
+		ExchangeRate:    sdk.OneDec(),
+		UnbondingEpoch:  0,
+		Delegable:       true,
+	})
+	hc, found = pstakeapp.LiquidStakeIBCKeeper.GetHostChain(ctx, suite.chainB.ChainID)
+	suite.Require().True(found)
 	lsmIbcDenom := ibctfrtypes.ParseDenomTrace(
 		ibctfrtypes.GetPrefixedDenom(hc.PortId, hc.ChannelId, hc.Validators[0].OperatorAddress+"/1"),
 	).IBCDenom()
+
 	suite.Require().Equal(nil, transfertypes.ValidateIBCDenom(lsmIbcDenom))
+
+	lsmIbcDenomZeroWeightTrace := ibctfrtypes.ParseDenomTrace(
+		ibctfrtypes.GetPrefixedDenom(hc.PortId, hc.ChannelId, inactiveValoperAddr+"/1"),
+	)
+	lsmIbcDenomZeroWeight := lsmIbcDenomZeroWeightTrace.IBCDenom()
+	pstakeapp.TransferKeeper.SetDenomTrace(ctx, lsmIbcDenomZeroWeightTrace)
+
+	suite.Require().Equal(nil, transfertypes.ValidateIBCDenom(lsmIbcDenomZeroWeight))
 
 	type args struct {
 		goCtx               context.Context
@@ -249,6 +271,21 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 				msg: &types.MsgLiquidStakeLSM{
 					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
 					Delegations:      sdk.NewCoins(sdk.NewCoin(lsmIbcDenom, sdk.NewInt(4))),
+				},
+				chainActive:         true,
+				lsmActive:           true,
+				createSecondDeposit: true,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "inactive validator",
+			args: args{
+				goCtx: ctx,
+				msg: &types.MsgLiquidStakeLSM{
+					DelegatorAddress: suite.chainA.SenderAccount.GetAddress().String(),
+					Delegations:      sdk.NewCoins(sdk.NewCoin(lsmIbcDenomZeroWeight, sdk.NewInt(4))),
 				},
 				chainActive:         true,
 				lsmActive:           true,
