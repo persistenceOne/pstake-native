@@ -443,11 +443,11 @@ func (s *KeeperTestSuite) TestShareInflation() {
 	s.app.BankKeeper.SendCoins(s.ctx, attacker, types.LiquidStakeProxyAcc,
 		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, attackerTransferAmount)))
 
-	// 4. user tx went through but receives fewer shares than intended
-	// stkXPRT to mint = 1 * 1000 / (1+500) = 1.99 = 1
+	// 4. user tx went through and the mint rate is not affected by the XPRT sent by the attacker
+	// stkXPRT to mint = 1 * 1000 / 1 = 1
 	mintAmount, err = s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, user, sdk.NewCoin(sdk.DefaultBondDenom, userStakeAmount))
 	s.Require().NoError(err)
-	s.Require().Equal(mintAmount, math.NewInt(952))
+	s.Require().Equal(mintAmount, math.NewInt(1_000))
 
 	// 5. attacker unstakes the shares immediately
 	liquidBondDenom := s.keeper.LiquidBondDenom(s.ctx)

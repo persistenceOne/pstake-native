@@ -211,7 +211,7 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 	// re-staking of the accumulated rewards
 	cachedCtx, writeCache := ctx.CacheContext()
 	delegableAmount := totalRewardsWithdrawn.Sub(autocompoundFee.Amount)
-	_, err := k.LiquidDelegate(cachedCtx, types.LiquidStakeProxyAcc, activeVals, delegableAmount, whitelistedValsMap)
+	err := k.LiquidDelegate(cachedCtx, types.LiquidStakeProxyAcc, activeVals, delegableAmount, whitelistedValsMap)
 	if err != nil {
 		logger := k.Logger(ctx)
 		logger.Error("re-staking failed", "error", err)
