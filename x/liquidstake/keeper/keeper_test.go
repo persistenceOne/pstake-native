@@ -78,10 +78,12 @@ func (s *KeeperTestSuite) TearDownTest() {
 func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []sdk.ValAddress, []cryptotypes.PubKey) {
 	s.app.BeginBlocker(s.ctx, abci.RequestBeginBlock{})
 	num := len(powers)
-	addrs := testhelpers.AddTestAddrsIncremental(s.app, s.ctx, num, math.NewInt(1000000000))
+	addrs := testhelpers.AddTestAddrsIncremental(s.app, s.ctx, num, math.NewInt(10000000000000))
 	valAddrs := testhelpers.ConvertAddrsToValAddrs(addrs)
 	pks := testhelpers.CreateTestPubKeys(num)
-
+	skParams := s.app.StakingKeeper.GetParams(s.ctx)
+	skParams.ValidatorLiquidStakingCap = sdk.OneDec()
+	s.app.StakingKeeper.SetParams(s.ctx, skParams)
 	for i, power := range powers {
 		val, err := stakingtypes.NewValidator(valAddrs[i], pks[i], stakingtypes.Description{})
 		s.Require().NoError(err)
@@ -93,6 +95,13 @@ func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []
 		newShares, err := s.app.StakingKeeper.Delegate(s.ctx, addrs[i], math.NewInt(power), stakingtypes.Unbonded, val, true)
 		s.Require().NoError(err)
 		s.Require().Equal(newShares.TruncateInt(), math.NewInt(power))
+		msgValidatorBond := &stakingtypes.MsgValidatorBond{
+			DelegatorAddress: addrs[i].String(),
+			ValidatorAddress: val.OperatorAddress,
+		}
+		handler := s.app.MsgServiceRouter().Handler(msgValidatorBond)
+		_, err = handler(s.ctx, msgValidatorBond)
+		s.Require().NoError(err)
 	}
 
 	s.app.EndBlocker(s.ctx, abci.RequestEndBlock{})
@@ -107,7 +116,7 @@ func (s *KeeperTestSuite) liquidStaking(liquidStaker sdk.AccAddress, stakingAmt 
 		ctx, liquidStaker, params.LiquidBondDenom,
 	).Amount
 
-	newShares, stkXPRTMintAmt, err := s.keeper.LiquidStake(
+	stkXPRTMintAmt, err := s.keeper.LiquidStake(
 		ctx,
 		types.LiquidStakeProxyAcc,
 		liquidStaker,
@@ -122,7 +131,6 @@ func (s *KeeperTestSuite) liquidStaking(liquidStaker sdk.AccAddress, stakingAmt 
 	).Amount
 
 	s.Require().NoError(err)
-	s.NotEqualValues(newShares, sdk.ZeroDec())
 	s.Require().EqualValues(
 		stkXPRTMintAmt, stkxprtBalanceAfter.Sub(stkxprtBalanceBefore),
 	)

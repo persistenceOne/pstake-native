@@ -35,7 +35,7 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake) (*types.MsgLiquidStakeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	newShares, stkXPRTMintAmount, err := k.Keeper.LiquidStake(ctx, types.LiquidStakeProxyAcc, msg.GetDelegator(), msg.Amount)
+	stkXPRTMintAmount, err := k.Keeper.LiquidStake(ctx, types.LiquidStakeProxyAcc, msg.GetDelegator(), msg.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,6 @@ func (k msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 			types.EventTypeMsgLiquidStake,
 			sdk.NewAttribute(types.AttributeKeyDelegator, msg.DelegatorAddress),
 			sdk.NewAttribute(types.AttributeKeyLiquidAmount, msg.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
 			sdk.NewAttribute(types.AttributeKeyStkXPRTMintedAmount, sdk.Coin{Denom: liquidBondDenom, Amount: stkXPRTMintAmount}.String()),
 			sdk.NewAttribute(types.AttributeKeyCValue, cValue.String()),
 		),
@@ -66,7 +65,7 @@ func (k msgServer) LiquidStake(goCtx context.Context, msg *types.MsgLiquidStake)
 func (k msgServer) StakeToLP(goCtx context.Context, msg *types.MsgStakeToLP) (*types.MsgStakeToLPResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	newShares, stkXPRTMintAmount, err := k.LSMDelegate(
+	stkXPRTMintAmount, err := k.LSMDelegate(
 		ctx,
 		msg.GetDelegator(),
 		msg.GetValidator(),
@@ -97,14 +96,13 @@ func (k msgServer) StakeToLP(goCtx context.Context, msg *types.MsgStakeToLP) (*t
 			types.EventTypeMsgStakeToLP,
 			sdk.NewAttribute(types.AttributeKeyDelegator, msg.DelegatorAddress),
 			sdk.NewAttribute(types.AttributeKeyStakedAmount, msg.StakedAmount.String()),
-			sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
 			sdk.NewAttribute(types.AttributeKeyStkXPRTMintedAmount, stkXPRTMinted.String()),
 			sdk.NewAttribute(types.AttributeKeyCValue, cValue.String()),
 		),
 	})
 
 	if (msg.LiquidAmount != sdk.Coin{}) && (msg.LiquidAmount.Amount != math.Int{}) && msg.LiquidAmount.Amount.IsPositive() {
-		newShares, stkXPRTMintAmount, err := k.Keeper.LiquidStake(ctx, types.LiquidStakeProxyAcc, msg.GetDelegator(), msg.LiquidAmount)
+		stkXPRTMintAmount, err := k.Keeper.LiquidStake(ctx, types.LiquidStakeProxyAcc, msg.GetDelegator(), msg.LiquidAmount)
 		if err != nil {
 			return nil, err
 		}
@@ -128,7 +126,6 @@ func (k msgServer) StakeToLP(goCtx context.Context, msg *types.MsgStakeToLP) (*t
 				types.EventTypeMsgStakeToLP,
 				sdk.NewAttribute(types.AttributeKeyDelegator, msg.DelegatorAddress),
 				sdk.NewAttribute(types.AttributeKeyLiquidAmount, msg.LiquidAmount.String()),
-				sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
 				sdk.NewAttribute(types.AttributeKeyStkXPRTMintedAmount, stkXPRTMinted.String()),
 				sdk.NewAttribute(types.AttributeKeyCValue, cValue.String()),
 			),

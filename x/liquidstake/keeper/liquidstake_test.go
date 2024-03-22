@@ -24,12 +24,11 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 
 	// fail, no active validator
 	cachedCtx, _ := s.ctx.CacheContext()
-	newShares, stkXPRTMintAmt, err := s.keeper.LiquidStake(
+	stkXPRTMintAmt, err := s.keeper.LiquidStake(
 		cachedCtx, types.LiquidStakeProxyAcc, s.delAddrs[0],
 		sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt),
 	)
 	s.Require().ErrorIs(err, types.ErrActiveLiquidValidatorsNotExists)
-	s.Require().Equal(newShares, sdk.ZeroDec())
 	s.Require().Equal(stkXPRTMintAmt, sdk.ZeroInt())
 
 	// add active validator
@@ -67,12 +66,11 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	s.Require().Equal(sdk.ZeroInt(), res[2].LiquidTokens)
 
 	// liquid stake
-	newShares, stkXPRTMintAmt, err = s.keeper.LiquidStake(
+	stkXPRTMintAmt, err = s.keeper.LiquidStake(
 		s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0],
 		sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt),
 	)
 	s.Require().NoError(err)
-	s.Require().Equal(newShares, stakingAmt.ToLegacyDec())
 	s.Require().Equal(stkXPRTMintAmt, stakingAmt)
 
 	_, found := s.app.StakingKeeper.GetDelegation(
@@ -310,7 +308,7 @@ func (s *KeeperTestSuite) TestLiquidStakeEdgeCases() {
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
 	// fail Invalid BondDenom case
-	_, _, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin("bad", stakingAmt))
+	_, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin("bad", stakingAmt))
 	s.Require().ErrorIs(err, types.ErrInvalidBondDenom)
 
 	// liquid stake, unstaking with huge amount
@@ -384,17 +382,18 @@ func (s *KeeperTestSuite) TestLiquidUnstakeEdgeCases() {
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
 	// error case where there is a quantity that are unbonding balance or remaining rewards that is not re-stake or withdrawn in netAmount.
-	_, _, _, _, err = s.liquidUnstakingWithResult(s.delAddrs[0], sdk.NewCoin(params.LiquidBondDenom, math.NewInt(1000)))
-	s.Require().ErrorIs(err, types.ErrInsufficientProxyAccBalance)
+	// NOT APPLICABLE since we do not validator unbond if validator goes inactive.
+	//_, _, _, _, err = s.liquidUnstakingWithResult(s.delAddrs[0], sdk.NewCoin(params.LiquidBondDenom, math.NewInt(1000)))
+	//s.Require().ErrorIs(err, types.ErrInsufficientProxyAccBalance)
 
-	// success after complete unbonding
+	// success after complete unbonding, Not applicable
 	s.completeRedelegationUnbonding()
-	ubdTime, unbondingAmt, ubds, unbondedAmt, err := s.liquidUnstakingWithResult(s.delAddrs[0], sdk.NewCoin(params.LiquidBondDenom, math.NewInt(1000)))
-	s.Require().NoError(err)
-	s.Require().EqualValues(unbondedAmt, math.NewInt(1000))
-	s.Require().EqualValues(unbondingAmt, sdk.ZeroInt())
-	s.Require().EqualValues(ubdTime, time.Time{})
-	s.Require().Len(ubds, 0)
+	// ubdTime, unbondingAmt, ubds, unbondedAmt, err := s.liquidUnstakingWithResult(s.delAddrs[0], sdk.NewCoin(params.LiquidBondDenom, math.NewInt(1000)))
+	// s.Require().NoError(err)
+	// s.Require().EqualValues(unbondedAmt, math.NewInt(1000))
+	// s.Require().EqualValues(unbondingAmt, sdk.ZeroInt())
+	// s.Require().EqualValues(ubdTime, time.Time{})
+	// s.Require().Len(ubds, 0)
 }
 
 func (s *KeeperTestSuite) TestShareInflation() {
@@ -423,13 +422,13 @@ func (s *KeeperTestSuite) TestShareInflation() {
 	protocol := s.delAddrs[3]
 
 	// 0. [a solution?] be first depositor
-	_, mintAmount0, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc,
+	mintAmount0, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc,
 		protocol, sdk.NewCoin(sdk.DefaultBondDenom, initializingStakingAmt))
 	s.Require().NoError(err)
 	s.Require().Equal(mintAmount0, initializingStakingAmt)
 
 	// 1. attacker becomes first depositor and liquid stake
-	_, mintAmount, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc,
+	mintAmount, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc,
 		attacker, sdk.NewCoin(sdk.DefaultBondDenom, initialStakingAmt))
 	s.Require().NoError(err)
 	s.Require().Equal(mintAmount, initialStakingAmt)
@@ -446,7 +445,7 @@ func (s *KeeperTestSuite) TestShareInflation() {
 
 	// 4. user tx went through but receives fewer shares than intended
 	// stkXPRT to mint = 1 * 1000 / (1+500) = 1.99 = 1
-	_, mintAmount, err = s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, user, sdk.NewCoin(sdk.DefaultBondDenom, userStakeAmount))
+	mintAmount, err = s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, user, sdk.NewCoin(sdk.DefaultBondDenom, userStakeAmount))
 	s.Require().NoError(err)
 	s.Require().Equal(mintAmount, math.NewInt(952))
 
