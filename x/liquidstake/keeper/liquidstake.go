@@ -253,18 +253,123 @@ func (k Keeper) UnbondWithCap(
 	ctx sdk.Context,
 	delegatorAddress sdk.AccAddress,
 	validatorAddress sdk.ValAddress,
-	shares sdk.Dec,
+	amount sdk.Coin,
+	userAddress sdk.AccAddress,
 ) (math.Int, error) {
-	returnAmount, err := k.stakingKeeper.Unbond(ctx, delegatorAddress, validatorAddress, shares)
+
+	// perform an LSM tokenize->bank send->redeem flow: moving delegation from proxyAcc onto user's account
+	lsmTokenizeMsg := &stakingtypes.MsgTokenizeShares{
+		DelegatorAddress:    delegatorAddress.String(),
+		ValidatorAddress:    validatorAddress.String(),
+		Amount:              amount,
+		TokenizedShareOwner: userAddress.String(),
+	}
+
+	handler := k.router.Handler(lsmTokenizeMsg)
+	if handler == nil {
+		return sdk.ZeroInt(), sdkerrors.ErrUnknownRequest.Wrapf("unrecognized message route: %s", sdk.MsgTypeURL(lsmTokenizeMsg))
+	}
+
+	// [1] tokenize delegation into LSM shares
+	msgResp, err := handler(ctx, lsmTokenizeMsg)
 	if err != nil {
-		return math.ZeroInt(), types.ErrUnbondFailed.Wrap(err.Error())
+		return sdk.ZeroInt(), types.ErrLSMTokenizeFailed.Wrapf("error: %s; message: %v", err.Error(), lsmTokenizeMsg)
+	}
+	ctx.EventManager().EmitEvents(msgResp.GetEvents())
+
+	if len(msgResp.MsgResponses) != 1 {
+		return sdk.ZeroInt(), errorsmod.Wrapf(
+			types.ErrInvalidResponse,
+			"expected msg response should be exactly 1, got: %v, responses: %v",
+			len(msgResp.MsgResponses), msgResp.MsgResponses,
+		)
 	}
 
-	if err := k.stakingKeeper.DecreaseTotalLiquidStakedTokens(ctx, returnAmount); err != nil {
-		return math.ZeroInt(), types.ErrUnbondFailed.Wrap(err.Error())
+	var lsmTokenizeResp stakingtypes.MsgTokenizeSharesResponse
+	if err = k.cdc.Unmarshal(msgResp.MsgResponses[0].Value, &lsmTokenizeResp); err != nil {
+		return sdk.ZeroInt(), errorsmod.Wrapf(
+			sdkerrors.ErrJSONUnmarshal,
+			"cannot unmarshal tokenize share tx response message: %v",
+			err,
+		)
 	}
 
-	return returnAmount, nil
+	// [2] send LSM shares to proxyAcc
+	err = k.bankKeeper.SendCoins(ctx, delegatorAddress, userAddress, sdk.NewCoins(lsmTokenizeResp.Amount))
+	if err != nil {
+		return sdk.ZeroInt(), err
+	}
+
+	lsmRedeemMsg := &stakingtypes.MsgRedeemTokensForShares{
+		DelegatorAddress: userAddress.String(),
+		Amount:           lsmTokenizeResp.Amount,
+	}
+
+	handler = k.router.Handler(lsmRedeemMsg)
+	if handler == nil {
+		return sdk.ZeroInt(), sdkerrors.ErrUnknownRequest.Wrapf("unrecognized message route: %s", sdk.MsgTypeURL(lsmRedeemMsg))
+	}
+
+	// [3] redeem LSM shares from proxyAcc, to obtain a delegation
+	msgResp, err = handler(ctx, lsmRedeemMsg)
+	if err != nil {
+		return sdk.ZeroInt(), types.ErrLSMRedeemFailed.Wrapf("error: %s; message: %v", err.Error(), lsmRedeemMsg)
+	}
+	ctx.EventManager().EmitEvents(msgResp.GetEvents())
+
+	if len(msgResp.MsgResponses) != 1 {
+		return sdk.ZeroInt(), errorsmod.Wrapf(
+			types.ErrInvalidResponse,
+			"expected msg response should be exactly 1, got: %v, responses: %v",
+			len(msgResp.MsgResponses), msgResp.MsgResponses,
+		)
+	}
+
+	var lsmRedeemResp stakingtypes.MsgRedeemTokensForSharesResponse
+	if err = k.cdc.Unmarshal(msgResp.MsgResponses[0].Value, &lsmRedeemResp); err != nil {
+		return sdk.ZeroInt(), errorsmod.Wrapf(
+			sdkerrors.ErrJSONUnmarshal,
+			"cannot unmarshal redeem tokens for shares tx response message: %v",
+			err,
+		)
+	}
+
+	// [4] unstake from user's account.
+	unstakeMsg := &stakingtypes.MsgUndelegate{
+		DelegatorAddress: userAddress.String(),
+		ValidatorAddress: validatorAddress.String(),
+		Amount:           lsmRedeemResp.Amount,
+	}
+
+	handler = k.router.Handler(unstakeMsg)
+	if handler == nil {
+		return sdk.ZeroInt(), sdkerrors.ErrUnknownRequest.Wrapf("unrecognized message route: %s", sdk.MsgTypeURL(unstakeMsg))
+	}
+
+	msgResp, err = handler(ctx, unstakeMsg)
+	if err != nil {
+		return sdk.ZeroInt(), types.ErrUnstakeFailed.Wrapf("error: %s; message: %v", err.Error(), unstakeMsg)
+	}
+	ctx.EventManager().EmitEvents(msgResp.GetEvents())
+
+	if len(msgResp.MsgResponses) != 1 {
+		return sdk.ZeroInt(), errorsmod.Wrapf(
+			types.ErrInvalidResponse,
+			"expected msg response should be exactly 1, got: %v, responses: %v",
+			len(msgResp.MsgResponses), msgResp.MsgResponses,
+		)
+	}
+
+	var msgUndelegateResp stakingtypes.MsgUndelegateResponse
+	if err = k.cdc.Unmarshal(msgResp.MsgResponses[0].Value, &msgUndelegateResp); err != nil {
+		return sdk.ZeroInt(), errorsmod.Wrapf(
+			sdkerrors.ErrJSONUnmarshal,
+			"cannot unmarshal msg undelegate tx response message: %v",
+			err,
+		)
+	}
+
+	return lsmRedeemResp.Amount.Amount, nil
 }
 
 // LSMDelegate captures a staked amount from existing delegation using LSM, re-stakes from proxyAcc and
@@ -464,6 +569,7 @@ func (k Keeper) LiquidUnstake(
 	ctx sdk.Context, proxyAcc, liquidStaker sdk.AccAddress, unstakingStkXPRT sdk.Coin,
 ) (time.Time, math.Int, []stakingtypes.UnbondingDelegation, math.Int, error) {
 	params := k.GetParams(ctx)
+	bondDenom := k.stakingKeeper.BondDenom(ctx)
 
 	if params.ModulePaused {
 		return time.Time{}, sdk.ZeroInt(), []stakingtypes.UnbondingDelegation{}, sdk.ZeroInt(), types.ErrModulePaused
@@ -514,7 +620,7 @@ func (k Keeper) LiquidUnstake(
 				types.LiquidStakeProxyAcc,
 				liquidStaker,
 				sdk.NewCoins(sdk.NewCoin(
-					k.stakingKeeper.BondDenom(ctx),
+					bondDenom,
 					unbondingAmountInt,
 				)),
 			)
@@ -568,7 +674,7 @@ func (k Keeper) LiquidUnstake(
 		}
 
 		// unbond with weightedShare
-		ubdTime, returnAmount, ubd, err = k.LiquidUnbond(ctx, proxyAcc, liquidStaker, val.GetOperator(), weightedShare, true)
+		ubdTime, returnAmount, ubd, err = k.LiquidUnbond(ctx, proxyAcc, liquidStaker, val.GetOperator(), weightedShare, true, sdk.NewCoin(bondDenom, unbondingAmounts[i].TruncateInt()))
 		if err != nil {
 			return time.Time{}, sdk.ZeroInt(), []stakingtypes.UnbondingDelegation{}, sdk.ZeroInt(), err
 		}
@@ -582,9 +688,9 @@ func (k Keeper) LiquidUnstake(
 
 // LiquidUnbond unbond delegation shares to active validators by proxy account.
 func (k Keeper) LiquidUnbond(
-	ctx sdk.Context, proxyAcc, liquidStaker sdk.AccAddress, valAddr sdk.ValAddress, shares math.LegacyDec, checkMaxEntries bool,
+	ctx sdk.Context, proxyAcc, liquidStaker sdk.AccAddress, valAddr sdk.ValAddress, shares math.LegacyDec, checkMaxEntries bool, unbondAmount sdk.Coin,
 ) (time.Time, math.Int, stakingtypes.UnbondingDelegation, error) {
-	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
+	_, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
 		return time.Time{}, sdk.ZeroInt(), stakingtypes.UnbondingDelegation{}, stakingtypes.ErrNoDelegatorForAddress
 	}
@@ -595,23 +701,17 @@ func (k Keeper) LiquidUnbond(
 	}
 
 	// unbond from proxy account
-	returnAmount, err := k.UnbondWithCap(ctx, proxyAcc, valAddr, shares)
+	returnAmount, err := k.UnbondWithCap(ctx, proxyAcc, valAddr, unbondAmount, liquidStaker)
 	if err != nil {
 		return time.Time{}, sdk.ZeroInt(), stakingtypes.UnbondingDelegation{}, err
 	}
 
-	// transfer the validator tokens to the not bonded pool
-	if validator.IsBonded() {
-		coins := sdk.NewCoins(sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), returnAmount))
-		if err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, stakingtypes.BondedPoolName, stakingtypes.NotBondedPoolName, coins); err != nil {
-			panic(err)
-		}
-	}
-
-	// Unbonding from proxy account, but queues to liquid staker.
+	//// Unbonding from proxy account, but queues to liquid staker.
 	completionTime := ctx.BlockHeader().Time.Add(k.stakingKeeper.UnbondingTime(ctx))
-	ubd := k.stakingKeeper.SetUnbondingDelegationEntry(ctx, liquidStaker, valAddr, ctx.BlockHeight(), completionTime, returnAmount)
-	k.stakingKeeper.InsertUBDQueue(ctx, ubd, completionTime)
+	ubd, found := k.stakingKeeper.GetUnbondingDelegation(ctx, liquidStaker, valAddr)
+	if !found {
+		return time.Time{}, sdk.ZeroInt(), stakingtypes.UnbondingDelegation{}, types.ErrInvalidResponse.Wrap("expected undelegation entry, found none")
+	}
 
 	return completionTime, returnAmount, ubd, nil
 }
