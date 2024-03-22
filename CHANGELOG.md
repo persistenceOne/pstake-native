@@ -40,6 +40,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+### Improvements
+
+- [790](https://github.com/persistenceOne/pstake-native/pull/790) Make liquidstake module LSM Cap compliant.
+
 ### Bug Fixes
 
 - [792](https://github.com/persistenceOne/pstake-native/pull/792) Use GetHostChainFromHostDenom in ICA Transfer
