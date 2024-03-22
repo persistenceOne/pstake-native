@@ -191,15 +191,15 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 	// Withdraw rewards of LiquidStakeProxyAcc and re-staking
 	totalRewardsWithdrawn := k.WithdrawLiquidRewards(ctx, types.LiquidStakeProxyAcc)
 
-	// prepare to re-staking with proxyAccBalance
-	proxyAccBalance := k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
-
 	// calculate autocompounding fee
 	params := k.GetParams(ctx)
 
-	autocompoundFee := sdk.NewCoin(proxyAccBalance.Denom, math.ZeroInt())
+	autocompoundFee := sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), math.ZeroInt())
 	if !params.AutocompoundFeeRate.IsZero() && totalRewardsWithdrawn.IsPositive() {
-		autocompoundFee = sdk.NewCoin(proxyAccBalance.Denom, params.AutocompoundFeeRate.MulInt(totalRewardsWithdrawn).TruncateInt())
+		autocompoundFee = sdk.NewCoin(
+			k.stakingKeeper.BondDenom(ctx),
+			params.AutocompoundFeeRate.MulInt(totalRewardsWithdrawn).TruncateInt(),
+		)
 	}
 
 	// skip when no active liquid validator
@@ -210,8 +210,8 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 
 	// re-staking of the accumulated rewards
 	cachedCtx, writeCache := ctx.CacheContext()
-	delegableAmount := proxyAccBalance.Amount.Sub(autocompoundFee.Amount)
-	err := k.LiquidDelegate(cachedCtx, types.LiquidStakeProxyAcc, activeVals, delegableAmount, whitelistedValsMap)
+	delegableAmount := totalRewardsWithdrawn.Sub(autocompoundFee.Amount)
+	_, err := k.LiquidDelegate(cachedCtx, types.LiquidStakeProxyAcc, activeVals, delegableAmount, whitelistedValsMap)
 	if err != nil {
 		logger := k.Logger(ctx)
 		logger.Error("re-staking failed", "error", err)
