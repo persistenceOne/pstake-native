@@ -989,6 +989,10 @@ func (k msgServer) validateLiquidStakeLSMDeposit(
 		return nil, nil, nil, errorsmod.Wrapf(types.ErrLSMValidatorInvalidState, "validator %s is not in the bonded state, it is in %s", operatorAddress, validator.Status)
 	}
 
+	if validator.Weight.Equal(sdktypes.ZeroDec()) {
+		return nil, nil, nil, errorsmod.Wrapf(types.ErrValidatorNotFound, "validator %s is not in the validator set, weight is %s", operatorAddress, validator.Weight)
+	}
+
 	// check delegator has enough LSM tokens
 	delegatorBalance := k.bankKeeper.GetBalance(ctx, delegatorAddress, delegation.Denom).Amount
 	if delegatorBalance.LT(delegation.Amount) {
