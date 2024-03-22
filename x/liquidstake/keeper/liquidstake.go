@@ -256,7 +256,6 @@ func (k Keeper) UnbondWithCap(
 	amount sdk.Coin,
 	userAddress sdk.AccAddress,
 ) (math.Int, error) {
-
 	// perform an LSM tokenize->bank send->redeem flow: moving delegation from proxyAcc onto user's account
 	lsmTokenizeMsg := &stakingtypes.MsgTokenizeShares{
 		DelegatorAddress:    delegatorAddress.String(),
