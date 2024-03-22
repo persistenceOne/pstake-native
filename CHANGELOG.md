@@ -44,7 +44,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - [792](https://github.com/persistenceOne/pstake-native/pull/792) Use GetHostChainFromHostDenom in ICA Transfer
   unsuccessfulAck instead of GetHostChainFromDelegatorAddress as Rewards account too uses ICA Transfer to autocompound
-- [795](https://github.com/persistenceOne/pstake-native/pull/795) Reject zero weight validator LSM shares for liquidstakeibc 
+- [795](https://github.com/persistenceOne/pstake-native/pull/795) Reject zero weight validator LSM shares for
+  liquidstakeibc
 
 ## [v2.11.0] - 2024-03-12
 
