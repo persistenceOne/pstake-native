@@ -27,4 +27,5 @@ var (
 	ErrDelegationFailed                             = errors.Register(ModuleName, 22, "delegation failed")
 	ErrUnbondFailed                                 = errors.Register(ModuleName, 23, "unbond failed")
 	ErrInvalidResponse                              = errors.Register(ModuleName, 24, "invalid response")
+	ErrUnstakeFailed                                = errors.Register(ModuleName, 25, "Unstaking failed")
 )
