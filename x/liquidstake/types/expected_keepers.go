@@ -7,6 +7,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -21,6 +22,7 @@ type BankKeeper interface {
 	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
 }
 
 // AccountKeeper defines the expected account keeper
@@ -78,6 +80,12 @@ type StakingKeeper interface {
 		delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress) bool
 	SafelyIncreaseTotalLiquidStakedTokens(ctx sdk.Context, amount math.Int, sharesAlreadyBonded bool) error
 	DecreaseTotalLiquidStakedTokens(ctx sdk.Context, amount math.Int) error
+	GetBondedPool(ctx sdk.Context) (bondedPool authtypes.ModuleAccountI)
+}
+
+// MintKeeper expected minting keeper (noalias)
+type MintKeeper interface {
+	GetMinter(ctx sdk.Context) (minter types.Minter)
 }
 
 // DistrKeeper expected distribution keeper (noalias)

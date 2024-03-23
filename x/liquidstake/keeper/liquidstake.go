@@ -789,22 +789,18 @@ func (k Keeper) CheckDelegationStates(ctx sdk.Context, proxyAcc sdk.AccAddress) 
 	return totalRewards, totalDelShares, totalLiquidTokens
 }
 
-func (k Keeper) WithdrawLiquidRewards(ctx sdk.Context, proxyAcc sdk.AccAddress) math.Int {
-	totalRewards := sdk.ZeroInt()
-	bondDenom := k.stakingKeeper.BondDenom(ctx)
+func (k Keeper) WithdrawLiquidRewards(ctx sdk.Context, proxyAcc sdk.AccAddress) {
 	k.stakingKeeper.IterateDelegations(
 		ctx, proxyAcc,
 		func(_ int64, del stakingtypes.DelegationI) (stop bool) {
 			valAddr := del.GetValidatorAddr()
-			reward, err := k.distrKeeper.WithdrawDelegationRewards(ctx, proxyAcc, valAddr)
+			_, err := k.distrKeeper.WithdrawDelegationRewards(ctx, proxyAcc, valAddr)
 			if err != nil {
 				panic(err)
 			}
-			totalRewards = totalRewards.Add(reward.AmountOf(bondDenom))
 			return false
 		},
 	)
-	return totalRewards
 }
 
 // GetLiquidValidator get a single liquid validator

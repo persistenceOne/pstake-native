@@ -20,6 +20,7 @@ type Keeper struct {
 	accountKeeper  types.AccountKeeper
 	bankKeeper     types.BankKeeper
 	stakingKeeper  types.StakingKeeper
+	mintKeeper     types.MintKeeper
 	distrKeeper    types.DistrKeeper
 	slashingKeeper types.SlashingKeeper
 
@@ -34,6 +35,7 @@ func NewKeeper(
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	stakingKeeper types.StakingKeeper,
+	mintKeeper types.MintKeeper,
 	distrKeeper types.DistrKeeper,
 	slashingKeeper types.SlashingKeeper,
 	router *baseapp.MsgServiceRouter,
@@ -50,6 +52,7 @@ func NewKeeper(
 		accountKeeper:  accountKeeper,
 		bankKeeper:     bankKeeper,
 		stakingKeeper:  stakingKeeper,
+		mintKeeper:     mintKeeper,
 		distrKeeper:    distrKeeper,
 		slashingKeeper: slashingKeeper,
 		router:         router,

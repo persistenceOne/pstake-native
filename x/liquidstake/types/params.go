@@ -23,6 +23,12 @@ var (
 	// DefaultMinLiquidStakeAmount is the default minimum liquid stake amount.
 	DefaultMinLiquidStakeAmount = math.NewInt(1000)
 
+	// DefaultLimitAutocompoundPeriodDays is the number of days for which APY autocompound limit is calculated.
+	DefaultLimitAutocompoundPeriodDays = math.LegacyNewDec(365)
+
+	// DefaultLimitAutocompoundPeriodHours is the number of hours for which APY autocompound limit is calculated.
+	DefaultLimitAutocompoundPeriodHours = math.LegacyNewDec(24)
+
 	// Const variables
 
 	// TotalValidatorWeight specifies the target sum of validator weights in the whitelist.
