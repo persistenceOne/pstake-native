@@ -42,6 +42,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+- [800](https://github.com/persistenceOne/pstake-native/pull/800) Remove proxy account usage.
 - [790](https://github.com/persistenceOne/pstake-native/pull/790) Make liquidstake module LSM Cap compliant.
 
 ### Bug Fixes
