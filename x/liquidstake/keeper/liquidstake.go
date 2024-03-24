@@ -11,6 +11,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
@@ -790,14 +791,31 @@ func (k Keeper) CheckDelegationStates(ctx sdk.Context, proxyAcc sdk.AccAddress) 
 }
 
 func (k Keeper) WithdrawLiquidRewards(ctx sdk.Context, proxyAcc sdk.AccAddress) {
+	// iterate over all the delegations (even those out of the active set) and withdraw rewards
 	k.stakingKeeper.IterateDelegations(
 		ctx, proxyAcc,
 		func(_ int64, del stakingtypes.DelegationI) (stop bool) {
-			valAddr := del.GetValidatorAddr()
-			_, err := k.distrKeeper.WithdrawDelegationRewards(ctx, proxyAcc, valAddr)
-			if err != nil {
-				panic(err)
+			// construct the withdrawal rewards message
+			msgWithdraw := &distributiontypes.MsgWithdrawDelegatorReward{
+				DelegatorAddress: proxyAcc.String(),
+				ValidatorAddress: del.GetValidatorAddr().String(),
 			}
+
+			// run the message handler
+			handler := k.router.Handler(msgWithdraw)
+			res, err := handler(ctx, msgWithdraw)
+			if err != nil {
+				k.Logger(ctx).Error(
+					"failed to execute withdraw rewards msg",
+					"msg", msgWithdraw.String(),
+					"err", err,
+				)
+				// no need to return here, will be picked up in the next epoch
+			} else {
+				// emit the events
+				ctx.EventManager().EmitEvents(res.GetEvents())
+			}
+
 			return false
 		},
 	)
