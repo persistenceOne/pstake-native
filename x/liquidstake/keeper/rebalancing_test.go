@@ -472,10 +472,10 @@ func (s *KeeperTestSuite) TestAutocompoundStakingRewards() {
 	s.EqualValues(totalDelShares, stakingAmt.ToLegacyDec(), totalLiquidTokens)
 
 	// allocate rewards
-	s.advanceHeight(100, false)
+	s.advanceHeight(360, false)
 	totalRewards, totalDelShares, totalLiquidTokens = s.keeper.CheckDelegationStates(s.ctx, types.LiquidStakeProxyAcc)
 	s.NotEqualValues(totalRewards, sdk.ZeroDec())
-	s.NotEqualValues(totalLiquidTokens, sdk.ZeroDec())
+	s.Equal(totalLiquidTokens, stakingAmt)
 
 	// withdraw rewards and re-staking
 	whitelistedValsMap := types.GetWhitelistedValsMap(params.WhitelistedValidators)
@@ -493,6 +493,39 @@ func (s *KeeperTestSuite) TestAutocompoundStakingRewards() {
 		stakingParams.BondDenom,
 	)
 	s.EqualValues(autocompoundFee.TruncateInt(), feeAccountBalance.Amount)
+}
+
+func (s *KeeperTestSuite) TestLimitAutocompoundStakingRewards() {
+	_, valOpers, _ := s.CreateValidators([]int64{2000000, 2000000, 2000000})
+	params := s.keeper.GetParams(s.ctx)
+
+	params.WhitelistedValidators = []types.WhitelistedValidator{
+		{ValidatorAddress: valOpers[0].String(), TargetWeight: math.NewInt(5000)},
+		{ValidatorAddress: valOpers[1].String(), TargetWeight: math.NewInt(5000)},
+	}
+	params.ModulePaused = false
+	s.keeper.SetParams(s.ctx, params)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+
+	stakingAmt := math.NewInt(100000000)
+	s.Require().NoError(s.liquidStaking(s.delAddrs[0], stakingAmt))
+
+	// allocate rewards
+	s.advanceHeight(360, false)
+	totalRewards, _, totalLiquidTokens := s.keeper.CheckDelegationStates(s.ctx, types.LiquidStakeProxyAcc)
+	s.NotEqualValues(totalRewards, sdk.ZeroDec())
+	s.Equal(totalLiquidTokens, stakingAmt)
+
+	// unilaterally send tokens to the proxy account
+	s.fundAddr(types.LiquidStakeProxyAcc, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1000000000))))
+
+	// withdraw rewards and re-stake
+	whitelistedValsMap := types.GetWhitelistedValsMap(params.WhitelistedValidators)
+	s.keeper.AutocompoundStakingRewards(s.ctx, whitelistedValsMap)
+
+	// tokens still remaining in the proxy account as the balance was higher than the APY limit
+	proxyAccBalanceAfter := s.keeper.GetProxyAccBalance(s.ctx, types.LiquidStakeProxyAcc)
+	s.NotEqual(proxyAccBalanceAfter.Amount, sdk.ZeroInt())
 }
 
 func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
