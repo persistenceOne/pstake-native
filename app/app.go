@@ -434,6 +434,7 @@ func NewpStakeApp(
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.StakingKeeper,
+		app.MintKeeper,
 		app.DistrKeeper,
 		app.SlashingKeeper,
 		app.MsgServiceRouter(),

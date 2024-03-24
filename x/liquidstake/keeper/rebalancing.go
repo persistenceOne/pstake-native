@@ -188,19 +188,8 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) (redelegations []types
 
 // AutocompoundStakingRewards withdraws staking rewards and re-stakes when over threshold.
 func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap types.WhitelistedValsMap) {
-	// Withdraw rewards of LiquidStakeProxyAcc and re-staking
-	totalRewardsWithdrawn := k.WithdrawLiquidRewards(ctx, types.LiquidStakeProxyAcc)
-
-	// prepare to re-staking with proxyAccBalance
-	proxyAccBalance := k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
-
-	// calculate autocompounding fee
-	params := k.GetParams(ctx)
-
-	autocompoundFee := sdk.NewCoin(proxyAccBalance.Denom, math.ZeroInt())
-	if !params.AutocompoundFeeRate.IsZero() && totalRewardsWithdrawn.IsPositive() {
-		autocompoundFee = sdk.NewCoin(proxyAccBalance.Denom, params.AutocompoundFeeRate.MulInt(totalRewardsWithdrawn).TruncateInt())
-	}
+	// withdraw rewards of LiquidStakeProxyAcc
+	k.WithdrawLiquidRewards(ctx, types.LiquidStakeProxyAcc)
 
 	// skip when no active liquid validator
 	activeVals := k.GetActiveLiquidValidators(ctx, whitelistedValsMap)
@@ -208,9 +197,40 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 		return
 	}
 
+	// get all the APY components
+	bondDenom := k.stakingKeeper.BondDenom(ctx)
+	totalSupply := k.bankKeeper.GetSupply(ctx, bondDenom).Amount
+	bondedTokens := k.bankKeeper.GetBalance(ctx, k.stakingKeeper.GetBondedPool(ctx).GetAddress(), bondDenom).Amount
+	inflation := k.mintKeeper.GetMinter(ctx).Inflation
+
+	// calculate the hourly APY
+	bondRatio := math.LegacyDec(bondedTokens).Quo(math.LegacyDec(totalSupply))
+	hourlyApy := inflation.Quo(bondRatio).
+		Quo(types.DefaultLimitAutocompoundPeriodDays).
+		Quo(types.DefaultLimitAutocompoundPeriodHours)
+
+	// calculate autocompoundable amount by limiting the current net amount with the calculated APY
+	autoCompoundableAmount := k.GetNetAmountState(ctx).NetAmount.Mul(hourlyApy).TruncateInt()
+
+	// use the calculated autocompoundable amount as the limit for the transfer
+	proxyAccBalance := k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
+	if proxyAccBalance.Amount.LT(autoCompoundableAmount) {
+		autoCompoundableAmount = proxyAccBalance.Amount
+	}
+
+	// calculate autocompounding fee
+	params := k.GetParams(ctx)
+	autocompoundFee := sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), math.ZeroInt())
+	if !params.AutocompoundFeeRate.IsZero() && autoCompoundableAmount.IsPositive() {
+		autocompoundFee = sdk.NewCoin(
+			k.stakingKeeper.BondDenom(ctx),
+			params.AutocompoundFeeRate.MulInt(autoCompoundableAmount).TruncateInt(),
+		)
+	}
+
 	// re-staking of the accumulated rewards
 	cachedCtx, writeCache := ctx.CacheContext()
-	delegableAmount := proxyAccBalance.Amount.Sub(autocompoundFee.Amount)
+	delegableAmount := autoCompoundableAmount.Sub(autocompoundFee.Amount)
 	err := k.LiquidDelegate(cachedCtx, types.LiquidStakeProxyAcc, activeVals, delegableAmount, whitelistedValsMap)
 	if err != nil {
 		logger := k.Logger(ctx)

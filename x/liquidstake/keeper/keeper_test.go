@@ -28,7 +28,7 @@ import (
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
 )
 
-var BlockTime = 10 * time.Second
+var BlockTime = 6 * time.Second
 
 type KeeperTestSuite struct {
 	suite.Suite
