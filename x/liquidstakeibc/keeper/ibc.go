@@ -80,7 +80,7 @@ func (k *Keeper) OnChanOpenAck(
 		hc.RewardsAccount.Address = address
 		hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATED
 	default:
-		k.Logger(ctx).Error(
+		k.Logger(ctx).Info(
 			"unrecognized ica account type",
 			types.HostChainKeyVal,
 			chainID,
