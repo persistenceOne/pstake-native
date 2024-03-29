@@ -64,7 +64,7 @@ func (k *Keeper) OnChanOpenAck(
 	hc, found := k.GetHostChain(ctx, chainID)
 	if !found {
 		// probably for non chain ica stack.
-		k.Logger(ctx).Error(
+		k.Logger(ctx).Info(
 			"host chain is not registered",
 			types.HostChainKeyVal,
 			chainID,
