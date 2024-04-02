@@ -64,7 +64,7 @@ func (k *Keeper) OnChanOpenAck(
 	hc, found := k.GetHostChain(ctx, chainID)
 	if !found {
 		// probably for non chain ica stack.
-		k.Logger(ctx).Error(
+		k.Logger(ctx).Info(
 			"host chain is not registered",
 			types.HostChainKeyVal,
 			chainID,
@@ -80,7 +80,7 @@ func (k *Keeper) OnChanOpenAck(
 		hc.RewardsAccount.Address = address
 		hc.RewardsAccount.ChannelState = types.ICAAccount_ICA_CHANNEL_CREATED
 	default:
-		k.Logger(ctx).Error(
+		k.Logger(ctx).Info(
 			"unrecognized ica account type",
 			types.HostChainKeyVal,
 			chainID,
