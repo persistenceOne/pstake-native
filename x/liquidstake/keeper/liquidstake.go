@@ -221,6 +221,9 @@ func (k Keeper) DelegateWithCap(
 		Amount:           sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), bondAmt),
 	}
 	handler := k.router.Handler(msgDelegate)
+	if handler == nil {
+		return sdkerrors.ErrUnknownRequest.Wrapf("unrecognized message route: %s", sdk.MsgTypeURL(msgDelegate))
+	}
 	res, err := handler(ctx, msgDelegate)
 	if err != nil {
 		k.Logger(ctx).Error("failed to execute delegate msg,", "msg", msgDelegate.String(), "err", err)
@@ -803,6 +806,13 @@ func (k Keeper) WithdrawLiquidRewards(ctx sdk.Context, proxyAcc sdk.AccAddress) 
 
 			// run the message handler
 			handler := k.router.Handler(msgWithdraw)
+			if handler == nil {
+				k.Logger(ctx).Error(
+					"unrecognized message route",
+					"msgRoute", sdk.MsgTypeURL(msgWithdraw),
+				)
+				return true
+			}
 			res, err := handler(ctx, msgWithdraw)
 			if err != nil {
 				k.Logger(ctx).Error(
