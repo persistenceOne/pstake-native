@@ -44,6 +44,7 @@ var (
 	//
 	// Important: derive this address using module.Address to obtain a 32-byte version distinguishable for LSM
 	// authtypes.NewModuleAddress returns 20-byte addresses.
+	// persistence19zwggtdgaspa9tje6mxdap9xjpc4rayf3nd6dt5g3lwkx4y7z6dqmj3hnc
 	LiquidStakeProxyAcc = sdk.AccAddress(address.Module(ModuleName, []byte("-LiquidStakeProxyAcc")))
 
 	// DummyFeeAccountAcc is a dummy fee collection account that should be replaced via params.
