@@ -81,6 +81,8 @@ type StakingKeeper interface {
 	SafelyIncreaseTotalLiquidStakedTokens(ctx sdk.Context, amount math.Int, sharesAlreadyBonded bool) error
 	DecreaseTotalLiquidStakedTokens(ctx sdk.Context, amount math.Int) error
 	GetBondedPool(ctx sdk.Context) (bondedPool authtypes.ModuleAccountI)
+	CheckExceedsValidatorBondCap(ctx sdk.Context, validator stakingtypes.Validator, shares sdk.Dec) bool
+	CheckExceedsValidatorLiquidStakingCap(ctx sdk.Context, validator stakingtypes.Validator, shares sdk.Dec, sharesAlreadyBonded bool) bool
 }
 
 // MintKeeper expected minting keeper (noalias)

@@ -1,11 +1,13 @@
 package keeper_test
 
 import (
+	"testing"
 	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/stretchr/testify/require"
 
 	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
@@ -243,7 +245,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 }
 
 func (s *KeeperTestSuite) TestLiquidStakeFromVestingAccount() {
-	_, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000})
+	_, valOpers, _ := s.CreateValidators([]int64{1000000000, 2000000000, 3000000000})
 	params := s.keeper.GetParams(s.ctx)
 
 	// add active validator
@@ -312,6 +314,11 @@ func (s *KeeperTestSuite) TestLiquidStakeEdgeCases() {
 	s.Require().ErrorIs(err, types.ErrInvalidBondDenom)
 
 	// liquid stake, unstaking with huge amount
+	stakingParams := s.app.StakingKeeper.GetParams(s.ctx)
+	stakingParams.GlobalLiquidStakingCap = sdk.OneDec()
+	stakingParams.ValidatorLiquidStakingCap = sdk.OneDec()
+	stakingParams.ValidatorBondFactor = sdk.NewDec(10000000000000)
+	s.app.StakingKeeper.SetParams(s.ctx, stakingParams)
 	hugeAmt := math.NewInt(1_000_000_000_000_000_000)
 	s.fundAddr(s.delAddrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, hugeAmt.MulRaw(2))))
 	s.Require().NoError(s.liquidStaking(s.delAddrs[0], hugeAmt))
@@ -334,7 +341,7 @@ func (s *KeeperTestSuite) TestLiquidUnstakeEdgeCases() {
 	_, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000})
 	params := s.keeper.GetParams(s.ctx)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
-	stakingAmt := math.NewInt(5000000)
+	stakingAmt := math.NewInt(100000)
 
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
@@ -457,4 +464,144 @@ func (s *KeeperTestSuite) TestShareInflation() {
 
 	attackerProfit := unbondingAmt.Sub(initialStakingAmt).Sub(attackerTransferAmount)
 	s.Require().LessOrEqual(attackerProfit.Int64(), math.ZeroInt().Int64())
+}
+
+func (s *KeeperTestSuite) TestDivideByWeight() {
+	_, valOpers, _ := s.CreateValidators([]int64{2000000, 2000000, 2000000})
+
+	testCases := []struct {
+		name            string
+		whitelistedVals []types.WhitelistedValidator
+		addStakingAmt   math.Int
+		expectedOutputs []math.Int
+		expectedCrumb   math.Int
+	}{
+		{
+			name: "Success with crumbs",
+			whitelistedVals: []types.WhitelistedValidator{
+				{
+					ValidatorAddress: valOpers[0].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[1].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[2].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+			},
+			addStakingAmt:   math.NewInt(100000),
+			expectedOutputs: []math.Int{math.NewInt(33333), math.NewInt(33333), math.NewInt(33333)},
+			expectedCrumb:   math.NewInt(1),
+		},
+		{
+			name: "Success without crumb",
+			whitelistedVals: []types.WhitelistedValidator{
+				{
+					ValidatorAddress: valOpers[0].String(),
+					TargetWeight:     math.NewInt(2),
+				},
+				{
+					ValidatorAddress: valOpers[1].String(),
+					TargetWeight:     math.NewInt(2),
+				},
+				{
+					ValidatorAddress: valOpers[2].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+			},
+			addStakingAmt:   math.NewInt(100000),
+			expectedOutputs: []math.Int{math.NewInt(40000), math.NewInt(40000), math.NewInt(20000)},
+			expectedCrumb:   math.NewInt(0),
+		},
+		{
+			name: "First validator reaches the cap, part of the crumb gets divided among validators",
+			whitelistedVals: []types.WhitelistedValidator{
+				{
+					ValidatorAddress: valOpers[0].String(),
+					TargetWeight:     math.NewInt(8),
+				},
+				{
+					ValidatorAddress: valOpers[1].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[2].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+			},
+			addStakingAmt:   math.NewInt(2500003),
+			expectedOutputs: []math.Int{math.NewInt(1250001), math.NewInt(1250001)},
+			expectedCrumb:   math.NewInt(1),
+		},
+		{
+			name: "First validator reaches the cap, all the crumb gets divided among validators",
+			whitelistedVals: []types.WhitelistedValidator{
+				{
+					ValidatorAddress: valOpers[0].String(),
+					TargetWeight:     math.NewInt(8),
+				},
+				{
+					ValidatorAddress: valOpers[1].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[2].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+			},
+			addStakingAmt:   math.NewInt(2500002),
+			expectedOutputs: []math.Int{math.NewInt(1250001), math.NewInt(1250001)},
+			expectedCrumb:   math.NewInt(0),
+		},
+		{
+			name: "All validators reach the cap",
+			whitelistedVals: []types.WhitelistedValidator{
+				{
+					ValidatorAddress: valOpers[0].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[1].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[2].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+			},
+			addStakingAmt:   math.NewInt(1000000000),
+			expectedOutputs: []math.Int{},
+			expectedCrumb:   math.NewInt(0),
+		},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			require.IsType(t, []types.WhitelistedValidator{}, tc.whitelistedVals)
+			require.IsType(t, math.Int{}, tc.addStakingAmt)
+			require.IsType(t, math.Int{}, tc.expectedCrumb)
+			require.IsType(t, []math.Int{}, tc.expectedOutputs)
+
+			totalTargetAmt := sdk.ZeroInt()
+			valsMap := types.GetWhitelistedValsMap(tc.whitelistedVals)
+			var activeVals types.ActiveLiquidValidators
+			for _, v := range tc.whitelistedVals {
+				activeVals = append(activeVals, types.LiquidValidator{
+					OperatorAddress: v.ValidatorAddress,
+				})
+			}
+			outputs, crumb := s.keeper.DivideByWeight(s.ctx, activeVals, tc.addStakingAmt, valsMap)
+			for _, v := range outputs {
+				totalTargetAmt = totalTargetAmt.Add(v)
+			}
+			require.EqualValues(t, tc.expectedOutputs, outputs)
+			require.Equal(t, tc.expectedCrumb.String(), crumb.String())
+			if !(len(outputs) == 0) && !crumb.IsZero() {
+				require.EqualValues(t, tc.addStakingAmt, totalTargetAmt.Add(crumb))
+			}
+		})
+	}
 }

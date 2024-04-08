@@ -548,8 +548,9 @@ func (k Keeper) LSMDelegate(
 
 // LiquidDelegate delegates staking amount to active validators by proxy account.
 func (k Keeper) LiquidDelegate(ctx sdk.Context, proxyAcc sdk.AccAddress, activeVals types.ActiveLiquidValidators, stakingAmt math.Int, whitelistedValsMap types.WhitelistedValsMap) (err error) {
-	// crumb may occur due to a decimal point error in dividing the staking amount into the weight of liquid validators, It added on first active liquid validator
-	weightedAmt, crumb := types.DivideByWeight(activeVals, stakingAmt, whitelistedValsMap)
+	// crumb may occur due to a decimal point error in dividing the staking amount into the weight of liquid validators
+	// it is added to the first active liquid validator
+	weightedAmt, crumb := k.DivideByWeight(ctx, activeVals, stakingAmt, whitelistedValsMap)
 	if len(weightedAmt) == 0 {
 		return types.ErrInvalidActiveLiquidValidators
 	}
@@ -717,6 +718,54 @@ func (k Keeper) LiquidUnbond(
 	}
 
 	return completionTime, returnAmount, ubd, nil
+}
+
+// DivideByWeight divide the input value by the ratio of the param weight of the liquid validator and return it with crumb
+// which is may occur while dividing according to the weight of active liquid validators by decimal error.
+func (k Keeper) DivideByWeight(
+	ctx sdk.Context,
+	avs types.ActiveLiquidValidators,
+	input math.Int,
+	whitelistedValsMap types.WhitelistedValsMap,
+) (outputs []math.Int, crumb math.Int) {
+	totalWeight := avs.TotalWeight(whitelistedValsMap)
+	if !totalWeight.IsPositive() {
+		return []math.Int{}, sdk.ZeroInt()
+	}
+
+	totalOutput := sdk.ZeroInt()
+	unitInput := math.LegacyNewDecFromInt(input).QuoTruncate(math.LegacyNewDecFromInt(totalWeight))
+	for _, val := range avs {
+		validator, _ := k.stakingKeeper.GetValidator(ctx, val.GetOperator())
+
+		// calculate the shares the input would receive
+		output := unitInput.MulInt(val.GetWeight(whitelistedValsMap, true)).TruncateInt()
+		outputShares := validator.GetDelegatorShares().MulInt(output).QuoInt(validator.GetTokens())
+
+		// just delegate if the validator does not exceed any of the validator specific caps
+		if !k.stakingKeeper.CheckExceedsValidatorBondCap(ctx, validator, outputShares) &&
+			!k.stakingKeeper.CheckExceedsValidatorLiquidStakingCap(ctx, validator, outputShares, false) {
+			totalOutput = totalOutput.Add(output)
+			outputs = append(outputs, output)
+		}
+	}
+
+	if len(outputs) == 0 {
+		return []math.Int{}, sdk.ZeroInt()
+	}
+
+	// redistribute crumb evenly to the other outputs if there is enough
+	numOutputs := sdk.NewInt(int64(len(outputs)))
+	totalCrumb := input.Sub(totalOutput)
+	crumbPerOutput := totalCrumb.Quo(numOutputs)
+	if totalCrumb.GTE(numOutputs) {
+		for i := range outputs {
+			totalOutput = totalOutput.Add(crumbPerOutput)
+			outputs[i] = outputs[i].Add(crumbPerOutput)
+		}
+	}
+
+	return outputs, input.Sub(totalOutput)
 }
 
 // PrioritiseInactiveLiquidValidators sorts LiquidValidators array to have inactive validators first. Used for the case when
