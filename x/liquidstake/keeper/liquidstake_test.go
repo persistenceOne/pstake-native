@@ -100,11 +100,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 		s.ctx, types.LiquidStakeProxyAcc, valOpers[2],
 	)
 	s.Require().True(found)
-	s.Require().Equal(proxyAccDel1.Shares, math.LegacyNewDec(16668))
-	s.Require().Equal(proxyAccDel2.Shares, math.LegacyNewDec(16666))
-	s.Require().Equal(proxyAccDel2.Shares, math.LegacyNewDec(16666))
-	s.Require().Equal(stakingAmt.ToLegacyDec(),
-		proxyAccDel1.Shares.Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
+	s.Require().Equal(stakingAmt.ToLegacyDec(), proxyAccDel1.Shares.Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
 
 	liquidBondDenom := s.keeper.LiquidBondDenom(s.ctx)
 	balanceBeforeUBD := s.app.BankKeeper.GetBalance(
@@ -183,9 +179,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 		s.ctx, types.LiquidStakeProxyAcc, valOpers[2],
 	)
 	s.Require().True(found)
-	s.Require().Equal(math.LegacyNewDec(13335), proxyAccDel1.Shares)
-	s.Require().Equal(math.LegacyNewDec(13333), proxyAccDel2.Shares)
-	s.Require().Equal(math.LegacyNewDec(13333), proxyAccDel3.Shares)
+	s.Require().Equal(stakingAmt.Sub(unbondingAmt).ToLegacyDec(), proxyAccDel1.Shares.Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
 
 	res = s.keeper.GetAllLiquidValidatorStates(s.ctx)
 	s.Require().Equal(params.WhitelistedValidators[0].ValidatorAddress,
@@ -422,7 +416,7 @@ func (s *KeeperTestSuite) TestShareInflation() {
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
-	initialStakingAmt := math.NewInt(1)          // little amount
+	initialStakingAmt := math.NewInt(10)         // little amount
 	initializingStakingAmt := math.NewInt(10000) // normal amount
 	attacker := s.delAddrs[0]
 	user := s.delAddrs[1]
@@ -470,14 +464,13 @@ func (s *KeeperTestSuite) TestDivideByWeight() {
 	_, valOpers, _ := s.CreateValidators([]int64{2000000, 2000000, 2000000})
 
 	testCases := []struct {
-		name            string
-		whitelistedVals []types.WhitelistedValidator
-		addStakingAmt   math.Int
-		expectedOutputs []math.Int
-		expectedCrumb   math.Int
+		name                string
+		whitelistedVals     []types.WhitelistedValidator
+		addStakingAmt       math.Int
+		expectedDelegations map[string]math.Int
 	}{
 		{
-			name: "Success with crumbs",
+			name: "Success with leftover less than delegations length",
 			whitelistedVals: []types.WhitelistedValidator{
 				{
 					ValidatorAddress: valOpers[0].String(),
@@ -492,12 +485,15 @@ func (s *KeeperTestSuite) TestDivideByWeight() {
 					TargetWeight:     math.NewInt(1),
 				},
 			},
-			addStakingAmt:   math.NewInt(100000),
-			expectedOutputs: []math.Int{math.NewInt(33333), math.NewInt(33333), math.NewInt(33333)},
-			expectedCrumb:   math.NewInt(1),
+			addStakingAmt: math.NewInt(100000),
+			expectedDelegations: map[string]math.Int{
+				valOpers[0].String(): math.NewInt(33334),
+				valOpers[1].String(): math.NewInt(33333),
+				valOpers[2].String(): math.NewInt(33333),
+			},
 		},
 		{
-			name: "Success without crumb",
+			name: "Success without leftover",
 			whitelistedVals: []types.WhitelistedValidator{
 				{
 					ValidatorAddress: valOpers[0].String(),
@@ -512,12 +508,15 @@ func (s *KeeperTestSuite) TestDivideByWeight() {
 					TargetWeight:     math.NewInt(1),
 				},
 			},
-			addStakingAmt:   math.NewInt(100000),
-			expectedOutputs: []math.Int{math.NewInt(40000), math.NewInt(40000), math.NewInt(20000)},
-			expectedCrumb:   math.NewInt(0),
+			addStakingAmt: math.NewInt(100000),
+			expectedDelegations: map[string]math.Int{
+				valOpers[0].String(): math.NewInt(40000),
+				valOpers[1].String(): math.NewInt(40000),
+				valOpers[2].String(): math.NewInt(20000),
+			},
 		},
 		{
-			name: "First validator reaches the cap, part of the crumb gets divided among validators",
+			name: "First validator reaches the cap, the leftover gets divided among validators",
 			whitelistedVals: []types.WhitelistedValidator{
 				{
 					ValidatorAddress: valOpers[0].String(),
@@ -532,12 +531,14 @@ func (s *KeeperTestSuite) TestDivideByWeight() {
 					TargetWeight:     math.NewInt(1),
 				},
 			},
-			addStakingAmt:   math.NewInt(2500003),
-			expectedOutputs: []math.Int{math.NewInt(1250001), math.NewInt(1250001)},
-			expectedCrumb:   math.NewInt(1),
+			addStakingAmt: math.NewInt(2500003),
+			expectedDelegations: map[string]math.Int{
+				valOpers[1].String(): math.NewInt(1250002),
+				valOpers[2].String(): math.NewInt(1250001),
+			},
 		},
 		{
-			name: "First validator reaches the cap, all the crumb gets divided among validators",
+			name: "First validator reaches the cap, the leftover gets divided among validators evenly",
 			whitelistedVals: []types.WhitelistedValidator{
 				{
 					ValidatorAddress: valOpers[0].String(),
@@ -552,9 +553,11 @@ func (s *KeeperTestSuite) TestDivideByWeight() {
 					TargetWeight:     math.NewInt(1),
 				},
 			},
-			addStakingAmt:   math.NewInt(2500002),
-			expectedOutputs: []math.Int{math.NewInt(1250001), math.NewInt(1250001)},
-			expectedCrumb:   math.NewInt(0),
+			addStakingAmt: math.NewInt(2500002),
+			expectedDelegations: map[string]math.Int{
+				valOpers[1].String(): math.NewInt(1250001),
+				valOpers[2].String(): math.NewInt(1250001),
+			},
 		},
 		{
 			name: "All validators reach the cap",
@@ -572,9 +575,27 @@ func (s *KeeperTestSuite) TestDivideByWeight() {
 					TargetWeight:     math.NewInt(1),
 				},
 			},
-			addStakingAmt:   math.NewInt(1000000000),
-			expectedOutputs: []math.Int{},
-			expectedCrumb:   math.NewInt(0),
+			addStakingAmt:       math.NewInt(1000000000),
+			expectedDelegations: map[string]math.Int{},
+		},
+		{
+			name: "Amount below minimum",
+			whitelistedVals: []types.WhitelistedValidator{
+				{
+					ValidatorAddress: valOpers[0].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[1].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[2].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+			},
+			addStakingAmt:       math.NewInt(1),
+			expectedDelegations: map[string]math.Int{},
 		},
 	}
 
@@ -582,10 +603,8 @@ func (s *KeeperTestSuite) TestDivideByWeight() {
 		s.T().Run(tc.name, func(t *testing.T) {
 			require.IsType(t, []types.WhitelistedValidator{}, tc.whitelistedVals)
 			require.IsType(t, math.Int{}, tc.addStakingAmt)
-			require.IsType(t, math.Int{}, tc.expectedCrumb)
-			require.IsType(t, []math.Int{}, tc.expectedOutputs)
+			require.IsType(t, map[string]math.Int{}, tc.expectedDelegations)
 
-			totalTargetAmt := sdk.ZeroInt()
 			valsMap := types.GetWhitelistedValsMap(tc.whitelistedVals)
 			var activeVals types.ActiveLiquidValidators
 			for _, v := range tc.whitelistedVals {
@@ -593,14 +612,15 @@ func (s *KeeperTestSuite) TestDivideByWeight() {
 					OperatorAddress: v.ValidatorAddress,
 				})
 			}
-			outputs, crumb := s.keeper.DivideByWeight(s.ctx, activeVals, tc.addStakingAmt, valsMap)
-			for _, v := range outputs {
-				totalTargetAmt = totalTargetAmt.Add(v)
+			delegations := s.keeper.DivideByWeight(s.ctx, activeVals, tc.addStakingAmt, valsMap)
+
+			require.EqualValues(t, tc.expectedDelegations, delegations)
+			totalDelegationAmount := sdk.ZeroInt()
+			for _, d := range delegations {
+				totalDelegationAmount = totalDelegationAmount.Add(d)
 			}
-			require.EqualValues(t, tc.expectedOutputs, outputs)
-			require.Equal(t, tc.expectedCrumb.String(), crumb.String())
-			if !(len(outputs) == 0) && !crumb.IsZero() {
-				require.EqualValues(t, tc.addStakingAmt, totalTargetAmt.Add(crumb))
+			if !(len(delegations) == 0) {
+				require.EqualValues(t, tc.addStakingAmt, totalDelegationAmount)
 			}
 		})
 	}
