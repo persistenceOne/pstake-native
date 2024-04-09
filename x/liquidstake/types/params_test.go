@@ -11,6 +11,8 @@ import (
 )
 
 func TestParams(t *testing.T) {
+	require.Equal(t, "persistence19zwggtdgaspa9tje6mxdap9xjpc4rayf3nd6dt5g3lwkx4y7z6dqmj3hnc", types.LiquidStakeProxyAcc.String())
+
 	params := types.DefaultParams()
 
 	paramsStr := `{
