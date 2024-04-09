@@ -82,7 +82,11 @@ func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []
 	valAddrs := testhelpers.ConvertAddrsToValAddrs(addrs)
 	pks := testhelpers.CreateTestPubKeys(num)
 	skParams := s.app.StakingKeeper.GetParams(s.ctx)
-	skParams.ValidatorLiquidStakingCap = sdk.OneDec()
+	globalCap, _ := sdk.NewDecFromStr("0.1")
+	skParams.GlobalLiquidStakingCap = globalCap
+	validatorCap, _ := sdk.NewDecFromStr("0.5")
+	skParams.ValidatorLiquidStakingCap = validatorCap
+	skParams.ValidatorBondFactor = sdk.NewDec(250)
 	s.app.StakingKeeper.SetParams(s.ctx, skParams)
 	for i, power := range powers {
 		val, err := stakingtypes.NewValidator(valAddrs[i], pks[i], stakingtypes.Description{})

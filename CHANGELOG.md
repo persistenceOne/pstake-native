@@ -47,6 +47,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+- [810](https://github.com/persistenceOne/pstake-native/pull/810) Add validator cap and bond checks when creating the delegation strategy
 - [792](https://github.com/persistenceOne/pstake-native/pull/792) Use GetHostChainFromHostDenom in ICA Transfer
   unsuccessfulAck instead of GetHostChainFromDelegatorAddress as Rewards account too uses ICA Transfer to autocompound
 - [795](https://github.com/persistenceOne/pstake-native/pull/795) Reject zero weight validator LSM shares for

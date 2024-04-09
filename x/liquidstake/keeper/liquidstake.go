@@ -547,23 +547,27 @@ func (k Keeper) LSMDelegate(
 }
 
 // LiquidDelegate delegates staking amount to active validators by proxy account.
-func (k Keeper) LiquidDelegate(ctx sdk.Context, proxyAcc sdk.AccAddress, activeVals types.ActiveLiquidValidators, stakingAmt math.Int, whitelistedValsMap types.WhitelistedValsMap) (err error) {
-	// crumb may occur due to a decimal point error in dividing the staking amount into the weight of liquid validators, It added on first active liquid validator
-	weightedAmt, crumb := types.DivideByWeight(activeVals, stakingAmt, whitelistedValsMap)
-	if len(weightedAmt) == 0 {
+func (k Keeper) LiquidDelegate(
+	ctx sdk.Context,
+	proxyAcc sdk.AccAddress,
+	activeVals types.ActiveLiquidValidators,
+	stakingAmt math.Int,
+	whitelistedValsMap types.WhitelistedValsMap,
+) (err error) {
+	delegations := k.DivideByWeight(ctx, activeVals, stakingAmt, whitelistedValsMap)
+	if len(delegations) == 0 {
 		return types.ErrInvalidActiveLiquidValidators
 	}
-	weightedAmt[0] = weightedAmt[0].Add(crumb)
-	for i, val := range activeVals {
-		if !weightedAmt[i].IsPositive() {
-			continue
-		}
-		validator, _ := k.stakingKeeper.GetValidator(ctx, val.GetOperator())
-		err = k.DelegateWithCap(ctx, proxyAcc, validator, weightedAmt[i])
+
+	for valStrAddr, delegationAmt := range delegations {
+		valAddr, _ := sdk.ValAddressFromBech32(valStrAddr)
+		validator, _ := k.stakingKeeper.GetValidator(ctx, valAddr)
+		err = k.DelegateWithCap(ctx, proxyAcc, validator, delegationAmt)
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -717,6 +721,82 @@ func (k Keeper) LiquidUnbond(
 	}
 
 	return completionTime, returnAmount, ubd, nil
+}
+
+// DivideByWeight divide the input amount to delegate between the active validators, specifically checking if they have
+// room to receive more liquid delegations. The leftover that might be left is divided across all validators that can
+// receive it.
+func (k Keeper) DivideByWeight(
+	ctx sdk.Context,
+	avs types.ActiveLiquidValidators,
+	totalInput math.Int,
+	whitelistedValsMap types.WhitelistedValsMap,
+) map[string]math.Int {
+	totalWeight := avs.TotalWeight(whitelistedValsMap)
+	if !totalWeight.IsPositive() {
+		return map[string]math.Int{}
+	}
+
+	totalDelegation := sdk.ZeroInt()
+	delegations := make(map[string]math.Int)
+	inputPerValidator := math.LegacyNewDecFromInt(totalInput).QuoTruncate(math.LegacyNewDecFromInt(totalWeight))
+
+	// loop through all validators and check if the amount of shares they would receive is within the validator specific caps
+	for _, val := range avs {
+		validator, _ := k.stakingKeeper.GetValidator(ctx, val.GetOperator())
+
+		// calculate the shares the input would receive
+		delegation := inputPerValidator.MulInt(val.GetWeight(whitelistedValsMap, true)).TruncateInt()
+		if !delegation.IsPositive() { // continue if the delegation is 0
+			continue
+		}
+		delegationShares := validator.GetDelegatorShares().MulInt(delegation).QuoInt(validator.GetTokens())
+
+		// just delegate if the validator does not exceed any of the validator specific caps
+		if !k.stakingKeeper.CheckExceedsValidatorBondCap(ctx, validator, delegationShares) &&
+			!k.stakingKeeper.CheckExceedsValidatorLiquidStakingCap(ctx, validator, delegationShares, false) {
+			totalDelegation = totalDelegation.Add(delegation)
+			delegations[val.GetOperator().String()] = delegation
+		}
+	}
+
+	if len(delegations) == 0 {
+		return map[string]math.Int{}
+	}
+
+	// the leftover amount that could not be delegated is divided across all validators
+	leftOver := totalInput.Sub(totalDelegation)
+	numValidators := math.NewInt(int64(len(delegations)))
+	for leftOver.IsPositive() {
+		diffPerValidator := leftOver.Quo(numValidators)
+		if leftOver.LT(numValidators) { // if the leftover is less than the number of validators to be delegated, just add it to the first one that can receive it
+			diffPerValidator = leftOver
+		}
+		for strAddr := range delegations {
+			// get the new delegation amount by adding the leftover to the existing delegation
+			newDelegationAmount := delegations[strAddr].Add(diffPerValidator)
+
+			// calculate the shares the input would receive
+			valAddr, _ := sdk.ValAddressFromBech32(strAddr)
+			validator, _ := k.stakingKeeper.GetValidator(ctx, valAddr)
+			delegationShares := validator.GetDelegatorShares().MulInt(newDelegationAmount).QuoInt(validator.GetTokens())
+
+			// if the validator can receive the leftover amount, update the map entry and add it to the total delegated amount
+			if !k.stakingKeeper.CheckExceedsValidatorBondCap(ctx, validator, delegationShares) &&
+				!k.stakingKeeper.CheckExceedsValidatorLiquidStakingCap(ctx, validator, delegationShares, false) {
+				totalDelegation = totalDelegation.Add(diffPerValidator)
+				delegations[strAddr] = newDelegationAmount
+			}
+
+			// recalculate the leftover amount after each pass
+			leftOver = totalInput.Sub(totalDelegation)
+			if leftOver.IsZero() {
+				break
+			}
+		}
+	}
+
+	return delegations
 }
 
 // PrioritiseInactiveLiquidValidators sorts LiquidValidators array to have inactive validators first. Used for the case when

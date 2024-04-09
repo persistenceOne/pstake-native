@@ -1,11 +1,13 @@
 package keeper_test
 
 import (
+	"testing"
 	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/stretchr/testify/require"
 
 	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
@@ -98,11 +100,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 		s.ctx, types.LiquidStakeProxyAcc, valOpers[2],
 	)
 	s.Require().True(found)
-	s.Require().Equal(proxyAccDel1.Shares, math.LegacyNewDec(16668))
-	s.Require().Equal(proxyAccDel2.Shares, math.LegacyNewDec(16666))
-	s.Require().Equal(proxyAccDel2.Shares, math.LegacyNewDec(16666))
-	s.Require().Equal(stakingAmt.ToLegacyDec(),
-		proxyAccDel1.Shares.Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
+	s.Require().Equal(stakingAmt.ToLegacyDec(), proxyAccDel1.Shares.Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
 
 	liquidBondDenom := s.keeper.LiquidBondDenom(s.ctx)
 	balanceBeforeUBD := s.app.BankKeeper.GetBalance(
@@ -181,9 +179,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 		s.ctx, types.LiquidStakeProxyAcc, valOpers[2],
 	)
 	s.Require().True(found)
-	s.Require().Equal(math.LegacyNewDec(13335), proxyAccDel1.Shares)
-	s.Require().Equal(math.LegacyNewDec(13333), proxyAccDel2.Shares)
-	s.Require().Equal(math.LegacyNewDec(13333), proxyAccDel3.Shares)
+	s.Require().Equal(stakingAmt.Sub(unbondingAmt).ToLegacyDec(), proxyAccDel1.Shares.Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
 
 	res = s.keeper.GetAllLiquidValidatorStates(s.ctx)
 	s.Require().Equal(params.WhitelistedValidators[0].ValidatorAddress,
@@ -243,7 +239,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 }
 
 func (s *KeeperTestSuite) TestLiquidStakeFromVestingAccount() {
-	_, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000})
+	_, valOpers, _ := s.CreateValidators([]int64{1000000000, 2000000000, 3000000000})
 	params := s.keeper.GetParams(s.ctx)
 
 	// add active validator
@@ -312,6 +308,11 @@ func (s *KeeperTestSuite) TestLiquidStakeEdgeCases() {
 	s.Require().ErrorIs(err, types.ErrInvalidBondDenom)
 
 	// liquid stake, unstaking with huge amount
+	stakingParams := s.app.StakingKeeper.GetParams(s.ctx)
+	stakingParams.GlobalLiquidStakingCap = sdk.OneDec()
+	stakingParams.ValidatorLiquidStakingCap = sdk.OneDec()
+	stakingParams.ValidatorBondFactor = sdk.NewDec(10000000000000)
+	s.app.StakingKeeper.SetParams(s.ctx, stakingParams)
 	hugeAmt := math.NewInt(1_000_000_000_000_000_000)
 	s.fundAddr(s.delAddrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, hugeAmt.MulRaw(2))))
 	s.Require().NoError(s.liquidStaking(s.delAddrs[0], hugeAmt))
@@ -334,7 +335,7 @@ func (s *KeeperTestSuite) TestLiquidUnstakeEdgeCases() {
 	_, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000})
 	params := s.keeper.GetParams(s.ctx)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
-	stakingAmt := math.NewInt(5000000)
+	stakingAmt := math.NewInt(100000)
 
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
@@ -415,7 +416,7 @@ func (s *KeeperTestSuite) TestShareInflation() {
 	s.keeper.SetParams(s.ctx, params)
 	s.keeper.UpdateLiquidValidatorSet(s.ctx)
 
-	initialStakingAmt := math.NewInt(1)          // little amount
+	initialStakingAmt := math.NewInt(10)         // little amount
 	initializingStakingAmt := math.NewInt(10000) // normal amount
 	attacker := s.delAddrs[0]
 	user := s.delAddrs[1]
@@ -457,4 +458,170 @@ func (s *KeeperTestSuite) TestShareInflation() {
 
 	attackerProfit := unbondingAmt.Sub(initialStakingAmt).Sub(attackerTransferAmount)
 	s.Require().LessOrEqual(attackerProfit.Int64(), math.ZeroInt().Int64())
+}
+
+func (s *KeeperTestSuite) TestDivideByWeight() {
+	_, valOpers, _ := s.CreateValidators([]int64{2000000, 2000000, 2000000})
+
+	testCases := []struct {
+		name                string
+		whitelistedVals     []types.WhitelistedValidator
+		addStakingAmt       math.Int
+		expectedDelegations map[string]math.Int
+	}{
+		{
+			name: "Success with leftover less than delegations length",
+			whitelistedVals: []types.WhitelistedValidator{
+				{
+					ValidatorAddress: valOpers[0].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[1].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[2].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+			},
+			addStakingAmt: math.NewInt(100000),
+			expectedDelegations: map[string]math.Int{
+				valOpers[0].String(): math.NewInt(33334),
+				valOpers[1].String(): math.NewInt(33333),
+				valOpers[2].String(): math.NewInt(33333),
+			},
+		},
+		{
+			name: "Success without leftover",
+			whitelistedVals: []types.WhitelistedValidator{
+				{
+					ValidatorAddress: valOpers[0].String(),
+					TargetWeight:     math.NewInt(2),
+				},
+				{
+					ValidatorAddress: valOpers[1].String(),
+					TargetWeight:     math.NewInt(2),
+				},
+				{
+					ValidatorAddress: valOpers[2].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+			},
+			addStakingAmt: math.NewInt(100000),
+			expectedDelegations: map[string]math.Int{
+				valOpers[0].String(): math.NewInt(40000),
+				valOpers[1].String(): math.NewInt(40000),
+				valOpers[2].String(): math.NewInt(20000),
+			},
+		},
+		{
+			name: "First validator reaches the cap, the leftover gets divided among validators",
+			whitelistedVals: []types.WhitelistedValidator{
+				{
+					ValidatorAddress: valOpers[0].String(),
+					TargetWeight:     math.NewInt(8),
+				},
+				{
+					ValidatorAddress: valOpers[1].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[2].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+			},
+			addStakingAmt: math.NewInt(2500003),
+			expectedDelegations: map[string]math.Int{
+				valOpers[1].String(): math.NewInt(1250002),
+				valOpers[2].String(): math.NewInt(1250001),
+			},
+		},
+		{
+			name: "First validator reaches the cap, the leftover gets divided among validators evenly",
+			whitelistedVals: []types.WhitelistedValidator{
+				{
+					ValidatorAddress: valOpers[0].String(),
+					TargetWeight:     math.NewInt(8),
+				},
+				{
+					ValidatorAddress: valOpers[1].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[2].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+			},
+			addStakingAmt: math.NewInt(2500002),
+			expectedDelegations: map[string]math.Int{
+				valOpers[1].String(): math.NewInt(1250001),
+				valOpers[2].String(): math.NewInt(1250001),
+			},
+		},
+		{
+			name: "All validators reach the cap",
+			whitelistedVals: []types.WhitelistedValidator{
+				{
+					ValidatorAddress: valOpers[0].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[1].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[2].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+			},
+			addStakingAmt:       math.NewInt(1000000000),
+			expectedDelegations: map[string]math.Int{},
+		},
+		{
+			name: "Amount below minimum",
+			whitelistedVals: []types.WhitelistedValidator{
+				{
+					ValidatorAddress: valOpers[0].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[1].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+				{
+					ValidatorAddress: valOpers[2].String(),
+					TargetWeight:     math.NewInt(1),
+				},
+			},
+			addStakingAmt:       math.NewInt(1),
+			expectedDelegations: map[string]math.Int{},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			require.IsType(t, []types.WhitelistedValidator{}, tc.whitelistedVals)
+			require.IsType(t, math.Int{}, tc.addStakingAmt)
+			require.IsType(t, map[string]math.Int{}, tc.expectedDelegations)
+
+			valsMap := types.GetWhitelistedValsMap(tc.whitelistedVals)
+			var activeVals types.ActiveLiquidValidators
+			for _, v := range tc.whitelistedVals {
+				activeVals = append(activeVals, types.LiquidValidator{
+					OperatorAddress: v.ValidatorAddress,
+				})
+			}
+			delegations := s.keeper.DivideByWeight(s.ctx, activeVals, tc.addStakingAmt, valsMap)
+
+			require.EqualValues(t, tc.expectedDelegations, delegations)
+			totalDelegationAmount := sdk.ZeroInt()
+			for _, d := range delegations {
+				totalDelegationAmount = totalDelegationAmount.Add(d)
+			}
+			if !(len(delegations) == 0) {
+				require.EqualValues(t, tc.addStakingAmt, totalDelegationAmount)
+			}
+		})
+	}
 }
