@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -32,7 +33,7 @@ func (k Keeper) TryRedelegation(ctx sdk.Context, re types.Redelegation) (complet
 		ctx, re.Delegator, srcVal, re.Amount,
 	)
 	if err != nil {
-		return time.Time{}, err
+		return time.Time{}, fmt.Errorf("failed to validate unbond amount: %w", err)
 	}
 
 	// when last, full redelegation of shares from delegation
@@ -42,7 +43,7 @@ func (k Keeper) TryRedelegation(ctx sdk.Context, re types.Redelegation) (complet
 	cachedCtx, writeCache := ctx.CacheContext()
 	completionTime, err = k.stakingKeeper.BeginRedelegation(cachedCtx, re.Delegator, srcVal, dstVal, shares)
 	if err != nil {
-		return time.Time{}, err
+		return time.Time{}, fmt.Errorf("failed to begin redelegation: %w", err)
 	}
 	writeCache()
 	return completionTime, nil

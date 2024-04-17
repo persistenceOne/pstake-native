@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 	"time"
 
@@ -560,7 +561,7 @@ func (k Keeper) LiquidDelegate(ctx sdk.Context, proxyAcc sdk.AccAddress, activeV
 		validator, _ := k.stakingKeeper.GetValidator(ctx, val.GetOperator())
 		err = k.DelegateWithCap(ctx, proxyAcc, validator, weightedAmt[i])
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to delegate to validator %s: %w", val.GetOperator(), err)
 		}
 	}
 	return nil
