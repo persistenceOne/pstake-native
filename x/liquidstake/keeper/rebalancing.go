@@ -56,7 +56,6 @@ func (k Keeper) Rebalance(
 	whitelistedValsMap types.WhitelistedValsMap,
 	rebalancingTrigger math.LegacyDec,
 ) (redelegations []types.Redelegation) {
-	logger := k.Logger(ctx)
 	totalLiquidTokens, liquidTokenMap := liquidVals.TotalLiquidTokens(ctx, k.stakingKeeper, false)
 	if !totalLiquidTokens.IsPositive() {
 		return redelegations
@@ -116,13 +115,18 @@ func (k Keeper) Rebalance(
 		if err != nil {
 			redelegation.Error = err
 			failCount++
+
+			k.Logger(ctx).Error(
+				"redelegation failed",
+				types.DelegatorKeyVal, proxyAcc.String(),
+				types.SrcValidatorKeyVal, maxVal.OperatorAddress,
+				types.DstValidatorKeyVal, minVal.OperatorAddress,
+				types.AmountKeyVal, amountNeeded.String(),
+				types.ErrorKeyVal, err.Error(),
+			)
 		}
 
 		redelegations = append(redelegations, redelegation)
-	}
-
-	if failCount > 0 {
-		logger.Error("rebalancing failed due to redelegation hopping", "redelegations", redelegations)
 	}
 
 	if len(redelegations) != 0 {
@@ -134,7 +138,7 @@ func (k Keeper) Rebalance(
 				sdk.NewAttribute(types.AttributeKeyRedelegationFailCount, strconv.Itoa(failCount)),
 			),
 		})
-		logger.Info(types.EventTypeBeginRebalancing,
+		k.Logger(ctx).Info(types.EventTypeBeginRebalancing,
 			types.AttributeKeyDelegator, types.LiquidStakeProxyAcc.String(),
 			types.AttributeKeyRedelegationCount, strconv.Itoa(len(redelegations)),
 			types.AttributeKeyRedelegationFailCount, strconv.Itoa(failCount))
@@ -144,7 +148,6 @@ func (k Keeper) Rebalance(
 }
 
 func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) (redelegations []types.Redelegation) {
-	logger := k.Logger(ctx)
 	params := k.GetParams(ctx)
 	liquidValidators := k.GetAllLiquidValidators(ctx)
 	liquidValsMap := liquidValidators.Map()
@@ -165,7 +168,7 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) (redelegations []types
 						sdk.NewAttribute(types.AttributeKeyLiquidValidator, lv.OperatorAddress),
 					),
 				})
-				logger.Info(types.EventTypeAddLiquidValidator, types.AttributeKeyLiquidValidator, lv.OperatorAddress)
+				k.Logger(ctx).Info(types.EventTypeAddLiquidValidator, types.AttributeKeyLiquidValidator, lv.OperatorAddress)
 			}
 		}
 	}
@@ -233,8 +236,11 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 	delegableAmount := autoCompoundableAmount.Sub(autocompoundFee.Amount)
 	err := k.LiquidDelegate(cachedCtx, types.LiquidStakeProxyAcc, activeVals, delegableAmount, whitelistedValsMap)
 	if err != nil {
-		logger := k.Logger(ctx)
-		logger.Error("re-staking failed", "error", err)
+		k.Logger(ctx).Error(
+			"failed to re-stake the accumulated rewards",
+			types.ErrorKeyVal,
+			err,
+		)
 		return
 		// skip errors as they might occur due to reaching global liquid cap
 	}
@@ -244,11 +250,14 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 	feeAccountAddr := sdk.MustAccAddressFromBech32(params.FeeAccountAddress)
 	err = k.bankKeeper.SendCoins(ctx, types.LiquidStakeProxyAcc, feeAccountAddr, sdk.NewCoins(autocompoundFee))
 	if err != nil {
-		k.Logger(ctx).Error("re-staking failed upon fee collection", "error", err)
+		k.Logger(ctx).Error(
+			"failed to send autocompound fee to fee account",
+			types.ErrorKeyVal,
+			err,
+		)
 		return
 	}
 
-	logger := k.Logger(ctx)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAutocompound,
@@ -257,7 +266,7 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 			sdk.NewAttribute(types.AttributeKeyAutocompoundFee, autocompoundFee.String()),
 		),
 	})
-	logger.Info(types.EventTypeAutocompound,
+	k.Logger(ctx).Info(types.EventTypeAutocompound,
 		types.AttributeKeyDelegator, types.LiquidStakeProxyAcc.String(),
 		sdk.AttributeKeyAmount, delegableAmount.String(),
 		types.AttributeKeyAutocompoundFee, autocompoundFee.String())

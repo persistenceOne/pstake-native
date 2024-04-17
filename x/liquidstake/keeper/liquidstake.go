@@ -226,7 +226,6 @@ func (k Keeper) DelegateWithCap(
 	}
 	res, err := handler(ctx, msgDelegate)
 	if err != nil {
-		k.Logger(ctx).Error("failed to execute delegate msg,", "msg", msgDelegate.String(), "err", err)
 		return errorsmod.Wrapf(types.ErrDelegationFailed, "failed to send delegate msg with err: %v", err)
 	}
 	ctx.EventManager().EmitEvents(res.GetEvents())
@@ -807,18 +806,17 @@ func (k Keeper) WithdrawLiquidRewards(ctx sdk.Context, proxyAcc sdk.AccAddress) 
 			// run the message handler
 			handler := k.router.Handler(msgWithdraw)
 			if handler == nil {
-				k.Logger(ctx).Error(
-					"unrecognized message route",
-					"msgRoute", sdk.MsgTypeURL(msgWithdraw),
-				)
+				k.Logger(ctx).Error("could not find distribution handler for withdraw rewards msg")
 				return true
 			}
 			res, err := handler(ctx, msgWithdraw)
 			if err != nil {
 				k.Logger(ctx).Error(
 					"failed to execute withdraw rewards msg",
-					"msg", msgWithdraw.String(),
-					"err", err,
+					types.MsgKeyVal,
+					msgWithdraw.String(),
+					types.ErrorKeyVal,
+					err,
 				)
 				// no need to return here, will be picked up in the next epoch
 			} else {
