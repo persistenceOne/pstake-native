@@ -40,6 +40,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - [815](https://github.com/persistenceOne/pstake-native/pull/815) Not escape merkle paths for proof verification.
 
+## [v2.12.0] - 2024-04-05
+
 ### Improvements
 
 - [800](https://github.com/persistenceOne/pstake-native/pull/800) Remove proxy account usage.
