@@ -222,10 +222,22 @@ func (k Keeper) DelegateWithCap(
 	}
 	handler := k.router.Handler(msgDelegate)
 	if handler == nil {
-		return sdkerrors.ErrUnknownRequest.Wrapf("unrecognized message route: %s", sdk.MsgTypeURL(msgDelegate))
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized message route: %s", sdk.MsgTypeURL(msgDelegate))
 	}
 	res, err := handler(ctx, msgDelegate)
 	if err != nil {
+		k.Logger(ctx).Error(
+			"failed to send delegate msg",
+			types.ErrorKeyVal,
+			err,
+			types.DelegatorKeyVal,
+			delegatorAddress.String(),
+			types.ValidatorKeyVal,
+			validator.OperatorAddress,
+			types.AmountKeyVal,
+			bondAmt.String(),
+		)
+
 		return errorsmod.Wrapf(types.ErrDelegationFailed, "failed to send delegate msg with err: %v", err)
 	}
 	ctx.EventManager().EmitEvents(res.GetEvents())
