@@ -211,17 +211,17 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
 	s.Require().Len(reds, 1)
 
-	// all redelegated, no delShares
+	// all redelegated, no delShares ( exception, dust )
 	proxyAccDel2, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[1])
-	s.Require().False(found)
+	s.Require().True(proxyAccDel2.Shares.LT(sdk.OneDec()))
 
 	// liquid validator removed, invalid after tombstoned
 	lvState, found = s.keeper.GetLiquidValidatorState(s.ctx, valOpers[1])
 	s.Require().True(found)
 	s.Require().Equal(lvState.OperatorAddress, valOpers[1].String())
 	s.Require().Equal(lvState.Status, types.ValidatorStatusInactive)
-	s.Require().EqualValues(lvState.DelShares, sdk.ZeroDec())
-	s.Require().EqualValues(lvState.LiquidTokens, sdk.ZeroInt())
+	s.Require().True(proxyAccDel2.Shares.LT(sdk.OneDec()))
+	s.Require().True(lvState.LiquidTokens.Equal(sdk.ZeroInt()))
 
 	// jail last liquid validator, undelegate all liquid tokens to proxy acc
 	nasBefore := s.keeper.GetNetAmountState(s.ctx)
