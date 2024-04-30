@@ -443,6 +443,61 @@ func (k Keeper) UnbondWithCap(
 	return lsmRedeemResp.Amount.Amount, nil
 }
 
+// RedelegateWithCap is a wrapper to invoke stakingKeeper.Redelegate but account for
+// the amount of liquid staked shares and check against liquid staking cap.
+func (k Keeper) RedelegateWithCap(
+	ctx sdk.Context,
+	delegatorAddress sdk.AccAddress,
+	validatorSrc sdk.ValAddress,
+	validatorDst sdk.ValAddress,
+	bondAmt math.Int,
+) (time.Time, error) {
+	msgRedelegate := &stakingtypes.MsgBeginRedelegate{
+		DelegatorAddress:    delegatorAddress.String(),
+		ValidatorSrcAddress: validatorSrc.String(),
+		ValidatorDstAddress: validatorDst.String(),
+		Amount:              sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), bondAmt),
+	}
+	handler := k.router.Handler(msgRedelegate)
+	if handler == nil {
+		k.Logger(ctx).Error("failed to find redelegate handler")
+
+		return time.Time{}, errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized message route: %s", sdk.MsgTypeURL(msgRedelegate))
+	}
+	res, err := handler(ctx, msgRedelegate)
+	if err != nil {
+		k.Logger(ctx).Error(
+			"failed to execute redelegate msg",
+			types.ErrorKeyVal,
+			err,
+			types.MsgKeyVal,
+			msgRedelegate.String(),
+		)
+
+		return time.Time{}, errorsmod.Wrapf(types.ErrRedelegateFailed, "failed to send redelegate msg with err: %v", err)
+	}
+	ctx.EventManager().EmitEvents(res.GetEvents())
+
+	if len(res.MsgResponses) != 1 {
+		return time.Time{}, errorsmod.Wrapf(
+			types.ErrInvalidResponse,
+			"expected msg response should be exactly 1, got: %v, responses: %v",
+			len(res.MsgResponses), res.MsgResponses,
+		)
+	}
+
+	var msgRedelegateResponse stakingtypes.MsgBeginRedelegateResponse
+	if err = k.cdc.Unmarshal(res.MsgResponses[0].Value, &msgRedelegateResponse); err != nil {
+		return time.Time{}, errorsmod.Wrapf(
+			sdkerrors.ErrJSONUnmarshal,
+			"cannot unmarshal redelegate tx response message: %v",
+			err,
+		)
+	}
+
+	return msgRedelegateResponse.CompletionTime, nil
+}
+
 // LSMDelegate captures a staked amount from existing delegation using LSM, re-stakes from proxyAcc and
 // mints stkXPRT worth of stk coin value according to NetAmount and performs LiquidDelegate.
 func (k Keeper) LSMDelegate(
