@@ -28,4 +28,5 @@ var (
 	ErrUnbondFailed                                 = errors.Register(ModuleName, 23, "unbond failed")
 	ErrInvalidResponse                              = errors.Register(ModuleName, 24, "invalid response")
 	ErrUnstakeFailed                                = errors.Register(ModuleName, 25, "Unstaking failed")
+	ErrRedelegateFailed                             = errors.Register(ModuleName, 26, "Redelegate failed")
 )

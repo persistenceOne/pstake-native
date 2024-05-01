@@ -39,6 +39,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 - [815](https://github.com/persistenceOne/pstake-native/pull/815) Not escape merkle paths for proof verification.
+- [822](https://github.com/persistenceOne/pstake-native/pull/822) liquidstake: redelegation to follow msg router instead
+  of keeper.
 
 ## [v2.12.0] - 2024-04-05
 

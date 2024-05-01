@@ -49,28 +49,14 @@ type StakingKeeper interface {
 		delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool)
 	IterateDelegations(ctx sdk.Context, delegator sdk.AccAddress,
 		fn func(index int64, delegation stakingtypes.DelegationI) (stop bool))
-	Delegate(
-		ctx sdk.Context, delAddr sdk.AccAddress, bondAmt math.Int, tokenSrc stakingtypes.BondStatus,
-		validator stakingtypes.Validator, subtractAccount bool,
-	) (newShares math.LegacyDec, err error)
 
 	BondDenom(ctx sdk.Context) (res string)
-	Unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, shares math.LegacyDec) (amount math.Int, err error)
 	UnbondingTime(ctx sdk.Context) (res time.Duration)
-	SetUnbondingDelegationEntry(
-		ctx sdk.Context, delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-		creationHeight int64, minTime time.Time, balance math.Int,
-	) stakingtypes.UnbondingDelegation
-	InsertUBDQueue(ctx sdk.Context, ubd stakingtypes.UnbondingDelegation,
-		completionTime time.Time)
 	ValidateUnbondAmount(
 		ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, amt math.Int,
 	) (shares math.LegacyDec, err error)
 	GetUnbondingDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (stakingtypes.UnbondingDelegation, bool)
 	GetAllUnbondingDelegations(ctx sdk.Context, delegator sdk.AccAddress) []stakingtypes.UnbondingDelegation
-	BeginRedelegation(
-		ctx sdk.Context, delAddr sdk.AccAddress, valSrcAddr, valDstAddr sdk.ValAddress, sharesAmount math.LegacyDec,
-	) (completionTime time.Time, err error)
 	GetAllRedelegations(
 		ctx sdk.Context, delegator sdk.AccAddress, srcValAddress, dstValAddress sdk.ValAddress,
 	) []stakingtypes.Redelegation
@@ -78,8 +64,6 @@ type StakingKeeper interface {
 	BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate
 	HasMaxUnbondingDelegationEntries(ctx sdk.Context,
 		delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress) bool
-	SafelyIncreaseTotalLiquidStakedTokens(ctx sdk.Context, amount math.Int, sharesAlreadyBonded bool) error
-	DecreaseTotalLiquidStakedTokens(ctx sdk.Context, amount math.Int) error
 	GetBondedPool(ctx sdk.Context) (bondedPool authtypes.ModuleAccountI)
 }
 

@@ -29,7 +29,7 @@ func (k Keeper) TryRedelegation(ctx sdk.Context, re types.Redelegation) (complet
 	}
 
 	// calculate delShares from tokens with validation
-	shares, err := k.stakingKeeper.ValidateUnbondAmount(
+	_, err = k.stakingKeeper.ValidateUnbondAmount(
 		ctx, re.Delegator, srcVal, re.Amount,
 	)
 	if err != nil {
@@ -37,11 +37,12 @@ func (k Keeper) TryRedelegation(ctx sdk.Context, re types.Redelegation) (complet
 	}
 
 	// when last, full redelegation of shares from delegation
+	amt := re.Amount
 	if re.Last {
-		shares = re.SrcValidator.GetDelShares(ctx, k.stakingKeeper)
+		amt = re.SrcValidator.GetLiquidTokens(ctx, k.stakingKeeper, false)
 	}
 	cachedCtx, writeCache := ctx.CacheContext()
-	completionTime, err = k.stakingKeeper.BeginRedelegation(cachedCtx, re.Delegator, srcVal, dstVal, shares)
+	completionTime, err = k.RedelegateWithCap(cachedCtx, re.Delegator, srcVal, dstVal, amt)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("failed to begin redelegation: %w", err)
 	}
