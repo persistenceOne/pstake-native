@@ -212,4 +212,10 @@ message NetAmountState {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+
+  // accumulating_rewards define the accumulating rewards of proxy account
+  string accumulating_rewards = 9 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
