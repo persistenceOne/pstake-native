@@ -262,7 +262,11 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 
 	// subtract fee from accumulated rewards
 	acRewards := k.GetAccumulatingRewards(ctx)
-	acRewards = acRewards.Sub(autocompoundFee.Amount)
+	if autocompoundFee.Amount.GTE(acRewards) {
+		acRewards = sdk.ZeroInt()
+	} else {
+		acRewards = acRewards.Sub(autocompoundFee.Amount)
+	}
 	k.SetAccumulatingRewards(ctx, acRewards)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
