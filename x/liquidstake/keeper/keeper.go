@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -89,6 +90,32 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 
 	k.cdc.MustUnmarshal(bz, &params)
 	return params
+}
+
+// GetAccumulatingRewards returns the accumulating rewards in the proxy account.
+func (k Keeper) GetAccumulatingRewards(ctx sdk.Context) sdkmath.Int {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.AccumulatingRewardsKey)
+	if bz == nil {
+		return sdkmath.ZeroInt()
+	}
+
+	var acRewards sdkmath.Int
+	if err := acRewards.Unmarshal(bz); err != nil {
+		panic(err)
+	}
+	return acRewards
+}
+
+// SetAccumulatingRewards sets the accumulating rewards in the proxy account.
+func (k Keeper) SetAccumulatingRewards(ctx sdk.Context, acRewards sdkmath.Int) {
+	store := ctx.KVStore(k.storeKey)
+	bz, err := acRewards.Marshal()
+	if err != nil {
+		panic(err)
+	}
+	store.Set(types.AccumulatingRewardsKey, bz)
 }
 
 // GetCodec return codec.Codec object used by the keeper

@@ -28,6 +28,9 @@ var (
 
 	// LiquidValidatorsKey defines prefix for each key to a liquid validator
 	LiquidValidatorsKey = []byte{0x02}
+
+	// AccumulatingRewardsKey defines prefix for each key to accumulating rewards in proxy account
+	AccumulatingRewardsKey = []byte{0x03}
 )
 
 // GetLiquidValidatorKey creates the key for the liquid validator with address
