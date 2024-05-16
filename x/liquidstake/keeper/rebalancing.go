@@ -118,7 +118,7 @@ func (k Keeper) Rebalance(
 			redelegation.Error = err
 			failCount++
 
-			k.Logger(ctx).Error(
+			k.Logger(ctx).Info(
 				"redelegation failed",
 				types.DelegatorKeyVal, proxyAcc.String(),
 				types.SrcValidatorKeyVal, maxVal.OperatorAddress,
