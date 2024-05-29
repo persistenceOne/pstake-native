@@ -21,6 +21,7 @@ const (
 
 	// Epoch identifiers
 	AutocompoundEpoch = "hour"
+	RebalanceEpoch    = "day"
 )
 
 var (

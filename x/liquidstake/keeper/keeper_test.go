@@ -23,7 +23,6 @@ import (
 
 	chain "github.com/persistenceOne/pstake-native/v2/app"
 	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstake"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/keeper"
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
 )
@@ -83,7 +82,7 @@ func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []
 	pks := testhelpers.CreateTestPubKeys(num)
 	skParams := s.app.StakingKeeper.GetParams(s.ctx)
 	skParams.ValidatorLiquidStakingCap = sdk.OneDec()
-	s.app.StakingKeeper.SetParams(s.ctx, skParams)
+	_ = s.app.StakingKeeper.SetParams(s.ctx, skParams)
 	for i, power := range powers {
 		val, err := stakingtypes.NewValidator(valAddrs[i], pks[i], stakingtypes.Description{})
 		s.Require().NoError(err)
@@ -91,7 +90,7 @@ func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []
 		err = s.app.StakingKeeper.SetValidatorByConsAddr(s.ctx, val)
 		s.Require().NoError(err)
 		s.app.StakingKeeper.SetNewValidatorByPowerIndex(s.ctx, val)
-		s.app.StakingKeeper.Hooks().AfterValidatorCreated(s.ctx, val.GetOperator())
+		_ = s.app.StakingKeeper.Hooks().AfterValidatorCreated(s.ctx, val.GetOperator())
 		newShares, err := s.app.StakingKeeper.Delegate(s.ctx, addrs[i], math.NewInt(power), stakingtypes.Unbonded, val, true)
 		s.Require().NoError(err)
 		s.Require().Equal(newShares.TruncateInt(), math.NewInt(power))
@@ -302,7 +301,7 @@ func (s *KeeperTestSuite) printRedelegationsLiquidTokens() {
 	}
 }
 
-func (s *KeeperTestSuite) advanceHeight(height int, withBeginBlock bool) {
+func (s *KeeperTestSuite) advanceHeight(height int, _ bool) {
 	feeCollector := s.app.AccountKeeper.GetModuleAddress(
 		authtypes.FeeCollectorName,
 	)
@@ -373,10 +372,6 @@ func (s *KeeperTestSuite) advanceHeight(height int, withBeginBlock bool) {
 		)
 
 		s.app.DistrKeeper.SetFeePool(s.ctx, feePool)
-		if withBeginBlock {
-			// liquid validator set update and rebalancing
-			liquidstake.BeginBlocker(s.ctx, s.app.LiquidStakeKeeper)
-		}
 
 		staking.EndBlocker(s.ctx, s.app.StakingKeeper)
 	}
