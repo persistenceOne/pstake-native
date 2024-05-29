@@ -391,6 +391,11 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			if err := sdk.ValidateDenom(params.Denom); err != nil {
 				return fmt.Errorf("invalid rewards denom: %s", err.Error())
 			}
+		case KeyForceUpdateValidator:
+			_, _, err := bech32.DecodeAndConvert(update.Value)
+			if err != nil {
+				return err
+			}
 		default:
 			return fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}

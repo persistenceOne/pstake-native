@@ -257,7 +257,7 @@ func DelegationUpdateCallback(k Keeper, ctx sdk.Context, data []byte, query icqt
 	validator, found := hc.GetValidator(delegation.ValidatorAddress)
 	if !found {
 		return fmt.Errorf(
-			"validator %s for host chain %s not found",
+			"delegation for validator %s for host chain %s not found",
 			delegation.ValidatorAddress,
 			query.ChainId,
 		)
