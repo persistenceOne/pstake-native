@@ -322,6 +322,16 @@ func (k msgServer) UpdateHostChain(
 
 			hc.RewardParams = &params
 			k.SetHostChain(ctx, hc)
+		case types.KeyForceUpdateValidator:
+			val, found := hc.GetValidator(update.Value)
+			if !found {
+				return nil, types.ErrValidatorNotFound
+			}
+
+			if err := k.QueryValidatorDelegationUpdate(ctx, hc, val); err != nil {
+				return nil, fmt.Errorf("unable to send ICQ query for validator delegation update")
+			}
+
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}
