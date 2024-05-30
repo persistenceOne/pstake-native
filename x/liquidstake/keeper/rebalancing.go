@@ -149,7 +149,7 @@ func (k Keeper) Rebalance(
 	return redelegations
 }
 
-func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) (redelegations []types.Redelegation) {
+func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context, redelegate bool) (redelegations []types.Redelegation) {
 	params := k.GetParams(ctx)
 	liquidValidators := k.GetAllLiquidValidators(ctx)
 	liquidValsMap := liquidValidators.Map()
@@ -177,18 +177,21 @@ func (k Keeper) UpdateLiquidValidatorSet(ctx sdk.Context) (redelegations []types
 
 	// rebalancing based updated liquid validators status with threshold, try by cachedCtx
 	// tombstone status also handled on Rebalance
-	redelegations = k.Rebalance(
-		ctx,
-		types.LiquidStakeProxyAcc,
-		liquidValidators,
-		whitelistedValsMap,
-		types.RebalancingTrigger,
-	)
+	if redelegate {
+		redelegations = k.Rebalance(
+			ctx,
+			types.LiquidStakeProxyAcc,
+			liquidValidators,
+			whitelistedValsMap,
+			types.RebalancingTrigger,
+		)
 
-	// if there are inactive liquid validators, do not unbond,
-	// instead let validator selection and rebalancing take care of it.
+		// if there are inactive liquid validators, do not unbond,
+		// instead let validator selection and rebalancing take care of it.
 
-	return redelegations
+		return redelegations
+	}
+	return nil
 }
 
 // AutocompoundStakingRewards withdraws staking rewards and re-stakes when over threshold.

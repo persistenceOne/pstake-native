@@ -19,7 +19,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	params.UnstakeFeeRate = sdk.ZeroDec()
 	params.MinLiquidStakeAmount = math.NewInt(10000)
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	stakingAmt := math.NewInt(49998)
 	// add active validator
@@ -30,13 +30,13 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	}
 	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
-	reds := s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds := s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 0)
 
 	stkXPRTMintAmt, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
 	s.Require().NoError(err)
 	s.Require().Equal(stkXPRTMintAmt, stakingAmt)
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 0)
 
 	proxyAccDel1, found := s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[0])
@@ -61,7 +61,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 		{ValidatorAddress: valOpers[3].String(), TargetWeight: math.NewInt(2500)},
 	}
 	s.keeper.SetParams(s.ctx, params)
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 3)
 
 	proxyAccDel1, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[0])
@@ -104,7 +104,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 		{ValidatorAddress: valOpers[4].String(), TargetWeight: math.NewInt(2000)},
 	}
 	s.keeper.SetParams(s.ctx, params)
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 4)
 
 	proxyAccDel1, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[0])
@@ -140,7 +140,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 
 	testhelpers.PP(s.keeper.GetAllLiquidValidatorStates(s.ctx))
 	s.keeper.SetParams(s.ctx, params)
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 4)
 	testhelpers.PP(s.keeper.GetAllLiquidValidatorStates(s.ctx))
 
@@ -173,7 +173,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	}
 
 	s.keeper.SetParams(s.ctx, params)
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 3)
 
 	proxyAccDel1, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[0])
@@ -208,7 +208,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	s.Require().NotEqualValues(lvState.LiquidTokens, sdk.ZeroInt())
 
 	// rebalancing, remove tombstoned liquid validator
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 1)
 
 	// all redelegated, no delShares ( exception, dust )
@@ -226,7 +226,7 @@ func (s *KeeperTestSuite) TestRebalancingCase1() {
 	// jail last liquid validator, undelegate all liquid tokens to proxy acc
 	nasBefore := s.keeper.GetNetAmountState(s.ctx)
 	s.doubleSign(valOpers[0], sdk.ConsAddress(pks[0].Address()))
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 0)
 
 	// no delegation of proxy acc
@@ -267,7 +267,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	params.UnstakeFeeRate = sdk.ZeroDec()
 	params.MinLiquidStakeAmount = math.NewInt(10000)
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	stakingAmt := math.NewInt(10000000000000)
 	s.fundAddr(s.delAddrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt)))
@@ -284,14 +284,14 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	}
 	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
-	reds := s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds := s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 0)
 
 	stkXPRTMintAmt, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
 	s.Require().NoError(err)
 	s.Require().Equal(stkXPRTMintAmt, stakingAmt)
 	// assert rebalanced
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 0)
 	s.Require().Equal(s.redelegationsErrorCount(reds), 0)
 	s.printRedelegationsLiquidTokens()
@@ -310,12 +310,12 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24))
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 8)
 	s.Require().Equal(s.redelegationsErrorCount(reds), 0)
 	s.printRedelegationsLiquidTokens()
 	// assert rebalanced
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 0)
 
 	// add active validator
@@ -333,18 +333,18 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24))
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 9)
 	s.Require().Equal(s.redelegationsErrorCount(reds), 0)
 	s.printRedelegationsLiquidTokens()
 	// assert rebalanced
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 0)
 
 	// complete redelegations
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24 * 20).Add(time.Hour))
 	staking.EndBlocker(s.ctx, s.app.StakingKeeper)
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 0)
 	// assert rebalanced
 	s.Require().Equal(s.redelegationsErrorCount(reds), 0)
@@ -364,12 +364,12 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24))
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 9)
 	s.Require().Equal(s.redelegationsErrorCount(reds), 0)
 	s.printRedelegationsLiquidTokens()
 	// assert rebalanced
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 0)
 
 	// add active validator
@@ -389,7 +389,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24))
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 11)
 	// fail rebalancing due to redelegation hopping
 	s.Require().Equal(s.redelegationsErrorCount(reds), 11)
@@ -397,13 +397,13 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 
 	// complete redelegation and retry
 	s.completeRedelegationUnbonding()
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.printRedelegationsLiquidTokens()
 	s.Require().Len(reds, 11)
 	s.Require().Equal(s.redelegationsErrorCount(reds), 0)
 
 	// assert rebalanced
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 0)
 
 	// modify weight
@@ -423,7 +423,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	}
 	s.keeper.SetParams(s.ctx, params)
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24))
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 6)
 	// fail rebalancing partially due to redelegation hopping
 	s.Require().Equal(s.redelegationsErrorCount(reds), 3)
@@ -437,7 +437,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	// complete some redelegations
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).WithBlockTime(s.ctx.BlockTime().Add(time.Hour * 24 * 20).Add(time.Hour))
 	staking.EndBlocker(s.ctx, s.app.StakingKeeper)
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 9)
 
 	// failed redelegations with small amount (less than rebalancing trigger)
@@ -445,7 +445,7 @@ func (s *KeeperTestSuite) TestRebalancingConsecutiveCase() {
 	s.printRedelegationsLiquidTokens()
 
 	// assert rebalanced
-	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	reds = s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.Require().Len(reds, 0)
 	s.Require().Equal(s.redelegationsErrorCount(reds), 0)
 	s.printRedelegationsLiquidTokens()
@@ -461,7 +461,7 @@ func (s *KeeperTestSuite) TestAutocompoundStakingRewards() {
 	}
 	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	stakingAmt := math.NewInt(100000000)
 	s.Require().NoError(s.liquidStaking(s.delAddrs[0], stakingAmt))
@@ -505,7 +505,7 @@ func (s *KeeperTestSuite) TestLimitAutocompoundStakingRewards() {
 	}
 	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	stakingAmt := math.NewInt(100000000)
 	s.Require().NoError(s.liquidStaking(s.delAddrs[0], stakingAmt))
@@ -539,7 +539,7 @@ func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
 	}
 	params.ModulePaused = false
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	stakingAmt := math.NewInt(100000000)
 	s.Require().NoError(s.liquidStaking(s.delAddrs[0], stakingAmt))
@@ -556,7 +556,7 @@ func (s *KeeperTestSuite) TestRemoveAllLiquidValidator() {
 	// remove all whitelist
 	params.WhitelistedValidators = []types.WhitelistedValidator{}
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	// no liquid validator
 	lvs := s.keeper.GetAllLiquidValidators(s.ctx)
@@ -584,7 +584,7 @@ func (s *KeeperTestSuite) TestUndelegatedFundsNotBecomeFees() {
 	}
 	params.ModulePaused = false
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	// stake funds
 	stakingAmt := math.NewInt(100000000)
@@ -597,7 +597,7 @@ func (s *KeeperTestSuite) TestUndelegatedFundsNotBecomeFees() {
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(3000)},
 	}
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	// unbonding should occur
 	nas := s.keeper.GetNetAmountState(s.ctx)
@@ -614,7 +614,7 @@ func (s *KeeperTestSuite) TestUndelegatedFundsNotBecomeFees() {
 
 	// complete unbondings
 	s.completeRedelegationUnbonding()
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	// fee account has funds, but its from undelegated tokens
 	feeAccountBalanceAfterUndelegation := s.app.BankKeeper.GetBalance(

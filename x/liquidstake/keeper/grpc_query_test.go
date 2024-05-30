@@ -21,7 +21,7 @@ func (s *KeeperTestSuite) TestGRPCQueries() {
 	params := s.keeper.GetParams(s.ctx)
 	params.MinLiquidStakeAmount = math.NewInt(50000)
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
@@ -30,7 +30,7 @@ func (s *KeeperTestSuite) TestGRPCQueries() {
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(3333)},
 	}
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	// Test LiquidValidators grpc query
 	res := s.keeper.GetAllLiquidValidatorStates(s.ctx)

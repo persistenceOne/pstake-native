@@ -25,7 +25,7 @@ func (s *KeeperTestSuite) TestImportExportGenesis() {
 	}
 	params.ModulePaused = false
 	k.SetParams(ctx, params)
-	k.UpdateLiquidValidatorSet(ctx)
+	k.UpdateLiquidValidatorSet(ctx, true)
 
 	stakingAmt := math.NewInt(100000000)
 	s.Require().NoError(s.liquidStaking(s.delAddrs[0], stakingAmt))
@@ -55,7 +55,7 @@ func (s *KeeperTestSuite) TestImportExportGenesis() {
 func (s *KeeperTestSuite) TestImportExportGenesisEmpty() {
 	k, ctx := s.keeper, s.ctx
 	k.SetParams(ctx, types.DefaultParams())
-	k.UpdateLiquidValidatorSet(ctx)
+	k.UpdateLiquidValidatorSet(ctx, true)
 	genState := k.ExportGenesis(ctx)
 
 	var genState2 types.GenesisState

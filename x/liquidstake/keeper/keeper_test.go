@@ -64,7 +64,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	params.UnstakeFeeRate = sdk.ZeroDec()
 	params.AutocompoundFeeRate = types.DefaultAutocompoundFeeRate
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	// call mint.BeginBlocker for init k.SetLastBlockTime(ctx, ctx.BlockTime())
 	mint.BeginBlocker(s.ctx, s.app.MintKeeper, minttypes.DefaultInflationCalculationFn)
 }
