@@ -66,6 +66,37 @@ func (k *Keeper) QueryValidatorDelegation(
 	return nil
 }
 
+// QueryValidatorDelegationUpdate sends an ICQ query to get a validator delegation
+func (k *Keeper) QueryValidatorDelegationUpdate(
+	ctx sdk.Context,
+	hc *types.HostChain,
+	validator *types.Validator,
+) error {
+	_, delegatorAddr, err := bech32.DecodeAndConvert(hc.DelegationAccount.Address)
+	if err != nil {
+		return err
+	}
+
+	_, validatorAddr, err := bech32.DecodeAndConvert(validator.OperatorAddress)
+	if err != nil {
+		return err
+	}
+
+	k.icqKeeper.MakeRequest(
+		ctx,
+		hc.ConnectionId,
+		hc.ChainId,
+		types.StakingStoreQuery,
+		stakingtypes.GetDelegationKey(delegatorAddr, validatorAddr),
+		sdk.NewInt(int64(-1)),
+		types.ModuleName,
+		DelegationUpdate,
+		0,
+	)
+
+	return nil
+}
+
 // QueryDelegationHostChainAccountBalance sends an ICQ query to get the delegation host account balance
 func (k *Keeper) QueryDelegationHostChainAccountBalance(
 	ctx sdk.Context,

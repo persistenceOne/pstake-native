@@ -193,3 +193,45 @@ func (suite *IntegrationTestSuite) TestKeeper_QueryNonCompoundableRewardsHostCha
 		})
 	}
 }
+
+func (suite *IntegrationTestSuite) TestKeeper_QueryValidatorDelegationUpdate() {
+	pstakeApp, ctx := suite.app, suite.ctx
+	k := pstakeApp.LiquidStakeIBCKeeper
+	hc, found := k.GetHostChain(ctx, suite.chainB.ChainID)
+	suite.Require().Equal(found, true)
+
+	hc2 := types.HostChain{DelegationAccount: &types.ICAAccount{Address: "invalid"}}
+
+	type args struct {
+		hc        *types.HostChain
+		validator *types.Validator
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Success",
+			args: args{
+				hc:        hc,
+				validator: hc.Validators[0],
+			},
+			wantErr: false,
+		}, {
+			name: "Invalid delegator addr",
+			args: args{
+				hc:        &hc2,
+				validator: hc.Validators[0],
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			if err := k.QueryValidatorDelegationUpdate(ctx, tt.args.hc, tt.args.validator); (err != nil) != tt.wantErr {
+				suite.T().Errorf("QueryValidatorDelegationUpdate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

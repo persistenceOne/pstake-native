@@ -3,11 +3,11 @@ package keeper_test
 import (
 	"context"
 	"fmt"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"reflect"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctfrtypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
@@ -166,7 +166,8 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 			},
 			want:    &types.MsgLiquidStakeLSMResponse{},
 			wantErr: false,
-		}, {
+		},
+		{
 			name: "Invalid IBC denom",
 			args: args{
 				goCtx: ctx,
@@ -180,7 +181,8 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 			},
 			want:    nil,
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "Invalid IBC hex hash",
 			args: args{
 				goCtx: ctx,
@@ -194,7 +196,8 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 			},
 			want:    nil,
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "No IBC denom trace",
 			args: args{
 				goCtx: ctx,
@@ -208,7 +211,8 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 			},
 			want:    nil,
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "Host chain not active",
 			args: args{
 				goCtx: ctx,
@@ -222,7 +226,8 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 			},
 			want:    nil,
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "Host chain LSM flag not active",
 			args: args{
 				goCtx: ctx,
@@ -236,7 +241,8 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 			},
 			want:    nil,
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "Not enough balance",
 			args: args{
 				goCtx: ctx,
@@ -250,7 +256,8 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 			},
 			want:    nil,
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "Deposit already exists",
 			args: args{
 				goCtx: ctx,
@@ -264,7 +271,8 @@ func (suite *IntegrationTestSuite) Test_msgServer_LiquidStakeLSM() {
 			},
 			want:    nil,
 			wantErr: true,
-		}, {
+		},
+		{
 			name: "Less than min amount",
 			args: args{
 				goCtx: ctx,

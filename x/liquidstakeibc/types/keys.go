@@ -86,6 +86,7 @@ const (
 	KeyAutocompoundFactor          string = "autocompound_factor"
 	KeyFlags                       string = "flags"
 	KeyRewardParams                string = "reward_params"
+	KeyForceUpdateValidator        string = "force_update_validator"
 )
 
 var (

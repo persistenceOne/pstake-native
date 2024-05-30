@@ -36,6 +36,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+### Improvements
+
+- [831](https://github.com/persistenceOne/pstake-native/pull/831) Add amino tags for protobuf msgs for compiling in js using telescope
+- [841](https://github.com/persistenceOne/pstake-native/pull/841) add type ForceUpdateValidatorDelegations to MsgUpdateHostChain 
+
+
 ## [v2.13.0] - 2024-05-01
 
 ### Bug Fixes
