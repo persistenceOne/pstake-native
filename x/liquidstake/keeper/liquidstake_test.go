@@ -18,7 +18,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	params.MinLiquidStakeAmount = math.NewInt(50000)
 	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	stakingAmt := params.MinLiquidStakeAmount
 
@@ -38,7 +38,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(2000)},
 	}
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	res := s.keeper.GetAllLiquidValidatorStates(s.ctx)
 	s.Require().Equal(params.WhitelistedValidators[0].ValidatorAddress,
@@ -254,7 +254,7 @@ func (s *KeeperTestSuite) TestLiquidStakeFromVestingAccount() {
 	}
 	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	from := s.delAddrs[0]
 	vestingAmt := s.app.BankKeeper.GetAllBalances(s.ctx, from)
@@ -294,7 +294,7 @@ func (s *KeeperTestSuite) TestLiquidStakeFromVestingAccount() {
 func (s *KeeperTestSuite) TestLiquidStakeEdgeCases() {
 	_, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000})
 	params := s.keeper.GetParams(s.ctx)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	stakingAmt := math.NewInt(5000000)
 
 	// add active validator
@@ -305,7 +305,7 @@ func (s *KeeperTestSuite) TestLiquidStakeEdgeCases() {
 	}
 	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	// fail Invalid BondDenom case
 	_, err := s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin("bad", stakingAmt))
@@ -318,7 +318,7 @@ func (s *KeeperTestSuite) TestLiquidStakeEdgeCases() {
 	s.Require().NoError(s.liquidStaking(s.delAddrs[0], hugeAmt))
 	s.Require().NoError(s.liquidUnstaking(s.delAddrs[0], math.NewInt(10), true))
 	s.Require().NoError(s.liquidUnstaking(s.delAddrs[0], hugeAmt, true))
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	s.completeRedelegationUnbonding()
 	states := s.keeper.GetNetAmountState(s.ctx)
 	states.TotalLiquidTokens.Equal(hugeAmt)
@@ -333,7 +333,7 @@ func (s *KeeperTestSuite) TestLiquidUnstakeEdgeCases() {
 
 	_, valOpers, _ := s.CreateValidators([]int64{1000000, 2000000, 3000000})
 	params := s.keeper.GetParams(s.ctx)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	stakingAmt := math.NewInt(5000000)
 
 	// add active validator
@@ -344,7 +344,7 @@ func (s *KeeperTestSuite) TestLiquidUnstakeEdgeCases() {
 	}
 	params.ModulePaused = false
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	// success liquid stake
 	s.Require().NoError(s.liquidStaking(s.delAddrs[0], stakingAmt))
@@ -379,7 +379,7 @@ func (s *KeeperTestSuite) TestLiquidUnstakeEdgeCases() {
 	// set empty whitelisted, active liquid validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{}
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	// error case where there is a quantity that are unbonding balance or remaining rewards that is not re-stake or withdrawn in netAmount.
 	// NOT APPLICABLE since we do not validator unbond if validator goes inactive.
@@ -413,7 +413,7 @@ func (s *KeeperTestSuite) TestShareInflation() {
 	}
 	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	initialStakingAmt := math.NewInt(1)          // little amount
 	initializingStakingAmt := math.NewInt(10000) // normal amount

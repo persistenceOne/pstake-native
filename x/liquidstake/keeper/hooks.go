@@ -35,7 +35,7 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, _ int6
 
 		if epochIdentifier == liquidstake.RebalanceEpoch {
 			// return value of UpdateLiquidValidatorSet is useful only in testing
-			_ = k.UpdateLiquidValidatorSet(ctx)
+			_ = k.UpdateLiquidValidatorSet(ctx, true)
 		}
 	}
 

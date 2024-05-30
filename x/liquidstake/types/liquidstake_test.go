@@ -275,7 +275,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	params := s.keeper.GetParams(s.ctx)
 	params.UnstakeFeeRate = sdk.ZeroDec()
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	// call mint.BeginBlocker for init k.SetLastBlockTime(ctx, ctx.BlockTime())
 	mint.BeginBlocker(s.ctx, s.app.MintKeeper, minttypes.DefaultInflationCalculationFn)
 }
@@ -310,7 +310,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	params.MinLiquidStakeAmount = math.NewInt(50000)
 	params.ModulePaused = false
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	stakingAmt := params.MinLiquidStakeAmount
 
@@ -327,7 +327,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 		{ValidatorAddress: valOpers[2].String(), TargetWeight: math.NewInt(3333)},
 	}
 	s.keeper.SetParams(s.ctx, params)
-	s.keeper.UpdateLiquidValidatorSet(s.ctx)
+	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 
 	res := s.keeper.GetAllLiquidValidatorStates(s.ctx)
 	s.Require().Equal(params.WhitelistedValidators[0].ValidatorAddress, res[0].OperatorAddress)
