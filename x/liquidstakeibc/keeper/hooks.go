@@ -712,7 +712,8 @@ func (k *Keeper) ValidatorUndelegationWorkflow(ctx sdk.Context, epoch int64) {
 		for _, validator := range hc.Validators {
 			// check if there are validators that need to be unbonded
 			if validator.UnbondingEpoch > 0 &&
-				validator.UnbondingEpoch+liquidstakeibctypes.UnbondingStateEpochLimit <= epoch {
+				validator.UnbondingEpoch+liquidstakeibctypes.UnbondingStateEpochLimit <= epoch &&
+				validator.DelegatedAmount.GT(sdk.ZeroInt()) {
 
 				// unbond all delegated tokens from the validator
 				validatorUnbonding := &liquidstakeibctypes.ValidatorUnbonding{
