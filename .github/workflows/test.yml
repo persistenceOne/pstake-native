@@ -90,7 +90,7 @@ jobs:
         uses: tj-actions/branch-names@v8
 
       - name: Build Docker image
-        uses: strangelove-ventures/heighliner-build-action@v1.0.2
+        uses: strangelove-ventures/heighliner-build-action@v1.0.3
         with:
           registry: # empty registry, image only shared for e2e testing
           tag: local # emulate local environment for consistency in interchaintest cases
