@@ -36,6 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+### Improvements
+
+- [855](https://github.com/persistenceOne/pstake-native/pull/855) Add condition for not allowing zero delegation unbondings icq
+
 ## [v2.15.0] - 2024-05-30
 
 ### Improvements
