@@ -255,7 +255,9 @@ func (k *Keeper) UpdateCValues(ctx sdk.Context) {
 	hostChains := k.GetAllHostChains(ctx)
 
 	for _, hc := range hostChains {
-		k.UpdateCValue(ctx, hc)
+		if hc.Active {
+			k.UpdateCValue(ctx, hc)
+		}
 	}
 }
 

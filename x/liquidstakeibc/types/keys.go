@@ -87,6 +87,9 @@ const (
 	KeyFlags                       string = "flags"
 	KeyRewardParams                string = "reward_params"
 	KeyForceUpdateValidator        string = "force_update_validator"
+	KeyForceUnbond                 string = "force_unbond"
+	KeyForceICATransfer            string = "force_ica_transfer"
+	KeyForceICATransferRewards     string = "force_ica_transfer_rewards"
 )
 
 var (
