@@ -396,6 +396,32 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			if err != nil {
 				return err
 			}
+		case KeyForceUnbond:
+			// expected "chainvaloper1xxx,1234denom"
+			validator, coin, valid := strings.Cut(update.Value, ",")
+			if !valid {
+				return fmt.Errorf("invalid force unbond value, expected form \"cosmovaloperxx,123denom\" ")
+			}
+			_, _, err := bech32.DecodeAndConvert(validator)
+			if err != nil {
+				return err
+			}
+			_, err = sdk.ParseCoinNormalized(coin)
+			if err != nil {
+				return err
+			}
+		case KeyForceICATransfer:
+			// expected "1234denom"
+			_, err := sdk.ParseCoinNormalized(update.Value)
+			if err != nil {
+				return err
+			}
+		case KeyForceICATransferRewards:
+			// expected "1234denom"
+			_, err := sdk.ParseCoinNormalized(update.Value)
+			if err != nil {
+				return err
+			}
 		default:
 			return fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}

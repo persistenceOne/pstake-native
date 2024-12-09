@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/gogoproto/proto"
 	"strconv"
 	"strings"
 
@@ -331,7 +332,50 @@ func (k msgServer) UpdateHostChain(
 			if err := k.QueryValidatorDelegationUpdate(ctx, hc, val); err != nil {
 				return nil, fmt.Errorf("unable to send ICQ query for validator delegation update")
 			}
+		case types.KeyForceUnbond:
+			if hc.Active {
+				return nil, fmt.Errorf("cannot force unbond to active host chain")
+			}
+			validator, coin, valid := strings.Cut(update.Value, ",")
+			if !valid {
+				return nil, fmt.Errorf("invalid force unbond value, expected form \"cosmovaloperxx,123denom\" ")
+			}
+			val, found := hc.GetValidator(validator)
+			if !found {
+				return nil, types.ErrValidatorNotFound
+			}
+			amount, err := sdktypes.ParseCoinNormalized(coin)
+			if err != nil {
+				return nil, err
+			}
+			msgUnbond := &stakingtypes.MsgUndelegate{
+				DelegatorAddress: hc.DelegationAccount.Address,
+				ValidatorAddress: val.OperatorAddress,
+				Amount:           amount,
+			}
+			_, err = k.GenerateAndExecuteICATx(ctx, hc.ConnectionId, hc.DelegationAccount.Owner, []proto.Message{msgUnbond})
+			if err != nil {
+				return nil, err
+			}
 
+		case types.KeyForceICATransfer:
+			amount, err := sdktypes.ParseCoinNormalized(update.Value)
+			if err != nil {
+				return nil, err
+			}
+			_, err = k.SendICATransfer(ctx, hc, amount, hc.DelegationAccount.Address, k.GetUndelegationModuleAccount(ctx).GetAddress().String(), hc.DelegationAccount.Owner)
+			if err != nil {
+				return nil, err
+			}
+		case types.KeyForceICATransferRewards:
+			amount, err := sdktypes.ParseCoinNormalized(update.Value)
+			if err != nil {
+				return nil, err
+			}
+			_, err = k.SendICATransfer(ctx, hc, amount, hc.RewardsAccount.Address, k.GetUndelegationModuleAccount(ctx).GetAddress().String(), hc.RewardsAccount.Owner)
+			if err != nil {
+				return nil, err
+			}
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}
