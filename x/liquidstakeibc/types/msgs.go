@@ -422,6 +422,11 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			if err != nil {
 				return err
 			}
+		case KeyForceTransferDeposits:
+			// expected nothing, ""
+			if update.Value != "" {
+				return fmt.Errorf("invalid force transfer deposits, expected \"\" ")
+			}
 		default:
 			return fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}

@@ -376,6 +376,14 @@ func (k msgServer) UpdateHostChain(
 			if err != nil {
 				return nil, err
 			}
+		case types.KeyForceTransferDeposits:
+			amount := k.bankKeeper.GetBalance(ctx, k.GetDepositModuleAccount(ctx).GetAddress(), hc.IBCDenom())
+			if amount.IsPositive() {
+				err := k.bankKeeper.SendCoins(ctx, k.GetDepositModuleAccount(ctx).GetAddress(), k.GetUndelegationModuleAccount(ctx).GetAddress(), sdktypes.NewCoins(amount))
+				if err != nil {
+					return nil, err
+				}
+			}
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}
