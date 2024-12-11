@@ -13,6 +13,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/gogoproto/proto"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -331,7 +332,58 @@ func (k msgServer) UpdateHostChain(
 			if err := k.QueryValidatorDelegationUpdate(ctx, hc, val); err != nil {
 				return nil, fmt.Errorf("unable to send ICQ query for validator delegation update")
 			}
+		case types.KeyForceUnbond:
+			if hc.Active {
+				return nil, fmt.Errorf("cannot force unbond to active host chain")
+			}
+			validator, coin, valid := strings.Cut(update.Value, ",")
+			if !valid {
+				return nil, fmt.Errorf("invalid force unbond value, expected form \"cosmovaloperxx,123denom\" ")
+			}
+			val, found := hc.GetValidator(validator)
+			if !found {
+				return nil, types.ErrValidatorNotFound
+			}
+			amount, err := sdktypes.ParseCoinNormalized(coin)
+			if err != nil {
+				return nil, err
+			}
+			msgUnbond := &stakingtypes.MsgUndelegate{
+				DelegatorAddress: hc.DelegationAccount.Address,
+				ValidatorAddress: val.OperatorAddress,
+				Amount:           amount,
+			}
+			_, err = k.GenerateAndExecuteICATx(ctx, hc.ConnectionId, hc.DelegationAccount.Owner, []proto.Message{msgUnbond})
+			if err != nil {
+				return nil, err
+			}
 
+		case types.KeyForceICATransfer:
+			amount, err := sdktypes.ParseCoinNormalized(update.Value)
+			if err != nil {
+				return nil, err
+			}
+			_, err = k.SendICATransfer(ctx, hc, amount, hc.DelegationAccount.Address, k.GetUndelegationModuleAccount(ctx).GetAddress().String(), hc.DelegationAccount.Owner)
+			if err != nil {
+				return nil, err
+			}
+		case types.KeyForceICATransferRewards:
+			amount, err := sdktypes.ParseCoinNormalized(update.Value)
+			if err != nil {
+				return nil, err
+			}
+			_, err = k.SendICATransfer(ctx, hc, amount, hc.RewardsAccount.Address, k.GetUndelegationModuleAccount(ctx).GetAddress().String(), hc.RewardsAccount.Owner)
+			if err != nil {
+				return nil, err
+			}
+		case types.KeyForceTransferDeposits:
+			amount := k.bankKeeper.GetBalance(ctx, k.GetDepositModuleAccount(ctx).GetAddress(), hc.IBCDenom())
+			if amount.IsPositive() {
+				err := k.bankKeeper.SendCoins(ctx, k.GetDepositModuleAccount(ctx).GetAddress(), k.GetUndelegationModuleAccount(ctx).GetAddress(), sdktypes.NewCoins(amount))
+				if err != nil {
+					return nil, err
+				}
+			}
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}
@@ -1010,4 +1062,122 @@ func (k msgServer) validateLiquidStakeLSMDeposit(
 	}
 
 	return hc, validator, &denomTrace, nil
+}
+
+// Redeem defines a method for deprecated redeem liquid staked tokens
+func (k msgServer) RedeemDeprecated(
+	goCtx context.Context,
+	msg *types.MsgRedeemDeprecated,
+) (*types.MsgRedeemDeprecatedResponse, error) {
+	ctx := sdktypes.UnwrapSDKContext(goCtx)
+
+	// parse the chain host denom from the stk denom
+	hostDenom, found := types.MintDenomToHostDenom(msg.Amount.Denom)
+	if !found {
+		return nil, errorsmod.Wrapf(types.ErrInvalidHostChain,
+			"could not parse chain host denom from %s",
+			msg.Amount.Denom,
+		)
+	}
+
+	// get the host chain we need to unstake from
+	hc, found := k.GetHostChainFromHostDenom(ctx, hostDenom)
+	if !found {
+		return nil, errorsmod.Wrapf(types.ErrInvalidHostChain,
+			"host chain with host denom %s not registered",
+			hostDenom,
+		)
+	}
+
+	if hc.Active {
+		return nil, types.ErrHostChainActive
+	}
+
+	// check the msg amount denom is the host chain mint denom
+	if msg.Amount.Denom != hc.MintDenom() {
+		return nil, errorsmod.Wrapf(
+			types.ErrInvalidDenom,
+			"expected %s, got %s",
+			hc.MintDenom(),
+			msg.Amount.Denom,
+		)
+	}
+
+	// get the redeem address
+	redeemAddress, err := sdktypes.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "got error : %s", err)
+	}
+
+	// send the redeem amount to the module account
+	err = k.bankKeeper.SendCoinsFromAccountToModule(
+		ctx,
+		redeemAddress,
+		types.ModuleName,
+		sdktypes.NewCoins(msg.Amount))
+	if err != nil {
+		return nil, errorsmod.Wrapf(
+			types.ErrMintFailed,
+			"failed to send deprecated redeemed coins from account %s to module %s: %s",
+			redeemAddress.String(),
+			types.ModuleName,
+			err.Error(),
+		)
+	}
+
+	// amount of tokens to be redeemed
+	stkAmount := msg.Amount
+	redeemAmount := sdktypes.NewDecCoinFromCoin(stkAmount).Amount.Quo(hc.CValue)
+	redeemToken, _ := sdktypes.NewDecCoinFromDec(hc.IBCDenom(), redeemAmount).TruncateDecimal()
+
+	// send the deprecated redeemed token from module to the account,
+	// this will error out if there are insufficient redeemTokens
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(
+		ctx,
+		types.UndelegationModuleAccount,
+		redeemAddress,
+		sdktypes.NewCoins(redeemToken),
+	)
+	if err != nil {
+		return nil, errorsmod.Wrapf(
+			types.ErrRedeemFailed,
+			"failed to send deprecated redeemed coins from module %s to account %s: %s",
+			types.UndelegationModuleAccount,
+			redeemAddress.String(),
+			err.Error(),
+		)
+	}
+
+	// burn the stk tokens
+	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdktypes.NewCoins(stkAmount))
+	if err != nil {
+		return nil, errorsmod.Wrapf(
+			types.ErrBurnFailed,
+			"failed to burn deprecated redeemed coins on module %s: %s",
+			types.ModuleName,
+			err.Error(),
+		)
+	}
+
+	ctx.EventManager().EmitEvents(sdktypes.Events{
+		sdktypes.NewEvent(
+			types.EventTypeRedeemDeprecated,
+			sdktypes.NewAttribute(types.AttributeChainID, hc.ChainId),
+			sdktypes.NewAttribute(types.AttributeDelegatorAddress, redeemAddress.String()),
+			sdktypes.NewAttribute(types.AttributeInputAmount,
+				sdktypes.NewCoin(hc.MintDenom(), msg.Amount.Amount).String()),
+			sdktypes.NewAttribute(types.AttributeOutputAmount,
+				sdktypes.NewCoin(hc.HostDenom, redeemToken.Amount).String()),
+		),
+		sdktypes.NewEvent(
+			sdktypes.EventTypeMessage,
+			sdktypes.NewAttribute(sdktypes.AttributeKeyModule, types.AttributeValueCategory),
+			sdktypes.NewAttribute(sdktypes.AttributeKeySender, msg.DelegatorAddress),
+		),
+	},
+	)
+
+	telemetry.IncrCounter(float32(1), hc.ChainId, "redeem_deprecated")
+
+	return &types.MsgRedeemDeprecatedResponse{}, nil
 }
