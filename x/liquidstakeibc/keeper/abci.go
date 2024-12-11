@@ -21,7 +21,6 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) {
 		if hc.Active {
 			// attempt to delegate
 			k.DoDelegate(ctx, hc)
-
 		}
 
 		// attempt to recreate closed ICA channels

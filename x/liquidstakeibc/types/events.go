@@ -5,6 +5,7 @@ const (
 	EventTypeLiquidStakeLSM                        = "liquid_stake_lsm"
 	EventTypeLiquidUnstake                         = "liquid_unstake"
 	EventTypeRedeem                                = "redeem"
+	EventTypeRedeemDeprecated                      = "redeem_deprecated"
 	EventTypePacket                                = "ics27_packet"
 	EventTypeTimeout                               = "timeout"
 	EventTypeSlashing                              = "validator_slash"
