@@ -24,7 +24,6 @@ const (
 	MsgTypeLiquidUnstake     string = "msg_liquid_unstake"
 	MsgTypeRedeem            string = "msg_redeem"
 	MsgTypeUpdateParams      string = "msg_update_params"
-	MsgTypeRedeemDeprecated  string = "msg_redeem_deprecated"
 )
 
 var (
@@ -34,7 +33,7 @@ var (
 	_ sdk.Msg = &MsgLiquidUnstake{}
 	_ sdk.Msg = &MsgRedeem{}
 	_ sdk.Msg = &MsgLiquidStakeLSM{}
-	_ sdk.Msg = &MsgRedeemDeprecated{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 func NewMsgRegisterHostChain(
@@ -675,56 +674,6 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 	err := m.Params.Validate()
 	if err != nil {
 		return err
-	}
-	return nil
-}
-
-func NewMsgRedeemDeprecated(amount sdk.Coin, address sdk.AccAddress) *MsgRedeemDeprecated {
-	return &MsgRedeemDeprecated{
-		DelegatorAddress: address.String(),
-		Amount:           amount,
-	}
-}
-
-func (m *MsgRedeemDeprecated) Route() string {
-	return RouterKey
-}
-
-// Type should return the action
-func (m *MsgRedeemDeprecated) Type() string {
-	return MsgTypeRedeemDeprecated
-}
-
-// GetSignBytes encodes the message for signing
-func (m *MsgRedeemDeprecated) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgRedeemDeprecated) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.DelegatorAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{acc}
-}
-
-// ValidateBasic performs stateless checks
-func (m *MsgRedeemDeprecated) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(m.DelegatorAddress); err != nil {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, m.DelegatorAddress)
-	}
-
-	if !m.Amount.IsValid() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
-	}
-
-	if !m.Amount.IsPositive() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
-	}
-
-	if !IsLiquidStakingDenom(m.Amount.Denom) {
-		return sdkerrors.ErrInvalidCoins.Wrapf("invalid denom, required stk/{host-denom} got %s", m.Amount.Denom)
 	}
 	return nil
 }
