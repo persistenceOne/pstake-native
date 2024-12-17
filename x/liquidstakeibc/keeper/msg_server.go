@@ -363,7 +363,7 @@ func (k msgServer) UpdateHostChain(
 			if err != nil {
 				return nil, err
 			}
-			_, err = k.SendICATransfer(ctx, hc, amount, hc.DelegationAccount.Address, k.GetUndelegationModuleAccount(ctx).GetAddress().String(), hc.DelegationAccount.Owner)
+			_, err = k.SendICATransfer(ctx, hc, amount, hc.DelegationAccount.Address, k.GetParams(ctx).AdminAddress, hc.DelegationAccount.Owner)
 			if err != nil {
 				return nil, err
 			}
@@ -372,14 +372,22 @@ func (k msgServer) UpdateHostChain(
 			if err != nil {
 				return nil, err
 			}
-			_, err = k.SendICATransfer(ctx, hc, amount, hc.RewardsAccount.Address, k.GetUndelegationModuleAccount(ctx).GetAddress().String(), hc.RewardsAccount.Owner)
+			_, err = k.SendICATransfer(ctx, hc, amount, hc.RewardsAccount.Address, k.GetParams(ctx).AdminAddress, hc.RewardsAccount.Owner)
 			if err != nil {
 				return nil, err
 			}
 		case types.KeyForceTransferDeposits:
 			amount := k.bankKeeper.GetBalance(ctx, k.GetDepositModuleAccount(ctx).GetAddress(), hc.IBCDenom())
 			if amount.IsPositive() {
-				err := k.bankKeeper.SendCoins(ctx, k.GetDepositModuleAccount(ctx).GetAddress(), k.GetUndelegationModuleAccount(ctx).GetAddress(), sdktypes.NewCoins(amount))
+				err := k.bankKeeper.SendCoins(ctx, k.GetDepositModuleAccount(ctx).GetAddress(), sdktypes.MustAccAddressFromBech32(k.GetParams(ctx).AdminAddress), sdktypes.NewCoins(amount))
+				if err != nil {
+					return nil, err
+				}
+			}
+		case types.KeyForceTransferUnbonded:
+			amount := k.bankKeeper.GetBalance(ctx, k.GetUndelegationModuleAccount(ctx).GetAddress(), hc.IBCDenom())
+			if amount.IsPositive() {
+				err := k.bankKeeper.SendCoins(ctx, k.GetUndelegationModuleAccount(ctx).GetAddress(), sdktypes.MustAccAddressFromBech32(k.GetParams(ctx).AdminAddress), sdktypes.NewCoins(amount))
 				if err != nil {
 					return nil, err
 				}

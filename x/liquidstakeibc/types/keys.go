@@ -91,6 +91,7 @@ const (
 	KeyForceICATransfer            string = "force_ica_transfer"
 	KeyForceICATransferRewards     string = "force_ica_transfer_rewards"
 	KeyForceTransferDeposits       string = "force_transfer_deposits"
+	KeyForceTransferUnbonded       string = "force_transfer_unbonded"
 )
 
 var (
