@@ -39,6 +39,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 - [855](https://github.com/persistenceOne/pstake-native/pull/855) Add condition for not allowing zero delegation unbondings icq
+- [900](https://github.com/persistenceOne/pstake-native/pull/900) Add feature to deprecate liquidstakeibc
 
 ## [v2.15.0] - 2024-05-30
 
