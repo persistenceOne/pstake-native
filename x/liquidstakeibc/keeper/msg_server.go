@@ -392,6 +392,15 @@ func (k msgServer) UpdateHostChain(
 					return nil, err
 				}
 			}
+		case types.KeyForceFailUnbond:
+			epochNumber, err := strconv.ParseInt(update.Value, 10, 64)
+			if err != nil {
+				return nil, err
+			}
+			err = k.FailUnbondingsForEpoch(ctx, hc.ChainId, epochNumber)
+			if err != nil {
+				return nil, err
+			}
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}

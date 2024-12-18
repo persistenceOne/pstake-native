@@ -433,6 +433,12 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			if update.Value != "" {
 				return fmt.Errorf("invalid force transfer unbonded, expected \"\" ")
 			}
+		case KeyForceFailUnbond:
+			//expected , "123"
+			_, err := strconv.ParseInt(update.Value, 10, 64)
+			if err != nil {
+				return err
+			}
 		default:
 			return fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}
