@@ -13,6 +13,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/gogoproto/proto"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
@@ -331,7 +332,75 @@ func (k msgServer) UpdateHostChain(
 			if err := k.QueryValidatorDelegationUpdate(ctx, hc, val); err != nil {
 				return nil, fmt.Errorf("unable to send ICQ query for validator delegation update")
 			}
+		case types.KeyForceUnbond:
+			if hc.Active {
+				return nil, fmt.Errorf("cannot force unbond to active host chain")
+			}
+			validator, coin, valid := strings.Cut(update.Value, ",")
+			if !valid {
+				return nil, fmt.Errorf("invalid force unbond value, expected form \"cosmovaloperxx,123denom\" ")
+			}
+			val, found := hc.GetValidator(validator)
+			if !found {
+				return nil, types.ErrValidatorNotFound
+			}
+			amount, err := sdktypes.ParseCoinNormalized(coin)
+			if err != nil {
+				return nil, err
+			}
+			msgUnbond := &stakingtypes.MsgUndelegate{
+				DelegatorAddress: hc.DelegationAccount.Address,
+				ValidatorAddress: val.OperatorAddress,
+				Amount:           amount,
+			}
+			_, err = k.GenerateAndExecuteICATx(ctx, hc.ConnectionId, hc.DelegationAccount.Owner, []proto.Message{msgUnbond})
+			if err != nil {
+				return nil, err
+			}
 
+		case types.KeyForceICATransfer:
+			amount, err := sdktypes.ParseCoinNormalized(update.Value)
+			if err != nil {
+				return nil, err
+			}
+			_, err = k.SendICATransfer(ctx, hc, amount, hc.DelegationAccount.Address, k.GetParams(ctx).AdminAddress, hc.DelegationAccount.Owner)
+			if err != nil {
+				return nil, err
+			}
+		case types.KeyForceICATransferRewards:
+			amount, err := sdktypes.ParseCoinNormalized(update.Value)
+			if err != nil {
+				return nil, err
+			}
+			_, err = k.SendICATransfer(ctx, hc, amount, hc.RewardsAccount.Address, k.GetParams(ctx).AdminAddress, hc.RewardsAccount.Owner)
+			if err != nil {
+				return nil, err
+			}
+		case types.KeyForceTransferDeposits:
+			amount := k.bankKeeper.GetBalance(ctx, k.GetDepositModuleAccount(ctx).GetAddress(), hc.IBCDenom())
+			if amount.IsPositive() {
+				err := k.bankKeeper.SendCoins(ctx, k.GetDepositModuleAccount(ctx).GetAddress(), sdktypes.MustAccAddressFromBech32(k.GetParams(ctx).AdminAddress), sdktypes.NewCoins(amount))
+				if err != nil {
+					return nil, err
+				}
+			}
+		case types.KeyForceTransferUnbonded:
+			amount := k.bankKeeper.GetBalance(ctx, k.GetUndelegationModuleAccount(ctx).GetAddress(), hc.IBCDenom())
+			if amount.IsPositive() {
+				err := k.bankKeeper.SendCoins(ctx, k.GetUndelegationModuleAccount(ctx).GetAddress(), sdktypes.MustAccAddressFromBech32(k.GetParams(ctx).AdminAddress), sdktypes.NewCoins(amount))
+				if err != nil {
+					return nil, err
+				}
+			}
+		case types.KeyForceFailUnbond:
+			epochNumber, err := strconv.ParseInt(update.Value, 10, 64)
+			if err != nil {
+				return nil, err
+			}
+			err = k.FailUnbondingsForEpoch(ctx, hc.ChainId, epochNumber)
+			if err != nil {
+				return nil, err
+			}
 		default:
 			return nil, fmt.Errorf("invalid or unexpected update key: %s", update.Key)
 		}

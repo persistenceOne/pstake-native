@@ -114,8 +114,9 @@ func DelegationCallback(k Keeper, ctx sdk.Context, data []byte, query icqtypes.Q
 		k.SetHostChainValidator(ctx, hc, validator)
 
 		// update the c value for the slashed chain
-		k.UpdateCValue(ctx, hc)
-
+		if hc.Active {
+			k.UpdateCValue(ctx, hc)
+		}
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeSlashing,
