@@ -87,6 +87,7 @@ func (k *Keeper) FailAllUnbondingsForSequenceID(ctx sdk.Context, sequenceID stri
 		k.SetUnbonding(ctx, unbonding)
 	}
 }
+
 func (k *Keeper) FailUnbondingsForEpoch(ctx sdk.Context, chainID string, epochNumber int64) error {
 	unbonding, found := k.GetUnbonding(ctx, chainID, epochNumber)
 	if !found {
@@ -96,6 +97,7 @@ func (k *Keeper) FailUnbondingsForEpoch(ctx sdk.Context, chainID string, epochNu
 	k.SetUnbonding(ctx, unbonding)
 	return nil
 }
+
 func (k *Keeper) RevertUnbondingsState(ctx sdk.Context, unbondings []*types.Unbonding) {
 	for _, unbonding := range unbondings {
 		unbonding.IbcSequenceId = ""
