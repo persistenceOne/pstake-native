@@ -33,6 +33,7 @@ var (
 	_ sdk.Msg = &MsgLiquidUnstake{}
 	_ sdk.Msg = &MsgRedeem{}
 	_ sdk.Msg = &MsgLiquidStakeLSM{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 func NewMsgRegisterHostChain(
@@ -393,6 +394,48 @@ func (m *MsgUpdateHostChain) ValidateBasic() error {
 			}
 		case KeyForceUpdateValidator:
 			_, _, err := bech32.DecodeAndConvert(update.Value)
+			if err != nil {
+				return err
+			}
+		case KeyForceUnbond:
+			// expected "chainvaloper1xxx,1234denom"
+			validator, coin, valid := strings.Cut(update.Value, ",")
+			if !valid {
+				return fmt.Errorf("invalid force unbond value, expected form \"cosmovaloperxx,123denom\" ")
+			}
+			_, _, err := bech32.DecodeAndConvert(validator)
+			if err != nil {
+				return err
+			}
+			_, err = sdk.ParseCoinNormalized(coin)
+			if err != nil {
+				return err
+			}
+		case KeyForceICATransfer:
+			// expected "1234denom"
+			_, err := sdk.ParseCoinNormalized(update.Value)
+			if err != nil {
+				return err
+			}
+		case KeyForceICATransferRewards:
+			// expected "1234denom"
+			_, err := sdk.ParseCoinNormalized(update.Value)
+			if err != nil {
+				return err
+			}
+		case KeyForceTransferDeposits:
+			// expected nothing, ""
+			if update.Value != "" {
+				return fmt.Errorf("invalid force transfer deposits, expected \"\" ")
+			}
+		case KeyForceTransferUnbonded:
+			// expected nothing, ""
+			if update.Value != "" {
+				return fmt.Errorf("invalid force transfer unbonded, expected \"\" ")
+			}
+		case KeyForceFailUnbond:
+			// expected , "123"
+			_, err := strconv.ParseInt(update.Value, 10, 64)
 			if err != nil {
 				return err
 			}
