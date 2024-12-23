@@ -18,16 +18,13 @@ import (
 func (k *Keeper) BeginBlock(ctx sdk.Context) {
 	// perform BeginBlocker tasks for each chain
 	for _, hc := range k.GetAllHostChains(ctx) {
-		if !hc.Active {
-			// don't do anything on inactive chains
-			continue
+		if hc.Active {
+			// attempt to delegate
+			k.DoDelegate(ctx, hc)
 		}
 
 		// attempt to recreate closed ICA channels
 		k.DoRecreateICA(ctx, hc)
-
-		// attempt to delegate
-		k.DoDelegate(ctx, hc)
 
 		// attempt to automatically claim matured undelegations
 		k.DoClaim(ctx, hc)
