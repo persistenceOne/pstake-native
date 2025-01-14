@@ -9,7 +9,6 @@ pub struct InstantiateMsg {
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    AddConfig { base_asset: String, stk_asset: String, exchange_rate: Decimal },
     UpdateConfig { base_asset: String, stk_asset: String, exchange_rate: Decimal },
     Redeem {},
 }
