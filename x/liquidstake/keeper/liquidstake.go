@@ -43,6 +43,7 @@ func (k Keeper) GetNetAmountState(ctx sdk.Context) (nas types.NetAmountState) {
 		TotalRemainingRewards: totalRemainingRewards,
 		TotalUnbondingBalance: totalUnbondingBalance,
 		ProxyAccBalance:       k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc).Amount,
+		AccumulatingRewards:   k.GetAccumulatingRewards(ctx),
 	}
 
 	nas.NetAmount = nas.CalcNetAmount()
@@ -715,6 +716,9 @@ func (k Keeper) LiquidDelegate(ctx sdk.Context, proxyAcc sdk.AccAddress, activeV
 		return types.ErrInvalidActiveLiquidValidators
 	}
 	weightedAmt[0] = weightedAmt[0].Add(crumb)
+
+	acRewards := k.GetAccumulatingRewards(ctx)
+
 	for i, val := range activeVals {
 		if !weightedAmt[i].IsPositive() {
 			continue
@@ -723,6 +727,12 @@ func (k Keeper) LiquidDelegate(ctx sdk.Context, proxyAcc sdk.AccAddress, activeV
 		err = k.DelegateWithCap(ctx, proxyAcc, validator, weightedAmt[i])
 		if err != nil {
 			return errorsmod.Wrapf(err, "failed to delegate to validator %s", val.GetOperator())
+		}
+
+		if weightedAmt[i].GTE(acRewards) {
+			acRewards = sdk.ZeroInt()
+		} else {
+			acRewards = acRewards.Sub(weightedAmt[i])
 		}
 	}
 	return nil
@@ -791,6 +801,15 @@ func (k Keeper) LiquidUnstake(
 			if err != nil {
 				return time.Time{}, sdk.ZeroInt(), []stakingtypes.UnbondingDelegation{}, sdk.ZeroInt(), err
 			}
+
+			// update accumulating rewards
+			acRewards := k.GetAccumulatingRewards(ctx)
+			if unbondingAmountInt.GTE(acRewards) {
+				acRewards = sdk.ZeroInt()
+			} else {
+				acRewards = acRewards.Sub(unbondingAmountInt)
+			}
+			k.SetAccumulatingRewards(ctx, acRewards)
 
 			return time.Time{}, sdk.ZeroInt(), []stakingtypes.UnbondingDelegation{}, unbondingAmountInt, nil
 		}
@@ -987,6 +1006,9 @@ func (k Keeper) CheckDelegationStates(ctx sdk.Context, proxyAcc sdk.AccAddress) 
 }
 
 func (k Keeper) WithdrawLiquidRewards(ctx sdk.Context, proxyAcc sdk.AccAddress) {
+	acRewards := k.GetAccumulatingRewards(ctx)
+	bondDenom := k.stakingKeeper.BondDenom(ctx)
+
 	// iterate over all the delegations (even those out of the active set) and withdraw rewards
 	k.stakingKeeper.IterateDelegations(
 		ctx, proxyAcc,
@@ -1014,6 +1036,18 @@ func (k Keeper) WithdrawLiquidRewards(ctx sdk.Context, proxyAcc sdk.AccAddress) 
 				)
 				// no need to return here, will be picked up in the next epoch
 			} else {
+				var msgWithdrawResponse distributiontypes.MsgWithdrawDelegatorRewardResponse
+				if err := k.cdc.Unmarshal(res.MsgResponses[0].Value, &msgWithdrawResponse); err != nil {
+					k.Logger(ctx).Error(
+						"failed to unmarshal withdraw rewards response",
+						types.ErrorKeyVal,
+						err,
+					)
+				}
+
+				amount := msgWithdrawResponse.Amount.AmountOf(bondDenom)
+				acRewards = acRewards.Add(amount)
+
 				// emit the events
 				ctx.EventManager().EmitEvents(res.GetEvents())
 			}
@@ -1021,6 +1055,8 @@ func (k Keeper) WithdrawLiquidRewards(ctx sdk.Context, proxyAcc sdk.AccAddress) 
 			return false
 		},
 	)
+
+	k.SetAccumulatingRewards(ctx, acRewards)
 }
 
 // GetLiquidValidator get a single liquid validator
