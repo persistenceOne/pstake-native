@@ -1,6 +1,7 @@
 module github.com/persistenceOne/pstake-native/v2
 
 go 1.21
+toolchain go1.24.1
 
 retract (
 	v2.8.0
@@ -35,7 +36,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20231212172506-995d672761c0
 	google.golang.org/grpc v1.60.1
-	google.golang.org/protobuf v1.33.0
+	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v2 v2.4.0
 )
 
