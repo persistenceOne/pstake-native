@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
 )
 
 func (k *Keeper) SetLSMDeposit(ctx sdk.Context, deposit *liquidstakeibctypes.LSMDeposit) {

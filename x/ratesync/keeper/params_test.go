@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/types"
 )
 
 func (suite *IntegrationTestSuite) TestGetParams() {

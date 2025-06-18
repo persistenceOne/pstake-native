@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/types"
 )
 
 // IncrementHostChainID increments and returns a unique ID for an unbonding operation

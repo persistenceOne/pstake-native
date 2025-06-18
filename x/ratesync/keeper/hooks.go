@@ -6,8 +6,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	epochtypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
 
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/types"
 )
 
 // Wrapper struct

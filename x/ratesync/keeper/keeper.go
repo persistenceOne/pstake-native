@@ -13,7 +13,7 @@ import (
 	ibctmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibclocalhosttypes "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/types"
 )
 
 type (

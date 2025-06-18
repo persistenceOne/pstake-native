@@ -5,8 +5,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	persistencetypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
 
-	liquidstaketypes "github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+	liquidstaketypes "github.com/persistenceOne/pstake-native/v3/x/liquidstake/types"
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
 )
 
 type AccountKeeper interface {

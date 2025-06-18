@@ -6,7 +6,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
 )
 
 // QueryHostChainValidator sends an ICQ query to retrieve a specific host chain validator

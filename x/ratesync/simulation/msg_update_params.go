@@ -7,8 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/keeper"
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/keeper"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/types"
 )
 
 func SimulateMsgUpdateParams(

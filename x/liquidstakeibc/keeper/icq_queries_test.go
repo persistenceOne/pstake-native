@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
 )
 
 func (suite *IntegrationTestSuite) TestKeeper_QueryHostChainValidator() {

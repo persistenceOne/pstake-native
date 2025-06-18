@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
 )
 
 func (suite *IntegrationTestSuite) TestGetSetHostChain() {

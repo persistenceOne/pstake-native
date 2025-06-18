@@ -19,9 +19,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/persistenceOne/pstake-native/v2/app"
-	"github.com/persistenceOne/pstake-native/v2/app/helpers"
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v3/app"
+	"github.com/persistenceOne/pstake-native/v3/app/helpers"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
 )
 
 var (

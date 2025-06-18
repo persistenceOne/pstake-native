@@ -13,8 +13,8 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/types"
 )
 
 func (k *Keeper) OnChanOpenAck(

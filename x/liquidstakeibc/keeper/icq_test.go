@@ -5,7 +5,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	icqtypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
 
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/keeper"
 )
 
 func (suite *IntegrationTestSuite) TestValidatorCallback() {

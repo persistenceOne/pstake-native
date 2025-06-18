@@ -8,8 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
+	testhelpers "github.com/persistenceOne/pstake-native/v3/app/helpers"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstake/types"
 )
 
 func (s *KeeperTestSuite) TestRebalancingCase1() {

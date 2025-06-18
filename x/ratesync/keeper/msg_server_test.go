@@ -7,9 +7,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/keeper"
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/keeper"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/types"
 )
 
 func (suite *IntegrationTestSuite) setupMsgServer() (types.MsgServer, context.Context) {

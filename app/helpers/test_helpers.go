@@ -38,8 +38,8 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/require"
 
-	"github.com/persistenceOne/pstake-native/v2/app"
-	appparams "github.com/persistenceOne/pstake-native/v2/app/params"
+	"github.com/persistenceOne/pstake-native/v3/app"
+	appparams "github.com/persistenceOne/pstake-native/v3/app/params"
 )
 
 // SimAppChainID hardcoded chainID for simulation

@@ -6,7 +6,7 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "pstake/lscosmos/v1beta1/lscosmos.proto";
 
-option go_package = "github.com/persistenceOne/pstake-native/v2/x/lscosmos/types";
+option go_package = "github.com/persistenceOne/pstake-native/v3/x/lscosmos/types";
 
 option (gogoproto.equal_all) = true;
 option (gogoproto.stringer_all) = false;

@@ -3,7 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/keeper"
 )
 
 func (suite *IntegrationTestSuite) TestCValueLimits() {

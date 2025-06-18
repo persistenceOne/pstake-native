@@ -7,7 +7,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/keeper"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/keeper"
 )
 
 var _ porttypes.IBCModule = &IBCModule{}

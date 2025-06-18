@@ -17,10 +17,10 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/client"
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/simulation"
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/client"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/keeper"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/simulation"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
 )
 
 var (

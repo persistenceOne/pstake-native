@@ -13,7 +13,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/persistenceOne/pstake-native/v2/x/lscosmos/types"
+	"github.com/persistenceOne/pstake-native/v3/x/lscosmos/types"
 )
 
 var (

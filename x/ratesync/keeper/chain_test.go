@@ -6,9 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/keeper"
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/keeper"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/types"
 )
 
 // Prevent strconv unused error

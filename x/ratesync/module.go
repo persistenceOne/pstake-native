@@ -14,9 +14,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/client/cli"
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/keeper"
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/client/cli"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/keeper"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/types"
 )
 
 var (

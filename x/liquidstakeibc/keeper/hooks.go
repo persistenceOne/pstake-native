@@ -22,7 +22,7 @@ import (
 	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
 	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
 
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
 )
 
 type EpochsHooks struct {
