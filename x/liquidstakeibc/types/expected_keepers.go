@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	persistencetypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
+	persistencetypes "github.com/persistenceOne/persistence-sdk/v3/x/epochs/types"
 )
 
 type AccountKeeper interface {

@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
+	epochstypes "github.com/persistenceOne/persistence-sdk/v3/x/epochs/types"
 
 	liquidstake "github.com/persistenceOne/pstake-native/v3/x/liquidstake/types"
 )

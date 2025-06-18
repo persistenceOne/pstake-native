@@ -9,7 +9,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
-	icqtypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
+	icqtypes "github.com/persistenceOne/persistence-sdk/v3/x/interchainquery/types"
 
 	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
 )

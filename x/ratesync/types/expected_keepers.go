@@ -3,7 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	persistencetypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
+	persistencetypes "github.com/persistenceOne/persistence-sdk/v3/x/epochs/types"
 
 	liquidstaketypes "github.com/persistenceOne/pstake-native/v3/x/liquidstake/types"
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
