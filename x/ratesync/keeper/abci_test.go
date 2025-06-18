@@ -1,6 +1,6 @@
 package keeper_test
 
-import liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
+import liquidstakeibctypes "github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
 
 func (suite *IntegrationTestSuite) TestBeginBlocker() {
 	keeper, ctx := suite.app.RatesyncKeeper, suite.ctx

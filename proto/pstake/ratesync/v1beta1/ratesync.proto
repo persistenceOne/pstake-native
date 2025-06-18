@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "pstake/liquidstakeibc/v1beta1/liquidstakeibc.proto";
 import "amino/amino.proto";
 
-option go_package = "github.com/persistenceOne/pstake-native/v2/x/ratesync/types";
+option go_package = "github.com/persistenceOne/pstake-native/v3/x/ratesync/types";
 
 // HostChain defines the ratesync module's HostChain state.
 message HostChain {

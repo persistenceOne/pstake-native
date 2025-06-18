@@ -1,16 +1,6 @@
-module github.com/persistenceOne/pstake-native/v2
+module github.com/persistenceOne/pstake-native/v3
 
-go 1.21
-
-retract (
-	v2.8.0
-	[v2.7.1, v2.7.2]
-	v2.6.0
-	v2.5.0
-	v2.4.0
-	[v2.3.0, v2.3.3]
-	[v2.2.0, v2.2.3]
-)
+go 1.23
 
 require (
 	cosmossdk.io/api v0.3.1

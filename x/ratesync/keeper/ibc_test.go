@@ -9,8 +9,8 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/keeper"
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/keeper"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync/types"
 )
 
 func (suite *IntegrationTestSuite) TestOnChanOpenAck() {

@@ -7,8 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	testhelpers "github.com/persistenceOne/pstake-native/v2/app/helpers"
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
+	testhelpers "github.com/persistenceOne/pstake-native/v3/app/helpers"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstake/types"
 )
 
 // tests LiquidStake, LiquidUnstake
