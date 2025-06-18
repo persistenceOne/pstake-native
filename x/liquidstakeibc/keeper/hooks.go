@@ -19,8 +19,8 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
-	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
+	epochstypes "github.com/persistenceOne/persistence-sdk/v3/x/epochs/types"
+	ibchookertypes "github.com/persistenceOne/persistence-sdk/v3/x/ibchooker/types"
 
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
 )
