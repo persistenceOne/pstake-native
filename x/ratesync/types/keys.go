@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/binary"
 	"time"
 )
 
@@ -30,12 +29,3 @@ var (
 	HostChainKeyPrefix   = []byte{0x02}
 	ParamsKeyPrefix      = []byte{0x00}
 )
-
-// HostChainKey returns the store key to retrieve a Chain from the index fields
-func HostChainKey(
-	id uint64,
-) []byte {
-	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, id)
-	return bz
-}
