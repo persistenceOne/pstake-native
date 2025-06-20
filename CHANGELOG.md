@@ -36,6 +36,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+- [958](https://github.com/persistenceOne/pstake-native/pull/958) Delete liquidstakeibc, ratesync module code.
+
 ## [v2.16.0] - 2024-12-24
 
 ### Improvements
