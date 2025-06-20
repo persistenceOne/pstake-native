@@ -3,6 +3,7 @@ package ratesync
 import (
 	"context"
 	"encoding/json"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -87,7 +88,6 @@ type AppModule struct {
 
 func NewAppModule(
 	cdc codec.Codec,
-
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
