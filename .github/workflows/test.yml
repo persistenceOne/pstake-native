@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.21.5"
+          go-version: "1.23"
 
       - uses: actions/checkout@v4
 
@@ -51,8 +51,8 @@ jobs:
           excludelist+=" $(find ./ -type f -path './tests/mocks/*.go')"
           excludelist+=" $(find ./ -type f -path './x/lscosmos/*')"
           excludelist+=" $(find ./ -type f -path './x/liquidstake/client/*')"
-          excludelist+=" $(find ./ -type f -path './x/liquidstakeibc/client/*')"
-          excludelist+=" $(find ./ -type f -path './x/ratesync/client/*')"
+          excludelist+=" $(find ./ -type f -path './x/liquidstakeibc/*')"
+          excludelist+=" $(find ./ -type f -path './x/ratesync/*')"
           for filename in ${excludelist}; do
             filename=$(echo $filename | sed 's/^.\///g')
             echo "Excluding ${filename} from coverage report..."
@@ -118,7 +118,7 @@ jobs:
       - name: Setup Go with cache
         uses: magnetikonline/action-golang-cache@v5
         with:
-          go-version: "1.21.5"
+          go-version: "1.23"
         id: go
 
       - name: Checkout repository
@@ -153,7 +153,7 @@ jobs:
       - name: Setup Go with cache
         uses: magnetikonline/action-golang-cache@v5
         with:
-          go-version: "1.21.5"
+          go-version: "1.23"
         id: go
 
       - name: Checkout repository

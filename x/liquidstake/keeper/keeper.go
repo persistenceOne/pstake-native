@@ -9,7 +9,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstake/types"
 )
 
 // Keeper of the liquidstake store

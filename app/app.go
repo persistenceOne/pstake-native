@@ -98,8 +98,6 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	ibcfee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
-	ibcfeekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
 	ibcfeetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
@@ -113,30 +111,24 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 	"github.com/gorilla/mux"
-	"github.com/persistenceOne/persistence-sdk/v2/x/epochs"
-	epochskeeper "github.com/persistenceOne/persistence-sdk/v2/x/epochs/keeper"
-	epochstypes "github.com/persistenceOne/persistence-sdk/v2/x/epochs/types"
-	"github.com/persistenceOne/persistence-sdk/v2/x/ibchooker"
-	ibchookerkeeper "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/keeper"
-	ibchookertypes "github.com/persistenceOne/persistence-sdk/v2/x/ibchooker/types"
-	"github.com/persistenceOne/persistence-sdk/v2/x/interchainquery"
-	interchainquerykeeper "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/keeper"
-	interchainquerytypes "github.com/persistenceOne/persistence-sdk/v2/x/interchainquery/types"
+	"github.com/persistenceOne/persistence-sdk/v3/x/epochs"
+	epochskeeper "github.com/persistenceOne/persistence-sdk/v3/x/epochs/keeper"
+	epochstypes "github.com/persistenceOne/persistence-sdk/v3/x/epochs/types"
+	"github.com/persistenceOne/persistence-sdk/v3/x/interchainquery"
+	interchainquerytypes "github.com/persistenceOne/persistence-sdk/v3/x/interchainquery/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 
-	pstakeante "github.com/persistenceOne/pstake-native/v2/ante"
-	pstakeappparams "github.com/persistenceOne/pstake-native/v2/app/params"
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstake"
-	liquidstakekeeper "github.com/persistenceOne/pstake-native/v2/x/liquidstake/keeper"
-	liquidstaketypes "github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc"
-	liquidstakeibckeeper "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/keeper"
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
-	"github.com/persistenceOne/pstake-native/v2/x/lscosmos"
-	"github.com/persistenceOne/pstake-native/v2/x/ratesync"
-	ratesynckeeper "github.com/persistenceOne/pstake-native/v2/x/ratesync/keeper"
-	ratesynctypes "github.com/persistenceOne/pstake-native/v2/x/ratesync/types"
+	pstakeante "github.com/persistenceOne/pstake-native/v3/ante"
+	pstakeappparams "github.com/persistenceOne/pstake-native/v3/app/params"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstake"
+	liquidstakekeeper "github.com/persistenceOne/pstake-native/v3/x/liquidstake/keeper"
+	liquidstaketypes "github.com/persistenceOne/pstake-native/v3/x/liquidstake/types"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc"
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v3/x/lscosmos"
+	"github.com/persistenceOne/pstake-native/v3/x/ratesync"
+	ratesynctypes "github.com/persistenceOne/pstake-native/v3/x/ratesync/types"
 )
 
 var (
@@ -171,8 +163,6 @@ var (
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
-		ibchooker.AppModuleBasic{},
-		ibcfee.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		epochs.AppModuleBasic{},
@@ -187,25 +177,19 @@ var (
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		authtypes.FeeCollectorName:                    nil,
-		distrtypes.ModuleName:                         nil,
-		icatypes.ModuleName:                           nil,
-		minttypes.ModuleName:                          {authtypes.Minter},
-		stakingtypes.BondedPoolName:                   {authtypes.Burner, authtypes.Staking},
-		stakingtypes.NotBondedPoolName:                {authtypes.Burner, authtypes.Staking},
-		govtypes.ModuleName:                           {authtypes.Burner},
-		ibctransfertypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
-		ibcfeetypes.ModuleName:                        nil,
-		liquidstakeibctypes.ModuleName:                {authtypes.Minter, authtypes.Burner},
-		liquidstakeibctypes.DepositModuleAccount:      nil,
-		liquidstakeibctypes.UndelegationModuleAccount: {authtypes.Burner},
-		liquidstaketypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
+		authtypes.FeeCollectorName:     nil,
+		distrtypes.ModuleName:          nil,
+		icatypes.ModuleName:            nil,
+		minttypes.ModuleName:           {authtypes.Minter},
+		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
+		govtypes.ModuleName:            {authtypes.Burner},
+		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		liquidstaketypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	}
 
 	receiveAllowedMAcc = map[string]bool{
-		liquidstakeibctypes.DepositModuleAccount:      true,
-		liquidstakeibctypes.UndelegationModuleAccount: true,
-		liquidstaketypes.ModuleName:                   true,
+		liquidstaketypes.ModuleName: true,
 	}
 )
 
@@ -245,20 +229,15 @@ type PstakeApp struct {
 	ParamsKeeper          paramskeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	// IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	IBCKeeper             *ibckeeper.Keeper
-	IBCFeeKeeper          ibcfeekeeper.Keeper
-	ICAHostKeeper         icahostkeeper.Keeper
-	ICAControllerKeeper   icacontrollerkeeper.Keeper
-	EvidenceKeeper        evidencekeeper.Keeper
-	TransferKeeper        ibctransferkeeper.Keeper
-	TransferHooksKeeper   ibchookerkeeper.Keeper
-	FeeGrantKeeper        feegrantkeeper.Keeper
-	AuthzKeeper           authzkeeper.Keeper
-	EpochsKeeper          *epochskeeper.Keeper
-	InterchainQueryKeeper interchainquerykeeper.Keeper
-	LiquidStakeIBCKeeper  liquidstakeibckeeper.Keeper
-	LiquidStakeKeeper     liquidstakekeeper.Keeper
-	RatesyncKeeper        *ratesynckeeper.Keeper
+	IBCKeeper           *ibckeeper.Keeper
+	ICAHostKeeper       icahostkeeper.Keeper
+	ICAControllerKeeper icacontrollerkeeper.Keeper
+	EvidenceKeeper      evidencekeeper.Keeper
+	TransferKeeper      ibctransferkeeper.Keeper
+	FeeGrantKeeper      feegrantkeeper.Keeper
+	AuthzKeeper         authzkeeper.Keeper
+	EpochsKeeper        *epochskeeper.Keeper
+	LiquidStakeKeeper   liquidstakekeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -310,9 +289,8 @@ func NewpStakeApp(
 		govtypes.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey, icahosttypes.StoreKey,
-		icacontrollertypes.StoreKey, epochstypes.StoreKey, interchainquerytypes.StoreKey,
-		ibcfeetypes.StoreKey, liquidstakeibctypes.StoreKey, liquidstaketypes.StoreKey, consensusparamtypes.StoreKey,
-		ratesynctypes.StoreKey,
+		icacontrollertypes.StoreKey, epochstypes.StoreKey,
+		liquidstaketypes.StoreKey, consensusparamtypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -449,19 +427,11 @@ func NewpStakeApp(
 		scopedIBCKeeper,
 	)
 
-	// IBC Fee Module keeper
-	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
-		appCodec, keys[ibcfeetypes.StoreKey],
-		app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
-		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
-	)
-
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
 		app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCFeeKeeper,
+		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
 		app.AccountKeeper,
@@ -474,14 +444,14 @@ func NewpStakeApp(
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 		appCodec, keys[icacontrollertypes.StoreKey],
 		app.GetSubspace(icacontrollertypes.SubModuleName),
-		app.IBCFeeKeeper, // may be replaced with middleware such as ics29 fee
+		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
 		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		scopedICAControllerKeeper, app.MsgServiceRouter(),
 	)
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec, keys[icahosttypes.StoreKey],
 		app.GetSubspace(icahosttypes.SubModuleName),
-		app.IBCFeeKeeper,
+		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
 		app.AccountKeeper,
@@ -489,62 +459,19 @@ func NewpStakeApp(
 		app.MsgServiceRouter(),
 	)
 
-	// icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
-
-	app.InterchainQueryKeeper = interchainquerykeeper.NewKeeper(appCodec, keys[interchainquerytypes.StoreKey], app.IBCKeeper)
-	interchainQueryModule := interchainquery.NewAppModule(appCodec, app.InterchainQueryKeeper)
-
-	app.LiquidStakeIBCKeeper = liquidstakeibckeeper.NewKeeper(
-		appCodec,
-		keys[liquidstakeibctypes.StoreKey],
-		app.AccountKeeper,
-		app.BankKeeper,
-		app.EpochsKeeper,
-		app.ICAControllerKeeper,
-		app.IBCKeeper, // TODO: Move to module interface
-		app.TransferKeeper,
-		&app.InterchainQueryKeeper,
-		app.GetSubspace(liquidstakeibctypes.ModuleName),
-		app.MsgServiceRouter(),
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
-
-	app.RatesyncKeeper = ratesynckeeper.NewKeeper(appCodec, keys[ratesynctypes.StoreKey],
-		app.EpochsKeeper, app.LiquidStakeKeeper, app.ICAControllerKeeper, app.IBCKeeper,
-		app.MsgServiceRouter(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
-
-	app.LiquidStakeIBCKeeper = *app.LiquidStakeIBCKeeper.SetHooks(liquidstakeibctypes.NewMultiLiquidStakeIBCHooks(
-		app.RatesyncKeeper.LiquidStakeIBCHooks()))
-
-	_ = app.InterchainQueryKeeper.SetCallbackHandler(liquidstakeibctypes.ModuleName, app.LiquidStakeIBCKeeper.CallbackHandler())
-
-	liquidStakeIBCModule := liquidstakeibc.NewIBCModule(app.LiquidStakeIBCKeeper)
-
-	ibcTransferHooksKeeper := ibchookerkeeper.NewKeeper()
-	app.TransferHooksKeeper = *ibcTransferHooksKeeper.SetHooks(
-		ibchookertypes.NewMultiStakingHooks(
-			app.LiquidStakeIBCKeeper.NewIBCTransferHooks(),
-		),
-	)
+	//icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
 
 	var transferStack porttypes.IBCModule = transfer.NewIBCModule(app.TransferKeeper)
-	transferStack = ibchooker.NewAppModule(app.TransferHooksKeeper, transferStack)
-	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 
 	var icaHostStack porttypes.IBCModule = icahost.NewIBCModule(app.ICAHostKeeper)
-	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
 
-	var icaControllerStack porttypes.IBCModule = liquidStakeIBCModule
-	icaControllerStack = ratesync.NewIBCModule(icaControllerStack, *app.RatesyncKeeper)
-	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
+	var icaControllerStack porttypes.IBCModule = icacontroller.NewIBCMiddleware(nil, app.ICAControllerKeeper)
 
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.
 		AddRoute(ibctransfertypes.ModuleName, transferStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostStack).
-		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-		AddRoute(liquidstakeibctypes.ModuleName, icaControllerStack).
-		AddRoute(ratesynctypes.ModuleName, icaControllerStack)
+		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -589,9 +516,7 @@ func NewpStakeApp(
 
 	app.EpochsKeeper.SetHooks(
 		epochstypes.NewMultiEpochHooks(
-			app.LiquidStakeIBCKeeper.NewEpochHooks(),
 			app.LiquidStakeKeeper.EpochHooks(),
-			app.RatesyncKeeper.EpochHooks(),
 		),
 	)
 
@@ -624,13 +549,8 @@ func NewpStakeApp(
 		params.NewAppModule(app.ParamsKeeper),
 		epochs.NewAppModule(*app.EpochsKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
-		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
-		// ibchooker.NewAppModule(),
-		interchainQueryModule,
-		liquidstakeibc.NewAppModule(app.LiquidStakeIBCKeeper),
 		liquidstake.NewAppModule(app.LiquidStakeKeeper),
-		ratesync.NewAppModule(appCodec, *app.RatesyncKeeper, app.AccountKeeper, app.BankKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 	)
 
@@ -648,7 +568,6 @@ func NewpStakeApp(
 		stakingtypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
-		ibcfeetypes.ModuleName,
 		icatypes.ModuleName,
 		epochstypes.ModuleName,
 		authtypes.ModuleName,
@@ -662,18 +581,13 @@ func NewpStakeApp(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
-		ibchookertypes.ModuleName, // Noop
-		interchainquerytypes.ModuleName,
-		liquidstakeibctypes.ModuleName,
 		liquidstaketypes.ModuleName,
-		ratesynctypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
-		ibcfeetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
 		icatypes.ModuleName,
@@ -691,11 +605,7 @@ func NewpStakeApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-		ibchookertypes.ModuleName, // Noop
-		interchainquerytypes.ModuleName,
-		liquidstakeibctypes.ModuleName,
 		liquidstaketypes.ModuleName,
-		ratesynctypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -715,7 +625,6 @@ func NewpStakeApp(
 		govtypes.ModuleName,
 		minttypes.ModuleName,
 		crisistypes.ModuleName,
-		ibcfeetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
 		icatypes.ModuleName,
@@ -727,11 +636,7 @@ func NewpStakeApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-		ibchookertypes.ModuleName, // Noop
-		interchainquerytypes.ModuleName,
-		liquidstakeibctypes.ModuleName,
 		liquidstaketypes.ModuleName,
-		ratesynctypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -1022,53 +927,6 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		UpgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			for _, hc := range app.LiquidStakeIBCKeeper.GetAllHostChains(ctx) {
-				switch hc.ChainId {
-				case "cosmoshub-4":
-					upperLimit, _ := sdk.NewDecFromStr("1.01")
-					lowerLimit, _ := sdk.NewDecFromStr("0.80")
-					hc.Params.UpperCValueLimit = upperLimit
-					hc.Params.LowerCValueLimit = lowerLimit
-					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-
-				case "osmosis-1":
-					upperLimit, _ := sdk.NewDecFromStr("1.01")
-					lowerLimit, _ := sdk.NewDecFromStr("0.97")
-					hc.Params.UpperCValueLimit = upperLimit
-					hc.Params.LowerCValueLimit = lowerLimit
-					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-
-				case "theta-testnet-001":
-					upperLimit, _ := sdk.NewDecFromStr("1.01")
-					lowerLimit, _ := sdk.NewDecFromStr("0.9")
-					hc.Params.UpperCValueLimit = upperLimit
-					hc.Params.LowerCValueLimit = lowerLimit
-					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-
-				case "osmo-test-5":
-					upperLimit, _ := sdk.NewDecFromStr("1.01")
-					lowerLimit, _ := sdk.NewDecFromStr("0.95")
-					hc.Params.UpperCValueLimit = upperLimit
-					hc.Params.LowerCValueLimit = lowerLimit
-					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-
-				case "dydx-test-4":
-					upperLimit, _ := sdk.NewDecFromStr("1.01")
-					lowerLimit, _ := sdk.NewDecFromStr("0.95")
-					hc.Params.UpperCValueLimit = upperLimit
-					hc.Params.LowerCValueLimit = lowerLimit
-					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-
-				case "gaia-1":
-					upperLimit, _ := sdk.NewDecFromStr("1.01")
-					lowerLimit, _ := sdk.NewDecFromStr("0.95")
-					hc.Params.UpperCValueLimit = upperLimit
-					hc.Params.LowerCValueLimit = lowerLimit
-					app.LiquidStakeIBCKeeper.SetHostChain(ctx, hc)
-
-				}
-			}
-
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
@@ -1081,7 +939,7 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 	if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
 			Added:   []string{},
-			Deleted: []string{},
+			Deleted: []string{ratesynctypes.StoreKey, liquidstakeibctypes.StoreKey, interchainquerytypes.StoreKey, ibcfeetypes.StoreKey},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades

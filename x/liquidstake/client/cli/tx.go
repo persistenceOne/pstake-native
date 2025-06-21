@@ -16,7 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
-	"github.com/persistenceOne/pstake-native/v2/x/liquidstake/types"
+	"github.com/persistenceOne/pstake-native/v3/x/liquidstake/types"
 )
 
 // GetTxCmd returns a root CLI command handler for all x/liquidstake transaction commands.

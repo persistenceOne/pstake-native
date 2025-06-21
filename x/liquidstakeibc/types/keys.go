@@ -1,7 +1,6 @@
 package types
 
 import (
-	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -108,31 +107,3 @@ var (
 )
 
 var MaxFee = sdk.MustNewDecFromStr("0.5")
-
-func GetUnbondingStoreKey(chainID string, epochNumber int64) []byte {
-	return append([]byte(chainID), []byte(strconv.FormatInt(epochNumber, 10))...)
-}
-
-func GetUserUnbondingStoreKey(chainID, delegatorAddress string, epochNumber int64) []byte {
-	return append([]byte(chainID), append([]byte(delegatorAddress), []byte(strconv.FormatInt(epochNumber, 10))...)...)
-}
-
-func GetValidatorUnbondingStoreKey(chainID, validatorAddress string, epochNumber int64) []byte {
-	return append([]byte(chainID), append([]byte(validatorAddress), []byte(strconv.FormatInt(epochNumber, 10))...)...)
-}
-
-func GetDepositStoreKey(chainID string, epochNumber int64) []byte {
-	return append([]byte(chainID), []byte(strconv.FormatInt(epochNumber, 10))...)
-}
-
-func GetLSMDepositStoreKey(chainID, delegatorAddress, denom string) []byte {
-	return append(append([]byte(chainID), []byte(delegatorAddress)...), []byte(denom)...)
-}
-
-func GetRedelegationsStoreKey(chainID string) []byte {
-	return []byte(chainID)
-}
-
-func GetRedelegationTxStoreKey(chainID, ibcSequenceID string) []byte {
-	return append([]byte(chainID), []byte(ibcSequenceID)...)
-}

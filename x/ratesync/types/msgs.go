@@ -1,11 +1,7 @@
 package types
 
 import (
-	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v2/x/liquidstakeibc/types"
 )
 
 const TypeMsgUpdateParams = "msg_update_params"
@@ -16,13 +12,6 @@ const (
 )
 
 var _ sdk.Msg = &MsgUpdateParams{}
-
-func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
-	return &MsgUpdateParams{
-		Authority: authority,
-		Params:    params,
-	}
-}
 
 func (msg *MsgUpdateParams) Route() string {
 	return RouterKey
@@ -46,24 +35,10 @@ func (msg *MsgUpdateParams) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateParams) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
-	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
-	}
-	return msg.Params.Validate()
+	return nil
 }
 
 var _ sdk.Msg = &MsgCreateHostChain{}
-
-func NewMsgCreateHostChain(
-	authority string,
-	hc HostChain,
-) *MsgCreateHostChain {
-	return &MsgCreateHostChain{
-		Authority: authority,
-		HostChain: hc,
-	}
-}
 
 func (msg *MsgCreateHostChain) Route() string {
 	return RouterKey
@@ -87,38 +62,10 @@ func (msg *MsgCreateHostChain) GetSignBytes() []byte {
 }
 
 func (msg *MsgCreateHostChain) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
-	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
-	}
-	err = msg.HostChain.ValidateBasic()
-	if err != nil {
-		return err
-	}
-
-	if msg.HostChain.ID != 0 {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "hostchain ID for create msg should be 0")
-	}
-	if msg.HostChain.ICAAccount.Owner != "" {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "owner should not be specified as app uses default")
-	}
-	if msg.HostChain.ICAAccount.ChannelState != liquidstakeibctypes.ICAAccount_ICA_CHANNEL_CREATING {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "channel state should be creating")
-	}
 	return nil
 }
 
 var _ sdk.Msg = &MsgUpdateHostChain{}
-
-func NewMsgUpdateHostChain(
-	creator string,
-	hc HostChain,
-) *MsgUpdateHostChain {
-	return &MsgUpdateHostChain{
-		Authority: creator,
-		HostChain: hc,
-	}
-}
 
 func (msg *MsgUpdateHostChain) Route() string {
 	return RouterKey
@@ -142,34 +89,10 @@ func (msg *MsgUpdateHostChain) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateHostChain) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
-	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
-	}
-
-	err = msg.HostChain.ValidateBasic()
-	if err != nil {
-		return err
-	}
-
-	if msg.HostChain.ID == 0 {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "hostchain ID for update msg should not be 0")
-	}
-
 	return nil
 }
 
 var _ sdk.Msg = &MsgDeleteHostChain{}
-
-func NewMsgDeleteHostChain(
-	creator string,
-	id uint64,
-) *MsgDeleteHostChain {
-	return &MsgDeleteHostChain{
-		Authority: creator,
-		ID:        id,
-	}
-}
 
 func (msg *MsgDeleteHostChain) Route() string {
 	return RouterKey
@@ -193,13 +116,5 @@ func (msg *MsgDeleteHostChain) GetSignBytes() []byte {
 }
 
 func (msg *MsgDeleteHostChain) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
-	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
-	}
-	if msg.ID == 0 {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "hostchain ID for delete msg should not be 0")
-	}
-
 	return nil
 }

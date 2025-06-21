@@ -36,7 +36,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/persistenceOne/pstake-native/v2/app/params"
+	"github.com/persistenceOne/pstake-native/v3/app/params"
 )
 
 var (
