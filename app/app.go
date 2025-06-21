@@ -458,8 +458,9 @@ func NewpStakeApp(
 		scopedICAHostKeeper,
 		app.MsgServiceRouter(),
 	)
+	app.ICAHostKeeper.WithQueryRouter(app.GRPCQueryRouter())
 
-	// icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
+	icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
 
 	var transferStack porttypes.IBCModule = transfer.NewIBCModule(app.TransferKeeper)
 
@@ -552,6 +553,7 @@ func NewpStakeApp(
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		liquidstake.NewAppModule(app.LiquidStakeKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
+		icaModule,
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
