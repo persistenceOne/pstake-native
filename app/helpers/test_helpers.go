@@ -73,7 +73,7 @@ func newTestApp(t *testing.T, isCheckTx, _ bool) app.PstakeApp {
 func CreateTestApp(t *testing.T) (*codec.LegacyAmino, app.PstakeApp, sdk.Context) {
 	t.Helper()
 	testApp := newTestApp(t, false, false)
-	ctx := testApp.BaseApp.NewContext(false, tmproto.Header{})
+	ctx := testApp.NewContext(false, tmproto.Header{})
 
 	return testApp.LegacyAmino(), testApp, ctx
 }
@@ -395,7 +395,7 @@ func TestAddr(addr, bech string) (sdk.AccAddress, error) {
 // CheckBalance checks the balance of an account.
 func CheckBalance(t *testing.T, app *app.PstakeApp, addr sdk.AccAddress, balances sdk.Coins) {
 	t.Helper()
-	ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
+	ctxCheck := app.NewContext(true, tmproto.Header{})
 	require.True(t, balances.IsEqual(app.BankKeeper.GetAllBalances(ctxCheck, addr)))
 }
 

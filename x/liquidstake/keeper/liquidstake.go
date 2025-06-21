@@ -1054,7 +1054,7 @@ func (k Keeper) GetAllLiquidValidators(ctx sdk.Context) (vals types.LiquidValida
 	store := ctx.KVStore(k.storeKey)
 	vals = types.LiquidValidators{}
 	iterator := sdk.KVStorePrefixIterator(store, types.LiquidValidatorsKey)
-	defer iterator.Close()
+	defer iterator.Close() //nolint:errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		val := types.MustUnmarshalLiquidValidator(k.cdc, iterator.Value())
@@ -1068,7 +1068,7 @@ func (k Keeper) GetAllLiquidValidators(ctx sdk.Context) (vals types.LiquidValida
 func (k Keeper) GetActiveLiquidValidators(ctx sdk.Context, whitelistedValsMap types.WhitelistedValsMap) (vals types.ActiveLiquidValidators) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.LiquidValidatorsKey)
-	defer iterator.Close()
+	defer iterator.Close() //nolint:errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		val := types.MustUnmarshalLiquidValidator(k.cdc, iterator.Value())
