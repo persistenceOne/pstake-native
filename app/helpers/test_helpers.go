@@ -328,8 +328,8 @@ func AddTestAddrs(app *app.PstakeApp, ctx sdk.Context, accNum int, accAmt math.I
 	return addTestAddrs(app, ctx, accNum, accAmt, createRandomAccounts)
 }
 
-// AddTestAddrs constructs and returns accNum amount of accounts with an
-// initial balance of accAmt in random order
+// AddTestAddrsIncremental constructs and returns accNum amount of accounts with an
+// initial balance of accAmt in ascending order
 func AddTestAddrsIncremental(app *app.PstakeApp, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
 	return addTestAddrs(app, ctx, accNum, accAmt, createIncrementalAccounts)
 }
