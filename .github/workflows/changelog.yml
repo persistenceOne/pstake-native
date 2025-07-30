@@ -1,0 +1,22 @@
+name: Auto Changelog
+
+on:
+  pull_request:
+    types: [opened, synchronize, edited]
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Update Changelog
+        uses: puneet2019/pr-auto-changelog@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
