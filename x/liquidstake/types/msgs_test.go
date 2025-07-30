@@ -148,3 +148,78 @@ func TestMsgStakeToLP(t *testing.T) {
 		}
 	}
 }
+
+func TestMsgSetModulePaused(t *testing.T) {
+	authorityAddr := sdk.AccAddress(crypto.AddressHash([]byte("authorityAddr")))
+
+	testCases := []struct {
+		expectedErr string
+		msg         *types.MsgSetModulePaused
+	}{
+		{
+			"", // empty means no error expected
+			types.NewMsgSetModulePaused(authorityAddr, true),
+		},
+		{
+			"", // empty means no error expected
+			types.NewMsgSetModulePaused(authorityAddr, false),
+		},
+		{
+			"invalid authority address \"\": empty address string is not allowed: invalid address",
+			types.NewMsgSetModulePaused(sdk.AccAddress{}, true),
+		},
+	}
+
+	for _, tc := range testCases {
+		require.IsType(t, &types.MsgSetModulePaused{}, tc.msg)
+		require.Equal(t, types.MsgTypeSetModulePaused, tc.msg.Type())
+		require.Equal(t, types.RouterKey, tc.msg.Route())
+		require.Equal(t, sdk.MustSortJSON(types.ModuleCdc.MustMarshalJSON(tc.msg)), tc.msg.GetSignBytes())
+
+		err := tc.msg.ValidateBasic()
+		if tc.expectedErr == "" {
+			require.Nil(t, err)
+			signers := tc.msg.GetSigners()
+			require.Len(t, signers, 1)
+			require.Equal(t, tc.msg.Authority, signers[0].String())
+		} else {
+			require.EqualError(t, err, tc.expectedErr)
+		}
+	}
+}
+
+func TestMsgUpdateParams(t *testing.T) {
+	authorityAddr := sdk.AccAddress(crypto.AddressHash([]byte("authorityAddr")))
+	validParams := types.DefaultParams()
+
+	testCases := []struct {
+		expectedErr string
+		msg         *types.MsgUpdateParams
+	}{
+		{
+			"", // empty means no error expected
+			types.NewMsgUpdateParams(authorityAddr, validParams),
+		},
+		{
+			"invalid authority address \"\": empty address string is not allowed: invalid address",
+			types.NewMsgUpdateParams(sdk.AccAddress{}, validParams),
+		},
+	}
+
+	for _, tc := range testCases {
+		require.IsType(t, &types.MsgUpdateParams{}, tc.msg)
+		require.Equal(t, types.MsgTypeUpdateParams, tc.msg.Type())
+		require.Equal(t, types.RouterKey, tc.msg.Route())
+		require.Equal(t, sdk.MustSortJSON(types.ModuleCdc.MustMarshalJSON(tc.msg)), tc.msg.GetSignBytes())
+
+		err := tc.msg.ValidateBasic()
+		if tc.expectedErr == "" {
+			require.Nil(t, err)
+			signers := tc.msg.GetSigners()
+			require.Len(t, signers, 1)
+			require.Equal(t, tc.msg.Authority, signers[0].String())
+		} else {
+			require.EqualError(t, err, tc.expectedErr)
+		}
+	}
+}
