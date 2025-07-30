@@ -34,7 +34,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## Unreleased
+## [Unreleased]
+
+
+### Features
+
+- **ci**: use ci to autogenerate changelog ([#974](https://github.com/persistenceOne/pstake-native/pull/974))
+
+## [v3.0.0]
+
+### Deleted 
 
 - [958](https://github.com/persistenceOne/pstake-native/pull/958) Delete liquidstakeibc, ratesync module code.
 
