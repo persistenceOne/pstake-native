@@ -25,5 +25,17 @@ cd pstake-native
 make install   
 ```
 
+## Contributing
+
+### Pull Requests and Changelog
+
+We use an automated system to generate changelog entries from pull requests. When creating a PR:
+
+1. Check the `auto-generate changelog` checkbox in your PR description to include your PR in the changelog.
+2. Use conventional commit format in your PR title (e.g., `feat: add feature`, `fix: fix bug`) for automatic categorization.
+3. Alternatively, add a custom entry in your PR description using the format `/changelog: Your custom entry here`.
+
+The changelog will be automatically updated when your PR is created or edited.
+
 Feel free to reach out if you have any questions, feedback, or if you'd like to contribute to this project. Let's make
 liquid-staking a seamless experience!
