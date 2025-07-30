@@ -17,6 +17,6 @@ jobs:
           fetch-depth: 0
 
       - name: Update Changelog
-        uses: puneet2019/pr-auto-changelog@v1
+        uses: puneet2019/pr-auto-changelog@v1.0.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
