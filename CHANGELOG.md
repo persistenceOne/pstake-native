@@ -41,6 +41,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - **ci**: use ci to autogenerate changelog ([#974](https://github.com/persistenceOne/pstake-native/pull/974))
 
+### Bug Fixes
+
+- **ci**: update test-coverage ([#975](https://github.com/persistenceOne/pstake-native/pull/975))
+
 ## [v3.0.0]
 
 ### Deleted 
