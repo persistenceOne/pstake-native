@@ -16,7 +16,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/persistenceOne/persistence-sdk/v3 v3.0.0
+	github.com/persistenceOne/persistence-sdk/v3 v3.1.0
 	github.com/rakyll/statik v0.1.7
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.1
@@ -24,7 +24,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1
 	google.golang.org/grpc v1.68.0
-	google.golang.org/protobuf v1.36.3
+	google.golang.org/protobuf v1.36.7
 )
 
 require (
