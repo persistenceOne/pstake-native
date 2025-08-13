@@ -13,7 +13,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v4/x/liquidstakeibc/types"
 )
 
 var (

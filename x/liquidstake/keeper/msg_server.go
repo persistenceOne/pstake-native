@@ -17,7 +17,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/persistenceOne/pstake-native/v3/x/liquidstake/types"
+	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
 )
 
 type msgServer struct {

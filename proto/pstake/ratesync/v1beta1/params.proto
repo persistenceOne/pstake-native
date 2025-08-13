@@ -4,7 +4,7 @@ package pstake.ratesync.v1beta1;
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 
-option go_package = "github.com/persistenceOne/pstake-native/v3/x/ratesync/types";
+option go_package = "github.com/persistenceOne/pstake-native/v4/x/ratesync/types";
 
 // Params defines the parameters for the module.
 message Params {

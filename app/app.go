@@ -119,16 +119,16 @@ import (
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 
-	pstakeante "github.com/persistenceOne/pstake-native/v3/ante"
-	pstakeappparams "github.com/persistenceOne/pstake-native/v3/app/params"
-	"github.com/persistenceOne/pstake-native/v3/x/liquidstake"
-	liquidstakekeeper "github.com/persistenceOne/pstake-native/v3/x/liquidstake/keeper"
-	liquidstaketypes "github.com/persistenceOne/pstake-native/v3/x/liquidstake/types"
-	"github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc"
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v3/x/liquidstakeibc/types"
-	"github.com/persistenceOne/pstake-native/v3/x/lscosmos"
-	"github.com/persistenceOne/pstake-native/v3/x/ratesync"
-	ratesynctypes "github.com/persistenceOne/pstake-native/v3/x/ratesync/types"
+	pstakeante "github.com/persistenceOne/pstake-native/v4/ante"
+	pstakeappparams "github.com/persistenceOne/pstake-native/v4/app/params"
+	"github.com/persistenceOne/pstake-native/v4/x/liquidstake"
+	liquidstakekeeper "github.com/persistenceOne/pstake-native/v4/x/liquidstake/keeper"
+	liquidstaketypes "github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
+	"github.com/persistenceOne/pstake-native/v4/x/liquidstakeibc"
+	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v4/x/liquidstakeibc/types"
+	"github.com/persistenceOne/pstake-native/v4/x/lscosmos"
+	"github.com/persistenceOne/pstake-native/v4/x/ratesync"
+	ratesynctypes "github.com/persistenceOne/pstake-native/v4/x/ratesync/types"
 )
 
 var (
