@@ -98,7 +98,6 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	ibcfeetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -115,7 +114,6 @@ import (
 	epochskeeper "github.com/persistenceOne/persistence-sdk/v3/x/epochs/keeper"
 	epochstypes "github.com/persistenceOne/persistence-sdk/v3/x/epochs/types"
 	"github.com/persistenceOne/persistence-sdk/v3/x/interchainquery"
-	interchainquerytypes "github.com/persistenceOne/persistence-sdk/v3/x/interchainquery/types"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 
@@ -124,11 +122,6 @@ import (
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake"
 	liquidstakekeeper "github.com/persistenceOne/pstake-native/v4/x/liquidstake/keeper"
 	liquidstaketypes "github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
-	"github.com/persistenceOne/pstake-native/v4/x/liquidstakeibc"
-	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v4/x/liquidstakeibc/types"
-	"github.com/persistenceOne/pstake-native/v4/x/lscosmos"
-	"github.com/persistenceOne/pstake-native/v4/x/ratesync"
-	ratesynctypes "github.com/persistenceOne/pstake-native/v4/x/ratesync/types"
 )
 
 var (
@@ -167,10 +160,7 @@ var (
 		ica.AppModuleBasic{},
 		epochs.AppModuleBasic{},
 		interchainquery.AppModuleBasic{},
-		lscosmos.AppModuleBasic{},
-		liquidstakeibc.AppModuleBasic{},
 		liquidstake.AppModuleBasic{},
-		ratesync.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 		wasm.AppModuleBasic{},
 	)
@@ -941,7 +931,7 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 	if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
 			Added:   []string{},
-			Deleted: []string{ratesynctypes.StoreKey, liquidstakeibctypes.StoreKey, interchainquerytypes.StoreKey, ibcfeetypes.StoreKey},
+			Deleted: []string{},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
