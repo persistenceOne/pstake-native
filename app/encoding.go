@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/cosmos/cosmos-sdk/std"
 
-	"github.com/persistenceOne/pstake-native/v3/app/params"
+	"github.com/persistenceOne/pstake-native/v4/app/params"
 )
 
 // MakeEncodingConfig creates an EncodingConfig for testing

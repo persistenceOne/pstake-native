@@ -4,7 +4,7 @@ import (
 	"cosmossdk.io/math"
 	_ "github.com/stretchr/testify/suite"
 
-	"github.com/persistenceOne/pstake-native/v3/x/liquidstake/types"
+	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
 )
 
 func (s *KeeperTestSuite) TestInitGenesis() {

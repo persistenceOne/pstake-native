@@ -1,4 +1,4 @@
-module github.com/persistenceOne/pstake-native/v3
+module github.com/persistenceOne/pstake-native/v4
 
 go 1.23
 

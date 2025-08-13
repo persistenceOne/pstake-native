@@ -21,10 +21,10 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
-	chain "github.com/persistenceOne/pstake-native/v3/app"
-	testhelpers "github.com/persistenceOne/pstake-native/v3/app/helpers"
-	"github.com/persistenceOne/pstake-native/v3/x/liquidstake/keeper"
-	"github.com/persistenceOne/pstake-native/v3/x/liquidstake/types"
+	chain "github.com/persistenceOne/pstake-native/v4/app"
+	testhelpers "github.com/persistenceOne/pstake-native/v4/app/helpers"
+	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/keeper"
+	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
 )
 
 var BlockTime = 6 * time.Second

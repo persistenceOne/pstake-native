@@ -31,8 +31,8 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
-	pstakeApp "github.com/persistenceOne/pstake-native/v3/app"
-	"github.com/persistenceOne/pstake-native/v3/app/params"
+	pstakeApp "github.com/persistenceOne/pstake-native/v4/app"
+	"github.com/persistenceOne/pstake-native/v4/app/params"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the

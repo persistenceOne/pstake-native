@@ -9,7 +9,7 @@ import "cosmos_proto/cosmos.proto";
 import "cosmos/msg/v1/msg.proto";
 import "pstake/lscosmos/v1beta1/lscosmos.proto";
 
-option go_package = "github.com/persistenceOne/pstake-native/v3/x/lscosmos/types";
+option go_package = "github.com/persistenceOne/pstake-native/v4/x/lscosmos/types";
 
 // Msg defines the lsCosmos services.
 service Msg {
