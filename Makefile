@@ -228,7 +228,7 @@ e2e-test-basic: rm-testcache
 rm-testcache:
 	go clean -testcache
 
-.PHONY: e2e-test-basic e2e-test-ibc-transfer
+.PHONY: e2e-test-basic
 
 
 ###############################################################################
