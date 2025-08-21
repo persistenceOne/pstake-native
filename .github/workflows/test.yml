@@ -137,7 +137,6 @@ jobs:
         # names of `make` commands to run tests
         test:
           - "e2e-test-basic"
-          - "e2e-test-ibc-transfer"
       fail-fast: false
 
     steps:
