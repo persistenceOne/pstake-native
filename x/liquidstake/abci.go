@@ -1,6 +1,7 @@
 package liquidstake
 
 import (
+	"context"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -10,11 +11,11 @@ import (
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
 )
 
-func BeginBlock(ctx sdk.Context, k keeper.Keeper) {
+func BeginBlock(ctx context.Context, k keeper.Keeper) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
-
-	if !k.GetParams(ctx).ModulePaused {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	if !k.GetParams(sdkCtx).ModulePaused {
 		// return value of UpdateLiquidValidatorSet is useful only in testing
-		_ = k.UpdateLiquidValidatorSet(ctx, false)
+		_ = k.UpdateLiquidValidatorSet(sdkCtx, false)
 	}
 }

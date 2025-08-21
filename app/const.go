@@ -2,5 +2,5 @@ package app
 
 const (
 	appName     = "pStake"
-	UpgradeName = "v2.9.0"
+	UpgradeName = "v4.0.0"
 )

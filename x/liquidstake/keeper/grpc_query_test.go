@@ -44,7 +44,8 @@ func (s *KeeperTestSuite) TestGRPCQueries() {
 
 	// Test States grpc query
 	respStates, err := s.querier.States(sdk.WrapSDKContext(s.ctx), &types.QueryStatesRequest{})
-	resNetAmountState := s.keeper.GetNetAmountState(s.ctx)
+	s.Require().NoError(err)
+	resNetAmountState, err := s.keeper.GetNetAmountState(s.ctx)
 	s.Require().NoError(err)
 	s.Require().Equal(respStates.NetAmountState, resNetAmountState)
 

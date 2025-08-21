@@ -5,7 +5,6 @@ go 1.23.0
 require (
 	github.com/CosmWasm/wasmd v0.40.2
 	github.com/cosmos/cosmos-sdk v0.47.3
-	github.com/cosmos/ibc-go/v7 v7.2.0
 	github.com/docker/docker v24.0.1+incompatible
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230628163313-cedf87f4624d
 	github.com/stretchr/testify v1.8.4

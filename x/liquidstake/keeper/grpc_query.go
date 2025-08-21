@@ -44,6 +44,9 @@ func (k Querier) States(c context.Context, req *types.QueryStatesRequest) (*type
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-
-	return &types.QueryStatesResponse{NetAmountState: k.GetNetAmountState(ctx)}, nil
+	nas, err := k.GetNetAmountState(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &types.QueryStatesResponse{NetAmountState: nas}, nil
 }

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,7 +14,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	chain "github.com/persistenceOne/pstake-native/v4/app"
-	testhelpers "github.com/persistenceOne/pstake-native/v4/app/helpers"
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/keeper"
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
 )
@@ -258,8 +256,8 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	s.app = testhelpers.Setup(s.T(), false, 5)
-	s.ctx = s.app.BaseApp.NewContext(false, tmproto.Header{})
+	s.app = chain.Setup(s.T(), false, 5)
+	s.ctx = s.app.BaseApp.NewContextLegacy(false, tmproto.Header{})
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.MaxEntries = 7
 	stakingParams.MaxValidators = 30
@@ -267,13 +265,13 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.keeper = s.app.LiquidStakeKeeper
 	s.querier = keeper.Querier{Keeper: s.keeper}
-	s.addrs = testhelpers.AddTestAddrs(s.app, s.ctx, 10, math.NewInt(1_000_000_000))
-	s.delAddrs = testhelpers.AddTestAddrs(s.app, s.ctx, 10, math.NewInt(1_000_000_000))
-	s.valAddrs = testhelpers.ConvertAddrsToValAddrs(s.delAddrs)
+	s.addrs = chain.AddTestAddrs(s.app, s.ctx, 10, math.NewInt(1_000_000_000))
+	s.delAddrs = chain.AddTestAddrs(s.app, s.ctx, 10, math.NewInt(1_000_000_000))
+	s.valAddrs = chain.ConvertAddrsToValAddrs(s.delAddrs)
 
-	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(testhelpers.ParseTime("2022-03-01T00:00:00Z"))
+	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(chain.ParseTime("2022-03-01T00:00:00Z"))
 	params := s.keeper.GetParams(s.ctx)
-	params.UnstakeFeeRate = sdk.ZeroDec()
+	params.UnstakeFeeRate = math.LegacyZeroDec()
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
 	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	// call mint.BeginBlocker for init k.SetLastBlockTime(ctx, ctx.BlockTime())
@@ -281,26 +279,26 @@ func (s *KeeperTestSuite) SetupTest() {
 }
 
 func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []sdk.ValAddress, []cryptotypes.PubKey) {
-	s.app.BeginBlocker(s.ctx, abci.RequestBeginBlock{})
+	s.app.BeginBlocker(s.ctx)
 	num := len(powers)
-	addrs := testhelpers.AddTestAddrsIncremental(s.app, s.ctx, num, math.NewInt(1000000000))
-	valAddrs := testhelpers.ConvertAddrsToValAddrs(addrs)
-	pks := testhelpers.CreateTestPubKeys(num)
+	addrs := chain.AddTestAddrsIncremental(s.app, s.ctx, num, math.NewInt(1000000000))
+	valAddrs := chain.ConvertAddrsToValAddrs(addrs)
+	pks := chain.CreateTestPubKeys(num)
 
 	for i, power := range powers {
-		val, err := stakingtypes.NewValidator(valAddrs[i], pks[i], stakingtypes.Description{})
+		val, err := stakingtypes.NewValidator(valAddrs[i].String(), pks[i], stakingtypes.Description{})
 		s.Require().NoError(err)
 		s.app.StakingKeeper.SetValidator(s.ctx, val)
 		err = s.app.StakingKeeper.SetValidatorByConsAddr(s.ctx, val)
 		s.Require().NoError(err)
 		s.app.StakingKeeper.SetNewValidatorByPowerIndex(s.ctx, val)
-		s.app.StakingKeeper.Hooks().AfterValidatorCreated(s.ctx, val.GetOperator())
+		s.app.StakingKeeper.Hooks().AfterValidatorCreated(s.ctx, valAddrs[i])
 		newShares, err := s.app.StakingKeeper.Delegate(s.ctx, addrs[i], math.NewInt(power), stakingtypes.Unbonded, val, true)
 		s.Require().NoError(err)
 		s.Require().Equal(newShares.TruncateInt(), math.NewInt(power))
 	}
 
-	s.app.EndBlocker(s.ctx, abci.RequestEndBlock{})
+	s.app.EndBlocker(s.ctx)
 	return addrs, valAddrs, pks
 }
 
@@ -318,7 +316,7 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	cachedCtx, _ := s.ctx.CacheContext()
 	stkXPRTMintAmt, err := s.keeper.LiquidStake(cachedCtx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
 	s.Require().ErrorIs(err, types.ErrActiveLiquidValidatorsNotExists)
-	s.Require().Equal(stkXPRTMintAmt, sdk.ZeroInt())
+	s.Require().Equal(stkXPRTMintAmt, math.ZeroInt())
 
 	// add active validator
 	params.WhitelistedValidators = []types.WhitelistedValidator{
@@ -333,39 +331,39 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	s.Require().Equal(params.WhitelistedValidators[0].ValidatorAddress, res[0].OperatorAddress)
 	s.Require().Equal(params.WhitelistedValidators[0].TargetWeight, res[0].Weight)
 	s.Require().Equal(types.ValidatorStatusActive, res[0].Status)
-	s.Require().Equal(sdk.ZeroDec(), res[0].DelShares)
-	s.Require().Equal(sdk.ZeroInt(), res[0].LiquidTokens)
+	s.Require().Equal(math.LegacyZeroDec(), res[0].DelShares)
+	s.Require().Equal(math.ZeroInt(), res[0].LiquidTokens)
 
 	s.Require().Equal(params.WhitelistedValidators[1].ValidatorAddress, res[1].OperatorAddress)
 	s.Require().Equal(params.WhitelistedValidators[1].TargetWeight, res[1].Weight)
 	s.Require().Equal(types.ValidatorStatusActive, res[1].Status)
-	s.Require().Equal(sdk.ZeroDec(), res[1].DelShares)
-	s.Require().Equal(sdk.ZeroInt(), res[1].LiquidTokens)
+	s.Require().Equal(math.LegacyZeroDec(), res[1].DelShares)
+	s.Require().Equal(math.ZeroInt(), res[1].LiquidTokens)
 
 	s.Require().Equal(params.WhitelistedValidators[2].ValidatorAddress, res[2].OperatorAddress)
 	s.Require().Equal(params.WhitelistedValidators[2].TargetWeight, res[2].Weight)
 	s.Require().Equal(types.ValidatorStatusActive, res[2].Status)
-	s.Require().Equal(sdk.ZeroDec(), res[2].DelShares)
-	s.Require().Equal(sdk.ZeroInt(), res[2].LiquidTokens)
+	s.Require().Equal(math.LegacyZeroDec(), res[2].DelShares)
+	s.Require().Equal(math.ZeroInt(), res[2].LiquidTokens)
 
 	// liquid stake
 	stkXPRTMintAmt, err = s.keeper.LiquidStake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], sdk.NewCoin(sdk.DefaultBondDenom, stakingAmt))
 	s.Require().NoError(err)
 	s.Require().Equal(stkXPRTMintAmt, stakingAmt)
 
-	_, found := s.app.StakingKeeper.GetDelegation(s.ctx, s.delAddrs[0], valOpers[0])
-	s.Require().False(found)
-	_, found = s.app.StakingKeeper.GetDelegation(s.ctx, s.delAddrs[0], valOpers[1])
-	s.Require().False(found)
-	_, found = s.app.StakingKeeper.GetDelegation(s.ctx, s.delAddrs[0], valOpers[2])
-	s.Require().False(found)
+	_, err = s.app.StakingKeeper.GetDelegation(s.ctx, s.delAddrs[0], valOpers[0])
+	s.Require().Error(err)
+	_, err = s.app.StakingKeeper.GetDelegation(s.ctx, s.delAddrs[0], valOpers[1])
+	s.Require().Error(err)
+	_, err = s.app.StakingKeeper.GetDelegation(s.ctx, s.delAddrs[0], valOpers[2])
+	s.Require().Error(err)
 
-	proxyAccDel1, found := s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[0])
-	s.Require().True(found)
-	proxyAccDel2, found := s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[1])
-	s.Require().True(found)
-	proxyAccDel3, found := s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[2])
-	s.Require().True(found)
+	proxyAccDel1, err := s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[0])
+	s.Require().NoError(err)
+	proxyAccDel2, err := s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[1])
+	s.Require().NoError(err)
+	proxyAccDel3, err := s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[2])
+	s.Require().NoError(err)
 	s.Require().Equal(proxyAccDel1.Shares, math.LegacyNewDec(16668)) // 16666 + add crumb 2 to 1st active validator
 	s.Require().Equal(proxyAccDel2.Shares, math.LegacyNewDec(16666))
 	s.Require().Equal(proxyAccDel2.Shares, math.LegacyNewDec(16666))
@@ -383,41 +381,42 @@ func (s *KeeperTestSuite) TestLiquidStake() {
 	// liquid unstaking
 	ubdTime, unbondingAmt, ubds, unbondedAmt, err := s.keeper.LiquidUnstake(s.ctx, types.LiquidStakeProxyAcc, s.delAddrs[0], ubdStkXPRT)
 	s.Require().NoError(err)
-	s.Require().EqualValues(unbondedAmt, sdk.ZeroInt())
+	s.Require().EqualValues(unbondedAmt, math.ZeroInt())
 	s.Require().Len(ubds, 3)
 
 	// crumb excepted on unbonding
 	crumb := ubdStkXPRT.Amount.Sub(ubdStkXPRT.Amount.QuoRaw(3).MulRaw(3)) // 1
 	s.Require().EqualValues(unbondingAmt, ubdStkXPRT.Amount.Sub(crumb))   // 9999
 	s.Require().Equal(ubds[0].DelegatorAddress, s.delAddrs[0].String())
-	s.Require().Equal(ubdTime, testhelpers.ParseTime("2022-03-22T00:00:00Z"))
+	s.Require().Equal(ubdTime, chain.ParseTime("2022-03-22T00:00:00Z"))
 	stkXPRTBalanceAfter := s.app.BankKeeper.GetBalance(s.ctx, s.delAddrs[0], liquidBondDenom)
 	s.Require().Equal(stkXPRTBalanceAfter, sdk.NewCoin(liquidBondDenom, math.NewInt(40000)))
 
 	balanceBeginUBD := s.app.BankKeeper.GetBalance(s.ctx, s.delAddrs[0], sdk.DefaultBondDenom)
 	s.Require().Equal(balanceBeginUBD.Amount, balanceBeforeUBD.Amount)
 
-	proxyAccDel1, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[0])
-	s.Require().True(found)
-	proxyAccDel2, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[1])
-	s.Require().True(found)
-	proxyAccDel3, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[2])
-	s.Require().True(found)
+	proxyAccDel1, err = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[0])
+	s.Require().NoError(err)
+	proxyAccDel2, err = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[1])
+	s.Require().NoError(err)
+	proxyAccDel3, err = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[2])
+	s.Require().NoError(err)
 	s.Require().Equal(stakingAmt.Sub(unbondingAmt).ToLegacyDec(), proxyAccDel1.GetShares().Add(proxyAccDel2.Shares).Add(proxyAccDel3.Shares))
 
 	// complete unbonding
 	s.ctx = s.ctx.WithBlockHeight(200).WithBlockTime(ubdTime.Add(1))
-	updates := s.app.StakingKeeper.BlockValidatorUpdates(s.ctx) // EndBlock of staking keeper, mature UBD
+	updates, err := s.app.StakingKeeper.BlockValidatorUpdates(s.ctx) // EndBlock of staking keeper, mature UBD
+	s.Require().NoError(err)
 	s.Require().Empty(updates)
 	balanceCompleteUBD := s.app.BankKeeper.GetBalance(s.ctx, s.delAddrs[0], sdk.DefaultBondDenom)
 	s.Require().Equal(balanceCompleteUBD.Amount, balanceBeforeUBD.Amount.Add(unbondingAmt))
 
-	proxyAccDel1, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[0])
-	s.Require().True(found)
-	proxyAccDel2, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[1])
-	s.Require().True(found)
-	proxyAccDel3, found = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[2])
-	s.Require().True(found)
+	proxyAccDel1, err = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[0])
+	s.Require().NoError(err)
+	proxyAccDel2, err = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[1])
+	s.Require().NoError(err)
+	proxyAccDel3, err = s.app.StakingKeeper.GetDelegation(s.ctx, types.LiquidStakeProxyAcc, valOpers[2])
+	s.Require().NoError(err)
 	// crumb added to first valid active liquid validator
 	s.Require().Equal(math.LegacyNewDec(13335), proxyAccDel1.Shares)
 	s.Require().Equal(math.LegacyNewDec(13333), proxyAccDel2.Shares)

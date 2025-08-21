@@ -2,9 +2,6 @@ package types
 
 import (
 	"time"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
 const (
@@ -48,7 +45,7 @@ const (
 
 	ICAMessagesChunkSize = 10
 
-	IBCPrefix = transfertypes.DenomPrefix + "/"
+	IBCPrefix = "ibc" + "/"
 
 	UnbondingStateEpochLimit = 4
 
@@ -105,5 +102,3 @@ var (
 	RedelegationsKey      = []byte{0x08}
 	RedelegationTxKey     = []byte{0x09}
 )
-
-var MaxFee = sdk.MustNewDecFromStr("0.5")

@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	chain "github.com/persistenceOne/pstake-native/v4/app"
-	testhelpers "github.com/persistenceOne/pstake-native/v4/app/helpers"
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/keeper"
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
 )
@@ -27,11 +26,11 @@ func TestHooksTestSuite(t *testing.T) {
 }
 
 func (s *HooksTestSuite) SetupTest() {
-	s.app = testhelpers.Setup(s.T(), false, 5)
-	s.ctx = s.app.BaseApp.NewContext(false, tmproto.Header{})
+	s.app = chain.Setup(s.T(), false, 5)
+	s.ctx = s.app.BaseApp.NewContextLegacy(false, tmproto.Header{})
 	s.keeper = s.app.LiquidStakeKeeper
 	s.hooks = s.keeper.EpochHooks()
-	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(testhelpers.ParseTime("2022-03-01T00:00:00Z"))
+	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(chain.ParseTime("2022-03-01T00:00:00Z"))
 }
 
 func (s *HooksTestSuite) TestEpochHooks() {

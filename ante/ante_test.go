@@ -17,7 +17,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	pstakeapp "github.com/persistenceOne/pstake-native/v4/app"
-	pstakehelpers "github.com/persistenceOne/pstake-native/v4/app/helpers"
 )
 
 type IntegrationTestSuite struct {
@@ -35,8 +34,8 @@ func TestIntegrationTestSuite(t *testing.T) {
 }
 
 func (s *IntegrationTestSuite) SetupTest() {
-	app := pstakehelpers.Setup(s.T(), false, 1)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{
+	app := pstakeapp.Setup(s.T(), false, 1)
+	ctx := app.BaseApp.NewContextLegacy(false, tmproto.Header{
 		ChainID: fmt.Sprintf("test-chain-%s", tmrand.Str(4)),
 		Height:  1,
 	})
@@ -56,7 +55,7 @@ func (s *IntegrationTestSuite) CreateTestTx(privs []cryptotypes.PrivKey, accNums
 		sigV2 := signing.SignatureV2{
 			PubKey: priv.PubKey(),
 			Data: &signing.SingleSignatureData{
-				SignMode:  s.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+				SignMode:  signing.SignMode(s.clientCtx.TxConfig.SignModeHandler().DefaultMode()),
 				Signature: nil,
 			},
 			Sequence: accSeqs[i],
@@ -76,8 +75,8 @@ func (s *IntegrationTestSuite) CreateTestTx(privs []cryptotypes.PrivKey, accNums
 			AccountNumber: accNums[i],
 			Sequence:      accSeqs[i],
 		}
-		sigV2, err := tx.SignWithPrivKey(
-			s.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+		sigV2, err := tx.SignWithPrivKey(s.ctx,
+			signing.SignMode(s.clientCtx.TxConfig.SignModeHandler().DefaultMode()),
 			signerData,
 			s.txBuilder,
 			priv,

@@ -165,7 +165,7 @@ message QueryCValueRequest {}
 // QueryCValueRequest is a response for the Query/CValue methods.
 message QueryCValueResponse {
   string c_value = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 }

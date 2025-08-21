@@ -15,10 +15,10 @@ var (
 	DefaultLiquidBondDenom = "stk/uxprt"
 
 	// DefaultUnstakeFeeRate is the default Unstake Fee Rate.
-	DefaultUnstakeFeeRate = sdk.ZeroDec()
+	DefaultUnstakeFeeRate = math.LegacyZeroDec()
 
 	// DefaultAutocompoundFeeRate is the default fee rate for auto redelegating the stake rewards.
-	DefaultAutocompoundFeeRate = sdk.MustNewDecFromStr("0.05")
+	DefaultAutocompoundFeeRate = math.LegacyMustNewDecFromStr("0.05")
 
 	// DefaultMinLiquidStakeAmount is the default minimum liquid stake amount.
 	DefaultMinLiquidStakeAmount = math.NewInt(1000)
@@ -159,7 +159,7 @@ func validateUnstakeFeeRate(i interface{}) error {
 		return fmt.Errorf("unstake fee rate must not be negative: %s", v)
 	}
 
-	if v.GT(sdk.OneDec()) {
+	if v.GT(math.LegacyOneDec()) {
 		return fmt.Errorf("unstake fee rate too large: %s", v)
 	}
 
@@ -184,7 +184,7 @@ func validateMinLiquidStakeAmount(i interface{}) error {
 }
 
 func validateAutocompoundFeeRate(i interface{}) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(math.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -197,7 +197,7 @@ func validateAutocompoundFeeRate(i interface{}) error {
 		return fmt.Errorf("autocompound fee rate must not be negative: %s", v)
 	}
 
-	if v.GT(sdk.OneDec()) {
+	if v.GT(math.LegacyOneDec()) {
 		return fmt.Errorf("autocompound fee rate too large: %s", v)
 	}
 

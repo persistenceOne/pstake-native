@@ -3,11 +3,12 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
 )
@@ -20,7 +21,7 @@ type Keeper struct {
 	accountKeeper  types.AccountKeeper
 	bankKeeper     types.BankKeeper
 	stakingKeeper  types.StakingKeeper
-	mintKeeper     types.MintKeeper
+	mintKeeper     mintkeeper.Keeper
 	distrKeeper    types.DistrKeeper
 	slashingKeeper types.SlashingKeeper
 
@@ -35,7 +36,7 @@ func NewKeeper(
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	stakingKeeper types.StakingKeeper,
-	mintKeeper types.MintKeeper,
+	mintKeeper mintkeeper.Keeper,
 	distrKeeper types.DistrKeeper,
 	slashingKeeper types.SlashingKeeper,
 	router *baseapp.MsgServiceRouter,

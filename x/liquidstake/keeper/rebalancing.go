@@ -12,9 +12,12 @@ import (
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
 )
 
-func (k Keeper) GetProxyAccBalance(ctx sdk.Context, proxyAcc sdk.AccAddress) (balance sdk.Coin) {
-	bondDenom := k.stakingKeeper.BondDenom(ctx)
-	return sdk.NewCoin(bondDenom, k.bankKeeper.SpendableCoins(ctx, proxyAcc).AmountOf(bondDenom))
+func (k Keeper) GetProxyAccBalance(ctx sdk.Context, proxyAcc sdk.AccAddress) (sdk.Coin, error) {
+	bondDenom, err := k.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	return sdk.NewCoin(bondDenom, k.bankKeeper.SpendableCoins(ctx, proxyAcc).AmountOf(bondDenom)), nil
 }
 
 // TryRedelegation attempts redelegation, which is applied only when successful through cached context because there is a constraint that fails if already receiving redelegation.
@@ -23,7 +26,10 @@ func (k Keeper) TryRedelegation(ctx sdk.Context, re types.Redelegation) (complet
 	srcVal := re.SrcValidator.GetOperator()
 
 	// check the source validator already has receiving transitive redelegation
-	hasReceiving := k.stakingKeeper.HasReceivingRedelegation(ctx, re.Delegator, srcVal)
+	hasReceiving, err := k.stakingKeeper.HasReceivingRedelegation(ctx, re.Delegator, srcVal)
+	if err != nil {
+		return time.Time{}, err
+	}
 	if hasReceiving {
 		return time.Time{}, stakingtypes.ErrTransitiveRedelegation
 	}
@@ -72,7 +78,7 @@ func (k Keeper) Rebalance(
 
 	// calculate rebalancing target map
 	targetMap := map[string]math.Int{}
-	totalTargetMap := sdk.ZeroInt()
+	totalTargetMap := math.ZeroInt()
 	for _, val := range liquidVals {
 		targetMap[val.OperatorAddress] = totalLiquidTokens.Mul(weightMap[val.OperatorAddress]).Quo(totalWeight)
 		totalTargetMap = totalTargetMap.Add(targetMap[val.OperatorAddress])
@@ -206,11 +212,17 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 	}
 
 	// get all the APY components
-	bondDenom := k.stakingKeeper.BondDenom(ctx)
+	bondDenom, err := k.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return
+	}
 	totalSupply := k.bankKeeper.GetSupply(ctx, bondDenom).Amount
 	bondedTokens := k.bankKeeper.GetBalance(ctx, k.stakingKeeper.GetBondedPool(ctx).GetAddress(), bondDenom).Amount
-	inflation := k.mintKeeper.GetMinter(ctx).Inflation
-
+	minter, err := k.mintKeeper.Minter.Get(ctx)
+	if err != nil {
+		return
+	}
+	inflation := minter.Inflation
 	// calculate the hourly APY
 	bondRatio := math.LegacyDec(bondedTokens).Quo(math.LegacyDec(totalSupply))
 	hourlyApy := inflation.Quo(bondRatio).
@@ -218,20 +230,27 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 		Quo(types.DefaultLimitAutocompoundPeriodHours)
 
 	// calculate autocompoundable amount by limiting the current net amount with the calculated APY
-	autoCompoundableAmount := k.GetNetAmountState(ctx).NetAmount.Mul(hourlyApy).TruncateInt()
+	nas, err := k.GetNetAmountState(ctx)
+	if err != nil {
+		return
+	}
+	autoCompoundableAmount := nas.NetAmount.Mul(hourlyApy).TruncateInt()
 
 	// use the calculated autocompoundable amount as the limit for the transfer
-	proxyAccBalance := k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
+	proxyAccBalance, err := k.GetProxyAccBalance(ctx, types.LiquidStakeProxyAcc)
+	if err != nil {
+		return
+	}
 	if proxyAccBalance.Amount.LT(autoCompoundableAmount) {
 		autoCompoundableAmount = proxyAccBalance.Amount
 	}
 
 	// calculate autocompounding fee
 	params := k.GetParams(ctx)
-	autocompoundFee := sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), math.ZeroInt())
+	autocompoundFee := sdk.NewCoin(bondDenom, math.ZeroInt())
 	if !params.AutocompoundFeeRate.IsZero() && autoCompoundableAmount.IsPositive() {
 		autocompoundFee = sdk.NewCoin(
-			k.stakingKeeper.BondDenom(ctx),
+			bondDenom,
 			params.AutocompoundFeeRate.MulInt(autoCompoundableAmount).TruncateInt(),
 		)
 	}
@@ -239,7 +258,7 @@ func (k Keeper) AutocompoundStakingRewards(ctx sdk.Context, whitelistedValsMap t
 	// re-staking of the accumulated rewards
 	cachedCtx, writeCache := ctx.CacheContext()
 	delegableAmount := autoCompoundableAmount.Sub(autocompoundFee.Amount)
-	err := k.LiquidDelegate(cachedCtx, types.LiquidStakeProxyAcc, activeVals, delegableAmount, whitelistedValsMap)
+	err = k.LiquidDelegate(cachedCtx, types.LiquidStakeProxyAcc, activeVals, delegableAmount, whitelistedValsMap)
 	if err != nil {
 		k.Logger(ctx).Error(
 			"failed to re-stake the accumulated rewards",
