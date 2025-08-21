@@ -8,10 +8,10 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	testutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/docker/docker/client"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
@@ -30,7 +30,7 @@ var (
 	PersistenceCoreImage = ibc.DockerImage{
 		Repository: appRepo,
 		Version:    appVersion,
-		UidGid:     "1025:1025",
+		UIDGID:     "1025:1025",
 	}
 
 	defaultGenesisOverridesKV = append([]cosmos.GenesisKV{
@@ -55,18 +55,17 @@ var (
 		Images: []ibc.DockerImage{
 			PersistenceCoreImage,
 		},
-		Bin:                    "pstaked",
-		Bech32Prefix:           "persistence",
-		Denom:                  PersistenceBondDenom,
-		CoinType:               fmt.Sprintf("%d", PersistenceCoinType),
-		GasPrices:              fmt.Sprintf("0%s", PersistenceBondDenom),
-		GasAdjustment:          1.5,
-		TrustingPeriod:         "112h",
-		NoHostMount:            false,
-		ConfigFileOverrides:    nil,
-		EncodingConfig:         persistenceEncoding(),
-		UsingNewGenesisCommand: false,
-		ModifyGenesis:          cosmos.ModifyGenesis(defaultGenesisOverridesKV),
+		Bin:                 "pstaked",
+		Bech32Prefix:        "persistence",
+		Denom:               PersistenceBondDenom,
+		CoinType:            fmt.Sprintf("%d", PersistenceCoinType),
+		GasPrices:           fmt.Sprintf("0%s", PersistenceBondDenom),
+		GasAdjustment:       1.5,
+		TrustingPeriod:      "112h",
+		NoHostMount:         false,
+		ConfigFileOverrides: nil,
+		EncodingConfig:      persistenceEncoding(),
+		ModifyGenesis:       cosmos.ModifyGenesis(defaultGenesisOverridesKV),
 	}
 
 	genesisWalletAmount = int64(10_000_000)
