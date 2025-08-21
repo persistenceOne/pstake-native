@@ -148,7 +148,10 @@ func (k msgServer) LiquidUnstake(goCtx context.Context, msg *types.MsgLiquidUnst
 		return nil, err
 	}
 
-	bondDenom := k.stakingKeeper.BondDenom(ctx)
+	bondDenom, err := k.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -220,8 +223,8 @@ func (k msgServer) UpdateWhitelistedValidators(goCtx context.Context, msg *types
 		totalWeight = totalWeight.Add(val.TargetWeight)
 
 		valAddr := val.GetValidatorAddress()
-		fullVal, ok := k.stakingKeeper.GetValidator(ctx, valAddr)
-		if !ok {
+		fullVal, err := k.stakingKeeper.GetValidator(ctx, valAddr)
+		if err != nil {
 			return nil, errors.Wrapf(
 				types.ErrWhitelistedValidatorsList,
 				"validator not found: %s", valAddr,

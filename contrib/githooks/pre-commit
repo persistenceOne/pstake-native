@@ -32,10 +32,16 @@ if [[ $STAGED_GO_FILES != "" ]]; then
     gofmt -w -s $file
     misspell -w $file
     goimports -w -local github.com/persistenceOne/pstake-native $file
+    #local changes for puneet -start
+    gci write --skip-generated -s standard -s default -s "prefix(github.com/persistenceOne/pstake-native)" .
+    gofumpt  -l -w -extra .
+    #local changes for puneet -end
     git add $file
 
   done
 fi
 
 # Run go mod tidy
+gci write --skip-generated -s standard -s default -s "prefix(github.com/persistenceOne/pstake-native)" .
+gofumpt  -l -w -extra .
 go mod tidy && git add go.mod go.sum

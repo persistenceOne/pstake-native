@@ -1,4 +1,4 @@
-package helpers
+package app
 
 import (
 	"bytes"
@@ -10,12 +10,13 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
 	"cosmossdk.io/math"
-	dbm "github.com/cometbft/cometbft-db"
+	pruningtypes "cosmossdk.io/store/pruning/types"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -25,7 +26,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server/types"
-	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/testutil/mock"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -35,10 +35,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/require"
 
-	"github.com/persistenceOne/pstake-native/v4/app"
 	appparams "github.com/persistenceOne/pstake-native/v4/app/params"
 )
 
@@ -64,16 +62,16 @@ var DefaultConsensusParams = &tmproto.ConsensusParams{
 	},
 }
 
-func newTestApp(t *testing.T, isCheckTx, _ bool) app.PstakeApp {
+func newTestApp(t *testing.T, isCheckTx, _ bool) PstakeApp {
 	t.Helper()
 	testApp := Setup(t, isCheckTx, 5)
 	return *testApp
 }
 
-func CreateTestApp(t *testing.T) (*codec.LegacyAmino, app.PstakeApp, sdk.Context) {
+func CreateTestApp(t *testing.T) (*codec.LegacyAmino, PstakeApp, sdk.Context) {
 	t.Helper()
 	testApp := newTestApp(t, false, false)
-	ctx := testApp.NewContext(false, tmproto.Header{})
+	ctx := testApp.NewContextLegacy(false, tmproto.Header{})
 
 	return testApp.LegacyAmino(), testApp, ctx
 }
@@ -82,46 +80,29 @@ type EmptyAppOptions struct{}
 
 func (EmptyAppOptions) Get(o string) interface{} { return nil }
 
-func setup(withGenesis bool, invCheckPeriod uint) (*app.PstakeApp, app.GenesisState) {
+func setup(withGenesis bool, invCheckPeriod uint) (*PstakeApp, GenesisState) {
 	db := dbm.NewMemDB()
-	encCdc := app.MakeEncodingConfig()
-	testApp := app.NewpStakeApp(
+	encCdc := MakeEncodingConfig()
+	testApp := NewpStakeApp(
 		log.NewNopLogger(),
 		db,
 		nil,
 		true,
 		map[int64]bool{},
-		app.DefaultNodeHome,
+		DefaultNodeHome,
 		invCheckPeriod,
 		encCdc,
 		EmptyAppOptions{},
 	)
 	if withGenesis {
-		return testApp, app.NewDefaultGenesisState()
+		return testApp, NewDefaultGenesisState()
 	}
 
-	return testApp, app.GenesisState{}
-}
-
-// SetupTestingApp initializes the IBC-go testing application
-func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
-	db := dbm.NewMemDB()
-	newpStakeApp := app.NewpStakeApp(
-		log.NewNopLogger(),
-		db,
-		nil,
-		true,
-		map[int64]bool{},
-		app.DefaultNodeHome,
-		5,
-		app.MakeEncodingConfig(),
-		EmptyAppOptions{},
-	)
-	return newpStakeApp, app.NewDefaultGenesisState()
+	return testApp, GenesisState{}
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
-func Setup(t *testing.T, isCheckTx bool, invCheckPeriod uint) *app.PstakeApp {
+func Setup(t *testing.T, isCheckTx bool, invCheckPeriod uint) *PstakeApp {
 	t.Helper()
 
 	privVal := mock.NewPV()
@@ -137,7 +118,7 @@ func Setup(t *testing.T, isCheckTx bool, invCheckPeriod uint) *app.PstakeApp {
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 	balance := banktypes.Balance{
 		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
+		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(100000000000000))),
 	}
 
 	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
@@ -146,10 +127,10 @@ func Setup(t *testing.T, isCheckTx bool, invCheckPeriod uint) *app.PstakeApp {
 }
 
 func genesisStateWithValSet(t *testing.T,
-	app *app.PstakeApp, genesisState app.GenesisState,
+	app *PstakeApp, genesisState GenesisState,
 	valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
 	balances ...banktypes.Balance,
-) app.GenesisState {
+) GenesisState {
 	t.Helper()
 	// set genesis accounts
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
@@ -165,21 +146,23 @@ func genesisStateWithValSet(t *testing.T,
 		require.NoError(t, err)
 		pkAny, err := codectypes.NewAnyWithValue(pk)
 		require.NoError(t, err)
+		valoper, err := app.StakingKeeper.ValidatorAddressCodec().BytesToString(val.Address)
+		require.NoError(t, err)
 		validator := stakingtypes.Validator{
-			OperatorAddress:   sdk.ValAddress(val.Address).String(),
+			OperatorAddress:   valoper,
 			ConsensusPubkey:   pkAny,
 			Jailed:            false,
 			Status:            stakingtypes.Bonded,
 			Tokens:            bondAmt,
-			DelegatorShares:   sdk.OneDec(),
+			DelegatorShares:   math.LegacyOneDec(),
 			Description:       stakingtypes.Description{},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
-			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-			MinSelfDelegation: sdk.ZeroInt(),
+			Commission:        stakingtypes.NewCommission(math.LegacyZeroDec(), math.LegacyZeroDec(), math.LegacyZeroDec()),
+			MinSelfDelegation: math.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), valoper, math.LegacyOneDec()))
 
 	}
 	// set validators and delegations
@@ -214,7 +197,7 @@ func genesisStateWithValSet(t *testing.T,
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
 // of one consensus engine unit in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
-func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *app.PstakeApp {
+func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *PstakeApp {
 	t.Helper()
 
 	app, genesisState := setup(true, 5)
@@ -225,21 +208,20 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 
 	// init chain will set the validator set and initialize the genesis accounts
 	app.InitChain(
-		abci.RequestInitChain{
+		&abci.RequestInitChain{
 			Validators:      []abci.ValidatorUpdate{},
 			ConsensusParams: DefaultConsensusParams,
 			AppStateBytes:   stateBytes,
 		},
 	)
 
-	// commit genesis changes
-	app.Commit()
-	app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{
+	require.NoError(t, err)
+	_, err = app.FinalizeBlock(&abci.RequestFinalizeBlock{
 		Height:             app.LastBlockHeight() + 1,
-		AppHash:            app.LastCommitID().Hash,
-		ValidatorsHash:     valSet.Hash(),
+		Hash:               app.LastCommitID().Hash,
 		NextValidatorsHash: valSet.Hash(),
-	}})
+	})
+	require.NoError(t, err)
 
 	return app
 }
@@ -247,12 +229,12 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 // NewConfig returns config that defines the necessary testing requirements
 // used to bootstrap and start an in-process local testing network.
 func NewConfig(dbm *dbm.MemDB) network.Config {
-	encCfg := app.MakeEncodingConfig()
+	encCfg := MakeEncodingConfig()
 
 	cfg := network.DefaultConfig(func() network.TestFixture {
 		return network.TestFixture{
 			AppConstructor: NewAppConstructor(encCfg, dbm),
-			GenesisState:   app.ModuleBasics.DefaultGenesis(encCfg.Marshaler),
+			GenesisState:   ModuleBasics.DefaultGenesis(encCfg.Marshaler),
 			EncodingConfig: testutil.TestEncodingConfig{
 				InterfaceRegistry: encCfg.InterfaceRegistry,
 				Codec:             encCfg.Marshaler,
@@ -269,9 +251,9 @@ func NewConfig(dbm *dbm.MemDB) network.Config {
 //nolint:interfacer // only used for tests
 func NewAppConstructor(encodingCfg appparams.EncodingConfig, db *dbm.MemDB) network.AppConstructor {
 	return func(val network.ValidatorI) types.Application {
-		return app.NewpStakeApp(
+		return NewpStakeApp(
 			val.GetCtx().Logger, db, nil, true, make(map[int64]bool), val.GetCtx().Config.RootDir, 0,
-			app.MakeEncodingConfig(),
+			MakeEncodingConfig(),
 			EmptyAppOptions{},
 			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.GetAppConfig().Pruning)),
 			baseapp.SetMinGasPrices(val.GetAppConfig().MinGasPrices),
@@ -314,7 +296,7 @@ func createIncrementalAccounts(accNum int) []sdk.AccAddress {
 }
 
 // AddTestAddrsFromPubKeys adds the addresses into the App providing only the public keys.
-func AddTestAddrsFromPubKeys(app *app.PstakeApp, ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt math.Int) {
+func AddTestAddrsFromPubKeys(app *PstakeApp, ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt math.Int) {
 	initCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, accAmt))
 
 	for _, pk := range pubKeys {
@@ -324,19 +306,19 @@ func AddTestAddrsFromPubKeys(app *app.PstakeApp, ctx sdk.Context, pubKeys []cryp
 
 // AddTestAddrs constructs and returns accNum amount of accounts with an
 // initial balance of accAmt in random order
-func AddTestAddrs(app *app.PstakeApp, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
+func AddTestAddrs(app *PstakeApp, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
 	return addTestAddrs(app, ctx, accNum, accAmt, createRandomAccounts)
 }
 
 // AddTestAddrsIncremental constructs and returns accNum amount of accounts with an
 // initial balance of accAmt in ascending order
-func AddTestAddrsIncremental(app *app.PstakeApp, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
+func AddTestAddrsIncremental(app *PstakeApp, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
 	return addTestAddrs(app, ctx, accNum, accAmt, createIncrementalAccounts)
 }
 
 type GenerateAccountStrategy func(int) []sdk.AccAddress
 
-func addTestAddrs(app *app.PstakeApp, ctx sdk.Context, accNum int, accAmt math.Int, strategy GenerateAccountStrategy) []sdk.AccAddress {
+func addTestAddrs(app *PstakeApp, ctx sdk.Context, accNum int, accAmt math.Int, strategy GenerateAccountStrategy) []sdk.AccAddress {
 	testAddrs := strategy(accNum)
 
 	initCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, accAmt))
@@ -348,7 +330,7 @@ func addTestAddrs(app *app.PstakeApp, ctx sdk.Context, accNum int, accAmt math.I
 	return testAddrs
 }
 
-func InitAccountWithCoins(app *app.PstakeApp, ctx sdk.Context, addr sdk.AccAddress, coins sdk.Coins) {
+func InitAccountWithCoins(app *PstakeApp, ctx sdk.Context, addr sdk.AccAddress, coins sdk.Coins) {
 	err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, coins)
 	if err != nil {
 		panic(err)
@@ -393,10 +375,10 @@ func TestAddr(addr, bech string) (sdk.AccAddress, error) {
 }
 
 // CheckBalance checks the balance of an account.
-func CheckBalance(t *testing.T, app *app.PstakeApp, addr sdk.AccAddress, balances sdk.Coins) {
+func CheckBalance(t *testing.T, app *PstakeApp, addr sdk.AccAddress, balances sdk.Coins) {
 	t.Helper()
-	ctxCheck := app.NewContext(true, tmproto.Header{})
-	require.True(t, balances.IsEqual(app.BankKeeper.GetAllBalances(ctxCheck, addr)))
+	ctxCheck := app.NewContextLegacy(true, tmproto.Header{})
+	require.True(t, balances.Equal(app.BankKeeper.GetAllBalances(ctxCheck, addr)))
 }
 
 // CreateTestPubKeys returns a total of numPubKeys public keys in ascending order.

@@ -40,6 +40,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 - **ci**: use ci to autogenerate changelog ([#974](https://github.com/persistenceOne/pstake-native/pull/974))
+- update deps to sdk v0.50.x-lsm ([#988](https://github.com/persistenceOne/pstake-native/pull/988))
 
 ### Bug Fixes
 

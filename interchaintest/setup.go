@@ -6,13 +6,12 @@ import (
 	"testing"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	testutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	ibclocalhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
-	"github.com/docker/docker/client"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
+	"github.com/cosmos/cosmos-sdk/types/module/testutil"
+	"github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/chain/cosmos"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	"github.com/cosmos/interchaintest/v10/testreporter"
+	dockerclient "github.com/docker/docker/client"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
@@ -31,7 +30,7 @@ var (
 	PersistenceCoreImage = ibc.DockerImage{
 		Repository: appRepo,
 		Version:    appVersion,
-		UidGid:     "1025:1025",
+		UIDGID:     "1025:1025",
 	}
 
 	defaultGenesisOverridesKV = append([]cosmos.GenesisKV{
@@ -56,18 +55,17 @@ var (
 		Images: []ibc.DockerImage{
 			PersistenceCoreImage,
 		},
-		Bin:                    "pstaked",
-		Bech32Prefix:           "persistence",
-		Denom:                  PersistenceBondDenom,
-		CoinType:               fmt.Sprintf("%d", PersistenceCoinType),
-		GasPrices:              fmt.Sprintf("0%s", PersistenceBondDenom),
-		GasAdjustment:          1.5,
-		TrustingPeriod:         "112h",
-		NoHostMount:            false,
-		ConfigFileOverrides:    nil,
-		EncodingConfig:         persistenceEncoding(),
-		UsingNewGenesisCommand: false,
-		ModifyGenesis:          cosmos.ModifyGenesis(defaultGenesisOverridesKV),
+		Bin:                 "pstaked",
+		Bech32Prefix:        "persistence",
+		Denom:               PersistenceBondDenom,
+		CoinType:            fmt.Sprintf("%d", PersistenceCoinType),
+		GasPrices:           fmt.Sprintf("0%s", PersistenceBondDenom),
+		GasAdjustment:       1.5,
+		TrustingPeriod:      "112h",
+		NoHostMount:         false,
+		ConfigFileOverrides: nil,
+		EncodingConfig:      persistenceEncoding(),
+		ModifyGenesis:       cosmos.ModifyGenesis(defaultGenesisOverridesKV),
 	}
 
 	genesisWalletAmount = int64(10_000_000)
@@ -79,7 +77,6 @@ func persistenceEncoding() *testutil.TestEncodingConfig {
 	cfg := cosmos.DefaultEncoding()
 
 	// register custom types
-	ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	return &cfg
@@ -108,7 +105,7 @@ func CreateThisBranchChain(t *testing.T, numVals, numFull int) []ibc.Chain {
 	return chains
 }
 
-func BuildInitialChain(t *testing.T, chains []ibc.Chain) (*interchaintest.Interchain, context.Context, *client.Client, string) {
+func BuildInitialChain(t *testing.T, chains []ibc.Chain) (*interchaintest.Interchain, context.Context, *dockerclient.Client, string) {
 	// Create a new Interchain object which describes the chains, relayers, and IBC connections we want to use
 	ic := interchaintest.NewInterchain()
 

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
@@ -101,7 +100,7 @@ func TestDivideByWeight(t *testing.T) {
 		require.IsType(t, math.Int{}, tc.expectedCrumb)
 		require.IsType(t, []math.Int{}, tc.expectedOutputs)
 
-		totalTargetAmt := sdk.ZeroInt()
+		totalTargetAmt := math.ZeroInt()
 		valsMap := types.GetWhitelistedValsMap(tc.whitelistedVals)
 		var activeVals types.ActiveLiquidValidators
 		for _, v := range tc.whitelistedVals {
@@ -134,20 +133,20 @@ func TestMinMaxGap(t *testing.T) {
 			name:       "zero case",
 			liquidVals: liquidValidators,
 			targetMap: map[string]math.Int{
-				liquidValidators[0].OperatorAddress: sdk.ZeroInt(),
-				liquidValidators[1].OperatorAddress: sdk.ZeroInt(),
-				liquidValidators[2].OperatorAddress: sdk.ZeroInt(),
-				liquidValidators[3].OperatorAddress: sdk.ZeroInt(),
+				liquidValidators[0].OperatorAddress: math.ZeroInt(),
+				liquidValidators[1].OperatorAddress: math.ZeroInt(),
+				liquidValidators[2].OperatorAddress: math.ZeroInt(),
+				liquidValidators[3].OperatorAddress: math.ZeroInt(),
 			},
 			liquidTokenMap: map[string]math.Int{
-				liquidValidators[0].OperatorAddress: sdk.ZeroInt(),
-				liquidValidators[1].OperatorAddress: sdk.ZeroInt(),
-				liquidValidators[2].OperatorAddress: sdk.ZeroInt(),
-				liquidValidators[3].OperatorAddress: sdk.ZeroInt(),
+				liquidValidators[0].OperatorAddress: math.ZeroInt(),
+				liquidValidators[1].OperatorAddress: math.ZeroInt(),
+				liquidValidators[2].OperatorAddress: math.ZeroInt(),
+				liquidValidators[3].OperatorAddress: math.ZeroInt(),
 			},
 			expectedMinGapVal:        types.LiquidValidator{},
 			expectedMaxGapVal:        types.LiquidValidator{},
-			expectedAmountNeeded:     sdk.ZeroInt(),
+			expectedAmountNeeded:     math.ZeroInt(),
 			expectedLastRedelegation: false,
 		},
 		{
@@ -163,7 +162,7 @@ func TestMinMaxGap(t *testing.T) {
 				liquidValidators[0].OperatorAddress: math.NewInt(133333334),
 				liquidValidators[1].OperatorAddress: math.NewInt(133333333),
 				liquidValidators[2].OperatorAddress: math.NewInt(133333333),
-				liquidValidators[3].OperatorAddress: sdk.ZeroInt(),
+				liquidValidators[3].OperatorAddress: math.ZeroInt(),
 			},
 			expectedMinGapVal:        liquidValidators[3],
 			expectedMaxGapVal:        liquidValidators[0],
@@ -227,7 +226,7 @@ func TestMinMaxGap(t *testing.T) {
 			},
 			expectedMinGapVal:        types.LiquidValidator{},
 			expectedMaxGapVal:        types.LiquidValidator{},
-			expectedAmountNeeded:     sdk.ZeroInt(),
+			expectedAmountNeeded:     math.ZeroInt(),
 			expectedLastRedelegation: false,
 		},
 		{
@@ -237,7 +236,7 @@ func TestMinMaxGap(t *testing.T) {
 				liquidValidators[0].OperatorAddress: math.NewInt(133333334),
 				liquidValidators[1].OperatorAddress: math.NewInt(133333333),
 				liquidValidators[2].OperatorAddress: math.NewInt(133333333),
-				liquidValidators[3].OperatorAddress: sdk.ZeroInt(),
+				liquidValidators[3].OperatorAddress: math.ZeroInt(),
 			},
 			liquidTokenMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: math.NewInt(100000000),
@@ -257,7 +256,7 @@ func TestMinMaxGap(t *testing.T) {
 				liquidValidators[0].OperatorAddress: math.NewInt(133333334),
 				liquidValidators[1].OperatorAddress: math.NewInt(133333333),
 				liquidValidators[2].OperatorAddress: math.NewInt(133333333),
-				liquidValidators[3].OperatorAddress: sdk.ZeroInt(),
+				liquidValidators[3].OperatorAddress: math.ZeroInt(),
 			},
 			liquidTokenMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: math.NewInt(100000000 + 33333334),
@@ -277,7 +276,7 @@ func TestMinMaxGap(t *testing.T) {
 				liquidValidators[0].OperatorAddress: math.NewInt(133333334),
 				liquidValidators[1].OperatorAddress: math.NewInt(133333333),
 				liquidValidators[2].OperatorAddress: math.NewInt(133333333),
-				liquidValidators[3].OperatorAddress: sdk.ZeroInt(),
+				liquidValidators[3].OperatorAddress: math.ZeroInt(),
 			},
 			liquidTokenMap: map[string]math.Int{
 				liquidValidators[0].OperatorAddress: math.NewInt(100000000 + 33333334),
@@ -407,8 +406,8 @@ func TestDivideByCurrentWeight(t *testing.T) {
 		require.IsType(t, math.LegacyDec{}, tc.expectedCrumb)
 		require.IsType(t, []math.LegacyDec{}, tc.expectedOutputs)
 
-		totalTargetAmt := sdk.ZeroDec()
-		totalLiquidTokens := sdk.ZeroInt()
+		totalTargetAmt := math.LegacyZeroDec()
+		totalLiquidTokens := math.ZeroInt()
 		liquidTokenMap := map[string]math.Int{}
 		var lvs types.LiquidValidators
 		for _, v := range tc.liquidValidators {

@@ -19,10 +19,10 @@ type Redelegation struct {
 func DivideByWeight(avs ActiveLiquidValidators, input math.Int, whitelistedValsMap WhitelistedValsMap) (outputs []math.Int, crumb math.Int) {
 	totalWeight := avs.TotalWeight(whitelistedValsMap)
 	if !totalWeight.IsPositive() {
-		return []math.Int{}, sdk.ZeroInt()
+		return []math.Int{}, math.ZeroInt()
 	}
 
-	totalOutput := sdk.ZeroInt()
+	totalOutput := math.ZeroInt()
 	unitInput := math.LegacyNewDecFromInt(input).QuoTruncate(math.LegacyNewDecFromInt(totalWeight))
 	for _, val := range avs {
 		output := unitInput.MulInt(val.GetWeight(whitelistedValsMap, true)).TruncateInt()
@@ -37,10 +37,10 @@ func DivideByWeight(avs ActiveLiquidValidators, input math.Int, whitelistedValsM
 // which is may occur while dividing according to the weight of liquid validators by decimal error, outputs is truncated decimal.
 func DivideByCurrentWeight(lvs LiquidValidators, input math.LegacyDec, totalLiquidTokens math.Int, liquidTokenMap map[string]math.Int) (outputs []math.LegacyDec, crumb math.LegacyDec) {
 	if !totalLiquidTokens.IsPositive() {
-		return []math.LegacyDec{}, sdk.ZeroDec()
+		return []math.LegacyDec{}, math.LegacyZeroDec()
 	}
 
-	totalOutput := sdk.ZeroDec()
+	totalOutput := math.LegacyZeroDec()
 	unitInput := input.QuoTruncate(math.LegacyNewDecFromInt(totalLiquidTokens))
 	for _, val := range lvs {
 		output := unitInput.MulTruncate(math.LegacyNewDecFromInt(liquidTokenMap[val.OperatorAddress])).TruncateDec()

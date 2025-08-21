@@ -5,19 +5,22 @@ import (
 	"io"
 	"os"
 
-	dbm "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/log"
+	confixcmd "cosmossdk.io/tools/confix/cmd"
 	tmcfg "github.com/cometbft/cometbft/config"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
-	"github.com/cometbft/cometbft/libs/log"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
+	"github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/server"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -26,11 +29,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
+	"github.com/persistenceOne/pstake-native/v4/app"
 	pstakeApp "github.com/persistenceOne/pstake-native/v4/app"
 	"github.com/persistenceOne/pstake-native/v4/app/params"
 )
@@ -49,6 +53,9 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithHomeDir(pstakeApp.DefaultNodeHome).
 		WithViper("")
 
+	tempApp := pstakeApp.NewpStakeApp(log.NewNopLogger(), dbm.NewMemDB(),
+		nil, true, nil,
+		pstakeApp.DefaultNodeHome, 0, encodingConfig, simtestutil.EmptyAppOptions{})
 	rootCmd := &cobra.Command{
 		Use:   "pstaked",
 		Short: "Stargate Cosmos Hub App",
@@ -74,7 +81,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		},
 	}
 
-	initRootCmd(rootCmd, encodingConfig)
+	initRootCmd(rootCmd, encodingConfig, *tempApp)
 
 	return rootCmd, encodingConfig
 }
@@ -106,21 +113,21 @@ func initAppConfig() (string, interface{}) {
 	}
 }
 
-func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
+func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, tempApp pstakeApp.PstakeApp) {
 	cfg := sdk.GetConfig()
 	cfg.Seal()
 
 	gentxModule := pstakeApp.ModuleBasics[genutiltypes.ModuleName].(genutil.AppModuleBasic)
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(pstakeApp.ModuleBasics, pstakeApp.DefaultNodeHome),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, pstakeApp.DefaultNodeHome, gentxModule.GenTxValidator),
-		genutilcli.GenTxCmd(pstakeApp.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, pstakeApp.DefaultNodeHome),
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, pstakeApp.DefaultNodeHome, gentxModule.GenTxValidator, address.NewBech32Codec(app.Bech32PrefixValAddr)),
+		genutilcli.GenTxCmd(pstakeApp.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, pstakeApp.DefaultNodeHome, address.NewBech32Codec(app.Bech32PrefixValAddr)),
 		genutilcli.ValidateGenesisCmd(pstakeApp.ModuleBasics),
 		AddGenesisAccountCmd(pstakeApp.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		testnetCmd(pstakeApp.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
-		config.Cmd(),
+		confixcmd.ConfigCommand(),
 	)
 
 	ac := appCreator{
@@ -130,10 +137,9 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
+		keys.Commands(),
 		queryCommand(),
-		txCommand(),
-		keys.Commands(pstakeApp.DefaultNodeHome),
+		txCommand(tempApp),
 	)
 }
 
@@ -152,9 +158,7 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		authcmd.GetAccountCmd(),
 		rpc.ValidatorCommand(),
-		rpc.BlockCommand(),
 		authcmd.QueryTxsByEventsCmd(),
 		authcmd.QueryTxCmd(),
 	)
@@ -165,7 +169,7 @@ func queryCommand() *cobra.Command {
 	return cmd
 }
 
-func txCommand() *cobra.Command {
+func txCommand(tempApp pstakeApp.PstakeApp) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "tx",
 		Short:                      "Transactions subcommands",
@@ -185,8 +189,7 @@ func txCommand() *cobra.Command {
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
 	)
-
-	pstakeApp.ModuleBasics.AddTxCommands(cmd)
+	tempApp.BasicModuleManager.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd

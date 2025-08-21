@@ -3,8 +3,7 @@ package liquidstake_test
 import (
 	"testing"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,7 +11,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	chain "github.com/persistenceOne/pstake-native/v4/app"
-	testhelpers "github.com/persistenceOne/pstake-native/v4/app/helpers"
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake"
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
 )
@@ -32,9 +30,9 @@ func TestModuleTestSuite(t *testing.T) {
 }
 
 func (s *ModuleTestSuite) SetupTest() {
-	s.app = testhelpers.Setup(s.T(), false, 5)
-	s.ctx = s.app.BaseApp.NewContext(false, tmproto.Header{})
-	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(testhelpers.ParseTime("2022-03-01T00:00:00Z"))
+	s.app = chain.Setup(s.T(), false, 5)
+	s.ctx = s.app.BaseApp.NewContext(false)
+	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(chain.ParseTime("2022-03-01T00:00:00Z"))
 	s.appModule = liquidstake.NewAppModule(s.app.LiquidStakeKeeper)
 	s.basicModule = liquidstake.AppModuleBasic{}
 	s.cdc = s.app.AppCodec()
@@ -97,11 +95,7 @@ func (s *ModuleTestSuite) TestAppModule() {
 	s.Require().Equal(uint64(1), s.appModule.ConsensusVersion())
 
 	// Test BeginBlock
-	s.appModule.BeginBlock(s.ctx, abci.RequestBeginBlock{})
-
-	// Test EndBlock
-	validatorUpdates = s.appModule.EndBlock(s.ctx, abci.RequestEndBlock{})
-	s.Require().Len(validatorUpdates, 0)
+	s.appModule.BeginBlock(s.ctx)
 }
 
 // Test invalid genesis state
@@ -112,7 +106,7 @@ func TestValidateGenesisFail(t *testing.T) {
 	// Create invalid genesis state with negative unstake fee rate
 	invalidGenesis := types.GenesisState{
 		Params: types.Params{
-			UnstakeFeeRate: sdk.NewDecWithPrec(-1, 2), // -0.01
+			UnstakeFeeRate: math.LegacyNewDecWithPrec(-1, 2), // -0.01
 		},
 	}
 	invalidGenesisBz, err := cdc.MarshalJSON(&invalidGenesis)

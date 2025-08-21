@@ -175,7 +175,7 @@ message QueryExchangeRateRequest { string chain_id = 1; }
 
 message QueryExchangeRateResponse {
   string rate = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Dec"
   ];

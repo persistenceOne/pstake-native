@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
+	evidencetypes "cosmossdk.io/x/evidence/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,15 +14,12 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
 	chain "github.com/persistenceOne/pstake-native/v4/app"
-	testhelpers "github.com/persistenceOne/pstake-native/v4/app/helpers"
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/keeper"
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
 )
@@ -46,8 +43,8 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	s.app = testhelpers.Setup(s.T(), false, 5)
-	s.ctx = s.app.BaseApp.NewContext(false, tmproto.Header{})
+	s.app = chain.Setup(s.T(), false, 5)
+	s.ctx = s.app.BaseApp.NewContextLegacy(false, tmproto.Header{})
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.MaxEntries = 7
 	stakingParams.MaxValidators = 30
@@ -55,13 +52,13 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.keeper = s.app.LiquidStakeKeeper
 	s.querier = keeper.Querier{Keeper: s.keeper}
-	s.addrs = testhelpers.AddTestAddrs(s.app, s.ctx, 10, math.NewInt(1_000_000_000))
-	s.delAddrs = testhelpers.AddTestAddrs(s.app, s.ctx, 10, math.NewInt(1_000_000_000))
-	s.valAddrs = testhelpers.ConvertAddrsToValAddrs(s.delAddrs)
+	s.addrs = chain.AddTestAddrs(s.app, s.ctx, 10, math.NewInt(1_000_000_000))
+	s.delAddrs = chain.AddTestAddrs(s.app, s.ctx, 10, math.NewInt(1_000_000_000))
+	s.valAddrs = chain.ConvertAddrsToValAddrs(s.delAddrs)
 
-	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(testhelpers.ParseTime("2022-03-01T00:00:00Z"))
+	s.ctx = s.ctx.WithBlockHeight(100).WithBlockTime(chain.ParseTime("2022-03-01T00:00:00Z"))
 	params := s.keeper.GetParams(s.ctx)
-	params.UnstakeFeeRate = sdk.ZeroDec()
+	params.UnstakeFeeRate = math.LegacyZeroDec()
 	params.AutocompoundFeeRate = types.DefaultAutocompoundFeeRate
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
 	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
@@ -75,22 +72,28 @@ func (s *KeeperTestSuite) TearDownTest() {
 }
 
 func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []sdk.ValAddress, []cryptotypes.PubKey) {
-	s.app.BeginBlocker(s.ctx, abci.RequestBeginBlock{})
+	_, err := s.app.BeginBlocker(s.ctx)
+	if err != nil {
+		return nil, nil, nil
+	}
 	num := len(powers)
-	addrs := testhelpers.AddTestAddrsIncremental(s.app, s.ctx, num, math.NewInt(10000000000000))
-	valAddrs := testhelpers.ConvertAddrsToValAddrs(addrs)
-	pks := testhelpers.CreateTestPubKeys(num)
-	skParams := s.app.StakingKeeper.GetParams(s.ctx)
-	skParams.ValidatorLiquidStakingCap = sdk.OneDec()
+	addrs := chain.AddTestAddrsIncremental(s.app, s.ctx, num, math.NewInt(10000000000000))
+	valAddrs := chain.ConvertAddrsToValAddrs(addrs)
+	pks := chain.CreateTestPubKeys(num)
+	skParams, err := s.app.StakingKeeper.GetParams(s.ctx)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+	skParams.ValidatorLiquidStakingCap = math.LegacyOneDec()
 	_ = s.app.StakingKeeper.SetParams(s.ctx, skParams)
 	for i, power := range powers {
-		val, err := stakingtypes.NewValidator(valAddrs[i], pks[i], stakingtypes.Description{})
+		val, err := stakingtypes.NewValidator(valAddrs[i].String(), pks[i], stakingtypes.Description{})
 		s.Require().NoError(err)
 		s.app.StakingKeeper.SetValidator(s.ctx, val)
 		err = s.app.StakingKeeper.SetValidatorByConsAddr(s.ctx, val)
 		s.Require().NoError(err)
 		s.app.StakingKeeper.SetNewValidatorByPowerIndex(s.ctx, val)
-		_ = s.app.StakingKeeper.Hooks().AfterValidatorCreated(s.ctx, val.GetOperator())
+		_ = s.app.StakingKeeper.Hooks().AfterValidatorCreated(s.ctx, valAddrs[i])
 		newShares, err := s.app.StakingKeeper.Delegate(s.ctx, addrs[i], math.NewInt(power), stakingtypes.Unbonded, val, true)
 		s.Require().NoError(err)
 		s.Require().Equal(newShares.TruncateInt(), math.NewInt(power))
@@ -103,7 +106,7 @@ func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []
 		s.Require().NoError(err)
 	}
 
-	s.app.EndBlocker(s.ctx, abci.RequestEndBlock{})
+	s.app.EndBlocker(s.ctx)
 	return addrs, valAddrs, pks
 }
 
@@ -174,12 +177,12 @@ func (s *KeeperTestSuite) liquidUnstaking(
 			sdk.DefaultBondDenom,
 		)
 		for _, v := range alv {
-			_, found := s.app.StakingKeeper.GetUnbondingDelegation(
+			_, err := s.app.StakingKeeper.GetUnbondingDelegation(
 				ctx,
 				liquidStaker,
 				v.GetOperator(),
 			)
-			s.Require().False(found)
+			s.Require().Error(err)
 		}
 
 		s.Require().EqualValues(
@@ -229,10 +232,10 @@ func (s *KeeperTestSuite) liquidUnstakingWithResult(
 	}
 
 	for _, v := range alv {
-		_, found := s.app.StakingKeeper.GetUnbondingDelegation(
+		_, err := s.app.StakingKeeper.GetUnbondingDelegation(
 			ctx, liquidStaker, v.GetOperator(),
 		)
-		s.Require().True(found)
+		s.Require().NoError(err)
 	}
 
 	writeCache()
@@ -240,25 +243,32 @@ func (s *KeeperTestSuite) liquidUnstakingWithResult(
 }
 
 func (s *KeeperTestSuite) RequireNetAmountStateZero() {
-	nas := s.keeper.GetNetAmountState(s.ctx)
-	s.Require().EqualValues(nas.MintRate, sdk.ZeroDec())
-	s.Require().EqualValues(nas.StkxprtTotalSupply, sdk.ZeroInt())
-	s.Require().EqualValues(nas.NetAmount, sdk.ZeroDec())
-	s.Require().EqualValues(nas.TotalDelShares, sdk.ZeroDec())
-	s.Require().EqualValues(nas.TotalLiquidTokens, sdk.ZeroInt())
-	s.Require().EqualValues(nas.TotalRemainingRewards, sdk.ZeroDec())
-	s.Require().EqualValues(nas.TotalUnbondingBalance, sdk.ZeroDec())
-	s.Require().EqualValues(nas.ProxyAccBalance, sdk.ZeroInt())
+	nas, err := s.keeper.GetNetAmountState(s.ctx)
+	s.Require().NoError(err)
+	s.Require().EqualValues(nas.MintRate, math.LegacyZeroDec())
+	s.Require().EqualValues(nas.StkxprtTotalSupply, math.ZeroInt())
+	s.Require().EqualValues(nas.NetAmount, math.LegacyZeroDec())
+	s.Require().EqualValues(nas.TotalDelShares, math.LegacyZeroDec())
+	s.Require().EqualValues(nas.TotalLiquidTokens, math.ZeroInt())
+	s.Require().EqualValues(nas.TotalRemainingRewards, math.LegacyZeroDec())
+	s.Require().EqualValues(nas.TotalUnbondingBalance, math.LegacyZeroDec())
+	s.Require().EqualValues(nas.ProxyAccBalance, math.ZeroInt())
 }
 
 // advance block time and height for complete redelegations and unbondings
 func (s *KeeperTestSuite) completeRedelegationUnbonding() {
+	headerInfo := s.ctx.HeaderInfo()
+	headerInfo.Time = s.ctx.BlockTime().Add(stakingtypes.DefaultUnbondingTime)
 	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 100).
-		WithBlockTime(s.ctx.BlockTime().Add(stakingtypes.DefaultUnbondingTime))
-	s.app.EndBlocker(s.ctx, abci.RequestEndBlock{})
-	reds := s.app.StakingKeeper.GetRedelegations(s.ctx, types.LiquidStakeProxyAcc, 100)
+		WithBlockTime(s.ctx.BlockTime().Add(stakingtypes.DefaultUnbondingTime)).
+		WithHeaderInfo(headerInfo)
+	_, err := s.app.EndBlocker(s.ctx)
+	s.Require().NoError(err)
+	reds, err := s.app.StakingKeeper.GetRedelegations(s.ctx, types.LiquidStakeProxyAcc, 100)
+	s.Require().NoError(err)
 	s.Require().Len(reds, 0)
-	ubds := s.app.StakingKeeper.GetUnbondingDelegations(s.ctx, types.LiquidStakeProxyAcc, 100)
+	ubds, err := s.app.StakingKeeper.GetUnbondingDelegations(s.ctx, types.LiquidStakeProxyAcc, 100)
+	s.Require().NoError(err)
 	s.Require().Len(ubds, 0)
 }
 
@@ -273,7 +283,9 @@ func (s *KeeperTestSuite) redelegationsErrorCount(redelegations []types.Redelega
 }
 
 func (s *KeeperTestSuite) printRedelegationsLiquidTokens() {
-	redsIng := s.app.StakingKeeper.GetRedelegations(s.ctx, types.LiquidStakeProxyAcc, 50)
+	redsIng, err := s.app.StakingKeeper.GetRedelegations(s.ctx, types.LiquidStakeProxyAcc, 50)
+	s.Require().NoError(err)
+
 	if len(redsIng) != 0 {
 		fmt.Println("[Redelegations]")
 		for i, red := range redsIng {
@@ -326,7 +338,7 @@ func (s *KeeperTestSuite) advanceHeight(height int, _ bool) {
 		)
 
 		s.Require().NoError(err)
-		totalRewards := sdk.ZeroDec()
+		totalRewards := math.LegacyZeroDec()
 		totalPower := int64(0)
 		s.app.StakingKeeper.IterateBondedValidatorsByPower(
 			s.ctx,
@@ -366,14 +378,16 @@ func (s *KeeperTestSuite) advanceHeight(height int, _ bool) {
 
 		remaining := rewardsToBeDistributed.ToLegacyDec().Sub(totalRewards)
 		s.Require().False(remaining.GT(math.LegacyNewDec(1)))
-		feePool := s.app.DistrKeeper.GetFeePool(s.ctx)
+		feePool, err := s.app.DistrKeeper.FeePool.Get(s.ctx)
+		s.Require().NoError(err)
 		feePool.CommunityPool = feePool.CommunityPool.Add(
 			sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: remaining}}...,
 		)
 
-		s.app.DistrKeeper.SetFeePool(s.ctx, feePool)
+		err = s.app.DistrKeeper.FeePool.Set(s.ctx, feePool)
+		s.Require().NoError(err)
 
-		staking.EndBlocker(s.ctx, s.app.StakingKeeper)
+		s.app.StakingKeeper.EndBlocker(s.ctx)
 	}
 }
 
@@ -381,41 +395,36 @@ func (s *KeeperTestSuite) advanceHeight(height int, _ bool) {
 func (s *KeeperTestSuite) doubleSign(valOper sdk.ValAddress, consAddr sdk.ConsAddress) {
 	liquidValidator, found := s.keeper.GetLiquidValidator(s.ctx, valOper)
 	s.Require().True(found)
-	val, found := s.app.StakingKeeper.GetValidator(s.ctx, valOper)
-	s.Require().True(found)
+	val, err := s.app.StakingKeeper.GetValidator(s.ctx, valOper)
+	s.Require().NoError(err)
 	tokens := val.Tokens
 	liquidTokens := liquidValidator.GetLiquidTokens(s.ctx, s.app.StakingKeeper, false)
 
 	// check sign info
-	info, found := s.app.SlashingKeeper.GetValidatorSigningInfo(s.ctx, consAddr)
-	s.Require().True(found)
+	info, err := s.app.SlashingKeeper.GetValidatorSigningInfo(s.ctx, consAddr)
+	s.Require().NoError(err)
 	s.Require().Equal(info.Address, consAddr.String())
 
-	// make evidence
-	evidence := &evidencetypes.Equivocation{
-		// Height: 0,
-		// Time:   time.Unix(0, 0),
-		Height:           s.ctx.BlockHeight(),
-		Time:             s.ctx.BlockTime(),
-		Power:            s.app.StakingKeeper.TokensToConsensusPower(s.ctx, tokens),
-		ConsensusAddress: consAddr.String(),
-	}
-
-	// Double sign
-	s.app.EvidenceKeeper.HandleEquivocationEvidence(s.ctx, evidence)
 	// HandleEquivocationEvidence call below functions
-	// s.app.SlashingKeeper.Slash()
-	// s.app.SlashingKeeper.Jail(s.ctx, consAddr)
-	// s.app.SlashingKeeper.JailUntil(s.ctx, consAddr, evidencetypes.DoubleSignJailEndTime)
-	// s.app.SlashingKeeper.Tombstone(s.ctx, consAddr)
+	err = s.app.SlashingKeeper.Slash(s.ctx, consAddr, math.LegacyMustNewDecFromStr("0.05"),
+		s.app.StakingKeeper.TokensToConsensusPower(s.ctx, tokens), s.ctx.BlockHeight())
+	s.Require().NoError(err)
+	err = s.app.SlashingKeeper.Jail(s.ctx, consAddr)
+	s.Require().NoError(err)
+	err = s.app.SlashingKeeper.JailUntil(s.ctx, consAddr, evidencetypes.DoubleSignJailEndTime)
+	s.Require().NoError(err)
+	err = s.app.SlashingKeeper.Tombstone(s.ctx, consAddr)
+	s.Require().NoError(err)
 
 	// should be jailed and tombstoned
-	s.Require().True(s.app.StakingKeeper.Validator(s.ctx, liquidValidator.GetOperator()).IsJailed())
+	valI, err := s.app.StakingKeeper.Validator(s.ctx, liquidValidator.GetOperator())
+	s.Require().NoError(err)
+	s.Require().True(valI.IsJailed())
 	s.Require().True(s.app.SlashingKeeper.IsTombstoned(s.ctx, consAddr))
 
 	// check tombstoned on sign info
-	info, found = s.app.SlashingKeeper.GetValidatorSigningInfo(s.ctx, consAddr)
-	s.Require().True(found)
+	info, err = s.app.SlashingKeeper.GetValidatorSigningInfo(s.ctx, consAddr)
+	s.Require().NoError(err)
 	s.Require().True(info.Tombstoned)
 	val, _ = s.app.StakingKeeper.GetValidator(s.ctx, valOper)
 	s.Require().True(s.keeper.IsTombstoned(s.ctx, val))
@@ -438,16 +447,17 @@ func (s *KeeperTestSuite) createContinuousVestingAccount(
 	baseAccount := s.app.AccountKeeper.NewAccountWithAddress(s.ctx, to)
 	_, ok := baseAccount.(*authtypes.BaseAccount)
 	s.Require().True(ok)
-	baseVestingAccount := vestingtypes.NewBaseVestingAccount(
+	baseVestingAccount, err := vestingtypes.NewBaseVestingAccount(
 		baseAccount.(*authtypes.BaseAccount), amt, endTime.Unix(),
 	)
+	s.Require().NoError(err)
 
 	cVestingAcc := vestingtypes.NewContinuousVestingAccountRaw(
 		baseVestingAccount, startTime.Unix(),
 	)
 
 	s.app.AccountKeeper.SetAccount(s.ctx, cVestingAcc)
-	err := s.app.BankKeeper.SendCoins(s.ctx, from, to, amt)
+	err = s.app.BankKeeper.SendCoins(s.ctx, from, to, amt)
 	s.Require().NoError(err)
 
 	return *cVestingAcc

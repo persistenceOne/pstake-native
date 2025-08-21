@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
@@ -152,7 +151,7 @@ func TestValidateWhitelistedValidators(t *testing.T) {
 				params.WhitelistedValidators = []types.WhitelistedValidator{
 					{
 						ValidatorAddress: "persistencevaloper19rz0gtqf88vwk6dwz522ajpqpv5swunqm9z90m",
-						TargetWeight:     sdk.ZeroInt(),
+						TargetWeight:     math.ZeroInt(),
 					},
 				}
 			},
@@ -161,7 +160,7 @@ func TestValidateWhitelistedValidators(t *testing.T) {
 		{
 			"nil unstake fee rate",
 			func(params *types.Params) {
-				params.UnstakeFeeRate = sdk.Dec{}
+				params.UnstakeFeeRate = math.LegacyDec{}
 			},
 			"unstake fee rate must not be nil",
 		},

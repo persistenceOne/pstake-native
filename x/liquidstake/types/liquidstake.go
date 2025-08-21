@@ -46,9 +46,9 @@ func (v LiquidValidator) GetOperator() sdk.ValAddress {
 }
 
 func (v LiquidValidator) GetDelShares(ctx sdk.Context, sk StakingKeeper) math.LegacyDec {
-	del, found := sk.GetDelegation(ctx, LiquidStakeProxyAcc, v.GetOperator())
-	if !found {
-		return sdk.ZeroDec()
+	del, err := sk.GetDelegation(ctx, LiquidStakeProxyAcc, v.GetOperator())
+	if err != nil {
+		return math.LegacyZeroDec()
 	}
 	return del.GetShares()
 }
@@ -56,11 +56,14 @@ func (v LiquidValidator) GetDelShares(ctx sdk.Context, sk StakingKeeper) math.Le
 func (v LiquidValidator) GetLiquidTokens(ctx sdk.Context, sk StakingKeeper, onlyBonded bool) math.Int {
 	delShares := v.GetDelShares(ctx, sk)
 	if !delShares.IsPositive() {
-		return sdk.ZeroInt()
+		return math.ZeroInt()
 	}
-	val := sk.Validator(ctx, v.GetOperator())
+	val, err := sk.Validator(ctx, v.GetOperator())
+	if err != nil {
+		return math.ZeroInt()
+	}
 	if onlyBonded && !val.IsBonded() {
-		return sdk.ZeroInt()
+		return math.ZeroInt()
 	}
 	return val.TokensFromSharesTruncated(delShares).TruncateInt()
 }
@@ -70,7 +73,7 @@ func (v LiquidValidator) GetWeight(whitelistedValsMap WhitelistedValsMap, active
 		return wv.TargetWeight
 	}
 
-	return sdk.ZeroInt()
+	return math.ZeroInt()
 }
 
 func (v LiquidValidator) GetStatus(activeCondition bool) ValidatorStatus {
@@ -103,8 +106,8 @@ type (
 
 // MinMaxGap Return the list of LiquidValidator with the maximum gap and minimum gap from the target weight of LiquidValidators, respectively.
 func (vs LiquidValidators) MinMaxGap(targetMap, liquidTokenMap map[string]math.Int) (minGapVal, maxGapVal LiquidValidator, amountNeeded math.Int, lastRedelegation bool) {
-	maxGap := sdk.ZeroInt()
-	minGap := sdk.ZeroInt()
+	maxGap := math.ZeroInt()
+	minGap := math.ZeroInt()
 
 	for _, val := range vs {
 		gap := liquidTokenMap[val.OperatorAddress].Sub(targetMap[val.OperatorAddress])
@@ -117,7 +120,7 @@ func (vs LiquidValidators) MinMaxGap(targetMap, liquidTokenMap map[string]math.I
 			minGapVal = val
 		}
 	}
-	amountNeeded = sdk.MinInt(maxGap, minGap.Abs())
+	amountNeeded = math.MinInt(maxGap, minGap.Abs())
 	// lastRedelegation when maxGap validator's liquid token == amountNeeded for redelegation all delShares
 	lastRedelegation = amountNeeded.IsPositive() &&
 		!targetMap[maxGapVal.OperatorAddress].IsPositive() &&
@@ -131,7 +134,7 @@ func (vs LiquidValidators) Len() int {
 }
 
 func (vs LiquidValidators) TotalLiquidTokens(ctx sdk.Context, sk StakingKeeper, onlyBonded bool) (math.Int, map[string]math.Int) {
-	totalLiquidTokens := sdk.ZeroInt()
+	totalLiquidTokens := math.ZeroInt()
 	liquidTokenMap := map[string]math.Int{}
 	for _, lv := range vs {
 		liquidTokens := lv.GetLiquidTokens(ctx, sk, onlyBonded)
@@ -159,7 +162,7 @@ func (avs ActiveLiquidValidators) TotalActiveLiquidTokens(ctx sdk.Context, sk St
 
 // TotalWeight for active liquid validator
 func (avs ActiveLiquidValidators) TotalWeight(whitelistedValsMap WhitelistedValsMap) math.Int {
-	totalWeight := sdk.ZeroInt()
+	totalWeight := math.ZeroInt()
 	for _, val := range avs {
 		totalWeight = totalWeight.Add(val.GetWeight(whitelistedValsMap, true))
 	}
@@ -178,7 +181,7 @@ func StkXPRTToNativeToken(stkXPRTAmount, stkXPRTTotalSupplyAmount math.Int, netA
 
 // DeductFeeRate returns Input * (1-FeeRate) with truncations
 func DeductFeeRate(input, feeRate math.LegacyDec) (feeDeductedOutput math.LegacyDec) {
-	return input.MulTruncate(sdk.OneDec().Sub(feeRate)).TruncateDec()
+	return input.MulTruncate(math.LegacyOneDec().Sub(feeRate)).TruncateDec()
 }
 
 func (nas NetAmountState) CalcNetAmount() math.LegacyDec {
@@ -187,7 +190,7 @@ func (nas NetAmountState) CalcNetAmount() math.LegacyDec {
 
 func (nas NetAmountState) CalcMintRate() math.LegacyDec {
 	if nas.NetAmount.IsNil() || !nas.NetAmount.IsPositive() {
-		return sdk.ZeroDec()
+		return math.LegacyZeroDec()
 	}
 	return math.LegacyNewDecFromInt(nas.StkxprtTotalSupply).QuoTruncate(nas.NetAmount)
 }

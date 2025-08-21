@@ -108,7 +108,7 @@ message MsgJumpStart {
   string base_denom = 6;
   string mint_denom = 7;
   string min_deposit = 8 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   AllowListedValidators allow_listed_validators = 9

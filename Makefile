@@ -225,14 +225,10 @@ endif
 e2e-test-basic: rm-testcache
 	cd interchaintest && go test -race -v -run TestBasicPersistenceStart .
 
-# Executes IBC tests via interchaintest
-e2e-test-ibc-transfer: rm-testcache
-	cd interchaintest && go test -race -v -run TestPersistenceGaiaIBCTransfer .
-
 rm-testcache:
 	go clean -testcache
 
-.PHONY: e2e-test-basic e2e-test-ibc-transfer
+.PHONY: e2e-test-basic
 
 
 ###############################################################################

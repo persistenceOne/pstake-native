@@ -33,7 +33,7 @@ message AllowListedValidator {
   string target_weight = 2 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.moretags) = "yaml:\"target_weight\"",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 }
@@ -41,22 +41,22 @@ message AllowListedValidator {
 message PstakeParams {
   string pstake_deposit_fee = 1 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ]; // protocol fee in percentage
   string pstake_restake_fee = 2 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ]; // protocol fee in percentage
   string pstake_unstake_fee = 3 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ]; // protocol fee in percentage
   string pstake_redemption_fee = 4 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ]; // protocol fee in percentage
   string pstake_fee_address = 5
@@ -75,7 +75,7 @@ message HostChainParams {
   string mint_denom = 6;
   string min_deposit = 7 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   PstakeParams pstake_params = 8 [ (gogoproto.nullable) = false ];
