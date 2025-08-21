@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/server"
 	"io"
 	stdlog "log"
 	"os"
@@ -36,6 +35,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
+	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -700,7 +700,6 @@ func (app *PstakeApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
@@ -767,7 +766,7 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 	if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
 			Added:   []string{},
-			Deleted: []string{"capability"}, //ibc-all apps
+			Deleted: []string{"capability"}, // ibc-all apps
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades

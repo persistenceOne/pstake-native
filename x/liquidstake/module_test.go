@@ -1,9 +1,9 @@
 package liquidstake_test
 
 import (
-	"cosmossdk.io/math"
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -96,7 +96,6 @@ func (s *ModuleTestSuite) TestAppModule() {
 
 	// Test BeginBlock
 	s.appModule.BeginBlock(s.ctx)
-
 }
 
 // Test invalid genesis state

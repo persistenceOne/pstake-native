@@ -2,11 +2,11 @@ package app
 
 import (
 	"github.com/cosmos/cosmos-sdk/std"
+
+	"github.com/persistenceOne/pstake-native/v4/app/params"
 	liquidstakeibctypes "github.com/persistenceOne/pstake-native/v4/x/liquidstakeibc/types"
 	lscosmostypes "github.com/persistenceOne/pstake-native/v4/x/lscosmos/types"
 	ratesynctypes "github.com/persistenceOne/pstake-native/v4/x/ratesync/types"
-
-	"github.com/persistenceOne/pstake-native/v4/app/params"
 )
 
 // MakeEncodingConfig creates an EncodingConfig for testing
