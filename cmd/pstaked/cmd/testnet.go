@@ -33,8 +33,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -145,11 +143,7 @@ func InitTestnet(
 	simappConfig.Telemetry.PrometheusRetentionTime = 60
 	simappConfig.Telemetry.EnableHostnameLabel = false
 	simappConfig.Telemetry.GlobalLabels = [][]string{{"chain_id", chainID}}
-	simappConfig.BypassMinFeeMsgTypes = []string{
-		sdk.MsgTypeURL(&ibcchanneltypes.MsgRecvPacket{}),
-		sdk.MsgTypeURL(&ibcchanneltypes.MsgAcknowledgement{}),
-		sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{}),
-	}
+	simappConfig.BypassMinFeeMsgTypes = []string{}
 
 	var (
 		genAccounts []authtypes.GenesisAccount
