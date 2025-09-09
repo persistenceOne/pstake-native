@@ -7,8 +7,8 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/persistenceOne/pstake-native/v4/app"
-	"github.com/persistenceOne/pstake-native/v4/cmd/pstaked/cmd"
+	"github.com/persistenceOne/pstake-native/v5/app"
+	"github.com/persistenceOne/pstake-native/v5/cmd/pstaked/cmd"
 )
 
 func main() {

@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
+	"github.com/persistenceOne/pstake-native/v5/x/liquidstake/types"
 )
 
 // InitGenesis initializes the liquidstake module's state from a given genesis state.

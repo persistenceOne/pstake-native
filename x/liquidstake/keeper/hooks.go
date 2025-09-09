@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	epochstypes "github.com/persistenceOne/persistence-sdk/v4/x/epochs/types"
 
-	liquidstake "github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
+	liquidstake "github.com/persistenceOne/pstake-native/v5/x/liquidstake/types"
 )
 
 type EpochHooks struct {
