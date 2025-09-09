@@ -36,6 +36,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v4.0.0]
 
 ### Features
 
@@ -51,10 +52,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - move modules interfaces/codecs encodings ([#981](https://github.com/persistenceOne/pstake-native/pull/981))
 - remove module usage for deprecated modules ([#982](https://github.com/persistenceOne/pstake-native/pull/982))
 - remove ibc-go direct dep ([#998](https://github.com/persistenceOne/pstake-native/pull/998))
-
-### Chores
-
-- prep v5 ([#1012](https://github.com/persistenceOne/pstake-native/pull/1012))
 
 ## [v3.0.0]
 
