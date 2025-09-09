@@ -16,7 +16,7 @@ import (
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/stretchr/testify/suite"
 
-	pstakeapp "github.com/persistenceOne/pstake-native/v4/app"
+	pstakeapp "github.com/persistenceOne/pstake-native/v5/app"
 )
 
 type IntegrationTestSuite struct {

@@ -1,4 +1,4 @@
-module github.com/persistenceOne/pstake-native/v4/interchaintest
+module github.com/persistenceOne/pstake-native/v5/interchaintest
 
 go 1.23.6
 

@@ -17,7 +17,7 @@ import (
 	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
 	"github.com/stretchr/testify/require"
 
-	pstake "github.com/persistenceOne/pstake-native/v4/app"
+	pstake "github.com/persistenceOne/pstake-native/v5/app"
 )
 
 func init() {

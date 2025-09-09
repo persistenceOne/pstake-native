@@ -92,11 +92,11 @@ import (
 	epochstypes "github.com/persistenceOne/persistence-sdk/v4/x/epochs/types"
 	"github.com/spf13/cast"
 
-	pstakeante "github.com/persistenceOne/pstake-native/v4/ante"
-	pstakeappparams "github.com/persistenceOne/pstake-native/v4/app/params"
-	"github.com/persistenceOne/pstake-native/v4/x/liquidstake"
-	liquidstakekeeper "github.com/persistenceOne/pstake-native/v4/x/liquidstake/keeper"
-	liquidstaketypes "github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
+	pstakeante "github.com/persistenceOne/pstake-native/v5/ante"
+	pstakeappparams "github.com/persistenceOne/pstake-native/v5/app/params"
+	"github.com/persistenceOne/pstake-native/v5/x/liquidstake"
+	liquidstakekeeper "github.com/persistenceOne/pstake-native/v5/x/liquidstake/keeper"
+	liquidstaketypes "github.com/persistenceOne/pstake-native/v5/x/liquidstake/types"
 )
 
 var (
