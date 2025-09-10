@@ -1379,8 +1379,8 @@ github.com/pelletier/go-toml/v2 v2.2.4/go.mod h1:2gIqNv+qfxSVS7cM2xJQKtLSTLUE9V8
 github.com/performancecopilot/speed v3.0.0+incompatible/go.mod h1:/CLtqpZ5gBg1M9iaPbIdPPGyKcA8hKdoy6hAWba7Yac=
 github.com/persistenceOne/cosmos-sdk v0.50.14-lsm h1:nf87WQ7fhIsekp5m83ih6u0oU6IceuojB4iI409u95M=
 github.com/persistenceOne/cosmos-sdk v0.50.14-lsm/go.mod h1:8CJlYj/xdcvCgiy8sZS9t0TPbRoJo1tdLtDBzZLkXIY=
-github.com/persistenceOne/persistence-sdk/v4 v4.0.0-rc1 h1:ezBIbfWx7XfqjVefDqsqibu54J1RBvawVqNK2qiZrsI=
-github.com/persistenceOne/persistence-sdk/v4 v4.0.0-rc1/go.mod h1:kG3WEe0g9boReX0b1J2IW6ASVoUVjb9iYXOza0TodmI=
+github.com/persistenceOne/persistence-sdk/v4 v4.0.0 h1:rV3hNaEyrPdG87IqEN7OEit0LrYgLlmsll9lwVxcXxk=
+github.com/persistenceOne/persistence-sdk/v4 v4.0.0/go.mod h1:kG3WEe0g9boReX0b1J2IW6ASVoUVjb9iYXOza0TodmI=
 github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 h1:Dx7Ovyv/SFnMFw3fD4oEoeorXc6saIiQ23LrGLth0Gw=
 github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7/go.mod h1:pxMtw7cyUw6B2bRH0ZBANSPg+AoSud1I1iyJHI69jH4=
 github.com/phpdave11/gofpdf v1.4.2/go.mod h1:zpO6xFn9yxo3YLyMvW8HcKWVdbNqgIfOOp2dXMnm1mY=
