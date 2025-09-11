@@ -345,7 +345,10 @@ func NewpStakeApp(
 
 	app.LiquidKeeper = *liquidkeeper.NewKeeper(appCodec,
 		runtime.NewKVStoreService(keys[liquidtypes.StoreKey]),
-		app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.DistrKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.StakingKeeper,
+		app.DistrKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -364,6 +367,7 @@ func NewpStakeApp(
 		app.MintKeeper,
 		app.DistrKeeper,
 		app.SlashingKeeper,
+		app.LiquidKeeper,
 		app.MsgServiceRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)

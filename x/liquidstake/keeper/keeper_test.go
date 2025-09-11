@@ -97,13 +97,6 @@ func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []
 		newShares, err := s.app.StakingKeeper.Delegate(s.ctx, addrs[i], math.NewInt(power), stakingtypes.Unbonded, val, true)
 		s.Require().NoError(err)
 		s.Require().Equal(newShares.TruncateInt(), math.NewInt(power))
-		msgValidatorBond := &stakingtypes.MsgValidatorBond{
-			DelegatorAddress: addrs[i].String(),
-			ValidatorAddress: val.OperatorAddress,
-		}
-		handler := s.app.MsgServiceRouter().Handler(msgValidatorBond)
-		_, err = handler(s.ctx, msgValidatorBond)
-		s.Require().NoError(err)
 	}
 
 	s.app.EndBlocker(s.ctx)
