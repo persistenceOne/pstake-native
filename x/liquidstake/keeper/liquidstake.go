@@ -14,6 +14,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	liquidtypes "github.com/cosmos/gaia/v24/x/liquid/types"
 
 	"github.com/persistenceOne/pstake-native/v5/x/liquidstake/types"
 )
@@ -319,7 +320,7 @@ func (k Keeper) UnbondWithCap(
 	userAddress sdk.AccAddress,
 ) (math.Int, error) {
 	// perform an LSM tokenize->bank send->redeem flow: moving delegation from proxyAcc onto user's account
-	lsmTokenizeMsg := &stakingtypes.MsgTokenizeShares{
+	lsmTokenizeMsg := &liquidtypes.MsgTokenizeShares{
 		DelegatorAddress:    delegatorAddress.String(),
 		ValidatorAddress:    validatorAddress.String(),
 		Amount:              amount,
@@ -356,7 +357,7 @@ func (k Keeper) UnbondWithCap(
 		)
 	}
 
-	var lsmTokenizeResp stakingtypes.MsgTokenizeSharesResponse
+	var lsmTokenizeResp liquidtypes.MsgTokenizeSharesResponse
 	if err = k.cdc.Unmarshal(msgResp.MsgResponses[0].Value, &lsmTokenizeResp); err != nil {
 		return math.ZeroInt(), errorsmod.Wrapf(
 			sdkerrors.ErrJSONUnmarshal,
@@ -371,7 +372,7 @@ func (k Keeper) UnbondWithCap(
 		return math.ZeroInt(), err
 	}
 
-	lsmRedeemMsg := &stakingtypes.MsgRedeemTokensForShares{
+	lsmRedeemMsg := &liquidtypes.MsgRedeemTokensForShares{
 		DelegatorAddress: userAddress.String(),
 		Amount:           lsmTokenizeResp.Amount,
 	}
@@ -405,7 +406,7 @@ func (k Keeper) UnbondWithCap(
 		)
 	}
 
-	var lsmRedeemResp stakingtypes.MsgRedeemTokensForSharesResponse
+	var lsmRedeemResp liquidtypes.MsgRedeemTokensForSharesResponse
 	if err = k.cdc.Unmarshal(msgResp.MsgResponses[0].Value, &lsmRedeemResp); err != nil {
 		return math.ZeroInt(), errorsmod.Wrapf(
 			sdkerrors.ErrJSONUnmarshal,
@@ -592,7 +593,7 @@ func (k Keeper) LSMDelegate(
 
 	// perform an LSM tokenize->bank send->redeem flow: moving delegation from user's account onto proxyAcc
 
-	lsmTokenizeMsg := &stakingtypes.MsgTokenizeShares{
+	lsmTokenizeMsg := &liquidtypes.MsgTokenizeShares{
 		DelegatorAddress:    delegator.String(),
 		ValidatorAddress:    validator.String(),
 		Amount:              preLsmStake,
@@ -629,7 +630,7 @@ func (k Keeper) LSMDelegate(
 		)
 	}
 
-	var lsmTokenizeResp stakingtypes.MsgTokenizeSharesResponse
+	var lsmTokenizeResp liquidtypes.MsgTokenizeSharesResponse
 	if err = k.cdc.Unmarshal(msgResp.MsgResponses[0].Value, &lsmTokenizeResp); err != nil {
 		return math.ZeroInt(), errorsmod.Wrapf(
 			sdkerrors.ErrJSONUnmarshal,
@@ -644,7 +645,7 @@ func (k Keeper) LSMDelegate(
 		return stkXPRTMintAmount, err
 	}
 
-	lsmRedeemMsg := &stakingtypes.MsgRedeemTokensForShares{
+	lsmRedeemMsg := &liquidtypes.MsgRedeemTokensForShares{
 		DelegatorAddress: proxyAcc.String(),
 		Amount:           lsmTokenizeResp.Amount,
 	}
@@ -679,7 +680,7 @@ func (k Keeper) LSMDelegate(
 		)
 	}
 
-	var lsmRedeemResp stakingtypes.MsgRedeemTokensForSharesResponse
+	var lsmRedeemResp liquidtypes.MsgRedeemTokensForSharesResponse
 	if err = k.cdc.Unmarshal(msgResp.MsgResponses[0].Value, &lsmRedeemResp); err != nil {
 		return math.ZeroInt(), errorsmod.Wrapf(
 			sdkerrors.ErrJSONUnmarshal,
