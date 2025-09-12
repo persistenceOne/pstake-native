@@ -92,9 +92,9 @@ import (
 	"github.com/cosmos/gaia/v24/x/liquid"
 	liquidkeeper "github.com/cosmos/gaia/v24/x/liquid/keeper"
 	liquidtypes "github.com/cosmos/gaia/v24/x/liquid/types"
-	"github.com/persistenceOne/persistence-sdk/v4/x/epochs"
-	epochskeeper "github.com/persistenceOne/persistence-sdk/v4/x/epochs/keeper"
-	epochstypes "github.com/persistenceOne/persistence-sdk/v4/x/epochs/types"
+	"github.com/persistenceOne/persistence-sdk/v5/x/epochs"
+	epochskeeper "github.com/persistenceOne/persistence-sdk/v5/x/epochs/keeper"
+	epochstypes "github.com/persistenceOne/persistence-sdk/v5/x/epochs/types"
 	"github.com/spf13/cast"
 
 	pstakeante "github.com/persistenceOne/pstake-native/v5/ante"
