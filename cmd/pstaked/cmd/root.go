@@ -78,8 +78,14 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			return server.InterceptConfigsPreRunHandler(cmd, customTemplate, custompStakeConfig, customTMConfig)
 		},
 	}
+	autoCliOpts := tempApp.AutoCliOpts()
+	initClientCtx, _ = config.ReadFromClientConfig(initClientCtx)
+	autoCliOpts.ClientCtx = initClientCtx
 
 	initRootCmd(rootCmd, encodingConfig, *tempApp)
+	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+		panic(err)
+	}
 
 	return rootCmd, encodingConfig
 }

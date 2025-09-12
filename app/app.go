@@ -10,6 +10,8 @@ import (
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+	"cosmossdk.io/client/v2/autocli"
+	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
 	store "cosmossdk.io/store/types"
 	"cosmossdk.io/x/evidence"
@@ -794,5 +796,26 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+}
+
+// AutoCliOpts returns the autocli options for the app.
+func (app *PstakeApp) AutoCliOpts() autocli.AppOptions {
+	modules := make(map[string]appmodule.AppModule, 0)
+	for _, m := range app.mm.Modules {
+		if moduleWithName, ok := m.(module.HasName); ok {
+			moduleName := moduleWithName.Name()
+			if appModule, ok := moduleWithName.(appmodule.AppModule); ok {
+				modules[moduleName] = appModule
+			}
+		}
+	}
+
+	return autocli.AppOptions{
+		Modules:               modules,
+		ModuleOptions:         runtimeservices.ExtractAutoCLIOptions(app.mm.Modules),
+		AddressCodec:          addresscodec.NewBech32Codec(Bech32PrefixAccAddr),
+		ValidatorAddressCodec: addresscodec.NewBech32Codec(Bech32PrefixValAddr),
+		ConsensusAddressCodec: addresscodec.NewBech32Codec(Bech32PrefixConsAddr),
 	}
 }
