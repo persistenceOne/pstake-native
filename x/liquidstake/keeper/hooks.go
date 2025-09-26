@@ -34,7 +34,7 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, _ int6
 		}
 
 		// This has been commented as introducing redelegations for rebalancing affects stkAsset unstake flow
-		// https://github.com/cosmos/gaia/security/advisories/GHSA-r47q-464x-wx5x,
+		// https://github.com/cosmos/gaia/security/advisories/GHSA-r47q-464x-wx5x.
 		// TODO think of better approach for rebalancing
 		//if epochIdentifier == liquidstake.RebalanceEpoch {
 		//	// return value of UpdateLiquidValidatorSet is useful only in testing
