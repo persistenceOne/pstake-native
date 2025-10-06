@@ -36,6 +36,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v5.0.0]
+
 ### Refactoring
 
 - replace sdk-lsm to use gaia/liquid ([#1017](https://github.com/persistenceOne/pstake-native/pull/1017))
