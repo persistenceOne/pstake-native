@@ -80,12 +80,12 @@ func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []
 	addrs := chain.AddTestAddrsIncremental(s.app, s.ctx, num, math.NewInt(10000000000000))
 	valAddrs := chain.ConvertAddrsToValAddrs(addrs)
 	pks := chain.CreateTestPubKeys(num)
-	skParams, err := s.app.StakingKeeper.GetParams(s.ctx)
+	skParams, err := s.app.LiquidKeeper.GetParams(s.ctx)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 	skParams.ValidatorLiquidStakingCap = math.LegacyOneDec()
-	_ = s.app.StakingKeeper.SetParams(s.ctx, skParams)
+	_ = s.app.LiquidKeeper.SetParams(s.ctx, skParams)
 	for i, power := range powers {
 		val, err := stakingtypes.NewValidator(valAddrs[i].String(), pks[i], stakingtypes.Description{})
 		s.Require().NoError(err)
