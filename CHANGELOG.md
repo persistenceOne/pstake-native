@@ -36,6 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Chores
+
+- remove cosmos-sdk fork usage ([#1023](https://github.com/persistenceOne/pstake-native/pull/1023))
+
 ## [v5.0.0]
 
 ### Refactoring
