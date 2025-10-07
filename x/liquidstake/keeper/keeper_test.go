@@ -19,9 +19,9 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
-	chain "github.com/persistenceOne/pstake-native/v4/app"
-	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/keeper"
-	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
+	chain "github.com/persistenceOne/pstake-native/v5/app"
+	"github.com/persistenceOne/pstake-native/v5/x/liquidstake/keeper"
+	"github.com/persistenceOne/pstake-native/v5/x/liquidstake/types"
 )
 
 var BlockTime = 6 * time.Second
@@ -80,12 +80,12 @@ func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []
 	addrs := chain.AddTestAddrsIncremental(s.app, s.ctx, num, math.NewInt(10000000000000))
 	valAddrs := chain.ConvertAddrsToValAddrs(addrs)
 	pks := chain.CreateTestPubKeys(num)
-	skParams, err := s.app.StakingKeeper.GetParams(s.ctx)
+	skParams, err := s.app.LiquidKeeper.GetParams(s.ctx)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 	skParams.ValidatorLiquidStakingCap = math.LegacyOneDec()
-	_ = s.app.StakingKeeper.SetParams(s.ctx, skParams)
+	_ = s.app.LiquidKeeper.SetParams(s.ctx, skParams)
 	for i, power := range powers {
 		val, err := stakingtypes.NewValidator(valAddrs[i].String(), pks[i], stakingtypes.Description{})
 		s.Require().NoError(err)
@@ -97,13 +97,6 @@ func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []
 		newShares, err := s.app.StakingKeeper.Delegate(s.ctx, addrs[i], math.NewInt(power), stakingtypes.Unbonded, val, true)
 		s.Require().NoError(err)
 		s.Require().Equal(newShares.TruncateInt(), math.NewInt(power))
-		msgValidatorBond := &stakingtypes.MsgValidatorBond{
-			DelegatorAddress: addrs[i].String(),
-			ValidatorAddress: val.OperatorAddress,
-		}
-		handler := s.app.MsgServiceRouter().Handler(msgValidatorBond)
-		_, err = handler(s.ctx, msgValidatorBond)
-		s.Require().NoError(err)
 	}
 
 	s.app.EndBlocker(s.ctx)

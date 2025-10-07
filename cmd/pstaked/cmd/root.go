@@ -32,9 +32,9 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
-	"github.com/persistenceOne/pstake-native/v4/app"
-	pstakeApp "github.com/persistenceOne/pstake-native/v4/app"
-	"github.com/persistenceOne/pstake-native/v4/app/params"
+	"github.com/persistenceOne/pstake-native/v5/app"
+	pstakeApp "github.com/persistenceOne/pstake-native/v5/app"
+	"github.com/persistenceOne/pstake-native/v5/app/params"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the
@@ -78,8 +78,14 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			return server.InterceptConfigsPreRunHandler(cmd, customTemplate, custompStakeConfig, customTMConfig)
 		},
 	}
+	autoCliOpts := tempApp.AutoCliOpts()
+	initClientCtx, _ = config.ReadFromClientConfig(initClientCtx)
+	autoCliOpts.ClientCtx = initClientCtx
 
 	initRootCmd(rootCmd, encodingConfig, *tempApp)
+	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+		panic(err)
+	}
 
 	return rootCmd, encodingConfig
 }

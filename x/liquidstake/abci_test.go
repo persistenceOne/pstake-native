@@ -7,9 +7,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	chain "github.com/persistenceOne/pstake-native/v4/app"
-	"github.com/persistenceOne/pstake-native/v4/x/liquidstake"
-	"github.com/persistenceOne/pstake-native/v4/x/liquidstake/keeper"
+	chain "github.com/persistenceOne/pstake-native/v5/app"
+	"github.com/persistenceOne/pstake-native/v5/x/liquidstake"
+	"github.com/persistenceOne/pstake-native/v5/x/liquidstake/keeper"
 )
 
 type ABCITestSuite struct {

@@ -36,8 +36,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/persistenceOne/pstake-native/v4/app"
-	"github.com/persistenceOne/pstake-native/v4/app/params"
+	"github.com/persistenceOne/pstake-native/v5/app"
+	"github.com/persistenceOne/pstake-native/v5/app/params"
 )
 
 var (
@@ -228,6 +228,7 @@ func InitTestnet(
 			sdk.NewCoin(sdk.DefaultBondDenom, valTokens),
 			stakingtypes.NewDescription(nodeDirName, "", "", "", ""),
 			stakingtypes.NewCommissionRates(math.LegacyOneDec(), math.LegacyOneDec(), math.LegacyOneDec()),
+			math.OneInt(),
 		)
 		if err != nil {
 			return err

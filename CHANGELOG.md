@@ -36,6 +36,18 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Chores
+
+- remove cosmos-sdk fork usage ([#1023](https://github.com/persistenceOne/pstake-native/pull/1023))
+
+## [v5.0.0]
+
+### Refactoring
+
+- replace sdk-lsm to use gaia/liquid ([#1017](https://github.com/persistenceOne/pstake-native/pull/1017))
+- stop rebalancing as it introduces redelegations ([#1020](https://github.com/persistenceOne/pstake-native/pull/1020))
+
+## [v4.0.0]
 
 ### Features
 

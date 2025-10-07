@@ -37,7 +37,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
-	appparams "github.com/persistenceOne/pstake-native/v4/app/params"
+	appparams "github.com/persistenceOne/pstake-native/v5/app/params"
 )
 
 // SimAppChainID hardcoded chainID for simulation

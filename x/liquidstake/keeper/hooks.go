@@ -2,9 +2,9 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	epochstypes "github.com/persistenceOne/persistence-sdk/v4/x/epochs/types"
+	epochstypes "github.com/persistenceOne/persistence-sdk/v5/x/epochs/types"
 
-	liquidstake "github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
+	liquidstake "github.com/persistenceOne/pstake-native/v5/x/liquidstake/types"
 )
 
 type EpochHooks struct {
@@ -33,10 +33,13 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, _ int6
 			k.AutocompoundStakingRewards(ctx, liquidstake.GetWhitelistedValsMap(k.GetParams(ctx).WhitelistedValidators))
 		}
 
-		if epochIdentifier == liquidstake.RebalanceEpoch {
-			// return value of UpdateLiquidValidatorSet is useful only in testing
-			_ = k.UpdateLiquidValidatorSet(ctx, true)
-		}
+		// This has been commented as introducing redelegations for rebalancing affects stkAsset unstake flow
+		// https://github.com/cosmos/gaia/security/advisories/GHSA-r47q-464x-wx5x.
+		// TODO think of better approach for rebalancing
+		//if epochIdentifier == liquidstake.RebalanceEpoch {
+		//	// return value of UpdateLiquidValidatorSet is useful only in testing
+		//	_ = k.UpdateLiquidValidatorSet(ctx, true)
+		//}
 	}
 
 	return nil

@@ -10,6 +10,8 @@ import (
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+	"cosmossdk.io/client/v2/autocli"
+	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
 	store "cosmossdk.io/store/types"
 	"cosmossdk.io/x/evidence"
@@ -87,16 +89,19 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/persistenceOne/persistence-sdk/v4/x/epochs"
-	epochskeeper "github.com/persistenceOne/persistence-sdk/v4/x/epochs/keeper"
-	epochstypes "github.com/persistenceOne/persistence-sdk/v4/x/epochs/types"
+	"github.com/cosmos/gaia/v24/x/liquid"
+	liquidkeeper "github.com/cosmos/gaia/v24/x/liquid/keeper"
+	liquidtypes "github.com/cosmos/gaia/v24/x/liquid/types"
+	"github.com/persistenceOne/persistence-sdk/v5/x/epochs"
+	epochskeeper "github.com/persistenceOne/persistence-sdk/v5/x/epochs/keeper"
+	epochstypes "github.com/persistenceOne/persistence-sdk/v5/x/epochs/types"
 	"github.com/spf13/cast"
 
-	pstakeante "github.com/persistenceOne/pstake-native/v4/ante"
-	pstakeappparams "github.com/persistenceOne/pstake-native/v4/app/params"
-	"github.com/persistenceOne/pstake-native/v4/x/liquidstake"
-	liquidstakekeeper "github.com/persistenceOne/pstake-native/v4/x/liquidstake/keeper"
-	liquidstaketypes "github.com/persistenceOne/pstake-native/v4/x/liquidstake/types"
+	pstakeante "github.com/persistenceOne/pstake-native/v5/ante"
+	pstakeappparams "github.com/persistenceOne/pstake-native/v5/app/params"
+	"github.com/persistenceOne/pstake-native/v5/x/liquidstake"
+	liquidstakekeeper "github.com/persistenceOne/pstake-native/v5/x/liquidstake/keeper"
+	liquidstaketypes "github.com/persistenceOne/pstake-native/v5/x/liquidstake/types"
 )
 
 var (
@@ -125,6 +130,7 @@ var (
 		evidence.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		epochs.AppModuleBasic{},
+		liquid.AppModuleBasic{},
 		liquidstake.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 		wasm.AppModuleBasic{},
@@ -180,10 +186,12 @@ type PstakeApp struct {
 	ParamsKeeper          paramskeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
-	EvidenceKeeper    evidencekeeper.Keeper
-	FeeGrantKeeper    feegrantkeeper.Keeper
-	AuthzKeeper       authzkeeper.Keeper
-	EpochsKeeper      *epochskeeper.Keeper
+	EvidenceKeeper evidencekeeper.Keeper
+	FeeGrantKeeper feegrantkeeper.Keeper
+	AuthzKeeper    authzkeeper.Keeper
+	EpochsKeeper   *epochskeeper.Keeper
+
+	LiquidKeeper      liquidkeeper.Keeper
 	LiquidStakeKeeper liquidstakekeeper.Keeper
 
 	// the module manager
@@ -231,7 +239,7 @@ func NewpStakeApp(
 		govtypes.StoreKey, paramstypes.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey,
 		feegrant.StoreKey, authzkeeper.StoreKey,
-		epochstypes.StoreKey, liquidstaketypes.StoreKey, consensusparamtypes.StoreKey,
+		epochstypes.StoreKey, liquidtypes.StoreKey, liquidstaketypes.StoreKey, consensusparamtypes.StoreKey,
 	)
 	tkeys := store.NewTransientStoreKeys(paramstypes.TStoreKey)
 
@@ -337,10 +345,19 @@ func NewpStakeApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	app.LiquidKeeper = *liquidkeeper.NewKeeper(appCodec,
+		runtime.NewKVStoreService(keys[liquidtypes.StoreKey]),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.StakingKeeper,
+		app.DistrKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	app.StakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
+		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks(), app.LiquidKeeper.Hooks()),
 	)
 
 	app.LiquidStakeKeeper = liquidstakekeeper.NewKeeper(
@@ -352,6 +369,7 @@ func NewpStakeApp(
 		app.MintKeeper,
 		app.DistrKeeper,
 		app.SlashingKeeper,
+		app.LiquidKeeper,
 		app.MsgServiceRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -427,6 +445,7 @@ func NewpStakeApp(
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		params.NewAppModule(app.ParamsKeeper),
 		epochs.NewAppModule(*app.EpochsKeeper),
+		liquid.NewAppModule(appCodec, &app.LiquidKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		liquidstake.NewAppModule(app.LiquidStakeKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 	)
@@ -454,6 +473,7 @@ func NewpStakeApp(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
+		liquidtypes.ModuleName,
 		liquidstaketypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
@@ -474,6 +494,7 @@ func NewpStakeApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
+		liquidtypes.ModuleName,
 		liquidstaketypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
@@ -501,13 +522,17 @@ func NewpStakeApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
+		liquidtypes.ModuleName,
 		liquidstaketypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
-	app.mm.RegisterServices(app.configurator)
+	err := app.mm.RegisterServices(app.configurator)
+	if err != nil {
+		panic(err)
+	}
 
 	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.mm.Modules))
 
@@ -771,5 +796,26 @@ func (app *PstakeApp) RegisterUpgradeHandler() {
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+}
+
+// AutoCliOpts returns the autocli options for the app.
+func (app *PstakeApp) AutoCliOpts() autocli.AppOptions {
+	modules := make(map[string]appmodule.AppModule, 0)
+	for _, m := range app.mm.Modules {
+		if moduleWithName, ok := m.(module.HasName); ok {
+			moduleName := moduleWithName.Name()
+			if appModule, ok := moduleWithName.(appmodule.AppModule); ok {
+				modules[moduleName] = appModule
+			}
+		}
+	}
+
+	return autocli.AppOptions{
+		Modules:               modules,
+		ModuleOptions:         runtimeservices.ExtractAutoCLIOptions(app.mm.Modules),
+		AddressCodec:          addresscodec.NewBech32Codec(Bech32PrefixAccAddr),
+		ValidatorAddressCodec: addresscodec.NewBech32Codec(Bech32PrefixValAddr),
+		ConsensusAddressCodec: addresscodec.NewBech32Codec(Bech32PrefixConsAddr),
 	}
 }
