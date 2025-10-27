@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	chain "github.com/persistenceOne/pstake-native/v5/app"
-	"github.com/persistenceOne/pstake-native/v5/x/liquidstake/keeper"
-	"github.com/persistenceOne/pstake-native/v5/x/liquidstake/types"
+	chain "github.com/persistenceOne/pstake-native/v6/app"
+	"github.com/persistenceOne/pstake-native/v6/x/liquidstake/keeper"
+	"github.com/persistenceOne/pstake-native/v6/x/liquidstake/types"
 )
 
 var whitelistedValidators = []types.WhitelistedValidator{

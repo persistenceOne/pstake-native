@@ -16,7 +16,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	liquidtypes "github.com/cosmos/gaia/v24/x/liquid/types"
 
-	"github.com/persistenceOne/pstake-native/v5/x/liquidstake/types"
+	"github.com/persistenceOne/pstake-native/v6/x/liquidstake/types"
 )
 
 func (k Keeper) LiquidBondDenom(ctx sdk.Context) string {

@@ -12,7 +12,7 @@ import "pstake/liquidstakeibc/v1beta1/liquidstakeibc.proto";
 
 // this line is used by starport scaffolding # 1
 
-option go_package = "github.com/persistenceOne/pstake-native/v5/x/liquidstakeibc/types";
+option go_package = "github.com/persistenceOne/pstake-native/v6/x/liquidstakeibc/types";
 
 // Query defines the gRPC querier service.
 service Query {
