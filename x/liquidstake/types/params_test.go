@@ -6,7 +6,7 @@ import (
 	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
-	"github.com/persistenceOne/pstake-native/v5/x/liquidstake/types"
+	"github.com/persistenceOne/pstake-native/v6/x/liquidstake/types"
 )
 
 func TestParams(t *testing.T) {

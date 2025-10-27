@@ -8,7 +8,7 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	types "github.com/persistenceOne/pstake-native/v5/x/liquidstakeibc/types"
+	types "github.com/persistenceOne/pstake-native/v6/x/liquidstakeibc/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"
