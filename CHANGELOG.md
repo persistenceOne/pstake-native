@@ -35,10 +35,21 @@ Ref: https://keepachangelog.com/en/1.0.0/
 # Changelog
 
 ## [Unreleased]
+### Features
+
+- update-cosmos-sdk to 0.53.x, use cosmos-sdk/x/epochs ([#1034](https://github.com/persistenceOne/pstake-native/pull/1034))
+
+## [v6.0.0]
+
+### Features
+
+
+## [v5.1.0]
 
 ### Chores
 
 - remove cosmos-sdk fork usage ([#1023](https://github.com/persistenceOne/pstake-native/pull/1023))
+
 
 ## [v5.0.0]
 
@@ -448,4 +459,3 @@ Never released.
 ### Features
 
 - liquid staking module for cosmoshub-4
-

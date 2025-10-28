@@ -67,6 +67,9 @@ import (
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/cosmos/cosmos-sdk/x/epochs"
+	epochskeeper "github.com/cosmos/cosmos-sdk/x/epochs/keeper"
+	epochstypes "github.com/cosmos/cosmos-sdk/x/epochs/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -92,9 +95,6 @@ import (
 	"github.com/cosmos/gaia/v24/x/liquid"
 	liquidkeeper "github.com/cosmos/gaia/v24/x/liquid/keeper"
 	liquidtypes "github.com/cosmos/gaia/v24/x/liquid/types"
-	"github.com/persistenceOne/persistence-sdk/v5/x/epochs"
-	epochskeeper "github.com/persistenceOne/persistence-sdk/v5/x/epochs/keeper"
-	epochstypes "github.com/persistenceOne/persistence-sdk/v5/x/epochs/types"
 	"github.com/spf13/cast"
 
 	pstakeante "github.com/persistenceOne/pstake-native/v6/ante"
@@ -129,7 +129,7 @@ var (
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		vesting.AppModuleBasic{},
-		epochs.AppModuleBasic{},
+		epochs.AppModule{},
 		liquid.AppModuleBasic{},
 		liquidstake.AppModuleBasic{},
 		consensus.AppModuleBasic{},
@@ -336,7 +336,8 @@ func NewpStakeApp(
 		app.AccountKeeper.AddressCodec(),
 	)
 
-	app.EpochsKeeper = epochskeeper.NewKeeper(keys[epochstypes.StoreKey])
+	epochsKeeper := epochskeeper.NewKeeper(runtime.NewKVStoreService(keys[epochstypes.StoreKey]), app.appCodec)
+	app.EpochsKeeper = &epochsKeeper
 
 	app.UpgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,

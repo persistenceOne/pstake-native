@@ -1,8 +1,10 @@
 package keeper
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	epochstypes "github.com/persistenceOne/persistence-sdk/v5/x/epochs/types"
+	epochstypes "github.com/cosmos/cosmos-sdk/x/epochs/types"
 
 	liquidstake "github.com/persistenceOne/pstake-native/v6/x/liquidstake/types"
 )
@@ -17,20 +19,21 @@ func (k Keeper) EpochHooks() EpochHooks {
 	return EpochHooks{k}
 }
 
-func (h EpochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+func (h EpochHooks) BeforeEpochStart(ctx context.Context, epochIdentifier string, epochNumber int64) error {
 	return h.k.BeforeEpochStart(ctx, epochIdentifier, epochNumber)
 }
 
-func (h EpochHooks) AfterEpochEnd(_ sdk.Context, _ string, _ int64) error {
+func (h EpochHooks) AfterEpochEnd(_ context.Context, _ string, _ int64) error {
 	// Nothing to do
 	return nil
 }
 
-func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, _ int64) error {
-	if !k.GetParams(ctx).ModulePaused {
+func (k Keeper) BeforeEpochStart(ctx context.Context, epochIdentifier string, _ int64) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	if !k.GetParams(sdkCtx).ModulePaused {
 		// Update the liquid validator set at the start of each epoch
 		if epochIdentifier == liquidstake.AutocompoundEpoch {
-			k.AutocompoundStakingRewards(ctx, liquidstake.GetWhitelistedValsMap(k.GetParams(ctx).WhitelistedValidators))
+			k.AutocompoundStakingRewards(sdkCtx, liquidstake.GetWhitelistedValsMap(k.GetParams(sdkCtx).WhitelistedValidators))
 		}
 
 		// This has been commented as introducing redelegations for rebalancing affects stkAsset unstake flow
@@ -38,7 +41,7 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, _ int6
 		// TODO think of better approach for rebalancing
 		//if epochIdentifier == liquidstake.RebalanceEpoch {
 		//	// return value of UpdateLiquidValidatorSet is useful only in testing
-		//	_ = k.UpdateLiquidValidatorSet(ctx, true)
+		//	_ = k.UpdateLiquidValidatorSet(sdkCtx, true)
 		//}
 	}
 
