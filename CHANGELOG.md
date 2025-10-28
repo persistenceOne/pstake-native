@@ -37,12 +37,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [Unreleased]
 ### Features
 
-- update-cosmos-sdk to 0.53.x, use cosmos-sdk/x/epochs ([#1034](https://github.com/persistenceOne/pstake-native/pull/1034))
-
 ## [v6.0.0]
 
 ### Features
 
+- update-cosmos-sdk to 0.53.x, use cosmos-sdk/x/epochs ([#1034](https://github.com/persistenceOne/pstake-native/pull/1034))
 
 ## [v5.1.0]
 
