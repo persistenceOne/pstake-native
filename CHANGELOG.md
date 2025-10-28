@@ -40,6 +40,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - remove cosmos-sdk fork usage ([#1023](https://github.com/persistenceOne/pstake-native/pull/1023))
 
+### Features
+
+- update-cosmos-sdk, use cosmos-sdk/x/epochs ([#1034](https://github.com/persistenceOne/pstake-native/pull/1034))
+
 ## [v5.0.0]
 
 ### Refactoring
