@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
@@ -63,7 +62,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
 	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	// call mint.BeginBlocker for init k.SetLastBlockTime(ctx, ctx.BlockTime())
-	mint.BeginBlocker(s.ctx, s.app.MintKeeper, minttypes.DefaultInflationCalculationFn)
+	mint.BeginBlocker(s.ctx, s.app.MintKeeper)
 }
 
 func (s *KeeperTestSuite) TearDownTest() {
@@ -315,7 +314,7 @@ func (s *KeeperTestSuite) advanceHeight(height int, _ bool) {
 		s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 1).
 			WithBlockTime(s.ctx.BlockTime().Add(BlockTime))
 
-		mint.BeginBlocker(s.ctx, s.app.MintKeeper, minttypes.DefaultInflationCalculationFn)
+		mint.BeginBlocker(s.ctx, s.app.MintKeeper)
 		feeCollectorBalance := s.app.BankKeeper.GetAllBalances(
 			s.ctx, feeCollector,
 		)

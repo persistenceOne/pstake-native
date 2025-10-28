@@ -8,7 +8,6 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -275,7 +274,10 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.Require().NoError(s.keeper.SetParams(s.ctx, params))
 	s.keeper.UpdateLiquidValidatorSet(s.ctx, true)
 	// call mint.BeginBlocker for init k.SetLastBlockTime(ctx, ctx.BlockTime())
-	mint.BeginBlocker(s.ctx, s.app.MintKeeper, minttypes.DefaultInflationCalculationFn)
+	err := mint.BeginBlocker(s.ctx, s.app.MintKeeper)
+	if err != nil {
+		return
+	}
 }
 
 func (s *KeeperTestSuite) CreateValidators(powers []int64) ([]sdk.AccAddress, []sdk.ValAddress, []cryptotypes.PubKey) {
