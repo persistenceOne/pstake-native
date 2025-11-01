@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	liquidkeeper "github.com/cosmos/gaia/v24/x/liquid/keeper"
+	liquidkeeper "github.com/cosmos/gaia/v25/x/liquid/keeper"
 
 	"github.com/persistenceOne/pstake-native/v6/x/liquidstake/types"
 )
