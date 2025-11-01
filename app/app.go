@@ -92,9 +92,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/cosmos/gaia/v24/x/liquid"
-	liquidkeeper "github.com/cosmos/gaia/v24/x/liquid/keeper"
-	liquidtypes "github.com/cosmos/gaia/v24/x/liquid/types"
+	"github.com/cosmos/gaia/v25/x/liquid"
+	liquidkeeper "github.com/cosmos/gaia/v25/x/liquid/keeper"
+	liquidtypes "github.com/cosmos/gaia/v25/x/liquid/types"
 	"github.com/spf13/cast"
 
 	pstakeante "github.com/persistenceOne/pstake-native/v6/ante"

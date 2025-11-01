@@ -14,7 +14,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	liquidtypes "github.com/cosmos/gaia/v24/x/liquid/types"
+	liquidtypes "github.com/cosmos/gaia/v25/x/liquid/types"
 
 	"github.com/persistenceOne/pstake-native/v6/x/liquidstake/types"
 )
