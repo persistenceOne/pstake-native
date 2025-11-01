@@ -36,6 +36,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 ### Features
+- update gaia to v25 ([#1037](https://github.com/persistenceOne/pstake-native/pull/1037))
 
 ## [v6.0.0]
 
