@@ -67,15 +67,7 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx sdkclient.Context, mux
 }
 
 // GetTxCmd returns the root tx command for the liquidstake module.
-// Modifying parameters of a liquidstake can be done through governance process, not through transaction level.
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd()
-}
-
-// GetQueryCmd returns the root query command for the liquidstake module.
-func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
-}
+func (AppModuleBasic) GetTxCmd() *cobra.Command { return cli.GetTxCmd() }
 
 func (b AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
 	types.RegisterInterfaces(reg)
