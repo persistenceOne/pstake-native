@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec/address"
@@ -78,11 +79,14 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			return server.InterceptConfigsPreRunHandler(cmd, customTemplate, custompStakeConfig, customTMConfig)
 		},
 	}
+	initRootCmd(rootCmd, encodingConfig, *tempApp)
+
 	autoCliOpts := tempApp.AutoCliOpts()
 	initClientCtx, _ = config.ReadFromClientConfig(initClientCtx)
 	autoCliOpts.ClientCtx = initClientCtx
+	nodeCmds := nodeservice.NewNodeCommands()
+	autoCliOpts.ModuleOptions[nodeCmds.Name()] = nodeCmds.AutoCLIOptions()
 
-	initRootCmd(rootCmd, encodingConfig, *tempApp)
 	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
 		panic(err)
 	}
@@ -189,7 +193,6 @@ func txCommand(tempApp pstakeApp.PstakeApp) *cobra.Command {
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
 	)
-	tempApp.BasicModuleManager.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
