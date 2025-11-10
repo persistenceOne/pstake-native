@@ -36,6 +36,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 ### Features
+- autocli for liquidstake module ([#1042](https://github.com/persistenceOne/pstake-native/pull/1042))
 
 ## [v6.0.0]
 
