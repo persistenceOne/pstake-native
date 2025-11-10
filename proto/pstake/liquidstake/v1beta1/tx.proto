@@ -47,9 +47,9 @@ message MsgLiquidStake {
   option (amino.name) = "liquidstake/MsgLiquidStake";
 
   string delegator_address = 1
-      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
-  cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
 }
 
 // MsgLiquidStakeResponse defines the MsgLiquidStake response type.
@@ -64,13 +64,13 @@ message MsgStakeToLP {
   option (cosmos.msg.v1.signer) = "delegator_address";
 
   string delegator_address = 1
-      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   string validator_address = 2
-      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
-  cosmos.base.v1beta1.Coin staked_amount = 3 [ (gogoproto.nullable) = false ];
-  cosmos.base.v1beta1.Coin liquid_amount = 4 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin staked_amount = 3 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin liquid_amount = 4 [(gogoproto.nullable) = false];
 }
 
 // MsgStakeToLPResponse defines the MsgStakeToLP response type.
@@ -85,15 +85,15 @@ message MsgLiquidUnstake {
   option (cosmos.msg.v1.signer) = "delegator_address";
 
   string delegator_address = 1
-      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
-  cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
 }
 
 // MsgLiquidUnstakeResponse defines the MsgLiquidUnstake response type.
 message MsgLiquidUnstakeResponse {
   google.protobuf.Timestamp completion_time = 1
-      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+  [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 }
 
 message MsgUpdateParams {
@@ -104,13 +104,13 @@ message MsgUpdateParams {
 
   // authority is the address that controls the module (defaults to x/gov unless
   // overwritten).
-  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // params defines the parameters to update.
   //
   // NOTE: denom and whitelisted validators are not updated.
   //
-  Params params = 2 [ (gogoproto.nullable) = false ];
+  Params params = 2 [(gogoproto.nullable) = false];
 }
 
 // MsgUpdateParamsResponse defines the response structure for executing a
@@ -124,12 +124,12 @@ message MsgUpdateWhitelistedValidators {
 
   // Authority is the address that is allowed to update whitelisted validators,
   // defined as admin address in params (WhitelistAdminAddress).
-  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // WhitelistedValidators specifies the validators elected to become Active
   // Liquid Validators.
   repeated WhitelistedValidator whitelisted_validators = 2
-      [ (gogoproto.nullable) = false ];
+  [(gogoproto.nullable) = false];
 }
 
 // MsgUpdateWhitelistedValidatorsResponse defines the response structure for
@@ -144,7 +144,7 @@ message MsgSetModulePaused {
 
   // Authority is the address that is allowed to update module's paused state,
   // defined as admin address in params (WhitelistAdminAddress).
-  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // IsPaused represents the target state of the paused flag.
   bool is_paused = 2;
