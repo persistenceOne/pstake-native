@@ -1,5 +1,7 @@
 # PSTAKE-NATIVE
 
+**Archived** -> ./x/liquidstake module has been moved to persistenceCore/v17/x/liquidstake, other types have been moved to persistence-sdk/v7/x/...
+
 Welcome to the Pstake's (Cosmos) Liquid Staking Platform repository! This repository contains the source code and resources
 for `pstake-native`, a system for liquid-staking tokens on the Persistence blockchain.
 
